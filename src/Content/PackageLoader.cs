@@ -52,14 +52,6 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Load multiple packages using two-phase loading
-    /// </summary>
-    public void LoadPackages(List<string> packageFilePaths)
-    {
-        LoadPackagesTwoPhase(packageFilePaths);
-    }
-
-    /// <summary>
     /// Two-phase package loading:
     /// Phase 1: Parse all packages
     /// Phase 2: Apply in optimal order
@@ -982,10 +974,10 @@ public class PackageLoader
                 }
                 // NPCs no longer get default deck - that's for player only
 
-                if (deckDef?.ConversationDeck != null)
+                if (deckDef?.ProgressionDeck != null)
                 {
                     // Add NPC-specific progression cards
-                    foreach (KeyValuePair<string, int> kvp in deckDef.ConversationDeck)
+                    foreach (KeyValuePair<string, int> kvp in deckDef.ProgressionDeck)
                     {
                         string cardId = kvp.Key;
                         int count = kvp.Value;
@@ -1329,17 +1321,23 @@ public class PackageLoader
     private ConversationCard ConvertObservationDTOToCard(ObservationDTO dto)
     {
         // Observations become player cards
-        ConversationCard card = new ConversationCard
+        return new ConversationCard
         {
             Id = dto.Id,
             Description = dto.DisplayText ?? "",
             Focus = dto.Focus,
             TokenType = ConnectionType.Trust,
-            Difficulty = Difficulty.Medium
+            Difficulty = Difficulty.Medium,
+            CardType = CardType.Observation,
+            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            SuccessType = SuccessEffectType.None,
+            FailureType = FailureEffectType.None,
+            ExhaustType = ExhaustEffectType.None,
+            PersonalityTypes = new List<string>(),
+            LevelBonuses = new List<CardLevelBonus>(),
+            DialogueFragment = "",
+            VerbPhrase = ""
         };
-        card.CardType = CardType.Observation;
-        card.Persistence = PersistenceType.Thought; // Observations persist through LISTEN
-        return card;
     }
 
 
@@ -1709,7 +1707,7 @@ public class PackageLoader
         Player player = _gameWorld.GetPlayer();
         if (player.ConversationDeck == null)
         {
-            player.ConversationDeck = new CardDeck();
+            player.ConversationDeck = new PlayerCardDeck();
         }
 
         // Use the default deck as the player's starter deck
@@ -1723,12 +1721,14 @@ public class PackageLoader
                 if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                 {
                     ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                    // Add starter cards to player deck
+                    // Add starter cards to player deck as CardInstances (to track XP)
                     if (cardTemplate != null && IsStarterCard(cardTemplate))
                     {
                         for (int i = 0; i < count; i++)
                         {
-                            player.ConversationDeck.AddCard(cardTemplate);
+                            // Create a new CardInstance for each copy of the card
+                            CardInstance instance = new CardInstance(cardTemplate, "player_deck");
+                            player.ConversationDeck.AddCardInstance(instance);
                         }
                     }
                 }

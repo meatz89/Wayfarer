@@ -5,5 +5,35 @@
     "Neutral": 4,
     "Receptive": 5,
     "Trusting": 5
+  },
+  "cardProgression": {
+    "xpThresholds": [0, 3, 7, 15, 30, 50, 75, 100, 150, 200],
+    "levelBonuses": [
+      {
+        "level": 1,
+        "successBonus": 0,
+        "effects": []
+      },
+      {
+        "level": 2,
+        "successBonus": 10,
+        "effects": []
+      },
+      {
+        "level": 3,
+        "successBonus": 10,
+        "effects": ["gains_thought_persistence"]
+      },
+      {
+        "level": 4,
+        "successBonus": 20,
+        "effects": []
+      },
+      {
+        "level": 5,
+        "successBonus": 20,
+        "effects": ["ignores_failure_listen"]
+      }
+    ]
   }
 }

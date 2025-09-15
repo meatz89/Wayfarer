@@ -27,6 +27,12 @@ public class DeckDefinitionDTO
     public Dictionary<string, int> ConversationDeck { get; set; }
 
     /// <summary>
+    /// Progression deck card composition (card ID -> count)
+    /// NPC-specific cards that unlock at token thresholds
+    /// </summary>
+    public Dictionary<string, int> ProgressionDeck { get; set; }
+
+    /// <summary>
     /// Request deck card composition (card ID -> count)
     /// Used to load request/promise cards that define conversation options
     /// </summary>
@@ -40,6 +46,7 @@ public class DeckDefinitionDTO
     public DeckDefinitionDTO()
     {
         ConversationDeck = new Dictionary<string, int>();
+        ProgressionDeck = new Dictionary<string, int>();
         RequestDeck = new Dictionary<string, int>();
         ExchangeDeck = new Dictionary<string, int>();
     }

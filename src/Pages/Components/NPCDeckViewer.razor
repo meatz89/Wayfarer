@@ -169,7 +169,7 @@
                                 <div class="card-header">
                                     <span class="card-id">@card.Id</span>
                                     <span class="card-name">@(card.Description ?? card.Id)</span>
-                                    <span class="card-category @GetCategoryClass(card)">@GetCategoryName(card)</span>
+                                    <span class="card-category @GetCategoryClass(card)">@GetCategoryText(card)</span>
                                 </div>
                                 <div class="card-properties">
                                     <span>Token: @card.TokenType</span>
@@ -331,8 +331,8 @@
     [Inject] private GameFacade GameFacade { get; set; }
 
     private NPC CurrentNPC { get; set; }
-    private List<ConversationCard> ConversationCards { get; set; }
-    private List<ConversationCard> ProgressionCards { get; set; }
+    private List<CardInstance> ConversationCards { get; set; }
+    private List<CardInstance> ProgressionCards { get; set; }
 
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
@@ -363,17 +363,21 @@
         var player = GameFacade?.GetPlayer();
         if (player?.ConversationDeck != null)
         {
-            ConversationCards = player.ConversationDeck.GetAllCards().Cast<ConversationCard>().ToList();
+            ConversationCards = player.ConversationDeck.GetAllInstances().ToList();
         }
 
         // Get progression cards (NPC-specific cards that unlock with tokens)
+        // Convert templates to instances for display consistency
         if (CurrentNPC.ProgressionDeck != null)
         {
-            ProgressionCards = CurrentNPC.ProgressionDeck.GetAllCards().Cast<ConversationCard>().ToList();
+            ProgressionCards = CurrentNPC.ProgressionDeck.GetAllCards()
+                .Cast<ConversationCard>()
+                .Select(template => new CardInstance(template, "npc-progression"))
+                .ToList();
         }
     }
 
-    private bool IsProgressionCardUnlocked(ConversationCard card)
+    private bool IsProgressionCardUnlocked(CardInstance card)
     {
         if (CurrentNPC == null || GameFacade == null) return false;
 
@@ -396,7 +400,7 @@
         _ = GameScreen?.NavigateToScreen(ScreenMode.Location);
     }
     
-    private string GetCategoryClass(ConversationCard card)
+    private string GetCategoryClass(CardInstance card)
     {
         // Determine category based on card type
         // Note: Exchange cards are now separate ExchangeCard entities
@@ -411,7 +415,7 @@
         return "flow"; // Default
     }
     
-    private string GetPersistenceText(ConversationCard card)
+    private string GetPersistenceText(CardInstance card)
     {
         if (card.Persistence == PersistenceType.Impulse) return "Impulse";
         if (card.Persistence == PersistenceType.Opening) return "Opening";
@@ -419,17 +423,16 @@
         return "";
     }
     
-    private string GetCategoryName(ConversationCard card)
+    private string GetCategoryText(CardInstance card)
     {
-        // Determine category name based on card type
-        // Note: Exchange cards are now separate ExchangeCard entities
+        // Determine category display text based on card type
         if (card.CardType == CardType.Observation)
             return "OBSERVATION";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             return "PROMISE";
         if (card.CardType == CardType.BurdenGoal)
             return "BURDEN";
-        
+
         return "FLOW"; // Default
     }
 }

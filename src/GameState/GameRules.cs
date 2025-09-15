@@ -7,6 +7,42 @@ public class ListenDrawCountEntry
     public int DrawCount { get; set; }
 }
 
+public class LevelBonus
+{
+    public int Level { get; set; }
+    public int SuccessBonus { get; set; }
+    public List<string> Effects { get; set; } = new List<string>();
+}
+
+public class CardProgression
+{
+    public List<int> XpThresholds { get; set; } = new List<int>();
+    public List<LevelBonus> LevelBonuses { get; set; } = new List<LevelBonus>();
+
+    public int GetLevelFromXp(int xp)
+    {
+        for (int i = XpThresholds.Count - 1; i >= 0; i--)
+        {
+            if (xp >= XpThresholds[i])
+            {
+                return i + 1; // Levels are 1-indexed
+            }
+        }
+        return 1;
+    }
+
+    public LevelBonus GetBonusForLevel(int level)
+    {
+        return LevelBonuses.FirstOrDefault(b => b.Level == level);
+    }
+
+    public int GetTotalSuccessBonusForLevel(int level)
+    {
+        var bonus = LevelBonuses.FirstOrDefault(b => b.Level == level);
+        return bonus?.SuccessBonus ?? 0;
+    }
+}
+
 public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
@@ -17,22 +53,17 @@ public class GameRules
     public string Background = string.Empty;
     public string Name = "Wayfarer";
 
-    // Conversation configuration
-    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; } = new List<ListenDrawCountEntry>
-    {
-        // Default values (will be overridden by JSON config)
-        new ListenDrawCountEntry { State = ConnectionState.DISCONNECTED, DrawCount = 3 },
-        new ListenDrawCountEntry { State = ConnectionState.GUARDED, DrawCount = 4 },
-        new ListenDrawCountEntry { State = ConnectionState.NEUTRAL, DrawCount = 4 },
-        new ListenDrawCountEntry { State = ConnectionState.RECEPTIVE, DrawCount = 5 },
-        new ListenDrawCountEntry { State = ConnectionState.TRUSTING, DrawCount = 5 }
-    };
+    // Conversation configuration - MUST be loaded from JSON
+    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; }
 
     public int GetListenDrawCount(ConnectionState state)
     {
-        var entry = ListenDrawCounts?.FirstOrDefault(e => e.State == state);
-        return entry?.DrawCount ?? 3; // Default to 3 if not found
+        var entry = ListenDrawCounts.FirstOrDefault(e => e.State == state);
+        return entry.DrawCount; // No defaults - crash if not loaded from JSON
     }
+
+    // Card progression configuration - MUST be loaded from JSON
+    public CardProgression CardProgression { get; set; }
 
     // Resource Competition: Fixed Stamina Costs
     public const int STAMINA_COST_TRAVEL = 2;      // Per route segment

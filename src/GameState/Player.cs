@@ -76,7 +76,8 @@
 
     // PLAYER CONVERSATION DECK - Starter cards used in all conversations
     // The player's base conversation abilities that work with every NPC
-    public CardDeck ConversationDeck { get; set; } = new();
+    // Stores actual CardInstance objects to maintain XP between conversations
+    public PlayerCardDeck ConversationDeck { get; set; } = new();
 
     // PLAYER OBSERVATION DECK - Cards gained from exploring locations
     // Maximum 20 cards, tracks acquisition time for expiration

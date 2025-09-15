@@ -73,18 +73,15 @@ public static class ConversationCardParser
         if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
-        // Convert to ConversationCard (no more RequestCard subclass)
-        ConversationCard card = ConvertDTOToCard(dto);
-        
-        // Customize the ID for this specific NPC
-        card.Id = $"{cardId}_{npcId}";
-        return card;
+        // Convert to ConversationCard with customized ID for this specific NPC
+        string customId = $"{cardId}_{npcId}";
+        return ConvertDTOToCard(dto, null, customId);
     }
 
     /// <summary>
     /// Convert a ConversationCardDTO to a ConversationCard domain model
     /// </summary>
-    public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null)
+    public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null, string customId = null)
     {
         // Parse token type from connection type
         ConnectionType tokenType = ConnectionType.Trust;
@@ -128,41 +125,17 @@ public static class ConversationCardParser
         // Parse card type from DTO type field
         CardType cardType = ParseCardType(dto);
 
-        // Create ConversationCard with categorical properties
-        ConversationCard card = new ConversationCard
-        {
-            Id = dto.Id,
-            Description = dto.Description ?? "",
-            CardType = cardType,
-            TokenType = tokenType,
-            Focus = dto.Focus,
-            Difficulty = difficulty,
-            Persistence = persistence,
-            SuccessType = successType,
-            FailureType = failureType,
-            ExhaustType = exhaustType,
-            PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-            DialogueFragment = dto.DialogueFragment,
-            VerbPhrase = ""
-        };
-
-        // Set MinimumTokensRequired from JSON - no defaults
-        if (dto.MinimumTokensRequired.HasValue)
-        {
-            card.MinimumTokensRequired = dto.MinimumTokensRequired.Value;
-        }
-
-        // Set rapport threshold for goal cards from DTO
+        // Validate rapport threshold for goal cards
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
         {
             if (!dto.RapportThreshold.HasValue)
             {
                 throw new InvalidOperationException($"Goal card '{dto.Id}' of type {cardType} MUST have a rapportThreshold defined in JSON!");
             }
-            card.RapportThreshold = dto.RapportThreshold.Value;
         }
 
-        // Parse level bonuses if specified, otherwise they'll use default progression
+        // Parse level bonuses if specified
+        List<CardLevelBonus> levelBonuses = new List<CardLevelBonus>();
         if (dto.LevelBonuses != null && dto.LevelBonuses.Any())
         {
             foreach (CardLevelBonusDTO bonusDto in dto.LevelBonuses)
@@ -183,11 +156,30 @@ public static class ConversationCardParser
                     }
                 }
 
-                card.LevelBonuses.Add(bonus);
+                levelBonuses.Add(bonus);
             }
         }
 
-        return card;
+        // Create ConversationCard with all properties in initializer
+        return new ConversationCard
+        {
+            Id = customId ?? dto.Id,
+            Description = dto.Description ?? "",
+            CardType = cardType,
+            TokenType = tokenType,
+            Focus = dto.Focus,
+            Difficulty = difficulty,
+            Persistence = persistence,
+            SuccessType = successType,
+            FailureType = failureType,
+            ExhaustType = exhaustType,
+            PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
+            DialogueFragment = dto.DialogueFragment,
+            VerbPhrase = "",
+            MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
+            RapportThreshold = dto.RapportThreshold ?? 0,
+            LevelBonuses = levelBonuses
+        };
     }
 
     private static ConversationType? GetRequestTypeForConversation(ConversationType type)
@@ -242,36 +234,38 @@ public static class ConversationCardParser
             Enum.TryParse<ExhaustEffectType>(dto.ExhaustType, true, out exhaustType);
         }
 
-        ConversationCard card = new ConversationCard
+        // Parse difficulty if specified, otherwise use default
+        Difficulty difficulty = Difficulty.VeryEasy; // Goal cards typically always succeed
+        if (!string.IsNullOrEmpty(dto.Difficulty))
+        {
+            Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
+        }
+
+        // Parse token type
+        ConnectionType tokenType = ConnectionType.Trust; // Default
+        if (!string.IsNullOrEmpty(dto.ConnectionType))
+        {
+            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
+        }
+
+        return new ConversationCard
         {
             Id = dto.Id,
             Description = dto.Description,
             CardType = cardType,
             Focus = dto.Focus,
             DialogueFragment = dto.DialogueFragment,
-            Difficulty = Difficulty.VeryEasy, // Goal cards typically always succeed
+            Difficulty = difficulty,
             Persistence = persistence,
             SuccessType = successType,
             FailureType = failureType,
             ExhaustType = exhaustType,
-            RapportThreshold = dto.RapportThreshold
+            RapportThreshold = dto.RapportThreshold,
+            TokenType = tokenType,
+            VerbPhrase = "",
+            PersonalityTypes = new List<string>(),
+            LevelBonuses = new List<CardLevelBonus>()
         };
-
-        // Parse difficulty if specified
-        if (!string.IsNullOrEmpty(dto.Difficulty) &&
-            Enum.TryParse<Difficulty>(dto.Difficulty, true, out Difficulty difficulty))
-        {
-            card.Difficulty = difficulty;
-        }
-
-        // Parse token type
-        if (!string.IsNullOrEmpty(dto.ConnectionType) &&
-            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out ConnectionType tokenType))
-        {
-            card.TokenType = tokenType;
-        }
-
-        return card;
     }
 
     /// <summary>

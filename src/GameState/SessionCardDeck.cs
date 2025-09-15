@@ -24,6 +24,29 @@ public class SessionCardDeck
         return deck;
     }
 
+    /// <summary>
+    /// Create a session deck from existing CardInstance objects (preserves XP)
+    /// </summary>
+    public static SessionCardDeck CreateFromInstances(List<CardInstance> instances, string npcId)
+    {
+        SessionCardDeck deck = new SessionCardDeck(npcId);
+        foreach (CardInstance instance in instances)
+        {
+            // Create new instance referencing same template but preserving XP and context
+            CardInstance sessionInstance = new CardInstance(instance.Template, instance.SourceContext)
+            {
+                XP = instance.XP, // Preserve the XP!
+                InstanceId = instance.InstanceId, // Keep the same InstanceId for tracking
+                Context = instance.Context, // Preserve any existing context
+                IsPlayable = instance.IsPlayable // Preserve playability state
+            };
+
+            deck.drawPile.Add(sessionInstance);
+        }
+
+        return deck;
+    }
+
     public void AddCard(CardInstance card)
     {
         // Add new cards directly to draw pile

@@ -36,14 +36,14 @@ public class CardDeckManager
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Start with player's conversation deck (starter cards)
+        // Start with player's conversation deck (persistent CardInstances with XP)
         Player player = _gameWorld.GetPlayer();
-        List<ConversationCard> cardTemplates = new List<ConversationCard>();
+        List<CardInstance> playerInstances = new List<CardInstance>();
 
-        // Add all player starter cards
+        // Get all player's card instances (these have XP)
         if (player.ConversationDeck != null && player.ConversationDeck.Count > 0)
         {
-            cardTemplates.AddRange(player.ConversationDeck.GetAllCards());
+            playerInstances.AddRange(player.ConversationDeck.GetAllInstances());
         }
         else
         {
@@ -52,17 +52,22 @@ public class CardDeckManager
             // Continue anyway to avoid crash, but conversation will be unplayable
         }
 
-        // Add unlocked NPC progression cards based on tokens
+        // Create session deck from player's instances (preserves XP)
+        SessionCardDeck deck = SessionCardDeck.CreateFromInstances(playerInstances, sessionId);
+
+        // Add unlocked NPC progression cards as new instances
         List<ConversationCard> unlockedProgressionCards = GetUnlockedProgressionCards(npc);
-        cardTemplates.AddRange(unlockedProgressionCards);
+        foreach (var progressionCard in unlockedProgressionCards)
+        {
+            CardInstance progressionInstance = new CardInstance(progressionCard, npc.ID);
+            deck.AddCard(progressionInstance);
+        }
 
         // Safety check - ensure we have at least some cards
-        if (cardTemplates.Count == 0)
+        if (playerInstances.Count == 0 && unlockedProgressionCards.Count == 0)
         {
             Console.WriteLine($"[CardDeckManager] WARNING: Creating conversation with {npc.Name} but deck has NO cards!");
         }
-
-        SessionCardDeck deck = SessionCardDeck.CreateFromTemplates(cardTemplates, sessionId);
 
         // Add observation cards if provided
         if (observationCards != null && observationCards.Any())
@@ -551,12 +556,35 @@ public class CardDeckManager
                         continue;
                     }
                     
-                    // Create a new card instance with BurdenGoal type
-                    CardInstance instance = new CardInstance(requestCard)
+                    // Create a new template with BurdenGoal type based on the original
+                    ConversationCard burdenGoalTemplate = new ConversationCard
                     {
-                        CardType = CardType.BurdenGoal, // Override to mark as BurdenGoal
-                        SourceContext = npc.ID
+                        Id = requestCard.Id,
+                        Description = requestCard.Description,
+                        Focus = requestCard.Focus,
+                        Difficulty = requestCard.Difficulty,
+                        TokenType = requestCard.TokenType,
+                        Persistence = requestCard.Persistence,
+                        SuccessType = requestCard.SuccessType,
+                        FailureType = requestCard.FailureType,
+                        ExhaustType = requestCard.ExhaustType,
+                        DialogueFragment = requestCard.DialogueFragment,
+                        VerbPhrase = requestCard.VerbPhrase,
+                        PersonalityTypes = requestCard.PersonalityTypes,
+                        LevelBonuses = requestCard.LevelBonuses,
+                        MinimumTokensRequired = requestCard.MinimumTokensRequired,
+                        RapportThreshold = requestCard.RapportThreshold,
+                        QueuePosition = requestCard.QueuePosition,
+                        InstantRapport = requestCard.InstantRapport,
+                        RequestId = requestCard.RequestId,
+                        IsSkeleton = requestCard.IsSkeleton,
+                        SkeletonSource = requestCard.SkeletonSource,
+                        RequiredTokenType = requestCard.RequiredTokenType,
+                        CardType = CardType.BurdenGoal // Override to mark as BurdenGoal
                     };
+
+                    // Create a new card instance with BurdenGoal template
+                    CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);
                     
                     // Store the rapport threshold and request ID in the card context
                     instance.Context = new CardContext

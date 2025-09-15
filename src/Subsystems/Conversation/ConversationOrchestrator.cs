@@ -251,6 +251,14 @@ public class ConversationOrchestrator
         if (playResult.Success)
         {
             selectedCard.XP += 1;
+
+            // Also update the persistent instance in Player's deck
+            Player player = _gameWorld.GetPlayer();
+            if (player.ConversationDeck != null)
+            {
+                // Find the persistent instance by InstanceId and update its XP
+                player.ConversationDeck.UpdateInstanceXP(selectedCard.InstanceId, selectedCard.XP);
+            }
         }
 
         // Record that this card was played for personality tracking

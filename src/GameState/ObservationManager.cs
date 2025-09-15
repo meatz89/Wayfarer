@@ -214,20 +214,36 @@ public class ObservationManager
             return null;
         }
 
-        // Deep clone the card from the template - no procedural generation
-        ConversationCard observationCard = baseCard.DeepClone();
+        // Create new observation card based on template with observation-specific properties
+        string description = !string.IsNullOrEmpty(baseCard.Description) ? baseCard.Description :
+                           !string.IsNullOrEmpty(observation.Text) ? observation.Text : observation.Description;
 
-        // Only update the ID and observation-specific metadata
-        observationCard.Id = $"{observation.Id}_card_{Guid.NewGuid()}";
-        // Set categorical properties for observation cards
-        observationCard.Persistence = PersistenceType.Thought; // Observations persist through LISTEN
-        observationCard.CardType = CardType.Observation;
-
-        // Update display information if not already set
-        if (string.IsNullOrEmpty(observationCard.Description))
-            observationCard.Description = observation.Text;
-        if (string.IsNullOrEmpty(observationCard.Description))
-            observationCard.Description = observation.Description;
+        ConversationCard observationCard = new ConversationCard
+        {
+            Id = $"{observation.Id}_card_{Guid.NewGuid()}",
+            Description = description,
+            Focus = baseCard.Focus,
+            Difficulty = baseCard.Difficulty,
+            TokenType = baseCard.TokenType,
+            SuccessType = baseCard.SuccessType,
+            FailureType = baseCard.FailureType,
+            ExhaustType = baseCard.ExhaustType,
+            DialogueFragment = baseCard.DialogueFragment,
+            VerbPhrase = baseCard.VerbPhrase,
+            PersonalityTypes = baseCard.PersonalityTypes,
+            LevelBonuses = baseCard.LevelBonuses,
+            MinimumTokensRequired = baseCard.MinimumTokensRequired,
+            RapportThreshold = baseCard.RapportThreshold,
+            QueuePosition = baseCard.QueuePosition,
+            InstantRapport = baseCard.InstantRapport,
+            RequestId = baseCard.RequestId,
+            IsSkeleton = baseCard.IsSkeleton,
+            SkeletonSource = baseCard.SkeletonSource,
+            RequiredTokenType = baseCard.RequiredTokenType,
+            // Override for observation cards
+            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            CardType = CardType.Observation
+        };
 
         Console.WriteLine($"[ObservationManager] Cloned observation card {observationCard.Id} from template {observation.CardTemplate} for observation {observation.Id}");
         return observationCard;

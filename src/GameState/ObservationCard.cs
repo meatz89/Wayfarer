@@ -36,6 +36,14 @@ public class ObservationCard : ConversationCard
     // Constructor enforces observation rules
     public ObservationCard()
     {
+        CreatedAt = DateTime.Now;
+    }
+
+    // Constructor with observation defaults
+    public ObservationCard(string id, string description) : this()
+    {
+        Id = id;
+        Description = description;
         Focus = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         CardType = CardType.Observation; // Mark as observation
@@ -43,7 +51,10 @@ public class ObservationCard : ConversationCard
         SuccessType = SuccessEffectType.None; // Default, can be overridden
         FailureType = FailureEffectType.None;
         ExhaustType = ExhaustEffectType.None;
-        CreatedAt = DateTime.Now;
+        PersonalityTypes = new List<string>();
+        LevelBonuses = new List<CardLevelBonus>();
+        VerbPhrase = "";
+        DialogueFragment = "";
     }
 
     public bool IsExpired()
@@ -96,53 +107,52 @@ public class ObservationCard : ConversationCard
     // Create from a base conversation card with observation properties
     public static ObservationCard FromConversationCard(ConversationCard card)
     {
-        ObservationCard observation = new ObservationCard
+        return new ObservationCard
         {
             Id = card.Id,
             Description = card.Description,
+            Focus = card.Focus,
+            Difficulty = card.Difficulty,
+            TokenType = card.TokenType,
+            Persistence = card.Persistence,
+            SuccessType = card.SuccessType,
+            FailureType = card.FailureType,
+            ExhaustType = card.ExhaustType,
+            CardType = CardType.Observation,
+            DialogueFragment = card.DialogueFragment,
+            VerbPhrase = card.VerbPhrase,
+            PersonalityTypes = card.PersonalityTypes,
+            LevelBonuses = card.LevelBonuses,
             ObservationId = card.Id,
             ItemName = "Unknown",
             LocationDiscovered = "Unknown",
             TimeDiscovered = DateTime.Now.ToString(),
-            DialogueFragment = card.DialogueFragment,
-            VerbPhrase = card.VerbPhrase,
-            Focus = card.Focus,
-            Difficulty = card.Difficulty,
-            TokenType = card.TokenType,
-            Persistence = card.Persistence,
-            SuccessType = card.SuccessType,
-            FailureType = card.FailureType,
-            ExhaustType = card.ExhaustType,
             CreatedAt = DateTime.Now
         };
-
-        return observation;
     }
 
     public static ObservationCard FromConversationCard(ConversationCard card, string source, string location)
     {
-        ObservationCard observation = new ObservationCard
+        return new ObservationCard
         {
             Id = card.Id,
             Description = card.Description,
-            DialogueFragment = card.DialogueFragment,
-            VerbPhrase = card.VerbPhrase,
-            TokenType = card.TokenType,
             Focus = card.Focus,
             Difficulty = card.Difficulty,
+            TokenType = card.TokenType,
             Persistence = card.Persistence,
             SuccessType = card.SuccessType,
             FailureType = card.FailureType,
             ExhaustType = card.ExhaustType,
+            CardType = CardType.Observation,
+            DialogueFragment = card.DialogueFragment,
+            VerbPhrase = card.VerbPhrase,
+            PersonalityTypes = card.PersonalityTypes,
+            LevelBonuses = card.LevelBonuses,
             ObservationId = source,
             LocationDiscovered = location,
             CreatedAt = DateTime.Now
         };
-
-        // Set card type (categorical properties already copied)
-        observation.CardType = CardType.Observation;
-
-        return observation;
     }
 
     public ConversationCard ConversationCard { get; set; }

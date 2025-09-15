@@ -4,7 +4,6 @@
     "name": "Cards and Decks Content",
     "timestamp": "2025-09-15T00:00:00Z",
     "description": "All conversation cards and deck compositions for the core game",
-    "author": "Wayfarer Team",
     "version": "1.0.0"
   },
   "content": {
@@ -507,6 +506,92 @@
         "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side."
       },
       {
+        "id": "marcus_bargain",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Marcus's Bargain - A deal you can't refuse",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 1,
+        "dialogueFragment": "Marcus, let's make a deal that benefits us both."
+      },
+      {
+        "id": "trade_knowledge",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "Threading",
+        "connectionType": "Commerce",
+        "description": "Trade Knowledge - Marcus shares market secrets",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 3,
+        "dialogueFragment": "Marcus, share with me your knowledge of the trade routes."
+      },
+      {
+        "id": "commercial_trust",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 1,
+        "persistence": "Thought",
+        "successType": "Atmospheric",
+        "targetAtmosphere": "Focused",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Commercial Trust - Years of reliable business",
+        "difficulty": "Easy",
+        "minimumTokensRequired": 6,
+        "dialogueFragment": "Marcus, our years of trade have built a foundation of trust."
+      },
+      {
+        "id": "marcus_favor",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 4,
+        "persistence": "Thought",
+        "successType": "Advancing",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Marcus's Favor - He owes you one",
+        "difficulty": "VeryHard",
+        "minimumTokensRequired": 10,
+        "dialogueFragment": "Marcus, I'm calling in that favor you owe me."
+      },
+      {
+        "id": "master_trader_secret",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 5,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "Regret",
+        "connectionType": "Commerce",
+        "description": "Master Trader's Secret - The ultimate negotiation",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 15,
+        "dialogueFragment": "Marcus, teach me the master trader's ultimate secret."
+      },
+      {
         "id": "marcus_quick_trade",
         "type": "Exchange",
         "personalityTypes": [
@@ -571,14 +656,20 @@
     ],
     "defaultDeck": {
       "conversationDeck": {
-        "i_hear_you": 3,
-        "let_me_think": 1,
-        "let_me_prepare": 1,
-        "how_can_i_assist": 2,
-        "tell_me_more": 2,
-        "im_here_for_you": 1,
-        "well_figure_this_out": 1,
-        "everything_will_be_alright": 1
+        "tell_me_what_happened": 1,
+        "what_would_you_do": 1,
+        "that_must_have_been_difficult": 1,
+        "this_is_important": 1,
+        "ive_been_there_too": 3,
+        "i_need_your_advice": 2,
+        "i_trust_your_judgment": 1,
+        "can_we_make_a_deal": 2,
+        "what_if_i_throw_in": 2,
+        "lets_shake_on_it": 1,
+        "between_you_and_me": 1,
+        "youre_right_about_that": 2,
+        "let_me_help_you_with_that": 1,
+        "thats_fair": 1
       },
       "requestDeck": {},
       "exchangeDeck": {},
@@ -586,9 +677,9 @@
     },
     "deckCompositions": {
       "elena": {
-        "conversationDeck": {
-          "elena_shared_understanding": 2,
-          "elena_trusted_confidant": 2,
+        "progressionDeck": {
+          "elena_shared_understanding": 1,
+          "elena_trusted_confidant": 1,
           "elena_deep_bond": 1,
           "elena_absolute_devotion": 1,
           "elena_eternal_loyalty": 1
@@ -598,15 +689,12 @@
         "observationDeck": {}
       },
       "marcus": {
-        "conversationDeck": {
-          "i_hear_you": 3,
-          "let_me_think": 1,
-          "let_me_prepare": 1,
-          "how_can_i_assist": 2,
-          "tell_me_more": 2,
-          "im_here_for_you": 1,
-          "well_figure_this_out": 1,
-          "everything_will_be_alright": 1
+        "progressionDeck": {
+          "marcus_bargain": 1,
+          "trade_knowledge": 1,
+          "commercial_trust": 1,
+          "marcus_favor": 1,
+          "master_trader_secret": 1
         },
         "requestDeck": {},
         "exchangeDeck": {
@@ -615,30 +703,19 @@
         "observationDeck": {}
       },
       "lord_blackwood": {
-        "conversationDeck": {
-          "i_hear_you": 2,
-          "how_can_i_assist": 1,
-          "tell_me_more": 1
-        },
+        "progressionDeck": {},
         "requestDeck": {},
         "exchangeDeck": {},
         "observationDeck": {}
       },
       "warehouse_recipient": {
-        "conversationDeck": {
-          "i_hear_you": 2,
-          "let_me_think": 1,
-          "how_can_i_assist": 1
-        },
+        "progressionDeck": {},
         "requestDeck": {},
         "exchangeDeck": {},
         "observationDeck": {}
       },
       "victor": {
-        "conversationDeck": {
-          "i_hear_you": 1,
-          "tell_me_more": 1
-        },
+        "progressionDeck": {},
         "requestDeck": {},
         "exchangeDeck": {},
         "observationDeck": {}

@@ -1,5 +1,38 @@
 # Wayfarer Conversation System Redesign
 
+## Current Implementation Status (2025-09-15)
+
+### Card XP Persistence Implementation (In Progress)
+
+**Problem**: Card instances lose their XP between conversations because they're recreated from templates each time.
+
+**Solution**: Store actual CardInstance objects (not just templates) in Player.ConversationDeck to maintain instance-specific XP.
+
+**Key Architecture Points**:
+- Each CardInstance has unique InstanceId and tracks its own XP
+- Players can have multiple instances of the same card (by Id), each with different XP levels
+- GameWorld (via Player) is the single source of truth for persistent card state
+- Follows established architecture: GameWorld → Player → ConversationDeck → CardInstances
+
+**Implementation Changes Required**:
+1. **Player.ConversationDeck**: Change from storing ConversationCard templates to CardInstance objects
+2. **PackageLoader**: Create CardInstances when loading player starter deck (not just templates)
+3. **SessionCardDeck**: Add method `CreateFromInstances()` to use existing instances
+4. **CardDeckManager**: Pass player's CardInstances to SessionCardDeck (not templates)
+5. **ConversationOrchestrator**: Update both session AND persistent instance XP on successful play
+
+**Example Flow**:
+- Player has 3 "Trust Understanding" cards with XP: 0, 5, 12
+- During conversation, card with 5 XP (InstanceId: abc-123) played successfully
+- ConversationOrchestrator updates: `selectedCard.XP += 1`
+- Also updates persistent: Find instance abc-123 in Player.ConversationDeck, set XP = 6
+- Next conversation, that specific instance still has 6 XP
+
+### Completed Work
+- ✅ NPC conversationDecks removed from JSON
+- ✅ Elena's cards moved to progressionDeck with token requirements
+- ✅ Marcus's progression cards created with Commerce theme
+
 ## Overview
 
 This document details proposed changes to transform conversations into Wayfarer's core gameplay loop. The fundamental shift is that conversations become the primary progression system where players build and improve their conversation deck over time, similar to how combat and leveling work in traditional RPGs.

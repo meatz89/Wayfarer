@@ -6,44 +6,43 @@ using Wayfarer.GameState.Enums;
 public class CardInstance
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
-    public string Id { get; init; }
-    public string Description { get; init; }
+
+    // Template reference - single source of truth for card properties
+    public ConversationCard Template { get; init; }
+
+    // Delegating properties for API compatibility
+    public string Id => Template.Id;
+    public string Description => Template.Description;
+    public SuccessEffectType SuccessType => Template.SuccessType;
+    public FailureEffectType FailureType => Template.FailureType;
+    public ExhaustEffectType ExhaustType => Template.ExhaustType;
+    public CardType CardType => Template.CardType;
+    public ConnectionType TokenType => Template.TokenType;
+    public int Focus => Template.Focus;
+    public Difficulty Difficulty => Template.Difficulty;
+    public int RapportThreshold => Template.RapportThreshold;
+    public string RequestId => Template.RequestId;
+    public int MinimumTokensRequired => Template.MinimumTokensRequired;
+    public string DialogueFragment => Template.DialogueFragment;
+    public string VerbPhrase => Template.VerbPhrase;
 
     // Categorical properties that define behavior through context
-    // Note: Level 3+ cards gain Thought persistence regardless of base persistence
+    // Cards with "gains_thought_persistence" effect gain Thought persistence
     public PersistenceType Persistence
     {
         get
         {
-            // Level 3 cards gain Thought persistence if they don't already have it
-            if (Level >= 3 && _basePersistence != PersistenceType.Thought)
+            var bonus = GameRules.StandardRuleset.CardProgression.GetBonusForLevel(Level);
+            bool gainsThought = bonus?.Effects?.Contains("gains_thought_persistence") ?? false;
+
+            if (gainsThought && _basePersistence != PersistenceType.Thought)
             {
                 return PersistenceType.Thought;
             }
             return _basePersistence;
         }
-        init { _basePersistence = value; }
     }
-    private PersistenceType _basePersistence = PersistenceType.Thought;
-    public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
-    public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
-    public ExhaustEffectType ExhaustType { get; init; } = ExhaustEffectType.None;
-
-    // Single source of truth for card type
-    public CardType CardType { get; init; } = CardType.Conversation;
-
-    // Core mechanics
-    public ConnectionType TokenType { get; init; }
-    public int Focus { get; init; }
-    public Difficulty Difficulty { get; init; }
-
-    // Request card specific properties
-    public int RapportThreshold { get; init; } = 0;
-    public string RequestId { get; init; }
-
-    // Display properties
-    public string DialogueFragment { get; init; }
-    public string VerbPhrase { get; init; }
+    private PersistenceType _basePersistence => Template.Persistence;
 
     // Runtime context
     public string SourceContext { get; init; }
@@ -54,9 +53,16 @@ public class CardInstance
 
     // XP and Leveling System
     public int XP { get; set; } = 0;
-    public int Level => CalculateLevel(XP);
-    // Level 5 cards ignore forced LISTEN on failure
-    public bool IgnoresFailureListen => Level >= 5;
+    public int Level => GameRules.StandardRuleset.CardProgression.GetLevelFromXp(XP);
+    // Cards with "ignores_failure_listen" effect ignore forced LISTEN on failure
+    public bool IgnoresFailureListen
+    {
+        get
+        {
+            var bonus = GameRules.StandardRuleset.CardProgression.GetBonusForLevel(Level);
+            return bonus?.Effects?.Contains("ignores_failure_listen") ?? false;
+        }
+    }
 
     public string GetCategoryClass()
     {
@@ -131,65 +137,21 @@ public class CardInstance
 
     public int GetBaseSuccessPercentage()
     {
-        return Difficulty switch
-        {
-            Difficulty.VeryEasy => 85,
-            Difficulty.Easy => 70,
-            Difficulty.Medium => 60,
-            Difficulty.Hard => 50,
-            Difficulty.VeryHard => 40,
-            _ => 60
-        };
+        int baseChance = Template.GetBaseSuccessPercentage();
+
+        // Add level bonus from JSON configuration
+        int levelBonus = GameRules.StandardRuleset.CardProgression.GetTotalSuccessBonusForLevel(Level);
+        return baseChance + levelBonus;
     }
 
     public CardInstance() { }
 
     public CardInstance(ConversationCard template, string sourceContext = null)
     {
-        Id = template.Id;
-        Description = template.Description;
-        _basePersistence = template.Persistence;
-        SuccessType = template.SuccessType;
-        FailureType = template.FailureType;
-        ExhaustType = template.ExhaustType;
-        CardType = template.CardType;
-        TokenType = template.TokenType;
-        Focus = template.Focus;
-        Difficulty = template.Difficulty;
-        RapportThreshold = template.RapportThreshold;
-        RequestId = template.RequestId;
-        DialogueFragment = template.DialogueFragment;
-        VerbPhrase = template.VerbPhrase;
+        Template = template;
         SourceContext = sourceContext;
     }
 
-    private int CalculateLevel(int xp)
-    {
-        // Level progression with infinite scaling
-        if (xp < 3) return 1;
-        if (xp < 7) return 2;
-        if (xp < 15) return 3;
-        if (xp < 30) return 4;
-        if (xp < 50) return 5;
-        if (xp < 75) return 6;
-        if (xp < 100) return 7;
-        if (xp < 150) return 8;
-        if (xp < 200) return 9;
-
-        // For levels 10+, continue exponential growth pattern
-        // Level 10: 250 XP, Level 11: 325 XP, Level 12: 400 XP, etc.
-        int level = 9;
-        int threshold = 200;
-        int increment = 50;
-
-        while (xp >= threshold)
-        {
-            level++;
-            increment += 25; // Increases by 25 each level (50, 75, 100, 125...)
-            threshold += increment;
-        }
-
-        return level;
-    }
+    // Removed - now using GameRules.CardProgression.GetLevelFromXp()
 
 }
