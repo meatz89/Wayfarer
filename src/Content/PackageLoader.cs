@@ -49,7 +49,13 @@ public class PackageLoader
     /// </summary>
     public void LoadPackagesFromDirectory(string directoryPath)
     {
+        // First, load game rules if present
+        string gameRulesPath = Path.Combine(directoryPath, "game_rules.json");
+        string rulesJson = File.ReadAllText(gameRulesPath);
+        GameRulesParser.ParseAndApplyRules(rulesJson, GameRules.StandardRuleset);
+
         List<string> packageFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories)
+            .Where(f => !f.EndsWith("game_rules.json")) // Exclude game_rules.json from package loading
             .OrderBy(f =>
             {
                 // Core packages first (priority 0)

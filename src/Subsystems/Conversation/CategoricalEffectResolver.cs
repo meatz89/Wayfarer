@@ -11,19 +11,16 @@ public class CategoricalEffectResolver
     private readonly TokenMechanicsManager tokenManager;
     private readonly AtmosphereManager atmosphereManager;
     private readonly FocusManager focusManager;
-    private readonly CardDeckManager deckManager;
     private readonly Random random;
 
     public CategoricalEffectResolver(
         TokenMechanicsManager tokenManager,
         AtmosphereManager atmosphereManager,
-        FocusManager focusManager,
-        CardDeckManager deckManager)
+        FocusManager focusManager)
     {
         this.tokenManager = tokenManager;
         this.atmosphereManager = atmosphereManager;
         this.focusManager = focusManager;
-        this.deckManager = deckManager;
         this.random = new Random();
     }
 

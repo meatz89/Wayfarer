@@ -381,12 +381,10 @@ namespace Wayfarer.Pages.Components
                     string effectDescription = GetSuccessEffectDescription(playedCard);
                     ExhaustionReason = $"Success! {effectDescription}";
 
-                    // Check if the success effect has EndConversation with specific narrative
-                    if (playedCard.SuccessEffect?.Type == CardEffectType.EndConversation)
+                    // Check if the success effect type is Advancing (ends conversation)
+                    if (playedCard.SuccessType == SuccessEffectType.Advancing)
                     {
-                        string endReason = playedCard.SuccessEffect.Value ?? "success";
-                        LastNarrative = endReason == "success" ? "The conversation ends successfully." :
-                                       $"The conversation ends. {effectDescription}";
+                        LastNarrative = "The conversation advances significantly. Your connection deepens.";
                     }
                     else
                     {
@@ -680,7 +678,7 @@ namespace Wayfarer.Pages.Components
                     Id = card.Id,
                     Focus = card.Focus,
                     Difficulty = card.Difficulty,
-                    Effect = card.SuccessEffect?.Value ?? card.Description ?? "",
+                    Effect = card.Description ?? "",
                     Persistence = card.Persistence,
                     NarrativeCategory = "standard"
                 };
@@ -1491,9 +1489,7 @@ namespace Wayfarer.Pages.Components
                 tags.Add(card.Persistence.ToString());
 
             // Add card type for special cards
-            if (card.CardType == CardType.Request)
-                tags.Add("Request");
-            else if (card.CardType == CardType.Promise)
+            if (card.CardType == CardType.Promise)
                 tags.Add("Promise");
             else if (card.CardType == CardType.Letter)
                 tags.Add("Letter");

@@ -76,15 +76,10 @@ public class ConversationSession
 
     public int GetDrawCount()
     {
-        int baseCount = CurrentState switch
-        {
-            ConnectionState.DISCONNECTED => 1,
-            ConnectionState.GUARDED => 2,
-            ConnectionState.NEUTRAL => 2,
-            ConnectionState.RECEPTIVE => 3,
-            ConnectionState.TRUSTING => 3,
-            _ => 2
-        };
+        // Use configured draw counts from GameRules
+        int baseCount = GameRules.StandardRuleset.ListenDrawCounts.TryGetValue(CurrentState, out int configuredCount)
+            ? configuredCount
+            : 4; // Default fallback if not configured
 
         // AtmosphereType modifiers
         if (CurrentAtmosphere == AtmosphereType.Receptive)

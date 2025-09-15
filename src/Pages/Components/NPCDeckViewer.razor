@@ -1,5 +1,6 @@
 @using System.Collections.Generic
 @using System.Linq
+@using Wayfarer.GameState.Enums
 
 @namespace Wayfarer.Pages.Components
 
@@ -117,16 +118,20 @@
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <span>Success Effect</span>
-                                        @if (card.SuccessEffect != null && !card.SuccessEffect.IsEmpty)
+                                        @if (card.SuccessType != SuccessEffectType.None)
                                         {
-                                            <span>@card.SuccessEffect.ToString()</span>
+                                            <span>@card.SuccessType.ToString()</span>
+                                        }
+                                        else
+                                        {
+                                            <span>No effect</span>
                                         }
                                     </div>
                                     <div class="outcome failure">
                                         <span>Failure Effect</span>
-                                        @if (card.FailureEffect != null && !card.FailureEffect.IsEmpty)
+                                        @if (card.FailureType != FailureEffectType.None)
                                         {
-                                            <span>@card.FailureEffect.ToString()</span>
+                                            <span>@card.FailureType.ToString()</span>
                                         }
                                         else
                                         {
@@ -311,7 +316,7 @@
             return "observation";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             return "promise";
-        if (card.IsBurden)
+        if (card.CardType == CardType.BurdenGoal)
             return "burden";
         
         return "flow"; // Default
@@ -319,10 +324,9 @@
     
     private string GetPersistenceText(ConversationCard card)
     {
-        if (card.IsImpulse && card.IsOpening) return "Request";  // Both properties = Request
-        if (card.IsImpulse) return "Impulse";
-        if (card.IsOpening) return "Opening";
-        if (card.IsPersistent) return "Persistent";
+        if (card.Persistence == PersistenceType.Impulse) return "Impulse";
+        if (card.Persistence == PersistenceType.Opening) return "Opening";
+        if (card.Persistence == PersistenceType.Thought) return "Thought";
         return "";
     }
     
@@ -334,7 +338,7 @@
             return "OBSERVATION";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             return "PROMISE";
-        if (card.IsBurden)
+        if (card.CardType == CardType.BurdenGoal)
             return "BURDEN";
         
         return "FLOW"; // Default

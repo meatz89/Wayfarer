@@ -1,0 +1,648 @@
+{
+  "packageId": "cards_and_decks_001",
+  "metadata": {
+    "name": "Cards and Decks Content",
+    "timestamp": "2025-09-15T00:00:00Z",
+    "description": "All conversation cards and deck compositions for the core game",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "cards": [
+      {
+        "id": "tell_me_what_happened",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "Tell me what happened",
+        "difficulty": "Easy",
+        "dialogueFragment": "Tell me what happened. I want to understand."
+      },
+      {
+        "id": "ive_been_there_too",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Rapport",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "I've been there too",
+        "difficulty": "Medium",
+        "dialogueFragment": "I've been there too. I know exactly how that feels."
+      },
+      {
+        "id": "youre_right_about_that",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 1,
+        "persistence": "Opening",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "You're right about that",
+        "difficulty": "Easy",
+        "dialogueFragment": "You're absolutely right about that."
+      },
+      {
+        "id": "what_would_you_do",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "What would you do?",
+        "difficulty": "Easy",
+        "dialogueFragment": "What would you do in my position?"
+      },
+      {
+        "id": "i_need_your_advice",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Rapport",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "I need your advice",
+        "difficulty": "Medium",
+        "dialogueFragment": "I need your advice on something important."
+      },
+      {
+        "id": "that_must_have_been_difficult",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 1,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "That must have been difficult",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "That must have been incredibly difficult for you."
+      },
+      {
+        "id": "let_me_help_you_with_that",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Opening",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "Threading",
+        "connectionType": "Trust",
+        "description": "Let me help you with that",
+        "difficulty": "Medium",
+        "dialogueFragment": "Let me help you with that. It's no trouble."
+      },
+      {
+        "id": "i_trust_your_judgment",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "Overreach",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "I trust your judgment",
+        "difficulty": "Medium",
+        "dialogueFragment": "I trust your judgment completely."
+      },
+      {
+        "id": "whats_your_price",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 1,
+        "persistence": "Thought",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "What's your price?",
+        "difficulty": "Easy",
+        "dialogueFragment": "What's your price for that?"
+      },
+      {
+        "id": "thats_fair",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Opening",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "That's fair",
+        "difficulty": "Easy",
+        "dialogueFragment": "That's a fair price. I accept."
+      },
+      {
+        "id": "can_we_make_a_deal",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Atmospheric",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Can we make a deal?",
+        "difficulty": "Medium",
+        "dialogueFragment": "Can we make a deal here?"
+      },
+      {
+        "id": "what_if_i_throw_in",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Impulse",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "Focusing",
+        "connectionType": "Commerce",
+        "description": "What if I throw in...",
+        "difficulty": "Medium",
+        "dialogueFragment": "What if I throw in something extra?"
+      },
+      {
+        "id": "you_drive_hard_bargain",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 1,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "You drive a hard bargain",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "You drive a hard bargain, but I respect that."
+      },
+      {
+        "id": "lets_shake_on_it",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "Overreach",
+        "exhaustType": "Regret",
+        "connectionType": "Commerce",
+        "description": "Let's shake on it",
+        "difficulty": "Hard",
+        "dialogueFragment": "Let's shake on it. Deal?"
+      },
+      {
+        "id": "i_know_your_secret",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 4,
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "Overreach",
+        "exhaustType": "Regret",
+        "connectionType": "Trust",
+        "description": "I know your secret",
+        "difficulty": "Hard",
+        "dialogueFragment": "I know what you've been hiding. We need to talk about this."
+      },
+      {
+        "id": "youre_not_telling_everything",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "persistence": "Impulse",
+        "successType": "Threading",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "You're not telling me everything",
+        "difficulty": "Hard",
+        "dialogueFragment": "You're not telling me everything, are you?"
+      },
+      {
+        "id": "ill_make_it_worth_while",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 4,
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "I'll make it worth your while",
+        "difficulty": "Hard",
+        "dialogueFragment": "I'll make it worth your while. Name your price."
+      },
+      {
+        "id": "between_you_and_me",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Impulse",
+        "successType": "Atmospheric",
+        "failureType": "None",
+        "exhaustType": "Threading",
+        "connectionType": "Trust",
+        "description": "Between you and me...",
+        "difficulty": "Medium",
+        "dialogueFragment": "Between you and me, there's something you should know."
+      },
+      {
+        "id": "i_heard_something_interesting",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 1,
+        "persistence": "Opening",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "I heard something interesting",
+        "difficulty": "Easy",
+        "dialogueFragment": "I heard something interesting about this place."
+      },
+      {
+        "id": "this_is_important",
+        "type": "Conversation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Focusing",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "This is important",
+        "difficulty": "Medium",
+        "dialogueFragment": "This is important. I need you to listen carefully."
+      },
+      {
+        "id": "elena_letter_request",
+        "type": "Letter",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 5,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Trust",
+        "description": "Deliver my letter to Lord Blackwood",
+        "difficulty": "Easy",
+        "rapportThreshold": 5,
+        "successEffect": {
+          "type": "OfferLetter",
+          "value": "elena_urgent_letter"
+        },
+        "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
+        "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word."
+      },
+      {
+        "id": "elena_safety_request",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 7,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Trust",
+        "description": "Get me to safety before nightfall",
+        "difficulty": "Medium",
+        "rapportThreshold": 10,
+        "successEffect": {
+          "type": "AddObligation",
+          "value": "elena_safety_obligation"
+        },
+        "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
+        "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon."
+      },
+      {
+        "id": "elena_priority_promise",
+        "type": "Normal",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Trust",
+        "description": "Make Elena my priority",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "ForceQueuePosition",
+          "value": "1"
+        },
+        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait."
+      },
+      {
+        "id": "elena_shared_understanding",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 2,
+        "properties": [
+          "Persistent"
+        ],
+        "connectionType": "Trust",
+        "description": "We understand each other",
+        "difficulty": "Easy",
+        "minimumTokensRequired": 1,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "2"
+        },
+        "dialogueFragment": "Elena, I feel like we're beginning to understand each other."
+      },
+      {
+        "id": "elena_trusted_confidant",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 3,
+        "properties": [
+          "Persistent"
+        ],
+        "connectionType": "Trust",
+        "description": "You can trust me completely",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 3,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "3"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-1"
+        },
+        "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence."
+      },
+      {
+        "id": "elena_deep_bond",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 4,
+        "properties": [
+          "Persistent"
+        ],
+        "connectionType": "Trust",
+        "description": "Our bond runs deep",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 6,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "4"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-2"
+        },
+        "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined."
+      },
+      {
+        "id": "elena_absolute_devotion",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 5,
+        "properties": [
+          "Persistent"
+        ],
+        "connectionType": "Trust",
+        "description": "My devotion is absolute",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 10,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "5"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-2"
+        },
+        "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you."
+      },
+      {
+        "id": "elena_eternal_loyalty",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 6,
+        "properties": [
+          "OneShot"
+        ],
+        "connectionType": "Trust",
+        "description": "Pledge eternal loyalty",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 15,
+        "successEffect": {
+          "type": "AddRapport",
+          "value": "10"
+        },
+        "failureEffect": {
+          "type": "AddRapport",
+          "value": "-3"
+        },
+        "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side."
+      },
+      {
+        "id": "marcus_quick_trade",
+        "type": "Exchange",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 0,
+        "properties": [
+          "Repeatable"
+        ],
+        "connectionType": "Commerce",
+        "description": "Trade 10 coins for 1 food",
+        "difficulty": "Easy",
+        "tokenRequirement": {
+          "Commerce": 1
+        },
+        "successEffect": {
+          "type": "Exchange",
+          "value": "quick_food_trade"
+        },
+        "dialogueFragment": "Need some food? 10 coins for a meal's worth."
+      },
+      {
+        "id": "safe_passage_knowledge",
+        "type": "Observation",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 0,
+        "properties": [
+          "OneShot",
+          "Hidden"
+        ],
+        "connectionType": "Trust",
+        "description": "Safe Passage Knowledge",
+        "difficulty": "Auto",
+        "successEffect": {
+          "type": "AdvanceConnectionState",
+          "value": "1"
+        },
+        "dialogueFragment": "You share what you've learned about safe travel routes through the market."
+      },
+      {
+        "id": "merchant_route_insight",
+        "type": "Observation",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 0,
+        "properties": [
+          "OneShot",
+          "Hidden"
+        ],
+        "connectionType": "Commerce",
+        "description": "Merchant Route Insight",
+        "difficulty": "Auto",
+        "successEffect": {
+          "type": "UnlockExchange",
+          "value": "marcus_special_deal"
+        },
+        "dialogueFragment": "You mention the merchant patterns you've observed in the market."
+      }
+    ],
+    "defaultDeck": {
+      "conversationDeck": {
+        "i_hear_you": 3,
+        "let_me_think": 1,
+        "let_me_prepare": 1,
+        "how_can_i_assist": 2,
+        "tell_me_more": 2,
+        "im_here_for_you": 1,
+        "well_figure_this_out": 1,
+        "everything_will_be_alright": 1
+      },
+      "requestDeck": {},
+      "exchangeDeck": {},
+      "observationDeck": {}
+    },
+    "deckCompositions": {
+      "elena": {
+        "conversationDeck": {
+          "elena_shared_understanding": 2,
+          "elena_trusted_confidant": 2,
+          "elena_deep_bond": 1,
+          "elena_absolute_devotion": 1,
+          "elena_eternal_loyalty": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      },
+      "marcus": {
+        "conversationDeck": {
+          "i_hear_you": 3,
+          "let_me_think": 1,
+          "let_me_prepare": 1,
+          "how_can_i_assist": 2,
+          "tell_me_more": 2,
+          "im_here_for_you": 1,
+          "well_figure_this_out": 1,
+          "everything_will_be_alright": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {
+          "quick_food_trade": 1
+        },
+        "observationDeck": {}
+      },
+      "lord_blackwood": {
+        "conversationDeck": {
+          "i_hear_you": 2,
+          "how_can_i_assist": 1,
+          "tell_me_more": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      },
+      "warehouse_recipient": {
+        "conversationDeck": {
+          "i_hear_you": 2,
+          "let_me_think": 1,
+          "how_can_i_assist": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      },
+      "victor": {
+        "conversationDeck": {
+          "i_hear_you": 1,
+          "tell_me_more": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      }
+    }
+  }
+}

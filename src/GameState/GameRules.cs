@@ -1,4 +1,6 @@
-﻿public class GameRules
+﻿using System.Collections.Generic;
+
+public class GameRules
 {
     public static GameRules StandardRuleset = new GameRules
     {
@@ -7,6 +9,17 @@
     public Professions PlayerArchetype = Professions.Soldier;
     public string Background = string.Empty;
     public string Name = "Wayfarer";
+
+    // Conversation configuration
+    public Dictionary<ConnectionState, int> ListenDrawCounts { get; set; } = new Dictionary<ConnectionState, int>
+    {
+        // Default values (will be overridden by JSON config)
+        { ConnectionState.DISCONNECTED, 3 },
+        { ConnectionState.GUARDED, 4 },
+        { ConnectionState.NEUTRAL, 4 },
+        { ConnectionState.RECEPTIVE, 5 },
+        { ConnectionState.TRUSTING, 5 }
+    };
 
     // Resource Competition: Fixed Stamina Costs
     public const int STAMINA_COST_TRAVEL = 2;      // Per route segment

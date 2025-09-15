@@ -259,59 +259,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             return data;
         }
 
-        /// <summary>
-        /// Extract exchange data from a conversation card (legacy support)
-        /// </summary>
-        private ExchangeData ExtractExchangeFromCard(ConversationCard card)
-        {
-            // Check if card has exchange effect
-            if (card.SuccessEffect?.Type == CardEffectType.Exchange && 
-                card.SuccessEffect.ExchangeData != null)
-            {
-                ExchangeData exchange = card.SuccessEffect.ExchangeData;
-                
-                // Ensure exchange has an ID
-                if (string.IsNullOrEmpty(exchange.Id))
-                {
-                    exchange.Id = card.Id;
-                }
-                
-                // Copy card properties to exchange if not set
-                if (string.IsNullOrEmpty(exchange.ExchangeName))
-                {
-                    exchange.ExchangeName = card.Description;
-                }
-                
-                if (string.IsNullOrEmpty(exchange.Description))
-                {
-                    exchange.Description = card.Description;
-                }
-
-                // Copy token requirements from card
-                if (card.MinimumTokensRequired > 0)
-                {
-                    exchange.MinimumTokensRequired = card.MinimumTokensRequired;
-                    exchange.RequiredTokenType = card.RequiredTokenType;
-                }
-
-                return exchange;
-            }
-
-            // Alternative: Card might have exchange data in context
-            if (card.Context?.ExchangeData != null)
-            {
-                ExchangeData exchange = card.Context.ExchangeData;
-                
-                if (string.IsNullOrEmpty(exchange.Id))
-                {
-                    exchange.Id = card.Id;
-                }
-                
-                return exchange;
-            }
-
-            return null;
-        }
 
         /// <summary>
         /// Get statistics about exchanges

@@ -1,0 +1,9 @@
+{
+  "listenDrawCounts": {
+    "Disconnected": 3,
+    "Guarded": 4,
+    "Neutral": 4,
+    "Receptive": 5,
+    "Trusting": 5
+  }
+}
