@@ -333,8 +333,12 @@ namespace Wayfarer.Pages
                 CurrentScreen = newMode;
                 ContentVersion++;
 
+                Console.WriteLine($"[GameScreen] CurrentScreen set to: {CurrentScreen}, ContentVersion: {ContentVersion}");
+
                 await LoadStateForMode(newMode);
+                Console.WriteLine($"[GameScreen] About to call StateHasChanged, CurrentScreen is: {CurrentScreen}");
                 await InvokeAsync(StateHasChanged);
+                Console.WriteLine($"[GameScreen] StateHasChanged called, CurrentScreen is: {CurrentScreen}");
             }
             finally
             {

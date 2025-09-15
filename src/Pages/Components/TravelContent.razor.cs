@@ -45,6 +45,7 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
+            Console.WriteLine("[TravelContent] OnInitializedAsync called");
             LoadTravelState();
         }
 

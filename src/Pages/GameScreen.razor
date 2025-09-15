@@ -38,6 +38,9 @@
     <!-- Dynamic Content Area -->
     <CascadingValue Value="@this">
         <div @key="@($"{CurrentScreen}_{ContentVersion}")">
+            @{
+                Console.WriteLine($"[GameScreen.razor] Rendering with CurrentScreen={CurrentScreen}, ContentVersion={ContentVersion}");
+            }
             @switch (CurrentScreen)
             {
                 case ScreenMode.Location:

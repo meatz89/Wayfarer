@@ -399,6 +399,7 @@
           "ALL"
         ],
         "focus": 3,
+        "rapportThreshold": 20,
         "properties": [
           "OneShot"
         ],
