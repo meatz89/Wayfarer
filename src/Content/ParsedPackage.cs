@@ -47,7 +47,7 @@ public class ParsedPackage
     }
 
     /// <summary>
-    /// Calculate load priority based on package naming conventions
+    /// Calculate load priority based on package naming conventions and content
     /// </summary>
     public void CalculateLoadPriority()
     {
@@ -59,16 +59,36 @@ public class ParsedPackage
 
         string lowerPath = SourcePath.ToLowerInvariant();
 
+        // Base priority from naming convention
+        int basePriority = 0;
         if (lowerPath.Contains("core"))
-            LoadPriority = 0;
+            basePriority = 0;
         else if (lowerPath.Contains("base"))
-            LoadPriority = 100;
+            basePriority = 100;
         else if (lowerPath.Contains("expansion"))
-            LoadPriority = 200;
+            basePriority = 200;
         else if (lowerPath.Contains("generated"))
-            LoadPriority = 300;
+            basePriority = 300;
         else
-            LoadPriority = 150; // Default between base and expansion
+            basePriority = 150; // Default between base and expansion
+
+        // Adjust priority based on content type
+        // Packages with routes but no spots should load after packages with spots
+        if (Package?.Content != null)
+        {
+            bool hasRoutes = Package.Content.Routes?.Count > 0;
+            bool hasSpots = Package.Content.Spots?.Count > 0;
+            bool hasLocations = Package.Content.Locations?.Count > 0;
+
+            // If package has routes but no spots/locations, it depends on other packages
+            // Add 50 to priority to ensure it loads after packages with spots
+            if (hasRoutes && !hasSpots && !hasLocations)
+            {
+                basePriority += 50;
+            }
+        }
+
+        LoadPriority = basePriority;
     }
 }
 

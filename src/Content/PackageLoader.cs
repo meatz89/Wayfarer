@@ -723,8 +723,35 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
+        Console.WriteLine($"[PackageLoader] Currently loaded spots: {string.Join(", ", _gameWorld.Spots.Keys)}");
 
-        // BIDIRECTIONAL ROUTE PRINCIPLE: Routes are defined once in JSON but automatically 
+        // First validate all routes reference existing spots
+        foreach (RouteDTO dto in routeDtos)
+        {
+            // Validate origin spot exists
+            LocationSpot originSpot = _gameWorld.GetSpot(dto.OriginSpotId);
+            if (originSpot == null)
+            {
+                throw new Exception($"[PackageLoader] Route '{dto.Id}' references non-existent origin spot '{dto.OriginSpotId}'");
+            }
+            if (string.IsNullOrEmpty(originSpot.LocationId))
+            {
+                throw new Exception($"[PackageLoader] Route '{dto.Id}' origin spot '{dto.OriginSpotId}' has no LocationId set");
+            }
+
+            // Validate destination spot exists
+            LocationSpot destSpot = _gameWorld.GetSpot(dto.DestinationSpotId);
+            if (destSpot == null)
+            {
+                throw new Exception($"[PackageLoader] Route '{dto.Id}' references non-existent destination spot '{dto.DestinationSpotId}'");
+            }
+            if (string.IsNullOrEmpty(destSpot.LocationId))
+            {
+                throw new Exception($"[PackageLoader] Route '{dto.Id}' destination spot '{dto.DestinationSpotId}' has no LocationId set");
+            }
+        }
+
+        // BIDIRECTIONAL ROUTE PRINCIPLE: Routes are defined once in JSON but automatically
         // generate both directions. This eliminates redundancy and ensures consistency.
         // The return journey has segments in reversed order (A->B->C becomes C->B->A).
         foreach (RouteDTO dto in routeDtos)
@@ -759,8 +786,7 @@ public class PackageLoader
 
         if (originLocationId == null || destinationLocationId == null)
         {
-            Console.WriteLine($"[PackageLoader] Warning: Could not find location IDs for route {route.Id}. Origin: {route.OriginLocationSpot}, Destination: {route.DestinationLocationSpot}");
-            return;
+            throw new Exception($"[PackageLoader] Route {route.Id} has spots without LocationId. Origin: {route.OriginLocationSpot} -> {originLocationId}, Destination: {route.DestinationLocationSpot} -> {destinationLocationId}");
         }
 
         // Find the origin location
