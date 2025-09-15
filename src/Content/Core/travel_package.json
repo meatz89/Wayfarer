@@ -26,7 +26,7 @@
       },
       {
         "id": "back_alley",
-        "name": "Back Alley", 
+        "name": "Back Alley",
         "staminaCost": 1,
         "startsRevealed": false,
         "isHidden": false,
@@ -37,7 +37,8 @@
         "travelTimeSegments": 1,
         "hungerEffect": 0,
         "oneTimeReward": null,
-        "narrativeText": "A quicker but riskier path through the narrow alleys."
+        "narrativeText": "A quicker but riskier path through the narrow alleys.",
+        "statRequirements": {"cunning": 2}
       },
       {
         "id": "dock_workers_path",
@@ -67,7 +68,8 @@
         "travelTimeSegments": 1,
         "hungerEffect": 0,
         "oneTimeReward": "Shipping Manifest for Marcus",
-        "narrativeText": "The commercial district with its toll booth."
+        "narrativeText": "The commercial district with its toll booth.",
+        "statRequirements": {"commerce": 2}
       },
       {
         "id": "loading_docks",
@@ -112,7 +114,8 @@
         "travelTimeSegments": 2,
         "hungerEffect": -5,
         "oneTimeReward": "5_coins",
-        "narrativeText": "Navigate the confusing warehouse layout. Find some preserved food! (-5 hunger, +5 coins once)"
+        "narrativeText": "Navigate the confusing warehouse layout. Find some preserved food! (-5 hunger, +5 coins once)",
+        "statRequirements": {"insight": 2}
       },
       {
         "id": "security_checkpoint",
@@ -142,7 +145,8 @@
         "travelTimeSegments": 1,
         "hungerEffect": 0,
         "oneTimeReward": null,
-        "narrativeText": "Enter through the heavily guarded main gate."
+        "narrativeText": "Enter through the heavily guarded main gate.",
+        "statRequirements": {"authority": 2}
       },
       {
         "id": "bribe_guard",
@@ -172,7 +176,8 @@
         "travelTimeSegments": 6,
         "hungerEffect": 20,
         "oneTimeReward": null,
-        "narrativeText": "Waste time arguing with the guards. (3 stamina, +20 hunger, +12 segments!)"
+        "narrativeText": "Waste time arguing with the guards. (3 stamina, +20 hunger, +12 segments!)",
+        "statRequirements": {"authority": 2}
       },
       {
         "id": "noble_promenade",
@@ -202,7 +207,8 @@
         "travelTimeSegments": 2,
         "hungerEffect": -10,
         "oneTimeReward": "Garden Layout for Lord Blackwood",
-        "narrativeText": "Hidden path through gardens. Find fresh fruit! (-10 hunger, special letter once)"
+        "narrativeText": "Hidden path through gardens. Find fresh fruit! (-10 hunger, special letter once)",
+        "statRequirements": {"insight": 2}
       },
       {
         "id": "rooftop_scramble",
@@ -217,7 +223,8 @@
         "travelTimeSegments": 1,
         "hungerEffect": 5,
         "oneTimeReward": null,
-        "narrativeText": "Dangerous but fast! Climb across the rooftops. (4 stamina for 1 segment!)"
+        "narrativeText": "Dangerous but fast! Climb across the rooftops. (4 stamina for 1 segment!)",
+        "statRequirements": {"cunning": 3}
       },
       {
         "id": "market_detour",

@@ -114,4 +114,14 @@ public class PackageContent
     /// Dialogue templates for generating conversation text
     /// </summary>
     public DialogueTemplates DialogueTemplates { get; set; }
+
+    /// <summary>
+    /// Player stats configuration for progression system
+    /// </summary>
+    public PlayerStatsConfigDTO PlayerStatsConfig { get; set; }
+
+    /// <summary>
+    /// Stranger NPCs for practice conversations
+    /// </summary>
+    public List<StrangerNPCDTO> Strangers { get; set; }
 }

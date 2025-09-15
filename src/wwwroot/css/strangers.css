@@ -1,0 +1,264 @@
+/* Stranger NPC Styles */
+
+.strangers-section {
+    margin: 20px 0;
+}
+
+.stranger-list {
+    display: grid;
+    gap: 12px;
+}
+
+.stranger-card {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    padding: 14px;
+    transition: all 0.2s ease;
+}
+
+.stranger-card:hover {
+    background: #fefaf0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stranger-card.talked-to {
+    opacity: 0.7;
+    background: #e8dcc4;
+    border-style: dashed;
+}
+
+.stranger-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.stranger-identity {
+    flex: 1;
+}
+
+.stranger-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 3px;
+}
+
+.stranger-type {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+.stranger-level {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stranger-level-1 {
+    background: #f4f9e9;
+    color: #5a7a3a;
+    border: 1px solid #7a8b5a;
+}
+
+.stranger-level-2 {
+    background: #fff3e0;
+    color: #8b6726;
+    border: 1px solid #d4a76a;
+}
+
+.stranger-level-3 {
+    background: #faf0e6;
+    color: #8b4726;
+    border: 1px solid #d4704a;
+}
+
+.stranger-status {
+    text-align: center;
+    padding: 8px;
+}
+
+.talked-indicator {
+    font-size: 12px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+.stranger-description {
+    font-size: 12px;
+    color: #5c4a3a;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #faf4ea;
+    border-radius: 2px;
+    border-left: 3px solid #c4a684;
+}
+
+.stranger-conversations {
+    display: grid;
+    gap: 8px;
+}
+
+.stranger-conversation {
+    background: white;
+    border: 1px solid #d4c5a0;
+    border-radius: 3px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stranger-conversation:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(3px);
+}
+
+.stranger-conversation.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e8dcc4;
+}
+
+.stranger-conversation.unavailable:hover {
+    transform: none;
+}
+
+.conversation-type {
+    font-size: 13px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 4px;
+}
+
+.conversation-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+
+.xp-gain {
+    color: #5a7a3a;
+    font-weight: bold;
+    background: #e8f5e9;
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+
+.attention-cost {
+    color: #8b4726;
+    font-weight: bold;
+}
+
+.conversation-rewards {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    line-height: 1.3;
+}
+
+.unavailable-reason {
+    font-size: 10px;
+    color: #8b4726;
+    font-weight: bold;
+    background: #faf0e6;
+    padding: 3px 6px;
+    border-radius: 2px;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.no-strangers {
+    text-align: center;
+    padding: 20px;
+    color: #7a6250;
+    font-style: italic;
+    background: #f9f3e9;
+    border: 1px dashed #c4a684;
+    border-radius: 4px;
+}
+
+/* Personality-specific styling */
+.stranger-card[data-personality="earnest"] {
+    border-left: 4px solid #7a8b5a;
+}
+
+.stranger-card[data-personality="cunning"] {
+    border-left: 4px solid #4a3a2a;
+}
+
+.stranger-card[data-personality="gruff"] {
+    border-left: 4px solid #8b4726;
+}
+
+.stranger-card[data-personality="steadfast"] {
+    border-left: 4px solid #5a7a8a;
+}
+
+/* Conversation type specific colors */
+.stranger-conversation[data-type="friendly_chat"] {
+    border-left: 3px solid #7a8b5a;
+}
+
+.stranger-conversation[data-type="deep_conversation"] {
+    border-left: 3px solid #5a7a8a;
+}
+
+.stranger-conversation[data-type="business_discussion"] {
+    border-left: 3px solid #d4a76a;
+}
+
+.stranger-conversation[data-type="casual_talk"] {
+    border-left: 3px solid #8b7355;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .stranger-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .conversation-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .stranger-conversations {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Integration with existing card styles */
+.stranger-conversation {
+    position: relative;
+}
+
+.stranger-conversation .xp-multiplier {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #5a7a3a;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Stranger card hover effects */
+.stranger-card:not(.talked-to) .stranger-conversation:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}

@@ -1,0 +1,81 @@
+{
+  "packageId": "player_stats_001",
+  "metadata": {
+    "name": "Player Stats System",
+    "timestamp": "2025-09-15T00:00:00Z",
+    "description": "Core player stat definitions and progression rules",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "stats": [
+      {
+        "id": "insight",
+        "name": "Insight",
+        "description": "Analytical intelligence and systematic observation. Represents your ability to understand patterns, analyze situations, and apply logical reasoning.",
+        "conversationBenefit": "Better success with analytical and observational cards. Unlocks cards that examine evidence and identify patterns.",
+        "investigationUnlock": "Systematic Observation at level 2: +1 familiarity gain when investigating",
+        "travelUnlock": "Scholar shortcuts at level 2: Access to library passages, observatory routes, and academic pathways"
+      },
+      {
+        "id": "rapport",
+        "name": "Rapport",
+        "description": "Emotional intelligence and empathetic connection. Represents your ability to understand feelings, build trust, and connect with others.",
+        "conversationBenefit": "Better success with empathetic and supportive cards. Unlocks cards that offer comfort and understanding.",
+        "investigationUnlock": "Local Inquiry at level 2: Learn NPC observation preferences through conversation",
+        "travelUnlock": "Community paths at level 2: Access to local favors, friendship routes, and neighborhood shortcuts"
+      },
+      {
+        "id": "authority",
+        "name": "Authority",
+        "description": "Leadership and persuasive command. Represents your ability to take charge, demand respect, and influence through presence.",
+        "conversationBenefit": "Better success with commanding and directive cards. Unlocks cards that establish dominance and demand compliance.",
+        "investigationUnlock": "Demand Access at level 2: Force entry to restricted spots through authority",
+        "travelUnlock": "Noble gates at level 2: Access to checkpoint bypasses, official routes, and command passages"
+      },
+      {
+        "id": "commerce",
+        "name": "Commerce",
+        "description": "Negotiation and trade acumen. Represents your ability to identify value, negotiate deals, and think in terms of profit and exchange.",
+        "conversationBenefit": "Better success with negotiation and trade-focused cards. Unlocks cards that propose deals and calculate value.",
+        "investigationUnlock": "Purchase Information at level 2: Pay coins for instant familiarity gain",
+        "travelUnlock": "Merchant caravans at level 2: Access to trade routes, market passages, and commercial transport"
+      },
+      {
+        "id": "cunning",
+        "name": "Cunning",
+        "description": "Subtlety and indirect influence. Represents your ability to work in shadows, find alternative angles, and achieve goals through misdirection.",
+        "conversationBenefit": "Better success with subtle and indirect cards. Unlocks cards that hint, deflect, and work around obstacles.",
+        "investigationUnlock": "Covert Search at level 2: Investigate without alerting NPCs or drawing attention",
+        "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"
+      }
+    ],
+    "progression": {
+      "xpThresholds": [10, 25, 50, 100],
+      "levelBonuses": [
+        {
+          "level": 2,
+          "successBonus": 5,
+          "description": "+5% success rate to all cards of this stat"
+        },
+        {
+          "level": 3,
+          "successBonus": 10,
+          "effect": "gains_thought_persistence",
+          "description": "+10% success rate and cards gain Thought persistence"
+        },
+        {
+          "level": 4,
+          "successBonus": 15,
+          "description": "+15% success rate to all cards of this stat"
+        },
+        {
+          "level": 5,
+          "successBonus": 20,
+          "effect": "ignores_failure_listen",
+          "description": "+20% success rate and cards never force LISTEN on failure"
+        }
+      ]
+    }
+  }
+}

@@ -22,7 +22,8 @@
         "connectionType": "Trust",
         "description": "Tell me what happened",
         "difficulty": "Easy",
-        "dialogueFragment": "Tell me what happened. I want to understand."
+        "dialogueFragment": "Tell me what happened. I want to understand.",
+        "boundStat": "insight"
       },
       {
         "id": "ive_been_there_too",
@@ -38,7 +39,8 @@
         "connectionType": "Trust",
         "description": "I've been there too",
         "difficulty": "Medium",
-        "dialogueFragment": "I've been there too. I know exactly how that feels."
+        "dialogueFragment": "I've been there too. I know exactly how that feels.",
+        "boundStat": "rapport"
       },
       {
         "id": "youre_right_about_that",
@@ -54,7 +56,8 @@
         "connectionType": "Trust",
         "description": "You're right about that",
         "difficulty": "Easy",
-        "dialogueFragment": "You're absolutely right about that."
+        "dialogueFragment": "You're absolutely right about that.",
+        "boundStat": "rapport"
       },
       {
         "id": "what_would_you_do",
@@ -70,7 +73,8 @@
         "connectionType": "Trust",
         "description": "What would you do?",
         "difficulty": "Easy",
-        "dialogueFragment": "What would you do in my position?"
+        "dialogueFragment": "What would you do in my position?",
+        "boundStat": "insight"
       },
       {
         "id": "i_need_your_advice",
@@ -86,7 +90,8 @@
         "connectionType": "Trust",
         "description": "I need your advice",
         "difficulty": "Medium",
-        "dialogueFragment": "I need your advice on something important."
+        "dialogueFragment": "I need your advice on something important.",
+        "boundStat": "authority"
       },
       {
         "id": "that_must_have_been_difficult",
@@ -102,7 +107,8 @@
         "connectionType": "Trust",
         "description": "That must have been difficult",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "That must have been incredibly difficult for you."
+        "dialogueFragment": "That must have been incredibly difficult for you.",
+        "boundStat": "rapport"
       },
       {
         "id": "let_me_help_you_with_that",
@@ -118,7 +124,8 @@
         "connectionType": "Trust",
         "description": "Let me help you with that",
         "difficulty": "Medium",
-        "dialogueFragment": "Let me help you with that. It's no trouble."
+        "dialogueFragment": "Let me help you with that. It's no trouble.",
+        "boundStat": "rapport"
       },
       {
         "id": "i_trust_your_judgment",
@@ -134,7 +141,8 @@
         "connectionType": "Trust",
         "description": "I trust your judgment",
         "difficulty": "Medium",
-        "dialogueFragment": "I trust your judgment completely."
+        "dialogueFragment": "I trust your judgment completely.",
+        "boundStat": "authority"
       },
       {
         "id": "whats_your_price",
@@ -150,7 +158,8 @@
         "connectionType": "Commerce",
         "description": "What's your price?",
         "difficulty": "Easy",
-        "dialogueFragment": "What's your price for that?"
+        "dialogueFragment": "What's your price for that?",
+        "boundStat": "commerce"
       },
       {
         "id": "thats_fair",
@@ -166,7 +175,8 @@
         "connectionType": "Commerce",
         "description": "That's fair",
         "difficulty": "Easy",
-        "dialogueFragment": "That's a fair price. I accept."
+        "dialogueFragment": "That's a fair price. I accept.",
+        "boundStat": "commerce"
       },
       {
         "id": "can_we_make_a_deal",
@@ -182,7 +192,8 @@
         "connectionType": "Commerce",
         "description": "Can we make a deal?",
         "difficulty": "Medium",
-        "dialogueFragment": "Can we make a deal here?"
+        "dialogueFragment": "Can we make a deal here?",
+        "boundStat": "commerce"
       },
       {
         "id": "what_if_i_throw_in",
@@ -198,7 +209,8 @@
         "connectionType": "Commerce",
         "description": "What if I throw in...",
         "difficulty": "Medium",
-        "dialogueFragment": "What if I throw in something extra?"
+        "dialogueFragment": "What if I throw in something extra?",
+        "boundStat": "commerce"
       },
       {
         "id": "you_drive_hard_bargain",
@@ -214,7 +226,8 @@
         "connectionType": "Commerce",
         "description": "You drive a hard bargain",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "You drive a hard bargain, but I respect that."
+        "dialogueFragment": "You drive a hard bargain, but I respect that.",
+        "boundStat": "commerce"
       },
       {
         "id": "lets_shake_on_it",
@@ -230,7 +243,8 @@
         "connectionType": "Commerce",
         "description": "Let's shake on it",
         "difficulty": "Hard",
-        "dialogueFragment": "Let's shake on it. Deal?"
+        "dialogueFragment": "Let's shake on it. Deal?",
+        "boundStat": "commerce"
       },
       {
         "id": "i_know_your_secret",
@@ -246,7 +260,8 @@
         "connectionType": "Trust",
         "description": "I know your secret",
         "difficulty": "Hard",
-        "dialogueFragment": "I know what you've been hiding. We need to talk about this."
+        "dialogueFragment": "I know what you've been hiding. We need to talk about this.",
+        "boundStat": "cunning"
       },
       {
         "id": "youre_not_telling_everything",
@@ -262,7 +277,8 @@
         "connectionType": "Trust",
         "description": "You're not telling me everything",
         "difficulty": "Hard",
-        "dialogueFragment": "You're not telling me everything, are you?"
+        "dialogueFragment": "You're not telling me everything, are you?",
+        "boundStat": "cunning"
       },
       {
         "id": "ill_make_it_worth_while",
@@ -278,7 +294,8 @@
         "connectionType": "Commerce",
         "description": "I'll make it worth your while",
         "difficulty": "Hard",
-        "dialogueFragment": "I'll make it worth your while. Name your price."
+        "dialogueFragment": "I'll make it worth your while. Name your price.",
+        "boundStat": "commerce"
       },
       {
         "id": "between_you_and_me",
@@ -294,7 +311,8 @@
         "connectionType": "Trust",
         "description": "Between you and me...",
         "difficulty": "Medium",
-        "dialogueFragment": "Between you and me, there's something you should know."
+        "dialogueFragment": "Between you and me, there's something you should know.",
+        "boundStat": "cunning"
       },
       {
         "id": "i_heard_something_interesting",
@@ -310,7 +328,8 @@
         "connectionType": "Trust",
         "description": "I heard something interesting",
         "difficulty": "Easy",
-        "dialogueFragment": "I heard something interesting about this place."
+        "dialogueFragment": "I heard something interesting about this place.",
+        "boundStat": "cunning"
       },
       {
         "id": "this_is_important",
@@ -326,7 +345,8 @@
         "connectionType": "Trust",
         "description": "This is important",
         "difficulty": "Medium",
-        "dialogueFragment": "This is important. I need you to listen carefully."
+        "dialogueFragment": "This is important. I need you to listen carefully.",
+        "boundStat": "authority"
       },
       {
         "id": "elena_letter_request",
@@ -347,7 +367,8 @@
           "value": "elena_urgent_letter"
         },
         "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
-        "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word."
+        "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word.",
+        "boundStat": "authority"
       },
       {
         "id": "elena_safety_request",
@@ -368,7 +389,8 @@
           "value": "elena_safety_obligation"
         },
         "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
-        "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon."
+        "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon.",
+        "boundStat": "authority"
       },
       {
         "id": "elena_priority_promise",
@@ -387,7 +409,8 @@
           "type": "ForceQueuePosition",
           "value": "1"
         },
-        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait."
+        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
+        "boundStat": "authority"
       },
       {
         "id": "marcus_trade_request",
@@ -408,7 +431,8 @@
           "value": "10"
         },
         "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
-        "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you."
+        "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you.",
+        "boundStat": "commerce"
       },
       {
         "id": "marcus_business_proposal",
@@ -429,7 +453,8 @@
           "value": "commercial_insight"
         },
         "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
-        "dialogueFragment": "Marcus, I have a business proposal that could benefit us both."
+        "dialogueFragment": "Marcus, I have a business proposal that could benefit us both.",
+        "boundStat": "commerce"
       },
       {
         "id": "elena_shared_understanding",
@@ -446,7 +471,8 @@
         "description": "We understand each other",
         "difficulty": "Easy",
         "minimumTokensRequired": 1,
-        "dialogueFragment": "Elena, I feel like we're beginning to understand each other."
+        "dialogueFragment": "Elena, I feel like we're beginning to understand each other.",
+        "boundStat": "rapport"
       },
       {
         "id": "elena_trusted_confidant",
@@ -463,7 +489,8 @@
         "description": "You can trust me completely",
         "difficulty": "Medium",
         "minimumTokensRequired": 3,
-        "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence."
+        "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence.",
+        "boundStat": "rapport"
       },
       {
         "id": "elena_deep_bond",
@@ -480,7 +507,8 @@
         "description": "Our bond runs deep",
         "difficulty": "Medium",
         "minimumTokensRequired": 6,
-        "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined."
+        "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined.",
+        "boundStat": "rapport"
       },
       {
         "id": "elena_absolute_devotion",
@@ -497,7 +525,8 @@
         "description": "My devotion is absolute",
         "difficulty": "Hard",
         "minimumTokensRequired": 10,
-        "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you."
+        "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you.",
+        "boundStat": "rapport"
       },
       {
         "id": "elena_eternal_loyalty",
@@ -514,7 +543,8 @@
         "description": "Pledge eternal loyalty",
         "difficulty": "Hard",
         "minimumTokensRequired": 15,
-        "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side."
+        "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side.",
+        "boundStat": "rapport"
       },
       {
         "id": "marcus_bargain",
@@ -531,7 +561,8 @@
         "description": "Marcus's Bargain - A deal you can't refuse",
         "difficulty": "Hard",
         "minimumTokensRequired": 1,
-        "dialogueFragment": "Marcus, let's make a deal that benefits us both."
+        "dialogueFragment": "Marcus, let's make a deal that benefits us both.",
+        "boundStat": "commerce"
       },
       {
         "id": "trade_knowledge",
@@ -548,7 +579,8 @@
         "description": "Trade Knowledge - Marcus shares market secrets",
         "difficulty": "Medium",
         "minimumTokensRequired": 3,
-        "dialogueFragment": "Marcus, share with me your knowledge of the trade routes."
+        "dialogueFragment": "Marcus, share with me your knowledge of the trade routes.",
+        "boundStat": "commerce"
       },
       {
         "id": "commercial_trust",
@@ -565,7 +597,8 @@
         "description": "Commercial Trust - Years of reliable business",
         "difficulty": "Easy",
         "minimumTokensRequired": 6,
-        "dialogueFragment": "Marcus, our years of trade have built a foundation of trust."
+        "dialogueFragment": "Marcus, our years of trade have built a foundation of trust.",
+        "boundStat": "commerce"
       },
       {
         "id": "marcus_favor",
@@ -582,7 +615,8 @@
         "description": "Marcus's Favor - He owes you one",
         "difficulty": "VeryHard",
         "minimumTokensRequired": 10,
-        "dialogueFragment": "Marcus, I'm calling in that favor you owe me."
+        "dialogueFragment": "Marcus, I'm calling in that favor you owe me.",
+        "boundStat": "commerce"
       },
       {
         "id": "master_trader_secret",
@@ -599,7 +633,8 @@
         "description": "Master Trader's Secret - The ultimate negotiation",
         "difficulty": "Hard",
         "minimumTokensRequired": 15,
-        "dialogueFragment": "Marcus, teach me the master trader's ultimate secret."
+        "dialogueFragment": "Marcus, teach me the master trader's ultimate secret.",
+        "boundStat": "commerce"
       },
       {
         "id": "marcus_quick_trade",
@@ -621,7 +656,8 @@
           "type": "Exchange",
           "value": "quick_food_trade"
         },
-        "dialogueFragment": "Need some food? 10 coins for a meal's worth."
+        "dialogueFragment": "Need some food? 10 coins for a meal's worth.",
+        "boundStat": "commerce"
       },
       {
         "id": "safe_passage_knowledge",
@@ -641,7 +677,8 @@
         "connectionType": "Trust",
         "description": "Safe Passage Knowledge",
         "difficulty": "Auto",
-        "dialogueFragment": "You share what you've learned about safe travel routes through the market."
+        "dialogueFragment": "You share what you've learned about safe travel routes through the market.",
+        "boundStat": "insight"
       },
       {
         "id": "merchant_route_insight",
@@ -661,7 +698,8 @@
         "connectionType": "Commerce",
         "description": "Merchant Route Insight",
         "difficulty": "Auto",
-        "dialogueFragment": "You mention the merchant patterns you've observed in the market."
+        "dialogueFragment": "You mention the merchant patterns you've observed in the market.",
+        "boundStat": "insight"
       }
     ],
     "deckCompositions": {

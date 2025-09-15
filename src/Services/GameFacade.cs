@@ -84,6 +84,72 @@ public class GameFacade
         return new AttentionStateInfo(attention.Current, attention.Max, timeBlock);
     }
 
+    // ========== PLAYER STATS OPERATIONS ==========
+
+    public PlayerStats GetPlayerStats()
+    {
+        return _gameWorld.GetPlayer().Stats;
+    }
+
+    public List<StrangerNPC> GetAvailableStrangers(string locationId)
+    {
+        if (!_gameWorld.LocationStrangers.ContainsKey(locationId))
+        {
+            return new List<StrangerNPC>();
+        }
+
+        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        TimeBlock currentTime = ConvertTimeBlocks(currentTimeBlock);
+
+        return _gameWorld.LocationStrangers[locationId]
+            .Where(s => s.IsAvailableAtTime(currentTime) && !s.HasBeenTalkedTo)
+            .ToList();
+    }
+
+    public ConversationContext StartStrangerConversation(string strangerId)
+    {
+        // Find the stranger across all locations
+        StrangerNPC stranger = null;
+        foreach (var locationStrangers in _gameWorld.LocationStrangers.Values)
+        {
+            stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
+            if (stranger != null) break;
+        }
+
+        if (stranger == null)
+        {
+            return null;
+        }
+
+        // Mark stranger as talked to for this time block
+        stranger.MarkAsTalkedTo();
+
+        // For now, return null - stranger conversation context creation needs more implementation
+        // This will be expanded when the stranger system is fully integrated
+        return null;
+    }
+
+    public List<InvestigationApproach> GetAvailableInvestigationApproaches()
+    {
+        Player player = _gameWorld.GetPlayer();
+        return _locationFacade.GetAvailableApproaches(player);
+    }
+
+    // Helper method to convert TimeBlocks to TimeBlock enum
+    private TimeBlock ConvertTimeBlocks(TimeBlocks timeBlocks)
+    {
+        return timeBlocks switch
+        {
+            TimeBlocks.Dawn => TimeBlock.Dawn,
+            TimeBlocks.Morning => TimeBlock.Morning,
+            TimeBlocks.Midday => TimeBlock.Afternoon, // Map Midday to Afternoon
+            TimeBlocks.Afternoon => TimeBlock.Afternoon,
+            TimeBlocks.Evening => TimeBlock.Evening,
+            TimeBlocks.Night => TimeBlock.Night,
+            _ => TimeBlock.Morning
+        };
+    }
+
     // ========== LOCATION OPERATIONS ==========
 
     public Location GetCurrentLocation()

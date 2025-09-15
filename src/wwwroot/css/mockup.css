@@ -2745,6 +2745,123 @@ body * {
     gap: 8px;
 }
 
+/* ===== PLAYER STATS CARD INDICATORS ===== */
+
+/* Card stat binding indicators */
+.card-stat-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #d4c5a0;
+    border-radius: 2px;
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+
+.card-stat-indicator .stat-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 0;
+}
+
+.card-stat-indicator .stat-name {
+    font-size: 11px;
+    font-weight: normal;
+    color: #5c4a3a;
+    flex: 1;
+}
+
+.card-stat-indicator .stat-bonus {
+    font-size: 11px;
+    font-weight: bold;
+    color: #5a7a3a;
+}
+
+/* Stat-specific card indicators */
+.card-stat-indicator.stat-insight {
+    border-left: 3px solid #5a7a8a;
+}
+
+.card-stat-indicator.stat-insight .stat-icon {
+    background-color: #5a7a8a;
+}
+
+.card-stat-indicator.stat-rapport {
+    border-left: 3px solid #7a8b5a;
+}
+
+.card-stat-indicator.stat-rapport .stat-icon {
+    background-color: #7a8b5a;
+}
+
+.card-stat-indicator.stat-authority {
+    border-left: 3px solid #8b4726;
+}
+
+.card-stat-indicator.stat-authority .stat-icon {
+    background-color: #8b4726;
+}
+
+.card-stat-indicator.stat-commerce {
+    border-left: 3px solid #d4a76a;
+}
+
+.card-stat-indicator.stat-commerce .stat-icon {
+    background-color: #d4a76a;
+}
+
+.card-stat-indicator.stat-cunning {
+    border-left: 3px solid #4a3a2a;
+}
+
+.card-stat-indicator.stat-cunning .stat-icon {
+    background-color: #4a3a2a;
+}
+
+/* Travel path stat requirements */
+.path-stat-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.stat-requirement {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.stat-requirement.met {
+    background: #e8f5e9;
+    color: #2e5a2e;
+    border: 1px solid #7a8b5a;
+}
+
+.stat-requirement.unmet {
+    background: #faf0e6;
+    color: #8b4726;
+    border: 1px solid #d4704a;
+}
+
+.stat-requirement .stat-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.stat-requirement .current-level {
+    font-size: 9px;
+    opacity: 0.8;
+}
+
 .focus-pool-display {
     display: flex;
     align-items: center;

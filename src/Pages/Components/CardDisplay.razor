@@ -39,6 +39,19 @@
                     <div class="card-focus-badge">@Focus</div>
                 }
             </div>
+
+            @* Stat Binding Indicator *@
+            @if (BoundStat.HasValue)
+            {
+                <div class="card-stat-indicator @GetStatClass(BoundStat.Value)">
+                    <span class="stat-icon @GetStatIconClass(BoundStat.Value)"></span>
+                    <span class="stat-name">@GetStatDisplayName(BoundStat.Value)</span>
+                    @if (StatBonus > 0)
+                    {
+                        <span class="stat-bonus">+@StatBonus%</span>
+                    }
+                </div>
+            }
             
             
             @* Card Text/Dialogue *@
@@ -108,10 +121,14 @@
     // Special markers
     [Parameter] public string MarkerText { get; set; }
     [Parameter] public string MarkerClass { get; set; } = "";
-    
+
+    // Stat binding information
+    [Parameter] public PlayerStatType? BoundStat { get; set; }
+    [Parameter] public int StatBonus { get; set; } = 0;
+
     // Custom content slot
     [Parameter] public RenderFragment ChildContent { get; set; }
-    
+
     // Interaction
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
     
@@ -126,5 +143,36 @@
         {
             await OnClick.InvokeAsync(args);
         }
+    }
+
+    private string GetStatClass(PlayerStatType statType)
+    {
+        return $"stat-{statType.ToString().ToLower()}";
+    }
+
+    private string GetStatIconClass(PlayerStatType statType)
+    {
+        return statType switch
+        {
+            PlayerStatType.Insight => "insight",
+            PlayerStatType.Rapport => "rapport",
+            PlayerStatType.Authority => "authority",
+            PlayerStatType.Commerce => "commerce",
+            PlayerStatType.Cunning => "cunning",
+            _ => "default"
+        };
+    }
+
+    private string GetStatDisplayName(PlayerStatType statType)
+    {
+        return statType switch
+        {
+            PlayerStatType.Insight => "Insight",
+            PlayerStatType.Rapport => "Rapport",
+            PlayerStatType.Authority => "Authority",
+            PlayerStatType.Commerce => "Commerce",
+            PlayerStatType.Cunning => "Cunning",
+            _ => statType.ToString()
+        };
     }
 }

@@ -48,6 +48,9 @@ public class ConversationCard
     // Level bonuses that apply at specific levels
     public IReadOnlyList<CardLevelBonus> LevelBonuses { get; init; } = new List<CardLevelBonus>();
 
+    // Player stats system - which stat this card is bound to for XP progression
+    public PlayerStatType? BoundStat { get; init; }
+
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
     {

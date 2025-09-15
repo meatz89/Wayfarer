@@ -46,6 +46,10 @@ public class ConversationSession
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
 
+    // Stranger conversation properties
+    public bool IsStrangerConversation { get; set; } = false;
+    public int? StrangerLevel { get; set; } // 1-3, affects XP multiplier
+
     // Compatibility properties for old pile architecture
     public IReadOnlyList<CardInstance> HandCards => ActiveCards.Cards;
     public Pile Hand => ActiveCards;

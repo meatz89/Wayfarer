@@ -7,6 +7,19 @@ using Wayfarer.GameState.Actions;
 namespace Wayfarer.Subsystems.LocationSubsystem
 {
     /// <summary>
+    /// Different approaches to investigate a location, unlocked by player stats
+    /// </summary>
+    public enum InvestigationApproach
+    {
+        Standard,      // Always available
+        Systematic,    // Insight 2+: +1 familiarity
+        LocalInquiry,  // Rapport 2+: Learn NPC preferences
+        DemandAccess,  // Authority 2+: Access restricted spots
+        PurchaseInfo,  // Commerce 2+: Pay for familiarity
+        CovertSearch   // Cunning 2+: No alerts
+    }
+
+    /// <summary>
     /// Represents conversation options available for a specific NPC
     /// </summary>
     public class NPCConversationOptions
@@ -488,6 +501,31 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         }
 
         /// <summary>
+        /// Get available investigation approaches based on player stats
+        /// </summary>
+        public List<InvestigationApproach> GetAvailableApproaches(Player player)
+        {
+            var approaches = new List<InvestigationApproach> { InvestigationApproach.Standard };
+
+            if (player.Stats.GetLevel(PlayerStatType.Insight) >= 2)
+                approaches.Add(InvestigationApproach.Systematic);
+
+            if (player.Stats.GetLevel(PlayerStatType.Rapport) >= 2)
+                approaches.Add(InvestigationApproach.LocalInquiry);
+
+            if (player.Stats.GetLevel(PlayerStatType.Authority) >= 2)
+                approaches.Add(InvestigationApproach.DemandAccess);
+
+            if (player.Stats.GetLevel(PlayerStatType.Commerce) >= 2)
+                approaches.Add(InvestigationApproach.PurchaseInfo);
+
+            if (player.Stats.GetLevel(PlayerStatType.Cunning) >= 2)
+                approaches.Add(InvestigationApproach.CovertSearch);
+
+            return approaches;
+        }
+
+        /// <summary>
         /// Investigate a location to gain familiarity. Costs 1 attention and takes 1 segment.
         /// Familiarity gain depends on spot properties: Quiet spots +2, Busy spots +1, others +1.
         /// Familiarity is capped at the location's MaxFamiliarity (typically 3).
@@ -497,19 +535,40 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// <returns>True if investigation was successful, false if not possible</returns>
         public bool InvestigateLocation(string locationId, string spotId)
         {
+            return InvestigateLocation(locationId, spotId, InvestigationApproach.Standard);
+        }
+
+        /// <summary>
+        /// Investigate a location with a specific approach. Different approaches provide different benefits
+        /// based on player stats and may have different costs or requirements.
+        /// </summary>
+        /// <param name="locationId">ID of the location to investigate</param>
+        /// <param name="spotId">ID of the spot where investigation takes place</param>
+        /// <param name="approach">Investigation approach to use</param>
+        /// <returns>True if investigation was successful, false if not possible</returns>
+        public bool InvestigateLocation(string locationId, string spotId, InvestigationApproach approach)
+        {
             Player player = _gameWorld.GetPlayer();
             Location location = GetLocationById(locationId);
             LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
-            
+
             if (player == null || location == null || spot == null)
             {
                 _messageSystem.AddSystemMessage("Cannot investigate - invalid location or spot", SystemMessageTypes.Warning);
                 return false;
             }
 
+            // Check if player can use this approach
+            var availableApproaches = GetAvailableApproaches(player);
+            if (!availableApproaches.Contains(approach))
+            {
+                _messageSystem.AddSystemMessage($"Cannot use {approach} approach - insufficient stats", SystemMessageTypes.Warning);
+                return false;
+            }
+
             InvestigationAction investigation = new InvestigationAction();
 
-            // Check if investigation is possible
+            // Check basic investigation requirements
             if (!investigation.CanInvestigate(player, location))
             {
                 if (!player.HasAttention(investigation.AttentionCost))
@@ -523,34 +582,97 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 return false;
             }
 
+            // Handle approach-specific costs and requirements
+            int attentionCost = investigation.AttentionCost;
+            int coinCost = 0;
+
+            switch (approach)
+            {
+                case InvestigationApproach.PurchaseInfo:
+                    // Commerce approach: pay coins for instant familiarity
+                    int currentFamiliarity = player.GetLocationFamiliarity(locationId);
+                    int maxGain = location.MaxFamiliarity - currentFamiliarity;
+                    coinCost = maxGain * 2; // 2 coins per familiarity level
+                    if (coinCost > 0 && player.Coins < coinCost)
+                    {
+                        _messageSystem.AddSystemMessage($"Not enough coins for purchase approach. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning);
+                        return false;
+                    }
+                    break;
+                case InvestigationApproach.CovertSearch:
+                    // Cunning approach: no time advancement (avoids alerts)
+                    break;
+            }
+
             // Get current familiarity and time
-            int currentFamiliarity = player.GetLocationFamiliarity(locationId);
+            int currentFam = player.GetLocationFamiliarity(locationId);
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-            // Calculate familiarity gain
+            // Calculate familiarity gain with approach bonuses
             int familiarityGain = investigation.GetFamiliarityGain(spot, currentTime);
-            
+
+            // Apply approach-specific bonuses
+            switch (approach)
+            {
+                case InvestigationApproach.Systematic:
+                    // Insight bonus: +1 familiarity
+                    familiarityGain += 1;
+                    break;
+                case InvestigationApproach.PurchaseInfo:
+                    // Commerce: instant familiarity gain to max
+                    familiarityGain = location.MaxFamiliarity - currentFam;
+                    break;
+                case InvestigationApproach.LocalInquiry:
+                    // Rapport: Learn which NPCs want observations from this location
+                    HandleLocalInquiryBonus(locationId);
+                    break;
+                case InvestigationApproach.DemandAccess:
+                    // Authority: Allow investigation of restricted spots (implementation depends on spot system)
+                    break;
+            }
+
             // Apply familiarity gain (capped at MaxFamiliarity)
-            int newFamiliarity = Math.Min(location.MaxFamiliarity, currentFamiliarity + familiarityGain);
+            int newFamiliarity = Math.Min(location.MaxFamiliarity, currentFam + familiarityGain);
             player.SetLocationFamiliarity(locationId, newFamiliarity);
 
-            // Spend attention
-            player.SpendAttention(investigation.AttentionCost);
+            // Apply costs
+            player.SpendAttention(attentionCost);
+            if (coinCost > 0)
+            {
+                player.ModifyCoins(-coinCost);
+            }
 
-            // Advance time
-            _timeManager.AdvanceSegments(investigation.TimeSegments);
+            // Advance time (except for covert approach)
+            if (approach != InvestigationApproach.CovertSearch)
+            {
+                _timeManager.AdvanceSegments(investigation.TimeSegments);
+            }
 
             // Generate success message
-            string gainText = familiarityGain == 2 ? "significant insights" : "new insights";
+            string approachText = approach == InvestigationApproach.Standard ? "" : $" using {approach} approach";
+            string gainText = familiarityGain >= 2 ? "significant insights" : "new insights";
             _messageSystem.AddSystemMessage(
-                $"Investigated {location.Name}. Gained {gainText} (+{familiarityGain} familiarity). " +
+                $"Investigated {location.Name}{approachText}. Gained {gainText} (+{familiarityGain} familiarity). " +
                 $"Familiarity: {newFamiliarity}/{location.MaxFamiliarity}",
                 SystemMessageTypes.Success
             );
 
-            Console.WriteLine($"[InvestigateLocation] {player.Name} investigated {location.Name} from {currentFamiliarity} to {newFamiliarity} familiarity");
-            
+            Console.WriteLine($"[InvestigateLocation] {player.Name} investigated {location.Name} from {currentFam} to {newFamiliarity} familiarity using {approach}");
+
             return true;
+        }
+
+        /// <summary>
+        /// Handle the LocalInquiry approach bonus - reveal which NPCs want observations from this location
+        /// </summary>
+        private void HandleLocalInquiryBonus(string locationId)
+        {
+            // This would integrate with the observation system to reveal NPC preferences
+            // For now, just add a message indicating the benefit
+            _messageSystem.AddSystemMessage(
+                "Through local inquiries, you learn which NPCs are interested in observations from this area",
+                SystemMessageTypes.Info
+            );
         }
     }
 }

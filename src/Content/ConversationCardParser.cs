@@ -160,6 +160,16 @@ public static class ConversationCardParser
             }
         }
 
+        // Parse bound stat
+        PlayerStatType? boundStat = null;
+        if (!string.IsNullOrEmpty(dto.BoundStat))
+        {
+            if (Enum.TryParse<PlayerStatType>(dto.BoundStat, true, out PlayerStatType statType))
+            {
+                boundStat = statType;
+            }
+        }
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {
@@ -178,6 +188,7 @@ public static class ConversationCardParser
             VerbPhrase = "",
             MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
             RapportThreshold = dto.RapportThreshold ?? 0,
+            BoundStat = boundStat,
             LevelBonuses = levelBonuses
         };
     }
@@ -341,6 +352,9 @@ public class ConversationCardDTO
 
     // Difficulty determines magnitude
     public string Difficulty { get; set; }
+
+    // Player stats system - which stat this card is bound to
+    public string BoundStat { get; set; } // insight/rapport/authority/commerce/cunning
 
     // Level bonuses (optional, uses default progression if not specified)
     public List<CardLevelBonusDTO> LevelBonuses { get; set; }

@@ -1,0 +1,58 @@
+@namespace Wayfarer.Pages.Components
+@inherits PlayerStatsDisplayBase
+
+@*
+    Player Stats Display Component
+    Shows all 5 stats with levels, XP progress bars, and bonuses
+    Follows Perfect Information principle - all stat effects visible
+*@
+
+<div class="player-stats-panel">
+    <h3 class="stats-title">Character Stats</h3>
+
+    @foreach (var statInfo in StatDisplayInfos)
+    {
+        <div class="stat-row">
+            <div class="stat-header">
+                <span class="stat-icon @GetStatIconClass(statInfo.StatType)"></span>
+                <span class="stat-name">@statInfo.Name</span>
+                <span class="stat-level">Level @statInfo.Level</span>
+            </div>
+
+            <div class="xp-bar">
+                <div class="xp-fill" style="width: @statInfo.ProgressPercent%">
+                    <span class="xp-text">@statInfo.CurrentXP / @statInfo.XPToNext XP</span>
+                </div>
+            </div>
+
+            @if (statInfo.Level >= 2)
+            {
+                <div class="stat-bonuses">
+                    <span class="success-bonus">+@statInfo.SuccessBonus% success rate</span>
+                    @if (statInfo.Level >= 3)
+                    {
+                        <span class="persistence-bonus">Cards gain Thought persistence</span>
+                    }
+                    @if (statInfo.Level >= 5)
+                    {
+                        <span class="mastery-bonus">Never forced to LISTEN on failure</span>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(statInfo.Description))
+            {
+                <div class="stat-description">@statInfo.Description</div>
+            }
+        </div>
+    }
+
+    @if (ShowTotalProgress)
+    {
+        <div class="total-progress">
+            <div class="total-level">Total Level: @TotalLevel</div>
+            <div class="total-xp">Total XP Earned: @TotalXP</div>
+            <div class="primary-stat">Primary Stat: @PrimaryStatName</div>
+        </div>
+    }
+</div>

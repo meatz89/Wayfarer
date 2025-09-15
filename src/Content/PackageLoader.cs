@@ -288,6 +288,7 @@ public class PackageLoader
         // OPTIMAL ORDER TO MINIMIZE SKELETONS:
 
         // 1. Foundation entities (no dependencies)
+        LoadPlayerStatsConfiguration(package.Content.PlayerStatsConfig, counts);
         LoadRegions(package.Content.Regions, counts);
         LoadItems(package.Content.Items, counts);
         LoadLetterTemplates(package.Content.LetterTemplates, counts);
@@ -305,6 +306,7 @@ public class PackageLoader
 
         // 5. NPCs (may depend on locations/spots/cards)
         LoadNPCs(package.Content.Npcs, counts);
+        LoadStrangers(package.Content.Strangers, counts);
 
         // 6. Relationship entities (depend on NPCs/cards)
         LoadExchanges(package.Content.Exchanges, counts);
@@ -539,6 +541,48 @@ public class PackageLoader
                 };
             }
         }
+    }
+
+    private void LoadPlayerStatsConfiguration(PlayerStatsConfigDTO playerStatsConfig, EntityCounts counts = null)
+    {
+        if (playerStatsConfig == null) return;
+
+        Console.WriteLine("[PackageLoader] Loading player stats configuration...");
+
+        // Parse the player stats configuration using PlayerStatParser
+        var (statDefinitions, progression) = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
+
+        // Store the configuration in GameWorld
+        _gameWorld.PlayerStatDefinitions = statDefinitions;
+        _gameWorld.StatProgression = progression;
+
+        Console.WriteLine($"[PackageLoader] Loaded {statDefinitions.Count} stat definitions and progression configuration");
+        if (counts != null) counts.Cards++; // Count as one entity for tracking
+    }
+
+    private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, EntityCounts counts = null)
+    {
+        if (strangerDtos == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading {strangerDtos.Count} stranger NPCs...");
+
+        foreach (StrangerNPCDTO dto in strangerDtos)
+        {
+            // Convert DTO to domain model using StrangerParser
+            StrangerNPC stranger = StrangerParser.ConvertDTOToStrangerNPC(dto);
+
+            // Add to GameWorld's LocationStrangers dictionary organized by location
+            if (!_gameWorld.LocationStrangers.ContainsKey(stranger.LocationId))
+            {
+                _gameWorld.LocationStrangers[stranger.LocationId] = new List<StrangerNPC>();
+            }
+            _gameWorld.LocationStrangers[stranger.LocationId].Add(stranger);
+
+            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.LocationId}' for time block '{stranger.AvailableTime}'");
+            if (counts != null) counts.NPCs++;
+        }
+
+        Console.WriteLine($"[PackageLoader] Completed loading strangers. Total locations with strangers: {_gameWorld.LocationStrangers.Count}");
     }
 
     private void LoadRegions(List<RegionDTO> regionDtos, EntityCounts counts = null)

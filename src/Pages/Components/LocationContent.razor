@@ -92,18 +92,29 @@
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
                 
-                <!-- Investigation Action -->
+                <!-- Investigation Approaches -->
                 @if (hasInvestigationAction)
                 {
-                    <div class="action-card investigation" 
-                         @onclick="async () => await InvestigateLocation()">
-                        <div class="action-name">🔍 Investigate</div>
-                        <div class="action-cost">
-                            <span class="cost-value">1 attention • 1 segment</span>
+                    <div class="investigation-section">
+                        <div class="investigation-header">
+                            <span class="investigation-title">🔍 Investigation Approaches</span>
+                            <span class="investigation-info">Current: @GetFamiliarityDisplay()</span>
                         </div>
-                        <div class="action-detail">
-                            Gain +@GetExpectedFamiliarityGain() familiarity 
-                            (Current: @GetFamiliarityDisplay())
+                        <div class="investigation-approaches">
+                            @foreach (var approach in AvailableInvestigationApproaches)
+                            {
+                                bool canAfford = CanAffordInvestigation(approach);
+                                <div class="approach-btn @(canAfford ? "" : "approach-locked")"
+                                     @onclick="async () => await InvestigateWithApproach(approach)">
+                                    <div class="approach-name">@GetApproachDisplayName(approach)</div>
+                                    <div class="approach-cost">1 attention • 1 segment</div>
+                                    <div class="approach-description">@GetApproachDescription(approach)</div>
+                                    @if (!canAfford)
+                                    {
+                                        <div class="approach-requirement">@GetApproachRequirement(approach)</div>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
                 }

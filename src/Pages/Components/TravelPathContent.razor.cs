@@ -383,7 +383,61 @@ namespace Wayfarer.Pages.Components
                 requirements.Add(card.PermitRequirement);
             }
 
+            // Add stat requirements with level display
+            if (card.StatRequirements != null && card.StatRequirements.Count > 0)
+            {
+                Player player = GameFacade.GetPlayer();
+                foreach (var statReq in card.StatRequirements)
+                {
+                    if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                    {
+                        string statName = GetStatDisplayName(statType);
+                        int required = statReq.Value;
+                        int current = player.Stats.GetLevel(statType);
+
+                        if (current >= required)
+                        {
+                            requirements.Add($"{statName} {required}+ ✓");
+                        }
+                        else
+                        {
+                            requirements.Add($"{statName} {required}+ (have {current})");
+                        }
+                    }
+                }
+            }
+
             return requirements.Any() ? $"Requires: {string.Join(", ", requirements)}" : "";
+        }
+
+        protected string GetStatDisplayName(PlayerStatType statType)
+        {
+            return statType switch
+            {
+                PlayerStatType.Insight => "Insight",
+                PlayerStatType.Rapport => "Rapport",
+                PlayerStatType.Authority => "Authority",
+                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Cunning => "Cunning",
+                _ => statType.ToString()
+            };
+        }
+
+        protected string GetStatIconClass(string statKey)
+        {
+            if (Enum.TryParse<PlayerStatType>(statKey, true, out PlayerStatType statType))
+            {
+                return statType switch
+                {
+                    PlayerStatType.Insight => "insight",
+                    PlayerStatType.Rapport => "rapport",
+                    PlayerStatType.Authority => "authority",
+                    PlayerStatType.Commerce => "commerce",
+                    PlayerStatType.Cunning => "cunning",
+                    _ => "default"
+                };
+            }
+            return "default";
         }
 
         /// <summary>

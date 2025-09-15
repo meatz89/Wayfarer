@@ -247,18 +247,21 @@ public class ConversationOrchestrator
         // Play the card through deck manager
         CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
 
-        // Grant XP on successful card play
-        if (playResult.Success)
+        // Grant XP to player stat based on card's bound stat
+        Player player = _gameWorld.GetPlayer();
+        if (selectedCard.Template.BoundStat.HasValue)
         {
-            selectedCard.XP += 1;
+            // Calculate XP amount based on conversation difficulty/level
+            int xpAmount = 1; // Base XP
 
-            // Also update the persistent instance in Player's deck
-            Player player = _gameWorld.GetPlayer();
-            if (player.ConversationDeck != null)
+            // Scale XP by conversation difficulty if this is a stranger conversation
+            if (session.IsStrangerConversation && session.StrangerLevel.HasValue)
             {
-                // Find the persistent instance by InstanceId and update its XP
-                player.ConversationDeck.UpdateInstanceXP(selectedCard.InstanceId, selectedCard.XP);
+                xpAmount = session.StrangerLevel.Value; // Stranger level 1-3 = 1-3x XP
             }
+
+            // Grant XP to the bound stat regardless of success/failure (practice makes perfect)
+            player.Stats.AddXP(selectedCard.Template.BoundStat.Value, xpAmount);
         }
 
         // Record that this card was played for personality tracking
@@ -296,7 +299,7 @@ public class ConversationOrchestrator
 
         // Exhaust all focus on failed SPEAK - forces LISTEN as only option
         // Unless the card ignores failure LISTEN (level 5 mastery)
-        if (!playResult.Success && !selectedCard.IgnoresFailureListen)
+        if (!playResult.Success && !selectedCard.IgnoresFailureListen(player.Stats))
         {
             // Spend all remaining focus to force LISTEN
             int remainingFocus = _focusManager.AvailableFocus;

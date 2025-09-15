@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 // Player initial configuration data
 public class PlayerInitialConfig
@@ -42,6 +43,14 @@ public class GameWorld
     public Dictionary<string, LocationSpot> Spots { get; set; } = new Dictionary<string, LocationSpot>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+
+    // Stranger NPC system for practice conversations
+    public Dictionary<string, List<StrangerNPC>> LocationStrangers { get; set; } = new Dictionary<string, List<StrangerNPC>>();
+    private TimeBlock _lastTimeBlock = TimeBlock.Dawn;
+
+    // Player stats system for character progression
+    public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; } = new List<PlayerStatDefinition>();
+    public StatProgression StatProgression { get; set; }
 
     private Player Player;
     public WorldState WorldState { get; private set; }
@@ -196,6 +205,110 @@ public class GameWorld
         {
             Player.ApplyInitialConfiguration(InitialPlayerConfig);
         }
+    }
+
+    /// <summary>
+    /// Add a stranger NPC to a specific location
+    /// </summary>
+    public void AddStrangerToLocation(string locationId, StrangerNPC stranger)
+    {
+        if (!LocationStrangers.ContainsKey(locationId))
+        {
+            LocationStrangers[locationId] = new List<StrangerNPC>();
+        }
+        LocationStrangers[locationId].Add(stranger);
+    }
+
+    /// <summary>
+    /// Get available strangers at a location for the current time block
+    /// </summary>
+    public List<StrangerNPC> GetAvailableStrangers(string locationId, TimeBlock currentTimeBlock)
+    {
+        if (!LocationStrangers.ContainsKey(locationId))
+            return new List<StrangerNPC>();
+
+        return LocationStrangers[locationId]
+            .Where(s => s.IsAvailableAtTime(currentTimeBlock) && !s.HasBeenTalkedTo)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get stranger by ID across all locations
+    /// </summary>
+    public StrangerNPC GetStrangerById(string strangerId)
+    {
+        foreach (var locationStrangers in LocationStrangers.Values)
+        {
+            var stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
+            if (stranger != null)
+                return stranger;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Refresh all strangers when time block changes
+    /// </summary>
+    public void RefreshStrangersForTimeBlock(TimeBlock newTimeBlock)
+    {
+        if (_lastTimeBlock != newTimeBlock)
+        {
+            foreach (var locationStrangers in LocationStrangers.Values)
+            {
+                foreach (var stranger in locationStrangers)
+                {
+                    stranger.RefreshForNewTimeBlock();
+                }
+            }
+            _lastTimeBlock = newTimeBlock;
+        }
+    }
+
+    /// <summary>
+    /// Mark a stranger as talked to for current time block
+    /// </summary>
+    public void MarkStrangerAsTalkedTo(string strangerId)
+    {
+        var stranger = GetStrangerById(strangerId);
+        stranger?.MarkAsTalkedTo();
+    }
+
+    /// <summary>
+    /// Get all strangers across all locations (for debugging/admin)
+    /// </summary>
+    public List<StrangerNPC> GetAllStrangers()
+    {
+        var allStrangers = new List<StrangerNPC>();
+        foreach (var locationStrangers in LocationStrangers.Values)
+        {
+            allStrangers.AddRange(locationStrangers);
+        }
+        return allStrangers;
+    }
+
+    /// <summary>
+    /// Convert TimeBlocks enum to TimeBlock enum
+    /// </summary>
+    private TimeBlock ConvertTimeBlocks(TimeBlocks timeBlocks)
+    {
+        return timeBlocks switch
+        {
+            TimeBlocks.Dawn => TimeBlock.Dawn,
+            TimeBlocks.Morning => TimeBlock.Morning,
+            TimeBlocks.Midday => TimeBlock.Midday,
+            TimeBlocks.Afternoon => TimeBlock.Afternoon,
+            TimeBlocks.Evening => TimeBlock.Evening,
+            TimeBlocks.Night => TimeBlock.Night,
+            _ => TimeBlock.Morning
+        };
+    }
+
+    /// <summary>
+    /// Get current time block as TimeBlock enum
+    /// </summary>
+    public TimeBlock GetCurrentTimeBlock()
+    {
+        return ConvertTimeBlocks(CurrentTimeBlock);
     }
 
 }

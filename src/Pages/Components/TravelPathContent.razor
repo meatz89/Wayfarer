@@ -100,7 +100,37 @@
                                     }
                                     @if (!string.IsNullOrEmpty(requirements))
                                     {
-                                        <div class="path-requirements">Requires: @requirements</div>
+                                        <div class="path-requirements">@requirements</div>
+                                    }
+
+                                    @* Stat Requirements Visual Indicators *@
+                                    @if (card.StatRequirements != null && card.StatRequirements.Count > 0)
+                                    {
+                                        <div class="path-stat-requirements">
+                                            @foreach (var statReq in card.StatRequirements)
+                                            {
+                                                Player player = GameFacade.GetPlayer();
+                                                bool meetsRequirement = false;
+                                                string statName = "";
+                                                int required = statReq.Value;
+                                                int current = 0;
+
+                                                if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                                                {
+                                                    statName = GetStatDisplayName(statType);
+                                                    current = player.Stats.GetLevel(statType);
+                                                    meetsRequirement = current >= required;
+                                                }
+                                                <div class="stat-requirement @(meetsRequirement ? "met" : "unmet")">
+                                                    <span class="stat-icon @GetStatIconClass(statReq.Key)"></span>
+                                                    <span class="stat-info">@statName @required+</span>
+                                                    @if (!meetsRequirement)
+                                                    {
+                                                        <span class="current-level">(@current)</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
                                     }
                                     
                                     <!-- Mechanical Effects Section -->

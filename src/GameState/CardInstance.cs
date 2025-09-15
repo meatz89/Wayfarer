@@ -27,22 +27,32 @@ public class CardInstance
     public string VerbPhrase => Template.VerbPhrase;
 
     // Categorical properties that define behavior through context
-    // Cards with "gains_thought_persistence" effect gain Thought persistence
-    public PersistenceType Persistence
+    /// <summary>
+    /// Get persistence type for this card, potentially modified by player stat bonuses
+    /// Cards gain Thought persistence when bound stat reaches level 3
+    /// </summary>
+    public PersistenceType GetPersistence(PlayerStats playerStats)
     {
-        get
-        {
-            var bonus = GameRules.StandardRuleset.CardProgression.GetBonusForLevel(Level);
-            bool gainsThought = bonus?.Effects?.Contains("gains_thought_persistence") ?? false;
+        var basePersistence = Template.Persistence;
 
-            if (gainsThought && _basePersistence != PersistenceType.Thought)
+        // Check if bound stat has persistence bonus (level 3+)
+        if (Template.BoundStat.HasValue && playerStats.HasPersistenceBonus(Template.BoundStat.Value))
+        {
+            // Cards gain Thought persistence if they don't already have it
+            if (basePersistence != PersistenceType.Thought)
             {
                 return PersistenceType.Thought;
             }
-            return _basePersistence;
         }
+
+        return basePersistence;
     }
-    private PersistenceType _basePersistence => Template.Persistence;
+
+    /// <summary>
+    /// Legacy Persistence property for backwards compatibility
+    /// Use GetPersistence(PlayerStats) for stat-aware persistence
+    /// </summary>
+    public PersistenceType Persistence => Template.Persistence;
 
     // Runtime context
     public string SourceContext { get; init; }
@@ -51,18 +61,43 @@ public class CardInstance
     // Track if card is currently playable (for request cards)
     public bool IsPlayable { get; set; } = true;
 
-    // XP and Leveling System
-    public int XP { get; set; } = 0;
-    public int Level => GameRules.StandardRuleset.CardProgression.GetLevelFromXp(XP);
-    // Cards with "ignores_failure_listen" effect ignore forced LISTEN on failure
-    public bool IgnoresFailureListen
+    /// <summary>
+    /// Get effective level for this card based on player stats
+    /// Cards derive their level from the bound stat level, not individual card XP
+    /// </summary>
+    public int GetEffectiveLevel(PlayerStats playerStats)
     {
-        get
+        if (Template.BoundStat.HasValue)
         {
-            var bonus = GameRules.StandardRuleset.CardProgression.GetBonusForLevel(Level);
-            return bonus?.Effects?.Contains("ignores_failure_listen") ?? false;
+            return playerStats.GetLevel(Template.BoundStat.Value);
         }
+        return 1; // Default level if no bound stat
     }
+
+    /// <summary>
+    /// Check if card ignores forced LISTEN on failure based on player stat level
+    /// </summary>
+    public bool IgnoresFailureListen(PlayerStats playerStats)
+    {
+        if (Template.BoundStat.HasValue)
+        {
+            return playerStats.IgnoresFailureListen(Template.BoundStat.Value);
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Legacy XP property for backwards compatibility - now always returns 0
+    /// XP is tracked at the stat level, not individual cards
+    /// </summary>
+    [Obsolete("XP is now tracked at player stat level, not individual cards")]
+    public int XP { get; set; } = 0;
+
+    /// <summary>
+    /// Legacy Level property for backwards compatibility - use GetEffectiveLevel instead
+    /// </summary>
+    [Obsolete("Use GetEffectiveLevel(PlayerStats) instead")]
+    public int Level => 1;
 
     public string GetCategoryClass()
     {
@@ -135,13 +170,30 @@ public class CardInstance
         return TokenType;
     }
 
-    public int GetBaseSuccessPercentage()
+    /// <summary>
+    /// Get base success percentage applying player stat bonuses
+    /// </summary>
+    public int GetBaseSuccessPercentage(PlayerStats playerStats)
     {
         int baseChance = Template.GetBaseSuccessPercentage();
 
-        // Add level bonus from JSON configuration
-        int levelBonus = GameRules.StandardRuleset.CardProgression.GetTotalSuccessBonusForLevel(Level);
-        return baseChance + levelBonus;
+        // Add stat bonus instead of card level bonus
+        if (Template.BoundStat.HasValue)
+        {
+            int statBonus = playerStats.GetSuccessBonus(Template.BoundStat.Value);
+            return baseChance + statBonus;
+        }
+
+        return baseChance;
+    }
+
+    /// <summary>
+    /// Legacy method for backwards compatibility - use GetBaseSuccessPercentage(PlayerStats) instead
+    /// </summary>
+    [Obsolete("Use GetBaseSuccessPercentage(PlayerStats) instead")]
+    public int GetBaseSuccessPercentage()
+    {
+        return Template.GetBaseSuccessPercentage();
     }
 
     public CardInstance() { }

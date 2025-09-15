@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.Subsystems.LocationSubsystem;
 
 namespace Wayfarer.Pages.Components
 {
@@ -49,6 +50,7 @@ namespace Wayfarer.Pages.Components
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
         protected Location CurrentLocation { get; set; }
+        protected List<InvestigationApproach> AvailableInvestigationApproaches { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -230,6 +232,10 @@ namespace Wayfarer.Pages.Components
             {
                 ActiveObligations = new List<DeliveryObligation>();
             }
+
+            // Get available investigation approaches based on player stats
+            AvailableInvestigationApproaches = GameFacade.GetAvailableInvestigationApproaches();
+            Console.WriteLine($"[LocationContent] Got {AvailableInvestigationApproaches.Count} investigation approaches available");
         }
 
         protected async Task StartConversation(string npcId)
@@ -842,6 +848,96 @@ namespace Wayfarer.Pages.Components
                 "gruff" => 7,
                 "steadfast" => 11,
                 _ => 10
+            };
+        }
+
+        // Investigation Approach Helper Methods
+        protected async Task InvestigateWithApproach(InvestigationApproach approach)
+        {
+            if (CurrentLocation == null || CurrentSpot == null)
+            {
+                Console.WriteLine("[LocationContent] Cannot investigate - no current location or spot");
+                return;
+            }
+
+            Console.WriteLine($"[LocationContent] Starting investigation with {approach} approach");
+
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.SpotID, approach);
+
+            if (success)
+            {
+                Console.WriteLine($"[LocationContent] Successfully investigated {CurrentLocation.Name} with {approach}");
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to investigate with {approach}");
+            }
+        }
+
+        protected bool CanAffordInvestigation(InvestigationApproach approach)
+        {
+            // Check if player has required stat levels
+            Player player = GameWorld.GetPlayer();
+
+            bool hasStatRequirement = approach switch
+            {
+                InvestigationApproach.Standard => true,
+                InvestigationApproach.Systematic => player.Stats.GetLevel(PlayerStatType.Insight) >= 2,
+                InvestigationApproach.LocalInquiry => player.Stats.GetLevel(PlayerStatType.Rapport) >= 2,
+                InvestigationApproach.DemandAccess => player.Stats.GetLevel(PlayerStatType.Authority) >= 2,
+                InvestigationApproach.PurchaseInfo => player.Stats.GetLevel(PlayerStatType.Commerce) >= 2,
+                InvestigationApproach.CovertSearch => player.Stats.GetLevel(PlayerStatType.Cunning) >= 2,
+                _ => false
+            };
+
+            // Also check attention cost
+            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
+            bool hasAttention = attentionState.Current >= 1;
+
+            return hasStatRequirement && hasAttention;
+        }
+
+        protected string GetApproachDisplayName(InvestigationApproach approach)
+        {
+            return approach switch
+            {
+                InvestigationApproach.Standard => "Standard Investigation",
+                InvestigationApproach.Systematic => "Systematic Observation",
+                InvestigationApproach.LocalInquiry => "Local Inquiry",
+                InvestigationApproach.DemandAccess => "Demand Access",
+                InvestigationApproach.PurchaseInfo => "Purchase Information",
+                InvestigationApproach.CovertSearch => "Covert Search",
+                _ => approach.ToString()
+            };
+        }
+
+        protected string GetApproachDescription(InvestigationApproach approach)
+        {
+            return approach switch
+            {
+                InvestigationApproach.Standard => "Basic investigation methods",
+                InvestigationApproach.Systematic => "+1 familiarity bonus (Insight 2+)",
+                InvestigationApproach.LocalInquiry => "Learn NPC preferences (Rapport 2+)",
+                InvestigationApproach.DemandAccess => "Access restricted areas (Authority 2+)",
+                InvestigationApproach.PurchaseInfo => "Pay coins for information (Commerce 2+)",
+                InvestigationApproach.CovertSearch => "Investigate without alerts (Cunning 2+)",
+                _ => "Unknown approach"
+            };
+        }
+
+        protected string GetApproachRequirement(InvestigationApproach approach)
+        {
+            return approach switch
+            {
+                InvestigationApproach.Standard => "",
+                InvestigationApproach.Systematic => "Requires Insight Level 2",
+                InvestigationApproach.LocalInquiry => "Requires Rapport Level 2",
+                InvestigationApproach.DemandAccess => "Requires Authority Level 2",
+                InvestigationApproach.PurchaseInfo => "Requires Commerce Level 2",
+                InvestigationApproach.CovertSearch => "Requires Cunning Level 2",
+                _ => "Unknown requirement"
             };
         }
     }

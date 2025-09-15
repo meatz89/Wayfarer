@@ -49,7 +49,7 @@
 
     public bool IsInitialized { get; set; } = false;
 
-    public PlayerSkills Skills { get; private set; } = new();
+    public PlayerStats Stats { get; private set; } = new();
 
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
@@ -344,8 +344,32 @@
 
     public int GetSkillLevel(SkillTypes skill)
     {
-        int level = Skills.GetLevelForSkill(skill);
-        return level;
+        // Legacy compatibility - map old skill types to player stats
+        PlayerStatType stat = skill switch
+        {
+            SkillTypes.Investigation => PlayerStatType.Insight,
+            SkillTypes.Perception => PlayerStatType.Insight,
+            SkillTypes.Reasoning => PlayerStatType.Insight,
+            SkillTypes.Knowledge => PlayerStatType.Insight,
+            SkillTypes.Etiquette => PlayerStatType.Authority,
+            SkillTypes.Intimidation => PlayerStatType.Authority,
+            SkillTypes.Threatening => PlayerStatType.Authority,
+            SkillTypes.Negotiation => PlayerStatType.Commerce,
+            SkillTypes.Deception => PlayerStatType.Cunning,
+            SkillTypes.Finesse => PlayerStatType.Cunning,
+            SkillTypes.Charm => PlayerStatType.Rapport,
+            SkillTypes.Acting => PlayerStatType.Rapport,
+            _ => PlayerStatType.Rapport // Default fallback
+        };
+        return Stats.GetLevel(stat);
+    }
+
+    /// <summary>
+    /// Get stat level for a specific PlayerStatType
+    /// </summary>
+    public int GetStatLevel(PlayerStatType stat)
+    {
+        return Stats.GetLevel(stat);
     }
 
     public void AddSilver(int silverReward)
@@ -408,8 +432,8 @@
         // Deep copy of LocationActionAvailability HashSet
         clone.LocationActionAvailability = [.. this.LocationActionAvailability];
 
-        // Deep copy of Skills
-        clone.Skills = this.Skills.Clone();
+        // Deep copy of Stats
+        clone.Stats = this.Stats.Clone();
 
         // Deep copy of LocationFamiliarity dictionary (Work Packet 1)
         clone.LocationFamiliarity = new Dictionary<string, int>(this.LocationFamiliarity);

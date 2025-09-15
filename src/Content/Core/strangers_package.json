@@ -1,0 +1,242 @@
+{
+  "packageId": "strangers_001",
+  "metadata": {
+    "name": "Stranger NPCs Package",
+    "timestamp": "2025-09-15T00:00:00Z",
+    "description": "Stranger NPCs for various locations and time blocks providing XP and basic rewards",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "strangers": [
+      {
+        "id": "market_vendor_morning",
+        "name": "Fresh Bread Vendor",
+        "level": 1,
+        "personality": "Steadfast",
+        "locationId": "market_square",
+        "timeBlock": "morning",
+        "conversationTypes": [
+          {
+            "type": "friendly_chat",
+            "rapportThresholds": [5, 10, 15],
+            "rewards": [
+              {"coins": 2},
+              {"coins": 4, "item": "bread"},
+              {"coins": 6, "item": "medicine", "tokens": {"Commerce": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "market_guard_afternoon",
+        "name": "Market Guard",
+        "level": 2,
+        "personality": "Proud",
+        "locationId": "market_square",
+        "timeBlock": "afternoon",
+        "conversationTypes": [
+          {
+            "type": "official_inquiry",
+            "rapportThresholds": [8, 15, 20],
+            "rewards": [
+              {"coins": 3},
+              {"coins": 6, "permit": "market_access"},
+              {"coins": 10, "permit": "guard_quarters_access", "tokens": {"Authority": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tavern_patron_evening",
+        "name": "Weary Traveler",
+        "level": 1,
+        "personality": "Devoted",
+        "locationId": "copper_kettle_tavern",
+        "timeBlock": "evening",
+        "conversationTypes": [
+          {
+            "type": "share_stories",
+            "rapportThresholds": [6, 12, 18],
+            "rewards": [
+              {"coins": 1, "food": 1},
+              {"coins": 3, "observation": "travel_tales_for_elena"},
+              {"coins": 5, "observation": "travel_tales_for_elena", "tokens": {"Trust": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "workshop_apprentice_morning",
+        "name": "Young Apprentice",
+        "level": 1,
+        "personality": "Cunning",
+        "locationId": "artisan_workshop",
+        "timeBlock": "morning",
+        "conversationTypes": [
+          {
+            "type": "trade_gossip",
+            "rapportThresholds": [7, 14, 21],
+            "rewards": [
+              {"coins": 2},
+              {"coins": 4, "observation": "workshop_secrets_for_marcus"},
+              {"coins": 7, "item": "tool", "tokens": {"Shadow": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "noble_servant_afternoon",
+        "name": "Palace Servant",
+        "level": 3,
+        "personality": "Mercantile",
+        "locationId": "noble_quarter",
+        "timeBlock": "afternoon",
+        "conversationTypes": [
+          {
+            "type": "information_exchange",
+            "rapportThresholds": [10, 18, 25],
+            "rewards": [
+              {"coins": 5},
+              {"coins": 8, "permit": "noble_district_pass"},
+              {"coins": 12, "observation": "noble_gossip_for_blackwood", "tokens": {"Status": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dock_worker_dawn",
+        "name": "Early Dock Worker",
+        "level": 2,
+        "personality": "Steadfast",
+        "locationId": "harbor_district",
+        "timeBlock": "dawn",
+        "conversationTypes": [
+          {
+            "type": "work_advice",
+            "rapportThresholds": [8, 16, 24],
+            "rewards": [
+              {"coins": 4},
+              {"coins": 7, "item": "rope"},
+              {"coins": 10, "permit": "dock_access", "tokens": {"Commerce": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "library_scholar_morning",
+        "name": "Scholarly Researcher",
+        "level": 2,
+        "personality": "Proud",
+        "locationId": "library",
+        "timeBlock": "morning",
+        "conversationTypes": [
+          {
+            "type": "academic_discussion",
+            "rapportThresholds": [9, 17, 26],
+            "rewards": [
+              {"coins": 3, "familiarity": 1},
+              {"coins": 6, "observation": "research_insights_for_elena"},
+              {"coins": 9, "permit": "restricted_archives", "tokens": {"Insight": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "alley_contact_night",
+        "name": "Hooded Figure",
+        "level": 3,
+        "personality": "Cunning",
+        "locationId": "back_alley",
+        "timeBlock": "night",
+        "conversationTypes": [
+          {
+            "type": "shadow_dealings",
+            "rapportThresholds": [12, 20, 30],
+            "rewards": [
+              {"coins": 6},
+              {"coins": 10, "item": "lockpick"},
+              {"coins": 15, "permit": "underground_passage", "tokens": {"Shadow": 2}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "merchant_apprentice_afternoon",
+        "name": "Merchant's Assistant",
+        "level": 1,
+        "personality": "Mercantile",
+        "locationId": "merchant_district",
+        "timeBlock": "afternoon",
+        "conversationTypes": [
+          {
+            "type": "trade_opportunities",
+            "rapportThresholds": [6, 12, 18],
+            "rewards": [
+              {"coins": 3},
+              {"coins": 5, "item": "trade_goods"},
+              {"coins": 8, "observation": "market_trends_for_marcus", "tokens": {"Commerce": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "temple_acolyte_evening",
+        "name": "Temple Acolyte",
+        "level": 2,
+        "personality": "Devoted",
+        "locationId": "temple",
+        "timeBlock": "evening",
+        "conversationTypes": [
+          {
+            "type": "spiritual_guidance",
+            "rapportThresholds": [8, 15, 22],
+            "rewards": [
+              {"health": 10},
+              {"health": 20, "observation": "spiritual_wisdom_for_elena"},
+              {"health": 30, "item": "blessing", "tokens": {"Trust": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "city_messenger_midday",
+        "name": "City Messenger",
+        "level": 2,
+        "personality": "Cunning",
+        "locationId": "central_plaza",
+        "timeBlock": "midday",
+        "conversationTypes": [
+          {
+            "type": "news_exchange",
+            "rapportThresholds": [9, 16, 24],
+            "rewards": [
+              {"coins": 4, "familiarity": 1},
+              {"coins": 7, "observation": "city_rumors_for_anyone"},
+              {"coins": 11, "permit": "messenger_routes", "tokens": {"Shadow": 1}}
+            ]
+          }
+        ]
+      },
+      {
+        "id": "warehouse_supervisor_morning",
+        "name": "Warehouse Supervisor",
+        "level": 3,
+        "personality": "Mercantile",
+        "locationId": "warehouse_district",
+        "timeBlock": "morning",
+        "conversationTypes": [
+          {
+            "type": "logistics_discussion",
+            "rapportThresholds": [11, 19, 28],
+            "rewards": [
+              {"coins": 6},
+              {"coins": 10, "permit": "warehouse_access"},
+              {"coins": 15, "observation": "shipping_manifest_for_marcus", "tokens": {"Commerce": 2}}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

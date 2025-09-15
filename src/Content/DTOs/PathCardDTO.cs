@@ -31,7 +31,10 @@ public class PathCardDTO
     
     // Token Gains
     public Dictionary<string, int> TokenGains { get; set; } // e.g., {"Commerce": 1, "Status": 2}
-    
+
     // Path Revelations
     public List<string> RevealsPaths { get; set; } // List of path IDs to reveal when played
+
+    // Stat Requirements - minimum stat levels required to use this path
+    public Dictionary<string, int> StatRequirements { get; set; } // e.g., {"insight": 2, "cunning": 3}
 }

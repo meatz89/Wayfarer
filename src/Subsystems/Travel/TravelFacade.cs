@@ -354,52 +354,83 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         }
 
         /// <summary>
-        /// Check if a specific path card can be played
+        /// Get availability information for a path card including reasons why it can't be used
         /// </summary>
-        public bool CanPlayPathCard(string pathCardId)
+        public PathCardAvailability GetPathCardAvailability(string pathCardId)
         {
             TravelSession session = _gameWorld.CurrentTravelSession;
             if (session == null)
             {
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = "No active travel session" };
             }
 
             // Get the card from the current segment's collection
             PathCardDTO card = GetCardFromCurrentSegmentCollection(pathCardId);
             if (card == null)
             {
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = "Card not found" };
             }
-            
+
             Player player = _gameWorld.GetPlayer();
 
             // Check stamina requirement
             if (session.StaminaRemaining < card.StaminaCost)
             {
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = $"Need {card.StaminaCost} stamina, have {session.StaminaRemaining}" };
             }
 
             // Check coin requirement
             if (card.CoinRequirement > 0 && player.Coins < card.CoinRequirement)
             {
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = $"Need {card.CoinRequirement} coins, have {player.Coins}" };
             }
 
             // Check permit requirement
             if (!string.IsNullOrEmpty(card.PermitRequirement))
             {
-                // For now, permits are not implemented so return false
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = $"Requires {card.PermitRequirement} permit" };
             }
 
             // Check one-time card usage
-            if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId) 
+            if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId)
                 && _gameWorld.PathCardRewardsClaimed[pathCardId])
             {
-                return false;
+                return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
             }
 
-            return true;
+            // Check stat requirements
+            if (card.StatRequirements != null && card.StatRequirements.Count > 0)
+            {
+                foreach (var statRequirement in card.StatRequirements)
+                {
+                    // Convert string stat name to PlayerStatType enum
+                    if (Enum.TryParse<PlayerStatType>(statRequirement.Key, true, out PlayerStatType statType))
+                    {
+                        if (player.Stats.GetLevel(statType) < statRequirement.Value)
+                        {
+                            return new PathCardAvailability
+                            {
+                                CanPlay = false,
+                                Reason = $"Requires {statRequirement.Key} level {statRequirement.Value}, have {player.Stats.GetLevel(statType)}"
+                            };
+                        }
+                    }
+                    else
+                    {
+                        return new PathCardAvailability { CanPlay = false, Reason = $"Invalid stat requirement: {statRequirement.Key}" };
+                    }
+                }
+            }
+
+            return new PathCardAvailability { CanPlay = true, Reason = null };
+        }
+
+        /// <summary>
+        /// Check if a specific path card can be played
+        /// </summary>
+        public bool CanPlayPathCard(string pathCardId)
+        {
+            return GetPathCardAvailability(pathCardId).CanPlay;
         }
 
         /// <summary>
@@ -680,6 +711,15 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         public bool IsDiscovered { get; set; }
         public bool CanPlay { get; set; }
         public bool IsHidden { get; set; }
+    }
+
+    /// <summary>
+    /// Information about path card availability including reasons for unavailability
+    /// </summary>
+    public class PathCardAvailability
+    {
+        public bool CanPlay { get; set; }
+        public string Reason { get; set; }
     }
 
     /// <summary>
