@@ -15,7 +15,7 @@ namespace Wayfarer.Tests
         {
             _gameWorld = GameWorldInitializer.CreateGameWorld();
             _packageLoader = new PackageLoader(_gameWorld);
-            _packageLoader.LoadPackage("/mnt/c/git/wayfarer/src/Content/Core/core_game_package.json");
+            _packageLoader.LoadDynamicPackage("/mnt/c/git/wayfarer/src/Content/Core/core_game_package.json");
         }
         
         [Test]

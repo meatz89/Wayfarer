@@ -27,7 +27,7 @@ namespace Wayfarer.Tests
             string packagePath = Path.Combine(contentPath, "test_01_npcs_with_missing_refs.json");
 
             // Act
-            packageLoader.LoadPackage(packagePath);
+            packageLoader.LoadDynamicPackage(packagePath);
 
             // Assert - verify skeletons were created for missing locations
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.GreaterThan(0), "Skeletons should be created");
@@ -51,14 +51,14 @@ namespace Wayfarer.Tests
         {
             // Arrange - first load NPCs with missing references
             string npcPackagePath = Path.Combine(contentPath, "test_01_npcs_with_missing_refs.json");
-            packageLoader.LoadPackage(npcPackagePath);
+            packageLoader.LoadDynamicPackage(npcPackagePath);
 
             int initialSkeletonCount = gameWorld.SkeletonRegistry.Count;
             Assert.That(initialSkeletonCount, Is.GreaterThan(0), "Should have skeletons initially");
 
             // Act - load package that resolves the skeletons
             string locationPackagePath = Path.Combine(contentPath, "test_02_locations_resolving_skeletons.json");
-            packageLoader.LoadPackage(locationPackagePath);
+            packageLoader.LoadDynamicPackage(locationPackagePath);
 
             // Assert - skeletons should be replaced with real content
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.LessThan(initialSkeletonCount), "Some skeletons should be resolved");
@@ -145,7 +145,7 @@ namespace Wayfarer.Tests
                 string packagePath = Path.Combine(contentPath, file);
                 if (File.Exists(packagePath))
                 {
-                    packageLoader.LoadPackage(packagePath);
+                    packageLoader.LoadDynamicPackage(packagePath);
                 }
             }
 
@@ -165,7 +165,7 @@ namespace Wayfarer.Tests
         {
             // Arrange - load package with missing references
             string packagePath = Path.Combine(contentPath, "test_01_npcs_with_missing_refs.json");
-            packageLoader.LoadPackage(packagePath);
+            packageLoader.LoadDynamicPackage(packagePath);
 
             // Act - verify game is still playable
             NPC? npc = gameWorld.NPCs.FirstOrDefault();

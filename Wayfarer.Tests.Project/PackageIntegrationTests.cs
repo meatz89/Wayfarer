@@ -29,7 +29,7 @@ namespace Wayfarer.Tests
             Assert.That(File.Exists(packagePath), Is.True, $"Package file not found at {packagePath}");
 
             // Act
-            packageLoader.LoadPackage(packagePath);
+            packageLoader.LoadDynamicPackage(packagePath);
 
             // Assert - verify content was loaded
             Assert.That(gameWorld.AllCardDefinitions.Count, Is.GreaterThan(0), "Cards should be loaded");
@@ -54,7 +54,7 @@ namespace Wayfarer.Tests
             string invalidPath = Path.Combine(contentPath, "non_existent_package.json");
 
             // Act & Assert
-            Assert.Throws<FileNotFoundException>(() => packageLoader.LoadPackage(invalidPath));
+            Assert.Throws<FileNotFoundException>(() => packageLoader.LoadDynamicPackage(invalidPath));
         }
 
         [Test]
