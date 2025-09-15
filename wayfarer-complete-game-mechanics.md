@@ -385,8 +385,8 @@ Location Investigation:
 Conversation cards can reveal paths NPCs know:
 ```
 Card Effect Examples:
-- "+1 rapport, reveals all non-hidden paths on [route]"
-- "+2 rapport, reveals cheapest path on each segment"
+- "reveals all non-hidden paths on [route]"
+- "reveals cheapest path on each segment"
 ```
 
 #### 4. Exchanges
@@ -1098,6 +1098,50 @@ The conversation system represents the primary gameplay loop. Players build and 
 
 **Failure Forces LISTEN**: When a SPEAK action fails, the player must LISTEN on their next turn. This creates a natural conversation rhythm where failure forces topic changes, making success streaks feel like finding conversational flow.
 
+### Card Categorical Property System
+
+Each card is defined by exactly four categorical properties that determine its behavior:
+
+#### Persistence (when the card can be played)
+- **Thought**: Remains in hand until played (survives LISTEN)
+- **Impulse**: Removed after any SPEAK if unplayed
+- **Opening**: Removed after LISTEN if unplayed
+
+#### Success (effect type on success)
+- **Rapport**: Changes connection strength
+- **Threading**: Draw cards to hand
+- **Atmospheric-[Type]**: Sets specific atmosphere (Patient/Focused/Receptive/Volatile/Final/etc)
+- **Focusing**: Restore focus to current pool
+- **Advancing**: Advance connection state by one step (ignores magnitude)
+- **Promising**: Move obligation to position 1 and gain rapport
+- **None**: No effect on success
+
+#### Failure (effect type on failure)
+- **Disrupting**: Discard all cards with Focus 3+ from hand
+- **Overreach**: Discard entire hand
+- **Backfire**: Negative rapport change
+- **None**: No effect beyond forced LISTEN
+
+#### Exhaust (effect when discarded unplayed)
+- **Threading**: Draw cards when discarded
+- **Focusing**: Restore focus when discarded
+- **Regret**: Negative rapport when discarded
+- **None**: No effect when discarded
+
+#### Magnitude Determination
+Effect magnitudes are determined by difficulty level, not hardcoded:
+- **Very Easy**: Magnitude 1
+- **Easy**: Magnitude 2
+- **Medium**: Magnitude 2
+- **Hard**: Magnitude 3
+- **Very Hard**: Magnitude 4
+
+Atmosphere can modify these base magnitudes:
+- **Volatile**: All rapport effects ±1
+- **Focused**: All success magnitudes +1
+- **Exposed**: All magnitudes doubled
+- **Synchronized**: Effect happens twice
+
 ### Player Deck Architecture
 
 The player owns a single conversation deck used in all conversations:
@@ -1154,7 +1198,7 @@ When a player chooses a request conversation type, ALL cards from that Request b
 #### Active Pile (Hand)
 - Cards currently available to play
 - No maximum hand size
-- Most cards lost on LISTEN (only ~20% are Persistent)
+- Most cards lost on LISTEN 
 
 #### Exhaust Pile
 - Played cards go here
@@ -1290,29 +1334,38 @@ Cleanup:
 - Connection state persists
 - Time cost: Base segment + (patience spent × 5 minutes depth)
 
-### Card Persistence Types
+#### Card Persistence Types
 
-#### Persistent (~20% of deck)
-- Remain in hand through LISTEN
+Cards use the Persistence property to determine when they must be played:
+
+#### Thought
+- Remains in hand through LISTEN actions
+- Represents considered statements you can hold until the right moment
+- Never exhausts automatically
 - Valuable anchors for strategy
-- Often gained as card level-up reward
-- Examples: Key rapport builders, setup cards
 
-#### Non-Persistent (~80% of deck)
-- Lost when LISTEN occurs
-- Creates urgency to play while available
-- Most common card type
-- Forces adaptation to new hands
+#### Impulse
+- Must be played this SPEAK or removed
+- Represents reactive, spontaneous responses
+- Removed after any SPEAK action if unplayed
+- Creates urgency to act
+
+#### Opening
+- Time-sensitive conversational opportunity
+- Removed after LISTEN if unplayed
+- Represents moments that pass if not seized
 
 ### Card Difficulty Tiers
 
-All modified by: +2% per rapport point
+Difficulty determines both base success rate and effect magnitude:
 
-- **Very Easy** (85% base): Observation cards exclusively (TBD final %)
-- **Easy** (70% base): Basic cards, safe plays (TBD final %)
-- **Medium** (60% base): Standard cards, balanced risk (TBD final %)
-- **Hard** (50% base): Powerful effects, scaled rapport (TBD final %)
-- **Very Hard** (40% base): Request cards, dramatic effects (TBD final %)
+- **Very Easy** (85% base): Magnitude 1 effects
+- **Easy** (70% base): Magnitude 2 effects  
+- **Medium** (60% base): Magnitude 2 effects
+- **Hard** (50% base): Magnitude 3 effects
+- **Very Hard** (40% base): Magnitude 4 effects
+
+All success rates modified by: +2% per rapport point
 
 ### Deck Cycling Example
 
@@ -1339,31 +1392,29 @@ This creates natural deck cycling where all cards remain available throughout th
 
 ### Starting Deck Composition
 
-The player begins with 20 basic cards representing fundamental social skills:
+The player begins with 20 basic cards representing fundamental social skills, each defined by categorical properties:
 
 **Basic Rapport Cards** (8 cards):
-- "I hear you" (x3) - 1 focus, Easy, +1 rapport
-- "Let me help" (x2) - 2 focus, Medium, +2 rapport
-- "Trust me" (x2) - 3 focus, Medium, +3 rapport
-- "I understand" (x1) - 4 focus, Hard, +4 rapport
+- "I hear you" (x3) - Focus 1, Easy, Thought/Rapport/None/None
+- "Let me help" (x2) - Focus 2, Medium, Thought/Rapport/None/None
+- "Trust me" (x2) - Focus 3, Medium, Thought/Rapport/Backfire/None
+- "I understand" (x1) - Focus 4, Hard, Thought/Rapport/None/None
 
 **Setup Cards** (4 cards):
-- "Let me think" (x1) - 1 focus, Easy, sets Patient atmosphere
-- "Let me prepare" (x1) - 1 focus, Easy, sets Prepared atmosphere
-- "Focus on this" (x1) - 2 focus, Medium, sets Focused atmosphere
-- "Stay calm" (x1) - 2 focus, Medium, sets Receptive atmosphere
+- "Let me think" (x1) - Focus 1, Easy, Thought/Atmospheric-Patient/None/None
+- "Let me prepare" (x1) - Focus 1, Easy, Thought/Atmospheric-Prepared/None/None
+- "Focus on this" (x1) - Focus 2, Medium, Thought/Atmospheric-Focused/None/None
+- "Stay calm" (x1) - Focus 2, Medium, Thought/Atmospheric-Receptive/None/None
 
 **Utility Cards** (4 cards):
-- "Tell me more" (x2) - 2 focus, Medium, draw 2 cards
-- "Gather thoughts" (x1) - 1 focus, Easy, add 1 focus
-- "Deep breath" (x1) - 3 focus, Medium, add 2 focus
+- "Tell me more" (x2) - Focus 2, Medium, Thought/Threading/None/None
+- "Gather thoughts" (x1) - Focus 1, Easy, Thought/Focusing/None/None
+- "Deep breath" (x1) - Focus 3, Medium, Thought/Focusing/None/None
 
 **Risk/Reward Cards** (4 cards):
-- "Bold claim" (x2) - 3 focus, Hard, +5 rapport / -2 on failure
-- "Personal story" (x1) - 4 focus, Hard, +6 rapport / -3 on failure
-- "Everything will be alright" (x1) - 5 focus, Very Hard, +8 rapport / -4 on failure
-
-All starting cards are non-persistent except "Let me think" and "I hear you" (first copy).
+- "Bold claim" (x2) - Focus 3, Hard, Impulse/Rapport/Backfire/Regret
+- "Personal story" (x1) - Focus 4, Hard, Thought/Rapport/Disrupting/None
+- "Everything will be alright" (x1) - Focus 5, Very Hard, Impulse/Rapport/Overreach/Regret
 
 ### Card Leveling System
 
@@ -1410,18 +1461,11 @@ Certain locations offer deck thinning services:
 Each NPC has 5 unique cards that shuffle into the player's deck based on tokens:
 
 #### Example: Marcus's Commerce Cards
-- **1 token**: "Marcus's Rapport" - 2 focus, +2 rapport, Persistent
-- **3 tokens**: "Trade Knowledge" - 3 focus, +3 rapport, draw 1
-- **6 tokens**: "Commercial Bond" - 1 focus, +X rapport where X = Commerce tokens (max 6)
-- **10 tokens**: "Marcus's Favor" - 4 focus, cannot fail if rapport ≥ 10
-- **15 tokens**: "Master Trader" - 5 focus, +10 rapport, next card succeeds
-
-#### Example: Elena's Trust Cards
-- **1 token**: "Elena's Trust" - 1 focus, +1 rapport, Persistent
-- **3 tokens**: "Shared Burden" - 2 focus, double next rapport gain
-- **6 tokens**: "Deep Connection" - 3 focus, +5 rapport, ignore failures this turn
-- **10 tokens**: "Elena's Hope" - 0 focus, advance connection state
-- **15 tokens**: "Unbreakable Bond" - 4 focus, all cards Persistent this conversation
+- **1 token**: "Marcus's Rapport" - Focus 2, Hard, Thought/Rapport/None/None
+- **3 tokens**: "Trade Knowledge" - Focus 3, Easy, Thought/Threading/None/None
+- **6 tokens**: "Commercial Bond" - Focus 1, Very Hard, Thought/Rapport/Backfire/None
+- **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Rapport/None/None (special: doesn't force LISTEN on failure)
+- **15 tokens**: "Master Trader" - Focus 5, Medium, Thought/Atmospheric-Focused/None/None
 
 These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same player deck.
 
@@ -2265,6 +2309,8 @@ Your conversation deck IS your character. Every card represents a social skill y
 
 ### Conversations as Combat
 
+The categorical property system means cards represent conversational approaches rather than specific outcomes. A Thought/Rapport/Overreach/None card represents a calculated statement that could strengthen or destroy the relationship. The same card performs differently under various atmospheres and rapport levels, creating emergent complexity from simple rules.
+
 Each conversation is a tactical puzzle where you play your deck against NPC personality rules:
 - **Proud NPCs** force ascending focus order - like enemies that punish repetition
 - **Devoted NPCs** double rapport losses - like glass cannon fights
@@ -2301,6 +2347,15 @@ The loop is crystal clear:
 This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and deck building rather than combat statistics.
 
 ## Design Verification Checklist
+
+### Categorical Consistency ✓
+- Every card defined by exactly four categorical properties
+- No card has hardcoded effect values
+- Magnitude emerges from difficulty level
+- Certain property combinations avoided for versimilitude:
+  - Impulse + Atmospheric (setting tone requires thought)
+  - Opening + Advancing (too powerful for time-limited opportunity)
+  - Thought + Regret (thoughts don't expire with consequence)
 
 ### Clean Mechanical Separation ✓
 - Player owns conversation deck (social skills)
@@ -2360,6 +2415,19 @@ This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expr
 ## Critical Formulas Reference
 
 **Success Rate**: Base% + (2 × Current Rapport)
+
+**Effect Magnitude by Difficulty**:
+- Very Easy: 1
+- Easy: 2
+- Medium: 2
+- Hard: 3
+- Very Hard: 4
+
+**Atmosphere Magnitude Modifiers**:
+- Volatile: Rapport effects ±1
+- Focused: All magnitudes +1
+- Exposed: All magnitudes ×2
+- Synchronized: Effect happens twice
 
 **Card Level Thresholds**: 
 - Level 2: 3 XP
@@ -2421,8 +2489,6 @@ This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expr
 - Mercantile: 12
 - Cunning: 12
 - Proud: 10
-
-**Card Persistence**: ~20% of deck should be Persistent
 
 **Item Weights**:
 - Letters: 1
