@@ -697,20 +697,92 @@ public class PackageLoader
                 _gameWorld.SkeletonRegistry[dto.SpotId] = "LocationSpot";
             }
 
-            // Check if this NPC was previously a skeleton, if so replace it
+            // Check if this NPC was previously a skeleton, if so replace it and preserve persistent decks
             NPC? existingSkeleton = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
             if (existingSkeleton != null)
             {
+                Console.WriteLine($"[PackageLoader] Replacing skeleton NPC '{existingSkeleton.Name}' (ID: {existingSkeleton.ID}) with real content");
+
+                // Preserve all cards from the 5 persistent decks
+                var preservedProgressionCards = existingSkeleton.ProgressionDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                var preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
+                var preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                var preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                var preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
+
+                int totalPreservedCards = preservedProgressionCards.Count + preservedExchangeCards.Count +
+                                        preservedObservationCards.Count + preservedBurdenCards.Count +
+                                        preservedRequests.SelectMany(r => r.PromiseCardIds).Count();
+
+                Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
+                Console.WriteLine($"  - Progression: {preservedProgressionCards.Count} cards");
+                Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
+                Console.WriteLine($"  - Observation: {preservedObservationCards.Count} cards");
+                Console.WriteLine($"  - Burden: {preservedBurdenCards.Count} cards");
+                Console.WriteLine($"  - Requests: {preservedRequests.Count} request objects");
+
+                // Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
                 _gameWorld.WorldState.NPCs.Remove(existingSkeleton);
                 _gameWorld.SkeletonRegistry.Remove(dto.Id);
-            }
 
-            NPC npc = NPCParser.ConvertDTOToNPC(dto);
-            _gameWorld.NPCs.Add(npc);
-            _gameWorld.WorldState.NPCs.Add(npc);
-            _loadedNpcIds.Add(npc.ID);
-            if (counts != null) counts.NPCs++;
+                // Create new NPC from DTO
+                NPC npc = NPCParser.ConvertDTOToNPC(dto);
+
+                // Restore preserved cards to the new NPC's persistent decks
+                if (preservedProgressionCards.Any())
+                {
+                    foreach (var card in preservedProgressionCards)
+                    {
+                        npc.ProgressionDeck.AddCard(card);
+                    }
+                }
+
+                if (preservedExchangeCards.Any())
+                {
+                    npc.ExchangeDeck.AddRange(preservedExchangeCards);
+                }
+
+                if (preservedObservationCards.Any())
+                {
+                    foreach (var card in preservedObservationCards)
+                    {
+                        npc.ObservationDeck.AddCard(card);
+                    }
+                }
+
+                if (preservedBurdenCards.Any())
+                {
+                    foreach (var card in preservedBurdenCards)
+                    {
+                        npc.BurdenDeck.AddCard(card);
+                    }
+                }
+
+                if (preservedRequests.Any())
+                {
+                    // Merge preserved requests with new NPC's requests
+                    // Note: This assumes no ID conflicts between preserved and new requests
+                    npc.Requests.AddRange(preservedRequests);
+                }
+
+                Console.WriteLine($"[PackageLoader] Successfully replaced skeleton with real NPC and preserved all persistent deck cards");
+
+                // Add the new NPC to game world
+                _gameWorld.NPCs.Add(npc);
+                _gameWorld.WorldState.NPCs.Add(npc);
+                _loadedNpcIds.Add(npc.ID);
+                if (counts != null) counts.NPCs++;
+            }
+            else
+            {
+                // No skeleton to replace, just create new NPC normally
+                NPC npc = NPCParser.ConvertDTOToNPC(dto);
+                _gameWorld.NPCs.Add(npc);
+                _gameWorld.WorldState.NPCs.Add(npc);
+                _loadedNpcIds.Add(npc.ID);
+                if (counts != null) counts.NPCs++;
+            }
         }
     }
 
@@ -725,29 +797,59 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
         Console.WriteLine($"[PackageLoader] Currently loaded spots: {string.Join(", ", _gameWorld.Spots.Keys)}");
 
-        // First validate all routes reference existing spots
+        // Create skeleton spots for any missing references
         foreach (RouteDTO dto in routeDtos)
         {
-            // Validate origin spot exists
+            // Check origin spot - create skeleton if missing
             LocationSpot originSpot = _gameWorld.GetSpot(dto.OriginSpotId);
             if (originSpot == null)
             {
-                throw new Exception($"[PackageLoader] Route '{dto.Id}' references non-existent origin spot '{dto.OriginSpotId}'");
-            }
-            if (string.IsNullOrEmpty(originSpot.LocationId))
-            {
-                throw new Exception($"[PackageLoader] Route '{dto.Id}' origin spot '{dto.OriginSpotId}' has no LocationId set");
+                Console.WriteLine($"[PackageLoader] Route '{dto.Id}' references missing origin spot '{dto.OriginSpotId}' - creating skeleton");
+
+                // Create skeleton spot with crossroads property (required for routes)
+                originSpot = SkeletonGenerator.GenerateSkeletonSpot(
+                    dto.OriginSpotId,
+                    dto.OriginLocationId ?? "unknown_location",
+                    $"route_{dto.Id}_origin"
+                );
+
+                // Ensure skeleton has crossroads property for route connectivity
+                if (!originSpot.SpotProperties.Contains(SpotPropertyType.Crossroads))
+                {
+                    originSpot.SpotProperties.Add(SpotPropertyType.Crossroads);
+                }
+
+                _gameWorld.WorldState.locationSpots.Add(originSpot);
+                _gameWorld.Spots[dto.OriginSpotId] = originSpot;
+                _gameWorld.SkeletonRegistry[dto.OriginSpotId] = "LocationSpot";
+
+                Console.WriteLine($"[PackageLoader] Created skeleton spot '{dto.OriginSpotId}' for route '{dto.Id}'");
             }
 
-            // Validate destination spot exists
+            // Check destination spot - create skeleton if missing
             LocationSpot destSpot = _gameWorld.GetSpot(dto.DestinationSpotId);
             if (destSpot == null)
             {
-                throw new Exception($"[PackageLoader] Route '{dto.Id}' references non-existent destination spot '{dto.DestinationSpotId}'");
-            }
-            if (string.IsNullOrEmpty(destSpot.LocationId))
-            {
-                throw new Exception($"[PackageLoader] Route '{dto.Id}' destination spot '{dto.DestinationSpotId}' has no LocationId set");
+                Console.WriteLine($"[PackageLoader] Route '{dto.Id}' references missing destination spot '{dto.DestinationSpotId}' - creating skeleton");
+
+                // Create skeleton spot with crossroads property (required for routes)
+                destSpot = SkeletonGenerator.GenerateSkeletonSpot(
+                    dto.DestinationSpotId,
+                    dto.DestinationLocationId ?? "unknown_location",
+                    $"route_{dto.Id}_destination"
+                );
+
+                // Ensure skeleton has crossroads property for route connectivity
+                if (!destSpot.SpotProperties.Contains(SpotPropertyType.Crossroads))
+                {
+                    destSpot.SpotProperties.Add(SpotPropertyType.Crossroads);
+                }
+
+                _gameWorld.WorldState.locationSpots.Add(destSpot);
+                _gameWorld.Spots[dto.DestinationSpotId] = destSpot;
+                _gameWorld.SkeletonRegistry[dto.DestinationSpotId] = "LocationSpot";
+
+                Console.WriteLine($"[PackageLoader] Created skeleton spot '{dto.DestinationSpotId}' for route '{dto.Id}'");
             }
         }
 
