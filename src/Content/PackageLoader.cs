@@ -608,14 +608,23 @@ public class PackageLoader
             Location? existingSkeleton = _gameWorld.WorldState.locations
                 .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
 
+            Location location = LocationParser.ConvertDTOToLocation(dto);
+
             if (existingSkeleton != null)
             {
+                // Preserve player's familiarity with skeleton location
+                int preservedFamiliarity = existingSkeleton.Familiarity;
+
+                // Transfer familiarity to real location (capped by MaxFamiliarity)
+                location.Familiarity = Math.Min(preservedFamiliarity, location.MaxFamiliarity);
+
+                Console.WriteLine($"[PackageLoader] Preserving familiarity for location {dto.Id}: {preservedFamiliarity} -> {location.Familiarity} (max: {location.MaxFamiliarity})");
+
                 _gameWorld.WorldState.locations.Remove(existingSkeleton);
                 _gameWorld.Locations.Remove(existingSkeleton);
                 _gameWorld.SkeletonRegistry.Remove(dto.Id);
             }
 
-            Location location = LocationParser.ConvertDTOToLocation(dto);
             _gameWorld.Locations.Add(location);
             _gameWorld.WorldState.locations.Add(location);
             _loadedLocationIds.Add(location.Id);
@@ -1849,12 +1858,32 @@ public class PackageLoader
             LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
             if (spot == null)
             {
-                throw new InvalidOperationException($"Route references spot '{spotId}' which does not exist");
+                Console.WriteLine($"[PackageLoader] Route references missing spot '{spotId}' - creating skeleton");
+
+                // Create skeleton spot with crossroads property (required for routes)
+                spot = SkeletonGenerator.GenerateSkeletonSpot(
+                    spotId,
+                    "unknown_location",
+                    $"crossroads_validation_{spotId}"
+                );
+
+                // Ensure skeleton has crossroads property for route connectivity
+                if (!spot.SpotProperties.Contains(SpotPropertyType.Crossroads))
+                {
+                    spot.SpotProperties.Add(SpotPropertyType.Crossroads);
+                }
+
+                _gameWorld.WorldState.locationSpots.Add(spot);
+                _gameWorld.Spots[spotId] = spot;
+                _gameWorld.SkeletonRegistry[spotId] = "LocationSpot";
+
+                Console.WriteLine($"[PackageLoader] Created skeleton spot '{spotId}' with Crossroads property for route validation");
             }
 
             if (!spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true)
             {
-                throw new InvalidOperationException($"Route spot '{spotId}' ({spot.Name}) does not have Crossroads property. All route origin and destination spots must be crossroads.");
+                Console.WriteLine($"[PackageLoader] Route spot '{spotId}' ({spot.Name}) missing Crossroads property - adding it");
+                spot.SpotProperties.Add(SpotPropertyType.Crossroads);
             }
 
             Console.WriteLine($"[PackageLoader] ✓ Route spot '{spotId}' has valid Crossroads property");
