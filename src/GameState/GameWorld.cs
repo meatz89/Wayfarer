@@ -73,6 +73,12 @@ public class GameWorld
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
 
+    // Observations from packages
+    public List<Observation> Observations { get; set; } = new List<Observation>();
+
+    // Dialogue templates from packages
+    public DialogueTemplates DialogueTemplates { get; set; }
+
     // Initialization data - stored in GameWorld, not passed between phases
     // This eliminates the need for SharedData dictionary
     public string InitialLocationSpotId { get; set; }

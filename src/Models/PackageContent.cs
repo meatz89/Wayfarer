@@ -109,4 +109,9 @@ public class PackageContent
     /// Event cards for the normalized event system (reuses PathCardDTO structure)
     /// </summary>
     public List<PathCardDTO> EventCards { get; set; }
+
+    /// <summary>
+    /// Dialogue templates for generating conversation text
+    /// </summary>
+    public DialogueTemplates DialogueTemplates { get; set; }
 }

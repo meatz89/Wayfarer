@@ -353,29 +353,35 @@
     "observations": [
       {
         "id": "safe_passage_knowledge",
-        "locationId": "market_square",
-        "spotId": "central_fountain",
         "name": "Safe Passage Knowledge",
+        "displayText": "You notice the guard patrol patterns, gaining insight into safe passage routes",
         "description": "Observing guard patrol patterns",
-        "familiarityRequired": 1,
-        "rewardType": "card",
-        "rewardCardId": "safe_passage_knowledge",
+        "category": "Investigation",
+        "focus": 1,
+        "properties": ["investigation", "guards", "safety"],
+        "requiredTags": ["market"],
+        "excludedTags": [],
+        "triggerCondition": "familiarity >= 1",
+        "oneTimeOnly": true,
         "attentionCost": 0,
-        "priorObservationIndices": []
+        "tokenType": "Trust",
+        "difficulty": "Medium"
       },
       {
         "id": "merchant_route_insight",
-        "locationId": "market_square",
-        "spotId": "central_fountain",
         "name": "Merchant Route Insight",
+        "displayText": "You understand the merchant traffic patterns, revealing profitable trade routes",
         "description": "Understanding merchant traffic patterns",
-        "familiarityRequired": 2,
-        "rewardType": "card",
-        "rewardCardId": "merchant_route_insight",
+        "category": "Investigation",
+        "focus": 2,
+        "properties": ["investigation", "commerce", "trade"],
+        "requiredTags": ["market"],
+        "excludedTags": [],
+        "triggerCondition": "familiarity >= 2",
+        "oneTimeOnly": true,
         "attentionCost": 0,
-        "priorObservationIndices": [
-          0
-        ]
+        "tokenType": "Commerce",
+        "difficulty": "Medium"
       }
     ],
     "exchanges": [
@@ -405,6 +411,30 @@
           "elena_priority_promise"
         ]
       }
-    ]
+    ],
+    "dialogueTemplates": {
+      "connectionStateDialogue": {
+        "DISCONNECTED": {
+          "baseTemplates": ["emotional:cold query:formal", "emotional:distant query:surface"],
+          "personalityModifiers": {}
+        },
+        "GUARDED": {
+          "baseTemplates": ["emotional:cautious query:testing", "emotional:suspicious query:probing"],
+          "personalityModifiers": {}
+        },
+        "NEUTRAL": {
+          "baseTemplates": ["emotional:neutral query:general", "emotional:calm query:standard"],
+          "personalityModifiers": {}
+        },
+        "RECEPTIVE": {
+          "baseTemplates": ["emotional:warm query:personal", "emotional:interested query:deeper"],
+          "personalityModifiers": {}
+        },
+        "TRUSTING": {
+          "baseTemplates": ["emotional:open query:intimate", "emotional:vulnerable query:secrets"],
+          "personalityModifiers": {}
+        }
+      }
+    }
   }
 }

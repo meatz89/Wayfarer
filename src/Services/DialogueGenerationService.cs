@@ -13,21 +13,17 @@ public class DialogueGenerationService
     private DialogueTemplates _templates;
     private readonly Random _random = new Random();
 
-    public DialogueGenerationService(IContentDirectory contentDirectory)
+    public DialogueGenerationService(GameWorld gameWorld)
     {
-        string contentPath = contentDirectory.Path;
-        LoadTemplates(Path.Combine(contentPath, @"Templates/dialogue_templates.json"));
-    }
-
-    private void LoadTemplates(string path)
-    {
-        if (!File.Exists(path))
+        _templates = gameWorld.DialogueTemplates ?? new DialogueTemplates();
+        if (_templates.ConnectionStateDialogue == null)
         {
-            throw new FileNotFoundException($"Dialogue templates file not found: {path} - create the required JSON file");
+            Console.WriteLine("[DialogueGenerationService] No dialogue templates found in GameWorld, using empty templates");
         }
-
-        string json = File.ReadAllText(path);
-        _templates = JsonSerializer.Deserialize<DialogueTemplates>(json);
+        else
+        {
+            Console.WriteLine($"[DialogueGenerationService] Loaded dialogue templates from GameWorld with {_templates.ConnectionStateDialogue.Count} connection state templates");
+        }
     }
 
 

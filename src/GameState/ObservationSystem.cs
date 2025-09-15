@@ -4,21 +4,21 @@ using System.IO;
 using System.Linq;
 
 /// <summary>
-/// Provides observation data for locations from JSON templates
-/// This is a pure data provider with no game state dependencies
+/// Provides observation data for locations from GameWorld
+/// This is a pure data provider with no external file dependencies
 /// </summary>
 public class ObservationSystem
 {
-    private readonly IContentDirectory _contentDirectory;
+    private readonly GameWorld _gameWorld;
     private readonly Dictionary<string, Dictionary<string, List<Observation>>> _observationsByLocationAndSpot;
     private readonly HashSet<string> _revealedObservations;
 
-    public ObservationSystem(IContentDirectory contentDirectory)
+    public ObservationSystem(GameWorld gameWorld)
     {
         Console.WriteLine("[ObservationSystem] Constructor called");
-        Console.WriteLine($"[ObservationSystem] ContentDirectory null? {contentDirectory == null}");
+        Console.WriteLine($"[ObservationSystem] GameWorld null? {gameWorld == null}");
 
-        _contentDirectory = contentDirectory;
+        _gameWorld = gameWorld;
         _revealedObservations = new HashSet<string>();
         _observationsByLocationAndSpot = LoadObservationsFromJson();
 
@@ -31,50 +31,48 @@ public class ObservationSystem
 
         try
         {
-            string filePath = Path.Combine(_contentDirectory.Path, "Templates", "observations.json");
-            Console.WriteLine($"[ObservationSystem] Looking for observations at: {filePath}");
+            Console.WriteLine($"[ObservationSystem] Loading observations from GameWorld...");
 
-            if (File.Exists(filePath))
+            if (_gameWorld.Observations != null && _gameWorld.Observations.Count > 0)
             {
-                Console.WriteLine($"[ObservationSystem] Found observations.json, loading...");
-                string json = File.ReadAllText(filePath);
-                ObservationsData data = ObservationParser.ParseObservations(json);
+                Console.WriteLine($"[ObservationSystem] Found {_gameWorld.Observations.Count} observations in GameWorld");
 
-                if (data?.locations != null)
+                // Group observations by location, then by spot
+                var locationGroups = _gameWorld.Observations.GroupBy(obs =>
                 {
-                    foreach (KeyValuePair<string, List<Observation>> locationKvp in data.locations)
+                    // Since observations don't have locationId directly, we'll use a default grouping
+                    // In the future, observations should be enhanced to have location context
+                    return "default_location";
+                });
+
+                foreach (var locationGroup in locationGroups)
+                {
+                    string locationId = locationGroup.Key;
+                    Dictionary<string, List<Observation>> spotObservations = new Dictionary<string, List<Observation>>();
+
+                    // Group observations by spot within this location
+                    foreach (Observation obs in locationGroup)
                     {
-                        string locationId = locationKvp.Key;
-                        Dictionary<string, List<Observation>> spotObservations = new Dictionary<string, List<Observation>>();
-
-                        // Group observations by spot
-                        foreach (Observation obs in locationKvp.Value)
+                        string spotId = obs.SpotId ?? "default";
+                        if (!spotObservations.ContainsKey(spotId))
                         {
-                            string spotId = obs.SpotId ?? "default";
-                            if (!spotObservations.ContainsKey(spotId))
-                            {
-                                spotObservations[spotId] = new List<Observation>();
-                            }
-                            spotObservations[spotId].Add(obs);
+                            spotObservations[spotId] = new List<Observation>();
                         }
-
-                        observationsByLocationAndSpot[locationId] = spotObservations;
-                        Console.WriteLine($"[ObservationSystem] Loaded observations for location {locationId}: {string.Join(", ", spotObservations.Select(s => $"{s.Key}({s.Value.Count})"))}");
+                        spotObservations[spotId].Add(obs);
                     }
-                }
-                else
-                {
-                    Console.WriteLine("[ObservationSystem] No observations data found in JSON");
+
+                    observationsByLocationAndSpot[locationId] = spotObservations;
+                    Console.WriteLine($"[ObservationSystem] Grouped observations for location {locationId}: {string.Join(", ", spotObservations.Select(s => $"{s.Key}({s.Value.Count})"))}");
                 }
             }
             else
             {
-                Console.WriteLine($"[ObservationSystem] observations.json not found at {filePath}");
+                Console.WriteLine("[ObservationSystem] No observations found in GameWorld");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ObservationSystem] Error loading observations.json: {ex.Message}");
+            Console.WriteLine($"[ObservationSystem] Error loading observations from GameWorld: {ex.Message}");
         }
 
         Console.WriteLine($"[ObservationSystem] Total locations with observations: {observationsByLocationAndSpot.Count}");

@@ -323,6 +323,7 @@ public class PackageLoader
 
         // 7. Complex entities (may depend on multiple entity types)
         LoadObservations(package.Content.Observations, counts);
+        LoadDialogueTemplates(package.Content.DialogueTemplates, counts);
         LoadInvestigationRewards(package.Content.InvestigationRewards, counts);
         var pathCardLookup = LoadPathCards(package.Content.PathCards, counts);
         var eventCardLookup = LoadEventCards(package.Content.EventCards, counts);
@@ -822,10 +823,26 @@ public class PackageLoader
 
         foreach (ObservationDTO dto in observationDtos)
         {
+            // Convert to ConversationCard for the existing system
             ConversationCard observation = ConvertObservationDTOToCard(dto);
             _gameWorld.PlayerObservationCards.Add(observation);
+
+            // Also create Observation domain object and store in GameWorld
+            Observation observationDomain = ConvertDTOToObservation(dto);
+            _gameWorld.Observations.Add(observationDomain);
+
             if (counts != null) counts.Cards++;
         }
+    }
+
+    private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, EntityCounts counts = null)
+    {
+        if (dialogueTemplates == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading dialogue templates...");
+        _gameWorld.DialogueTemplates = dialogueTemplates;
+        if (counts != null) counts.Cards++; // Count as one entity
+        Console.WriteLine($"[PackageLoader] Dialogue templates loaded successfully");
     }
 
     private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, EntityCounts counts = null)
@@ -1340,6 +1357,31 @@ public class PackageLoader
         };
     }
 
+    private Observation ConvertDTOToObservation(ObservationDTO dto)
+    {
+        // Parse observation type from category
+        ObservationType observationType = ObservationType.Normal;
+        if (dto.Category != null && Enum.TryParse<ObservationType>(dto.Category, out ObservationType parsedType))
+        {
+            observationType = parsedType;
+        }
+
+        return new Observation
+        {
+            Id = dto.Id ?? "",
+            Text = dto.DisplayText ?? dto.Description ?? dto.Name ?? "",
+            Type = observationType,
+            AttentionCost = 0, // From DTO or default to 0
+            RelevantNPCs = new string[0], // Empty by default - could be populated from properties
+            CreatesState = null, // No state creation from DTO
+            CardTemplate = dto.Id ?? "", // Use ID as template
+            Description = dto.Description ?? dto.DisplayText ?? "",
+            ProvidesInfo = null, // Could be derived from properties
+            CreatesUrgency = false, // Default false
+            Automatic = false, // Default false
+            SpotId = null // Will be set by location-specific loading if needed
+        };
+    }
 
     private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
     {
@@ -1618,7 +1660,12 @@ public class PackageLoader
     private string GetLocationNameFromId(string locationId)
     {
         // Helper to get friendly location name from ID for route naming
-        var location = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        if (string.IsNullOrEmpty(locationId))
+        {
+            return "Unknown Location";
+        }
+
+        var location = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == locationId);
         return location?.Name ?? locationId.Replace("_", " ").Replace("-", " ");
     }
 
