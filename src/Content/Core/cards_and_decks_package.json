@@ -664,28 +664,29 @@
         "dialogueFragment": "You mention the merchant patterns you've observed in the market."
       }
     ],
-    "defaultDeck": {
-      "conversationDeck": {
-        "tell_me_what_happened": 1,
-        "what_would_you_do": 1,
-        "that_must_have_been_difficult": 1,
-        "this_is_important": 1,
-        "ive_been_there_too": 3,
-        "i_need_your_advice": 2,
-        "i_trust_your_judgment": 1,
-        "can_we_make_a_deal": 2,
-        "what_if_i_throw_in": 2,
-        "lets_shake_on_it": 1,
-        "between_you_and_me": 1,
-        "youre_right_about_that": 2,
-        "let_me_help_you_with_that": 1,
-        "thats_fair": 1
-      },
-      "requestDeck": {},
-      "exchangeDeck": {},
-      "observationDeck": {}
-    },
     "deckCompositions": {
+      "npcDecks": {
+        "default": {
+          "conversationDeck": {
+          "tell_me_what_happened": 1,
+          "what_would_you_do": 1,
+          "that_must_have_been_difficult": 1,
+          "this_is_important": 1,
+          "ive_been_there_too": 3,
+          "i_need_your_advice": 2,
+          "i_trust_your_judgment": 1,
+          "can_we_make_a_deal": 2,
+          "what_if_i_throw_in": 2,
+          "lets_shake_on_it": 1,
+          "between_you_and_me": 1,
+          "youre_right_about_that": 2,
+          "let_me_help_you_with_that": 1,
+          "thats_fair": 1
+        },
+        "requestDeck": {},
+        "exchangeDeck": {},
+        "observationDeck": {}
+      },
       "elena": {
         "progressionDeck": {
           "elena_shared_understanding": 1,

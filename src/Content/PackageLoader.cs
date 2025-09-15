@@ -113,8 +113,7 @@ public class PackageLoader
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[PackageLoader] Error parsing package {packageFilePath}: {ex.Message}");
-            return null;
+            throw new Exception($"[PackageLoader] Failed to parse package {packageFilePath}: {ex.Message}", ex);
         }
     }
 
@@ -179,16 +178,7 @@ public class PackageLoader
         // Analyze deck composition dependencies
         if (content.DeckCompositions != null)
         {
-            // Default deck
-            if (content.DeckCompositions.DefaultDeck?.ConversationDeck != null)
-            {
-                foreach (var cardId in content.DeckCompositions.DefaultDeck.ConversationDeck.Keys)
-                {
-                    deps.RequiredCardIds.Add(cardId);
-                }
-            }
-
-            // NPC decks
+            // NPC decks (including "default" for player)
             if (content.DeckCompositions.NpcDecks != null)
             {
                 foreach (var npcDeck in content.DeckCompositions.NpcDecks.Values)
@@ -429,8 +419,7 @@ public class PackageLoader
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[PackageLoader] Error loading dynamic package: {ex.Message}");
-            return false;
+            throw new Exception($"[PackageLoader] Failed to load dynamic package: {ex.Message}", ex);
         }
     }
 
@@ -1025,7 +1014,7 @@ public class PackageLoader
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PackageLoader] Failed to initialize conversation deck for NPC {npc.Name}: {ex.Message}");
+                throw new Exception($"[PackageLoader] Failed to initialize conversation deck for NPC {npc.Name}: {ex.Message}", ex);
             }
         }
 
@@ -1105,7 +1094,7 @@ public class PackageLoader
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}");
+                    throw new Exception($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}", ex);
                 }
             }
             
@@ -1192,7 +1181,7 @@ public class PackageLoader
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[PackageLoader] Failed to initialize exchange deck for NPC {npc.Name}: {ex.Message}");
+                throw new Exception($"[PackageLoader] Failed to initialize exchange deck for NPC {npc.Name}: {ex.Message}", ex);
             }
         }
 
@@ -1757,10 +1746,13 @@ public class PackageLoader
             player.ConversationDeck = new PlayerCardDeck();
         }
 
-        // Use the default deck as the player's starter deck
-        if (deckCompositions?.DefaultDeck?.ConversationDeck != null)
+        // Use the "default" deck from NpcDecks as the player's starter deck
+        if (deckCompositions?.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey("default"))
         {
-            foreach (KeyValuePair<string, int> kvp in deckCompositions.DefaultDeck.ConversationDeck)
+            var defaultDeck = deckCompositions.NpcDecks["default"];
+            if (defaultDeck?.ConversationDeck != null)
+            {
+                foreach (KeyValuePair<string, int> kvp in defaultDeck.ConversationDeck)
             {
                 string cardId = kvp.Key;
                 int count = kvp.Value;
@@ -1781,7 +1773,8 @@ public class PackageLoader
                 }
             }
 
-            Console.WriteLine($"[PackageLoader] Initialized player's starter deck with {player.ConversationDeck.Count} cards");
+                Console.WriteLine($"[PackageLoader] Initialized player's starter deck with {player.ConversationDeck.Count} cards");
+            }
         }
         else
         {
