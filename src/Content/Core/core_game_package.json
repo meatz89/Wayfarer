@@ -397,32 +397,6 @@
         }
       }
     ],
-    "npcRequests": [
-      {
-        "id": "elena_urgent_letter_request",
-        "npcId": "elena",
-        "name": "Urgent Letter Delivery",
-        "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
-        "requestCards": [
-          "elena_letter_request",
-          "elena_safety_request"
-        ],
-        "promiseCards": [
-          "elena_priority_promise"
-        ]
-      },
-      {
-        "id": "marcus_trade_opportunities",
-        "npcId": "marcus",
-        "name": "Trade Opportunities",
-        "description": "Marcus seeks profitable trading partners",
-        "requestCards": [
-          "marcus_trade_request",
-          "marcus_business_proposal"
-        ],
-        "promiseCards": []
-      }
-    ],
     "dialogueTemplates": {
       "connectionStateDialogue": {
         "DISCONNECTED": {

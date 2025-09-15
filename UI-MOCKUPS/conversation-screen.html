@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Elena Conversation</title>
+    <title>Wayfarer - Elena Conversation (Stat System)</title>
     <style>
         * {
             margin: 0;
@@ -48,6 +48,87 @@
             font-weight: bold;
         }
 
+        /* Player Stats Bar */
+        .player-stats-bar {
+            background: linear-gradient(to bottom, #3d3429, #2c241a);
+            padding: 12px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid #5c4a3a;
+            padding: 0 10px;
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-name {
+            font-size: 10px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-level {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d4a76a;
+            margin-bottom: 4px;
+        }
+
+        .stat-xp-bar {
+            height: 4px;
+            background: #1a1612;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 0 auto;
+            width: 80%;
+        }
+
+        .stat-xp-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7a8b5a, #8a9b6a);
+            transition: width 0.3s;
+        }
+
+        .stat-xp-text {
+            font-size: 9px;
+            color: #7a6250;
+            margin-top: 2px;
+        }
+
+        .stat-bonus {
+            font-size: 9px;
+            color: #7a8b5a;
+            margin-top: 2px;
+        }
+
+        /* Conversation Difficulty Bar */
+        .difficulty-bar {
+            background: #8b4726;
+            color: #faf4ea;
+            padding: 8px 20px;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #6b3716;
+        }
+
+        .difficulty-effects {
+            font-size: 10px;
+            margin-top: 2px;
+            opacity: 0.9;
+        }
+
         /* NPC Bar */
         .npc-bar {
             background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
@@ -85,7 +166,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Token Display */
         .token-display {
             background: #3d3429;
             padding: 6px 15px;
@@ -334,6 +414,11 @@
         .action-result {
             font-weight: bold;
             color: #8b4726;
+        }
+
+        .xp-gain {
+            color: #7a8b5a;
+            font-weight: bold;
         }
 
         /* Action Section */
@@ -589,9 +674,42 @@
             color: #faf4ea;
         }
 
-        .tag.level {
+        /* Stat Tags */
+        .stat-tag {
             background: #3d3429;
             color: #d4a76a;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .stat-tag.insight {
+            background: #5a7a8a;
+            color: #faf4ea;
+        }
+
+        .stat-tag.rapport {
+            background: #7a8b5a;
+            color: #faf4ea;
+        }
+
+        .stat-tag.authority {
+            background: #8b4726;
+            color: #faf4ea;
+        }
+
+        .stat-tag.commerce {
+            background: #d4a76a;
+            color: #2c241a;
+        }
+
+        .stat-tag.cunning {
+            background: #6a5a7a;
+            color: #faf4ea;
         }
 
         /* Success/Failure Strip */
@@ -624,6 +742,23 @@
             color: #7a6250;
         }
 
+        .stat-bonus-indicator {
+            font-size: 10px;
+            color: #7a8b5a;
+            margin-top: 2px;
+        }
+
+        /* XP Preview */
+        .xp-preview {
+            background: #e8f5e9;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: #5a7a3a;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
         /* Request Card Special */
         .request-threshold {
             background: #8b4726;
@@ -644,28 +779,6 @@
             text-align: center;
             margin-top: 6px;
             font-style: italic;
-        }
-
-        /* XP Indicator */
-        .xp-bar {
-            height: 2px;
-            background: #e8dcc4;
-            margin-top: 8px;
-            border-radius: 1px;
-            overflow: hidden;
-        }
-
-        .xp-fill {
-            height: 100%;
-            background: #d4a76a;
-            transition: width 0.3s;
-        }
-
-        .xp-text {
-            font-size: 9px;
-            color: #7a6250;
-            margin-top: 2px;
-            text-align: right;
         }
 
         /* Goal Cards Section */
@@ -735,6 +848,60 @@
         <!-- Header -->
         <div class="header">
             <span>Tuesday, 2:47 PM - Copper Kettle Tavern</span>
+        </div>
+
+        <!-- Player Stats Bar -->
+        <div class="player-stats-bar">
+            <div class="stat-item">
+                <div class="stat-name">Insight</div>
+                <div class="stat-level">2</div>
+                <div class="stat-xp-bar">
+                    <div class="stat-xp-fill" style="width: 40%"></div>
+                </div>
+                <div class="stat-xp-text">10/25 XP</div>
+                <div class="stat-bonus">+10% success</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-name">Rapport</div>
+                <div class="stat-level">3</div>
+                <div class="stat-xp-bar">
+                    <div class="stat-xp-fill" style="width: 24%"></div>
+                </div>
+                <div class="stat-xp-text">31/50 XP</div>
+                <div class="stat-bonus">+10% • Persistent</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-name">Authority</div>
+                <div class="stat-level">1</div>
+                <div class="stat-xp-bar">
+                    <div class="stat-xp-fill" style="width: 30%"></div>
+                </div>
+                <div class="stat-xp-text">3/10 XP</div>
+                <div class="stat-bonus">No bonus</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-name">Commerce</div>
+                <div class="stat-level">2</div>
+                <div class="stat-xp-bar">
+                    <div class="stat-xp-fill" style="width: 60%"></div>
+                </div>
+                <div class="stat-xp-text">15/25 XP</div>
+                <div class="stat-bonus">+10% success</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-name">Cunning</div>
+                <div class="stat-level">1</div>
+                <div class="stat-xp-bar">
+                    <div class="stat-xp-fill" style="width: 50%"></div>
+                </div>
+                <div class="stat-xp-text">5/10 XP</div>
+                <div class="stat-bonus">No bonus</div>
+            </div>
+        </div>
+
+        <!-- Conversation Difficulty Bar -->
+        <div class="difficulty-bar">
+            <div class="difficulty-effects">Level 3 Conversation: -10% all cards • 3 XP per card played • Higher rapport thresholds</div>
         </div>
 
         <!-- NPC Bar -->
@@ -819,7 +986,7 @@
 
         <!-- Goal Cards Display -->
         <div class="goals-section">
-            <div class="goals-header">Request Goals - Elena's Letter</div>
+            <div class="goals-header">Request Goals - Elena's Letter (Level 3)</div>
             <div class="goals-container">
                 <div class="goal-card achievable">
                     <div class="goal-threshold">5</div>
@@ -842,10 +1009,11 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="player-last-action">
-                You played "Trust me" (3 focus, Medium difficulty) - <span class="action-result">FAILED</span>. 
+                You played "Trust me" (3 focus, Authority, Medium difficulty) - <span class="action-result">FAILED</span>. 
                 The Devoted rule doubled the rapport loss to -2. You must LISTEN next turn.
+                <span class="xp-gain">[+3 Authority XP from Level 3 conversation]</span>
             </div>
-            <div class="npc-dialogue">
+            <div class="npc-dialogue desperate">
                 "I... I don't know if I can trust anyone right now. My uncle would be furious if he knew. But Lord Blackwood leaves at 5 PM, and this letter is my only hope."
             </div>
         </div>
@@ -893,8 +1061,7 @@
                             <div class="card-text">
                                 "I'll deliver your letter to Lord Blackwood immediately."
                             </div>
-                            <div class="card-effect">Creates obligation (position 4, 2hr deadline)</div>
-                            <div class="request-status">One more rapport needed</div>
+                            <div class="card-effect">Creates letter delivery obligation (position 4)</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
@@ -909,16 +1076,16 @@
                     </div>
                 </div>
 
-                <!-- Player Card - Persistent, Level 3 -->
+                <!-- Player Card - Rapport Stat, Level 3 makes it Persistent -->
                 <div class="card persistent">
                     <div class="card-tags">
                         <span class="tag persistent">THOUGHT</span>
-                        <span class="tag level">LV 3</span>
                     </div>
                     <div class="card-content">
                         <div class="card-main">
+                            <div class="stat-tag rapport">RAPPORT</div>
                             <div class="card-header">
-                                <div class="card-name">I hear you</div>
+                                <div class="card-name">I understand</div>
                                 <div class="card-focus">1</div>
                             </div>
                             <div class="card-text">
@@ -926,18 +1093,16 @@
                             </div>
                             <div class="card-effect">Success: +1 rapport</div>
                             <div class="card-failure">Failure: Forces LISTEN</div>
-                            <div class="xp-bar">
-                                <div class="xp-fill" style="width: 60%"></div>
-                            </div>
-                            <div class="xp-text">XP: 9/15 to Level 4</div>
+                            <div class="xp-preview">Playing: +3 Rapport XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">88%</div>
+                                <div class="outcome-chance">78%</div>
                                 <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(+10% from Rapport 3)</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">12%</div>
+                                <div class="outcome-chance">22%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>
@@ -951,6 +1116,7 @@
                     </div>
                     <div class="card-content">
                         <div class="card-main">
+                            <div class="stat-tag rapport">RAPPORT</div>
                             <div class="card-header">
                                 <div class="card-name">Elena's Trust</div>
                                 <div class="card-focus">1</div>
@@ -958,13 +1124,15 @@
                             <div class="card-text">
                                 "You've always been there when I needed help."
                             </div>
-                            <div class="card-effect">Success: +2 rapport, Persistent this conversation</div>
+                            <div class="card-effect">Success: +2 rapport</div>
                             <div class="card-failure">Failure: -4 rapport (Devoted doubles to -4)</div>
+                            <div class="xp-preview">Playing: +3 Rapport XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">78%</div>
                                 <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(+10% from Rapport 3)</div>
                             </div>
                             <div class="outcome">
                                 <div class="outcome-chance">22%</div>
@@ -974,31 +1142,27 @@
                     </div>
                 </div>
 
-                <!-- Player Card - Non-persistent -->
+                <!-- Player Card - Commerce Stat -->
                 <div class="card">
-                    <div class="card-tags">
-                        <span class="tag level">LV 1</span>
-                    </div>
                     <div class="card-content">
                         <div class="card-main">
+                            <div class="stat-tag commerce">COMMERCE</div>
                             <div class="card-header">
-                                <div class="card-name">Let me help</div>
+                                <div class="card-name">Let's make a deal</div>
                                 <div class="card-focus">2</div>
                             </div>
                             <div class="card-text">
-                                "There must be something I can do."
+                                "What would it take to make this work for both of us?"
                             </div>
                             <div class="card-effect">Success: +2 rapport</div>
                             <div class="card-failure">Failure: -2 rapport (Devoted doubles to -4)</div>
-                            <div class="xp-bar">
-                                <div class="xp-fill" style="width: 33%"></div>
-                            </div>
-                            <div class="xp-text">XP: 1/3 to Level 2</div>
+                            <div class="xp-preview">Playing: +3 Commerce XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">68%</div>
                                 <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(+10% from Commerce 2)</div>
                             </div>
                             <div class="outcome">
                                 <div class="outcome-chance">32%</div>
@@ -1012,9 +1176,7 @@
                 <div class="card">
                     <div class="card-content">
                         <div class="card-main">
-                            <div class="card-tags">
-                                <span class="tag promise">PROMISE</span>
-                            </div>
+                            <div class="stat-tag authority">AUTHORITY</div>
                             <div class="card-header">
                                 <div class="card-name">Promise Priority</div>
                                 <div class="card-focus">3</div>
@@ -1024,14 +1186,16 @@
                             </div>
                             <div class="card-effect">Success: +8 rapport, moves to queue position 1</div>
                             <div class="card-failure">Failure: Forces LISTEN</div>
+                            <div class="xp-preview">Playing: +3 Authority XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">58%</div>
+                                <div class="outcome-chance">48%</div>
                                 <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(No bonus)</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">42%</div>
+                                <div class="outcome-chance">52%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>
@@ -1046,6 +1210,7 @@
                     </div>
                     <div class="card-content">
                         <div class="card-main">
+                            <div class="stat-tag insight">INSIGHT</div>
                             <div class="card-header">
                                 <div class="card-name">Safe Passage Knowledge</div>
                                 <div class="card-focus">0</div>
@@ -1055,11 +1220,13 @@
                             </div>
                             <div class="card-effect">Success: Advance connection state (to Receptive)</div>
                             <div class="card-failure">Failure: Consumed anyway</div>
+                            <div class="xp-preview">Playing: +3 Insight XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
                                 <div class="outcome-chance">93%</div>
-                                <div class="outcome-label">Very Easy</div>
+                                <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(+10% from Insight 2)</div>
                             </div>
                             <div class="outcome">
                                 <div class="outcome-chance">7%</div>
@@ -1069,34 +1236,30 @@
                     </div>
                 </div>
 
-                <!-- Player Card - Level 5 Mastered -->
+                <!-- Player Card - Authority Stat -->
                 <div class="card">
-                    <div class="card-tags">
-                        <span class="tag level">Lv 5</span>
-                    </div>
                     <div class="card-content">
                         <div class="card-main">
+                            <div class="stat-tag authority">AUTHORITY</div>
                             <div class="card-header">
-                                <div class="card-name">Bold Claim</div>
+                                <div class="card-name">Take charge</div>
                                 <div class="card-focus">3</div>
                             </div>
                             <div class="card-text">
-                                "I promise you - everything will work out."
+                                "Stop worrying. I'll handle everything."
                             </div>
-                            <div class="card-effect">Success: +5 rapport (MASTERED: No forced LISTEN on fail)</div>
+                            <div class="card-effect">Success: +5 rapport</div>
                             <div class="card-failure">Failure: -2 rapport (Devoted doubles to -4)</div>
-                            <div class="xp-bar">
-                                <div class="xp-fill" style="width: 100%; background: gold;"></div>
-                            </div>
-                            <div class="xp-text" style="color: #d4a76a; font-weight: bold;">MASTERED</div>
+                            <div class="xp-preview">Playing: +3 Authority XP</div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
-                                <div class="outcome-chance">58%</div>
+                                <div class="outcome-chance">48%</div>
                                 <div class="outcome-label">Success</div>
+                                <div class="stat-bonus-indicator">(No bonus from Authority 1)</div>
                             </div>
                             <div class="outcome">
-                                <div class="outcome-chance">42%</div>
+                                <div class="outcome-chance">52%</div>
                                 <div class="outcome-label">Failure</div>
                             </div>
                         </div>
