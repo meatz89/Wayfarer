@@ -22,6 +22,7 @@ public class NPC
     // Personality system
     public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
     public PersonalityType PersonalityType { get; set; } // NO DEFAULT - must be set explicitly from JSON
+    public PersonalityModifier ConversationModifier { get; set; } // Personality-specific conversation rules
 
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;

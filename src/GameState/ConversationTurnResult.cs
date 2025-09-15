@@ -15,6 +15,7 @@ public class ConversationTurnResult
     public CardPlayResult CardPlayResult { get; set; }
     public bool ExchangeAccepted { get; set; }
     public NarrativeOutput Narrative { get; set; }  // Full narrative output for this turn
+    public string PersonalityViolation { get; set; }  // Message when personality rule is violated
 
     public ConversationTurnResult()
     {

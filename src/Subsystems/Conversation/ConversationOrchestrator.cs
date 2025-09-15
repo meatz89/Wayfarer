@@ -19,6 +19,7 @@ public class ConversationOrchestrator
     private readonly GameWorld _gameWorld;
     private readonly ConversationNarrativeService _narrativeService;
     private FlowManager? _flowBatteryManager;
+    private PersonalityRuleEnforcer _personalityEnforcer;
 
     public ConversationOrchestrator(
         CardDeckManager deckManager,
@@ -60,6 +61,9 @@ public class ConversationOrchestrator
 
         // Reset atmosphere manager
         _atmosphereManager.Reset();
+
+        // Initialize personality rule enforcer based on NPC's personality
+        _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
 
         // Create session deck and get request cards
         // For Request conversations, this loads ALL cards from the Request bundle
@@ -110,6 +114,7 @@ public class ConversationOrchestrator
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
+            PersonalityEnforcer = _personalityEnforcer,  // Add personality enforcer to session
             ObservationCards = observationCards ?? new List<CardInstance>(),
             RequestText = requestText // Set request text for Request conversations
         };
@@ -161,6 +166,9 @@ public class ConversationOrchestrator
         // Execute LISTEN through deck manager
         List<CardInstance> drawnCards = _deckManager.ExecuteListen(session);
 
+        // Notify personality enforcer that LISTEN occurred (resets turn state for Proud personality)
+        _personalityEnforcer?.OnListen();
+
         // Update session focus state
         session.CurrentFocus = _focusManager.CurrentSpentFocus;
         session.MaxFocus = _focusManager.CurrentCapacity;
@@ -201,8 +209,52 @@ public class ConversationOrchestrator
         // SPEAK costs focus (focus), not patience
         // Patience is only deducted for LISTEN actions
 
+        // Validate play against personality rules
+        if (_personalityEnforcer != null)
+        {
+            string violationMessage;
+            if (!_personalityEnforcer.ValidatePlay(selectedCard, out violationMessage))
+            {
+                // Return early with failed result if personality rule violated
+                return new ConversationTurnResult
+                {
+                    Success = false,
+                    NewState = session.CurrentState,
+                    NPCResponse = violationMessage,
+                    FlowChange = 0,
+                    OldFlow = session.FlowBattery,
+                    NewFlow = session.FlowBattery,
+                    PatienceRemaining = session.CurrentPatience,
+                    PlayedCards = new List<CardInstance>(),
+                    PersonalityViolation = violationMessage
+                };
+            }
+        }
+
+        // Apply personality success rate modifier before playing the card
+        if (_personalityEnforcer != null && selectedCard.Context != null)
+        {
+            // Get base success rate from effect resolver
+            int baseSuccessRate = _effectResolver.CalculateSuccessPercentage(selectedCard, session);
+
+            // Apply personality modifier (e.g., Mercantile +30% for highest focus)
+            int modifiedSuccessRate = _personalityEnforcer.ModifySuccessRate(selectedCard, baseSuccessRate);
+
+            // Store the modified rate for the card to use
+            selectedCard.Context.ModifiedSuccessRate = modifiedSuccessRate;
+        }
+
         // Play the card through deck manager
         CardPlayResult playResult = _deckManager.PlayCard(session, selectedCard);
+
+        // Grant XP on successful card play
+        if (playResult.Success)
+        {
+            selectedCard.XP += 1;
+        }
+
+        // Record that this card was played for personality tracking
+        _personalityEnforcer?.OnCardPlayed(selectedCard);
 
         int oldFlow = session.FlowBattery;
         int flowChange = playResult.FinalFlow;
@@ -235,7 +287,8 @@ public class ConversationOrchestrator
         session.MaxFocus = _focusManager.CurrentCapacity;
 
         // Exhaust all focus on failed SPEAK - forces LISTEN as only option
-        if (!playResult.Success)
+        // Unless the card ignores failure LISTEN (level 5 mastery)
+        if (!playResult.Success && !selectedCard.IgnoresFailureListen)
         {
             // Spend all remaining focus to force LISTEN
             int remainingFocus = _focusManager.AvailableFocus;
@@ -317,6 +370,47 @@ public class ConversationOrchestrator
             return true;
 
         return false;
+    }
+
+    /// <summary>
+    /// Check if a card would violate personality rules
+    /// </summary>
+    public bool WouldViolatePersonalityRule(ConversationSession session, CardInstance card, out string violationMessage)
+    {
+        violationMessage = null;
+        if (_personalityEnforcer == null) return false;
+
+        return !_personalityEnforcer.ValidatePlay(card, out violationMessage);
+    }
+
+    /// <summary>
+    /// Get the description of the active personality rule
+    /// </summary>
+    public string GetPersonalityRuleDescription(ConversationSession session)
+    {
+        return _personalityEnforcer?.GetRuleDescription() ?? "";
+    }
+
+    /// <summary>
+    /// Check if a card would get a personality bonus
+    /// </summary>
+    public bool WouldGetPersonalityBonus(ConversationSession session, CardInstance card)
+    {
+        if (_personalityEnforcer == null) return false;
+
+        // Check for Mercantile bonus
+        return _personalityEnforcer.WouldGetMercantileBonus(card);
+    }
+
+    /// <summary>
+    /// Check if a card would trigger a personality penalty
+    /// </summary>
+    public bool WouldTriggerPersonalityPenalty(ConversationSession session, CardInstance card)
+    {
+        if (_personalityEnforcer == null) return false;
+
+        // Check for Cunning penalty
+        return _personalityEnforcer.WouldTriggerCunningPenalty(card);
     }
 
     /// <summary>

@@ -46,6 +46,9 @@ public static class NPCParser
         {
             npc.PersonalityType = parsedType;
             Console.WriteLine($"[NPCParser] Successfully parsed PersonalityType: {parsedType} for {npc.Name}");
+
+            // Initialize conversation modifier based on personality type
+            npc.ConversationModifier = PersonalityModifier.CreateFromPersonalityType(parsedType);
         }
         else
         {
@@ -168,6 +171,9 @@ public static class NPCParser
         {
             npc.PersonalityType = parsedType;
             Console.WriteLine($"[NPCParser] Successfully parsed PersonalityType: {parsedType} for {npc.Name}");
+
+            // Initialize conversation modifier based on personality type
+            npc.ConversationModifier = PersonalityModifier.CreateFromPersonalityType(parsedType);
         }
         else
         {

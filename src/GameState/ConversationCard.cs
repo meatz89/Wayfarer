@@ -45,6 +45,9 @@ public class ConversationCard
     public string DialogueFragment { get; set; }
     public string VerbPhrase { get; set; }
 
+    // Level bonuses that apply at specific levels
+    public List<CardLevelBonus> LevelBonuses { get; set; } = new List<CardLevelBonus>();
+
     // Get base success percentage from difficulty tier
     public int GetBaseSuccessPercentage()
     {
@@ -85,7 +88,8 @@ public class ConversationCard
             RequestId = this.RequestId,
             DialogueFragment = this.DialogueFragment,
             VerbPhrase = this.VerbPhrase,
-            CardType = this.CardType
+            CardType = this.CardType,
+            LevelBonuses = new List<CardLevelBonus>(this.LevelBonuses)
         };
     }
 

@@ -162,6 +162,31 @@ public static class ConversationCardParser
             card.RapportThreshold = dto.RapportThreshold.Value;
         }
 
+        // Parse level bonuses if specified, otherwise they'll use default progression
+        if (dto.LevelBonuses != null && dto.LevelBonuses.Any())
+        {
+            foreach (CardLevelBonusDTO bonusDto in dto.LevelBonuses)
+            {
+                CardLevelBonus bonus = new CardLevelBonus
+                {
+                    SuccessBonus = bonusDto.SuccessBonus,
+                    AddDrawOnSuccess = bonusDto.AddDrawOnSuccess,
+                    IgnoreFailureListen = bonusDto.IgnoreFailureListen
+                };
+
+                // Parse persistence type if specified
+                if (!string.IsNullOrEmpty(bonusDto.AddPersistence))
+                {
+                    if (Enum.TryParse<PersistenceType>(bonusDto.AddPersistence, true, out PersistenceType persistenceType))
+                    {
+                        bonus.AddPersistence = persistenceType;
+                    }
+                }
+
+                card.LevelBonuses.Add(bonus);
+            }
+        }
+
         return card;
     }
 
@@ -322,6 +347,21 @@ public class ConversationCardDTO
 
     // Difficulty determines magnitude
     public string Difficulty { get; set; }
+
+    // Level bonuses (optional, uses default progression if not specified)
+    public List<CardLevelBonusDTO> LevelBonuses { get; set; }
+}
+
+/// <summary>
+/// DTO for card level bonuses from JSON
+/// </summary>
+public class CardLevelBonusDTO
+{
+    public int Level { get; set; }
+    public int? SuccessBonus { get; set; }
+    public string AddPersistence { get; set; }
+    public int? AddDrawOnSuccess { get; set; }
+    public bool? IgnoreFailureListen { get; set; }
 }
 
 /// <summary>

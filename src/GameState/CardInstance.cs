@@ -10,7 +10,21 @@ public class CardInstance
     public string Description { get; init; }
 
     // Categorical properties that define behavior through context
-    public PersistenceType Persistence { get; init; } = PersistenceType.Thought;
+    // Note: Level 3+ cards gain Thought persistence regardless of base persistence
+    public PersistenceType Persistence
+    {
+        get
+        {
+            // Level 3 cards gain Thought persistence if they don't already have it
+            if (Level >= 3 && _basePersistence != PersistenceType.Thought)
+            {
+                return PersistenceType.Thought;
+            }
+            return _basePersistence;
+        }
+        init { _basePersistence = value; }
+    }
+    private PersistenceType _basePersistence = PersistenceType.Thought;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
     public ExhaustEffectType ExhaustType { get; init; } = ExhaustEffectType.None;
@@ -37,6 +51,12 @@ public class CardInstance
 
     // Track if card is currently playable (for request cards)
     public bool IsPlayable { get; set; } = true;
+
+    // XP and Leveling System
+    public int XP { get; set; } = 0;
+    public int Level => CalculateLevel(XP);
+    // Level 5 cards ignore forced LISTEN on failure
+    public bool IgnoresFailureListen => Level >= 5;
 
     public string GetCategoryClass()
     {
@@ -128,7 +148,7 @@ public class CardInstance
     {
         Id = template.Id;
         Description = template.Description;
-        Persistence = template.Persistence;
+        _basePersistence = template.Persistence;
         SuccessType = template.SuccessType;
         FailureType = template.FailureType;
         ExhaustType = template.ExhaustType;
@@ -141,6 +161,35 @@ public class CardInstance
         DialogueFragment = template.DialogueFragment;
         VerbPhrase = template.VerbPhrase;
         SourceContext = sourceContext;
+    }
+
+    private int CalculateLevel(int xp)
+    {
+        // Level progression with infinite scaling
+        if (xp < 3) return 1;
+        if (xp < 7) return 2;
+        if (xp < 15) return 3;
+        if (xp < 30) return 4;
+        if (xp < 50) return 5;
+        if (xp < 75) return 6;
+        if (xp < 100) return 7;
+        if (xp < 150) return 8;
+        if (xp < 200) return 9;
+
+        // For levels 10+, continue exponential growth pattern
+        // Level 10: 250 XP, Level 11: 325 XP, Level 12: 400 XP, etc.
+        int level = 9;
+        int threshold = 200;
+        int increment = 50;
+
+        while (xp >= threshold)
+        {
+            level++;
+            increment += 25; // Increases by 25 each level (50, 75, 100, 125...)
+            threshold += increment;
+        }
+
+        return level;
     }
 
 }

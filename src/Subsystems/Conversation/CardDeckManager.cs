@@ -141,8 +141,9 @@ public class CardDeckManager
             };
         }
 
-        // Calculate success percentage
-        int successPercentage = _effectResolver.CalculateSuccessPercentage(selectedCard, session);
+        // Calculate success percentage - use modified rate if personality rules applied it
+        int successPercentage = selectedCard.Context?.ModifiedSuccessRate
+            ?? _effectResolver.CalculateSuccessPercentage(selectedCard, session);
 
         // Promise/request cards (GoalCard) ALWAYS succeed
         bool success;
@@ -193,10 +194,17 @@ public class CardDeckManager
             // Process card's success effect
             effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
 
-            // Apply rapport changes to RapportManager
-            if (effectResult.RapportChange != 0 && session.RapportManager != null)
+            // Apply personality modifier to rapport change
+            int rapportChange = effectResult.RapportChange;
+            if (session.PersonalityEnforcer != null && rapportChange != 0)
             {
-                session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
+                rapportChange = session.PersonalityEnforcer.ModifyRapportChange(selectedCard, rapportChange);
+            }
+
+            // Apply rapport changes to RapportManager
+            if (rapportChange != 0 && session.RapportManager != null)
+            {
+                session.RapportManager.ApplyRapportChange(rapportChange, session.CurrentAtmosphere);
             }
 
             // Add drawn cards to active cards
@@ -225,10 +233,17 @@ public class CardDeckManager
             // Process card's failure effect
             effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
 
-            // Apply rapport changes to RapportManager (if any failure effects modify rapport)
-            if (effectResult.RapportChange != 0 && session.RapportManager != null)
+            // Apply personality modifier to rapport change (for failure effects)
+            int failureRapportChange = effectResult.RapportChange;
+            if (session.PersonalityEnforcer != null && failureRapportChange != 0)
             {
-                session.RapportManager.ApplyRapportChange(effectResult.RapportChange, session.CurrentAtmosphere);
+                failureRapportChange = session.PersonalityEnforcer.ModifyRapportChange(selectedCard, failureRapportChange);
+            }
+
+            // Apply rapport changes to RapportManager (if any failure effects modify rapport)
+            if (failureRapportChange != 0 && session.RapportManager != null)
+            {
+                session.RapportManager.ApplyRapportChange(failureRapportChange, session.CurrentAtmosphere);
             }
 
             // Add cards from failure effect (e.g. burden cards)

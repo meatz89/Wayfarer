@@ -11,6 +11,9 @@ public class CardContext
     // Pre-rolled dice value (1-100) determined when card enters hand
     public int? PreRolledValue { get; set; }
 
+    // Modified success rate after personality rules are applied
+    public int? ModifiedSuccessRate { get; set; }
+
     // Additional context properties  
     public string ExchangeRequest { get; set; }
     public string ObservationLocation { get; set; }
