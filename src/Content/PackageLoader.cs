@@ -32,6 +32,7 @@ public class PackageLoader
     private readonly GameWorld _gameWorld;
     private bool _isFirstPackage = true;
     private List<ExchangeCardEntry> _parsedExchangeCards;
+    private string _currentPackageId = "unknown"; // Track current package for error reporting
 
     // Track loaded packages to prevent reloading
     private List<LoadedPackage> _loadedPackages = new List<LoadedPackage>();
@@ -433,6 +434,9 @@ public class PackageLoader
 
     private void LoadPackageContent(Package package)
     {
+        // Set current package ID for error reporting
+        _currentPackageId = package.PackageId ?? "unknown";
+
         // Apply starting conditions only from the first package
         if (_isFirstPackage && package.StartingConditions != null)
         {
@@ -1165,6 +1169,7 @@ public class PackageLoader
     private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
         Console.WriteLine("[PackageLoader] Initializing NPC one-time requests...");
+        List<string> validationErrors = new List<string>();
 
         // First load NPCRequest bundles from npcRequests section
         if (npcRequestDtos != null && npcRequestDtos.Count > 0)
@@ -1176,8 +1181,17 @@ public class PackageLoader
                     NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requestDto.NpcId);
                     if (npc == null)
                     {
-                        Console.WriteLine($"[PackageLoader] Warning: NPC '{requestDto.NpcId}' not found for request '{requestDto.Id}'");
-                        continue;
+                        // Check if this is a skeleton NPC
+                        if (!_gameWorld.SkeletonRegistry.ContainsKey(requestDto.NpcId))
+                        {
+                            throw PackageLoadException.CreateMissingDependency(
+                                _currentPackageId,
+                                "NPCRequest",
+                                requestDto.Id,
+                                $"NPC '{requestDto.NpcId}'",
+                                $"Ensure NPC '{requestDto.NpcId}' is defined in the npcs section of this or a dependency package");
+                        }
+                        continue; // Skip skeleton NPCs for now
                     }
 
                     NPCRequest request = new NPCRequest
@@ -1189,7 +1203,7 @@ public class PackageLoader
                         Status = RequestStatus.Available
                     };
 
-                    // Load request card IDs (validate they exist but store only IDs)
+                    // Validate request card IDs - these are REQUIRED for the request to function
                     if (requestDto.RequestCards != null)
                     {
                         foreach (string cardId in requestDto.RequestCards)
@@ -1201,12 +1215,18 @@ public class PackageLoader
                             }
                             else
                             {
-                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found in GameWorld.AllCardDefinitions");
+                                // Request cards are critical - throw exception
+                                throw PackageLoadException.CreateMissingDependency(
+                                    _currentPackageId,
+                                    "NPCRequest",
+                                    requestDto.Id,
+                                    $"request card '{cardId}'",
+                                    $"Ensure card '{cardId}' is defined with type 'Request' in the cards section");
                             }
                         }
                     }
 
-                    // Load promise card IDs (validate they exist but store only IDs)
+                    // Validate promise card IDs - these are also REQUIRED if specified
                     if (requestDto.PromiseCards != null)
                     {
                         foreach (string cardId in requestDto.PromiseCards)
@@ -1218,23 +1238,44 @@ public class PackageLoader
                             }
                             else
                             {
-                                Console.WriteLine($"[PackageLoader] Warning: Promise card '{cardId}' not found in GameWorld.AllCardDefinitions");
+                                // Promise cards are critical - throw exception
+                                throw PackageLoadException.CreateMissingDependency(
+                                    _currentPackageId,
+                                    "NPCRequest",
+                                    requestDto.Id,
+                                    $"promise card '{cardId}'",
+                                    $"Ensure card '{cardId}' is defined with type 'Promise' in the cards section");
                             }
                         }
                     }
 
+                    // Only add the request if it has at least one card
                     if (request.RequestCardIds.Count > 0 || request.PromiseCardIds.Count > 0)
                     {
                         npc.Requests.Add(request);
                         Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.RequestCardIds.Count} request card IDs and {request.PromiseCardIds.Count} promise card IDs");
                     }
+                    else
+                    {
+                        validationErrors.Add($"Request '{requestDto.Id}' has no request or promise cards defined");
+                    }
+                }
+                catch (PackageLoadException)
+                {
+                    throw; // Re-throw PackageLoadException as-is
                 }
                 catch (Exception ex)
                 {
                     throw new Exception($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}", ex);
                 }
             }
-            
+
+            // If we collected any validation errors, throw them all at once
+            if (validationErrors.Count > 0)
+            {
+                throw PackageLoadException.MultipleValidationErrors(_currentPackageId, validationErrors);
+            }
+
             Console.WriteLine($"[PackageLoader] Loaded {npcRequestDtos.Count} NPC request bundles");
         }
     }
