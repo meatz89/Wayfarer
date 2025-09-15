@@ -34,6 +34,15 @@
                     <span class="state-name">@GetConnectionStateDisplay()</span>
                     <span class="state-effects">(@GetConnectionStateInfo())</span>
                 </div>
+
+                @* Display active personality rule *@
+                @if (!string.IsNullOrEmpty(GetPersonalityRuleDescription()))
+                {
+                    <div class="personality-rule">
+                        <span class="rule-label">Personality Rule:</span>
+                        <span class="rule-description">@GetPersonalityRuleDescription()</span>
+                    </div>
+                }
                 
                 <div class="flow-display">
                     <span class="flow-label">Flow:</span>
@@ -91,13 +100,13 @@
         @if (!IsConversationExhausted)
         {
             <div class="action-choices">
-                <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")" 
-                     @onclick="ExecuteListen" 
-                     @onmouseenter="ShowListenPreviewHandler" 
-                     @onmouseleave="HidePreviewHandler" 
+                <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")"
+                     @onclick="ExecuteListen"
+                     @onmouseenter="ShowListenPreviewHandler"
+                     @onmouseleave="HidePreviewHandler"
                      disabled="@IsGeneratingNarrative">
                     <div>LISTEN</div>
-                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetListenActionText())</div>
+                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
                     @if (ShowListenPreview)
                     {
                         <div class="action-preview listen-preview">
@@ -259,9 +268,15 @@
                     else
                     {
                         @* Regular conversation card *@
-                        <div class="@GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <div class="@GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            
+
+                            @* XP and Level display *@
+                            <div class="card-progression">
+                                <span class="card-level">Level @convCard.Level</span>
+                                <span class="card-xp">XP: @convCard.XP</span>
+                            </div>
+
                             @* Persistence tags *@
                             @if (convCard.Persistence == PersistenceType.Impulse)
                             {
@@ -301,9 +316,9 @@
                                 <div class="card-outcomes">
                                     <div class="outcome success">
                                         <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                        @if (GetRapportModifier() != 0)
+                                        @if (GetRapportModifier() != 0 || GetLevelBonus(convCard) != 0 || GetPersonalityModifier(convCard) != 0)
                                         {
-                                            <div class="outcome-modifiers">(@GetBaseSuccessPercentage(convCard.Difficulty)% BASE +@GetRapportModifier()% from rapport)</div>
+                                            <div class="outcome-modifiers">@GetSuccessModifierBreakdown(convCard)</div>
                                         }
                                         <div class="outcome-label">Success</div>
                                         <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>

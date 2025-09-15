@@ -48,6 +48,7 @@
     padding: 12px;
     font-size: 11px;
     line-height: 1.4;
+    position: relative;
     transition: border-color 0.2s;
 }
 
@@ -217,4 +218,55 @@
 .debug-toggle:hover {
     background: #4b5563;
     border-color: #6b7280;
+}
+
+/* Progression Card Styles */
+.progression-deck-section {
+    background: #1f2937;
+    border: 2px solid #4b5563;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.debug-card.progression-card {
+    background: linear-gradient(135deg, #2d2d2d, #3a3a3a);
+    border: 2px solid #5c5c5c;
+}
+
+.debug-card.progression-card.locked {
+    opacity: 0.6;
+    background: repeating-linear-gradient(
+        45deg,
+        #2d2d2d,
+        #2d2d2d 10px,
+        #262626 10px,
+        #262626 20px
+    );
+}
+
+.lock-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 20px;
+    filter: grayscale(100%);
+}
+
+.token-requirement {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #9ca3af;
+    font-size: 10px;
+    margin-left: 10px;
+}
+
+.token-requirement.met {
+    background: #10b981;
+    border-color: #059669;
+    color: #ffffff;
+    font-weight: bold;
 }

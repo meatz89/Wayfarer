@@ -46,6 +46,26 @@
     align-items: center;
 }
 
+/* Personality Rule Display */
+.personality-rule {
+    background: #fff8e7;
+    padding: 8px 15px;
+    margin: 10px 20px;
+    border-left: 4px solid #d4a574;
+    font-size: 13px;
+}
+
+.personality-rule .rule-label {
+    font-weight: 600;
+    color: #6a5442;
+    margin-right: 8px;
+}
+
+.personality-rule .rule-description {
+    color: #8a7464;
+    font-style: italic;
+}
+
 /* State and Flow grouped together */
 .state-flow-section {
     background: #f9f3e9;
@@ -433,6 +453,91 @@
 /* Card content flex layout */
 .card-content {
     display: flex;
+}
+
+/* Card Progression Display (XP and Level) */
+.card-progression {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.card-level {
+    background: linear-gradient(135deg, #f4d03f, #e8b923);
+    color: #5c4a3a;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #d4a574;
+}
+
+.card-xp {
+    background: rgba(255, 255, 255, 0.9);
+    color: #7a6250;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #c4a684;
+}
+
+/* Level-specific visual enhancements */
+.card-level-3 {
+    box-shadow: 0 0 8px rgba(244, 208, 63, 0.4);
+}
+
+.card-level-5 {
+    box-shadow: 0 0 12px rgba(244, 208, 63, 0.6);
+    border-color: #f4d03f;
+}
+
+/* Illegal Play Highlighting */
+.card.illegal-play {
+    border-color: #d4704a !important;
+    background: linear-gradient(to bottom, #faf4ea, #fce8e4);
+    position: relative;
+}
+
+.card.illegal-play::before {
+    content: "ILLEGAL PLAY";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #d4704a;
+    color: white;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 3px;
+    z-index: 10;
+}
+
+.card.illegal-play:hover {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* XP Gain Animation */
+@keyframes xpGain {
+    0% {
+        transform: scale(1);
+        color: #7a6250;
+    }
+    50% {
+        transform: scale(1.3);
+        color: #f4d03f;
+        text-shadow: 0 0 8px rgba(244, 208, 63, 0.6);
+    }
+    100% {
+        transform: scale(1);
+        color: #7a6250;
+    }
+}
+
+.card-xp.gaining {
+    animation: xpGain 0.6s ease-out;
 }
 
 .card-main {

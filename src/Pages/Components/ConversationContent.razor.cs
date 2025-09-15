@@ -1622,7 +1622,7 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSuccessChance(CardInstance card)
         {
-            // Calculate success chance based on card type and state, including token bonuses
+            // Calculate success chance based on card type and state, including all bonuses
             int baseChance = GetBaseSuccessPercentage(card.Difficulty);
 
             // Add rapport modifier (each point = 1% success modifier)
@@ -1631,8 +1631,14 @@ namespace Wayfarer.Pages.Components
             // Add atmosphere modifier (Focused gives +20%)
             int atmosphereBonus = ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
 
+            // Add level bonus (Level 2: +10%, Level 4: +20% total)
+            int levelBonus = GetLevelBonus(card);
+
+            // Add personality modifier (e.g., Mercantile +30% for highest focus)
+            int personalityBonus = GetPersonalityModifier(card);
+
             // Calculate total, clamped to valid percentage range
-            int totalChance = Math.Max(0, Math.Min(100, baseChance + rapportBonus + atmosphereBonus));
+            int totalChance = Math.Max(0, Math.Min(100, baseChance + rapportBonus + atmosphereBonus + levelBonus + personalityBonus));
 
             // For auto-success atmosphere, always show 100%
             if (ConversationFacade?.GetAtmosphereManager()?.ShouldAutoSucceed() == true)
@@ -2095,6 +2101,93 @@ namespace Wayfarer.Pages.Components
                 Difficulty.VeryHard => "Very Hard",
                 _ => difficulty.ToString()
             };
+        }
+
+        /// <summary>
+        /// Get the personality rule description from the session's PersonalityEnforcer
+        /// </summary>
+        protected string GetPersonalityRuleDescription()
+        {
+            return Session?.PersonalityEnforcer?.GetRuleDescription() ?? "";
+        }
+
+        /// <summary>
+        /// Check if a card play would violate personality rules
+        /// </summary>
+        protected bool IsIllegalPlay(CardInstance card)
+        {
+            if (Session?.PersonalityEnforcer == null || card == null) return false;
+
+            bool isValid = Session.PersonalityEnforcer.ValidatePlay(card, out string violationMessage);
+            return !isValid;  // Return true if play is illegal
+        }
+
+        /// <summary>
+        /// Get level bonus for a card
+        /// </summary>
+        protected int GetLevelBonus(CardInstance card)
+        {
+            if (card == null) return 0;
+
+            // Level 2 adds +10% success
+            // Level 4 adds another +10% success (cumulative)
+            int levelBonus = 0;
+            if (card.Level >= 2) levelBonus += 10;
+            if (card.Level >= 4) levelBonus += 10;
+
+            return levelBonus;
+        }
+
+        /// <summary>
+        /// Get personality modifier for a card
+        /// </summary>
+        protected int GetPersonalityModifier(CardInstance card)
+        {
+            if (Session?.PersonalityEnforcer == null || card == null) return 0;
+
+            // Check if card would get Mercantile bonus
+            if (Session.PersonalityEnforcer.WouldGetMercantileBonus(card))
+            {
+                return 30;  // Mercantile gives +30% to highest focus
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Get complete success modifier breakdown
+        /// </summary>
+        protected string GetSuccessModifierBreakdown(CardInstance card)
+        {
+            List<string> modifiers = new List<string>();
+
+            // Base chance
+            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
+            modifiers.Add($"{baseChance}% base");
+
+            // Rapport modifier
+            int rapportBonus = GetRapportModifier();
+            if (rapportBonus != 0)
+            {
+                string sign = rapportBonus > 0 ? "+" : "";
+                modifiers.Add($"{sign}{rapportBonus}% rapport");
+            }
+
+            // Level bonus
+            int levelBonus = GetLevelBonus(card);
+            if (levelBonus > 0)
+            {
+                modifiers.Add($"+{levelBonus}% level");
+            }
+
+            // Personality modifier
+            int personalityMod = GetPersonalityModifier(card);
+            if (personalityMod > 0)
+            {
+                modifiers.Add($"+{personalityMod}% personality");
+            }
+
+            return string.Join(", ", modifiers);
         }
 
         /// <summary>
