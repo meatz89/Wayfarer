@@ -74,6 +74,17 @@
             margin-top: 2px;
         }
 
+        .personality-rule {
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #8b4726;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
         /* Win/Lose Conditions Bar */
         .conditions-bar {
             background: #f9f3e9;
@@ -150,6 +161,40 @@
         .rapport-modifier {
             font-size: 11px;
             color: #5a7a3a;
+        }
+
+        /* Token Display */
+        .token-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e8dcc4;
+            padding: 4px 10px;
+            border-radius: 3px;
+        }
+
+        .token-icon {
+            width: 20px;
+            height: 20px;
+            background: #8b4726;
+            color: #faf4ea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .token-count {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .signature-note {
+            font-size: 10px;
+            color: #7a6250;
         }
 
         /* Flow State Bar */
@@ -282,6 +327,18 @@
             background: #faf0e6;
         }
 
+        .forced-listen-note {
+            margin-top: 12px;
+            padding: 10px;
+            background: #fff4e6;
+            border: 1px solid #d4a76a;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #8b4726;
+            text-align: center;
+            font-weight: bold;
+        }
+
         /* Action Section */
         .action-section {
             padding: 12px;
@@ -309,10 +366,22 @@
             min-width: 160px;
         }
 
-        .action-button:hover {
+        .action-button:hover:not(.forced) {
             background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
             border-color: #8b7355;
             transform: translateY(-2px);
+        }
+
+        .action-button.forced {
+            background: linear-gradient(to bottom, #d4704a, #c4604a);
+            border-color: #8b4726;
+            color: #faf4ea;
+            cursor: default;
+        }
+
+        .action-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .action-details {
@@ -321,7 +390,11 @@
             color: #7a6250;
         }
 
-        /* Focus Bar (Directly Above Cards) */
+        .action-button.forced .action-details {
+            color: #faf4ea;
+        }
+
+        /* Focus Bar */
         .focus-bar {
             background: #3d3429;
             padding: 10px;
@@ -363,6 +436,28 @@
             font-size: 18px;
             font-weight: bold;
             color: #d4a76a;
+        }
+
+        /* Deck Info Bar */
+        .deck-info-bar {
+            background: #e8dcc4;
+            padding: 8px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .deck-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .deck-stat-value {
+            font-weight: bold;
+            color: #5c4a3a;
         }
 
         /* Cards Section */
@@ -416,6 +511,11 @@
             border-color: #4a6a2a;
             transform: translateX(5px);
             background: #f0f5e5;
+        }
+
+        .card.signature {
+            border-color: #7a6250;
+            background: linear-gradient(135deg, #faf4ea, #f4e8d0);
         }
 
         /* Card Layout */
@@ -474,26 +574,78 @@
             font-style: italic;
         }
 
-        /* Persistence Tags */
-        .persistence-tag {
+        /* Card Tags */
+        .card-tags {
             position: absolute;
             top: 0px;
-            right: 12px;
+            right: 0px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .card-tag {
             padding: 2px 6px;
-            border-radius: 0 0 2px 2px;
+            border-radius: 0 0 0 3px;
             font-size: 9px;
             text-transform: uppercase;
             font-weight: bold;
         }
 
-        .persistence-tag.impulse {
-            background: #8b4726;
+        .tag-persistent {
+            background: #5a7a8a;
             color: #faf4ea;
         }
 
-        .persistence-tag.opening {
-            background: #5a7a8a;
+        .tag-signature {
+            background: #7a6250;
             color: #faf4ea;
+        }
+
+        .tag-level {
+            background: #d4a76a;
+            color: #2c241a;
+        }
+
+        /* Card Level Display */
+        .card-level {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e8dcc4;
+        }
+
+        .level-label {
+            font-size: 10px;
+            color: #7a6250;
+            text-transform: uppercase;
+        }
+
+        .level-value {
+            font-size: 11px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .xp-bar {
+            flex: 1;
+            height: 4px;
+            background: #e8dcc4;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: #d4a76a;
+            transition: width 0.3s;
+        }
+
+        .xp-text {
+            font-size: 9px;
+            color: #8b7355;
+            margin-left: 5px;
         }
 
         /* Success/Failure Strip */
@@ -548,13 +700,14 @@
             font-style: italic;
         }
 
-        /* Exhaust Effect */
-        .exhaust-effect {
-            background: #3d3429;
-            color: #e8dcc4;
-            padding: 6px 12px;
-            font-size: 10px;
-            border-top: 1px solid #5c4a3a;
+        /* Mastered Card Glow */
+        .card.mastered {
+            box-shadow: 0 0 10px rgba(212, 167, 106, 0.5);
+        }
+
+        .card.mastered .card-name::after {
+            content: " ★";
+            color: #d4a76a;
         }
     </style>
 </head>
@@ -572,6 +725,7 @@
                 <div class="npc-name">Elena</div>
                 <div class="npc-status">Scribe • Devoted personality • Corner table (Private spot)</div>
             </div>
+            <div class="personality-rule">Personality - Devoted: Failures decrease rapport twice</div>
         </div>
 
         <!-- Win/Lose Conditions Bar -->
@@ -601,7 +755,7 @@
             <div class="rapport-display">
                 <span class="rapport-label">Rapport</span>
                 <span class="rapport-counter">7</span>
-                <span class="rapport-modifier">(+14% all)</span>
+                <span class="rapport-modifier">(+14% all cards)</span>
             </div>
         </div>
 
@@ -617,8 +771,8 @@
                 <span class="flow-arrow">←</span>
                 
                 <div class="current-state">
-                    <div class="state-name">Desperate</div>
-                    <div class="state-effects">Focus 3 • Draw 1</div>
+                    <div class="state-name">Disconnected</div>
+                    <div class="state-effects">Focus 3 • Draw 3 Cards</div>
                 </div>
                 
                 <span class="flow-arrow">→</span>
@@ -635,33 +789,33 @@
         <div class="atmosphere-bar">
             <div class="atmosphere-display">
                 <span class="atmosphere-label">Atmosphere:</span>
-                <span class="atmosphere-current">Volatile</span>
-                <span class="atmosphere-effect">(rapport ±1)</span>
+                <span class="atmosphere-current">Neutral</span>
+                <span class="atmosphere-effect">(No Effect)</span>
             </div>
         </div>
 
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="npc-dialogue desperate">
-                "You're my only hope. I've been building the courage for weeks, but now... Please, I need someone I can trust. Lord Blackwood must receive this letter today."
+                "I... I don't know what else to say. You seem distracted. Are you even listening to me? This letter is my only hope."
             </div>
         </div>
 
         <!-- Action Choice -->
         <div class="action-section">
             <div class="action-choices">
-                <div class="action-button">
+                <div class="action-button forced">
                     <div>LISTEN</div>
-                    <div class="action-details">Draw 1, refresh focus</div>
+                    <div class="action-details">Required after failure</div>
                 </div>
-                <div class="action-button">
+                <div class="action-button disabled">
                     <div>SPEAK</div>
-                    <div class="action-details">Play a card</div>
+                    <div class="action-details">Cannot speak now</div>
                 </div>
             </div>
         </div>
 
-        <!-- Focus Bar (Directly Above Cards) -->
+        <!-- Focus Bar -->
         <div class="focus-bar">
             <span class="focus-label">Focus</span>
             <div class="focus-dots">
@@ -670,6 +824,26 @@
                 <span class="focus-dot available"></span>
             </div>
             <span class="focus-numbers">2/3</span>
+        </div>
+
+        <!-- Deck Info Bar -->
+        <div class="deck-info-bar">
+            <div class="deck-stat">
+                <span>Draw Pile:</span>
+                <span class="deck-stat-value">14 cards</span>
+            </div>
+            <div class="deck-stat">
+                <span>Your Cards:</span>
+                <span class="deck-stat-value">23</span>
+            </div>
+            <div class="deck-stat">
+                <span>Elena's Cards:</span>
+                <span class="deck-stat-value">3</span>
+            </div>
+            <div class="deck-stat">
+                <span>Exhaust Pile:</span>
+                <span class="deck-stat-value">12 cards</span>
+            </div>
         </div>
 
         <!-- Cards Section -->
@@ -705,76 +879,27 @@
                     </div>
                 </div>
 
-                <!-- Promise Card 2 (Inactive, needs 10 rapport) -->
-                <div class="card promise">
-                    <div class="promise-threshold">
-                        Requires 10+ Rapport (You have: 7)
+                <!-- Elena's Trust (Signature Card) -->
+                <div class="card signature">
+                    <div class="card-tags">
+                        <span class="card-tag tag-signature">Elena</span>
+                        <span class="card-tag tag-persistent">Persistent</span>
                     </div>
                     <div class="card-content">
                         <div class="card-main">
                             <div class="card-header">
-                                <div class="card-name">Offer Protection</div>
-                                <div style="font-size: 11px; color: #8b4726;">NO COST</div>
-                            </div>
-                            <div class="card-text">
-                                "I'll not only deliver the letter, I'll ensure you're safe from retaliation."
-                            </div>
-                            <div class="card-effect">Creates delivery + gains 3 Trust tokens</div>
-                            <div class="promise-status">Need 3 more rapport</div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">100%</div>
-                                <div class="outcome-label">Guaranteed</div>
-                            </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">END</div>
-                                <div class="outcome-label">Conversation</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Regular Cards -->
-                <div class="card">
-                    <div class="card-content">
-                        <div class="card-main">
-                            <div class="card-header">
-                                <div class="card-name">Steady Voice</div>
-                                <div class="card-focus">2</div>
-                            </div>
-                            <div class="card-text">
-                                "Elena, look at me. We'll solve this together."
-                            </div>
-                            <div class="card-effect">Success: +2 rapport (±1 from Volatile)</div>
-                            <div class="card-failure">Failure: No effect</div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">74%</div>
-                                <div class="outcome-label">Success</div>
-                            </div>
-                            <div class="outcome">
-                                <div class="outcome-chance">26%</div>
-                                <div class="outcome-label">Failure</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <span class="persistence-tag opening">Opening</span>
-                    <div class="card-content">
-                        <div class="card-main">
-                            <div class="card-header">
-                                <div class="card-name">Patient Listening</div>
+                                <div class="card-name">Elena's Trust</div>
                                 <div class="card-focus">1</div>
                             </div>
                             <div class="card-text">
-                                "Take your time. I'm here."
+                                "I believe in you completely."
                             </div>
-                            <div class="card-effect">Success: Add 2 patience slots</div>
-                            <div class="card-failure">Failure: No effect</div>
+                            <div class="card-effect">Success: +1 rapport, draw 1 card</div>
+                            <div class="card-failure">Failure: Forces LISTEN</div>
+                            <div class="card-level">
+                                <span class="level-label">Trust Card</span>
+                                <span class="level-value">No XP</span>
+                            </div>
                         </div>
                         <div class="card-outcomes">
                             <div class="outcome success">
@@ -787,8 +912,120 @@
                             </div>
                         </div>
                     </div>
-                    <div class="exhaust-effect">
-                        If you LISTEN: Card removed
+                </div>
+
+                <!-- Steady Voice (Player Card, Level 3) -->
+                <div class="card">
+                    <div class="card-tags">
+                        <span class="card-tag tag-level">LV3</span>
+                        <span class="card-tag tag-persistent">Persistent</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-header">
+                                <div class="card-name">Steady Voice</div>
+                                <div class="card-focus">2</div>
+                            </div>
+                            <div class="card-text">
+                                "Elena, look at me. We'll solve this together."
+                            </div>
+                            <div class="card-effect">Success: +2 rapport</div>
+                            <div class="card-failure">Failure: -2 rapport (doubled to -4), forces LISTEN</div>
+                            <div class="card-level">
+                                <span class="level-label">Level</span>
+                                <span class="level-value">3</span>
+                                <div class="xp-bar">
+                                    <div class="xp-fill" style="width: 40%"></div>
+                                </div>
+                                <span class="xp-text">6/15 XP</span>
+                            </div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">84%</div>
+                                <div class="outcome-label">Success</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">16%</div>
+                                <div class="outcome-label">Failure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Let Me Think (Player Card, Level 1, Non-Persistent) -->
+                <div class="card">
+                    <div class="card-tags">
+                        <span class="card-tag tag-level">LV1</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-header">
+                                <div class="card-name">Let Me Think</div>
+                                <div class="card-focus">1</div>
+                            </div>
+                            <div class="card-text">
+                                "Give me a moment to consider this."
+                            </div>
+                            <div class="card-effect">Success: Sets Patient atmosphere</div>
+                            <div class="card-failure">Failure: Forces LISTEN</div>
+                            <div class="card-level">
+                                <span class="level-label">Level</span>
+                                <span class="level-value">1</span>
+                                <div class="xp-bar">
+                                    <div class="xp-fill" style="width: 33%"></div>
+                                </div>
+                                <span class="xp-text">1/3 XP</span>
+                            </div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">84%</div>
+                                <div class="outcome-label">Success</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">16%</div>
+                                <div class="outcome-label">Failure</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Everything Will Work Out (Player Card, Level 5 - Mastered) -->
+                <div class="card mastered">
+                    <div class="card-tags">
+                        <span class="card-tag tag-level">MASTER</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-main">
+                            <div class="card-header">
+                                <div class="card-name">Everything Will Work Out</div>
+                                <div class="card-focus">3</div>
+                            </div>
+                            <div class="card-text">
+                                "Trust me, Elena. I've never let you down before."
+                            </div>
+                            <div class="card-effect">Success: +3 rapport</div>
+                            <div class="card-failure">Failure: Does NOT force LISTEN (Mastered)</div>
+                            <div class="card-level">
+                                <span class="level-label">Level</span>
+                                <span class="level-value">5 - MASTERED</span>
+                                <div class="xp-bar">
+                                    <div class="xp-fill" style="width: 100%"></div>
+                                </div>
+                                <span class="xp-text">MAX</span>
+                            </div>
+                        </div>
+                        <div class="card-outcomes">
+                            <div class="outcome success">
+                                <div class="outcome-chance">74%</div>
+                                <div class="outcome-label">Success</div>
+                            </div>
+                            <div class="outcome">
+                                <div class="outcome-chance">26%</div>
+                                <div class="outcome-label">No Listen</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
