@@ -1,4 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+
+public class ListenDrawCountEntry
+{
+    public ConnectionState State { get; set; }
+    public int DrawCount { get; set; }
+}
 
 public class GameRules
 {
@@ -11,15 +18,21 @@ public class GameRules
     public string Name = "Wayfarer";
 
     // Conversation configuration
-    public Dictionary<ConnectionState, int> ListenDrawCounts { get; set; } = new Dictionary<ConnectionState, int>
+    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; } = new List<ListenDrawCountEntry>
     {
         // Default values (will be overridden by JSON config)
-        { ConnectionState.DISCONNECTED, 3 },
-        { ConnectionState.GUARDED, 4 },
-        { ConnectionState.NEUTRAL, 4 },
-        { ConnectionState.RECEPTIVE, 5 },
-        { ConnectionState.TRUSTING, 5 }
+        new ListenDrawCountEntry { State = ConnectionState.DISCONNECTED, DrawCount = 3 },
+        new ListenDrawCountEntry { State = ConnectionState.GUARDED, DrawCount = 4 },
+        new ListenDrawCountEntry { State = ConnectionState.NEUTRAL, DrawCount = 4 },
+        new ListenDrawCountEntry { State = ConnectionState.RECEPTIVE, DrawCount = 5 },
+        new ListenDrawCountEntry { State = ConnectionState.TRUSTING, DrawCount = 5 }
     };
+
+    public int GetListenDrawCount(ConnectionState state)
+    {
+        var entry = ListenDrawCounts?.FirstOrDefault(e => e.State == state);
+        return entry?.DrawCount ?? 3; // Default to 3 if not found
+    }
 
     // Resource Competition: Fixed Stamina Costs
     public const int STAMINA_COST_TRAVEL = 2;      // Per route segment

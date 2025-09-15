@@ -78,9 +78,7 @@ public class ConversationSession
     public int GetDrawCount()
     {
         // Use configured draw counts from GameRules
-        int baseCount = GameRules.StandardRuleset.ListenDrawCounts.TryGetValue(CurrentState, out int configuredCount)
-            ? configuredCount
-            : 4; // Default fallback if not configured
+        int baseCount = GameRules.StandardRuleset.GetListenDrawCount(CurrentState);
 
         // AtmosphereType modifiers
         if (CurrentAtmosphere == AtmosphereType.Receptive)

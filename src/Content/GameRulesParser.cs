@@ -12,22 +12,22 @@ public class GameRulesParser
         // Parse listenDrawCounts
         if (root.TryGetProperty("listenDrawCounts", out JsonElement listenDrawCounts))
         {
-            var drawCounts = new Dictionary<ConnectionState, int>();
+            var drawCounts = new List<ListenDrawCountEntry>();
 
             if (listenDrawCounts.TryGetProperty("Disconnected", out JsonElement disconnected))
-                drawCounts[ConnectionState.DISCONNECTED] = disconnected.GetInt32();
+                drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.DISCONNECTED, DrawCount = disconnected.GetInt32() });
 
             if (listenDrawCounts.TryGetProperty("Guarded", out JsonElement guarded))
-                drawCounts[ConnectionState.GUARDED] = guarded.GetInt32();
+                drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.GUARDED, DrawCount = guarded.GetInt32() });
 
             if (listenDrawCounts.TryGetProperty("Neutral", out JsonElement neutral))
-                drawCounts[ConnectionState.NEUTRAL] = neutral.GetInt32();
+                drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.NEUTRAL, DrawCount = neutral.GetInt32() });
 
             if (listenDrawCounts.TryGetProperty("Receptive", out JsonElement receptive))
-                drawCounts[ConnectionState.RECEPTIVE] = receptive.GetInt32();
+                drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.RECEPTIVE, DrawCount = receptive.GetInt32() });
 
             if (listenDrawCounts.TryGetProperty("Trusting", out JsonElement trusting))
-                drawCounts[ConnectionState.TRUSTING] = trusting.GetInt32();
+                drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.TRUSTING, DrawCount = trusting.GetInt32() });
 
             targetRules.ListenDrawCounts = drawCounts;
         }
