@@ -118,17 +118,17 @@
         @if (!IsConversationExhausted)
         {
             <div class="action-choices">
-                <div class="action-button @(IsGeneratingNarrative ? "disabled" : "")"
+                <div class="action-button @(IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                      @onclick="ExecuteListen"
-                     disabled="@IsGeneratingNarrative">
+                     disabled="@(IsGeneratingNarrative || IsProcessing)">
                     <div>LISTEN</div>
-                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
+                    <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
                 </div>
-                <div class="action-button @(!CanSpeak() || IsGeneratingNarrative ? "disabled" : "")" 
-                     @onclick="ExecuteSpeak" 
-                     disabled="@(!CanSpeak() || IsGeneratingNarrative)">
+                <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
+                     @onclick="ExecuteSpeak"
+                     disabled="@(!CanSpeak() || IsGeneratingNarrative || IsProcessing)">
                     <div>SPEAK</div>
-                    <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
+                    <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
                 </div>
             </div>
         }

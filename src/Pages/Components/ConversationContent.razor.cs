@@ -94,6 +94,12 @@ namespace Wayfarer.Pages.Components
         protected List<CardNarrative> CurrentCardNarratives { get; set; } = new List<CardNarrative>();
         protected NarrativeOutput CurrentNarrativeOutput { get; set; }
         private Task<NarrativeOutput> _initialNarrativeTask = null;
+
+        /// <summary>
+        /// SYNCHRONOUS GAMEPLAY: Track if backend is processing to prevent clicks during actual backend calls.
+        /// This is different from animations - we only block during ACTUAL backend processing, not visual feedback.
+        /// </summary>
+        protected bool IsProcessing { get; set; } = false;
         
         protected string GetNarrativeClass()
         {
@@ -184,7 +190,8 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteListen()
         {
-            if (Session == null) return;
+            // SYNCHRONOUS PRINCIPLE: Block during backend processing only, not animations
+            if (Session == null || IsProcessing) return;
             
             // If initial narrative is still generating, wait for it instead of triggering new generation
             if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
@@ -209,19 +216,27 @@ namespace Wayfarer.Pages.Components
 
             SelectedCard = null;
 
+            // SYNCHRONOUS PRINCIPLE: Clean up old animation states periodically
+            AnimationManager.CleanupOldAnimations();
+
             // Store current cards before listen for animation tracking
             List<CardInstance> previousCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
 
+            // SYNCHRONOUS PRINCIPLE: Effects apply immediately, animations are visual only
             // Mark any opening cards for exhaustion
             List<CardInstance> openingCards = previousCards.Where(c => c.Persistence == PersistenceType.Opening).ToList();
             if (openingCards.Any())
             {
                 MarkCardsForExhaust(openingCards);
-                await Task.Delay(250); // Let exhaust animation play
+                // NO DELAY - animations are purely visual feedback
             }
 
             try
             {
+                // SYNCHRONOUS PRINCIPLE: Set processing flag during backend call only
+                IsProcessing = true;
+                StateHasChanged(); // Update UI to disable buttons
+
                 // Validate conversation is still active before executing
                 if (!ConversationFacade.IsConversationActive())
                 {
@@ -237,6 +252,9 @@ namespace Wayfarer.Pages.Components
                 }
 
                 ConversationTurnResult listenResult = await ConversationFacade.ExecuteListen();
+
+                // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
+                IsProcessing = false;
 
                 // Only generate new narrative if we didn't already use the initial one
                 if (_initialNarrativeTask == null)
@@ -297,16 +315,27 @@ namespace Wayfarer.Pages.Components
             }
             finally
             {
+                // SYNCHRONOUS PRINCIPLE: Always clear processing flag
+                IsProcessing = false;
                 StateHasChanged();
             }
         }
 
         protected async Task ExecuteSpeak()
         {
-            if (IsGeneratingNarrative || Session == null || SelectedCard == null) return;
+            // SYNCHRONOUS PRINCIPLE: Block during backend processing only, not animations
+            if (IsGeneratingNarrative || IsProcessing || Session == null || SelectedCard == null) return;
 
             try
             {
+                // SYNCHRONOUS PRINCIPLE: Set processing flag during backend call only
+                IsProcessing = true;
+
+                // Clean up old animation states periodically
+                AnimationManager.CleanupOldAnimations();
+
+                StateHasChanged(); // Update UI to disable buttons
+
                 // Add notification for speaking
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
 
@@ -344,6 +373,9 @@ namespace Wayfarer.Pages.Components
                 // ExecuteSpeak expects a single card - this removes it from hand
                 ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 CardPlayResult result = turnResult?.CardPlayResult;
+
+                // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
+                IsProcessing = false;
 
                 // Use AI-generated narrative from turn result
                 if (turnResult?.Narrative != null)
@@ -389,13 +421,12 @@ namespace Wayfarer.Pages.Components
                 // The card was already added to AnimatingCards before the backend call
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
 
-                // Remove the old "processing" animation and add the correct result animation
+                // SYNCHRONOUS PRINCIPLE: Show result animation immediately, no delays
                 AnimatingCards.RemoveAll(c => c.Card.InstanceId == playedCard.InstanceId);
                 AddAnimatingCard(playedCard, wasSuccessful, cardPosition);
                 StateHasChanged(); // Update the card animation to show result
 
-                // Delay to let player see the result clearly
-                await Task.Delay(750);
+                // NO DELAY - game state is already updated, animation is just visual
 
                 // Check if this was a promise/goal card that succeeded
                 bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise || playedCard.CardType == CardType.BurdenGoal;
@@ -455,9 +486,10 @@ namespace Wayfarer.Pages.Components
                     .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
                     .ToList() ?? new List<CardInstance>();
 
+                // SYNCHRONOUS PRINCIPLE: Exhaust impulse cards immediately
                 if (impulseCards.Any())
                 {
-                    await Task.Delay(400); // Wait for play animation to start
+                    // NO DELAY - exhaust immediately, animation is visual only
                     MarkCardsForExhaust(impulseCards);
                 }
 
@@ -487,6 +519,8 @@ namespace Wayfarer.Pages.Components
             }
             finally
             {
+                // SYNCHRONOUS PRINCIPLE: Always clear processing flag
+                IsProcessing = false;
                 StateHasChanged();
             }
         }
@@ -3203,10 +3237,10 @@ namespace Wayfarer.Pages.Components
                 .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
                 .ToList() ?? new List<CardInstance>();
 
+            // SYNCHRONOUS PRINCIPLE: Exhaust impulse cards immediately
             if (impulseCards.Any())
             {
-                // Wait for played card animation to partially complete
-                await Task.Delay(250);
+                // NO DELAY - exhaust immediately, animation is visual only
                 MarkCardsForExhaust(impulseCards);
             }
         }

@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 namespace Wayfarer
 {
     /// <summary>
-    /// Manages card animations in the conversation UI.
-    /// Tracks animating cards and animation states for success/failure feedback.
+    /// SYNCHRONOUS PRINCIPLE: Card animations are purely visual feedback.
+    /// This manager tracks which cards should have CSS animations applied,
+    /// but NEVER delays or blocks game logic. All effects happen immediately.
+    /// Animations are CSS-only and do not affect game state timing.
     /// </summary>
     public class CardAnimationManager
     {
@@ -32,7 +34,9 @@ namespace Wayfarer
         public HashSet<string> ExhaustingCardIds => exhaustingCardIds;
 
         /// <summary>
-        /// Add a card to the animating cards list for post-play animation.
+        /// SYNCHRONOUS PRINCIPLE: Mark a card for visual animation only.
+        /// The card is tracked for CSS animation but this NEVER delays game logic.
+        /// CSS animations handle timing, not C# code.
         /// </summary>
         public void AddAnimatingCard(CardInstance card, bool success, int originalPosition, Action stateChangedCallback)
         {
@@ -46,16 +50,15 @@ namespace Wayfarer
                 OriginalPosition = originalPosition
             });
 
-            // Remove after animation completes (1.25s flash + 0.25s play-out = 1.5s total)
-            Task.Delay(1600).ContinueWith(_ =>
-            {
-                animatingCards.RemoveAll(ac => ac.Card.InstanceId == card.InstanceId);
-                stateChangedCallback?.Invoke();
-            });
+            // SYNCHRONOUS PRINCIPLE: No delays! CSS handles animation timing.
+            // Card will be removed on next action or when animation CSS completes.
+            // Game logic continues immediately.
+            stateChangedCallback?.Invoke();
         }
 
         /// <summary>
-        /// Mark a card as successfully or unsuccessfully played.
+        /// SYNCHRONOUS PRINCIPLE: Mark a card with animation state for CSS.
+        /// No delays - CSS handles animation timing.
         /// </summary>
         public void MarkCardAsPlayed(CardInstance card, bool success, Action stateChangedCallback)
         {
@@ -69,16 +72,15 @@ namespace Wayfarer
                 StateChangedAt = DateTime.Now
             };
 
-            // Remove state after animation completes
-            Task.Delay(1600).ContinueWith(_ =>
-            {
-                cardStates.Remove(cardId);
-                stateChangedCallback?.Invoke();
-            });
+            // SYNCHRONOUS PRINCIPLE: No delays! State cleared on next action.
+            // CSS animation runs independently of game logic.
+            stateChangedCallback?.Invoke();
         }
 
         /// <summary>
-        /// Mark cards for exhaust animation.
+        /// SYNCHRONOUS PRINCIPLE: Mark cards for CSS exhaust animation.
+        /// Cards are removed from game state immediately.
+        /// Animation is visual feedback only.
         /// </summary>
         public void MarkCardsForExhaust(List<CardInstance> cardsToExhaust, Action stateChangedCallback)
         {
@@ -95,21 +97,14 @@ namespace Wayfarer
                 };
             }
 
-            // Remove after exhaust animation (0.5s)
-            Task.Delay(500).ContinueWith(_ =>
-            {
-                foreach (CardInstance card in cardsToExhaust)
-                {
-                    string cardId = card.InstanceId ?? card.Id ?? "";
-                    exhaustingCardIds.Remove(cardId);
-                    cardStates.Remove(cardId);
-                }
-                stateChangedCallback?.Invoke();
-            });
+            // SYNCHRONOUS PRINCIPLE: No delays! Cards already removed from game state.
+            // CSS animation provides visual feedback while game continues.
+            stateChangedCallback?.Invoke();
         }
 
         /// <summary>
-        /// Mark new cards with animation state.
+        /// SYNCHRONOUS PRINCIPLE: Mark new cards for CSS slide-in animation.
+        /// Cards are already in game state, animation is visual only.
         /// </summary>
         public void MarkNewCards(List<CardInstance> newCards, HashSet<string> newCardIds, Action stateChangedCallback)
         {
@@ -126,27 +121,41 @@ namespace Wayfarer
                 };
             }
 
-            // Clear new state after animation (0.25s)
-            Task.Delay(250).ContinueWith(_ =>
-            {
-                foreach (CardInstance card in newCards)
-                {
-                    string cardId = card.InstanceId ?? card.Id ?? "";
-                    newCardIds.Remove(cardId);
-                    cardStates.Remove(cardId);
-                }
-                stateChangedCallback?.Invoke();
-            });
+            // SYNCHRONOUS PRINCIPLE: No delays! Cards immediately playable.
+            // CSS animation provides visual feedback for new cards.
+            stateChangedCallback?.Invoke();
         }
 
         /// <summary>
         /// Clear all animation states.
+        /// Called when starting a new action to reset visual state.
         /// </summary>
         public void ClearAllStates()
         {
             animatingCards.Clear();
             cardStates.Clear();
             exhaustingCardIds.Clear();
+        }
+
+        /// <summary>
+        /// SYNCHRONOUS PRINCIPLE: Clean up old animation states.
+        /// Called periodically to remove stale animation markers.
+        /// Based on CSS animation duration, not C# delays.
+        /// </summary>
+        public void CleanupOldAnimations()
+        {
+            DateTime cutoff = DateTime.Now.AddSeconds(-2); // CSS animations complete within 2s
+
+            // Remove old animating cards
+            animatingCards.RemoveAll(ac => ac.AddedAt < cutoff);
+
+            // Remove old card states
+            var oldStates = cardStates.Where(kvp => kvp.Value.StateChangedAt < cutoff).Select(kvp => kvp.Key).ToList();
+            foreach (string cardId in oldStates)
+            {
+                cardStates.Remove(cardId);
+                exhaustingCardIds.Remove(cardId);
+            }
         }
     }
 }

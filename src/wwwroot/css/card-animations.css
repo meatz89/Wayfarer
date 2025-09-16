@@ -1,4 +1,8 @@
 /* ===== CARD ANIMATION SYSTEM ===== */
+/* SYNCHRONOUS PRINCIPLE: All animations are purely visual feedback.
+   They run independently of game logic and NEVER block or delay game state.
+   Game effects apply immediately, animations provide visual clarity only.
+   CSS timing (0.25s, 0.5s, 1.25s) is for visual polish, not game mechanics. */
 /* Visual feedback for card state changes in conversations */
 
 /* === KEYFRAME ANIMATIONS === */
