@@ -89,6 +89,12 @@ LISTEN clicked
   ├─→ Backend: Draw new cards (instant)
   ├─→ Frontend: Mark all Opening cards as exhausting (simultaneous)
   └─→ Frontend: Mark all new cards as entering (simultaneous)
+
+SPEAK clicked
+  ├─→ Backend: Play card (instant)
+  ├─→ Backend: Remove Impulse cards if another was played (instant)
+  ├─→ Frontend: Card flashes success/failure (no clear timing)
+  └─→ Frontend: Impulse cards vanish (simultaneous, no direction)
 ```
 
 #### Proposed Flow (Sequential)
@@ -104,6 +110,19 @@ LISTEN clicked
         ├─→ Card 1: Enter from left (delay: exhaust_time + 0.2s)
         ├─→ Card 2: Enter from left (delay: exhaust_time + 0.35s)
         └─→ Card N: Enter from left (delay: exhaust_time + 0.2 + 0.15*N)
+
+SPEAK clicked (single card played)
+  ├─→ Backend: Play card & process effects (instant)
+  ├─→ Backend: Remove Impulse cards if needed (instant)
+  ├─→ Frontend: Phase 1 - Played card animation
+  │     └─→ Played card: Success/failure flash (1.25s) then exit up (0.25s)
+  ├─→ Frontend: Phase 2 - Exhaust Impulse cards (if any)
+  │     ├─→ Impulse 1: Exhaust right (delay: 1.5s)
+  │     ├─→ Impulse 2: Exhaust right (delay: 1.65s)
+  │     └─→ Impulse N: Exhaust right (delay: 1.5 + 0.15*N)
+  └─→ Frontend: Phase 3 - Draw new cards (if Threading effect)
+        ├─→ New Card 1: Enter from left (delay: exhaust_time + 0.2s)
+        └─→ New Card N: Enter from left (delay: exhaust_time + 0.2 + 0.15*N)
 ```
 
 ### 3. CSS Animation Definitions
@@ -260,6 +279,53 @@ protected async Task ExecuteListen()
 
     StateHasChanged();
 }
+
+protected async Task ExecuteSpeak()
+{
+    // ... existing code ...
+
+    // Track cards before action
+    List<CardInstance> cardsBeforeSpeak = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+    CardInstance playedCard = SelectedCard;
+
+    // Execute backend action (INSTANT state change)
+    ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+    CardPlayResult result = turnResult?.CardPlayResult;
+
+    // Track cards after action
+    List<CardInstance> cardsAfterSpeak = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+
+    // PHASE 1: Animate played card (success/failure flash then exit up)
+    bool success = result?.Success ?? false;
+    AnimationManager.MarkCardAsPlayed(playedCard, success, () => InvokeAsync(StateHasChanged));
+
+    // PHASE 2: Animate exhausting Impulse cards
+    List<CardInstance> exhaustedImpulse = cardsBeforeSpeak
+        .Where(c => c.Persistence == PersistenceType.Impulse &&
+                   c.InstanceId != playedCard.InstanceId &&
+                   !cardsAfterSpeak.Any(ac => ac.InstanceId == c.InstanceId))
+        .ToList();
+
+    if (exhaustedImpulse.Any())
+    {
+        // Start after played card animation (1.5s)
+        AnimationManager.MarkCardsForExhaustSequential(exhaustedImpulse, 1.5, () => InvokeAsync(StateHasChanged));
+    }
+
+    // PHASE 3: Animate new cards (if Threading success effect)
+    List<CardInstance> drawnCards = cardsAfterSpeak
+        .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
+        .ToList();
+
+    if (drawnCards.Any())
+    {
+        double exhaustTime = exhaustedImpulse.Count * 0.15 + 0.5;
+        double drawStartDelay = 1.5 + exhaustTime + 0.2;
+        AnimationManager.MarkNewCardsSequential(drawnCards, drawStartDelay, () => InvokeAsync(StateHasChanged));
+    }
+
+    StateHasChanged();
+}
 ```
 
 #### ConversationContent.razor Changes
@@ -365,13 +431,30 @@ Time    Action
 #### Priority 2 (Polish)
 - Add subtle rotation to card movements
 - Implement easing curves for more natural motion
-- Add particle effects for exhaust (dust/smoke)
 
-#### Priority 3 (Nice to Have)
-- Sound effects synchronized with animations
-- Different animations for different card types
-- User preference for animation speed
-- Accessibility: Honor prefers-reduced-motion
+## Card Persistence Types and Exhaust Rules
+
+### Persistence Types
+1. **Thought Cards** - Remain in hand until played, never exhaust automatically
+2. **Impulse Cards** - Exhaust when ANY other card is played (not just when they're played)
+3. **Opening Cards** - Exhaust on LISTEN action
+
+### When Cards Exhaust
+
+#### During LISTEN:
+- **Opening cards** are removed from hand and animate out
+- **Thought cards** remain
+- **Impulse cards** remain (but are marked as "will exhaust" visually)
+
+#### During SPEAK:
+- **The played card** animates with success/failure, then exits
+- **ALL Impulse cards** in hand (except the one being played if it's an Impulse) exhaust
+- **Thought cards** and **Opening cards** remain (unless they were the played card)
+
+#### Special Cases:
+- Some cards have **Exhaust effects** that trigger penalties when they leave without being played
+- **Threading** success effect draws new cards after the exhaust phase
+- **Overreach** failure effect clears the entire hand
 
 ## Summary
 
