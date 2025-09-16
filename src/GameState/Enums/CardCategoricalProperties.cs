@@ -46,7 +46,7 @@ public enum SuccessEffectType
     Threading,
 
     /// <summary>
-    /// Sets conversation atmosphere (specific type required)
+    /// Sets conversation atmosphere (specific type from magnitude)
     /// </summary>
     Atmospheric,
 
@@ -61,7 +61,7 @@ public enum SuccessEffectType
     Promising,
 
     /// <summary>
-    /// Advances connection state by one step (ignores magnitude)
+    /// Advances flow battery by magnitude
     /// </summary>
     Advancing
 }

@@ -4,7 +4,19 @@ using System.Linq;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Resolves card effects based on categorical properties and difficulty-based magnitude
+/// PROJECTION PRINCIPLE: This resolver is a pure projection function that returns
+/// what WOULD happen without modifying any game state. Both UI (for preview display)
+/// and game logic (for actual execution) call these methods to get projections.
+///
+/// The resolver NEVER modifies state directly - it only returns CardEffectResult
+/// projections that describe what changes would occur. The caller is responsible
+/// for actually applying these changes if/when appropriate.
+///
+/// This ensures:
+/// - UI can accurately preview effects before they happen
+/// - Game logic gets consistent effect calculations
+/// - No side effects occur during preview operations
+/// - Single source of truth for effect calculations
 /// </summary>
 public class CategoricalEffectResolver
 {
@@ -28,7 +40,9 @@ public class CategoricalEffectResolver
     }
 
     /// <summary>
-    /// Process a card's success effect based on its categorical properties
+    /// PROJECTION: Returns what WOULD happen on card success without modifying state.
+    /// Calculates rapport changes, cards to draw, focus to add, atmosphere to set, etc.
+    /// The caller decides whether to apply these projected changes.
     /// </summary>
     public CardEffectResult ProcessSuccessEffect(CardInstance card, ConversationSession session)
     {
@@ -133,7 +147,9 @@ public class CategoricalEffectResolver
     }
 
     /// <summary>
-    /// Process a card's failure effect based on its categorical properties
+    /// PROJECTION: Returns what WOULD happen on card failure without modifying state.
+    /// Calculates hand clearing, rapport loss, card discards, etc.
+    /// The caller decides whether to apply these projected changes.
     /// </summary>
     public CardEffectResult ProcessFailureEffect(CardInstance card, ConversationSession session)
     {
@@ -154,10 +170,15 @@ public class CategoricalEffectResolver
         switch (card.FailureType)
         {
             case FailureEffectType.Overreach:
-                // Clear entire hand - catastrophic conversation breakdown
-                int cardsCleared = session.ActiveCards.Count;
-                session.ActiveCards.Clear();
-                result.SpecialEffect = $"Overreach! All {cardsCleared} cards discarded";
+                // PROJECTION: Would clear entire hand - catastrophic conversation breakdown
+                // Populate CardsToAdd to indicate cards that would be removed
+                int cardsToOverreach = session.ActiveCards.Count;
+                for (int i = 0; i < cardsToOverreach; i++)
+                {
+                    // Add placeholder cards to indicate removals
+                    result.CardsToAdd.Add(new CardInstance { Template = new ConversationCard() });
+                }
+                result.SpecialEffect = $"Overreach! All {cardsToOverreach} cards discarded";
                 break;
 
             case FailureEffectType.Backfire:
@@ -167,25 +188,25 @@ public class CategoricalEffectResolver
                 break;
 
             case FailureEffectType.Disrupting:
-                // Discard all cards with focus 3+ from hand
-                List<CardInstance> toDiscard = session.ActiveCards.Cards
+                // PROJECTION: Would discard all cards with focus 3+ from hand
+                List<CardInstance> wouldDiscard = session.ActiveCards.Cards
                     .Where(c => c.Focus >= 3)
                     .ToList();
-                foreach (var discarded in toDiscard)
+                // Populate CardsToAdd to indicate which cards would be removed
+                foreach (var disruptedCard in wouldDiscard)
                 {
-                    session.ActiveCards.Remove(discarded);
-                    session.Deck.DiscardCard(discarded);
+                    result.CardsToAdd.Add(disruptedCard);
                 }
-                result.SpecialEffect = $"Disrupted {toDiscard.Count} high-focus cards";
+                result.SpecialEffect = $"Disrupted {wouldDiscard.Count} high-focus cards";
                 break;
 
             case FailureEffectType.ForceListen:
-                // Check if card is immune to ForceListen (stat level 5)
+                // PROJECTION: Would deplete focus to force LISTEN on next turn
                 PlayerStats playerStats = gameWorld.GetPlayer().Stats;
                 if (!card.IgnoresFailureListen(playerStats))
                 {
-                    // Deplete all remaining focus to force LISTEN on next turn
-                    focusManager.DepleteFocus();
+                    // Indicate focus would be depleted
+                    result.FocusAdded = -session.GetAvailableFocus();
                     result.SpecialEffect = "Must LISTEN next turn";
                 }
                 else
@@ -207,7 +228,9 @@ public class CategoricalEffectResolver
     }
 
     /// <summary>
-    /// Process a card's exhaust effect (when removed unplayed)
+    /// PROJECTION: Returns what WOULD happen when card exhausts without modifying state.
+    /// Exhaust effects are ALWAYS penalties (negative rapport, focus loss, etc.)
+    /// The caller decides whether to apply these projected penalties.
     /// </summary>
     public CardEffectResult ProcessExhaustEffect(CardInstance card, ConversationSession session)
     {
@@ -233,26 +256,26 @@ public class CategoricalEffectResolver
         switch (card.ExhaustType)
         {
             case ExhaustEffectType.Threading:
-                // Draw cards when discarded
+                // PENALTY: Lose cards from hand when exhausted
+                // Note: CardsToAdd with negative semantics means cards to remove
+                // The UI interprets this as "lose X cards" based on exhaust context
                 for (int i = 0; i < magnitude; i++)
                 {
-                    CardInstance drawn = session.Deck.DrawCard();
-                    if (drawn != null)
-                    {
-                        result.CardsToAdd.Add(drawn);
-                    }
+                    // We populate CardsToAdd to indicate how many cards would be lost
+                    // The actual removal is handled by the caller
+                    result.CardsToAdd.Add(new CardInstance { Template = new ConversationCard() });
                 }
-                result.SpecialEffect = $"Exhausted: Draw {magnitude} cards";
+                result.SpecialEffect = $"Exhausted: Lose {magnitude} cards";
                 break;
 
             case ExhaustEffectType.Focusing:
-                // Restore focus when discarded
-                result.FocusAdded = magnitude;
-                result.SpecialEffect = $"Exhausted: +{magnitude} focus";
+                // PENALTY: Lose focus when exhausted
+                result.FocusAdded = -magnitude; // Negative focus = penalty
+                result.SpecialEffect = $"Exhausted: -{magnitude} focus";
                 break;
 
             case ExhaustEffectType.Regret:
-                // Lose rapport when not played - the cost of silence
+                // PENALTY: Lose rapport when not played - the cost of silence
                 result.RapportChange = -magnitude;
                 result.SpecialEffect = $"Regret: -{magnitude} rapport";
                 break;

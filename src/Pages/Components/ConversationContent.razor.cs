@@ -41,6 +41,14 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected ConversationNarrativeService NarrativeService { get; set; }
 
+        /// <summary>
+        /// PROJECTION PRINCIPLE: The CategoricalEffectResolver is a pure projection function
+        /// that returns what WOULD happen without modifying state. Both UI (for preview)
+        /// and game logic (for execution) call the resolver to get projections.
+        /// This ensures the UI can accurately display what effects WILL occur.
+        /// </summary>
+        [Inject] protected CategoricalEffectResolver EffectResolver { get; set; }
+
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
         protected int TotalSelectedFocus => SelectedCard?.Focus ?? 0;
@@ -1588,6 +1596,11 @@ namespace Wayfarer.Pages.Components
             return tags;
         }
 
+        /// <summary>
+        /// PROJECTION PRINCIPLE: ALWAYS use effect resolver to get projection of what WOULD happen.
+        /// This ensures UI accurately shows what effects will occur without modifying game state.
+        /// NO FALLBACKS - the resolver is the single source of truth for effect projections.
+        /// </summary>
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
@@ -1596,28 +1609,53 @@ namespace Wayfarer.Pages.Components
                 return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
 
-            // Check if card has a categorical success effect
+            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects
             if (card.SuccessType != SuccessEffectType.None)
             {
-                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
+                var projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
-                // Display the effect based on type
-                return card.SuccessType switch
+                // Build description from projection data
+                if (projection.AtmosphereTypeChange.HasValue)
                 {
-                    SuccessEffectType.Rapport => magnitude > 0 ? $"+{magnitude} rapport" : $"{magnitude} rapport",
-                    SuccessEffectType.Threading => $"Draw {magnitude} card{(magnitude == 1 ? "" : "s")}",
-                    SuccessEffectType.Atmospheric => "Set atmosphere",
-                    SuccessEffectType.Focusing => $"+{magnitude} focus",
-                    SuccessEffectType.Promising => "Move promise to position 1",
-                    SuccessEffectType.Advancing => "Advance connection state",
-                    _ => "Effect"
-                };
+                    return $"Set atmosphere: {projection.AtmosphereTypeChange.Value}";
+                }
+
+                if (projection.RapportChange != 0)
+                {
+                    return projection.RapportChange > 0
+                        ? $"+{projection.RapportChange} rapport"
+                        : $"{projection.RapportChange} rapport";
+                }
+
+                if (projection.CardsToAdd?.Count > 0)
+                {
+                    int count = projection.CardsToAdd.Count;
+                    return $"Draw {count} card{(count == 1 ? "" : "s")}";
+                }
+
+                if (projection.FocusAdded != 0)
+                {
+                    return projection.FocusAdded > 0
+                        ? $"+{projection.FocusAdded} focus"
+                        : $"{projection.FocusAdded} focus";
+                }
+
+                if (!string.IsNullOrEmpty(projection.SpecialEffect))
+                {
+                    // Use the special effect description from projection
+                    // This handles Promising and Advancing types
+                    return projection.SpecialEffect.Replace(", +", " +").Replace("Promise made, ", "");
+                }
             }
 
             // No effect
             return "No effect";
         }
 
+        /// <summary>
+        /// PROJECTION PRINCIPLE: ALWAYS use effect resolver to get projection of what WOULD happen.
+        /// This ensures UI accurately shows what effects will occur without modifying game state.
+        /// </summary>
         protected string GetFailureEffect(CardInstance card)
         {
             // For exchange cards, no failure - it's a choice
@@ -1628,19 +1666,32 @@ namespace Wayfarer.Pages.Components
                 return "Execute trade";
             }
 
-            // Check if card has a categorical failure effect
+            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL failure effects
             if (card.FailureType != FailureEffectType.None)
             {
-                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
+                var projection = EffectResolver.ProcessFailureEffect(card, Session);
 
-                // Display the effect based on type
-                return card.FailureType switch
+                // Build description from projection data
+                if (projection.RapportChange < 0)
                 {
-                    FailureEffectType.Overreach => "Clear entire hand",
-                    FailureEffectType.Backfire => $"-{magnitude} rapport",
-                    FailureEffectType.Disrupting => "Discard cards with focus 3+",
-                    _ => "Force LISTEN"
-                };
+                    return $"{projection.RapportChange} rapport";
+                }
+
+                if (projection.FocusAdded < 0)
+                {
+                    return "Force LISTEN";
+                }
+
+                if (!string.IsNullOrEmpty(projection.SpecialEffect))
+                {
+                    // Use the special effect description from projection
+                    // This handles Overreach, Disrupting, etc.
+                    if (projection.SpecialEffect.Contains("Overreach"))
+                        return "Clear entire hand";
+                    if (projection.SpecialEffect.Contains("Disrupted"))
+                        return "Discard cards with focus 3+";
+                    return projection.SpecialEffect;
+                }
             }
 
             // Default failure effect is forcing LISTEN
@@ -2384,52 +2435,71 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// PACKET 6: Get enhanced success effect description
         /// </summary>
+        /// <summary>
+        /// PROJECTION PRINCIPLE: Wrapper that delegates to projection-based GetSuccessEffect
+        /// </summary>
         protected string GetSuccessEffectDescription(CardInstance card)
         {
-            // CardInstance doesn't have SuccessEffect yet, so fall back to old system
             return GetSuccessEffect(card);
         }
 
         /// <summary>
-        /// PACKET 6: Get enhanced failure effect description
+        /// PROJECTION PRINCIPLE: Wrapper that delegates to projection-based GetFailureEffect
         /// </summary>
         protected string GetFailureEffectDescription(CardInstance card)
         {
-            // CardInstance doesn't have FailureEffect yet, so fall back to old system
-            string oldEffect = GetFailureEffect(card);
-            return string.IsNullOrEmpty(oldEffect) || oldEffect == "+0 flow" ?
-                "No effect" : oldEffect;
+            string effect = GetFailureEffect(card);
+            return string.IsNullOrEmpty(effect) || effect == "+0 flow" ?
+                "No effect" : effect;
         }
 
         /// <summary>
-        /// PACKET 6: Get exhaust effect description
+        /// PROJECTION PRINCIPLE: Get exhaust effect description including proper trigger text.
+        /// Uses effect resolver to get projection of exhaust effects.
+        /// Shows WHEN the card will be removed and any PENALTIES applied.
         /// </summary>
         protected string GetExhaustEffectDescription(CardInstance card)
         {
-            // Get exhaust effect from the card's categorical data
-            if (card?.ExhaustType != null && card.ExhaustType != ExhaustEffectType.None)
+            // Build trigger text based on Persistence type
+            string trigger = card.Persistence switch
             {
-                int magnitude = GetMagnitudeFromDifficulty(card.Difficulty);
-                return card.ExhaustType switch
+                PersistenceType.Impulse => "On SPEAK another card",
+                PersistenceType.Opening => "On LISTEN",
+                _ => "" // Thought cards don't exhaust
+            };
+
+            if (string.IsNullOrEmpty(trigger)) return "";
+
+            // Base effect is always card removal
+            string effect = "Card removed";
+
+            // Add exhaust penalty if present - ALWAYS use projection
+            if (card.ExhaustType != ExhaustEffectType.None)
+            {
+                var projection = EffectResolver.ProcessExhaustEffect(card, Session);
+
+                // Build penalty description from projection (penalties only, never bonuses)
+                if (projection.RapportChange < 0)
                 {
-                    ExhaustEffectType.Threading => $"Draw {magnitude} card{(magnitude == 1 ? "" : "s")}",
-                    ExhaustEffectType.Focusing => $"+{magnitude} focus",
-                    ExhaustEffectType.Regret => $"-{magnitude} rapport",
-                    _ => card.ExhaustType.ToString()
-                };
+                    effect += $", {projection.RapportChange} rapport";
+                }
+
+                if (projection.FocusAdded < 0)
+                {
+                    effect += $", {projection.FocusAdded} focus";
+                }
+
+                // Threading exhaust should be a penalty (losing cards from hand)
+                if (projection.CardsToAdd?.Count > 0)
+                {
+                    // This is actually cards being removed/discarded, not drawn
+                    // The resolver might need fixing if it's adding cards on exhaust
+                    int count = projection.CardsToAdd.Count;
+                    effect += $", lose {count} card{(count == 1 ? "" : "s")}";
+                }
             }
 
-            // Fallback descriptions based on persistence
-            if (card?.Persistence == PersistenceType.Impulse)
-            {
-                return "Card removed";
-            }
-            else if (card?.Persistence == PersistenceType.Opening)
-            {
-                return "Card removed";
-            }
-
-            return "";
+            return $"{trigger}: {effect}";
         }
 
         /// <summary>

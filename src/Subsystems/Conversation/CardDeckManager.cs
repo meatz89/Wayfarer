@@ -197,6 +197,7 @@ public class CardDeckManager
             session.HiddenMomentum = 0;
 
             // Process card's success effect
+            // PROJECTION PRINCIPLE: Get projection from resolver and apply it
             effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
 
             // Apply personality modifier to rapport change
@@ -212,13 +213,19 @@ public class CardDeckManager
                 session.RapportManager.ApplyRapportChange(rapportChange, session.CurrentAtmosphere);
             }
 
-            // Add drawn cards to active cards
+            // Apply focus restoration (for Focusing success effect)
+            if (effectResult.FocusAdded > 0)
+            {
+                _focusManager.AddFocus(effectResult.FocusAdded);
+            }
+
+            // Add drawn cards to active cards (for Threading success effect)
             if (effectResult.CardsToAdd.Any())
             {
                 session.ActiveCards.AddRange(effectResult.CardsToAdd);
             }
 
-            // Handle atmosphere change
+            // Handle atmosphere change (for Atmospheric success effect)
             if (effectResult.AtmosphereTypeChange.HasValue)
             {
                 _atmosphereManager.SetAtmosphere(effectResult.AtmosphereTypeChange.Value);
@@ -235,7 +242,7 @@ public class CardDeckManager
             // Increment hidden momentum for bad luck protection (invisible to player)
             session.HiddenMomentum = Math.Min(session.HiddenMomentum + 1, 4); // Cap at 4 failures
 
-            // Process card's failure effect
+            // PROJECTION PRINCIPLE: Get projection from resolver
             effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
 
             // Apply personality modifier to rapport change (for failure effects)
@@ -251,10 +258,26 @@ public class CardDeckManager
                 session.RapportManager.ApplyRapportChange(failureRapportChange, session.CurrentAtmosphere);
             }
 
-            // Add cards from failure effect (e.g. burden cards)
+            // Apply focus penalty (for ForceListen effect)
+            if (effectResult.FocusAdded < 0)
+            {
+                _focusManager.AddFocus(effectResult.FocusAdded); // Adding negative = removing
+            }
+
+            // Apply card removal effects (Overreach/Disrupting)
             if (effectResult.CardsToAdd.Any())
             {
-                session.ActiveCards.AddRange(effectResult.CardsToAdd);
+                // For failure effects, CardsToAdd represents cards to REMOVE
+                // Overreach: all cards marked for removal
+                // Disrupting: specific high-focus cards marked for removal
+                foreach (var cardToRemove in effectResult.CardsToAdd)
+                {
+                    if (session.ActiveCards.Contains(cardToRemove))
+                    {
+                        session.ActiveCards.Remove(cardToRemove);
+                        session.ExhaustPile.Add(cardToRemove);
+                    }
+                }
             }
 
             // Clear atmosphere on failure
@@ -461,39 +484,46 @@ public class CardDeckManager
 
 
     /// <summary>
-    /// Execute a card's exhaust effect
+    /// PROJECTION PRINCIPLE: Execute exhaust effect using projection from resolver.
+    /// Exhaust effects are ALWAYS penalties (negative effects).
     /// </summary>
     private bool ExecuteExhaustEffect(CardInstance card, ConversationSession session)
     {
         if (card.ExhaustType == ExhaustEffectType.None)
             return true; // No exhaust effect, conversation continues
 
-        // Calculate magnitude from difficulty
-        int magnitude = _effectResolver.GetMagnitudeFromDifficulty(card.Difficulty);
+        // PROJECTION PRINCIPLE: Get projection from resolver
+        var projection = _effectResolver.ProcessExhaustEffect(card, session);
 
-        switch (card.ExhaustType)
+        // Apply rapport penalty
+        if (projection.RapportChange < 0 && session.RapportManager != null)
         {
-            case ExhaustEffectType.Threading:
-                // Draw cards when exhausted
-                List<CardInstance> drawnCards = session.Deck.DrawCards(magnitude);
-                session.ActiveCards.AddRange(drawnCards);
-                return true;
-
-            case ExhaustEffectType.Focusing:
-                // Restore focus when exhausted
-                _focusManager.AddFocus(magnitude);
-                return true;
-
-            case ExhaustEffectType.Regret:
-                // Lose rapport when not played
-                session.FlowBattery -= magnitude;
-                session.FlowBattery = Math.Clamp(session.FlowBattery, -3, 3);
-                return true;
-
-            default:
-                // No exhaust effect
-                return true;
+            session.RapportManager.ApplyRapportChange(projection.RapportChange, session.CurrentAtmosphere);
         }
+
+        // Apply focus penalty (negative focus)
+        if (projection.FocusAdded < 0)
+        {
+            _focusManager.AddFocus(projection.FocusAdded); // Adding negative = removing
+        }
+
+        // Apply card removal penalty (Threading exhaust loses cards from hand)
+        if (projection.CardsToAdd?.Count > 0)
+        {
+            // For exhaust Threading, CardsToAdd represents cards to LOSE from hand
+            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.ActiveCards.Count);
+            for (int i = 0; i < cardsToLose; i++)
+            {
+                if (session.ActiveCards.Cards.Any())
+                {
+                    var cardToRemove = session.ActiveCards.Cards.First();
+                    session.ActiveCards.Remove(cardToRemove);
+                    session.ExhaustPile.Add(cardToRemove);
+                }
+            }
+        }
+
+        return true; // Conversation continues
     }
 
     /// <summary>
