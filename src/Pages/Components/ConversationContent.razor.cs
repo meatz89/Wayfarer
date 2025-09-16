@@ -3245,12 +3245,12 @@ namespace Wayfarer.Pages.Components
         // Negative segments (-3 to -1)
         if (segment < 0)
         {
-            return currentFlow <= segment ? "active negative" : "inactive negative";
+            return currentFlow <= segment ? "active" : "inactive";
         }
         // Positive segments (1 to 3)
         else if (segment > 0)
         {
-            return currentFlow >= segment ? "active positive" : "inactive positive";
+            return currentFlow >= segment ? "active" : "inactive";
         }
 
         return "";

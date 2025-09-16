@@ -34,25 +34,27 @@
                 <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
 
-            <!-- Flow State Container -->
-            <div class="flow-container">
-                <div class="flow-negative">
-                    @for (int i = -3; i <= -1; i++)
-                    {
-                        <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                    }
-                </div>
+            <!-- Flow State Container - Centered wrapper -->
+            <div class="flow-state-wrapper">
+                <div class="flow-container">
+                    <div class="flow-negative">
+                        @for (int i = -3; i <= -1; i++)
+                        {
+                            <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                        }
+                    </div>
 
-                <div class="current-state">
-                    <div class="state-name">@GetConnectionStateDisplay()</div>
-                    <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
-                </div>
+                    <div class="current-state">
+                        <div class="state-name">@GetConnectionStateDisplay()</div>
+                        <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
+                    </div>
 
-                <div class="flow-positive">
-                    @for (int i = 1; i <= 3; i++)
-                    {
-                        <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                    }
+                    <div class="flow-positive">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                        }
+                    </div>
                 </div>
             </div>
 
@@ -119,8 +121,6 @@
             <div class="action-choices">
                 <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")"
                      @onclick="ExecuteListen"
-                     @onmouseenter="ShowListenPreviewHandler"
-                     @onmouseleave="HidePreviewHandler"
                      disabled="@IsGeneratingNarrative">
                     <div>LISTEN</div>
                     <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
@@ -133,8 +133,6 @@
                 </div>
                 <div class="action-button @(ShowSpeakPreview ? "preview-active" : "") @(!CanSpeak() || IsGeneratingNarrative ? "disabled" : "")" 
                      @onclick="ExecuteSpeak" 
-                     @onmouseenter="ShowSpeakPreviewHandler" 
-                     @onmouseleave="HidePreviewHandler" 
                      disabled="@(!CanSpeak() || IsGeneratingNarrative)">
                     <div>SPEAK</div>
                     <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
@@ -175,7 +173,6 @@
             </div>
             <span class="focus-numbers">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
         </div>
-        <span class="focus-note">Cards above your focus are disabled</span>
     </div>
 
     <!-- NPC Observation Cards Section -->
