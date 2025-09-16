@@ -180,7 +180,7 @@ public class CategoricalEffectResolver
             case FailureEffectType.Overreach:
                 // PROJECTION: Would clear entire hand - catastrophic conversation breakdown
                 // Populate CardsToAdd to indicate cards that would be removed
-                int cardsToOverreach = session.ActiveCards.Count;
+                int cardsToOverreach = session.Deck.Hand.Count;
                 for (int i = 0; i < cardsToOverreach; i++)
                 {
                     // Add placeholder cards to indicate removals
@@ -197,7 +197,7 @@ public class CategoricalEffectResolver
 
             case FailureEffectType.Disrupting:
                 // PROJECTION: Would discard all cards with focus 3+ from hand
-                List<CardInstance> wouldDiscard = session.ActiveCards.Cards
+                List<CardInstance> wouldDiscard = session.Deck.Hand.Cards
                     .Where(c => c.Focus >= 3)
                     .ToList();
                 // Populate CardsToAdd to indicate which cards would be removed

@@ -107,10 +107,7 @@ public class ConversationOrchestrator
             CurrentPatience = availablePatience, // Use NPC's daily patience
             MaxPatience = npc.MaxDailyPatience,  // Max based on personality
             TurnNumber = 0,
-            Deck = deck,
-            DrawPile = new Pile(),
-            ExhaustPile = new Pile(),
-            ActiveCards = new Pile(),
+            Deck = deck, // HIGHLANDER: Deck manages ALL card piles
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
             RapportManager = rapportManager,
@@ -119,19 +116,15 @@ public class ConversationOrchestrator
             RequestText = requestText // Set request text for Request conversations
         };
 
-        // FIRST: Add ALL request cards to request pile (not active pile)
-        // They will be moved to active pile when rapport threshold is met
-        if (requestCards != null && requestCards.Any())
-        {
-            session.RequestPile.AddRange(requestCards);
-        }
+        // HIGHLANDER: Request cards are already in deck.RequestCards from CreateConversationDeck
+        // No need to add them again - deck manages ALL cards
 
         // THEN: Perform initial draw of regular cards
         // This is the initial conversation start, so we just draw cards without exhausting
         _focusManager.RefreshPool();
         int drawCount = session.GetDrawCount();
-        List<CardInstance> initialCards = session.Deck.DrawCards(drawCount);
-        session.ActiveCards.AddRange(initialCards);
+        // HIGHLANDER: Draw directly to hand
+        session.Deck.DrawToHand(drawCount);
 
         // Update request card playability based on focus
         _deckManager.UpdateRequestCardPlayability(session);
@@ -225,7 +218,7 @@ public class ConversationOrchestrator
                     OldFlow = session.FlowBattery,
                     NewFlow = session.FlowBattery,
                     PatienceRemaining = session.CurrentPatience,
-                    PlayedCards = new List<CardInstance>(),
+                    // HIGHLANDER: PlayedCards managed by deck
                     PersonalityViolation = violationMessage
                 };
             }
@@ -314,7 +307,7 @@ public class ConversationOrchestrator
         _deckManager.UpdateCardPlayabilityBasedOnFocus(session);
 
         // Generate NPC response through narrative service
-        List<CardInstance> activeCards = session.ActiveCards.Cards.ToList();
+        List<CardInstance> activeCards = session.Deck.Hand.Cards.ToList();
         NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
             session,
             session.NPC,
@@ -331,7 +324,7 @@ public class ConversationOrchestrator
             OldFlow = oldFlow,
             NewFlow = session.FlowBattery,
             PatienceRemaining = session.CurrentPatience,
-            PlayedCards = new List<CardInstance> { selectedCard },
+            // HIGHLANDER: PlayedCards managed by deck
             CardPlayResult = playResult,
             Narrative = narrative  // Pass the full narrative output
         };
@@ -377,7 +370,7 @@ public class ConversationOrchestrator
             return true;
 
         // End if deck is empty and no active cards
-        if (!session.Deck.HasCardsAvailable() && session.ActiveCards.Count == 0)
+        if (!session.Deck.HasCardsAvailable() && session.Deck.Hand.Count == 0)
             return true;
 
         return false;
@@ -442,9 +435,9 @@ public class ConversationOrchestrator
         }
 
         // Can speak if have cards with available focus
-        if (session.ActiveCards.Any())
+        if (session.Deck.Hand.Any())
         {
-            List<CardInstance> playableCards = session.ActiveCards.Cards.Where(c =>
+            List<CardInstance> playableCards = session.Deck.Hand.Cards.Where(c =>
                 _deckManager.CanPlayCard(c, session)).ToList();
 
             if (playableCards.Any())
@@ -485,10 +478,10 @@ public class ConversationOrchestrator
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
-        bool requestAchieved = session.PlayedCards?.Any(c =>
+        bool requestAchieved = session.Deck.PlayedHistory.Cards.Any(c =>
             c.CardType == CardType.Letter ||
             c.CardType == CardType.Promise ||
-            c.CardType == CardType.BurdenGoal) ?? false;
+            c.CardType == CardType.BurdenGoal);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request

@@ -46,6 +46,7 @@ namespace Wayfarer
             {
                 Card = card,
                 Success = success,
+                AnimationType = success ? CardAnimationType.PlayedSuccess : CardAnimationType.PlayedFailure,
                 AddedAt = DateTime.Now,
                 OriginalPosition = originalPosition
             });
@@ -53,6 +54,25 @@ namespace Wayfarer
             // SYNCHRONOUS PRINCIPLE: No delays! CSS handles animation timing.
             // Card will be removed on next action or when animation CSS completes.
             // Game logic continues immediately.
+            stateChangedCallback?.Invoke();
+        }
+
+        /// <summary>
+        /// Add a card for exhaust animation specifically
+        /// </summary>
+        public void AddExhaustingCard(CardInstance card, int originalPosition, Action stateChangedCallback)
+        {
+            if (card == null) return;
+
+            animatingCards.Add(new AnimatingCard
+            {
+                Card = card,
+                Success = false,  // Not relevant for exhaust
+                AnimationType = CardAnimationType.Exhausting,
+                AddedAt = DateTime.Now,
+                OriginalPosition = originalPosition
+            });
+
             stateChangedCallback?.Invoke();
         }
 

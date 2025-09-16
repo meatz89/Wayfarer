@@ -19,9 +19,9 @@ namespace Wayfarer
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
             // Start with ALL cards in their current hand order (preserving positions)
-            if (session?.HandCards != null)
+            if (session?.Deck?.Hand?.Cards != null)
             {
-                List<CardInstance> handList = session.HandCards.ToList();
+                List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
 
                 // Add all cards, checking if they're animating
                 foreach (CardInstance? card in handList)
@@ -33,7 +33,7 @@ namespace Wayfarer
                         Card = card,
                         IsAnimating = animatingCard != null,
                         AnimationState = animatingCard != null
-                            ? (animatingCard.Success ? "card-played-success" : "card-played-failure")
+                            ? GetAnimationClass(animatingCard.AnimationType)
                             : null
                     });
                 }
@@ -42,7 +42,7 @@ namespace Wayfarer
             // Add any animating cards that are no longer in the hand (just played and removed)
             foreach (AnimatingCard animatingCard in animatingCards)
             {
-                bool inHand = session?.HandCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
+                bool inHand = session?.Deck?.Hand?.Cards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
 
                 if (!inHand)
                 {
@@ -53,7 +53,7 @@ namespace Wayfarer
                     {
                         Card = animatingCard.Card,
                         IsAnimating = true,
-                        AnimationState = animatingCard.Success ? "card-played-success" : "card-played-failure"
+                        AnimationState = GetAnimationClass(animatingCard.AnimationType)
                     });
                 }
             }
@@ -82,9 +82,9 @@ namespace Wayfarer
         /// </summary>
         public int GetCardPosition(CardInstance card, ConversationSession session)
         {
-            if (card == null || session?.HandCards == null) return -1;
+            if (card == null || session?.Deck?.Hand?.Cards == null) return -1;
 
-            List<CardInstance> handList = session.HandCards.ToList();
+            List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
             for (int i = 0; i < handList.Count; i++)
             {
                 if (handList[i].InstanceId == card.InstanceId)
@@ -93,6 +93,20 @@ namespace Wayfarer
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Get the CSS animation class for a given animation type
+        /// </summary>
+        private string GetAnimationClass(CardAnimationType animationType)
+        {
+            return animationType switch
+            {
+                CardAnimationType.PlayedSuccess => "card-played-success",
+                CardAnimationType.PlayedFailure => "card-played-failure",
+                CardAnimationType.Exhausting => "card-exhausting",
+                _ => "card-played-failure"
+            };
         }
     }
 }

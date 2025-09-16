@@ -7,7 +7,23 @@
 
 /* === KEYFRAME ANIMATIONS === */
 
-/* Slide in from right for newly drawn cards */
+/* Draw from deck animation - cards appear to come from deck position */
+@keyframes card-draw-from-deck {
+    0% {
+        transform: translateX(300px) translateY(-100px) scale(0.3) rotateY(180deg);
+        opacity: 0;
+    }
+    40% {
+        transform: translateX(150px) translateY(-50px) scale(0.6) rotateY(90deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateX(0) translateY(0) scale(1) rotateY(0);
+        opacity: 1;
+    }
+}
+
+/* Alternative simpler slide in from right for newly drawn cards */
 @keyframes card-slide-in {
     from {
         transform: translateX(100px);
@@ -101,9 +117,9 @@
 
 /* === CARD STATE CLASSES === */
 
-/* Newly drawn cards */
+/* Newly drawn cards - use the deck draw animation */
 .card-new {
-    animation: card-slide-in 0.25s ease-out;
+    animation: card-draw-from-deck 0.4s ease-out;
     animation-fill-mode: both;
 }
 

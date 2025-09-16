@@ -16,12 +16,9 @@ public class ConversationSession
     public bool RequestCardDrawn { get; set; }
     public int? RequestUrgencyCounter { get; set; }
     public bool RequestCardPlayed { get; set; }
+    // HIGHLANDER PRINCIPLE: ONE deck manages ALL card state
+    // DO NOT create separate piles - they violate HIGHLANDER
     public SessionCardDeck Deck { get; set; }
-    public Pile DrawPile { get; set; }
-    public Pile ExhaustPile { get; set; }
-    public Pile ActiveCards { get; set; } // Cards currently available for play
-    public List<CardInstance> PlayedCards { get; set; } = new();
-    public List<CardInstance> DiscardedCards { get; set; } = new();
     public TokenMechanicsManager TokenManager { get; set; }
     public FlowManager FlowManager { get; set; }
     public RapportManager RapportManager { get; set; }
@@ -42,10 +39,7 @@ public class ConversationSession
     // NPC-specific observation cards (from NPC's ObservationDeck)
     public List<CardInstance> NPCObservationCards { get; set; } = new();
 
-    /// <summary>
-    /// Request cards waiting for rapport threshold to be met
-    /// </summary>
-    public List<CardInstance> RequestPile { get; set; } = new List<CardInstance>();
+    // DELETED: RequestPile - now in Deck.RequestCards
     
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
@@ -54,9 +48,9 @@ public class ConversationSession
     public bool IsStrangerConversation { get; set; } = false;
     public int? StrangerLevel { get; set; } // 1-3, affects XP multiplier
 
-    // Compatibility properties for old pile architecture
-    public IReadOnlyList<CardInstance> HandCards => ActiveCards.Cards;
-    public Pile Hand => ActiveCards;
+    // NO COMPATIBILITY PROPERTIES - update all references immediately!
+    // Use Deck.Hand.Cards for hand cards
+    // Use Deck.Hand for the hand pile
 
     // New helper methods
     public int GetAvailableFocus()
@@ -105,7 +99,7 @@ public class ConversationSession
 
     public bool IsHandOverflowing()
     {
-        return ActiveCards.Count > 10; // Simplified overflow check
+        return Deck.Hand.Count > 10; // Check hand size from deck
     }
 
     public bool ShouldEnd()
@@ -204,10 +198,7 @@ public class ConversationSession
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,
-            Deck = sessionDeck,
-            DrawPile = new Pile(),
-            ExhaustPile = new Pile(),
-            ActiveCards = new Pile(),
+            Deck = sessionDeck, // HIGHLANDER: Deck manages ALL piles internally
             TokenManager = tokenManager,
             ObservationCards = obsCards,
             NPCObservationCards = npcObservationCards

@@ -81,12 +81,18 @@ public class CardDeckManager
         // Get request cards based on conversation type from JSON data
         // For Request conversations, this loads ALL cards from the Request bundle
         List<CardInstance> requestCards = SelectGoalCardsForConversationType(npc, conversationType, goalCardId, deck);
-        // Request cards will be added to active pile, promise cards already added to deck
-        
+
+        // HIGHLANDER: Add request cards directly to deck's request pile
+        foreach (var requestCard in requestCards)
+        {
+            deck.AddRequestCard(requestCard);
+        }
+
         // Now shuffle the deck after all cards (including promise cards) have been added
         deck.ShuffleDrawPile();
 
-        return (deck, requestCards);
+        // HIGHLANDER: Return only deck, not separate request cards
+        return (deck, new List<CardInstance>());
     }
 
     /// <summary>
@@ -94,7 +100,15 @@ public class CardDeckManager
     /// </summary>
     public List<CardInstance> DrawCards(SessionCardDeck deck, int count)
     {
-        return deck.DrawCards(count);
+        // HIGHLANDER: Draw cards one by one since DrawCards was removed
+        var drawn = new List<CardInstance>();
+        for (int i = 0; i < count; i++)
+        {
+            var card = deck.DrawCard();
+            if (card != null)
+                drawn.Add(card);
+        }
+        return drawn;
     }
 
     /// <summary>
@@ -228,7 +242,7 @@ public class CardDeckManager
             // Add drawn cards to active cards (for Threading success effect)
             if (effectResult.CardsToAdd.Any())
             {
-                session.ActiveCards.AddRange(effectResult.CardsToAdd);
+                session.Deck.Hand.AddRange(effectResult.CardsToAdd);
             }
 
             // Handle atmosphere change (for Atmospheric success effect)
@@ -278,10 +292,10 @@ public class CardDeckManager
                 // Disrupting: specific high-focus cards marked for removal
                 foreach (var cardToRemove in effectResult.CardsToAdd)
                 {
-                    if (session.ActiveCards.Contains(cardToRemove))
+                    if (session.Deck.Hand.Contains(cardToRemove))
                     {
-                        session.ActiveCards.Remove(cardToRemove);
-                        session.ExhaustPile.Add(cardToRemove);
+                        session.Deck.Hand.Remove(cardToRemove);
+                        session.Deck.DiscardCard(cardToRemove); // HIGHLANDER: Use deck's discard
                     }
                 }
             }
@@ -290,10 +304,8 @@ public class CardDeckManager
             _atmosphereManager.ClearAtmosphereOnFailure();
         }
 
-        // Remove the played card from active cards and move to exhaust pile
-        session.ActiveCards.Remove(selectedCard);
-        session.PlayedCards.Add(selectedCard);
-        session.ExhaustPile.Add(selectedCard);
+        // HIGHLANDER: Use deck's PlayCard method which handles all transitions
+        session.Deck.PlayCard(selectedCard);
 
         // Remove impulse cards from hand after SPEAK, executing exhaust effects
         bool conversationContinues = RemoveImpulseCardsFromHand(session);
@@ -341,11 +353,11 @@ public class CardDeckManager
         // Calculate draw count based on state and atmosphere
         int drawCount = session.GetDrawCount();
 
-        // Draw cards (no type filtering)
-        List<CardInstance> drawnCards = session.Deck.DrawCards(drawCount);
+        // HIGHLANDER: Draw directly to hand
+        session.Deck.DrawToHand(drawCount);
 
-        // Add to active cards
-        session.ActiveCards.AddRange(drawnCards);
+        // Get the drawn cards for return value
+        var drawnCards = session.Deck.Hand.Cards.TakeLast(drawCount).ToList();
 
         // Check if any goal cards should become playable based on rapport
         UpdateGoalCardPlayabilityAfterListen(session);
@@ -362,7 +374,7 @@ public class CardDeckManager
         int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
         
         // Check all goal cards in active hand
-        foreach (CardInstance card in session.ActiveCards.Cards)
+        foreach (CardInstance card in session.Deck.Hand.Cards)
         {
             // Only process goal cards that are currently Unplayable
             if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
@@ -390,7 +402,7 @@ public class CardDeckManager
     public void UpdateRequestCardPlayability(ConversationSession session)
     {
         // This is called at conversation start - just check for goal card presence
-        bool hasRequestCard = session.ActiveCards.Cards
+        bool hasRequestCard = session.Deck.Hand.Cards
             .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
 
         if (hasRequestCard)
@@ -410,7 +422,7 @@ public class CardDeckManager
         // Check if next speak is free (from observation effect)
         bool isNextSpeakFree = _atmosphereManager.IsNextSpeakFree();
 
-        foreach (CardInstance card in session.ActiveCards.Cards)
+        foreach (CardInstance card in session.Deck.Hand.Cards)
         {
             // Skip request/promise cards - their playability is based on rapport, not focus
             if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
@@ -436,7 +448,7 @@ public class CardDeckManager
     private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
         // Get all impulse cards
-        List<CardInstance> impulseCards = session.ActiveCards.Cards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
+        List<CardInstance> impulseCards = session.Deck.Hand.Cards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
 
         foreach (CardInstance card in impulseCards)
         {
@@ -451,8 +463,7 @@ public class CardDeckManager
             }
 
             // Remove from active cards and add to exhaust pile
-            session.ActiveCards.Remove(card);
-            session.ExhaustPile.Add(card);
+            session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
         }
 
         return true; // Conversation continues
@@ -464,7 +475,7 @@ public class CardDeckManager
     private bool ExhaustOpeningCards(ConversationSession session)
     {
         // Get all opening cards
-        List<CardInstance> openingCards = session.ActiveCards.Cards
+        List<CardInstance> openingCards = session.Deck.Hand.Cards
             .Where(c => c.Persistence == PersistenceType.Opening)
             .ToList();
 
@@ -481,8 +492,7 @@ public class CardDeckManager
             }
 
             // Remove from active cards and add to exhaust pile
-            session.ActiveCards.Remove(card);
-            session.ExhaustPile.Add(card);
+            session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
         }
 
         return true; // Conversation continues
@@ -517,14 +527,13 @@ public class CardDeckManager
         if (projection.CardsToAdd?.Count > 0)
         {
             // For exhaust Threading, CardsToAdd represents cards to LOSE from hand
-            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.ActiveCards.Count);
+            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.Deck.Hand.Count);
             for (int i = 0; i < cardsToLose; i++)
             {
-                if (session.ActiveCards.Cards.Any())
+                if (session.Deck.Hand.Cards.Any())
                 {
-                    var cardToRemove = session.ActiveCards.Cards.First();
-                    session.ActiveCards.Remove(cardToRemove);
-                    session.ExhaustPile.Add(cardToRemove);
+                    var cardToRemove = session.Deck.Hand.Cards.First();
+                    session.Deck.ExhaustFromHand(cardToRemove); // HIGHLANDER: Use deck method
                 }
             }
         }
@@ -559,13 +568,13 @@ public class CardDeckManager
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             // If card is in ActiveCards, it's already playable (threshold was met)
-            if (session.ActiveCards?.Cards?.Contains(card) == true)
+            if (session.Deck?.Hand?.Cards?.Contains(card) == true)
             {
                 return true;  // Card already in active hand, no need for rapport check
             }
 
             // If card is in RequestPile, check rapport threshold
-            if (session.RequestPile?.Contains(card) == true)
+            if (session.Deck?.RequestCards?.Contains(card) == true)
             {
                 int rapportThreshold = card.Context?.RapportThreshold ?? 0;
                 int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
@@ -848,7 +857,7 @@ public class CardDeckManager
     public void RestoreSessionCards(ConversationSession session, List<string> handCardIds, List<string> deckCardIds)
     {
         // Clear existing cards
-        session.ActiveCards.Clear();
+        session.Deck.Hand.Clear();
         session.Deck.Clear();
 
         // Restore active cards
@@ -858,7 +867,7 @@ public class CardDeckManager
             if (cardTemplate != null)
             {
                 CardInstance cardInstance = new CardInstance(cardTemplate, session.NPC?.ID ?? "unknown");
-                session.ActiveCards.Add(cardInstance);
+                session.Deck.Hand.Add(cardInstance);
             }
         }
 

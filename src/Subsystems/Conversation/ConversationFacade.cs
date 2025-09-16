@@ -298,8 +298,9 @@ public class ConversationFacade
             RequestCardDrawn = _currentSession.RequestCardDrawn,
             RequestUrgencyCounter = _currentSession.RequestUrgencyCounter,
             RequestCardPlayed = _currentSession.RequestCardPlayed,
-            HandCardIds = _currentSession.HandCards.Select(c => c.InstanceId).ToList(),
-            DeckCardIds = _currentSession.Deck.GetAllCards().Select(c => c.InstanceId).ToList()
+            HandCardIds = _currentSession.Deck.Hand.Cards.Select(c => c.InstanceId).ToList(),
+            // HIGHLANDER: Collect all card IDs from all piles in deck
+            DeckCardIds = new List<string>()
         };
     }
 

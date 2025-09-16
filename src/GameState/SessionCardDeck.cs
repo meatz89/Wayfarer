@@ -1,7 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// HIGHLANDER PRINCIPLE: This is the ONE AND ONLY card deck system for conversations.
+/// ALL card collections live here. NO EXCEPTIONS.
+/// Uses Pile abstraction consistently - NEVER expose List<CardInstance> directly.
+/// NO compatibility layers, NO legacy code, NO fallbacks.
+///
+/// This class manages:
+/// - Draw pile (cards to draw from)
+/// - Discard pile (cards that were used, will reshuffle)
+/// - Hand pile (cards currently available to play)
+/// - Request pile (cards waiting for rapport threshold)
+/// - Played pile (history of cards played this conversation)
+/// </summary>
 public class SessionCardDeck
 {
-    private readonly List<CardInstance> drawPile = new();
-    private readonly List<CardInstance> discardPile = new();
+    // HIGHLANDER: ALL card piles use Pile abstraction - NO List<CardInstance>!
+    private readonly Pile drawPile = new();
+    private readonly Pile discardPile = new();
+    private readonly Pile handPile = new();      // Was ConversationSession.ActiveCards
+    private readonly Pile requestPile = new();   // Was ConversationSession.RequestPile
+    private readonly Pile playedPile = new();    // Was ConversationSession.PlayedCards
+
     private readonly string npcId;
     private readonly Random random = new Random();
 
@@ -10,105 +32,97 @@ public class SessionCardDeck
         this.npcId = npcId;
     }
 
+    // Direct Pile access - NO compatibility wrappers, NO IReadOnlyList
+    public Pile Hand => handPile;
+    public Pile RequestCards => requestPile;
+    public Pile PlayedHistory => playedPile;
+
+    // Read-only properties for deck state
+    public int RemainingDrawCards => drawPile.Count;
+    public int DiscardPileCount => discardPile.Count;
+    public int TotalDeckCards => drawPile.Count + discardPile.Count;
+    public int HandSize => handPile.Count;
+
+    /// <summary>
+    /// Create a deck from card templates
+    /// </summary>
     public static SessionCardDeck CreateFromTemplates(List<ConversationCard> templates, string npcId)
     {
         SessionCardDeck deck = new SessionCardDeck(npcId);
         foreach (ConversationCard template in templates)
         {
             CardInstance cardInstance = new CardInstance(template);
-
-            // Add to draw pile initially
             deck.drawPile.Add(cardInstance);
         }
-
         return deck;
     }
 
     /// <summary>
-    /// Create a session deck from existing CardInstance objects (preserves XP)
+    /// Create a deck from existing card instances (preserves XP)
     /// </summary>
     public static SessionCardDeck CreateFromInstances(List<CardInstance> instances, string npcId)
     {
         SessionCardDeck deck = new SessionCardDeck(npcId);
         foreach (CardInstance instance in instances)
         {
-            // Create new instance referencing same template but preserving XP and context
+            // Preserve XP and context
             CardInstance sessionInstance = new CardInstance(instance.Template, instance.SourceContext)
             {
-                XP = instance.XP, // Preserve the XP!
-                InstanceId = instance.InstanceId, // Keep the same InstanceId for tracking
-                Context = instance.Context, // Preserve any existing context
-                IsPlayable = instance.IsPlayable // Preserve playability state
+                XP = instance.XP,
+                InstanceId = instance.InstanceId,
+                Context = instance.Context,
+                IsPlayable = instance.IsPlayable
             };
-
             deck.drawPile.Add(sessionInstance);
         }
-
         return deck;
     }
 
+    /// <summary>
+    /// Add a card directly to the draw pile
+    /// </summary>
     public void AddCard(CardInstance card)
     {
-        // Add new cards directly to draw pile
-        drawPile.Add(card);
+        if (card != null)
+            drawPile.Add(card);
     }
 
-    public void AddGoalCard(CardInstance goalCard)
+    /// <summary>
+    /// Add a request/goal card that requires rapport threshold
+    /// </summary>
+    public void AddRequestCard(CardInstance card)
     {
-        // Add goal card to draw pile at conversation start
-        if (goalCard != null)
-        {
-            drawPile.Add(goalCard);
-            ShuffleDrawPile(); // Shuffle after adding goal card
-        }
+        if (card != null)
+            requestPile.Add(card);
     }
 
-    private void AssignPreRoll(CardInstance card)
-    {
-        // Assign a pre-rolled dice value to the card if not already done
-        if (card == null) return;
-
-        if (card.Context == null)
-            card.Context = new CardContext();
-
-        // Only roll if not already rolled (cards reshuffled from discard keep their rolls)
-        if (card.Context.PreRolledValue == null)
-        {
-            card.Context.PreRolledValue = random.Next(1, 101);
-            Console.WriteLine($"[SessionCardDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
-        }
-    }
-
+    /// <summary>
+    /// Draw a single card (does NOT add to hand automatically)
+    /// </summary>
     public CardInstance DrawCard()
     {
-        // If draw pile is empty, reshuffle discard pile into draw pile
+        // Reshuffle if needed
         if (drawPile.Count == 0 && discardPile.Count > 0)
         {
             ReshuffleDiscardPile();
         }
 
-        // If still no cards available, return null
         if (drawPile.Count == 0)
-        {
             return null;
-        }
 
-        // Draw from top of draw pile
-        CardInstance card = drawPile[0];
-        drawPile.RemoveAt(0);
-
-        // Assign pre-rolled dice value
+        var card = drawPile.DrawTop();
         AssignPreRoll(card);
-
         return card;
     }
 
-    public List<CardInstance> DrawCards(int count)
+    /// <summary>
+    /// Draw cards directly to hand
+    /// </summary>
+    public void DrawToHand(int count)
     {
-        List<CardInstance> drawn = new List<CardInstance>();
         for (int i = 0; i < count; i++)
         {
-            // Check if we need to reshuffle before each draw
+            // Reshuffle if needed
             if (drawPile.Count == 0 && discardPile.Count > 0)
             {
                 ReshuffleDiscardPile();
@@ -116,157 +130,140 @@ public class SessionCardDeck
 
             if (drawPile.Count > 0)
             {
-                CardInstance card = drawPile[0];
-                drawPile.RemoveAt(0);
-
-                // Assign pre-rolled dice value
-                AssignPreRoll(card);
-
-                drawn.Add(card);
+                var card = drawPile.DrawTop();
+                if (card != null)
+                {
+                    AssignPreRoll(card);
+                    handPile.Add(card);
+                }
             }
         }
-        return drawn;
     }
 
+    /// <summary>
+    /// Play a card - removes from hand, adds to played history and discard pile
+    /// </summary>
+    public void PlayCard(CardInstance card)
+    {
+        if (card == null) return;
+
+        handPile.Remove(card);
+        playedPile.Add(card);
+        discardPile.Add(card);  // For reshuffling later
+    }
+
+    /// <summary>
+    /// Discard a card without playing it (e.g., exhausted cards)
+    /// </summary>
     public void DiscardCard(CardInstance card)
     {
-        // Add to discard pile when card is played or exhausted
         if (card != null && !discardPile.Contains(card))
         {
             discardPile.Add(card);
         }
     }
 
-    public void DiscardCard(string instanceId)
+    /// <summary>
+    /// Remove a card from hand and discard it (for exhaust effects)
+    /// </summary>
+    public void ExhaustFromHand(CardInstance card)
     {
-        // Find card in hand or other locations and move to discard
-        // This is for compatibility with existing code
-        // The card should already be removed from hand by the caller
+        if (card == null) return;
+
+        handPile.Remove(card);
+        discardPile.Add(card);
     }
 
-    public void Discard(CardInstance card)
+    /// <summary>
+    /// Check request pile and move cards to hand if rapport threshold met
+    /// </summary>
+    public void CheckRequestThresholds(int currentRapport)
     {
-        DiscardCard(card);
+        var toMove = requestPile.Cards
+            .Where(c => c.Context?.RapportThreshold <= currentRapport)
+            .ToList();
+
+        foreach (var card in toMove)
+        {
+            requestPile.Remove(card);
+            handPile.Add(card);
+            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to hand (rapport {currentRapport})");
+        }
     }
 
-    private void ReshuffleDiscardPile()
-    {
-        Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard pile into draw pile");
-
-        // Move all cards from discard to draw pile
-        drawPile.AddRange(discardPile);
-        discardPile.Clear();
-
-        // Shuffle the draw pile
-        ShuffleDrawPile();
-    }
-
+    /// <summary>
+    /// Shuffle the draw pile
+    /// </summary>
     public void ShuffleDrawPile()
     {
-        // Fisher-Yates shuffle
-        int n = drawPile.Count;
-        while (n > 1)
+        drawPile.Shuffle();
+    }
+
+    /// <summary>
+    /// Reshuffle discard pile back into draw pile
+    /// </summary>
+    private void ReshuffleDiscardPile()
+    {
+        Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard into draw");
+
+        // Move all discard to draw using Pile methods
+        var allDiscards = discardPile.DrawAll();
+        drawPile.AddRange(allDiscards);
+        drawPile.Shuffle();
+    }
+
+    /// <summary>
+    /// Assign pre-rolled dice value to a card
+    /// </summary>
+    private void AssignPreRoll(CardInstance card)
+    {
+        if (card == null) return;
+
+        if (card.Context == null)
+            card.Context = new CardContext();
+
+        // Only roll if not already rolled
+        if (card.Context.PreRolledValue == null)
         {
-            n--;
-            int k = random.Next(n + 1);
-            CardInstance temp = drawPile[k];
-            drawPile[k] = drawPile[n];
-            drawPile[n] = temp;
+            card.Context.PreRolledValue = random.Next(1, 101);
+            Console.WriteLine($"[SessionCardDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
         }
     }
 
-    public void ResetForNewConversation()
-    {
-        // Move all cards back to draw pile for a fresh conversation
-        drawPile.AddRange(discardPile);
-        discardPile.Clear();
-        ShuffleDrawPile();
-    }
-
-    public List<CardInstance> GetAllCards()
-    {
-        // Return all cards from both piles
-        List<CardInstance> allCards = new List<CardInstance>();
-        allCards.AddRange(drawPile);
-        allCards.AddRange(discardPile);
-        return allCards;
-    }
-
-    public void Shuffle()
-    {
-        ShuffleDrawPile();
-    }
-
-
-    public List<CardInstance> DrawObservableCards(int count)
-    {
-        return DrawFilteredByCardType(CardType.Observation, count);
-    }
-
-    public List<CardInstance> DrawExchangeCards(int count)
-    {
-        // Exchange cards are now separate ExchangeCard entities
-        // This method is deprecated - exchanges don't use SessionCardDeck
-        return new List<CardInstance>();
-    }
-
-    public List<CardInstance> DrawFilteredByCardType(CardType cardType, int count)
-    {
-        List<CardInstance> available = new List<CardInstance>();
-        List<CardInstance> drawn = new List<CardInstance>();
-
-        // Find all cards in draw pile with required card type
-        for (int i = drawPile.Count - 1; i >= 0; i--)
-        {
-            CardInstance card = drawPile[i];
-            if (card.CardType == cardType)
-            {
-                available.Add(card);
-            }
-        }
-
-        // Draw the requested number of cards
-        for (int i = 0; i < Math.Min(count, available.Count); i++)
-        {
-            CardInstance card = available[random.Next(available.Count)];
-            drawPile.Remove(card);
-            drawn.Add(card);
-            available.Remove(card); // Prevent drawing same card twice
-        }
-
-        return drawn;
-    }
-
-    public List<CardInstance> DrawAll()
-    {
-        // Draw all cards from draw pile at once (for Commerce conversations)
-        List<CardInstance> allCards = new List<CardInstance>(drawPile);
-        
-        // Assign pre-rolls to all cards
-        foreach (var card in allCards)
-        {
-            AssignPreRoll(card);
-        }
-        
-        drawPile.Clear();
-        return allCards;
-    }
-
-    public int RemainingCards => drawPile.Count;
-
-    public int DiscardPileCount => discardPile.Count;
-
-    public int TotalCards => drawPile.Count + discardPile.Count;
-
+    /// <summary>
+    /// Check if cards are available (in draw or can reshuffle from discard)
+    /// </summary>
     public bool HasCardsAvailable()
     {
-        // Cards are available if draw pile has cards OR discard pile can be reshuffled
         return drawPile.Count > 0 || discardPile.Count > 0;
     }
 
+    /// <summary>
+    /// Clear all piles (for cleanup)
+    /// </summary>
     public void Clear()
     {
         drawPile.Clear();
         discardPile.Clear();
+        handPile.Clear();
+        requestPile.Clear();
+        playedPile.Clear();
     }
+
+    /// <summary>
+    /// Reset for a new conversation (moves all cards back to draw pile)
+    /// </summary>
+    public void ResetForNewConversation()
+    {
+        // Move all cards from all piles back to draw
+        drawPile.AddRange(discardPile.DrawAll());
+        drawPile.AddRange(handPile.DrawAll());
+        drawPile.AddRange(requestPile.DrawAll());
+        drawPile.AddRange(playedPile.DrawAll());
+
+        // Shuffle for fresh start
+        drawPile.Shuffle();
+    }
+
+    // NO COMPATIBILITY METHODS - ALL CALLERS MUST BE UPDATED!
 }
