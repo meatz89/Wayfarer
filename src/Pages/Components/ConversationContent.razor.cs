@@ -3316,6 +3316,46 @@ namespace Wayfarer.Pages.Components
     }
 
     /// <summary>
+    /// Returns the stat type as a lowercase string for applying stat-based color classes
+    /// </summary>
+    protected string GetCardStatColorClass(CardInstance card)
+    {
+        if (card?.Template?.BoundStat == null) return "";
+
+        return card.Template.BoundStat.Value.ToString().ToLower();
+    }
+
+    /// <summary>
+    /// Analyzes card effects and returns appropriate effect tags
+    /// </summary>
+    protected List<string> GetCardEffectTags(CardInstance card)
+    {
+        var tags = new List<string>();
+
+        if (card?.Template == null) return tags;
+
+        // Success effect tags
+        if (card.SuccessType != SuccessEffectType.None)
+        {
+            tags.Add(card.SuccessType.ToString());
+        }
+
+        // Failure effect tags
+        if (card.FailureType != FailureEffectType.None)
+        {
+            tags.Add(card.FailureType.ToString());
+        }
+
+        // Exhaust effect tags (only if not None)
+        if (card.ExhaustType != ExhaustEffectType.None)
+        {
+            tags.Add($"Exhaust: {card.ExhaustType}");
+        }
+
+        return tags;
+    }
+
+    /// <summary>
     /// Returns proper display name for card's bound stat
     /// </summary>
     protected string GetCardStatName(CardInstance card)

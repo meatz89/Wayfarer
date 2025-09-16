@@ -285,7 +285,7 @@
                     else
                     {
                         @* Regular conversation card *@
-                        <div class="@GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
+                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
 
                             @* Persistence tags *@
@@ -317,6 +317,12 @@
                                     </div>
                                     <div class="card-text @GetNarrativeClass()">
                                         "@GetProperCardDialogue(convCard)"
+                                    </div>
+                                    <div class="effect-tags">
+                                        @foreach (var tag in GetCardEffectTags(convCard))
+                                        {
+                                            <span class="effect-tag">@tag</span>
+                                        }
                                     </div>
                                 @{
                                     var atmosphereScaling = GetAtmosphereScaling(convCard);
