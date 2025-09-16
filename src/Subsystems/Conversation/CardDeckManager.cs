@@ -219,6 +219,12 @@ public class CardDeckManager
                 _focusManager.AddFocus(effectResult.FocusAdded);
             }
 
+            // Apply flow battery change (for Advancing success effect)
+            if (effectResult.FlowChange != 0)
+            {
+                flowChange += effectResult.FlowChange; // Add to the base flow change
+            }
+
             // Add drawn cards to active cards (for Threading success effect)
             if (effectResult.CardsToAdd.Any())
             {

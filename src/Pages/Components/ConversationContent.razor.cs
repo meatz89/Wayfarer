@@ -1640,10 +1640,17 @@ namespace Wayfarer.Pages.Components
                         : $"{projection.FocusAdded} focus";
                 }
 
+                if (projection.FlowChange != 0)
+                {
+                    return projection.FlowChange > 0
+                        ? $"+{projection.FlowChange} flow"
+                        : $"{projection.FlowChange} flow";
+                }
+
                 if (!string.IsNullOrEmpty(projection.SpecialEffect))
                 {
                     // Use the special effect description from projection
-                    // This handles Promising and Advancing types
+                    // This handles Promising and other special types
                     return projection.SpecialEffect.Replace(", +", " +").Replace("Promise made, ", "");
                 }
             }

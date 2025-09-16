@@ -50,6 +50,7 @@ public class CategoricalEffectResolver
         {
             Card = card,
             RapportChange = 0,
+            FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
@@ -103,9 +104,10 @@ public class CategoricalEffectResolver
                 break;
 
             case SuccessEffectType.Advancing:
-                // Advance connection state by 1 (ignores magnitude)
-                result.SpecialEffect = "Connection advanced";
-                // State change handled by ConversationOrchestrator
+                // Advances flow battery by magnitude (which may trigger connection state change)
+                // Flow battery changes are what actually drive connection state advancement
+                result.FlowChange = magnitude; // Add flow equal to magnitude
+                result.SpecialEffect = $"+{magnitude} flow";
                 break;
 
             case SuccessEffectType.None:
@@ -117,7 +119,7 @@ public class CategoricalEffectResolver
         // Handle Synchronized atmosphere (effect happens twice)
         if (session.CurrentAtmosphere == AtmosphereType.Synchronized && card.SuccessType != SuccessEffectType.None)
         {
-            // Double the effect (except for Atmospheric and Advancing which don't make sense to double)
+            // Double the effect (except for Atmospheric which doesn't make sense to double)
             if (card.SuccessType == SuccessEffectType.Rapport)
             {
                 result.RapportChange *= 2;
@@ -141,6 +143,11 @@ public class CategoricalEffectResolver
                 result.FocusAdded *= 2;
                 result.SpecialEffect += " (synchronized)";
             }
+            else if (card.SuccessType == SuccessEffectType.Advancing)
+            {
+                result.FlowChange *= 2;
+                result.SpecialEffect += " (synchronized)";
+            }
         }
 
         return result;
@@ -157,6 +164,7 @@ public class CategoricalEffectResolver
         {
             Card = card,
             RapportChange = 0,
+            FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
@@ -238,6 +246,7 @@ public class CategoricalEffectResolver
         {
             Card = card,
             RapportChange = 0,
+            FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
@@ -425,6 +434,7 @@ public class CardEffectResult
 {
     public CardInstance Card { get; set; }
     public int RapportChange { get; set; }
+    public int FlowChange { get; set; } // For Advancing effect type
     public List<CardInstance> CardsToAdd { get; set; }
     public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
