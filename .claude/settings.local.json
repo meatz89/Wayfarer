@@ -27,7 +27,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6210\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6211\" timeout 30 dotnet run --no-build)",
       "Bash(dotnet clean:*)",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run --no-build)"
     ],
     "deny": [],
     "ask": []

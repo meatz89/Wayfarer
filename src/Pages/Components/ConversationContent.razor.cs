@@ -272,25 +272,34 @@ namespace Wayfarer.Pages.Components
                 // Check request pile for newly available cards based on rapport
                 CheckRequestPileThresholds();
 
-                // Track newly drawn cards for slide-in animation
+                // Track cards after action
                 List<CardInstance> currentCards = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
-                TrackNewlyDrawnCards(previousCards, currentCards);
 
-                // SYNCHRONOUS PRINCIPLE: Mark opening cards for exhaust animation
-                // This happens AFTER drawing, so opening cards were already exhausted by backend
-                // We just need to show the visual animation for cards that were removed
-                List<CardInstance> openingCardsToAnimate = previousCards
-                    .Where(c => c.Persistence == PersistenceType.Opening && !currentCards.Any(cc => cc.InstanceId == c.InstanceId))
+                // PHASE 1: Animate exhausting Opening cards
+                List<CardInstance> exhaustedCards = previousCards
+                    .Where(c => c.Persistence == PersistenceType.Opening &&
+                               !currentCards.Any(cc => cc.InstanceId == c.InstanceId))
                     .ToList();
-                if (openingCardsToAnimate.Any())
+
+                if (exhaustedCards.Any())
                 {
-                    // These cards were already removed by backend, add them to animating list for visual effect
-                    foreach (var card in openingCardsToAnimate)
-                    {
-                        int position = previousCards.IndexOf(card);
-                        AnimationManager.AddExhaustingCard(card, position, () => InvokeAsync(StateHasChanged));
-                    }
-                    StateHasChanged();
+                    // Start exhaust animations immediately (base delay = 0)
+                    AnimationManager.MarkCardsForExhaustSequential(exhaustedCards, 0.0, () => InvokeAsync(StateHasChanged));
+                }
+
+                // Calculate when exhaust phase ends
+                double exhaustPhaseTime = exhaustedCards.Count * 0.15 + 0.5; // stagger + animation duration
+
+                // PHASE 2: Animate new cards entering
+                List<CardInstance> drawnCards = currentCards
+                    .Where(c => !previousCards.Any(pc => pc.InstanceId == c.InstanceId))
+                    .ToList();
+
+                if (drawnCards.Any())
+                {
+                    // Start draw animations after exhaust phase completes
+                    double drawStartDelay = exhaustPhaseTime + 0.2; // Small gap between phases
+                    AnimationManager.MarkNewCardsSequential(drawnCards, drawStartDelay, NewCardIds, () => InvokeAsync(StateHasChanged));
                 }
 
                 // Notify about cards drawn
@@ -492,24 +501,34 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                // SYNCHRONOUS PRINCIPLE: Check which impulse cards were removed by backend
-                // The backend already exhausted them, we just need to show the animation
+                // Track cards after action
                 List<CardInstance> currentCardsAfterSpeak = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
-                List<CardInstance> impulseCardsRemoved = cardsBeforeSpeak
+
+                // PHASE 1: Played card animation is already handled above (1.5s total: 1.25s flash + 0.25s exit)
+
+                // PHASE 2: Animate exhausting Impulse cards
+                List<CardInstance> exhaustedImpulse = cardsBeforeSpeak
                     .Where(c => c.Persistence == PersistenceType.Impulse &&
                                c.InstanceId != playedCard.InstanceId &&
                                !currentCardsAfterSpeak.Any(cc => cc.InstanceId == c.InstanceId))
                     .ToList();
 
-                // Add removed impulse cards to animating list for visual effect
-                if (impulseCardsRemoved.Any())
+                if (exhaustedImpulse.Any())
                 {
-                    foreach (var card in impulseCardsRemoved)
-                    {
-                        int position = cardsBeforeSpeak.IndexOf(card);
-                        AnimationManager.AddExhaustingCard(card, position, () => InvokeAsync(StateHasChanged));
-                    }
-                    StateHasChanged();
+                    // Start after played card animation (1.5s)
+                    AnimationManager.MarkCardsForExhaustSequential(exhaustedImpulse, 1.5, () => InvokeAsync(StateHasChanged));
+                }
+
+                // PHASE 3: Animate new cards (if Threading success effect or other draw effects)
+                List<CardInstance> drawnCards = currentCardsAfterSpeak
+                    .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
+                    .ToList();
+
+                if (drawnCards.Any())
+                {
+                    double exhaustTime = exhaustedImpulse.Count * 0.15 + 0.5;
+                    double drawStartDelay = 1.5 + exhaustTime + 0.2; // After played card + exhaust phase + gap
+                    AnimationManager.MarkNewCardsSequential(drawnCards, drawStartDelay, NewCardIds, () => InvokeAsync(StateHasChanged));
                 }
 
                 SelectedCard = null;
@@ -3139,6 +3158,22 @@ namespace Wayfarer.Pages.Components
             }
 
             return string.Join(" ", classes);
+        }
+
+        /// <summary>
+        /// Get the animation state for a specific card
+        /// </summary>
+        protected CardAnimationState GetCardAnimationState(CardInstance card)
+        {
+            if (card == null) return null;
+            string cardId = card.InstanceId ?? card.Id ?? "";
+
+            if (CardStates.TryGetValue(cardId, out CardAnimationState state))
+            {
+                return state;
+            }
+
+            return null;
         }
 
         /// <summary>

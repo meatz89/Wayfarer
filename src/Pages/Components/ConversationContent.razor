@@ -302,7 +302,13 @@
                     else
                     {
                         @* Regular conversation card *@
+                        var animationState = GetCardAnimationState(convCard);
+                        var animationStyle = animationState != null && animationState.AnimationDelay > 0
+                            ? $"animation-delay: {animationState.AnimationDelay:F2}s;"
+                            : "";
+
                         <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
+                             style="@animationStyle"
                              @onclick="() => ToggleCardSelection(convCard)">
 
                             <div class="card-content">
