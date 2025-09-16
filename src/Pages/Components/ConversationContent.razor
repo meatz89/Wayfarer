@@ -165,14 +165,16 @@
 
     <!-- Focus Display (Above Cards) -->
     <div class="focus-display-section">
-        <span class="focus-label">Focus:</span>
-        <div class="focus-dots">
-            @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
-            {
-                <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
-            }
+        <div class="focus-content">
+            <span class="focus-label">Focus:</span>
+            <div class="focus-dots">
+                @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
+                {
+                    <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
+                }
+            </div>
+            <span class="focus-numbers">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
         </div>
-        <span class="focus-numbers">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
         <span class="focus-note">Cards above your focus are disabled</span>
     </div>
 
@@ -252,31 +254,62 @@
                     }
                     else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Promise || convCard.CardType == CardType.BurdenGoal)
                     {
-                        @* Promise/Request Card (Goal) with rapport threshold *@
+                        @* Goal Card with rapport threshold - using same layout as regular cards but with distinct styling *@
                         <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
                             <div class="promise-threshold @(GetCurrentRapport() >= GetRequestRapportThreshold(convCard) ? "promise-active" : "")">
                                 Requires @GetRequestRapportThreshold(convCard)+ Rapport (Currently: @GetCurrentRapport())
                             </div>
                             <div class="card-content">
-                                <div class="card-main">
-                                    <div class="card-header">
-                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                <div class="card-body">
+                                    <div class="card-main">
+                                        <div class="persistence-tag-container">
+                                            @if (convCard.Persistence == PersistenceType.Impulse)
+                                            {
+                                                <span class="persistence-tag impulse">Impulse</span>
+                                            }
+                                            @if (convCard.Persistence == PersistenceType.Opening)
+                                            {
+                                                <span class="persistence-tag opening">Opening</span>
+                                            }
+                                            @if (convCard.Persistence == PersistenceType.Thought)
+                                            {
+                                                <span class="persistence-tag thought">Thought</span>
+                                            }
+                                        </div>
+                                        <!-- Stat badge -->
+                                        <div class="stat-badge @GetCardStatClass(convCard)">
+                                            @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                        </div>
+                                        <div class="card-header">
+                                            <div class="card-name">
+                                                @GetProperCardName(convCard)
+                                                <span class="xp-gain">+@GetXPGain() XP</span>
+                                            </div>
+                                            <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                        </div>
+                                        <div class="card-text @GetNarrativeClass()">
+                                            "@GetProperCardDialogue(convCard)"
+                                        </div>
+                                        <div class="effect-tags">
+                                            @foreach (var tag in GetCardEffectTags(convCard))
+                                            {
+                                                <span class="effect-tag">@tag</span>
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="card-text @GetNarrativeClass()">
-                                        "@GetProperCardDialogue(convCard)"
-                                    </div>
-                                </div>
-                                <div class="card-outcomes">
-                                    <div class="outcome success">
-                                        <div class="outcome-chance">100%</div>
-                                        <div class="outcome-label">Always Succeeds</div>
-                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
-                                    </div>
-                                    <div class="outcome">
-                                        <div class="outcome-chance">Ends</div>
-                                        <div class="outcome-label">Conversation</div>
-                                        <div class="outcome-effect">Complete</div>
+                                    @* Two-column Success/Failure layout *@
+                                    <div class="card-outcomes">
+                                        <div class="outcome success">
+                                            <div class="outcome-chance">100%</div>
+                                            <div class="outcome-label">Always Succeeds</div>
+                                            <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                        </div>
+                                        <div class="outcome">
+                                            <div class="outcome-chance">Ends</div>
+                                            <div class="outcome-label">Conversation</div>
+                                            <div class="outcome-effect">Complete</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

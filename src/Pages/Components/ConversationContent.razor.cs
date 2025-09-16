@@ -60,6 +60,8 @@ namespace Wayfarer.Pages.Components
         protected HashSet<string> NewCardIds { get; set; } = new();
         protected HashSet<string> ExhaustingCardIds => AnimationManager.ExhaustingCardIds;
         protected List<AnimatingCard> AnimatingCards => AnimationManager.AnimatingCards;
+        // Track which request cards have already been moved from RequestPile to ActiveCards
+        protected HashSet<string> MovedRequestCardIds { get; set; } = new();
 
         protected int GetBaseSuccessPercentage(Difficulty difficulty)
         {
@@ -212,6 +214,13 @@ namespace Wayfarer.Pages.Components
 
             try
             {
+                // Validate conversation is still active before executing
+                if (!ConversationFacade.IsConversationActive())
+                {
+                    Console.WriteLine("[ExecuteListen] Warning: Conversation is not active");
+                    return;
+                }
+
                 // Add notification for listening
                 MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
                 if (messageSystem != null)
@@ -795,11 +804,11 @@ namespace Wayfarer.Pages.Components
         private string GetResponseDialogue()
         {
             // Generate response based on current flow level (-3 to +3)
-            if (Session.CurrentFlow >= 2)
+            if (Session.FlowBattery >= 2)
                 return "This conversation has been wonderful!";
-            else if (Session.CurrentFlow >= 0)
+            else if (Session.FlowBattery >= 0)
                 return "I appreciate you taking the time to talk.";
-            else if (Session.CurrentFlow >= -2)
+            else if (Session.FlowBattery >= -2)
                 return "I see what you mean...";
             else
                 return "I'm not sure about this...";
@@ -1097,7 +1106,7 @@ namespace Wayfarer.Pages.Components
         protected string GetFlowLabel()
         {
             if (Session == null) return "None";
-            return Session.CurrentFlow switch
+            return Session.FlowBattery switch
             {
                 3 => "Perfect Understanding",
                 2 => "Deep Connection",
@@ -1114,7 +1123,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return 50; // Center position for 0
             // Map -3 to +3 to 0% to 100%
-            return (int)((Session.CurrentFlow + 3) * 100 / 6.0);
+            return (int)((Session.FlowBattery + 3) * 100 / 6.0);
         }
 
         protected string GetFlowDotTooltip(int dotPosition)
@@ -1265,33 +1274,58 @@ namespace Wayfarer.Pages.Components
 
         private void CheckRequestPileThresholds()
         {
-            if (Session?.RequestPile == null || Session.RapportManager == null) return;
-
-            var currentRapport = Session.RapportManager.CurrentRapport;
-            var cardsToMove = new List<CardInstance>();
-
-            foreach (var card in Session.RequestPile)
+            try
             {
-                var threshold = GetRequestRapportThreshold(card);
-                if (currentRapport >= threshold)
+                if (Session?.RequestPile == null || Session.RapportManager == null || Session.ActiveCards == null)
                 {
-                    cardsToMove.Add(card);
+                    Console.WriteLine("[CheckRequestPileThresholds] Session or components are null - skipping");
+                    return;
+                }
+
+                var currentRapport = Session.RapportManager.CurrentRapport;
+                var cardsToMove = new List<CardInstance>();
+
+                foreach (var card in Session.RequestPile)
+                {
+                    // Skip cards that have already been moved
+                    if (MovedRequestCardIds.Contains(card.InstanceId))
+                    {
+                        continue;
+                    }
+
+                    var threshold = GetRequestRapportThreshold(card);
+                    if (currentRapport >= threshold)
+                    {
+                        cardsToMove.Add(card);
+                    }
+                }
+
+                foreach (var card in cardsToMove)
+                {
+                    Console.WriteLine($"[CheckRequestPileThresholds] Moving card {card.Id} from RequestPile to ActiveCards (Rapport {currentRapport})");
+                    Session.RequestPile.Remove(card);
+                    Session.ActiveCards.Add(card);
+
+                    // Track that this card has been moved
+                    MovedRequestCardIds.Add(card.InstanceId);
+
+                    // Mark card as playable now that rapport threshold is met
+                    card.IsPlayable = true;
+
+                    // Notify player
+                    MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+                    if (messageSystem != null)
+                    {
+                        string cardName = GetCardName(card);
+                        string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
+                        messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+                    }
                 }
             }
-
-            foreach (var card in cardsToMove)
+            catch (Exception ex)
             {
-                Session.RequestPile.Remove(card);
-                Session.ActiveCards.Add(card);
-
-                // Notify player
-                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
-                if (messageSystem != null)
-                {
-                    string cardName = GetCardName(card);
-                    string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
-                    messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-                }
+                Console.WriteLine($"[CheckRequestPileThresholds] Error: {ex.Message}");
+                // Don't rethrow - just log and continue
             }
         }
 
@@ -1400,7 +1434,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
 
-            if (Session.CurrentFlow == 3)
+            if (Session.FlowBattery == 3)
             {
                 return Session.CurrentState switch
                 {
@@ -1412,7 +1446,7 @@ namespace Wayfarer.Pages.Components
                     _ => ""
                 };
             }
-            else if (Session.CurrentFlow == -3)
+            else if (Session.FlowBattery == -3)
             {
                 return Session.CurrentState switch
                 {
@@ -1858,7 +1892,7 @@ namespace Wayfarer.Pages.Components
             // Check various end conditions in priority order
             if (Session.LetterGenerated)
             {
-                return string.Format("Letter obtained! Check your queue. (Flow: {0})", Session.CurrentFlow);
+                return string.Format("Letter obtained! Check your queue. (Flow: {0})", Session.FlowBattery);
             }
 
             if (Session.CurrentPatience <= 0)
@@ -1878,9 +1912,9 @@ namespace Wayfarer.Pages.Components
             }
 
             // Default reason based on flow level
-            if (Session.CurrentFlow >= 2)
+            if (Session.FlowBattery >= 2)
             {
-                return string.Format("Conversation ended naturally (Flow: {0})", Session.CurrentFlow);
+                return string.Format("Conversation ended naturally (Flow: {0})", Session.FlowBattery);
             }
             else
             {

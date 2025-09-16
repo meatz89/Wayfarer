@@ -25,7 +25,8 @@
       "mcp__playwright__browser_close",
       "Bash(git add:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6210\" timeout 30 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6211\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6211\" timeout 30 dotnet run --no-build)",
+      "Bash(dotnet clean:*)"
     ],
     "deny": [],
     "ask": []

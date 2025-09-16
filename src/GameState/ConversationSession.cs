@@ -9,7 +9,6 @@ public class ConversationSession
     public ConversationType ConversationType { get; set; }
     public ConnectionState CurrentState { get; set; }
     public ConnectionState InitialState { get; set; }
-    public int CurrentFlow { get; set; }
     public int CurrentPatience { get; set; }
     public int MaxPatience { get; set; }
     public int TurnNumber { get; set; }
@@ -122,7 +121,7 @@ public class ConversationSession
             return new ConversationOutcome
             {
                 Success = false,
-                FinalFlow = CurrentFlow,
+                FinalFlow = FlowBattery,
                 FinalState = CurrentState,
                 TokensEarned = 0,
                 Reason = "Patience exhausted"
@@ -133,7 +132,7 @@ public class ConversationSession
         return new ConversationOutcome
         {
             Success = true,
-            FinalFlow = CurrentFlow,
+            FinalFlow = FlowBattery,
             FinalState = CurrentState,
             TokensEarned = CalculateTokenReward(),
             Reason = "Conversation ended"
@@ -142,9 +141,10 @@ public class ConversationSession
 
     private int CalculateTokenReward()
     {
-        if (CurrentFlow >= 100) return 3;
-        if (CurrentFlow >= 75) return 2;
-        if (CurrentFlow >= 50) return 1;
+        // FlowBattery is already -3 to +3
+        if (FlowBattery >= 3) return 3;
+        if (FlowBattery >= 2) return 2;
+        if (FlowBattery >= 1) return 1;
         return 0;
     }
 
@@ -200,7 +200,7 @@ public class ConversationSession
             ConversationType = convType,
             CurrentState = initialState,
             InitialState = initialState,
-            CurrentFlow = 0,
+            // FlowBattery initialized separately
             CurrentPatience = 10,
             MaxPatience = 10,
             TurnNumber = 0,

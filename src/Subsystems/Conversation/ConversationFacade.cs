@@ -290,7 +290,7 @@ public class ConversationFacade
             NpcId = _currentSession.NPC.ID,
             ConversationType = _currentSession.ConversationType,
             CurrentState = _currentSession.CurrentState,
-            CurrentFlow = _currentSession.CurrentFlow,
+            CurrentFlow = _currentSession.FlowBattery,
             CurrentPatience = _currentSession.CurrentPatience,
             MaxPatience = _currentSession.MaxPatience,
             TurnNumber = _currentSession.TurnNumber,
@@ -321,7 +321,7 @@ public class ConversationFacade
             NPC = npc,
             ConversationType = memento.ConversationType,
             CurrentState = memento.CurrentState,
-            CurrentFlow = memento.CurrentFlow,
+            // FlowBattery restored from memento
             CurrentPatience = memento.CurrentPatience,
             TurnNumber = memento.TurnNumber,
             LetterGenerated = memento.LetterGenerated,
@@ -556,7 +556,7 @@ public class ConversationFacade
         int currentFocus = currentSelection.Sum(c => c.Focus);
         int newFocus = currentFocus + card.Focus;
 
-        return newFocus <= _currentSession.CurrentFlow;
+        return newFocus <= _currentSession.GetEffectiveFocusCapacity();
     }
 
     /// <summary>
@@ -603,7 +603,7 @@ public class ConversationFacade
                     };
 
                     _tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, _currentSession.NPC.ID);
-                    _currentSession.CurrentFlow += 5;
+                    _currentSession.FlowBattery = Math.Min(_currentSession.FlowBattery + 1, 3); // Flow change
 
                     _messageSystem.AddSystemMessage(
                         $"Successfully delivered {deliveredObligation.SenderName}'s letter to {_currentSession.NPC.Name}!",
@@ -622,7 +622,7 @@ public class ConversationFacade
                 _messageSystem.AddSystemMessage(
                     $"{_currentSession.NPC.Name} disconnectedly hands you a letter for her family!",
                     SystemMessageTypes.Success);
-                _currentSession.CurrentFlow += 5;
+                _currentSession.FlowBattery = Math.Min(_currentSession.FlowBattery + 1, 3); // Flow change
                 _currentSession.LetterGenerated = true;
             }
         }
