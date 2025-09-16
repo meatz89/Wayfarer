@@ -236,7 +236,7 @@
                             </div>
                         </div>
                     }
-                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Promise || convCard.CardType == CardType.BurdenGoal)
+                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.BurdenGoal)
                     {
                         @* Goal Card with rapport threshold - using same layout as regular cards but with distinct styling *@
                         <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"

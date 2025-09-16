@@ -11,16 +11,19 @@ public class CategoricalEffectResolver
     private readonly TokenMechanicsManager tokenManager;
     private readonly AtmosphereManager atmosphereManager;
     private readonly FocusManager focusManager;
+    private readonly GameWorld gameWorld;
     private readonly Random random;
 
     public CategoricalEffectResolver(
         TokenMechanicsManager tokenManager,
         AtmosphereManager atmosphereManager,
-        FocusManager focusManager)
+        FocusManager focusManager,
+        GameWorld gameWorld)
     {
         this.tokenManager = tokenManager;
         this.atmosphereManager = atmosphereManager;
         this.focusManager = focusManager;
+        this.gameWorld = gameWorld;
         this.random = new Random();
     }
 
@@ -176,9 +179,24 @@ public class CategoricalEffectResolver
                 result.SpecialEffect = $"Disrupted {toDiscard.Count} high-focus cards";
                 break;
 
+            case FailureEffectType.ForceListen:
+                // Check if card is immune to ForceListen (stat level 5)
+                PlayerStats playerStats = gameWorld.GetPlayer().Stats;
+                if (!card.IgnoresFailureListen(playerStats))
+                {
+                    // Deplete all remaining focus to force LISTEN on next turn
+                    focusManager.DepleteFocus();
+                    result.SpecialEffect = "Must LISTEN next turn";
+                }
+                else
+                {
+                    result.SpecialEffect = "Immune to forced LISTEN (Level 5)";
+                }
+                break;
+
             case FailureEffectType.None:
             default:
-                // No additional effect beyond forced LISTEN
+                // No additional effect
                 break;
         }
 

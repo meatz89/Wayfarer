@@ -72,9 +72,14 @@ public enum SuccessEffectType
 public enum FailureEffectType
 {
     /// <summary>
-    /// No additional effect on failure (still forces LISTEN)
+    /// No additional effect on failure (automatically applies ForceListen as fallback)
     /// </summary>
     None,
+
+    /// <summary>
+    /// Player must LISTEN on next turn after failure
+    /// </summary>
+    ForceListen,
 
     /// <summary>
     /// Clears entire hand on failure - catastrophic conversation breakdown

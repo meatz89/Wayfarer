@@ -170,6 +170,12 @@ public static class ConversationCardParser
             }
         }
 
+        // Apply ForceListen as fallback for cards with None failure effect
+        if (failureType == FailureEffectType.None)
+        {
+            failureType = FailureEffectType.ForceListen;
+        }
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {

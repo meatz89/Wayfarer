@@ -117,7 +117,7 @@ These cards are specific to that NPC, not generic token type cards. Marcus doesn
 
 Each personality type applies one rule that fundamentally changes how conversations work:
 
-- **Proud**: Cards must be played in ascending focus order each turn (resets on LISTEN)
+- **Proud**: Cards must be played in ascending focus order each turn (resets when you LISTEN)
 - **Devoted**: When rapport decreases, it decreases twice
 - **Mercantile**: Your highest focus card each turn gains +30% success
 - **Cunning**: Playing same focus as previous card costs -2 rapport
@@ -749,7 +749,7 @@ Four types, each with distinct identity:
   - Prepared atmosphere adds +1 to current capacity
   - Can exceed maximum temporarily with Prepared
   - Health below 50 reduces capacity by 1
-- **Strategic Role**: Core resource management within conversations. Enables multi-turn planning knowing failure forces LISTEN.
+- **Strategic Role**: Core resource management within conversations. Enables multi-turn planning knowing failure typically forces LISTEN.
 
 #### Rapport
 - **Range**: -50 to +50
@@ -807,7 +807,7 @@ Four types, each with distinct identity:
   - Patient atmosphere: Actions cost 0
 - **Effect**: Maximum turns in conversation (LISTEN costs 1 turn)
 - **Patience as Time Depth**: Each patience spent represents 5 minutes of conversation depth beyond the base segment
-- **Strategic Role**: Time limit for each conversation. Forces efficient play since failure forces LISTEN which costs patience.
+- **Strategic Role**: Time limit for each conversation. Forces efficient play since failure typically forces LISTEN which costs patience.
 
 ## Time Segment System
 
@@ -936,7 +936,7 @@ Missing deadlines has permanent consequences:
 
 The conversation system represents the primary gameplay loop. Players build and improve their conversation deck over time, representing their growing social repertoire. This deck is used in all conversations but each NPC modifies the experience through their personality rules and unlocked signature cards.
 
-**Failure Forces LISTEN**: When a SPEAK action fails, the player must LISTEN on their next turn. This creates a natural conversation rhythm where failure forces topic changes, making success streaks feel like finding conversational flow.
+**Failure Effects Apply**: When a SPEAK action fails, the card's failure effect is applied. Cards without specific failure effects automatically apply ForceListen as a fallback, maintaining natural conversation rhythm where failure typically forces topic changes.
 
 ### Card Categorical Property System
 
@@ -960,7 +960,8 @@ Each card is defined by exactly five categorical properties that determine its b
 - **Disrupting**: Discard all cards with Focus 3+ from hand
 - **Overreach**: Discard entire hand
 - **Backfire**: Negative rapport change
-- **None**: No effect beyond forced LISTEN
+- **ForceListen**: Player must LISTEN on next turn after failure
+- **None**: No additional effect (automatically applies ForceListen as fallback)
 
 #### Exhaust (effect when discarded unplayed)
 - **Threading**: Draw cards when discarded
@@ -1026,7 +1027,7 @@ Players have five core stats representing different problem-solving methodologie
 - Level 2: +10% success rate, unlock basic stat approaches
 - Level 3: All cards gain Persistent keyword, unlock advanced paths
 - Level 4: +20% success rate (total), unlock powerful investigation
-- Level 5: Cards never force LISTEN on failure, master reputation
+- Level 5: Cards ignore ForceListen failure effect (other failure effects still apply), master reputation
 
 **XP Sources**:
 - Playing any card: Base XP to bound stat
@@ -1138,7 +1139,7 @@ Complete sequence:
    - Apply personality modifiers (like Mercantile's +30% to highest focus)
 6. **Resolve success/failure**:
    - Success: +1 flow, apply card effects
-   - Failure: -1 flow, apply failure effects (if any), **MUST LISTEN NEXT**
+   - Failure: -1 flow, apply failure effects (ForceListen applied if effect is None)
 7. **Card goes to exhaust pile**
 8. **Apply card effects**:
    - Rapport changes
@@ -1148,7 +1149,7 @@ Complete sequence:
 10. **Check flow transitions**:
     - At ±3: State change, flow resets to 0
 11. **If Success**: Execute Card Success Effect. Can SPEAK again if focus remains
-12. **If Failure**: Execute Card Failure Effect. Next action must be LISTEN
+12. **If Failure**: Execute Card Failure Effect (ForceListen applied automatically if effect is None)
 
 ### Promise Cards - Queue Manipulation
 
@@ -1245,9 +1246,9 @@ All success rates modified by: +2% per rapport point
 - SPEAK a card → success → goes to exhaust pile
 
 **Turn 2**: Draw pile has 24 cards, hand has 3, exhaust has 1
-- SPEAK a card → **FAILURE** → must LISTEN next
+- SPEAK a card → **FAILURE** → failure effect applied (often ForceListen)
 
-**Turn 3**: Forced LISTEN
+**Turn 3**: Must LISTEN (due to ForceListen effect)
 - Discard 2 non-persistent cards from hand
 - Keep 1 persistent card
 - Draw 4 new cards from draw pile
@@ -1269,7 +1270,7 @@ Cards don't level individually. Instead, they gain power from their bound stat:
 - **Level 2**: +10% success rate
 - **Level 3**: All cards gain Persistent keyword  
 - **Level 4**: +20% success rate (total)
-- **Level 5**: Never force LISTEN on failure
+- **Level 5**: Immune to ForceListen failure effect
 
 **XP Accumulation**:
 - Each card play grants XP to its bound stat
@@ -1424,7 +1425,7 @@ All cards bound to a stat gain uniform benefits:
 - Level 2: +10% success rate
 - Level 3: Gain Persistent keyword
 - Level 4: +20% success rate total
-- Level 5: Never force LISTEN on failure
+- Level 5: Immune to ForceListen failure effect
 
 **Strategic Development**:
 Players naturally develop specialties through play patterns. High Rapport players find empathetic approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
@@ -1451,7 +1452,7 @@ Each NPC has 5 unique cards that shuffle into the player's deck based on tokens:
 - **1 token**: "Marcus's Rapport" - Focus 2, Hard, Thought/Rapport/None/None
 - **3 tokens**: "Trade Knowledge" - Focus 3, Easy, Thought/Threading/None/None
 - **6 tokens**: "Commercial Bond" - Focus 1, Very Hard, Thought/Rapport/Backfire/None
-- **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Rapport/None/None (special: doesn't force LISTEN on failure)
+- **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Rapport/None/None (special: None failure effect without ForceListen fallback)
 - **15 tokens**: "Master Trader" - Focus 5, Medium, Thought/Atmospheric-Focused/None/None
 
 These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same player deck.
@@ -1620,7 +1621,7 @@ Every choice → Different paths available
 Higher states → More focus capacity
 More capacity → Can play more cards before LISTEN
 Successful plays → Positive rapport momentum
-Failure forces LISTEN → Topic change, lose cards
+ForceListen effect → Topic change, lose cards
 Must rebuild → Draw new hand
 Better states → More cards drawn on LISTEN
 ```
@@ -1877,7 +1878,7 @@ Stories emerge from mechanical interaction, not scripting:
 **Card Mastery Story**:
 - "Bold Claim" card used successfully 30 times
 - Reaches level 5 - Mastered
-- No longer forces LISTEN on failure
+- Immune to ForceListen failure effect
 - Becomes anchor card for risky strategies
 - Enables conversation momentum others can't maintain
 - Player known for bold, aggressive conversation style
@@ -1923,7 +1924,7 @@ Each conversation is a tactical puzzle where you play your deck against NPC pers
 
 ### Failure Creates Rhythm
 
-When you fail a card play, you must LISTEN, losing most cards and drawing new ones. This isn't punishment - it's conversation rhythm. Success maintains momentum with your current topics. Failure forces topic changes. The mechanical flow mirrors actual dialogue.
+When you fail a card play, the failure effect applies (typically ForceListen), forcing you to LISTEN and drawing new cards. This isn't punishment - it's conversation rhythm. Success maintains momentum with your current topics. Failure effects create topic changes. The mechanical flow mirrors actual dialogue.
 
 ### Weight Creates Physical Reality
 
@@ -1978,7 +1979,7 @@ The stat system transforms character progression from card-specific mastery to d
 - Stat Level 2: +10% success on all bound cards
 - Stat Level 3: All bound cards gain Persistent keyword
 - Stat Level 4: +20% success on all bound cards
-- Stat Level 5: Bound cards never force LISTEN on failure
+- Stat Level 5: Bound cards are immune to ForceListen failure effect
 
 **Stat XP Gain Formula**:
 Base XP × Conversation Difficulty Multiplier
@@ -2055,7 +2056,7 @@ Wayfarer achieves its design goals through making conversations the core gamepla
 
 The addition of weight and time segments transforms abstract resources into physical reality. You cannot carry more than 10 weight because that's what a person can physically manage. Travel takes longer when hungry because exhaustion slows movement. Morning investigations yield more because locations are quieter. Everything makes immediate intuitive sense.
 
-The genius is that this uses familiar deck-building mechanics to represent character progression, while NPC personality rules and signature cards ensure every conversation feels unique despite using the same player deck. The failure-forces-LISTEN mechanic creates natural conversation rhythm where success builds momentum and failure forces adaptation.
+The genius is that this uses familiar deck-building mechanics to represent character progression, while NPC personality rules and signature cards ensure every conversation feels unique despite using the same player deck. The ForceListen failure effect creates natural conversation rhythm where success builds momentum and failure forces adaptation.
 
 Players always know what to do: have conversations to gain cards and XP, level up their deck, unlock signature cards through relationships, and tackle increasingly complex NPC personalities. The strategic depth emerges from how player deck composition, card levels, signature cards, personality rules, weight limits, and time constraints interact to create unique puzzles.
 

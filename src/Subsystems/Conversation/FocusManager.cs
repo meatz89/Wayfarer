@@ -90,6 +90,12 @@ public class FocusManager
         return AvailableFocus <= 0;
     }
 
+    // Deplete all remaining focus (for ForceListen failure effect)
+    public void DepleteFocus()
+    {
+        currentSpentFocus = CurrentCapacity;
+    }
+
     // Reset for new conversation
     public void Reset()
     {
