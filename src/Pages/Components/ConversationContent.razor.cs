@@ -2180,10 +2180,29 @@ namespace Wayfarer.Pages.Components
         {
             if (Session?.PersonalityEnforcer == null || card == null) return 0;
 
-            // Check if card would get Mercantile bonus
-            if (Session.PersonalityEnforcer.WouldGetMercantileBonus(card))
+            // For Mercantile personality: Only the card with the HIGHEST focus in hand gets +30%
+            if (Session.NPC?.PersonalityType == PersonalityType.MERCANTILE)
             {
-                return 30;  // Mercantile gives +30% to highest focus
+                // Find the maximum focus among all available cards in hand
+                int maxFocusInHand = 0;
+                if (Session.ActiveCards?.Cards != null)
+                {
+                    foreach (var c in Session.ActiveCards.Cards)
+                    {
+                        int focusCost = c.GetEffectiveFocus(Session.CurrentState);
+                        if (focusCost > maxFocusInHand)
+                        {
+                            maxFocusInHand = focusCost;
+                        }
+                    }
+                }
+
+                // Only apply bonus if this card has the maximum focus
+                int cardFocus = card.GetEffectiveFocus(Session.CurrentState);
+                if (cardFocus == maxFocusInHand && maxFocusInHand > 0)
+                {
+                    return 30;  // Mercantile gives +30% to highest focus card only
+                }
             }
 
             return 0;

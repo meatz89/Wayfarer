@@ -513,18 +513,28 @@ public class CardDeckManager
         // Check if card is marked as Unplayable
         if (!card.IsPlayable)
             return false;
-            
+
         // Check focus availability
         if (!_focusManager.CanAffordCard(card.Focus))
             return false;
 
-        // Additional rapport check for goal cards (as a fallback/validation)
+        // Only check rapport threshold for goal cards that are still in RequestPile
+        // Cards that have been moved to ActiveCards have already met their threshold
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
-            // Use the rapport threshold we stored in CardContext
-            int rapportThreshold = card.Context?.RapportThreshold ?? 0;
-            int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
-            return currentRapport >= rapportThreshold;
+            // If card is in ActiveCards, it's already playable (threshold was met)
+            if (session.ActiveCards?.Cards?.Contains(card) == true)
+            {
+                return true;  // Card already in active hand, no need for rapport check
+            }
+
+            // If card is in RequestPile, check rapport threshold
+            if (session.RequestPile?.Contains(card) == true)
+            {
+                int rapportThreshold = card.Context?.RapportThreshold ?? 0;
+                int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
+                return currentRapport >= rapportThreshold;
+            }
         }
 
         return true;

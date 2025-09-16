@@ -8,6 +8,33 @@ body {
 
 /* === CONVERSATION LAYOUT === */
 
+/* Main conversation content container with scrolling */
+.conversation-content {
+    height: calc(100vh - 120px); /* Full viewport minus header/resources */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Custom scrollbar styling for conversation */
+.conversation-content::-webkit-scrollbar {
+    width: 12px;
+}
+
+.conversation-content::-webkit-scrollbar-track {
+    background: #f4e8d0;
+    border-left: 1px solid #c4a684;
+}
+
+.conversation-content::-webkit-scrollbar-thumb {
+    background: #a68b6f;
+    border-radius: 6px;
+}
+
+.conversation-content::-webkit-scrollbar-thumb:hover {
+    background: #8a6f57;
+}
+
 /* Location Context */
 .location-context {
     background: #f9f3e9;
@@ -205,11 +232,12 @@ body {
 
 /* Focus Display Above Cards */
 .focus-display-section {
-    background: #f9f3e9;
+    background: #3d3429;
     padding: 12px 25px;
     border-bottom: 1px solid #d4c5a0;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 15px;
 }
 
@@ -225,7 +253,7 @@ body {
 
 .focus-label {
     font-size: 11px;
-    color: #e8dcc4;
+    color: #d4a76a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -233,6 +261,8 @@ body {
 .focus-dots {
     display: flex;
     gap: 5px;
+    align-items: center;
+    justify-content: center;
 }
 
 .focus-dot {
@@ -245,6 +275,7 @@ body {
 
 .focus-dot.available {
     background: #d4a76a;
+    border-color: #d4a76a;
 }
 
 .focus-dot.spent {
@@ -458,15 +489,23 @@ body {
     background: #5c4a3a;
     color: #faf4ea;
     border-radius: 50%;
-    text-align: center;
-    line-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
     font-size: 13px;
+    line-height: 1;
 }
 
 /* Card content flex layout */
 .card-content {
     display: flex;
+    flex-direction: column;
+}
+
+.card-body {
+    display: flex;
+    flex: 1;
 }
 
 /* Card Progression Display (XP and Level) */
@@ -559,9 +598,6 @@ body {
     padding: 15px;
 }
 
-.card-body {
-    padding: 12px;
-}
 
 .card-properties {
     display: flex;
@@ -584,6 +620,10 @@ body {
 }
 
 /* Persistence Tags - repositioned like mockup */
+.persistence-tag-container {
+
+}
+
 .persistence-tag {
     position: absolute;
     top: 10px;
@@ -703,11 +743,23 @@ body {
 
 /* Exhaust Section for Impulse/Opening Cards - dark strip like mockup */
 .exhaust-section {
-    background: #5c4a3a;
+    background: #3d3429;
     color: #e8dcc4;
     padding: 8px 12px;
     font-size: 10px;
     text-align: center;
+    margin-top: auto;
+    border-top: 1px solid #2c241a;
+}
+
+.exhaust-effect {
+    background: #3d3429;
+    color: #e8dcc4;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-align: center;
+    border-top: 1px solid #2c241a;
+    margin-top: 8px;
 }
 
 .exhaust-label {
@@ -715,10 +767,6 @@ body {
     text-transform: uppercase;
     color: #8b7355;
     margin-right: 6px;
-}
-
-.exhaust-effect {
-    color: #d4a76a;
 }
 
 /* === CARD ANIMATIONS === */
@@ -897,8 +945,6 @@ body {
 .cards-section {
     padding: 20px;
     background: #f4e8d0;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
 .cards-header {
@@ -1092,7 +1138,7 @@ body {
     content: "TEMPLATE";
     position: absolute;
     top: -8px;
-    right: 10px;
+    right: 400px;
     padding: 2px 6px;
     background: #6a7a8a;
     color: #faf4ea;
@@ -1124,7 +1170,7 @@ body {
     content: "TEMPLATE";
     position: absolute;
     top: 8px;
-    right: 10px;
+    right: 400px;
     padding: 2px 6px;
     background: #6a7a8a;
     color: #faf4ea;

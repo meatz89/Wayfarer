@@ -288,80 +288,83 @@
                         <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
 
-                            @* Persistence tags *@
-                            @if (convCard.Persistence == PersistenceType.Impulse)
-                            {
-                                <span class="persistence-tag impulse">Impulse</span>
-                            }
-                            @if (convCard.Persistence == PersistenceType.Opening)
-                            {
-                                <span class="persistence-tag opening">Opening</span>
-                            }
-                            @if (convCard.Persistence == PersistenceType.Thought)
-                            {
-                                <span class="persistence-tag thought">Thought</span>
-                            }
-
                             <div class="card-content">
-                                <div class="card-main">
-                                    <!-- Stat badge -->
-                                    <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
-                                    </div>
-                                    <div class="card-header">
-                                        <div class="card-name">
-                                            @GetProperCardName(convCard)
-                                            <span class="xp-gain">+@GetXPGain() XP</span>
+                                <div class="card-body">
+                                    <div class="card-main">
+                                        <div class="persistence-tag-container">
+                                            @* Persistence tags *@
+                                            @if (convCard.Persistence == PersistenceType.Impulse)
+                                            {
+                                                <span class="persistence-tag impulse">Impulse</span>
+                                            }
+                                            @if (convCard.Persistence == PersistenceType.Opening)
+                                            {
+                                                <span class="persistence-tag opening">Opening</span>
+                                            }
+                                            @if (convCard.Persistence == PersistenceType.Thought)
+                                            {
+                                                <span class="persistence-tag thought">Thought</span>
+                                            }
                                         </div>
-                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                    </div>
-                                    <div class="card-text @GetNarrativeClass()">
-                                        "@GetProperCardDialogue(convCard)"
-                                    </div>
-                                    <div class="effect-tags">
-                                        @foreach (var tag in GetCardEffectTags(convCard))
+                                        <!-- Stat badge -->
+                                        <div class="stat-badge @GetCardStatClass(convCard)">
+                                            @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                        </div>
+                                        <div class="card-header">
+                                            <div class="card-name">
+                                                @GetProperCardName(convCard)
+                                                <span class="xp-gain">+@GetXPGain() XP</span>
+                                            </div>
+                                            <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                        </div>
+                                        <div class="card-text @GetNarrativeClass()">
+                                            "@GetProperCardDialogue(convCard)"
+                                        </div>
+                                        <div class="effect-tags">
+                                            @foreach (var tag in GetCardEffectTags(convCard))
+                                            {
+                                                <span class="effect-tag">@tag</span>
+                                            }
+                                        </div>
+                                    @{
+                                        var atmosphereScaling = GetAtmosphereScaling(convCard);
+                                        if (!string.IsNullOrEmpty(atmosphereScaling))
                                         {
-                                            <span class="effect-tag">@tag</span>
+                                            <div class="card-scaling">@atmosphereScaling</div>
                                         }
-                                    </div>
-                                @{
-                                    var atmosphereScaling = GetAtmosphereScaling(convCard);
-                                    if (!string.IsNullOrEmpty(atmosphereScaling))
-                                    {
-                                        <div class="card-scaling">@atmosphereScaling</div>
                                     }
-                                }
-                                @if (HasAtmosphereEffect(convCard))
+                                    @if (HasAtmosphereEffect(convCard))
+                                    {
+                                        <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
+                                    }
+                                    </div>
+                                    @* Two-column Success/Failure layout *@
+                                    <div class="card-outcomes">
+                                        <div class="outcome success">
+                                            <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
+                                            @if (GetRapportModifier() != 0 || GetLevelBonus(convCard) != 0 || GetPersonalityModifier(convCard) != 0)
+                                            {
+                                                <div class="outcome-modifiers">@GetSuccessModifierBreakdown(convCard)</div>
+                                            }
+                                            <div class="outcome-label">Success</div>
+                                            <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                        </div>
+                                        <div class="outcome failure">
+                                            <div class="outcome-chance">@GetFailureChance(convCard)%</div>
+                                            <div class="outcome-label">Failure</div>
+                                            <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @* Exhaust strip inside card at bottom *@
+                                @if (HasExhaustEffect(convCard))
                                 {
-                                    <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
+                                    <div class="exhaust-effect">
+                                        <span class="exhaust-label">If not played:</span>
+                                        @GetExhaustEffectDescription(convCard)
+                                    </div>
                                 }
-                                </div>
-                                @* Two-column Success/Failure layout *@
-                                <div class="card-outcomes">
-                                    <div class="outcome success">
-                                        <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                        @if (GetRapportModifier() != 0 || GetLevelBonus(convCard) != 0 || GetPersonalityModifier(convCard) != 0)
-                                        {
-                                            <div class="outcome-modifiers">@GetSuccessModifierBreakdown(convCard)</div>
-                                        }
-                                        <div class="outcome-label">Success</div>
-                                        <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
-                                    </div>
-                                    <div class="outcome failure">
-                                        <div class="outcome-chance">@GetFailureChance(convCard)%</div>
-                                        <div class="outcome-label">Failure</div>
-                                        <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
-                                    </div>
-                                </div>
                         </div>
-                        @* Exhaust strip below card *@
-                            @if (HasExhaustEffect(convCard))
-                            {
-                                <div class="exhaust-effect">
-                                    <span class="exhaust-label">If not played:</span>
-                                    @GetExhaustEffectDescription(convCard)
-                                </div>
-                            }
                         </div>
                     }
                 }
