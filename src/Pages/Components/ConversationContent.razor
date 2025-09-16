@@ -118,29 +118,17 @@
         @if (!IsConversationExhausted)
         {
             <div class="action-choices">
-                <div class="action-button @(ShowListenPreview ? "preview-active" : "") @(IsGeneratingNarrative ? "disabled" : "")"
+                <div class="action-button @(IsGeneratingNarrative ? "disabled" : "")"
                      @onclick="ExecuteListen"
                      disabled="@IsGeneratingNarrative">
                     <div>LISTEN</div>
                     <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
-                    @if (ShowListenPreview)
-                    {
-                        <div class="action-preview listen-preview">
-                            @GetListenPreviewContent()
-                        </div>
-                    }
                 </div>
-                <div class="action-button @(ShowSpeakPreview ? "preview-active" : "") @(!CanSpeak() || IsGeneratingNarrative ? "disabled" : "")" 
+                <div class="action-button @(!CanSpeak() || IsGeneratingNarrative ? "disabled" : "")" 
                      @onclick="ExecuteSpeak" 
                      disabled="@(!CanSpeak() || IsGeneratingNarrative)">
                     <div>SPEAK</div>
                     <div class="action-details">@(IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
-                    @if (ShowSpeakPreview)
-                    {
-                        <div class="action-preview speak-preview">
-                            @GetSpeakPreviewContent()
-                        </div>
-                    }
                 </div>
             </div>
         }

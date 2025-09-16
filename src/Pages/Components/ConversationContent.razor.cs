@@ -1230,7 +1230,7 @@ namespace Wayfarer.Pages.Components
                 int focus = SelectedCard.Focus;
                 int remainingAfter = (Session?.GetAvailableFocus() ?? 0) - focus;
                 string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
-                return $"Play {GetProperCardName(SelectedCard)} ({focus} focus){continueHint}";
+                return $"Play Card ({focus} focus)";
             }
 
             int availableFocus = Session?.GetAvailableFocus() ?? 0;
