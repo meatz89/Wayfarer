@@ -58,8 +58,18 @@ public class GameRules
 
     public int GetListenDrawCount(ConnectionState state)
     {
+        if (ListenDrawCounts == null || ListenDrawCounts.Count == 0)
+        {
+            throw new System.InvalidOperationException($"ListenDrawCounts not loaded from package content. Ensure 05_gameplay.json contains listenDrawCounts configuration.");
+        }
+
         var entry = ListenDrawCounts.FirstOrDefault(e => e.State == state);
-        return entry.DrawCount; // No defaults - crash if not loaded from JSON
+        if (entry == null)
+        {
+            throw new System.InvalidOperationException($"No draw count configured for connection state {state}. Available states: {string.Join(", ", ListenDrawCounts.Select(e => e.State))}");
+        }
+
+        return entry.DrawCount;
     }
 
     // Card progression configuration - MUST be loaded from JSON

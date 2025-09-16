@@ -132,6 +132,7 @@ public class PackageLoader
         // Load in strict dependency order
         // 1. Foundation entities (no dependencies)
         LoadPlayerStatsConfiguration(package.Content.PlayerStatsConfig, allowSkeletons);
+        LoadListenDrawCounts(package.Content.ListenDrawCounts);
         LoadRegions(package.Content.Regions, allowSkeletons);
         LoadDistricts(package.Content.Districts, allowSkeletons);
         LoadItems(package.Content.Items, allowSkeletons);
@@ -180,16 +181,7 @@ public class PackageLoader
     /// </summary>
     public void LoadPackagesFromDirectory(string directoryPath)
     {
-        // First, load game rules if present
-        string gameRulesPath = Path.Combine(directoryPath, "game_rules.json");
-        if (File.Exists(gameRulesPath))
-        {
-            string rulesJson = File.ReadAllText(gameRulesPath);
-            GameRulesParser.ParseAndApplyRules(rulesJson, GameRules.StandardRuleset);
-        }
-
         List<string> packageFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories)
-            .Where(f => !f.EndsWith("game_rules.json")) // Exclude game_rules.json from package loading
             .ToList();
 
         // Use simple static loading for game start
@@ -346,6 +338,38 @@ public class PackageLoader
 
         Console.WriteLine($"[PackageLoader] Loaded {statDefinitions.Count} stat definitions and progression configuration");
         if (counts != null) counts.Cards++; // Count as one entity for tracking
+    }
+
+    private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
+    {
+        if (listenDrawCounts == null) return;
+
+        Console.WriteLine("[PackageLoader] Loading listen draw counts...");
+
+        // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
+        var drawCountEntries = new List<ListenDrawCountEntry>();
+
+        foreach (var kvp in listenDrawCounts)
+        {
+            // Parse connection state from string key
+            if (Enum.TryParse<ConnectionState>(kvp.Key.ToUpper(), out ConnectionState state))
+            {
+                drawCountEntries.Add(new ListenDrawCountEntry
+                {
+                    State = state,
+                    DrawCount = kvp.Value
+                });
+                Console.WriteLine($"[PackageLoader] Set draw count for {state}: {kvp.Value} cards");
+            }
+            else
+            {
+                throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{kvp.Key}'");
+            }
+        }
+
+        // Apply to GameRules
+        GameRules.StandardRuleset.ListenDrawCounts = drawCountEntries;
+        Console.WriteLine($"[PackageLoader] Loaded {drawCountEntries.Count} listen draw count entries");
     }
 
     private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons, EntityCounts counts = null)

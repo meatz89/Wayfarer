@@ -72,6 +72,13 @@
         "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"
       }
     ],
+	"listenDrawCounts": {
+	  "Disconnected": 3,
+	  "Guarded": 4,
+	  "Neutral": 4,
+	  "Receptive": 5,
+	  "Trusting": 5
+	},
     "progression": {
       "xpThresholds": [10, 25, 50, 100],
       "levelBonuses": [

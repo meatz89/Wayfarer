@@ -124,4 +124,9 @@ public class PackageContent
     /// Stranger NPCs for practice conversations
     /// </summary>
     public List<StrangerNPCDTO> Strangers { get; set; }
+
+    /// <summary>
+    /// Listen draw counts per connection state for conversation mechanics
+    /// </summary>
+    public Dictionary<string, int> ListenDrawCounts { get; set; }
 }
