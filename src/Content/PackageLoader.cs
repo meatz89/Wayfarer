@@ -1013,12 +1013,13 @@ public class PackageLoader
     /// </summary>
     private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC one-time requests...");
+        Console.WriteLine($"[PackageLoader] Initializing NPC one-time requests... npcRequestDtos={npcRequestDtos?.Count ?? 0}, npcGoalCardDtos={npcGoalCardDtos?.Count ?? 0}");
         List<string> validationErrors = new List<string>();
 
         // First load NPCRequest bundles from npcRequests section
         if (npcRequestDtos != null && npcRequestDtos.Count > 0)
         {
+            Console.WriteLine($"[PackageLoader] Processing {npcRequestDtos.Count} NPC requests from npcRequests section...");
             foreach (NPCRequestDTO requestDto in npcRequestDtos)
             {
                 try

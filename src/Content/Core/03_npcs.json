@@ -329,9 +329,8 @@
           }
         ]
       }
-    ]
-  },
-  "npcRequests": [
+    ],
+    "npcRequests": [
     {
       "id": "elena_urgent_letter_request",
       "npcId": "elena",
@@ -348,5 +347,6 @@
       "requestCards": ["marcus_trade_request", "marcus_business_proposal"],
       "promiseCards": []
     }
-  ]
+    ]
+  }
 }

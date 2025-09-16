@@ -355,6 +355,7 @@
           "DEVOTED"
         ],
         "focus": 5,
+        "rapportThreshold": 5,
         "properties": [
           "OneShot"
         ],
@@ -377,6 +378,7 @@
           "DEVOTED"
         ],
         "focus": 7,
+        "rapportThreshold": 10,
         "properties": [
           "OneShot"
         ],
@@ -399,7 +401,7 @@
           "ALL"
         ],
         "focus": 3,
-        "rapportThreshold": 20,
+        "rapportThreshold": 15,
         "properties": [
           "OneShot"
         ],

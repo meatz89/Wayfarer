@@ -7,7 +7,11 @@
       "Bash(__NEW_LINE__ mv temp_cards.json 03_cards.json)",
       "Bash(__NEW_LINE__ mv 02_npcs.json temp_npcs.json)",
       "Bash(__NEW_LINE__ mv 03_cards.json 02_cards.json)",
-      "Bash(__NEW_LINE__ mv temp_npcs.json 03_npcs.json)"
+      "Bash(__NEW_LINE__ mv temp_npcs.json 03_npcs.json)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6200\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6205\" timeout 5 dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6206\" dotnet run)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6207\" dotnet run --no-build)"
     ],
     "deny": [],
     "ask": []

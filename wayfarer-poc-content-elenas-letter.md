@@ -1,18 +1,19 @@
-# Wayfarer POC: Elena's Letter - Complete Content
+# Wayfarer POC: Elena's Letter - Updated for Stat System
 
 ## Table of Contents
 1. [Scenario Overview](#scenario-overview)
 2. [Starting Conditions](#starting-conditions)
 3. [Player Starting Deck](#player-starting-deck)
 4. [NPCs](#npcs)
-5. [Locations and Spots](#locations-and-spots)
-6. [Observation Cards](#observation-cards)
-7. [Request Cards](#request-cards)
-8. [Exchange Cards](#exchange-cards)
+5. [Stranger Encounters](#stranger-encounters)
+6. [Locations and Investigation](#locations-and-investigation)
+7. [Observation Cards](#observation-cards)
+8. [Request Cards](#request-cards)
 9. [Routes and Travel](#routes-and-travel)
-10. [The Only Successful Path](#the-only-successful-path)
-11. [Failure Analysis](#failure-analysis)
-12. [Card System Reference](#card-system-reference)
+10. [The Optimal Path](#the-optimal-path)
+11. [Alternative Approaches by Build](#alternative-approaches-by-build)
+12. [Failure Analysis](#failure-analysis)
+13. [System Reference](#system-reference)
 
 ## Scenario Overview
 
@@ -20,16 +21,17 @@
 Elena, a young scribe at the Copper Kettle Tavern, desperately needs to refuse an arranged marriage. Lord Blackwood, who could intervene, leaves the city at 5:00 PM. The player must navigate complex systems to help Elena deliver her letter before the deadline.
 
 ### The Core Challenge
-This POC demonstrates how conversations are the primary gameplay loop. The player uses their starting conversation deck against different NPC personality rules. Success requires understanding how each personality transforms the basic conversation puzzle and building resources to unlock signature cards that make harder conversations possible.
+This POC demonstrates how conversations are the primary gameplay loop. The player uses their starting conversation deck against different NPC personality rules while developing their problem-solving methodologies (stats) through play. Success requires understanding how each personality transforms the basic conversation puzzle and how your developing stats open new approaches to problems.
 
 ### The Discovery
-Every seemingly inefficient action (investigating twice, buying food before working, building infrastructure before the main quest) is actually essential. The optimal path emerges through understanding system interactions, not obvious choices. The player literally cannot reach Elena's request card without proper preparation.
+Every seemingly inefficient action has purpose. Investigation unlocks critical observation cards. Building Commerce tokens with Marcus enables signature cards. Optional stranger encounters provide resources and stat development. The optimal time path emerges through system mastery, but different stat builds offer alternative approaches.
 
 ### Success Criteria
 - Build Market Square familiarity through investigation
-- Gain Commerce tokens to unlock Marcus's signature cards  
+- Gain Commerce tokens to unlock Marcus's signature cards
 - Use observation cards to advance Elena's connection state
-- Manage resources with perfect precision
+- Optional: Develop stats through stranger encounters
+- Manage resources with precision
 - Complete Elena's letter delivery before 5:00 PM
 
 ## Starting Conditions
@@ -41,10 +43,18 @@ Every seemingly inefficient action (investigating twice, buying food before work
 - **Hunger**: 50
 - **Health**: 100
 - **Satchel Weight**: 3/10 (Viktor's package weighs 3)
-- **All Tokens**: 0 with all NPCs
-- **All Familiarity**: 0 at all locations
-- **Connection States**: All NPCs at default
-- **Card XP**: All starting cards at 0 XP (level 1)
+
+### Player Stats (All Level 1)
+- **Insight**: Level 1 (0/10 XP) - Analytical thinking
+- **Rapport**: Level 1 (0/10 XP) - Emotional connection  
+- **Authority**: Level 1 (0/10 XP) - Force of personality
+- **Commerce**: Level 1 (0/10 XP) - Mercantile thinking
+- **Cunning**: Level 1 (0/10 XP) - Indirect approaches
+
+### All NPCs
+- **Tokens**: 0 with all NPCs
+- **Connection States**: All at default
+- **Familiarity**: 0 at all locations
 
 ### Initial Obligation
 **Viktor's Package to Marcus**
@@ -57,620 +67,406 @@ Every seemingly inefficient action (investigating twice, buying food before work
 ### Available Time
 - Start: 9:00 AM (Morning block, segment 4)
 - Lord Blackwood leaves: 5:00 PM (Afternoon block, segment 4)
-- Total segments available: 13 (1 morning + 4 midday + 4 afternoon + 4 evening partial)
-- Optimal path uses: 12 segments
-- Buffer: 1 segment
+- Total segments: 13 available
+- Optimal path: 9-12 segments depending on choices
 
 ## Player Starting Deck
 
-The player begins with a 20-card starter deck representing their basic social repertoire. Cards are defined by categorical properties that determine their effects based on context.
+20 cards representing basic social repertoire, distributed evenly across stats (4 cards each):
 
-### Card Property System
+### Insight Cards (Analytical)
+1. **"Let me analyze"** - Focus 1, Easy (75%), Thought/Rapport/None/None
+2. **"Notice the pattern"** - Focus 2, Medium (60%), Thought/Threading/None/None
+3. **"Consider the evidence"** - Focus 3, Medium (60%), Thought/Rapport/None/None
+4. **"Critical observation"** - Focus 4, Hard (50%), Impulse/Threading/Backfire/Threading
 
-Each card has four categorical properties:
-1. **Persistence**: When the card can be played (Thought/Impulse/Opening)
-2. **Success**: Effect type on success (Rapport/Continuing/Atmospheric-[Type]/Focusing/None)
-3. **Failure**: Effect type on failure (Disrupting/Backfire/None)
-4. **Exhaust**: Effect when discarded unplayed (Continuing/Focusing/Regret/None)
+### Rapport Cards (Empathetic)
+5. **"I understand"** - Focus 1, Easy (75%), Thought/Rapport/None/None
+6. **"Let me help"** - Focus 2, Medium (60%), Thought/Rapport/None/None
+7. **"Share your burden"** - Focus 3, Medium (60%), Thought/Rapport/Backfire/None
+8. **"Deep connection"** - Focus 4, Hard (50%), Thought/Rapport/None/None
 
-Effect magnitudes are determined by difficulty:
-- Very Easy: Magnitude 1
-- Easy: Magnitude 2
-- Medium: Magnitude 2
-- Hard: Magnitude 3
-- Very Hard: Magnitude 4
+### Authority Cards (Commanding)
+9. **"Listen carefully"** - Focus 1, Easy (75%), Thought/Rapport/None/None
+10. **"Take charge"** - Focus 2, Medium (60%), Opening/Atmospheric-Focused/None/Focusing
+11. **"Direct order"** - Focus 3, Hard (50%), Impulse/Rapport/Backfire/Regret
+12. **"Final word"** - Focus 5, Very Hard (40%), Impulse/Rapport/Disrupting/Regret
 
-### Complete Starting Deck (20 Cards)
+### Commerce Cards (Transactional)
+13. **"Fair exchange"** - Focus 1, Easy (75%), Thought/Rapport/None/None
+14. **"Find the angle"** - Focus 2, Medium (60%), Thought/Threading/None/None
+15. **"Mutual benefit"** - Focus 3, Medium (60%), Thought/Rapport/None/None
+16. **"Close the deal"** - Focus 4, Hard (50%), Thought/Promising/Backfire/None
 
-#### Safe Building Cards (8 cards)
+### Cunning Cards (Indirect)
+17. **"Subtle hint"** - Focus 1, Easy (75%), Thought/Rapport/None/None
+18. **"Misdirection"** - Focus 2, Medium (60%), Opening/Atmospheric-Patient/None/Threading
+19. **"Hidden meaning"** - Focus 3, Medium (60%), Thought/Rapport/None/None
+20. **"Perfect lie"** - Focus 4, Hard (50%), Impulse/Rapport/Disrupting/Regret
 
-**"I hear you"** (3 copies)
-- Focus: 1
-- Difficulty: Easy (75% base)
-- Properties: Thought, Rapport, None, None
-- Effect: +2 rapport on success (Easy = magnitude 2)
-- On failure: Forces LISTEN
-
-**"Let me think"** (2 copies)
-- Focus: 1
-- Difficulty: Easy (75% base)
-- Properties: Thought, Atmospheric-Patient, None, None
-- Effect: Sets Patient atmosphere on success
-- On failure: Forces LISTEN
-
-**"I understand"** (3 copies)
-- Focus: 2
-- Difficulty: Easy (75% base)
-- Properties: Thought, Rapport, None, None
-- Effect: +2 rapport on success
-- On failure: Forces LISTEN
-
-#### Risk/Reward Cards (6 cards)
-
-**"How can I assist?"** (2 copies)
-- Focus: 2
-- Difficulty: Medium (60% base)
-- Properties: Thought, Rapport, Backfire, None
-- Effect: +2 rapport on success (Medium = magnitude 2)
-- On failure: -2 rapport and forces LISTEN
-
-**"Trust me on this"** (2 copies)
-- Focus: 3
-- Difficulty: Medium (60% base)
-- Properties: Thought, Rapport, Backfire, None
-- Effect: +2 rapport on success
-- On failure: -2 rapport and forces LISTEN
-
-**"Everything will work out"** (2 copies)
-- Focus: 4
-- Difficulty: Hard (50% base)
-- Properties: Impulse, Rapport, Disrupting, Regret
-- Effect: +3 rapport on success (Hard = magnitude 3)
-- On failure: Discards all cards with Focus 3+ and forces LISTEN
-- If exhausted: -3 rapport (Hard = magnitude 3)
-
-#### Utility Cards (6 cards)
-
-**"Tell me more"** (2 copies)
-- Focus: 2
-- Difficulty: Medium (60% base)
-- Properties: Thought, Continuing, None, None
-- Effect: Draw 2 cards on success (Medium = magnitude 2)
-- On failure: Forces LISTEN
-
-**"Let me prepare"** (2 copies)
-- Focus: 1
-- Difficulty: Easy (75% base)
-- Properties: Thought, Focusing, None, None
-- Effect: +2 focus to current pool on success (Easy = magnitude 2)
-- On failure: Forces LISTEN
-
-**"We can figure this out"** (2 copies)
-- Focus: 3
-- Difficulty: Hard (50% base)
-- Properties: Opening, Rapport, None, Continuing
-- Effect: +3 rapport on success (Hard = magnitude 3)
-- On failure: Forces LISTEN
-- If exhausted: Draw 3 cards (Hard = magnitude 3)
-
-### Conversation Flow with New Rules
-
-When a card play fails:
-1. Apply any failure effects (Backfire reduces rapport, Disrupting clears high-focus cards)
-2. Apply -1 flow
-3. Player MUST take LISTEN action next turn
-4. Cannot play any more cards this SPEAK cycle
-
-This creates natural conversation rhythm where success maintains momentum and failure forces reconsideration.
+**Note**: As stats develop, cards gain bonuses:
+- Level 2: +10% success rate
+- Level 3: All cards gain Persistent keyword
+- Level 4: +20% success rate
+- Level 5: Never force LISTEN on failure
 
 ## NPCs
 
-### Elena - The Desperate Scribe
+### Elena - The Desperate Scribe (Level 3 Conversation)
 
 **Basic Properties**:
-- ID: `elena`
 - Name: Elena
-- Profession: Scribe
-- Location: Copper Kettle Tavern, Corner Table spot
+- Location: Copper Kettle Tavern, Corner Table
 - Personality: DEVOTED
-- Personality Rule: "When rapport would decrease, decrease it twice"
+- Rule: "When rapport decreases, decrease it twice"
 - Starting State: DISCONNECTED (3 focus, draws 3)
 - Token Type: Trust
+- **Conversation Level**: 3 (3 XP per card played)
 
-**Story Context**:
-Young woman facing forced marriage to a merchant she despises. Works at her uncle's tavern while pursuing her writing. Lord Blackwood could intervene due to an old debt to her late father.
+**Signature Cards** (Require Trust tokens):
+- 1 token: "Elena's Faith" (Rapport card, Thought/Rapport/None/None)
+- 3 tokens: "Shared Understanding" (Rapport card, Thought/Threading/None/None)
+- 6 tokens: "Elena's Trust" (Authority card, Impulse/Rapport/None/Regret)
+- 10 tokens: "Emotional Bond" (Rapport card, Thought/Atmospheric-Receptive/None/None)
 
-**Signature Cards** (Not available in POC - player has 0 Trust tokens):
-- 1 token: "Elena's Faith" (Thought, Rapport, None, None)
-- 3 tokens: "Shared Understanding" (Thought, Continuing, None, None)
-- 6 tokens: "Elena's Trust" (Impulse, Rapport, None, Regret)
-- 10 tokens: "Emotional Bond" (Thought, Atmospheric-Receptive, None, None)
-- 15 tokens: "Elena's Devotion" (Thought, Promising, None, None)
+**Request**: Elena's Letter
+- Available at 5 focus (requires NEUTRAL state)
+- Basic (5 rapport): Letter weight 1, deadline 5 PM
+- Enhanced (10 rapport): Priority letter weight 2, +1 Trust token
+- Premium (15 rapport): Legal documents weight 3, +2 Trust tokens
 
-**Request Details**:
-- Request available at 5 focus capacity (requires NEUTRAL state)
-- Basic goal: 5 rapport (delivers letter weight 1, no payment)
-- Enhanced goal: 10 rapport (delivers letter weight 2, 1 Trust token)
-- Premium goal: 15 rapport (delivers legal documents weight 3, 2 Trust tokens)
-
-**Conversation Challenge**:
-The Devoted rule makes Elena's conversation particularly tense. Every failure hurts twice as much due to her personality (Backfire effects doubled), and failure forces LISTEN, losing your assembled hand. Without Trust tokens for signature cards, success requires the observation card to advance her state.
-
-### Marcus - The Merchant
+### Marcus - The Merchant (Level 2 Conversation)
 
 **Basic Properties**:
-- ID: `marcus`
-- Name: Marcus
-- Profession: Merchant
-- Location: Market Square, Merchant Row spot
+- Name: Marcus  
+- Location: Market Square, Merchant Row
 - Personality: MERCANTILE
-- Personality Rule: "Your highest focus card each turn gains +30% success"
+- Rule: "Highest focus card each turn gains +30% success"
 - Starting State: NEUTRAL (5 focus, draws 4)
 - Token Type: Commerce
-
-**Story Context**:
-Established trader who runs regular caravans. Cannot leave his stall (merchandise would be stolen). Values reliable business partners.
+- **Conversation Level**: 2 (2 XP per card played)
 
 **Signature Cards**:
-- 1 token: "Marcus's Bargain" (Thought, Rapport, None, None, Hard difficulty)
-- 3 tokens: "Trade Knowledge" (Thought, Continuing, None, None, Easy difficulty)
-- 6 tokens: "Commercial Trust" (Thought, Rapport, Backfire, None, Very Hard difficulty)
-- 10 tokens: "Marcus's Favor" (Thought, Rapport, None, None, Hard difficulty - special: doesn't force LISTEN on failure)
-- 15 tokens: "Master Trader's Secret" (Thought, Atmospheric-Focused, None, None, Medium difficulty)
+- 1 token: "Marcus's Bargain" (Commerce card, Thought/Rapport/None/None)
+- 3 tokens: "Trade Knowledge" (Commerce card, Thought/Threading/None/None)
+- 6 tokens: "Commercial Trust" (Commerce card, Thought/Rapport/Backfire/None)
+- 10 tokens: "Marcus's Favor" (Authority card, Thought/Rapport/None/None)
 
-**Request Details**:
-- Letter to Warehouse District (weight 1)
-- Basic goal: 5 rapport (5 coins, 1 Commerce token)
-- Enhanced goal: 10 rapport (8 coins, 2 Commerce tokens)
-- Premium goal: 15 rapport (12 coins, 3 Commerce tokens)
+**Request**: Trade Letter to Warehouse
+- Basic (5 rapport): 5 coins, +1 Commerce token
+- Enhanced (10 rapport): 8 coins, +2 Commerce tokens
+- Premium (15 rapport): 12 coins, +3 Commerce tokens
 
-**Exchange Deck**:
-- Buy Simple Food: 2 coins → -50 hunger (immediate consumption)
-- Buy Bread: 3 coins → bread item (weight 1, -30 hunger when consumed)
-- Join Merchant Caravan: 10 coins → Transport to Noble Quarter (requires 2+ Commerce tokens)
-
-**Conversation Challenge**:
-The Mercantile rule rewards high-focus plays. "Everything will work out" (4 focus) becomes 80% success instead of 50%. This encourages gambling on big cards rather than safe small plays.
+**Exchange Options**:
+- Buy Food: 2 coins → -50 hunger
+- Buy Bread: 3 coins → bread item (weight 1)
+- Join Caravan: 10 coins → Noble Quarter transport (requires 2+ Commerce tokens)
 
 ### Lord Blackwood - The Noble
 
 **Basic Properties**:
-- ID: `lord_blackwood`
 - Name: Lord Blackwood
-- Profession: Noble
-- Location: Noble Quarter, Blackwood Manor spot
+- Location: Noble Quarter, Blackwood Manor
 - Personality: PROUD
-- Personality Rule: "Cards must be played in ascending focus order each turn"
-- Starting State: NEUTRAL
-- Token Type: Status
+- Rule: "Cards must be played in ascending focus order"
+- Leaves: 5:00 PM sharp
+- **Note**: Letter has noble seal, no conversation required
 
-**Story Context**:
-Influential noble who owes a debt to Elena's late father. Leaving for summer estate at 5:00 PM sharp. Will accept Elena's letter immediately due to noble seal.
+## Stranger Encounters
 
-**Conversation Challenge**:
-Not relevant for POC - Elena's letter has a noble seal allowing quick delivery without conversation.
+Optional conversations for resources and XP. Each stranger available once per time block.
 
-### Warehouse Recipient
+### Morning - Market Square
 
-**Basic Properties**:
-- ID: `warehouse_clerk`
-- Name: Warehouse Clerk
-- Profession: Clerk
-- Location: Warehouse District, Warehouse Entrance
+**Tea Vendor** (Level 1)
+- Location: Market Square Fountain
+- Personality: STEADFAST (rapport changes capped at ±2)
+- Conversation Types:
+  - Friendly Chat: 2 coins (5 rapport)
+  - Buy Special Tea: Tea item for 4 coins (10 rapport, weight 1, +20 focus in conversations)
+- **XP Benefit**: 1 XP per card played
+
+**Pilgrim** (Level 1)  
+- Location: Market Square entrance
+- Personality: DEVOTED (failures hurt twice)
+- Conversation Types:
+  - Friendly Chat: Blessing (+1 starting rapport with Devoted NPCs today)
+  - Share Wisdom: Reveals one observation at current location
+- **XP Benefit**: 1 XP per card played
+
+### Midday - Copper Kettle Tavern
+
+**Traveling Scholar** (Level 2)
+- Location: Tavern common room
 - Personality: STEADFAST
-- Personality Rule: "Rapport changes are capped at ±2 per card"
-- Starting State: NEUTRAL
-- Token Type: Commerce
+- Conversation Types:
+  - Information Trade: Learn about stat-gated paths (5 rapport)
+  - Academic Debate: 5 coins + temporary Insight +1 for day (10 rapport)
+- **XP Benefit**: 2 XP per card played
 
-Accepts deliveries without conversation needed.
+### Afternoon - Various Locations
 
-### Guard Captain (Dead End)
+**Foreign Merchant** (Level 3)
+- Location: Market Square
+- Personality: MERCANTILE (high focus cards +30% success)  
+- Conversation Types:
+  - Trade Negotiation: Exotic goods worth 8 coins (10 rapport)
+  - Partnership: Reduces all exchange costs by 1 coin today (15 rapport)
+- **XP Benefit**: 3 XP per card played
+- **Risk**: -10% success on all cards
 
-**Basic Properties**:
-- ID: `guard_captain`
-- Name: Guard Captain
-- Profession: Guard
-- Location: Market Square, Guard Post
-- Personality: PROUD
-- Personality Rule: "Cards must be played in ascending focus order each turn"
-- Starting State: GUARDED
-- Token Type: Shadow
-
-**Exchange Deck**:
-- Noble District Permit: 20 coins (impossible to afford - deliberate dead end)
-
-## Locations and Spots
-
-Location mechanics remain unchanged from the original POC. The key interactions:
+## Locations and Investigation
 
 ### Market Square
-- **Fountain**: Investigation point (Quiet in morning for +2 familiarity, Busy in midday/afternoon for +1)
-- **Merchant Row**: Marcus location, work available
-- **Guard Post**: Guard Captain, permit exchange (dead end)
+
+**Standard Investigation**: 1 segment for base familiarity
+- Morning (Quiet): +2 familiarity
+- Other times (Busy): +1 familiarity
+
+**Stat-Gated Approaches** (Require Level 2+):
+- **Systematic Observation** (Insight 2+): +1 additional familiarity
+- **Local Inquiry** (Rapport 2+): Learn which NPCs want observations
+- **Purchase Information** (Commerce 2+): 2 coins per familiarity level
+- **Note**: Authority and Cunning approaches not useful here
+
+**Observation Rewards**:
+- Familiarity 1: "Safe Passage Knowledge" (Insight card for Elena)
+- Familiarity 2: "Merchant Caravan Route" (Commerce card for Marcus)
 
 ### Copper Kettle Tavern
-- **Corner Table**: Elena location (Private spot, +1 patience during conversations)
+
+**Standard Investigation**: 1 segment for +1 familiarity
+
+**Stat-Gated Approaches**:
+- **Local Inquiry** (Rapport 2+): Learn Elena needs comfort
+- **Covert Search** (Cunning 2+): Find hidden letter draft
 
 ### Noble Quarter
-- **Blackwood Manor**: Lord Blackwood location (until 5 PM)
 
-### Warehouse District
-- **Warehouse Entrance**: Delivery point for Marcus's letter
+**Standard Investigation**: Requires permit or Authority 2+
+- **Demand Access** (Authority 2+): Investigate without permit
 
 ## Observation Cards
 
-Observation cards mix into the player's conversation deck when conversing with the relevant NPC. They use the categorical property system.
-
 ### Safe Passage Knowledge
+- **Stat**: Insight
+- **Focus**: 0
+- **Difficulty**: Very Easy (85%)
+- **Effect**: Advances Elena from DISCONNECTED to NEUTRAL
+- **Critical**: Required for Elena's request to be reachable
 
-**Properties**:
-- ID: `safe_passage_knowledge`
-- Name: "Safe Passage Knowledge"
-- Source: Market Square first observation (familiarity 1+)
-- Destination: Added to deck when conversing with Elena
-- Focus: 0
-- Difficulty: Very Easy (85% base)
-- Categorical: Thought, None, None, None
-- Special Effect: Advances Elena's connection state from DISCONNECTED to NEUTRAL (unique mechanic)
-- Consumed: When played successfully
-
-**Critical Importance**: Without this card, Elena remains in DISCONNECTED state (3 focus capacity), making her 5-focus request card impossible to reach. This observation card is mandatory for success.
-
-### Merchant Caravan Route
-
-**Properties**:
-- ID: `merchant_caravan_route`
-- Name: "Merchant Caravan Route"
-- Source: Market Square second observation (familiarity 2+, requires first observation)
-- Destination: Added to deck when conversing with Marcus
-- Focus: 0
-- Difficulty: Very Easy (85% base)
-- Categorical: Thought, None, None, None
-- Special Effect: Unlocks Marcus's caravan exchange option (unique mechanic)
-- Consumed: When played successfully
-
-**Strategic Value**: Enables caravan transport to Noble Quarter for 10 coins (cheaper than 20-coin permit).
-
-## Request Cards
-
-Request cards represent conversation goals. Multiple thresholds exist, but the player must declare which they're attempting when it becomes playable.
-
-### Elena's Urgent Letter
-
-**Conversation Requirements**:
-- Connection state: NEUTRAL or better (5 focus capacity)
-- Must build rapport to threshold through card play
-
-**Goal Thresholds**:
-- **Basic** (5 rapport): Accept letter (weight 1), no payment, standard urgency
-- **Enhanced** (10 rapport): Accept priority letter (weight 2), 1 Trust token reward
-- **Premium** (15 rapport): Accept legal documents (weight 3), 2 Trust tokens, guaranteed success
-
-**The Challenge**: 
-Starting in DISCONNECTED with Elena's Devoted personality rule (failures hurt twice), reaching even the basic 5 rapport threshold is difficult. The forced LISTEN on failure means each failed attempt costs patience and resets your hand. The player needs the Safe Passage Knowledge observation card to advance to NEUTRAL state, giving them 5 focus capacity and 4-card draws on LISTEN.
-
-**Weight Implications**:
-The premium tier creates a heavier package (3 weight) representing the additional legal documents Elena provides. This weight affects travel options - the "Narrow Alley" shortcut becomes impassable, forcing use of main roads or expensive transport.
-
-### Marcus's Trade Letter
-
-**Goal Thresholds**:
-- **Basic** (5 rapport): Deliver to Warehouse (weight 1), 5 coins, 1 Commerce token
-- **Enhanced** (10 rapport): Priority delivery (weight 1), 8 coins, 2 Commerce tokens
-- **Premium** (15 rapport): Rush delivery (weight 2), 12 coins, 3 Commerce tokens
-
-**Strategic Note**: 
-With Marcus's Mercantile rule, high-focus cards gain +30% success. This makes his enhanced goal achievable with good card play. Gaining 2 Commerce tokens unlocks his first two signature cards for future conversations.
-
-## Exchange Cards
-
-### Marcus's Exchange Deck
-
-**Buy Simple Food**
-- Cost: 2 coins
-- Effect: -50 hunger (immediate consumption)
-- Weight: N/A (consumed immediately)
-- Availability: Always
-
-**Buy Bread**
-- Cost: 3 coins  
-- Effect: Bread item (weight 1)
-- When consumed: -30 hunger
-- Availability: Always
-
-**Join Merchant Caravan**
-- Cost: 10 coins
-- Effect: Transport to Noble Quarter
-- Requirements: 2+ Commerce tokens
-- Time: 2 segments
-- Availability: After playing Merchant Caravan Route observation
-
-### Guard Captain's Exchange Deck
-
-**Noble District Permit**
-- Cost: 20 coins
-- Effect: Permit item (weight 1)
-- Availability: Always (but impossible to afford in POC)
+### Merchant Caravan Route  
+- **Stat**: Commerce
+- **Focus**: 0
+- **Difficulty**: Very Easy (85%)
+- **Effect**: Unlocks Marcus's caravan exchange option
+- **Value**: Alternative to expensive permit
 
 ## Routes and Travel
 
-### Market Square to Warehouse District
+### Standard Paths
 
-**Segment 1 Path Cards**:
-- **Main Road**: 1 segment, 1 stamina, no weight restrictions
-- **Back Alley**: 0 segments, 2 stamina, blocked over 7 weight
-- **Merchant Cart**: 1 segment, 2 coins OR free with trade goods
+**Market Square → Copper Kettle**: 1 segment
+**Market Square → Warehouse**: 1 segment  
+**Copper Kettle → Noble Quarter**: 2 segments
+**Market Square → Noble Quarter**: 2 segments
 
-**Segment 2 Path Cards**:
-- **Warehouse Direct**: 1 segment, 1 stamina
-- **Loading Docks**: 0 segments, 2 stamina, blocked over 8 weight
-- **Struggle Path**: 2 segments, 0 stamina, always available
+### Stat-Gated Paths
 
-### Market Square to Noble Quarter
+**Scholar's Shortcut** (Insight 2+)
+- Market Square → Noble Quarter: 1 segment instead of 2
 
-**Direct Route (Blocked)**:
-- **Guard Checkpoint**: Requires Noble District Permit
-- Cannot proceed without permit
+**Local's Path** (Rapport 2+)
+- Copper Kettle → Noble Quarter: 1 segment instead of 2
 
-**Caravan Route (Requires 2+ Commerce tokens)**:
-- **Merchant Caravan**: 2 segments total, 10 coins
-- No weight restrictions on caravan
-- Comfortable travel
+**Shadow Alley** (Cunning 2+)
+- Warehouse → Noble Quarter: 1 segment (new connection)
 
-### Market Square to Copper Kettle Tavern
+**Merchant Road** (Commerce 2+)
+- Any route: -10 minutes if carrying trade goods
 
-**Single Segment Route**:
-- **Direct Path**: 1 segment, 1 stamina
-- **Market Route**: 1 segment, 2 stamina, allows one quick exchange
-- **Busy Street**: 1 segment, 0 stamina, +5 hunger
+**Noble's Gate** (Authority 2+ OR Noble Permit)
+- Direct access to Noble Quarter from anywhere: 1 segment
 
-## The Only Successful Path
+## The Optimal Path
 
-The path uses the correct time blocks and segment constraints. Success requires precise execution with the new conversation mechanics.
+### Morning Block (9:00 AM - 10:00 AM)
 
-### Complete Timeline
+**9:00 AM - Investigate Market Square** (Segment 5)
+- Standard investigation in Quiet morning: +2 familiarity
+- Unlock "Safe Passage Knowledge" observation
+- **Morning block ends**
 
-#### Morning Block (6:00 AM - 10:00 AM)
-**Starting at 9:00 AM = segment 4 of Morning block**
-**1 segment remaining in block**
+### Midday Block (12:00 PM - 2:00 PM)
 
-**9:00 AM - Investigate Market Square** (Segment 4)
-- Spot: Fountain (QUIET in morning)
-- Cost: 1 segment
-- Result: +2 familiarity (0→2)
-- Weight carried: 3 (Viktor's package)
-- **Morning block ends, advances to Midday**
+**12:00 PM - Investigate Market Square Again** (Segment 1)
+- Now Busy: +1 familiarity (total: 3)
+- Unlock "Merchant Caravan Route" observation
 
-#### Midday Block (10:00 AM - 2:00 PM)
-**4 segments available**
+**12:20 PM - Conversation with Marcus** (Segment 2)
+- Level 2 conversation (2 XP per card)
+- Deliver Viktor's package first
+- Play high-focus cards for Mercantile bonus
+- Use both observation cards
+- Achieve Enhanced goal (10 rapport)
+- Receive: 8 coins, 2 Commerce tokens
+- Accept trade letter (weight 1)
+- XP gained: ~10-14 to various stats
 
-**10:00 AM - First Observation** (Segment 1)
-- Cost: 1 segment
-- Gain: "Safe Passage Knowledge" observation card
-- Will be added to deck when conversing with Elena
+**12:40 PM - Quick Travel** (Segment 3)
+- To Warehouse District: 1 segment
+- Deliver Marcus's letter: +7 coins (total: 15)
 
-**10:10 AM - Converse with Marcus** (Segment 2)
-- Cost: 1 segment base
-- Personality Rule: Highest focus card gains +30% success
-- Starting deck: 20 player cards (no signatures yet - 0 Commerce tokens)
-- Connection state: NEUTRAL (5 focus, draws 4)
-- Strategy: Use high-focus cards for Mercantile bonus
-- "Everything will work out" becomes 80% success with +30% bonus
-- Build to 10 rapport for enhanced goal
-- Critical: Each failure forces LISTEN, costing patience
-- Deliver Viktor's package (frees 3 weight)
-- Accept Marcus's letter (weight 1)
+**Optional: 1:00 PM - Traveling Scholar** (Segment 4)
+- Level 2 stranger at Copper Kettle
+- Could gain coins or Insight boost
+- Cost: 1 segment (risky with time)
 
-**10:30 AM - Travel to Warehouse** (Segment 3)
-- Weight carried: 1 (Marcus's letter)
-- Path choices benefit from light load
-- Use "Back Alley" (0 segments) if discovered
-- Otherwise "Main Road" (1 segment)
+**1:00 PM - Return to Market Square** (Segment 4)
+- 1 segment travel
 
-**10:40 AM - Deliver and Return** (Segment 4)
-- Deliver Marcus's letter
-- Gain: 8 coins (enhanced completion), 2 Commerce tokens
-- Return to Market Square
-- **Midday block ends, advances to Afternoon**
+### Afternoon Block (2:00 PM - 6:00 PM)
 
-#### Afternoon Block (2:00 PM - 6:00 PM)
-**4 segments available**
-**Critical: Lord Blackwood leaves at 5:00 PM (segment 4 of this block)**
+**2:00 PM - Final Marcus Preparation** (Segment 1)
+- Buy food if needed (-2 coins, -50 hunger)
+- Unlock caravan with 2 Commerce tokens
+- Buy caravan passage (-10 coins, have 5 remaining)
 
-**2:00 PM - Buy Food and Work Decision**
-- Quick exchange with Marcus: 2 coins for immediate meal
-- Hunger: 50→0
-- **Cannot work** - would consume entire block, missing deadline
-- Must proceed with 6 coins remaining
+**2:20 PM - Travel to Copper Kettle** (Segment 2)
 
-**2:10 PM - Second Investigation** (Segment 1)
-- Fountain now BUSY: Only +1 familiarity  
-- Familiarity: 2→3
-- Cost: 1 segment
+**2:40 PM - Critical Elena Conversation** (Segment 3)
+- Level 3 conversation (3 XP per card)
+- Starting: DISCONNECTED (3 focus)
+- Play Safe Passage Knowledge → NEUTRAL (5 focus)
+- Devoted personality: failures hurt double
+- Carefully build to 5 rapport
+- Accept basic letter (weight 1)
+- XP gained: ~15-20 to various stats
 
-**2:20 PM - Second Observation** (Segment 1 continued)
-- Gain: "Merchant Caravan Route" observation card
-- No additional segment cost
+**3:00 PM - Caravan to Noble Quarter** (Segment 4)
+- Use pre-purchased caravan passage
+- Instant travel via caravan
+- Deliver letter to Lord Blackwood
+- **SUCCESS** with 1 hour buffer
 
-**2:30 PM - Quick Conversation with Marcus** (Segment 2)
-- Cost: 1 segment
-- Deck: 20 player cards + 2 Marcus signature cards (from 2 Commerce tokens)
-- Marcus's Bargain and Trade Knowledge now available
-- Play Merchant Caravan Route observation card
-- Unlocks caravan exchange option
-- **Cannot afford caravan** (only 6 coins, need 10)
+## Alternative Approaches by Build
 
-**2:40 PM - Travel to Copper Kettle** (Segment 3)
-- Weight: 0 (no items carried)
-- Direct path: 1 segment
+### Insight Build (If Insight reaches Level 2)
+- Morning: Use Systematic Observation for +3 familiarity total
+- Unlock both observations in one investigation
+- Save 1 segment for stranger encounter
+- Take Scholar's Shortcut to Noble Quarter (1 segment saved)
 
-**3:00 PM - Critical Conversation with Elena** (Segment 4)
-- Cost: 1 segment base
-- Personality Rule: Failures decrease rapport twice
-- Starting State: DISCONNECTED (3 focus, draws 3)
-- Deck: 20 player cards + Safe Passage Knowledge
-- Turn 1: Play Safe Passage Knowledge (0 focus, 85% success)
-- Effect: Advance to NEUTRAL state (5 focus, draws 4)
-- Now can attempt 5-focus request
-- Build to 5 rapport carefully
-- Critical: With forced LISTEN on failure, each failed play costs patience
-- "Everything will work out" with Disrupting property is extreme risk
-- Accept basic goal: Elena's letter (weight 1)
-- **Afternoon block ends, advances to Evening**
+### Rapport Build (If Rapport reaches Level 2)
+- Use Local Inquiry to learn NPC needs directly
+- Better success rates with Elena (Devoted personality)
+- Take Local's Path from Tavern to Noble Quarter
+- Could attempt Elena's Enhanced goal more safely
 
-#### Evening Block (6:00 PM - 10:00 PM)
-**Cannot use - Lord Blackwood left at 5:00 PM**
+### Authority Build (If Authority reaches Level 2)
+- Skip permit/caravan entirely
+- Use Noble's Gate for direct access (1 segment)
+- More coins available for resources
+- Authority cards risky with Elena's Devoted rule
 
-### Alternative Successful Path (With Work)
+### Commerce Build (Natural from Marcus conversation)
+- Marcus conversation likely pushes Commerce toward Level 2
+- All Commerce cards gain +10% success
+- Better Marcus conversation outcomes
+- Merchant Road speeds up goods delivery
 
-The work path fails because work consumes an entire 4-segment block, making it impossible to complete all necessary steps before the 5 PM deadline.
-
-### Why Only One Path Works
-
-The constraint is the 5:00 PM deadline falling in segment 4 of the Afternoon block. The forced LISTEN on failure rule makes conversations harder but more strategic - players must choose reliable cards over high-impact risky ones when patience is limited.
-
-### Resource Accounting
-
-**Segment Usage** (13 total available from 9 AM):
-- Morning Block: 1 used (investigation)
-- Midday Block: 4 used (observation, conversation, travel, delivery)
-- Afternoon Block: 4 used (investigation, conversation, travel, conversation)
-- **Total**: 9 segments used, 4 buffer remaining
-- **Critical**: Must complete Elena conversation by segment 4 of Afternoon
-
-**Weight Management**:
-- Start: 3/10 (Viktor's package)
-- After Marcus delivery: 1/10 (Marcus's letter)
-- After Warehouse: 0/10 (empty)
-- After Elena: 1/10 (Elena's letter)
-- Never exceeded capacity, all paths accessible
-
-**Card Experience Gained**:
-Each successful card play during conversations grants 1 XP to that specific card. Over the course of the POC, players will likely gain 10-15 XP across various cards, beginning their progression journey.
+### Cunning Build (If developed through strangers)
+- Shadow Alley creates new route options
+- Covert investigations don't alert NPCs
+- High risk with straightforward NPCs like Marcus
 
 ## Failure Analysis
 
 ### Common Failure Paths
 
-#### Work at Wrong Time
-- Working in Morning wastes quiet investigation bonus
-- Working in Midday makes Afternoon delivery impossible
-- Working in Afternoon guarantees missing deadline
-- The 4-segment block consumption is absolute
+#### Work Instead of Investigate
+- Work consumes entire 4-segment block
+- Cannot complete necessary steps before deadline
+- Maximum 11 segments left after work
 
-#### Rush to Elena First
-- Elena in DISCONNECTED (3 focus, draws 3)
-- Without Safe Passage Knowledge, stuck at 3 focus
-- Cannot reach 5-focus request
-- Even with perfect play, cannot accept letter
+#### Skip Morning Investigation
+- Miss quiet bonus (+2 vs +1 familiarity)
+- May need extra segment later
+- Delays observation card acquisition
 
-#### Skip Investigation
-- No Safe Passage Knowledge observation
-- Elena remains DISCONNECTED
-- Mathematically impossible to succeed
+#### Ignore Stranger Opportunities
+- Miss XP that could push stat to Level 2
+- Miss resources (coins, items)
+- Miss alternate solutions
 
-#### Ignore Marcus's Enhanced Goal
-- Only get 1 Commerce token
-- Only unlocks Marcus's first signature card
-- Cannot afford caravan even if unlocked
-- Less coins for crucial purchases
+#### Rush Elena Without Preparation
+- DISCONNECTED state: only 3 focus capacity
+- Cannot reach 5-focus request card
+- Safe Passage Knowledge essential
 
-#### Try Guard Checkpoint
-- Permit costs 20 coins
-- Maximum achievable: 11 coins (3 from work + 8 from Marcus)
-- Designed as impossible dead end
+#### Poor Stat Development
+- Playing random cards instead of focusing a stat
+- Missing Level 2 threshold benefits
+- Not utilizing personality bonuses
 
-#### Poor Conversation Play with Elena
-- Devoted rule: Failures decrease rapport twice
-- Failure forces LISTEN, losing assembled hand
-- Cards with Disrupting property clear high-focus cards on failure
-- May run out of patience before reaching even basic goal
+#### Accept Heavy Obligations
+- Marcus offers 5-weight silk delivery
+- Would max out carrying capacity
+- Cannot accept Elena's letter
 
-#### Accept Heavy Obligations Early
-- Marcus offers "Silk Bundle Delivery" (weight 5, pays 15 coins)
-- Accepting limits travel options severely
-- "Narrow Alley" shortcuts become impassable
-- Forces expensive main roads
-- May prevent accepting Elena's letter
+### Why The Path Works
 
-### Why This Path is Unique
+1. **Investigation timing**: Morning quiet bonus maximized
+2. **Conversation order**: Marcus before Elena for resources
+3. **Stat development**: Natural Commerce growth from Marcus
+4. **Resource management**: Coins for caravan, food if needed
+5. **Weight management**: Never exceed capacity
+6. **Time efficiency**: 9 segments used, 4 buffer remaining
 
-The new conversation system makes the strategic requirements even clearer:
+## System Reference
 
-1. **Must investigate** for observation card to unlock Elena's capacity
-2. **Must build Commerce tokens** to unlock Marcus's signature cards
-3. **Cannot work** due to 4-segment block consumption
-4. **Must use Marcus's enhanced delivery** for coins
-5. **Must manage weight** to keep travel options open
-6. **Must complete within Afternoon block** before 5 PM deadline
-7. **Must play Elena conversation strategically** with forced LISTEN on failure
+### Stat Progression
+- **Level 1**: Base abilities
+- **Level 2**: +10% success, unlock investigation approaches and special paths
+- **Level 3**: Cards gain Persistent, more approaches unlock
+- **Level 4**: +20% success, powerful investigation abilities
+- **Level 5**: Never force LISTEN on failure
 
-Each element directly supports the core conversation gameplay loop while the time pressure makes every segment precious.
+### XP Accumulation
+- Every card played grants XP to its bound stat
+- Base: 1 XP per card (Level 1 conversation)
+- Scaled: 2 XP (Level 2), 3 XP (Level 3)
+- Success and failure both grant XP
 
-## Card System Reference
+### Conversation Difficulty
+- **Level 1**: +10% success all cards, 1 XP per card
+- **Level 2**: Normal success rates, 2 XP per card
+- **Level 3**: -10% success all cards, 3 XP per card
 
-### Categorical Properties
-
-**Persistence Types**:
-- **Thought**: Remains in hand until played (survives LISTEN)
-- **Impulse**: Removed after any SPEAK if unplayed
-- **Opening**: Removed after LISTEN if unplayed
-
-**Success Types**:
-- **Rapport**: Changes connection strength (magnitude based on difficulty)
-- **Continuing**: Draw cards (magnitude based on difficulty)
-- **Atmospheric-[Type]**: Sets specific atmosphere (Patient/Focused/Volatile/etc)
-- **Focusing**: Restore focus to pool (magnitude based on difficulty)
-- **Promising**: Move obligation to position 1 and gain rapport
-- **None**: No effect on success
-
-**Failure Types**:
-- **Disrupting**: Discard all cards with Focus 3+ from hand
-- **Backfire**: Negative rapport (magnitude based on difficulty)
-- **None**: No effect beyond forced LISTEN
-
-**Exhaust Types**:
-- **Continuing**: Draw cards when discarded unplayed (magnitude based on difficulty)
-- **Focusing**: Restore focus when discarded unplayed (magnitude based on difficulty)
-- **Regret**: Negative rapport when discarded unplayed (magnitude based on difficulty)
-- **None**: No effect when discarded
-
-### Difficulty and Magnitude
-
-Base success rates (modified by +2% per rapport point):
-- **Very Easy**: 85% success, magnitude 1
-- **Easy**: 75% success, magnitude 2
-- **Medium**: 60% success, magnitude 2
-- **Hard**: 50% success, magnitude 3
-- **Very Hard**: 40% success, magnitude 4
-
-### Conversation Flow
-
-1. **SPEAK Action**: Choose and play one card from hand
-2. **Success**: Apply success effect, continue playing if focus remains
-3. **Failure**: Apply failure effect, apply -1 flow, MUST LISTEN next
-4. **LISTEN Action**: Discard non-Thought cards, draw new cards, refresh focus
-5. **Flow Transitions**: At ±3 flow, connection state changes
+### Investigation Approaches by Stat
+- **Insight**: Systematic patterns and connections
+- **Rapport**: Social information networks
+- **Authority**: Forced access to restricted areas
+- **Commerce**: Purchase information directly
+- **Cunning**: Covert investigation without detection
 
 ### Personality Rules
-
-- **Devoted**: When rapport decreases, decrease it twice
-- **Mercantile**: Highest focus card each turn gains +30% success
-- **Proud**: Cards must be played in ascending focus order each turn
-- **Cunning**: Playing same focus as previous card costs -2 rapport
-- **Steadfast**: All rapport changes capped at ±2 per card
-
+- **Devoted**: Rapport losses doubled
+- **Mercantile**: Highest focus +30% success
+- **Proud**: Ascending focus order required
+- **Cunning**: Same focus as previous -2 rapport
+- **Steadfast**: Rapport changes capped at ±2
 
 ## Conclusion
 
-This POC demonstrates the refined conversation system where:
+This POC demonstrates the complete Wayfarer experience:
 
-1. **Cards use categorical properties** - Effects emerge from context rather than being hardcoded
-2. **Failure forces LISTEN** - Creates natural conversation rhythm and strategic weight
-3. **Persistence types matter** - Thoughts persist, Impulses demand action, Openings expire
-4. **Magnitude scales with difficulty** - Same categorical effect has different power levels
-5. **NPCs provide unique puzzles** - Personality rules transform how cards work
-6. **Every choice has weight** - Failed plays cost patience and momentum
-7. **Conversation feels authentic** - Mechanical flow matches narrative expectations
+1. **Conversations drive everything**: Every card played develops your character
+2. **Stats are methodologies**: Not numbers but problem-solving approaches
+3. **Strangers provide options**: Optional grinding for resources and XP
+4. **Stats gate content**: Higher stats unlock new solutions
+5. **Multiple builds work**: Time-optimal path exists but alternatives viable
+6. **Every choice matters**: Card selection shapes your character's growth
+7. **Personality rules transform gameplay**: Same deck, different puzzle
 
-The scenario is completable in approximately 30 minutes while teaching all core mechanics. Players finish understanding that conversation success requires both strategic deck play and careful risk management, with the forced LISTEN on failure creating genuine conversational flow rather than mechanical card burning.
+The scenario takes 30-45 minutes and teaches all core mechanics. Players finish understanding that success requires both tactical card play and strategic character development, with the stat system providing meaningful progression from the very first conversation.
