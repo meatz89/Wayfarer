@@ -26,6 +26,13 @@ internal class PathCardEntry
 /// <summary>
 /// Orchestrates loading of game packages, delegating to specialized parsers for conversion.
 /// Uses simple sequential loading in dependency order for static content.
+///
+/// ARCHITECTURAL PRINCIPLES:
+/// - GameWorld is the SINGLE SOURCE OF TRUTH: All loaded content goes directly into GameWorld
+/// - NO INTERMEDIATE STATE: Parsers convert JSON to domain objects immediately, no pass-through
+/// - DEPENDENCY ORDER: Files must be numbered (01_, 02_, etc) to ensure proper loading sequence
+/// - STATIC vs DYNAMIC: Static content loaded at startup (no skeletons), dynamic content supports skeletons
+/// - PARSERS ARE STATELESS: Used only for conversion, then discarded - no state retention
 /// </summary>
 public class PackageLoader
 {

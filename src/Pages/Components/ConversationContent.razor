@@ -15,17 +15,26 @@
             <span>@GetLocationContext()</span>
         </div>
 
-        <!-- NPC Bar (Commerce removed - exchanges use separate system) -->
+        <!-- Player Stats Display -->
+        <div class="stats-display">
+            @foreach (var stat in GetPlayerStats())
+            {
+                <div class="stat-item">
+                    <div class="stat-name">@stat.Name</div>
+                    <div class="stat-level">@stat.Level</div>
+                    <div class="stat-xp">@stat.CurrentXP/@stat.RequiredXP XP</div>
+                </div>
+            }
+        </div>
+
+        <!-- NPC Bar -->
         <div class="npc-bar">
-                <div class="npc-info">
-                    <div class="npc-name">@NpcName</div>
-                    <div class="npc-status">@GetNpcStatusLine()</div>
-                </div>
-                <div class="patience-display">
-                    <div class="patience-label">Patience</div>
-                    <div class="patience-value">@Session.CurrentPatience/@Session.MaxPatience</div>
-                </div>
+            <div class="npc-info">
+                <div class="npc-name">@NpcName</div>
+                <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
+            <div class="personality-badge">@GetPersonalityRuleShort()</div>
+        </div>
 
             <!-- State and Flow Section (Grouped) -->
             <div class="state-flow-section">
@@ -35,48 +44,66 @@
                     <span class="state-effects">(@GetConnectionStateInfo())</span>
                 </div>
 
-                @* Display active personality rule *@
-                @if (!string.IsNullOrEmpty(GetPersonalityRuleDescription()))
-                {
-                    <div class="personality-rule">
-                        <span class="rule-label">Personality Rule:</span>
-                        <span class="rule-description">@GetPersonalityRuleDescription()</span>
-                    </div>
-                }
                 
-                <div class="flow-display">
-                    <span class="flow-label">Flow:</span>
-                    <div class="flow-bar">
-                        <span class="flow-segment @(Session.FlowBattery <= -3 ? "negative" : "") @(Session.FlowBattery == -3 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery <= -2 ? "negative" : "") @(Session.FlowBattery == -2 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery <= -1 ? "negative" : "") @(Session.FlowBattery == -1 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery == 0 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery >= 1 ? "positive" : "") @(Session.FlowBattery == 1 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery >= 2 ? "positive" : "") @(Session.FlowBattery == 2 ? "current" : "")"></span>
-                        <span class="flow-segment @(Session.FlowBattery >= 3 ? "positive" : "") @(Session.FlowBattery == 3 ? "current" : "")"></span>
+                <!-- Flow State Bar -->
+                <div class="flow-state-bar">
+                    <div class="flow-container">
+                        <div class="flow-negative">
+                            @for (int i = -3; i <= -1; i++)
+                            {
+                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                            }
+                        </div>
+
+                        <div class="current-state">
+                            <div class="state-name">@GetConnectionStateDisplay()</div>
+                        </div>
+
+                        <div class="flow-positive">
+                            @for (int i = 1; i <= 3; i++)
+                            {
+                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                            }
+                        </div>
                     </div>
-                    <span class="flow-value">@Session.FlowBattery</span>
-                    @if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -2)
-                    {
-                        <span class="flow-warning">One more failure ends conversation!</span>
-                    }
                 </div>
             </div>
 
-            <!-- Atmosphere and Rapport Bar -->
-            <div class="atmosphere-rapport-bar">
-                <div class="atmosphere-display">
-                    <span class="atmosphere-label">Atmosphere:</span>
-                    <span class="atmosphere-current">@GetCurrentAtmosphereDisplay()</span>
-                    <span class="atmosphere-effect">(@GetAtmosphereEffectDescription())</span>
+            <!-- Win/Lose Conditions Bar -->
+            <div class="conditions-bar">
+                <div class="patience-display">
+                    <span class="patience-label">Patience</span>
+                    <div class="patience-slots">
+                        @for (int i = 1; i <= Session.MaxPatience; i++)
+                        {
+                            <span class="patience-slot @GetPatienceSlotClass(i)"></span>
+                        }
+                    </div>
                 </div>
-                
+
                 <div class="rapport-display">
-                    <span class="rapport-label">Rapport:</span>
-                    <span class="rapport-value">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
-                    <span class="rapport-effect">(+@(Session?.RapportManager?.GetSuccessModifier() ?? 0)% all cards)</span>
+                    <span class="rapport-label">Rapport</span>
+                    <span class="rapport-counter">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
                 </div>
             </div>
+
+    <!-- Goal Thresholds Display -->
+    @if (GetRequestGoals().Any())
+    {
+        <div class="goals-section">
+            <div class="goals-header">Request Goals - @GetRequestName()</div>
+            <div class="goals-container">
+                @foreach (var goal in GetRequestGoals())
+                {
+                    <div class="goal-card @GetGoalCardClass(goal.Threshold)">
+                        <div class="goal-threshold">@goal.Threshold</div>
+                        <div class="goal-name">@goal.Name</div>
+                        <div class="goal-reward">@goal.Reward</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     <!-- CENTRAL: Narrative Section (from mockup) -->
     <div class="narrative-section">
@@ -271,12 +298,6 @@
                         <div class="@GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
 
-                            @* XP and Level display *@
-                            <div class="card-progression">
-                                <span class="card-level">Level @convCard.Level</span>
-                                <span class="card-xp">XP: @convCard.XP</span>
-                            </div>
-
                             @* Persistence tags *@
                             @if (convCard.Persistence == PersistenceType.Impulse)
                             {
@@ -290,11 +311,18 @@
                             {
                                 <span class="persistence-tag thought">Thought</span>
                             }
-                            
+
                             <div class="card-content">
                                 <div class="card-main">
+                                    <!-- Stat badge -->
+                                    <div class="stat-badge @GetCardStatClass(convCard)">
+                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                    </div>
                                     <div class="card-header">
-                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                        <div class="card-name">
+                                            @GetProperCardName(convCard)
+                                            <span class="xp-gain">+@GetXPGain() XP</span>
+                                        </div>
                                         <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                     </div>
                                     <div class="card-text @GetNarrativeClass()">

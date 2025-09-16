@@ -3042,8 +3042,244 @@ namespace Wayfarer.Pages.Components
     {
         if (resources == null || resources.Count == 0)
             return "nothing";
-            
+
         return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
+    }
+
+    // ===== NEW UI UPDATE METHODS =====
+
+    /// <summary>
+    /// Helper class for player stat display information
+    /// </summary>
+    public class PlayerStatInfo
+    {
+        public string Name { get; set; }
+        public int Level { get; set; }
+        public int CurrentXP { get; set; }
+        public int RequiredXP { get; set; }
+    }
+
+    /// <summary>
+    /// Returns list of player stats for display in conversation UI
+    /// </summary>
+    protected List<PlayerStatInfo> GetPlayerStats()
+    {
+        var result = new List<PlayerStatInfo>();
+
+        if (GameFacade == null) return result;
+
+        try
+        {
+            PlayerStats stats = GameFacade.GetPlayerStats();
+
+            // Get all five core stats
+            foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
+            {
+                result.Add(new PlayerStatInfo
+                {
+                    Name = GetStatDisplayName(stat),
+                    Level = stats.GetLevel(stat),
+                    CurrentXP = stats.GetXP(stat),
+                    RequiredXP = stats.GetXPToNextLevel(stat)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get display name for a stat type
+    /// </summary>
+    private string GetStatDisplayName(PlayerStatType stat)
+    {
+        return stat switch
+        {
+            PlayerStatType.Insight => "Insight",
+            PlayerStatType.Rapport => "Rapport",
+            PlayerStatType.Authority => "Authority",
+            PlayerStatType.Commerce => "Commerce",
+            PlayerStatType.Cunning => "Cunning",
+            _ => stat.ToString()
+        };
+    }
+
+    /// <summary>
+    /// Returns short personality rule text for the NPC bar badge
+    /// </summary>
+    protected string GetPersonalityRuleShort()
+    {
+        if (Session?.NPC == null) return "";
+
+        // Get the personality type and create a short rule description
+        var personality = Session.NPC.PersonalityType;
+        return personality switch
+        {
+            PersonalityType.DEVOTED => "Devoted: Strong emotional bonds",
+            PersonalityType.MERCANTILE => "Mercantile: Trade focused",
+            PersonalityType.PROUD => "Proud: Status conscious",
+            PersonalityType.CUNNING => "Cunning: Information focused",
+            PersonalityType.STEADFAST => "Steadfast: Duty bound",
+            _ => $"{personality}: Unique traits"
+        };
+    }
+
+    /// <summary>
+    /// Returns CSS class for patience slots based on current usage
+    /// </summary>
+    protected string GetPatienceSlotClass(int slot)
+    {
+        if (Session == null) return "";
+
+        int currentPatienceUsed = Session.CurrentPatience;
+
+        if (slot <= currentPatienceUsed)
+            return "used";
+        else if (slot == currentPatienceUsed + 1)
+            return "current";
+        else
+            return "";
+    }
+
+    /// <summary>
+    /// Returns CSS classes for flow battery segments based on current flow value
+    /// </summary>
+    protected string GetFlowSegmentClass(int segment)
+    {
+        if (Session == null) return "";
+
+        int currentFlow = Session.FlowBattery;
+
+        // Negative segments (-3 to -1)
+        if (segment < 0)
+        {
+            return currentFlow <= segment ? "active negative" : "inactive negative";
+        }
+        // Positive segments (1 to 3)
+        else if (segment > 0)
+        {
+            return currentFlow >= segment ? "active positive" : "inactive positive";
+        }
+
+        return "";
+    }
+
+    /// <summary>
+    /// Returns list of request goals/thresholds for the current conversation
+    /// </summary>
+    protected List<RequestGoal> GetRequestGoals()
+    {
+        var goals = new List<RequestGoal>();
+
+        if (Session?.RapportManager == null) return goals;
+
+        // Get the current request and its thresholds
+        // This is typically 5, 10, 15 rapport for standard conversations
+        goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "Small gain" });
+        goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "Medium gain" });
+        goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "Large gain" });
+
+        return goals;
+    }
+
+    /// <summary>
+    /// Helper class for request goal information
+    /// </summary>
+    public class RequestGoal
+    {
+        public int Threshold { get; set; }
+        public string Name { get; set; }
+        public string Reward { get; set; }
+    }
+
+    /// <summary>
+    /// Returns the name of the current request/letter being worked on
+    /// </summary>
+    protected string GetRequestName()
+    {
+        // Try to get the current letter or conversation context
+        if (Session?.NPC != null)
+        {
+            return $"Conversation with {Session.NPC.Name}";
+        }
+
+        return "Current Request";
+    }
+
+    /// <summary>
+    /// Returns CSS class for goal cards based on current rapport vs threshold
+    /// </summary>
+    protected string GetGoalCardClass(int threshold)
+    {
+        if (Session?.RapportManager == null) return "";
+
+        int currentRapport = Session.RapportManager.CurrentRapport;
+
+        if (currentRapport >= threshold)
+            return "achievable";
+        else if (currentRapport >= threshold - 2) // Close to achievable
+            return "active";
+        else
+            return "";
+    }
+
+    /// <summary>
+    /// Returns CSS class name for card stat badges (lowercase stat name)
+    /// </summary>
+    protected string GetCardStatClass(CardInstance card)
+    {
+        if (card?.Template?.BoundStat == null) return "";
+
+        return card.Template.BoundStat.Value.ToString().ToLower();
+    }
+
+    /// <summary>
+    /// Returns proper display name for card's bound stat
+    /// </summary>
+    protected string GetCardStatName(CardInstance card)
+    {
+        if (card?.Template?.BoundStat == null) return "";
+
+        return GetStatDisplayName(card.Template.BoundStat.Value);
+    }
+
+    /// <summary>
+    /// Returns the effective level of a card based on player's stat level
+    /// </summary>
+    protected int GetCardLevel(CardInstance card)
+    {
+        if (card?.Template?.BoundStat == null || GameFacade == null) return 1;
+
+        try
+        {
+            PlayerStats stats = GameFacade.GetPlayerStats();
+            return stats.GetLevel(card.Template.BoundStat.Value);
+        }
+        catch
+        {
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Returns XP gain for playing cards in this conversation based on conversation level
+    /// </summary>
+    protected int GetXPGain()
+    {
+        // XP is based on conversation difficulty/level
+        // For now, return a base value - this should be enhanced based on actual conversation level
+        if (Session?.NPC != null)
+        {
+            // If it's a stranger conversation, use stranger level
+            // Otherwise use base conversation XP
+            return 1; // Level 1 conversations give 1 XP, Level 2 give 2 XP, Level 3 give 3 XP
+        }
+
+        return 1;
     }
 
 }

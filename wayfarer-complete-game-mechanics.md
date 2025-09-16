@@ -126,7 +126,7 @@ Each personality type applies one rule that fundamentally changes how conversati
 These rules represent how different personalities respond to conversation. A Proud person needs escalating respect. A Devoted person catastrophizes failure. A Merchant rewards getting to the point.
 
 #### Conversation Outputs
-- **Card Progression**: Each card play grants XP to its bound stat (1 XP base, scaled by conversation difficulty)
+- **Stat XP**: Each card play grants XP to its bound stat (1 XP base, multiplied by conversation difficulty)
 - **New Cards**: Request completion grants new cards to player deck
 - **Tokens**: Gained through successful letter delivery (+1 to +3)
 - **Observations**: Cards added to specific NPCs' observation decks
@@ -277,47 +277,42 @@ Each path card exists in one of two permanent states:
 
 Once a card flips face-up (through play or revelation), it remains face-up forever for all future travels on that route.
 
-#### Card Properties
+Path cards have:
+- Weight limits
+- Stamina costs  
+- Permit requirements
+- Stat requirements (minimum levels to use)
 
-```
-Path Card Structure:
-- Name: Descriptive identifier  
-- Stamina Cost: 0-4 stamina to play
-- Weight Restrictions: Maximum weight allowed or additional costs
-- Requirements: Additional costs (coins, permits, tokens)
-- Effect: What happens when played (time segments, resources, discoveries)
-- Hidden: Boolean - cannot be revealed except by playing
-- One-Time: Boolean - special rewards only on first play
-- Stat Requirements: Minimum stat levels to use this path
-  Example: "Scholar's Shortcut" requires Insight 2+
-  Example: "Noble's Gate" requires Authority 2+ OR Noble Permit
-```
+#### Stat-Gated Paths
 
-### Stat-Gated Paths
+Certain paths require minimum stat levels:
 
-Certain paths require minimum stat levels representing different approaches:
+**Insight Paths**:
+- "Scholar's Shortcut" - Requires Insight 2+
+- "Complex Route" - Requires Insight 3+
+- Navigate through understanding patterns
 
-**Insight Paths**: Require analytical understanding
-- "Complex Route" - Navigate by understanding patterns
-- "Scholar's Passage" - Use academic knowledge
+**Rapport Paths**:
+- "Local's Favor" - Requires Rapport 2+
+- "Safe House Route" - Requires Rapport 4+
+- Friends help you pass
 
-**Rapport Paths**: Require social connections
-- "Local's Shortcut" - Friends show you the way
-- "Safe House Route" - People shelter you
+**Authority Paths**:
+- "Noble's Gate" - Requires Authority 2+ OR Noble Permit
+- "Checkpoint Bypass" - Requires Authority 3+
+- Walk through on reputation alone
 
-**Authority Paths**: Require commanding presence
-- "Checkpoint Bypass" - Walk through on reputation
-- "Noble's Gate" - Demand access
+**Commerce Paths**:
+- "Merchant Caravan" - Requires Commerce 2+ OR 10 coins
+- "Trade Route" - Requires Commerce 3+
+- Commercial reputation grants access
 
-**Commerce Paths**: Require mercantile thinking  
-- "Merchant Caravan" - Join through reputation
-- "Trade Route" - Use commercial knowledge
+**Cunning Paths**:
+- "Shadow Path" - Requires Cunning 3+
+- "Misdirection Route" - Requires Cunning 2+
+- See paths others miss
 
-**Cunning Paths**: Require indirect thinking
-- "Shadow Path" - See what others miss
-- "Misdirection Route" - Paths that shouldn't exist
-
-These create natural character differentiation where different builds see different city navigation options.
+These create natural character differentiation where different builds access different routes.
 
 #### Playing Path Cards
 
@@ -1049,16 +1044,43 @@ Conversations cost 1 base segment plus patience becomes time depth. Each patienc
 
 This creates mechanical differentiation where better relationships enable longer conversations for the same time investment.
 
-### Investigation and Observation Timing
+### Investigation Mechanics
 
-Investigation costs 1 segment at any spot. The quiet/busy distinction affects familiarity gain:
-- **Morning blocks**: Often have quiet spots (+2 familiarity per segment)
-- **Afternoon blocks**: Often have busy spots (+1 familiarity per segment)
-- **Evening blocks**: Shops closing, limited access
+Investigation has multiple approaches unlocked by player stats:
 
-This makes morning investigations twice as efficient, creating strategic timing decisions without abstract attention.
+#### Investigation Approaches
 
-Observations cost 1 segment when available through familiarity thresholds. This represents time spent documenting discoveries.
+**Standard Investigation** (Always available):
+- Cost: 1 segment
+- Effect: Normal familiarity gain
+- Morning quiet bonus: +1 familiarity
+
+**Systematic Observation** (Insight 2+):
+- Cost: 1 segment
+- Effect: +1 additional familiarity
+- Reveals hidden connections
+
+**Local Inquiry** (Rapport 2+):
+- Cost: 1 segment
+- Effect: Normal familiarity + learn which NPCs want observations from this location
+- Builds social map of location
+
+**Demand Access** (Authority 2+):
+- Cost: 1 segment
+- Effect: Can investigate restricted spots without permits
+- Forces entry through commanding presence
+
+**Purchase Information** (Commerce 2+):
+- Cost: 2 coins per familiarity level
+- Effect: Instant familiarity gain without time cost
+- Buying local knowledge directly
+
+**Covert Search** (Cunning 2+):
+- Cost: 1 segment
+- Effect: Investigation doesn't trigger NPC state changes or alerts
+- Undetected information gathering
+
+Higher stat levels (4+) provide enhanced versions of these approaches.
 
 ### Travel Segment Integration
 
@@ -1156,7 +1178,7 @@ The conversation system represents the primary gameplay loop. Players build and 
 
 ### Card Categorical Property System
 
-Each card is defined by exactly four categorical properties that determine its behavior:
+Each card is defined by exactly five categorical properties that determine its behavior:
 
 #### Persistence (when the card can be played)
 - **Thought**: Remains in hand until played (survives LISTEN)
@@ -1184,9 +1206,10 @@ Each card is defined by exactly four categorical properties that determine its b
 - **Regret**: Negative rapport when discarded
 - **None**: No effect when discarded
 
-#### Stat Binding
-- Every card bound to exactly one of the five stats
-- This determines which stat gains XP when played and which stat level affects the card
+#### Stat Binding (which stat gains XP and provides bonuses)
+- Every card bound to exactly one stat: Insight, Rapport, Authority, Commerce, or Cunning
+- Determines which stat gains XP when played
+- Determines which stat level provides card bonuses
 
 #### Magnitude Determination
 Effect magnitudes are determined by difficulty level, not hardcoded:
@@ -1202,12 +1225,65 @@ Atmosphere can modify these base magnitudes:
 - **Exposed**: All magnitudes doubled
 - **Synchronized**: Effect happens twice
 
+### Player Stats System
+
+Players have five core stats representing different problem-solving methodologies developed through conversation:
+
+#### The Five Stats
+
+**Insight** - Analytical thinking and observation
+- Bound cards focus on analysis, patterns, and understanding
+- Unlocks systematic investigation approaches
+- Gates scholarly and complex travel paths
+
+**Rapport** - Emotional connection and empathy
+- Bound cards focus on understanding, support, and connection
+- Unlocks social investigation through locals
+- Gates community-based travel paths
+
+**Authority** - Leadership and commanding presence
+- Bound cards focus on direction, control, and decisiveness
+- Unlocks demanding access to restricted areas
+- Gates noble and official travel paths
+
+**Commerce** - Negotiation and trade thinking
+- Bound cards focus on deals, exchanges, and mutual benefit
+- Unlocks purchasing information directly
+- Gates merchant caravan paths
+
+**Cunning** - Subtlety and indirect approach
+- Bound cards focus on misdirection, implication, and hidden meanings
+- Unlocks covert investigation without alerting NPCs
+- Gates shadow and secret paths
+
+#### Progression Mechanics
+
+**Starting Level**: All stats begin at 1
+**XP Requirements**:
+- Level 1→2: 10 XP
+- Level 2→3: 25 XP
+- Level 3→4: 50 XP
+- Level 4→5: 100 XP
+
+**Stat Level Effects on Bound Cards**:
+- Level 1: Base card values
+- Level 2: +10% success rate, unlock basic stat approaches
+- Level 3: All cards gain Persistent keyword, unlock advanced paths
+- Level 4: +20% success rate (total), unlock powerful investigation
+- Level 5: Cards never force LISTEN on failure, master reputation
+
+**XP Sources**:
+- Playing any card: Base XP to bound stat
+- Conversation difficulty multiplier (1x/2x/3x)
+- Success or failure both grant XP
+
 ### Player Deck Architecture
 
 The player owns a single conversation deck used in all conversations:
 
 **Starting Deck**: 20 basic cards representing fundamental social skills
 **Deck Growth**: New cards gained through request completion
+**Stat Enhancement**: Cards gain bonuses from their bound stat's level, not individual progression
 **Deck Refinement**: Certain locations allow deck thinning for a cost
 
 ### NPC Architecture
@@ -1492,20 +1568,39 @@ Difficulty is determined by:
 - Conversation type chosen (request harder than chat)
 - NPC importance (Elena's letter is level 3)
 
-### Stranger Encounters
+### Stranger Encounter System
 
-Strangers are unnamed NPCs providing one-time conversations for resources and XP grinding.
+Strangers are unnamed NPCs that provide resource generation and stat grinding opportunities without building relationships.
 
-**Properties**:
-- No token generation (only named NPCs build relationships)
-- No signature cards
-- No observation deck
-- No burden accumulation
-- Standard personality rules apply
-- Available once per time block at specific locations
+#### Stranger Properties
+- **No Token Generation** - Only named NPCs build relationships
+- **No Signature Cards** - Use only player deck
+- **No Observation Deck** - Cannot receive observations
+- **No Burden Accumulation** - One-time interactions
+- **Standard Personality Rules** - Apply normally
+- **Single Availability** - Can converse once per time block
 
-**Reward Structure by Rapport Thresholds**:
-Each stranger offers specific conversation types with tiered rewards:
+#### Encounter Levels
+
+**Level 1 Strangers**:
+- Examples: Street vendors, pilgrims, workers
+- +10% success rate on all cards
+- 1 XP per card played
+- Lower rapport thresholds
+
+**Level 2 Strangers**:
+- Examples: Traveling merchants, guards, clerks
+- Normal success rates
+- 2 XP per card played
+- Standard rapport thresholds
+
+**Level 3 Strangers**:
+- Examples: Visiting nobles, foreign scholars
+- -10% success rate on all cards
+- 3 XP per card played
+- Higher rapport thresholds
+
+#### Conversation Rewards
 
 **Friendly Chat** (5/10/15 rapport):
 - Basic: 2 coins
@@ -1513,20 +1608,35 @@ Each stranger offers specific conversation types with tiered rewards:
 - Premium: 6 coins + medicine (weight 1)
 
 **Trade Negotiation** (5/10/15 rapport):
-- Basic: Trade goods worth 5 coins
-- Enhanced: Trade goods worth 8 coins
-- Premium: Trade goods worth 12 coins
+- Basic: Trade goods (weight 2, value 5 coins)
+- Enhanced: Trade goods (weight 2, value 8 coins)
+- Premium: Trade goods (weight 3, value 12 coins)
 
 **Information Gathering** (5/10/15 rapport):
-- Basic: Reveals one path card
-- Enhanced: Reveals two paths + observation hint
-- Premium: Reveals entire route
+- Basic: Reveals one face-down path
+- Enhanced: Reveals two paths + marks observation
+- Premium: Reveals all paths on entire route
 
-**Strategic Role**:
-- Resource generation between story beats
-- Targeted stat development
-- Risk/reward for harder encounters
-- Never mandatory but highly beneficial
+**Seek Favor** (8/12/20 rapport):
+- Basic: 5 coins
+- Enhanced: Simple permit (weight 1)
+- Premium: 10 coins + valuable item
+
+#### Location Scheduling
+
+Strangers appear at specific spots during certain blocks:
+
+**Market Square Morning**:
+- Fresh Bread Vendor (L1, Steadfast)
+- Spice Merchant (L2, Mercantile)
+- Foreign Dignitary (L3, Proud)
+
+**Tavern Evening**:
+- Tired Laborer (L1, Devoted)
+- Traveling Minstrel (L2, Cunning)
+- Merchant Captain (L3, Mercantile)
+
+[Additional locations and schedules as needed]
 
 ## Player Deck Design and Progression
 
@@ -2283,6 +2393,17 @@ New observations need:
 - **Item Properties**: Weight and effect (if item type)
 - **Consumption**: Always consumed when played (if card)
 
+### Adding Strangers
+
+When creating stranger NPCs:
+- **Assign Level**: 1-3 determining difficulty and XP multiplier
+- **Set Personality**: Uses standard personality rules
+- **Define Availability**: Which locations and time blocks
+- **Create Reward Tables**: Based on conversation types offered
+- **No Token Generation**: Strangers never give tokens
+- **No Signature Cards**: Don't have unique cards
+- **Resource Focus**: Primary purpose is resources and XP
+
 ## The Holistic Experience
 
 ### Daily Routine Example
@@ -2368,39 +2489,6 @@ Stories emerge from mechanical interaction, not scripting:
 - Takes paths others cannot due to tool access
 - But sacrifices maximum delivery capacity
 - Strategic tool investment over pure profit
-
-### Strategic Mastery Progression
-
-**Beginner**: 
-- Uses starting deck without plan
-- Doesn't understand personality rules
-- Ignores investigation timing
-- Takes any available letter regardless of weight
-- Drops items reactively
-
-**Intermediate**:
-- Recognizes which cards work against which personalities
-- Plans investigation for quiet periods
-- Manages hunger for work efficiency
-- Considers weight before accepting obligations
-- Focuses token building on key NPCs
-
-**Advanced**:
-- Shapes deck for specific challenges
-- Times card leveling for key conversations
-- Pre-builds observation advantages
-- Optimizes weight for specific routes
-- Maintains token portfolios across multiple NPCs
-- Uses promise cards strategically
-
-**Expert**:
-- Has mastered cards for momentum control
-- Knows exact token thresholds needed
-- Routes perfectly considering weight and segments
-- Manipulates queue for maximum profit
-- Deck refined to personal playstyle
-- Weight management enables unique strategies
-- Times consumable use for maximum efficiency
 
 ## Content Loading System
 
@@ -2628,21 +2716,23 @@ The stat system transforms character progression from card-specific mastery to d
 - Level 3→4: 50 XP
 - Level 4→5: 100 XP
 
-**Stat XP Gain**:
-- Base: 1 XP per card played
-- Level 1 conversation: ×1 multiplier
-- Level 2 conversation: ×2 multiplier  
-- Level 3 conversation: ×3 multiplier
-
 **Stat Success Modifiers**:
-- Stat Level 2: +10% success on bound cards
-- Stat Level 4: +20% success on bound cards
-- Stat Level 5: Cannot force LISTEN on failure
+- Stat Level 2: +10% success on all bound cards
+- Stat Level 3: All bound cards gain Persistent keyword
+- Stat Level 4: +20% success on all bound cards
+- Stat Level 5: Bound cards never force LISTEN on failure
+
+**Stat XP Gain Formula**:
+Base XP × Conversation Difficulty Multiplier
+- Base: 1 XP per card played
+- Level 1 conversation: ×1
+- Level 2 conversation: ×2
+- Level 3 conversation: ×3
 
 **Conversation Difficulty Modifiers**:
-- Level 1: +10% success all cards
-- Level 2: No modifier
-- Level 3: -10% success all cards
+- Level 1: +10% success rate all cards
+- Level 2: Normal success rates
+- Level 3: -10% success rate all cards
 
 **Work Output**: 5 - floor(Hunger/25) coins
 

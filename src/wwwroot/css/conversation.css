@@ -572,8 +572,8 @@
 /* Persistence Tags */
 .persistence-tag {
     position: absolute;
-    top: 0px;
-    right: 15px;
+    top: 10px;
+    right: 10px;
     padding: 2px 8px;
     border-radius: 0 0 2px 2px;
     font-size: 9px;
@@ -622,6 +622,7 @@
 /* Card outcomes - side by side success/failure */
 .card-outcomes {
     display: flex;
+    width: 30%;
     border-left: 1px solid #d4c5a0;
 }
 
@@ -1098,4 +1099,257 @@
     50% {
         box-shadow: 0 2px 8px rgba(138, 122, 106, 0.2);
     }
+}
+
+/* === NEW UI ELEMENTS FROM MOCKUP === */
+
+/* Player Stats Display */
+.stats-display {
+    background: #3d3429;
+    padding: 10px 20px;
+    border-bottom: 1px solid #5c4a3a;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-name {
+    font-size: 10px;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-level {
+    font-size: 18px;
+    font-weight: bold;
+    color: #d4a76a;
+}
+
+.stat-xp {
+    font-size: 9px;
+    color: #7a6250;
+}
+
+/* Personality Badge */
+.personality-badge {
+    padding: 8px 12px;
+    background: #8b4726;
+    color: #faf4ea;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Win/Lose Conditions Bar */
+.conditions-bar {
+    background: #f9f3e9;
+    padding: 12px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Patience Slots */
+.patience-slots {
+    display: flex;
+    gap: 4px;
+}
+
+.patience-slot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #8b7355;
+    background: #e8dcc4;
+}
+
+.patience-slot.used {
+    background: #3d3429;
+}
+
+.patience-slot.current {
+    background: #d4704a;
+    border: 2px solid #8b4726;
+}
+
+/* Rapport Counter */
+.rapport-counter {
+    font-size: 28px;
+    font-weight: bold;
+    color: #5a7a3a;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Flow State Bar */
+.flow-state-bar {
+    background: #2c241a;
+    padding: 15px 20px;
+    border-bottom: 2px solid #5c4a3a;
+}
+
+.flow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.flow-negative {
+    display: flex;
+    gap: 4px;
+    flex-direction: row-reverse;
+}
+
+.flow-positive {
+    display: flex;
+    gap: 4px;
+}
+
+.current-state {
+    background: #e8dcc4;
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+    padding: 8px 20px;
+    min-width: 200px;
+    text-align: center;
+}
+
+.state-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Goals Section */
+.goals-section {
+    background: #e8dcc4;
+    padding: 10px 15px;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.goals-header {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.goals-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.goal-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    padding: 10px;
+    min-width: 150px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.goal-card.achievable {
+    border-color: #7a8b5a;
+    background: #f4f9e9;
+}
+
+.goal-card.active {
+    border-color: #d4a76a;
+    transform: scale(1.05);
+}
+
+.goal-threshold {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 4px;
+}
+
+.goal-name {
+    font-size: 11px;
+    color: #7a6250;
+    margin-bottom: 4px;
+}
+
+.goal-reward {
+    font-size: 10px;
+    color: #5a7a3a;
+    font-weight: bold;
+}
+
+/* Stat Badges for Cards */
+.stat-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.stat-badge.insight {
+    background: #5a7a8a;
+    color: #faf4ea;
+}
+
+.stat-badge.rapport {
+    background: #7a8b5a;
+    color: #faf4ea;
+}
+
+.stat-badge.authority {
+    background: #8b4726;
+    color: #faf4ea;
+}
+
+.stat-badge.commerce {
+    background: #d4a76a;
+    color: #2c241a;
+}
+
+.stat-badge.cunning {
+    background: #6a5a8a;
+    color: #faf4ea;
+}
+
+/* XP Gain Indicator for Card Names */
+.xp-gain {
+    display: inline-block;
+    background: #d4a76a;
+    color: #2c241a;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+/* Difficulty Badge */
+.difficulty-badge {
+    background: #8b4726;
+    color: #faf4ea;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
 }
