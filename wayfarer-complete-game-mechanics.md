@@ -389,9 +389,6 @@ Path cards check total satchel weight creating physical constraints:
 - "Guard Checkpoint": Inspects satchel, may confiscate contraband
 - "Struggle Path": Always available but costs 3 segments
 
-**Discovery Through Weight**:
-Some paths only reveal their weight restrictions when first played, creating memorable learning moments where an overloaded player discovers they cannot use their preferred route.
-
 ### Knowledge Discovery Methods
 
 #### 1. Direct Exploration
@@ -500,31 +497,6 @@ Collection Properties:
 - **Time Segments**: Accept delays for free options
 - **Weight**: Still restricts choices even when riding
 
-### Strategic Considerations
-
-#### Knowledge Investment
-
-Players choose between:
-- **Exploration** (costs stamina, risks dead ends, reveals weight limits)
-- **Investigation** (costs time segments, reveals infrastructure)
-- **Conversation** (costs time segments and focus, reveals NPC knowledge)
-- **Exchange** (costs coins, reveals complete routes)
-
-#### Route Mastery Progression
-
-- **First journey**: Expensive exploration, unknown weight restrictions
-- **Second journey**: Some knowledge, better choices
-- **Third journey**: Optimal path selection based on current weight
-- **Mastered route**: Perfect information for planning
-
-#### Dead End Avoidance
-
-Revealing requirements prevents wasted journeys:
-- Know permit requirements before attempting
-- Know toll costs before traveling
-- Know weight limits before loading up
-- Know which paths have valuable discoveries
-
 ### Integration with Other Systems
 
 #### Investigation Integration
@@ -560,27 +532,6 @@ Small decks (3-5 cards) for minor randomness:
 - **Encounters**: NPCs, beggars, vendors
 - **Obstacles**: Crowds, accidents, weather
 - **Opportunities**: Shortcuts, discoveries, trades
-
-### Future Expansion Mechanics
-
-#### Weather Effects
-Could modify all paths in a segment:
-- Add stamina costs
-- Change time segment requirements
-- Hide certain paths
-- Add weather-specific events
-
-#### Time-of-Day Variations
-Could affect path availability:
-- Night paths have different costs
-- Some paths only available at certain times
-- Different event pools by time
-
-#### Route Unlocking
-Successfully playing certain very hard paths could:
-- Permanently unlock new routes
-- Open shortcuts between locations
-- Reveal hidden transportation options
 
 ## Weight System
 
@@ -622,20 +573,6 @@ Items with no immediate use but sellable at specific locations. Silk weighs 3, s
 #### Discovered Items
 Investigations and path discoveries yield physical objects. "Shipping Manifests" weigh 1, unlock special merchant exchanges. "Noble Seal" weighs 1, enables guard checkpoint passage. "Ancient Map" weighs 2, reveals hidden location. These compete with obligations for limited space.
 
-### Drop Mechanics
-
-Dropping items has permanent consequences:
-
-**Dropping Obligations**: Damages relationship with sender permanently. Adds 2 burden cards to their deck. Cannot be recovered once dropped. The obligation fails completely.
-
-**Dropping Tools**: Lost forever at current location. Might be findable through investigation but not guaranteed. Immediately lose associated benefits.
-
-**Dropping Trade Goods**: Lost profit opportunity. Items vanish permanently. No recovery possible.
-
-**Dropping Consumables**: Wasted resources. Food spoils, medicine breaks. Cannot be recovered.
-
-The weight limit's rigidity forces these brutal decisions. There's no storage, no coming back later, no temporary solutions. You choose what matters most right now.
-
 ### Weight and Travel Integration
 
 Path cards check total weight creating natural restrictions that make perfect physical sense:
@@ -649,10 +586,6 @@ Path cards check total weight creating natural restrictions that make perfect ph
 **Specific Path Examples**:
 - "Steep Hill": +1 stamina cost per 3 weight over 6
 - "Narrow Alley": Impassable over 8 weight
-- "Rope Bridge": Impassable over 6 weight
-- "Merchant Cart": Free if carrying trade goods over 5 weight
-- "Swimming Path": Impassable over 4 weight
-- "Guard Checkpoint": Inspects all items, confiscates contraband
 
 ### Investigation and Weight
 
@@ -661,12 +594,9 @@ Investigations can yield items or observations, never both. This creates strateg
 **Item-Yielding Investigations**:
 - Warehouse: "Shipping Manifests" (weight 1)
 - Noble Garden: "Ornamental Dagger" (weight 2, sells for 10 coins)
-- Abandoned Shop: "Merchant Tools" (weight 3, enables special exchanges)
 
 **Observation-Yielding Investigations**:
 - Market Fountain: Knowledge for NPC conversations
-- Temple Steps: Spiritual insights for devoted NPCs
-- Guard Barracks: Authority protocols for proud NPCs
 
 The distinction matters because items consume weight while observations enhance conversations without physical burden.
 
@@ -683,20 +613,6 @@ Carrying food means being prepared for hunger but reduces delivery capacity. Eat
 
 #### Discovery Decisions
 Finding valuable trade goods forces immediate choice. Drop current obligations for profit? Continue with less capacity? Return later risking the item disappears? Every discovery creates tension.
-
-### Weight Creates Branching Gameplay
-
-The same scenario plays differently based on weight decisions:
-
-**Light Travel Strategy**: Carry minimal weight, access all paths, move quickly, but less profitable per trip.
-
-**Heavy Delivery Strategy**: Maximum weight obligations, huge payoffs, but limited to main roads and struggle paths.
-
-**Tool-Heavy Strategy**: Multiple tools for maximum options, but minimal delivery capacity.
-
-**Balanced Approach**: Mix of obligations, one tool, one consumable, retaining flexibility.
-
-These aren't character builds but moment-to-moment decisions based on current priorities and opportunities.
 
 ## Resource Flow Between Loops
 
@@ -790,98 +706,7 @@ Deadlines create cascading decisions:
 - Investigation timing affects resource efficiency
 - Path mastery enables weight optimization
 
-## Resource Economy
-
-### Player Stats
-```
-#### Player Stats
-- **Range**: 0-5 per stat
-- **Five Stats**: Insight, Rapport, Authority, Commerce, Cunning
-- **Starting Level**: All stats begin at 1
-- **XP Thresholds**:
-  - Level 1→2: 10 XP
-  - Level 2→3: 25 XP  
-  - Level 3→4: 50 XP
-  - Level 4→5: 100 XP
-- **Effects Per Level**:
-  - Level 1: Base cards as designed
-  - Level 2: +10% success for cards of this stat
-  - Level 3: Cards gain Persistent keyword
-  - Level 4: +20% success for cards of this stat
-  - Level 5: Cards never force LISTEN on failure
-- **XP Generation**: Playing any card grants XP to its bound stat
-  - Base: 1 XP per card play
-  - Scaled by conversation difficulty (×1/2/3)
-- **Strategic Role**: Represents problem-solving methodologies that affect all game systems
-```
-
-### Persistent Resources
-
-#### Coins
-- **Range**: 0-999
-- **Generation**: 
-  - Work actions (5 coins base, scaled by hunger)
-  - Letter deliveries (5-15 coins typical)
-  - Exchanges and trades
-  - Selling trade goods at specific locations
-- **Uses**: 
-  - Food purchases (2-3 coins typically)
-  - Rest options (5-10 coins)
-  - Exchanges (varies)
-  - Caravan transport (10 coins)
-  - Permits (15-20 coins)
-  - Deck thinning (cost TBD)
-  - Path tolls and bribes
-- **No decay or automatic loss**
-- **Visibility**: Always shown in UI
-
-#### Health
-- **Range**: 0-100
-- **Current**: Variable based on damage
-- **Maximum**: 100 (can be modified by items/conditions)
-- **Effects**: 
-  - Below 50: -1 focus capacity in conversations
-  - At 0: Death/game over (TBD)
-- **Loss**: 
-  - Starvation (5 per time period at 100 hunger)
-  - Combat encounters (TBD)
-  - Failed events (TBD)
-- **Restoration**: 
-  - Rest actions (TBD)
-  - Medical exchanges (TBD)
-  - Medicine consumables (weight 1, +20 health)
-
-#### Hunger
-- **Range**: 0-100
-- **Effects**:
-  - **Work Productivity**: Reduces work output by floor(Hunger ÷ 25) coins
-    - At 0 hunger: 5 coins
-    - At 25 hunger: 4 coins
-    - At 50 hunger: 3 coins
-    - At 75 hunger: 2 coins
-    - At 100 hunger: 1 coin
-  - **Travel Speed**: At 75+ hunger, all travel paths cost +1 segment
-  - **Starvation Trigger**: At 100 → lose 5 health per time block
-- **Automatic Increase**: +20 per time block
-- **Restoration**:
-  - Food consumables (weight 1, -30 hunger typically)
-  - Meals through exchanges (immediate consumption)
-  - Tavern rest options
-- **Strategic Role**: Constant pressure that erodes other resources. Forces regular maintenance without hard blocking.
-
-#### Location Familiarity
-- **Range**: 0-3 per location
-- **Generation**: Investigation action only
-  - Quiet spots: 1 segment → +2 familiarity
-  - Busy spots: 1 segment → +1 familiarity
-  - Other spots: 1 segment → +1 familiarity
-- **Never decreases**
-- **Location-specific** (not global)
-- **Independent of NPC relationships**
-- **Enables observations at threshold levels**
-- **Strategic Role**: Represents location knowledge. Creates Istanbul-style gameplay where timing of investigation matters for efficiency.
-
-#### Connection Tokens
+### Connection Tokens
 
 Four types, each with distinct identity:
 - **Trust**: Personal bonds (Devoted NPCs prefer)
@@ -898,7 +723,6 @@ Four types, each with distinct identity:
 
 **Generation**:
 - Standard delivery: +1 token with recipient
-- Excellent delivery: +2-3 tokens with recipient
 - Failed delivery: -2 tokens with sender
 - Special events and quests
 
@@ -961,12 +785,6 @@ Four types, each with distinct identity:
 - **Patient**: Actions cost 0 patience
 - **Volatile**: All rapport changes ±1
 - **Final**: Any failure ends conversation
-
-**Observation-Only Atmospheres**:
-- **Informed**: Next card cannot fail
-- **Exposed**: Double all rapport changes
-- **Synchronized**: Next card effect happens twice
-- **Pressured**: -1 card on LISTEN
 
 **Mechanics**:
 - Persistence: Remains until changed by another card or cleared by failure
@@ -1080,8 +898,6 @@ Investigation has multiple approaches unlocked by player stats:
 - Effect: Investigation doesn't trigger NPC state changes or alerts
 - Undetected information gathering
 
-Higher stat levels (4+) provide enhanced versions of these approaches.
-
 ### Travel Segment Integration
 
 Path cards specify segment costs directly:
@@ -1091,11 +907,6 @@ Path cards specify segment costs directly:
 - "Struggle Path": 3 segments but always available
 
 Multi-segment journeys may force block advancement. Starting a 2-segment journey with 1 segment remaining advances time to the next block upon completion.
-
-**Hunger Effects on Travel**:
-- Below 75 hunger: Normal segment costs
-- 75+ hunger: All paths cost +1 segment (exhaustion slows movement)
-- 100 hunger: Additional +1 segment (starvation weakness)
 
 ### Work Time Commitment
 
@@ -1119,55 +930,6 @@ Missing deadlines has permanent consequences:
 - No payment received
 - Obligation removed from queue
 
-### Effects of Time Blocks
-
-Different blocks create different opportunities:
-
-**Morning**: Quiet spots for efficient investigation, fresh NPCs with full patience, low hunger for work productivity
-
-**Afternoon**: Busy markets, active commerce, moderate hunger effects
-
-**Evening**: Closing shops create urgency, investigation less efficient, hunger affects travel
-
-**Night**: Limited location access, different NPC availability, quiet spots return
-
-### Strategic Time Management
-
-The segment system creates clear trade-offs:
-
-**Investigation Timing**: Morning segments are precious for investigation efficiency. Using them for conversations or travel wastes the quiet spot bonus.
-
-**Work Scheduling**: Working consumes entire blocks. Planning when to sacrifice 4 segments shapes the entire day.
-
-**Conversation Depth**: Long conversations with high patience cost segments that could enable multiple quick exchanges or investigations.
-
-**Travel Optimization**: Choosing between quick expensive paths or slow cheap paths based on remaining segments in current block.
-
-### Daily Rhythm Example
-
-**Dawn Block**: Often sleeping or preparing (future content)
-
-**Morning Block**: 
-- Segment 1: Investigate quiet spot (+2 familiarity)
-- Segment 2: Observe at same location
-- Segment 3-4: Travel to merchant (2 segments via main road)
-
-**Afternoon Block**:
-- Work action (consumes all 4 segments, advances to Evening)
-
-**Evening Block**:
-- Segment 1: Quick conversation
-- Segment 2: Travel (1 segment)
-- Segment 3: Deliver letter
-- Segment 4: Return travel
-
-**Night Block**: 
-- Extended conversation using multiple segments
-- Or multiple quick exchanges
-- Or rest and recovery
-
-This creates natural activity patterns matching realistic daily life while maintaining strategic depth through time as the primary constraint.
-
 ## Conversation System
 
 ### Core Design Principle
@@ -1186,12 +948,12 @@ Each card is defined by exactly five categorical properties that determine its b
 - **Opening**: Removed after LISTEN if unplayed
 
 #### Success (effect type on success)
-- **Rapport**: Changes connection strength
-- **Threading**: Draw cards to hand
-- **Atmospheric-[Type]**: Sets specific atmosphere (Patient/Focused/Receptive/Volatile/Final/etc)
-- **Focusing**: Restore focus to current pool
-- **Advancing**: Advance connection state by one step (ignores magnitude)
-- **Promising**: Move obligation to position 1 and gain rapport
+- **Rapport**: Changes connection strength determined by magnitude
+- **Threading**: Draw cards to hand determined by magnitude
+- **Atmospheric**: Sets specific atmosphere determined by magnitude
+- **Focusing**: Restore focus to current pool determined by magnitude
+- **Advancing**: Advance flow battery by x steps determined by magnitude
+- **Promising**: Move obligation to position x determined by magnitude and gain rapport
 - **None**: No effect on success
 
 #### Failure (effect type on failure)
@@ -1218,12 +980,6 @@ Effect magnitudes are determined by difficulty level, not hardcoded:
 - **Medium**: Magnitude 2
 - **Hard**: Magnitude 3
 - **Very Hard**: Magnitude 4
-
-Atmosphere can modify these base magnitudes:
-- **Volatile**: All rapport effects ±1
-- **Focused**: All success magnitudes +1
-- **Exposed**: All magnitudes doubled
-- **Synchronized**: Effect happens twice
 
 ### Player Stats System
 
@@ -1290,7 +1046,7 @@ The player owns a single conversation deck used in all conversations:
 
 Each NPC maintains four persistent decks plus a request system:
 
-**Four Persistent Decks**:
+**Persistent Decks**:
 1. **Signature Deck**: Unique cards unlocked by token thresholds
    - Not drawn at start - shuffled into player deck
    - Represents the specific relationship with this NPC
@@ -1315,15 +1071,15 @@ Each NPC maintains four persistent decks plus a request system:
    - Cards show trades: resource A → resource B
 
 **Request System**:
-NPCs don't have a "Request Deck" but rather a list of Requests. Each Request is a higher-level bundle containing:
-- **Request Cards**: Multiple cards representing different goal thresholds (basic, enhanced, premium)
-- **Promise Cards**: Associated cards that can force queue position and burn tokens
-- **Status Tracking**: Whether the request is available, completed, or failed
-- **Narrative Context**: The story reason for this request
+  NPCs don't have a "Request Deck" but rather a list of Requests. Each Request is a higher-level bundle containing:
+  - **Request Cards**: Multiple cards representing different goal thresholds (basic, enhanced, premium)
+  - **Promise Cards**: Associated cards that can force queue position and burn tokens
+  - **Status Tracking**: Whether the request is available, completed, or failed
+  - **Narrative Context**: The story reason for this request
 
-When a player chooses a request conversation type, ALL cards from that Request bundle (both request cards and promise cards) are added to the conversation draw pile.
+When a player chooses a request conversation type, ALL cards from that Request bundle (both request cards and promise cards) are added to the conversation. Request cards are added to the request pile and promise cards are shuffled into the draw pile.
 
-### Three-Pile System
+### Four-Pile System
 
 #### Draw Pile
 - Created at conversation start from player deck + NPC signature cards + observation cards
@@ -1340,26 +1096,11 @@ When a player chooses a request conversation type, ALL cards from that Request b
 - Cards removed by Impulse/Opening go here
 - Shuffled to create new draw pile when needed
 
-### Starting a Conversation
-
-1. **Pay time cost** (1 segment base)
-2. **Choose conversation type** (based on available NPC decks and requests)
-3. **Build draw pile**:
-   - All player deck cards (20+)
-   - Unlocked NPC signature cards (based on tokens)
-   - All observation deck cards (if any)
-   - If request conversation: ALL cards from selected Request bundle
-4. **Shuffle draw pile**
-5. **Starting rapport** = 0 (no token modifier)
-6. **Draw initial hand** = cards based on connection state
-   - Disconnected: 3 cards
-   - Guarded: 3 cards
-   - Neutral: 4 cards
-   - Receptive: 4 cards
-   - Trusting: 5 cards
-7. **Set focus** to connection state maximum
-8. **Apply personality rule** for this NPC type
-9. **Request cards start unplayable** (if present)
+#### Request Pile
+- Request cards go here
+- Must be unlocked by reaching the card's rapport threshold
+- All unlockable cards get moved to Active Pile on next Listen
+- Request cards in Active Pile are always playable with 100% success chance, ending the conversation when played
 
 ### LISTEN Action
 
@@ -1380,11 +1121,8 @@ Complete sequence:
    - Pressured: Draw 1 fewer card
    - Prepared: Add +1 to current focus
 6. **Check request card activation**:
-   - Check ALL goal cards in hand for rapport thresholds
+   - Check ALL goal cards for rapport thresholds
    - Each card that meets its threshold becomes playable
-   - All activated cards gain Impulse AND Opening properties
-   - Player must choose ONE activated goal immediately
-   - Unchosen goals are lost
 7. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
 
 ### SPEAK Action
@@ -1409,8 +1147,8 @@ Complete sequence:
 9. **Apply personality effects** (like Devoted's double rapport loss)
 10. **Check flow transitions**:
     - At ±3: State change, flow resets to 0
-11. **If Success**: Can SPEAK again if focus remains
-12. **If Failure**: Next action must be LISTEN
+11. **If Success**: Execute Card Success Effect. Can SPEAK again if focus remains
+12. **If Failure**: Execute Card Failure Effect. Next action must be LISTEN
 
 ### Promise Cards - Queue Manipulation
 
@@ -1826,231 +1564,6 @@ Strategic patterns emerge:
 - **Heavy Commitment**: One major obligation for maximum profit
 - **Mixed Approach**: Balance obligations with tools and consumables
 
-## Strategic Resource Management
-
-### Resource Pressure Points
-
-#### Morning Segment Efficiency
-- Morning blocks have quiet spots (1 segment → +2 familiarity)
-- Afternoon blocks have busy spots (1 segment → +1 familiarity)
-- Using morning for travel wastes investigation efficiency
-- Creates pressure to optimize morning activities
-
-#### Work Block Commitment
-- Work consumes entire 4-segment block
-- Cannot mix work with other activities in same block
-- Hunger affects output: 5 - floor(hunger/25) coins
-- Creates pressure to eat before working
-
-#### Weight Capacity Limits
-- 10 weight maximum with no exceptions
-- Letters (1), packages (1-6), tools (1-3), consumables (1)
-- Path restrictions based on current weight
-- Creates constant trade-off decisions
-
-#### Focus Depletion Cascade
-- Need high-rapport goal card → Must build significant rapport
-- Building rapport needs successful cards → Requires good flow
-- Good flow needs consistent success → Must manage risk
-- Failure forces LISTEN → Lose most cards, costs patience
-- Limited patience → Must be efficient with plays
-
-#### Promise Card Calculus
-- Want higher reward tier → Need more rapport than achievable
-- Promise card offers +10 rapport → Guarantees threshold
-- But moves obligation to position 1 → Displaces current queue
-- Burns tokens with displaced NPCs → Reduces future signature cards
-- Creates narrative emergence → Sacrifice visible to all
-
-#### Queue Displacement Cascade
-- Need urgent delivery → Must displace
-- Displacement burns tokens → Lose relationship progress
-- Fewer tokens → Fewer signature cards in conversations
-- Fewer signature cards → Harder conversations
-- Harder conversations → More likely to fail requests
-- Failed requests → Burden cards accumulate
-
-### Resource Conservation Strategies
-
-#### Token Preservation
-- Accept fixed queue positions to avoid burning
-- Focus deliveries on specific NPCs for concentrated tokens
-- Use observations to improve success without token cost
-- Build tokens with easy deliveries before hard ones
-
-#### Focus Efficiency
-- Chain low-focus cards before failure forces LISTEN
-- Use atmosphere to expand capacity
-- Recognize when to play safe vs risk failure
-- Plan around personality restrictions
-
-#### Segment Efficiency
-- Investigate during morning blocks for better returns
-- Chain obligations in same location
-- Use quick exchanges when full conversation not needed
-- Work when hunger is low for maximum output
-
-#### Weight Optimization
-- Bundle light obligations to same destination
-- Drop low-value items for critical capacity
-- Consume food strategically to free weight
-- Choose tools that enable valuable paths
-
-#### Time Optimization
-- Plan routes to minimize travel segments
-- Accept letters with compatible deadlines
-- Use wait actions strategically
-- Investigate early for cascading benefits
-
-### Stat Development Strategy
-
-#### Focused Development
-Specializing in 1-2 stats creates powerful but narrow capabilities:
-- Faster to reach high levels
-- Unlocks specialized paths and investigations
-- Vulnerable to personality mismatches
-- Some content becomes inaccessible
-
-#### Balanced Development  
-Spreading XP across all stats maintains flexibility:
-- Slower progression overall
-- Access to all content eventually
-- Can handle any personality
-- Less powerful in any specific approach
-
-#### Grinding Strategies
-- Target Level 1 strangers matching weak stats for safe practice
-- Challenge Level 3 strangers in strong stats for rapid advancement
-- Time stranger encounters around resource needs
-
-## Economic Balance Points
-
-### Daily Segment Budget
-
-24 segments per day allow various strategies:
-- Pure investigation: 24 investigations (impossible to sustain)
-- Balanced approach: 1 work block (4) + 4 conversations (4) + 4 investigations (4) + travel (12)
-- Relationship focus: 8 conversations + travel
-- Economic focus: 2 work blocks + minimal other activities
-
-Stranger-Heavy Day:
-- 3 stranger conversations (3 segments, ~30 XP, 15 coins)
-- 2 named NPC conversations (2 segments, obligations)
-- 4 investigations (4 segments, familiarity)
-- Travel (15 segments)
-
-The rigid time blocks force activity chunking. You cannot spread work across the day but must commit entire blocks.
-
-### Work Profitability Analysis
-
-- **Hunger 0**: 5 coins for 4 segments = 1.25 coins/segment
-- **Hunger 25**: 4 coins for 4 segments = 1 coin/segment
-- **Hunger 50**: 3 coins for 4 segments = 0.75 coins/segment
-- **Hunger 75**: 2 coins for 4 segments = 0.5 coins/segment
-- **Hunger 100**: 1 coin for 4 segments = 0.25 coins/segment
-
-Food cost: 2-3 coins typically (weight 1)
-Break-even: Must work at hunger <50
-
-### Letter Profitability
-
-Request cards have fixed terms (no negotiation):
-- **Light letter** (weight 1): 5-8 coins, 2-6 hour deadline
-- **Package delivery** (weight 3): 10-15 coins, 4-8 hour deadline
-- **Heavy cargo** (weight 5): 15-20 coins, 8-12 hour deadline
-
-Success builds tokens for signature cards:
-- First delivery: +1 token = 1 signature card available
-- Chain effect: More tokens → more signature cards → easier conversations
-
-Failure costs:
-- -2 tokens with sender (lose signature cards)
-- +2 burden cards
-- Relationship damage compounds
-
-### Token Investment Mathematics
-
-Signature cards unlocked by tokens:
-- **1 token**: Basic signature card available
-- **3 tokens**: 2 signature cards in deck
-- **6 tokens**: 3 powerful cards mixed in
-- **10 tokens**: 4 signature cards active
-- **15 tokens**: All 5 signature cards
-- Each signature card fundamentally changes conversation dynamics
-
-Burning tokens for displacement:
-- Displacing 1 position: 1 token
-- Displacing 3 positions: 6 tokens total
-- Displacing 5 positions: 15 tokens total
-- Burning tokens doesn't remove unlocked cards but damages relationship
-
-### Investigation Return on Investment
-
-Morning investigation (Quiet spot):
-- Cost: 1 segment
-- Gain: +2 familiarity
-- Efficiency: 2 familiarity per segment
-
-Afternoon investigation (Busy spot):
-- Cost: 1 segment
-- Gain: +1 familiarity
-- Efficiency: 1 familiarity per segment
-
-Reaching familiarity 3:
-- Optimal: 2 morning segments (2 familiarity each)
-- Suboptimal: 3 afternoon segments (1 familiarity each)
-- Difference: 50% more time cost
-
-Each familiarity level unlocks one observation:
-- Familiarity 1: First observation (card or item)
-- Familiarity 2: Second observation (requires first)
-- Familiarity 3: Third observation (requires second)
-
-### Focus Management Economics
-
-**Disconnected** (3 capacity):
-- Can play: Three 1-focus OR one 3-focus
-- Failure forces LISTEN, lose non-persistent cards
-- Must rebuild hand from new draws
-
-**Neutral** (5 capacity):
-- Can play: Five 1-focus OR one 5-focus
-- Can reach request cards
-- Sweet spot for most conversations
-
-**Trusting** (6 capacity):
-- Maximum flexibility
-- 5 cards drawn on LISTEN
-- Best recovery from forced topic changes
-
-Prepared atmosphere value:
-- Adds +1 focus to current capacity
-- In Disconnected: Enables 4-focus card (impossible otherwise)
-- In Guarded: Enables 5-focus request cards
-- Worth 1 turn setup in long conversations
-
-### Stranger Economy
-
-**Resource Generation Rates**:
-- Level 1 Stranger: 2-6 coins per conversation (5-10 minutes)
-- Level 2 Stranger: 4-12 coins worth (5-10 minutes)
-- Level 3 Stranger: 6-20 coins worth (5-10 minutes)
-
-**XP Generation Rates**:
-- Level 1: ~5-8 XP per conversation (playing 5-8 cards)
-- Level 2: ~10-16 XP per conversation  
-- Level 3: ~15-24 XP per conversation
-
-**Efficiency Comparison**:
-- Work: 5 coins per 4 segments (guaranteed)
-- Level 2 Stranger: 4-12 coins per 1 segment (variable)
-- Strangers more efficient but limited availability
-
-**Strategic Timing**:
-- Morning: Grind strangers before NPCs wake
-- Afternoon: Complete obligations when locations busy
-- Evening: Final stranger conversations for resources
-
 ## Resource Conversion Chains
 
 ### Time → Money → Progress
@@ -2263,75 +1776,7 @@ Exchanges provide:
 
 ## No Soft-Lock Architecture
 
-Every system has escape valves preventing unwinnable states:
-
-### Conversation Deadlocks - Never Stuck
-
-**Problem**: All cards too expensive for current focus
-**Solution**: Starting deck has multiple 1-focus cards
-
-**Problem**: Request card requires 5 focus, stuck in Disconnected
-**Solution**: Can leave and return with better preparation or leveled cards
-
-**Problem**: No rapport, everything failing
-**Solution**: 70% base success on easy cards still likely
-
-**Problem**: Personality rule makes cards unplayable
-**Solution**: LISTEN changes available cards, resets some restrictions
-
-**Problem**: Failed and must LISTEN, no patience left
-**Solution**: Can leave conversation and try different approach
-
-### Queue Deadlocks - Always Options
-
-**Problem**: Queue full, can't accept new letters
-**Solution**: Can drop letters (with relationship cost)
-
-**Problem**: Can't reach position 1 in time
-**Solution**: Can displace with tokens (if available)
-
-**Problem**: No tokens to displace
-**Solution**: Can let deadline pass, accept consequences
-
-**Problem**: Critical letter blocked by trivial ones
-**Solution**: Can complete trivial ones quickly
-
-**Problem**: Weight capacity prevents accepting profitable letter
-**Solution**: Can drop items or consume food to make space
-
-### Travel Deadlocks - Multiple Paths
-
-**Problem**: Need permit but can't afford
-**Solution**: Multiple NPCs provide same permits
-
-**Problem**: Route blocked by weight restrictions
-**Solution**: Can drop items or take struggle path
-
-**Problem**: No segments for travel
-**Solution**: Wait for next time block
-
-**Problem**: Location inaccessible
-**Solution**: Observations can unlock alternate routes
-
-### Resource Deadlocks - Recovery Possible
-
-**Problem**: No segments left today
-**Solution**: Wait for next day (future content)
-
-**Problem**: No money for food
-**Solution**: Can work even when hungry (reduced output)
-
-**Problem**: No signature cards with NPC
-**Solution**: Base deck still functional, can earn tokens
-
-**Problem**: Health critically low
-**Solution**: Rest options available (TBD)
-
-**Problem**: Deck too weak for NPC
-**Solution**: Can gain cards elsewhere, level existing cards
-
-**Problem**: Satchel at capacity
-**Solution**: Can drop items, consume food, or deliver obligations
+Every system has escape valves preventing unwinnable states.
 
 ## Content Scalability
 
@@ -2404,39 +1849,6 @@ When creating stranger NPCs:
 - **No Signature Cards**: Don't have unique cards
 - **Resource Focus**: Primary purpose is resources and XP
 
-## The Holistic Experience
-
-### Daily Routine Example
-
-**Morning Block (6-10 AM)**:
-- Check queue, see deadlines and weights
-- Consume food if hungry (frees weight)
-- Investigate quiet locations for maximum familiarity
-- Accept morning letters if weight permits
-- Consider working if coins needed
-
-**Afternoon Block (10 AM - 2 PM)**:
-- Locations shift to busy
-- Investigation less efficient
-- Focus on conversations and deliveries
-- Complete position 1 obligations
-- Use observations and signature cards gained
-- Weight management becomes critical
-
-**Evening Block (2-6 PM)**:
-- Locations begin closing
-- Rush to complete deadlines
-- Make difficult displacement decisions
-- Burn tokens if necessary
-- Drop items if weight prevents critical delivery
-
-**Night Block (6-10 PM)**:
-- Limited location access
-- Focus on available NPCs
-- Rest and recovery options
-- Plan next day's route considering weight
-- Consider deck thinning if coins available
-
 ### Emergent Narratives
 
 Stories emerge from mechanical interaction, not scripting:
@@ -2490,87 +1902,6 @@ Stories emerge from mechanical interaction, not scripting:
 - But sacrifices maximum delivery capacity
 - Strategic tool investment over pure profit
 
-## Content Loading System
-
-### Package Architecture
-
-Content organized in self-contained JSON packages that can:
-- Load in any order
-- Reference non-existent content
-- Be generated by AI
-- Replace skeleton content
-
-### Package Structure
-
-```json
-{
-  "packageId": "unique_package_id",
-  "metadata": {
-    "name": "Package Name",
-    "timestamp": "2025-01-01T00:00:00Z",
-    "description": "Package description",
-    "author": "Author name",
-    "version": "1.0.0"
-  },
-  "startingConditions": {
-    "coins": 10,
-    "health": { "current": 100, "max": 100 },
-    "hunger": { "current": 50, "max": 100 },
-    "playerDeck": ["hear_you_1", "hear_you_2", ...],
-    "satchelWeight": { "current": 3, "max": 10 }
-  },
-  "content": {
-    "cards": [...],
-    "npcs": [...],
-    "locations": [...],
-    "spots": [...],
-    "routes": [...],
-    "observations": [...],
-    "items": [...]
-  }
-}
-```
-
-### Skeleton System
-
-When content references missing entities:
-
-1. **Detection**: PackageLoader detects missing reference
-2. **Generation**: SkeletonGenerator creates placeholder
-   - Mechanically complete (all required stats)
-   - Narratively generic (procedural names)
-   - Deterministic (same ID → same skeleton)
-3. **Registration**: Tracked in SkeletonRegistry
-4. **Resolution**: Real content replaces skeleton
-5. **State Preservation**: Accumulated state transfers
-
-Example skeleton NPC:
-```
-Name: "Unnamed Merchant #47"
-Personality: Mercantile (from hash)
-Patience: 12 (from personality)
-State: Neutral (default)
-Signature deck: 5 generic cards
-Request list: Empty
-IsSkeleton: true
-```
-
-### Load Order Independence
-
-Packages can load in any sequence:
-- Package A references Location X (doesn't exist)
-- Skeleton created for Location X
-- Package B defines Location X
-- Skeleton replaced with real Location X
-- Game remains playable throughout
-
-### Content Directories
-
-- `Content/Core/`: Essential game content including starting deck
-- `Content/Expansions/`: Additional content packs
-- `Content/Generated/`: AI-generated packages
-- `Content/TestPackages/`: Testing content
-
 ## Core Innovation Summary
 
 The core gameplay loop is **conversations as character progression**:
@@ -2619,79 +1950,6 @@ The loop is crystal clear:
 This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and deck building rather than combat statistics.
 
 The stat system transforms character progression from card-specific mastery to developing problem-solving methodologies. Players literally become better conversationalists by practicing different approaches - analytical, empathetic, authoritative, mercantile, or cunning. These developed competencies then unlock investigation methods and travel paths, making conversation truly the engine for all progression. Stranger encounters provide the "grinding" layer expected from RPGs while maintaining focus on meaningful relationships with named NPCs.
-
-## Design Verification Checklist
-
-### Categorical Consistency ✓
-- Every card defined by exactly four categorical properties
-- No card has hardcoded effect values
-- Magnitude emerges from difficulty level
-- Certain property combinations avoided for versimilitude:
-  - Impulse + Atmospheric (setting tone requires thought)
-  - Opening + Advancing (too powerful for time-limited opportunity)
-  - Thought + Regret (thoughts don't expire with consequence)
-
-### Clean Mechanical Separation ✓
-- Player owns conversation deck (social skills)
-- NPCs provide signature cards (relationship expression)
-- Personality rules modify play space
-- Weight system creates physical constraints
-- Time segments represent actual duration
-- Each mechanic has exactly ONE purpose
-
-### Perfect Information ✓
-- All calculations visible to player
-- Success rates shown before playing cards
-- Personality rules displayed at conversation start
-- Focus costs displayed on all cards
-- Token thresholds for signature cards shown
-- Weight limits clearly stated
-- Path restrictions visible once discovered
-
-### Linear Scaling ✓
-- Each rapport point: exactly +2% success
-- Each token: unlocks cards at fixed thresholds
-- Each 25 hunger: exactly -1 coin from work
-- Each patience: exactly 1 turn
-- Each card level: specific defined benefit
-- Each weight point: reduces capacity by 1
-- Only exception: Flow ±3 triggers state change
-
-### No Soft-Locks ✓
-- Starting deck has multiple 1-focus cards
-- Work always possible even at max hunger
-- Struggle paths available at any weight
-- Can leave conversations at any time
-- Can drop items to manage weight
-- Can complete requests for new cards
-- Multiple sources for same permits
-- Deck thinning available to refine strategy
-
-### Resource Flow ✓
-- Cards flow from requests to deck to mastery
-- Tokens flow from deliveries to signature cards
-- XP flows from successful plays to card levels
-- Familiarity flows from investigation to observations
-- Time flows through segments creating pressure
-- Weight flows through all systems creating trade-offs
-
-### Emergent Complexity ✓
-- Simple personality rules create different puzzles
-- Card combinations enable various strategies
-- Token relationships shape available tools
-- Failure forcing LISTEN creates natural rhythm
-- Weight limits force meaningful choices
-- Time segments create activity patterns
-- Player deck reflects personal playstyle
-- Every conversation is practice toward mastery
-
-### ADD Checks
-- Every card has exactly one stat binding ✓
-- Strangers never give tokens ✓
-- All paths check either permits OR stats ✓
-- Investigation has 5 stat approaches + standard ✓
-- XP scales correctly with difficulty ✓
-- Stat progression matches RPG power curve ✓
 
 ## Critical Formulas Reference
 
