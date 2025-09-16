@@ -13,7 +13,15 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6206\" dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6207\" dotnet run --no-build)",
       "Bash(dotnet build)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_take_screenshot",
+      "Bash(dotnet run:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []

@@ -79,7 +79,6 @@
 }
 
 .npc-info {
-    flex: 1;
 }
 
 .npc-name {
@@ -121,7 +120,7 @@
 
 /* Patience Display */
 .patience-display {
-    text-align: right;
+    text-align: left;
 }
 
 .patience-label {
@@ -853,6 +852,8 @@
 .cards-section {
     padding: 20px;
     background: #f4e8d0;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .cards-header {
@@ -1224,6 +1225,12 @@
     padding: 8px 20px;
     min-width: 200px;
     text-align: center;
+}
+
+.current-state .state-rules {
+    font-size: 11px;
+    color: #7a6250;
+    margin-top: 4px;
 }
 
 .state-name {

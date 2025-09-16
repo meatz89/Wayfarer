@@ -119,11 +119,11 @@ public class ConversationOrchestrator
             RequestText = requestText // Set request text for Request conversations
         };
 
-        // FIRST: Add ALL request cards to active pile immediately if present
-        // This ensures they're all visible from the very start of the conversation
+        // FIRST: Add ALL request cards to request pile (not active pile)
+        // They will be moved to active pile when rapport threshold is met
         if (requestCards != null && requestCards.Any())
         {
-            session.ActiveCards.AddRange(requestCards);
+            session.RequestPile.AddRange(requestCards);
         }
 
         // THEN: Perform initial draw of regular cards

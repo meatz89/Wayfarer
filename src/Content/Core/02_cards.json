@@ -407,6 +407,7 @@
         "connectionType": "Trust",
         "description": "Make Elena my priority",
         "difficulty": "Easy",
+        "rapportThreshold": 5,
         "successEffect": {
           "type": "ForceQueuePosition",
           "value": "1"

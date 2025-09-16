@@ -33,41 +33,31 @@
                 <div class="npc-name">@NpcName</div>
                 <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
-            <div class="personality-badge">@GetPersonalityRuleShort()</div>
-        </div>
 
-            <!-- State and Flow Section (Grouped) -->
-            <div class="state-flow-section">
-                <div class="emotional-state">
-                    <span class="state-label">Connection State:</span>
-                    <span class="state-name">@GetConnectionStateDisplay()</span>
-                    <span class="state-effects">(@GetConnectionStateInfo())</span>
+            <!-- Flow State Container -->
+            <div class="flow-container">
+                <div class="flow-negative">
+                    @for (int i = -3; i <= -1; i++)
+                    {
+                        <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                    }
                 </div>
 
-                
-                <!-- Flow State Bar -->
-                <div class="flow-state-bar">
-                    <div class="flow-container">
-                        <div class="flow-negative">
-                            @for (int i = -3; i <= -1; i++)
-                            {
-                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                            }
-                        </div>
+                <div class="current-state">
+                    <div class="state-name">@GetConnectionStateDisplay()</div>
+                    <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
+                </div>
 
-                        <div class="current-state">
-                            <div class="state-name">@GetConnectionStateDisplay()</div>
-                        </div>
-
-                        <div class="flow-positive">
-                            @for (int i = 1; i <= 3; i++)
-                            {
-                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                            }
-                        </div>
-                    </div>
+                <div class="flow-positive">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                    }
                 </div>
             </div>
+
+            <div class="personality-badge">@GetPersonalityRuleShort()</div>
+        </div>
 
             <!-- Win/Lose Conditions Bar -->
             <div class="conditions-bar">

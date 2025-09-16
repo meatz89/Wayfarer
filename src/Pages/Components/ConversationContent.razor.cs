@@ -243,6 +243,9 @@ namespace Wayfarer.Pages.Components
                     Console.WriteLine("[ConversationContent.ExecuteListen] Skipping narrative generation - already applied initial narrative");
                 }
 
+                // Check request pile for newly available cards based on rapport
+                CheckRequestPileThresholds();
+
                 // Track newly drawn cards for slide-in animation
                 List<CardInstance> currentCards = Session?.HandCards?.ToList() ?? new List<CardInstance>();
                 TrackNewlyDrawnCards(previousCards, currentCards);
@@ -1258,6 +1261,38 @@ namespace Wayfarer.Pages.Components
             }
             
             return card.Context.RapportThreshold;
+        }
+
+        private void CheckRequestPileThresholds()
+        {
+            if (Session?.RequestPile == null || Session.RapportManager == null) return;
+
+            var currentRapport = Session.RapportManager.CurrentRapport;
+            var cardsToMove = new List<CardInstance>();
+
+            foreach (var card in Session.RequestPile)
+            {
+                var threshold = GetRequestRapportThreshold(card);
+                if (currentRapport >= threshold)
+                {
+                    cardsToMove.Add(card);
+                }
+            }
+
+            foreach (var card in cardsToMove)
+            {
+                Session.RequestPile.Remove(card);
+                Session.ActiveCards.Add(card);
+
+                // Notify player
+                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+                if (messageSystem != null)
+                {
+                    string cardName = GetCardName(card);
+                    string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
+                    messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+                }
+            }
         }
 
         protected int GetCurrentRapport()
@@ -3115,16 +3150,16 @@ namespace Wayfarer.Pages.Components
     {
         if (Session?.NPC == null) return "";
 
-        // Get the personality type and create a short rule description
+        // Get the actual mechanical rules from the personality type
         var personality = Session.NPC.PersonalityType;
         return personality switch
         {
-            PersonalityType.DEVOTED => "Devoted: Strong emotional bonds",
-            PersonalityType.MERCANTILE => "Mercantile: Trade focused",
-            PersonalityType.PROUD => "Proud: Status conscious",
-            PersonalityType.CUNNING => "Cunning: Information focused",
-            PersonalityType.STEADFAST => "Steadfast: Duty bound",
-            _ => $"{personality}: Unique traits"
+            PersonalityType.DEVOTED => "Devoted: Rapport losses doubled",
+            PersonalityType.MERCANTILE => "Mercantile: Highest focus +30% success",
+            PersonalityType.PROUD => "Proud: Cards must ascend in focus",
+            PersonalityType.CUNNING => "Cunning: Same focus as prev -2 rapport",
+            PersonalityType.STEADFAST => "Steadfast: Rapport changes capped ±2",
+            _ => $"{personality}: Special rules apply"
         };
     }
 
@@ -3175,13 +3210,56 @@ namespace Wayfarer.Pages.Components
     {
         var goals = new List<RequestGoal>();
 
-        if (Session?.RapportManager == null) return goals;
+        // First check if we have an active session with request cards
+        if (Session?.ActiveCards != null)
+        {
+            // Look for request/promise cards that are already loaded in the session
+            var requestCardsInSession = Session.ActiveCards.Cards
+                .Concat(Session.DrawPile?.Cards ?? new List<CardInstance>())
+                .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
+                .Where(c => c.Template?.RapportThreshold > 0)
+                .GroupBy(c => c.Template.RapportThreshold)
+                .OrderBy(g => g.Key);
 
-        // Get the current request and its thresholds
-        // This is typically 5, 10, 15 rapport for standard conversations
-        goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "Small gain" });
-        goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "Medium gain" });
-        goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "Large gain" });
+            foreach (var group in requestCardsInSession)
+            {
+                var threshold = group.Key;
+                var firstCard = group.First();
+
+                // Determine reward based on threshold
+                string reward = threshold switch
+                {
+                    <= 5 => "1 Trust token",
+                    <= 10 => "2 Trust tokens",
+                    <= 15 => "3 Trust tokens + Observation",
+                    _ => "Special reward"
+                };
+
+                // Use descriptive name based on threshold
+                string goalName = threshold switch
+                {
+                    <= 5 => "Basic Delivery",
+                    <= 10 => "Priority Delivery",
+                    <= 15 => "Immediate Action",
+                    _ => firstCard.Template?.Description ?? "Special Request"
+                };
+
+                goals.Add(new RequestGoal
+                {
+                    Threshold = threshold,
+                    Name = goalName,
+                    Reward = reward
+                });
+            }
+        }
+
+        // Fallback to hardcoded goals if no session cards found
+        if (!goals.Any())
+        {
+            goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "1 Trust token" });
+            goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "2 Trust tokens" });
+            goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "3 Trust tokens + Observation" });
+        }
 
         return goals;
     }

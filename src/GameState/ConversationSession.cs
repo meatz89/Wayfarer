@@ -39,9 +39,14 @@ public class ConversationSession
     public int HiddenMomentum { get; set; } = 0; // Invisible bad luck protection
 
     public List<CardInstance> ObservationCards { get; set; } = new();
-    
+
     // NPC-specific observation cards (from NPC's ObservationDeck)
     public List<CardInstance> NPCObservationCards { get; set; } = new();
+
+    /// <summary>
+    /// Request cards waiting for rapport threshold to be met
+    /// </summary>
+    public List<CardInstance> RequestPile { get; set; } = new List<CardInstance>();
     
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
