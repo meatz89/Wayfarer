@@ -328,6 +328,11 @@ namespace Wayfarer.Pages.Components
                 CardInstance playedCard = SelectedCard;
                 int cardPosition = GetCardPosition(playedCard);
 
+                // Immediately add card to animating cards with "processing" state
+                // This keeps the card visible while backend processes
+                AddAnimatingCard(playedCard, false, cardPosition); // Start with "failure" style as processing
+                StateHasChanged(); // Update UI to show the card in processing state
+
                 // ExecuteSpeak expects a single card - this removes it from hand
                 ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
                 CardPlayResult result = turnResult?.CardPlayResult;
@@ -372,11 +377,14 @@ namespace Wayfarer.Pages.Components
                 }
                 StateHasChanged(); // Show the narrative text
 
-                // Mark the played card with success/failure animation
-                // The card is now removed from hand, but we'll keep it in AnimatingCards for display
+                // Update the card animation to show actual success/failure result
+                // The card was already added to AnimatingCards before the backend call
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
+
+                // Remove the old "processing" animation and add the correct result animation
+                AnimatingCards.RemoveAll(c => c.Card.InstanceId == playedCard.InstanceId);
                 AddAnimatingCard(playedCard, wasSuccessful, cardPosition);
-                StateHasChanged(); // Show the card animation
+                StateHasChanged(); // Update the card animation to show result
 
                 // Delay to let player see the result clearly
                 await Task.Delay(750);

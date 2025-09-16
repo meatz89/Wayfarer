@@ -38,7 +38,7 @@
             <div class="flow-state-wrapper">
                 <div class="flow-container">
                     <div class="flow-negative">
-                        @for (int i = -3; i <= -1; i++)
+                        @for (int i = -1; i >= -3; i--)
                         {
                             <span class="flow-segment @GetFlowSegmentClass(i)"></span>
                         }
@@ -115,7 +115,6 @@
 
     <!-- Action Choice (from mockup) -->
     <div class="action-section">
-        @* Commerce removed - exchanges use separate Exchange system *@
         @if (!IsConversationExhausted)
         {
             <div class="action-choices">
@@ -203,13 +202,13 @@
                             </div>
                             <div class="card-outcomes">
                                 <div class="outcome success">
-                                    <div class="outcome-chance">100%</div>
                                     <div class="outcome-label">Success</div>
+                                    <div class="outcome-chance">100%</div>
                                     <div class="outcome-effect">@GetSuccessEffectDescription(obsCard)</div>
                                 </div>
                                 <div class="outcome consumed">
-                                    <div class="outcome-chance">Used</div>
                                     <div class="outcome-label">Consumed</div>
+                                    <div class="outcome-chance">Used</div>
                                     <div class="outcome-effect">Card removed after playing</div>
                                 </div>
                             </div>
@@ -298,13 +297,13 @@
                                     @* Two-column Success/Failure layout *@
                                     <div class="card-outcomes">
                                         <div class="outcome success">
-                                            <div class="outcome-chance">100%</div>
                                             <div class="outcome-label">Always Succeeds</div>
+                                            <div class="outcome-chance">100%</div>
                                             <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                                         </div>
                                         <div class="outcome">
-                                            <div class="outcome-chance">Ends</div>
                                             <div class="outcome-label">Conversation</div>
+                                            <div class="outcome-chance">Ends</div>
                                             <div class="outcome-effect">Complete</div>
                                         </div>
                                     </div>
@@ -371,17 +370,17 @@
                                     @* Two-column Success/Failure layout *@
                                     <div class="card-outcomes">
                                         <div class="outcome success">
+                                            <div class="outcome-label">Success</div>
                                             <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
                                             @if (GetRapportModifier() != 0 || GetLevelBonus(convCard) != 0 || GetPersonalityModifier(convCard) != 0)
                                             {
                                                 <div class="outcome-modifiers">@GetSuccessModifierBreakdown(convCard)</div>
                                             }
-                                            <div class="outcome-label">Success</div>
                                             <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
                                         </div>
                                         <div class="outcome failure">
-                                            <div class="outcome-chance">@GetFailureChance(convCard)%</div>
                                             <div class="outcome-label">Failure</div>
+                                            <div class="outcome-chance">@GetFailureChance(convCard)%</div>
                                             <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
                                         </div>
                                     </div>
