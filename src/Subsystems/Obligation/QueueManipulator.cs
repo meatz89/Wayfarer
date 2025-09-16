@@ -699,7 +699,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (IsQueueFull())
             {
                 _messageSystem.AddSystemMessage(
-                    $"🚫 Cannot accept obligation from {obligation.SenderName} - your queue is completely full!",
+                    $"Cannot accept obligation from {obligation.SenderName} - your queue is completely full!",
                     SystemMessageTypes.Danger
                 );
                 return false;
@@ -717,7 +717,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (GetLetterAt(1) != null)
             {
                 _messageSystem.AddSystemMessage(
-                    "❌ Cannot skip - position 1 is already occupied!",
+                    "Cannot skip - position 1 is already occupied!",
                     SystemMessageTypes.Danger
                 );
                 return false;
@@ -737,7 +737,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (!_tokenManager.HasTokens(letter.TokenType, tokenCost))
             {
                 _messageSystem.AddSystemMessage(
-                    $"❌ Insufficient {letter.TokenType} tokens! Need {tokenCost}, have {_tokenManager.GetTokenCount(letter.TokenType)}",
+                    $"Insufficient {letter.TokenType} tokens! Need {tokenCost}, have {_tokenManager.GetTokenCount(letter.TokenType)}",
                     SystemMessageTypes.Danger
                 );
                 return false;

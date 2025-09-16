@@ -195,7 +195,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             result.AffectedMeeting = meeting;
 
             _messageSystem.AddSystemMessage(
-                $"❌ Canceled meeting with {meeting.RequesterName}",
+                $"Canceled meeting with {meeting.RequesterName}",
                 SystemMessageTypes.Warning
             );
 

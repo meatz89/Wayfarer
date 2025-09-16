@@ -270,7 +270,6 @@ public static class NPCParser
             "Work" => ServiceTypes.Work,
             "Information" => ServiceTypes.Information,
             "Lodging" => ServiceTypes.Rest,
-            // "Shadow" is not a service type, skip it
             "equipment_commissioning" => ServiceTypes.EquipmentRepair,
             "workshop_contracts" => ServiceTypes.Training,
             "trade_goods" => ServiceTypes.Trade,

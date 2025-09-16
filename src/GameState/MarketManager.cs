@@ -306,7 +306,7 @@ public class MarketManager
             // Refund if inventory addition failed
             player.Coins += buyPrice;
             _messageSystem.AddSystemMessage(
-                $"❌ Purchase failed - no room in inventory! Coins refunded.",
+                $"Purchase failed - no room in inventory! Coins refunded.",
                 SystemMessageTypes.Warning
             );
             return false;

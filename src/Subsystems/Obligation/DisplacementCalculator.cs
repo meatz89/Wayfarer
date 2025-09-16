@@ -385,7 +385,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             else
             {
                 _messageSystem.AddSystemMessage(
-                    $"❌ Failed to burn tokens with {displacement.DisplacedObligation.SenderName}",
+                    $"Failed to burn tokens with {displacement.DisplacedObligation.SenderName}",
                     SystemMessageTypes.Danger
                 );
             }

@@ -176,7 +176,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 result.TokensCost = extensionCost;
 
                 _messageSystem.AddSystemMessage(
-                    $"  ❌ Insufficient {letter.TokenType} tokens! Need 2, have {_tokenManager.GetTokenCount(letter.TokenType)}",
+                    $"  Insufficient {letter.TokenType} tokens! Need 2, have {_tokenManager.GetTokenCount(letter.TokenType)}",
                     SystemMessageTypes.Danger
                 );
                 return result;

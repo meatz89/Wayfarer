@@ -338,10 +338,10 @@ Each location contains multiple spots with time-based properties:
   "name": "Central Fountain",
   "description": "A gathering place for locals",
   "properties": {
-    "morning": ["quiet"],
-    "midday": ["busy"],
-    "afternoon": ["busy"],
-    "evening": ["closing"]
+    "Morning": ["quiet"],
+    "Midday": ["busy"],
+    "Afternoon": ["busy"],
+    "Evening": ["closing"]
   },
   "canInvestigate": true,
   "npcs": ["marcus_merchant"]
@@ -364,6 +364,42 @@ Investigation costs 1 segment and increases familiarity:
 }
 ```
 
+### Time System
+
+Wayfarer uses a segment-based time system:
+
+#### Time Blocks
+- **Morning** (6 AM - 10 AM): 4 segments
+- **Midday** (10 AM - 2 PM): 4 segments  
+- **Afternoon** (2 PM - 6 PM): 4 segments
+- **Evening** (6 PM - 10 PM): 4 segments
+
+#### Segment Costs
+- Travel: Variable (1-3 segments based on path)
+- Conversation: 1 segment base + patience depth
+- Investigation: 1 segment
+- Observation: 0 segments
+- Work: Entire 4-segment block
+- Exchange: 0 segments
+
+#### Deadline Specification
+```json
+{
+  "deadline": {
+    "type": "segments",
+    "value": 8
+  }
+}
+// OR
+{
+  "deadline": {
+    "type": "specific",
+    "block": "Afternoon",
+    "segment": 4
+  }
+}
+```
+
 ---
 
 ## Stranger Encounters
@@ -381,10 +417,10 @@ Strangers are unnamed NPCs for resource generation and stat grinding.
   "level": 1,
   "personality": "Steadfast",
   "availability": {
-    "morning": true,
-    "midday": false,
-    "afternoon": false,
-    "evening": false
+    "Morning": true,
+    "Midday": false,
+    "Afternoon": false,
+    "Evening": false
   },
   "conversations": {
     "friendly_chat": {
@@ -459,22 +495,31 @@ Requests are bundled conversation goals with multiple thresholds.
   "goals": {
     "basic": {
       "threshold": 5,
-      "package": {"weight": 1, "deadline": "5PM"},
+      "package": {"weight": 1, "segmentsUntilDeadline": 8},
       "reward": {"trust": 0, "coins": 0}
     },
     "enhanced": {
       "threshold": 10,
-      "package": {"weight": 2, "deadline": "4PM"},
+      "package": {"weight": 2, "segmentsUntilDeadline": 6},
       "reward": {"trust": 1, "coins": 0}
     },
     "premium": {
       "threshold": 15,
-      "package": {"weight": 3, "deadline": "3PM"},
+      "package": {"weight": 3, "segmentsUntilDeadline": 4},
       "reward": {"trust": 2, "coins": 5}
     }
   }
 }
 ```
+
+### Time System Note
+
+Deadlines use segments, not clock times:
+- **segmentsUntilDeadline**: How many segments until failure
+- **targetBlock**: Specific time block (Morning/Midday/Afternoon/Evening)
+- **targetSegment**: Specific segment within block (1-4)
+
+Example: "8 segments" = 2 full time blocks from acceptance
 
 ### Request Cards
 

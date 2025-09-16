@@ -503,7 +503,7 @@ public class ObligationQueueManager
         if (targetPosition - 1 < 0 || targetPosition - 1 >= queue.Length)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ Critical error: position {targetPosition} is outside queue bounds. Defaulting to last position.",
+                $"Critical error: position {targetPosition} is outside queue bounds. Defaulting to last position.",
                 SystemMessageTypes.Danger
             );
             targetPosition = _config.LetterQueue.MaxQueueSize;
@@ -539,7 +539,7 @@ public class ObligationQueueManager
         if (IsQueueFull())
         {
             _messageSystem.AddSystemMessage(
-                $"🚫 Cannot accept obligation from {obligation.SenderName} - your queue is completely full!",
+                $"Cannot accept obligation from {obligation.SenderName} - your queue is completely full!",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -917,7 +917,7 @@ public class ObligationQueueManager
         if (!IsPlayerAtRecipientLocation(letter))
         {
             _messageSystem.AddSystemMessage(
-                $"❌ Cannot deliver! You must be at {letter.RecipientName}'s location.",
+                $"Cannot deliver! You must be at {letter.RecipientName}'s location.",
                 SystemMessageTypes.Danger
             );
             _messageSystem.AddSystemMessage(
@@ -1400,7 +1400,7 @@ public class ObligationQueueManager
         if (GetLetterAt(1) != null)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ Cannot skip - position 1 is already occupied!",
+                $"Cannot skip - position 1 is already occupied!",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1436,7 +1436,7 @@ public class ObligationQueueManager
         if (!_connectionTokenManager.HasTokens(letter.TokenType, tokenCost))
         {
             _messageSystem.AddSystemMessage(
-                $"  ❌ Insufficient {letter.TokenType} tokens! Need {tokenCost}, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                $"  Insufficient {letter.TokenType} tokens! Need {tokenCost}, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1752,7 +1752,7 @@ public class ObligationQueueManager
         if (letterToPurge == null)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ No letter in position {_config.LetterQueue.MaxQueueSize} to purge!",
+                $"No letter in position {_config.LetterQueue.MaxQueueSize} to purge!",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1768,7 +1768,7 @@ public class ObligationQueueManager
         if (_obligationManager.IsActionForbidden("purge", letterToPurge, out string reason))
         {
             _messageSystem.AddSystemMessage(
-                $"  ❌ Cannot purge: {reason}",
+                $"  Cannot purge: {reason}",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1779,7 +1779,7 @@ public class ObligationQueueManager
         if (totalTokens != 3)
         {
             _messageSystem.AddSystemMessage(
-                $"  ❌ Purging requires exactly 3 tokens! You offered {totalTokens}",
+                $"  Purging requires exactly 3 tokens! You offered {totalTokens}",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1791,7 +1791,7 @@ public class ObligationQueueManager
             if (!_connectionTokenManager.HasTokens(payment.Key, payment.Value))
             {
                 _messageSystem.AddSystemMessage(
-                    $"  ❌ Insufficient {payment.Key} tokens! Need {payment.Value}, have {_connectionTokenManager.GetTokenCount(payment.Key)}",
+                    $"  Insufficient {payment.Key} tokens! Need {payment.Value}, have {_connectionTokenManager.GetTokenCount(payment.Key)}",
                     SystemMessageTypes.Danger
                 );
                 return false;
@@ -1866,7 +1866,7 @@ public class ObligationQueueManager
         if (GetLetterAt(1) != null)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ Cannot priority move - position 1 is already occupied!",
+                $"Cannot priority move - position 1 is already occupied!",
                 SystemMessageTypes.Danger
             );
             return false;
@@ -1885,7 +1885,7 @@ public class ObligationQueueManager
         if (!_connectionTokenManager.HasTokens(letter.TokenType, 5))
         {
             _messageSystem.AddSystemMessage(
-                $"  ❌ Insufficient {letter.TokenType} tokens! Need 5, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                $"  Insufficient {letter.TokenType} tokens! Need 5, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
                 SystemMessageTypes.Danger
             );
             _messageSystem.AddSystemMessage(
@@ -1965,7 +1965,7 @@ public class ObligationQueueManager
         if (!_connectionTokenManager.HasTokens(letter.TokenType, 2))
         {
             _messageSystem.AddSystemMessage(
-                $"  ❌ Insufficient {letter.TokenType} tokens! Need 2, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
+                $"  Insufficient {letter.TokenType} tokens! Need 2, have {_connectionTokenManager.GetTokenCount(letter.TokenType)}",
                 SystemMessageTypes.Danger
             );
             _messageSystem.AddSystemMessage(
@@ -2251,7 +2251,7 @@ public class ObligationQueueManager
         RemoveObligationFromQueue(GetQueuePosition(obligation));
 
         _messageSystem.AddSystemMessage(
-            $"❌ {obligation.SenderName} agrees to cancel the letter delivery",
+            $"{obligation.SenderName} agrees to cancel the letter delivery",
             SystemMessageTypes.Success
         );
         return true;
@@ -2403,7 +2403,7 @@ public class ObligationQueueManager
                 else
                 {
                     _messageSystem.AddSystemMessage(
-                        $"❌ Failed to burn tokens with {displacement.DisplacedObligation.SenderName}",
+                        $"Failed to burn tokens with {displacement.DisplacedObligation.SenderName}",
                         SystemMessageTypes.Danger
                     );
                     return false;
@@ -2559,7 +2559,7 @@ public class ObligationQueueManager
         if (newObligation == null || forcedPosition < 1 || forcedPosition > _config.LetterQueue.MaxQueueSize)
         {
             _messageSystem.AddSystemMessage(
-                $"❌ Invalid displacement request for position {forcedPosition}",
+                $"Invalid displacement request for position {forcedPosition}",
                 SystemMessageTypes.Danger
             );
             return false;

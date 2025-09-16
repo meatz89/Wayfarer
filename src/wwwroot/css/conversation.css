@@ -1,6 +1,11 @@
 /* ===== WAYFARER CONVERSATION SYSTEM CSS ===== */
 /* Complete styling for card-based conversations */
 
+/* Global font family */
+body {
+    font-family: 'Garamond', 'Georgia', serif;
+}
+
 /* === CONVERSATION LAYOUT === */
 
 /* Location Context */
@@ -208,24 +213,34 @@
     gap: 15px;
 }
 
+/* Focus Bar - dark background with golden elements like mockup */
+.focus-bar {
+    background: #3d3429;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
 .focus-label {
     font-size: 11px;
-    color: #7a6250;
+    color: #e8dcc4;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .focus-dots {
     display: flex;
-    gap: 4px;
+    gap: 5px;
 }
 
 .focus-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     border: 1px solid #8b7355;
-    background: #e8dcc4;
+    background: #2c241a;
 }
 
 .focus-dot.available {
@@ -239,7 +254,7 @@
 .focus-numbers {
     font-size: 18px;
     font-weight: bold;
-    color: #5c4a3a;
+    color: #d4a76a;
 }
 
 .focus-note {
@@ -568,20 +583,25 @@
     color: #3a5a3a;
 }
 
-/* Persistence Tags */
+/* Persistence Tags - repositioned like mockup */
 .persistence-tag {
     position: absolute;
     top: 10px;
     right: 10px;
-    padding: 2px 8px;
-    border-radius: 0 0 2px 2px;
-    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
     text-transform: uppercase;
     font-weight: bold;
 }
 
+.persistence-tag.thought {
+    background: #7a8b5a;
+    color: #faf4ea;
+}
+
 .persistence-tag.impulse {
-    background: #8b4726;
+    background: #d4704a;
     color: #faf4ea;
 }
 
@@ -616,6 +636,25 @@
     color: #5c4a3a;
     font-style: italic;
     margin-bottom: 10px;
+}
+
+/* Effect Tags - positioned below card text like mockup */
+.effect-tags {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    display: flex;
+    gap: 4px;
+}
+
+.effect-tag {
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 7px;
+    text-transform: uppercase;
+    background: #e8dcc4;
+    color: #7a6250;
+    border: 1px solid #d4c5a0;
 }
 
 /* Card outcomes - side by side success/failure */
@@ -662,18 +701,24 @@
     margin-top: 4px;
 }
 
-/* Exhaust effect strip */
-.exhaust-effect {
-    background: #3d3429;
+/* Exhaust Section for Impulse/Opening Cards - dark strip like mockup */
+.exhaust-section {
+    background: #5c4a3a;
     color: #e8dcc4;
-    padding: 8px 15px;
-    font-size: 11px;
-    border-top: 1px solid #5c4a3a;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-align: center;
 }
 
 .exhaust-label {
-    font-weight: bold;
-    margin-right: 5px;
+    font-size: 9px;
+    text-transform: uppercase;
+    color: #8b7355;
+    margin-right: 6px;
+}
+
+.exhaust-effect {
+    color: #d4a76a;
 }
 
 /* === CARD ANIMATIONS === */
@@ -911,6 +956,27 @@
 }
 
 /* === SPECIAL CARD TYPES === */
+
+/* Stat-based colored left borders from mockup */
+.card.insight {
+    border-left: 5px solid #5a7a8a;
+}
+
+.card.rapport {
+    border-left: 5px solid #7a8b5a;
+}
+
+.card.authority {
+    border-left: 5px solid #8b4726;
+}
+
+.card.commerce {
+    border-left: 5px solid #d4a76a;
+}
+
+.card.cunning {
+    border-left: 5px solid #6a5a8a;
+}
 
 .card.flow {
     border-left: 5px solid #7a8b5a;
@@ -1348,6 +1414,19 @@
     font-size: 9px;
     font-weight: bold;
     margin-left: 8px;
+}
+
+/* Signature Tag for special NPC cards */
+.signature-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #d4a76a;
+    color: #2c241a;
+    padding: 2px 6px;
+    font-size: 9px;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 /* Difficulty Badge */
