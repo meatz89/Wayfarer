@@ -77,29 +77,43 @@
     }
 }
 
-/* Exhaust animation - burn/dissolve effect */
+/* Exhaust animation - burn/dissolve effect with size collapse */
 @keyframes card-exhaust {
     0% {
         opacity: 1;
         filter: grayscale(0) brightness(1);
+        transform: scale(1);
+        max-height: 400px;
+        margin-bottom: 12px;
     }
     25% {
         opacity: 0.9;
         filter: grayscale(0.3) brightness(0.9) sepia(0.5);
+        transform: scale(0.95);
+        max-height: 350px;
     }
     50% {
         opacity: 0.7;
         filter: grayscale(0.6) brightness(0.7) sepia(0.8);
         background-color: #d4b896;
+        transform: scale(0.9);
+        max-height: 250px;
     }
     75% {
         opacity: 0.3;
         filter: grayscale(0.9) brightness(0.5) sepia(1);
         background-color: #8b7355;
+        transform: scale(0.7);
+        max-height: 100px;
     }
     100% {
         opacity: 0;
         filter: grayscale(1) brightness(0.3) sepia(1);
+        transform: scale(0);
+        max-height: 0;
+        margin-bottom: 0;
+        padding: 0;
+        border: none;
     }
 }
 
@@ -150,6 +164,7 @@
     animation-fill-mode: forwards;
     pointer-events: none;
     position: relative;
+    overflow: hidden;
 }
 
 /* Visual indicator for cards about to exhaust */

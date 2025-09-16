@@ -164,13 +164,27 @@ namespace Wayfarer
         /// </summary>
         public void CleanupOldAnimations()
         {
-            DateTime cutoff = DateTime.Now.AddSeconds(-2); // CSS animations complete within 2s
+            DateTime now = DateTime.Now;
 
-            // Remove old animating cards
-            animatingCards.RemoveAll(ac => ac.AddedAt < cutoff);
+            // Different cleanup times based on animation type
+            // Exhaust animations complete in 0.5s, so cleanup at 0.6s
+            // Play animations take 1.5s total (1.25s flash + 0.25s out)
+            animatingCards.RemoveAll(ac =>
+            {
+                double secondsSinceAdded = (now - ac.AddedAt).TotalSeconds;
+                if (ac.AnimationType == CardAnimationType.Exhausting)
+                    return secondsSinceAdded > 0.6; // Cleanup exhausted cards quickly
+                else
+                    return secondsSinceAdded > 1.6; // Play animations need more time
+            });
 
-            // Remove old card states
-            var oldStates = cardStates.Where(kvp => kvp.Value.StateChangedAt < cutoff).Select(kvp => kvp.Key).ToList();
+            // Remove old card states with same timing logic
+            var oldStates = cardStates.Where(kvp =>
+            {
+                double secondsSinceChanged = (now - kvp.Value.StateChangedAt).TotalSeconds;
+                return kvp.Value.State == "exhausting" ? secondsSinceChanged > 0.6 : secondsSinceChanged > 1.6;
+            }).Select(kvp => kvp.Key).ToList();
+
             foreach (string cardId in oldStates)
             {
                 cardStates.Remove(cardId);
