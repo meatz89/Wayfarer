@@ -1,13 +1,105 @@
 {
-  "packageId": "strangers_001",
+  "packageId": "npcs_all",
   "metadata": {
-    "name": "Stranger NPCs Package",
-    "timestamp": "2025-09-15T00:00:00Z",
-    "description": "Stranger NPCs for various locations and time blocks providing XP and basic rewards",
+    "name": "All NPCs - Named and Strangers",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Complete NPC collection including named NPCs with deck compositions and stranger NPCs for encounters",
     "author": "Wayfarer Team",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
+    "npcs": [
+      {
+        "id": "elena",
+        "name": "Elena",
+        "profession": "Scribe",
+        "locationId": "copper_kettle_tavern",
+        "spotId": "corner_table",
+        "description": "Clutching her sealed letter, eyes darting to the door with each sound",
+        "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
+        "personalityType": "DEVOTED",
+        "letterTokenTypes": [
+          "Trust"
+        ],
+        "currentState": "DISCONNECTED",
+        "patience": 15,
+        "initialTokens": {
+          "Trust": 0
+        }
+      },
+      {
+        "id": "marcus",
+        "name": "Marcus",
+        "profession": "Merchant",
+        "locationId": "market_square",
+        "spotId": "merchant_row",
+        "description": "A shrewd merchant always looking for profitable deals",
+        "personality": "Calculating and opportunistic",
+        "personalityType": "MERCANTILE",
+        "letterTokenTypes": [
+          "Commerce"
+        ],
+        "currentState": "NEUTRAL",
+        "patience": 12,
+        "initialTokens": {
+          "Commerce": 0
+        }
+      },
+      {
+        "id": "lord_blackwood",
+        "name": "Lord Blackwood",
+        "profession": "Noble",
+        "locationId": "noble_district",
+        "spotId": "blackwood_estate",
+        "description": "An influential noble preparing to leave for the capital at sunset",
+        "personality": "Impatient and powerful, expecting Elena's answer to his proposal",
+        "personalityType": "PROUD",
+        "letterTokenTypes": [
+          "Status"
+        ],
+        "currentState": "NEUTRAL",
+        "patience": 8,
+        "initialTokens": {
+          "Status": 0
+        }
+      },
+      {
+        "id": "warehouse_recipient",
+        "name": "Warehouse Clerk",
+        "profession": "Clerk",
+        "locationId": "warehouse_district",
+        "spotId": "warehouse_entrance",
+        "description": "A busy clerk managing incoming and outgoing shipments",
+        "personality": "Efficient and no-nonsense",
+        "personalityType": "MERCANTILE",
+        "letterTokenTypes": [
+          "Commerce"
+        ],
+        "currentState": "NEUTRAL",
+        "patience": 10,
+        "initialTokens": {
+          "Commerce": 0
+        }
+      },
+      {
+        "id": "victor",
+        "name": "Victor",
+        "profession": "Guard",
+        "locationId": "market_square",
+        "spotId": "guard_post",
+        "description": "The stern captain of the city guard",
+        "personality": "Vigilant and authoritative",
+        "personalityType": "PROUD",
+        "letterTokenTypes": [
+          "Status"
+        ],
+        "currentState": "NEUTRAL",
+        "patience": 5,
+        "initialTokens": {
+          "Status": 0
+        }
+      }
+    ],
     "strangers": [
       {
         "id": "market_vendor_morning",
@@ -238,5 +330,23 @@
         ]
       }
     ]
-  }
+  },
+  "npcRequests": [
+    {
+      "id": "elena_urgent_letter_request",
+      "npcId": "elena",
+      "name": "Urgent Letter Delivery",
+      "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
+      "requestCards": ["elena_letter_request", "elena_safety_request"],
+      "promiseCards": ["elena_priority_promise"]
+    },
+    {
+      "id": "marcus_trade_opportunities",
+      "npcId": "marcus",
+      "name": "Trade Opportunities",
+      "description": "Marcus seeks profitable trading partners",
+      "requestCards": ["marcus_trade_request", "marcus_business_proposal"],
+      "promiseCards": []
+    }
+  ]
 }

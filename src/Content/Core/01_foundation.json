@@ -1,0 +1,218 @@
+{
+  "packageId": "core_foundation",
+  "metadata": {
+    "name": "Core Foundation - Geography Only",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Core geographical foundation: regions, districts, locations, and spots",
+    "author": "Wayfarer Team",
+    "version": "4.0.0"
+  },
+  "content": {
+    "locations": [
+      {
+        "id": "market_square",
+        "name": "Market Square",
+        "description": "The bustling heart of the city where merchants hawk their wares",
+        "tier": 1,
+        "locationType": "Hub",
+        "travelHubSpotId": "central_fountain",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      },
+      {
+        "id": "copper_kettle_tavern",
+        "name": "Copper Kettle Tavern",
+        "description": "A warm, inviting tavern with the famous copper kettle over the hearth",
+        "tier": 1,
+        "locationType": "Tavern",
+        "travelHubSpotId": "main_hall",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      },
+      {
+        "id": "noble_district",
+        "name": "Noble District",
+        "description": "Quiet streets lined with grand estates, heavily guarded",
+        "tier": 2,
+        "locationType": "Palace",
+        "travelHubSpotId": "gate_entrance",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      },
+      {
+        "id": "warehouse_district",
+        "name": "Warehouse District",
+        "description": "Rows of warehouses storing goods from across the realm",
+        "tier": 1,
+        "locationType": "Market",
+        "travelHubSpotId": "warehouse_entrance",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      }
+    ],
+    "spots": [
+      {
+        "id": "central_fountain",
+        "locationId": "market_square",
+        "name": "Central Fountain",
+        "description": "The ornate fountain at the heart of Market Square",
+        "properties": {
+          "base": [
+            "crossroads"
+          ],
+          "morning": [
+            "quiet"
+          ],
+          "afternoon": [
+            "busy"
+          ],
+          "evening": [
+            "closing"
+          ],
+          "night": [
+            "closed"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "quiet": 2,
+          "busy": 1,
+          "default": 1
+        }
+      },
+      {
+        "id": "merchant_row",
+        "locationId": "market_square",
+        "name": "Merchant Row",
+        "description": "Rows of market stalls selling goods",
+        "properties": {
+          "morning": [
+            "commercial"
+          ],
+          "afternoon": [
+            "commercial",
+            "busy"
+          ],
+          "evening": [
+            "commercial"
+          ],
+          "night": [
+            "closed"
+          ]
+        },
+        "canInvestigate": false,
+        "canWork": true,
+        "workType": "haul_goods",
+        "workPay": 5
+      },
+      {
+        "id": "guard_post",
+        "locationId": "market_square",
+        "name": "Guard Post",
+        "description": "The official guard station",
+        "properties": {
+          "all": [
+            "authority",
+            "watched"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "main_hall",
+        "locationId": "copper_kettle_tavern",
+        "name": "Main Hall",
+        "description": "The heart of the tavern with tables and a warm fire",
+        "properties": {
+          "base": [
+            "crossroads"
+          ],
+          "morning": [
+            "quiet",
+            "warm"
+          ],
+          "afternoon": [
+            "social"
+          ],
+          "evening": [
+            "busy",
+            "social"
+          ],
+          "night": [
+            "quiet"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "quiet": 2,
+          "busy": 1,
+          "default": 1
+        }
+      },
+      {
+        "id": "corner_table",
+        "locationId": "copper_kettle_tavern",
+        "name": "Corner Table",
+        "description": "A quiet table perfect for private conversations",
+        "properties": {
+          "all": [
+            "private",
+            "quiet"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "gate_entrance",
+        "locationId": "noble_district",
+        "name": "District Gate",
+        "description": "The heavily guarded entrance to the Noble District",
+        "properties": {
+          "base": [
+            "crossroads"
+          ],
+          "all": [
+            "guarded",
+            "checkpoint"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "blackwood_estate",
+        "locationId": "noble_district",
+        "name": "Blackwood Estate",
+        "description": "Lord Blackwood's grand manor",
+        "properties": {
+          "morning": [
+            "quiet",
+            "noble"
+          ],
+          "afternoon": [
+            "noble"
+          ],
+          "evening": [
+            "noble",
+            "exclusive"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "warehouse_entrance",
+        "locationId": "warehouse_district",
+        "name": "Warehouse Entrance",
+        "description": "The main entrance to the warehouse district",
+        "properties": {
+          "base": [
+            "crossroads"
+          ],
+          "all": [
+            "commercial"
+          ]
+        },
+        "canInvestigate": false
+      }
+    ]
+  }
+}

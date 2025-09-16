@@ -1,0 +1,196 @@
+{
+  "packageId": "core_gameplay",
+  "metadata": {
+    "name": "Core Gameplay Systems",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Player stats, letters, observations, exchanges, dialogue templates, and starting conditions",
+    "author": "Wayfarer Team",
+    "version": "2.0.0"
+  },
+  "startingConditions": {
+    "playerConfig": {
+      "coins": 10,
+      "health": 100,
+      "maxHealth": 100,
+      "hunger": 50,
+      "maxHunger": 100
+    },
+    "startingSpotId": "central_fountain",
+    "startingObligations": [
+      {
+        "id": "viktor_package",
+        "type": "delivery",
+        "position": 1,
+        "deadline": 480,
+        "recipientId": "warehouse_recipient",
+        "letterId": "viktor_package_letter",
+        "payment": 10,
+        "description": "Viktor's package for the warehouse"
+      }
+    ]
+  },
+  "content": {
+    "stats": [
+      {
+        "id": "insight",
+        "name": "Insight",
+        "description": "Analytical intelligence and systematic observation. Represents your ability to understand patterns, analyze situations, and apply logical reasoning.",
+        "conversationBenefit": "Better success with analytical and observational cards. Unlocks cards that examine evidence and identify patterns.",
+        "investigationUnlock": "Systematic Observation at level 2: +1 familiarity gain when investigating",
+        "travelUnlock": "Scholar shortcuts at level 2: Access to library passages, observatory routes, and academic pathways"
+      },
+      {
+        "id": "rapport",
+        "name": "Rapport",
+        "description": "Emotional intelligence and empathetic connection. Represents your ability to understand feelings, build trust, and connect with others.",
+        "conversationBenefit": "Better success with empathetic and supportive cards. Unlocks cards that offer comfort and understanding.",
+        "investigationUnlock": "Local Inquiry at level 2: Learn NPC observation preferences through conversation",
+        "travelUnlock": "Community paths at level 2: Access to local favors, friendship routes, and neighborhood shortcuts"
+      },
+      {
+        "id": "authority",
+        "name": "Authority",
+        "description": "Leadership and persuasive command. Represents your ability to take charge, demand respect, and influence through presence.",
+        "conversationBenefit": "Better success with commanding and directive cards. Unlocks cards that establish dominance and demand compliance.",
+        "investigationUnlock": "Demand Access at level 2: Force entry to restricted spots through authority",
+        "travelUnlock": "Noble gates at level 2: Access to checkpoint bypasses, official routes, and command passages"
+      },
+      {
+        "id": "commerce",
+        "name": "Commerce",
+        "description": "Negotiation and trade acumen. Represents your ability to identify value, negotiate deals, and think in terms of profit and exchange.",
+        "conversationBenefit": "Better success with negotiation and trade-focused cards. Unlocks cards that propose deals and calculate value.",
+        "investigationUnlock": "Purchase Information at level 2: Pay coins for instant familiarity gain",
+        "travelUnlock": "Merchant caravans at level 2: Access to trade routes, market passages, and commercial transport"
+      },
+      {
+        "id": "cunning",
+        "name": "Cunning",
+        "description": "Subtlety and indirect influence. Represents your ability to work in shadows, find alternative angles, and achieve goals through misdirection.",
+        "conversationBenefit": "Better success with subtle and indirect cards. Unlocks cards that hint, deflect, and work around obstacles.",
+        "investigationUnlock": "Covert Search at level 2: Investigate without alerting NPCs or drawing attention",
+        "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"
+      }
+    ],
+    "progression": {
+      "xpThresholds": [10, 25, 50, 100],
+      "levelBonuses": [
+        {
+          "level": 2,
+          "successBonus": 5,
+          "description": "+5% success rate to all cards of this stat"
+        },
+        {
+          "level": 3,
+          "successBonus": 10,
+          "effect": "gains_thought_persistence",
+          "description": "+10% success rate and cards gain Thought persistence"
+        },
+        {
+          "level": 4,
+          "successBonus": 15,
+          "description": "+15% success rate to all cards of this stat"
+        },
+        {
+          "level": 5,
+          "successBonus": 20,
+          "effect": "ignores_failure_listen",
+          "description": "+20% success rate and cards never force LISTEN on failure"
+        }
+      ]
+    },
+    "letters": [
+      {
+        "id": "elena_urgent_letter",
+        "senderId": "elena",
+        "recipientId": "lord_blackwood",
+        "title": "Elena's Response",
+        "content": "My dearest Lord Blackwood, I accept your proposal with all my heart. Please wait for me. - Elena",
+        "payment": 25,
+        "deadline": 300,
+        "urgent": true
+      },
+      {
+        "id": "viktor_package_letter",
+        "senderId": "viktor",
+        "recipientId": "warehouse_recipient",
+        "title": "Viktor's Package",
+        "content": "Important shipment for warehouse storage. Handle with care.",
+        "payment": 10,
+        "deadline": 480,
+        "urgent": false
+      }
+    ],
+    "observations": [
+      {
+        "id": "safe_passage_knowledge",
+        "name": "Safe Passage Knowledge",
+        "displayText": "You notice the guard patrol patterns, gaining insight into safe passage routes",
+        "description": "Observing guard patrol patterns",
+        "category": "Investigation",
+        "focus": 1,
+        "properties": ["investigation", "guards", "safety"],
+        "requiredTags": ["market"],
+        "excludedTags": [],
+        "triggerCondition": "familiarity >= 1",
+        "oneTimeOnly": true,
+        "attentionCost": 0,
+        "tokenType": "Trust",
+        "difficulty": "Medium"
+      },
+      {
+        "id": "merchant_route_insight",
+        "name": "Merchant Route Insight",
+        "displayText": "You understand the merchant traffic patterns, revealing profitable trade routes",
+        "description": "Understanding merchant traffic patterns",
+        "category": "Investigation",
+        "focus": 2,
+        "properties": ["investigation", "commerce", "trade"],
+        "requiredTags": ["market"],
+        "excludedTags": [],
+        "triggerCondition": "familiarity >= 2",
+        "oneTimeOnly": true,
+        "attentionCost": 0,
+        "tokenType": "Commerce",
+        "difficulty": "Medium"
+      }
+    ],
+    "exchanges": [
+      {
+        "id": "quick_food_trade",
+        "name": "Quick Hunger Purchase",
+        "giveCurrency": "coins",
+        "giveAmount": 10,
+        "receiveCurrency": "food",
+        "receiveAmount": 1,
+        "tokenGate": {
+          "Commerce": 1
+        }
+      }
+    ],
+    "dialogueTemplates": {
+      "connectionStateDialogue": {
+        "DISCONNECTED": {
+          "baseTemplates": ["emotional:cold query:formal", "emotional:distant query:surface"],
+          "personalityModifiers": {}
+        },
+        "GUARDED": {
+          "baseTemplates": ["emotional:cautious query:testing", "emotional:suspicious query:probing"],
+          "personalityModifiers": {}
+        },
+        "NEUTRAL": {
+          "baseTemplates": ["emotional:neutral query:general", "emotional:calm query:standard"],
+          "personalityModifiers": {}
+        },
+        "RECEPTIVE": {
+          "baseTemplates": ["emotional:warm query:personal", "emotional:interested query:deeper"],
+          "personalityModifiers": {}
+        },
+        "TRUSTING": {
+          "baseTemplates": ["emotional:open query:intimate", "emotional:vulnerable query:secrets"],
+          "personalityModifiers": {}
+        }
+      }
+    }
+  }
+}

@@ -727,68 +727,50 @@
           "observationDeck": {}
         },
         "elena": {
-        "progressionDeck": {
-          "elena_shared_understanding": 1,
-          "elena_trusted_confidant": 1,
-          "elena_deep_bond": 1,
-          "elena_absolute_devotion": 1,
-          "elena_eternal_loyalty": 1
+          "progressionDeck": {
+            "elena_shared_understanding": 1,
+            "elena_trusted_confidant": 1,
+            "elena_deep_bond": 1,
+            "elena_absolute_devotion": 1,
+            "elena_eternal_loyalty": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
         },
-        "requestDeck": {},
-        "exchangeDeck": {},
-        "observationDeck": {}
-      },
-      "marcus": {
-        "progressionDeck": {
-          "marcus_bargain": 1,
-          "trade_knowledge": 1,
-          "commercial_trust": 1,
-          "marcus_favor": 1,
-          "master_trader_secret": 1
+        "marcus": {
+          "progressionDeck": {
+            "marcus_bargain": 1,
+            "trade_knowledge": 1,
+            "commercial_trust": 1,
+            "marcus_favor": 1,
+            "master_trader_secret": 1
+          },
+          "requestDeck": {},
+          "exchangeDeck": {
+            "quick_food_trade": 1
+          },
+          "observationDeck": {}
         },
-        "requestDeck": {},
-        "exchangeDeck": {
-          "quick_food_trade": 1
+        "lord_blackwood": {
+          "progressionDeck": {},
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
         },
-        "observationDeck": {}
-      },
-      "lord_blackwood": {
-        "progressionDeck": {},
-        "requestDeck": {},
-        "exchangeDeck": {},
-        "observationDeck": {}
-      },
-      "warehouse_recipient": {
-        "progressionDeck": {},
-        "requestDeck": {},
-        "exchangeDeck": {},
-        "observationDeck": {}
-      },
-      "victor": {
-        "progressionDeck": {},
-        "requestDeck": {},
-        "exchangeDeck": {},
-        "observationDeck": {}
+        "warehouse_recipient": {
+          "progressionDeck": {},
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
+        },
+        "victor": {
+          "progressionDeck": {},
+          "requestDeck": {},
+          "exchangeDeck": {},
+          "observationDeck": {}
+        }
       }
     }
-  },
-  "npcRequests": [
-    {
-      "id": "elena_urgent_letter_request",
-      "npcId": "elena",
-      "name": "Urgent Letter Delivery",
-      "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
-      "requestCards": ["elena_letter_request", "elena_safety_request"],
-      "promiseCards": ["elena_priority_promise"]
-    },
-    {
-      "id": "marcus_trade_opportunities",
-      "npcId": "marcus",
-      "name": "Trade Opportunities",
-      "description": "Marcus seeks profitable trading partners",
-      "requestCards": ["marcus_trade_request", "marcus_business_proposal"],
-      "promiseCards": []
-    }
-  ]
   }
 }
