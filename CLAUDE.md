@@ -57,6 +57,16 @@
 **🚨 HIGHLANDER PRINCIPLE: THERE CAN BE ONLY ONE 🚨**
 - NEVER have duplicate enums, classes, or concepts for the same thing. If you find ConnectionState and NPCConnectionState, DELETE ONE. If you find two ways to track the same state, DELETE ONE. No mapping, no conversion, no compatibility layers. ONE source of truth, ONE enum, ONE class per concept.
 
+**🚨 SCORCHED EARTH REFACTORING: DELETE FIRST, CORRECT LATER 🚨**
+- **DEFAULT REFACTORING APPROACH** - When refactoring, DELETE everything first, let compilation break, then fix
+- **NO COMPATIBILITY LAYERS** - Never keep old methods "for backwards compatibility"
+- **NO GRADUAL MIGRATION** - Delete old completely, implement new completely, no parallel paths
+- **NO DEFENSIVE FALLBACKS** - No try-catch to handle old code, no "if old system" checks
+- **DELETE UNNECESSARY ABSTRACTIONS** - ConversationOrchestrator → DELETE. CardDeckManager → DELETE.
+- **LET IT BREAK** - Compilation errors show you exactly what needs fixing
+- **COMPLETE OR NOTHING** - Never ship half-refactored code with TODOs
+- Example: To remove ConversationOrchestrator, DELETE the file first, then fix all compilation errors by moving logic to ConversationFacade. DO NOT create forwarding methods or compatibility shims.
+
 **🚨 GAMEWORLD ARCHITECTURE PRINCIPLES (CRITICAL - NEVER VIOLATE) 🚨**
 - **GameWorld is the SINGLE SOURCE OF TRUTH** - ALL game state lives in GameWorld, nowhere else
 - **NO SharedData dictionaries** - NEVER create SharedData, TempData, or any parallel data storage
