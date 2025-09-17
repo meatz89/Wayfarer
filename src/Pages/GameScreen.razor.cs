@@ -432,23 +432,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.DeckViewer);
     }
 
-    protected void HandleNavigationEvent(string eventType, object data)
-    {
-        ArgumentNullException.ThrowIfNull(data);
-        Console.WriteLine($"[GameScreen] Navigation event: {eventType}");
-
-        switch (eventType)
-        {
-            case "ConversationEnded":
-                _ = NavigateToScreen(ScreenMode.Location);
-                break;
-
-            case "TravelCompleted":
-                _ = NavigateToScreen(ScreenMode.Location);
-                break;
-        }
-    }
-
     protected async Task HandleConversationEnd()
     {
         Console.WriteLine("[GameScreen] Conversation ended");

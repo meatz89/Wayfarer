@@ -3413,19 +3413,18 @@ namespace Wayfarer.Pages.Components
         {
             List<RequestGoal> goals = new List<RequestGoal>();
 
-            // First check if we have an active session with request cards
-            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            if (handCards != null)
+            // Get request cards from the REQUEST PILE, not hand cards
+            IReadOnlyList<CardInstance> requestCards = ConversationFacade.GetRequestCards();
+            if (requestCards != null)
             {
-                // Look for request/promise cards that are already loaded in the session
-                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInSession = handCards
-                // HIGHLANDER: DrawPile removed - deck manages all internally
+                // Look for request/promise cards in the request pile
+                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInPile = requestCards
                 .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
                 .Where(c => c.Template?.RapportThreshold > 0)
                 .GroupBy(c => c.Template.RapportThreshold)
                 .OrderBy(g => g.Key);
 
-                foreach (IGrouping<int, CardInstance>? group in requestCardsInSession)
+                foreach (IGrouping<int, CardInstance>? group in requestCardsInPile)
                 {
                     int threshold = group.Key;
                     CardInstance firstCard = group.First();
@@ -3457,14 +3456,7 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Fallback to hardcoded goals if no session cards found
-            if (!goals.Any())
-            {
-                goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "1 Trust token" });
-                goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "2 Trust tokens" });
-                goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "3 Trust tokens + Observation" });
-            }
-
+            // NO FALLBACKS - if no request cards, show no goals
             return goals;
         }
 
