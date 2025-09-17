@@ -111,13 +111,8 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             return _observationManager.HasTakenObservation(observationId);
         }
 
-        /// <summary>
-        /// Get active observation cards
-        /// </summary>
-        public List<ObservationCard> GetActiveObservationCards()
-        {
-            return _observationManager.GetObservationCards();
-        }
+        // Observations are stored per-NPC, not globally on player
+        // Use GetObservationCardsAsConversationCards(npcId) instead
 
         /// <summary>
         /// Get observation cards as conversation cards for a specific NPC

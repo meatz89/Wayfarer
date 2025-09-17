@@ -635,15 +635,10 @@ public class GameFacade
 
     public List<TakenObservation> GetTakenObservations()
     {
-        return _narrativeFacade.GetActiveObservationCards().Select(card => new TakenObservation
-        {
-            Id = card.Id,
-            Name = card.Description,
-            NarrativeText = card.DialogueFragment,
-            GeneratedCard = card,
-            TimeTaken = DateTime.Now,
-            TimeBlockTaken = _timeFacade.GetCurrentTimeBlock()
-        }).ToList();
+        // ARCHITECTURE: Observations are stored per-NPC, not globally
+        // This method returns empty as there's no global observation list
+        // Each NPC tracks their own observation cards in their ObservationDeck
+        return new List<TakenObservation>();
     }
 
     // ========== GAME INITIALIZATION ==========

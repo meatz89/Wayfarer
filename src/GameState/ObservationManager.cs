@@ -233,6 +233,7 @@ public class ObservationManager
 
     /// <summary>
     /// Get all taken observations for the current time block
+    /// Tracks which location observations the player has taken this time block
     /// </summary>
     public List<TakenObservation> GetTakenObservations()
     {

@@ -1212,10 +1212,10 @@ public class ConversationFacade
         // Remove observation card from NPC's observation deck if it was played
         // ARCHITECTURE: Observations are stored per-NPC, not globally on player
         // This ensures observations are contextually relevant to specific NPCs
-        if (selectedCard.CardType == CardType.Observation && selectedCard.Context != null && session.NPC != null)
+        if (selectedCard.CardType == CardType.Observation && session.NPC != null)
         {
             // Observation cards are consumed when played - remove from NPC's observation deck
-            string observationCardId = selectedCard.Context.Id;
+            string observationCardId = selectedCard.Id;
             ConversationCard cardToRemove = session.NPC.ObservationDeck?.GetAllCards()
                 .FirstOrDefault(c => c.Id == observationCardId);
 

@@ -79,6 +79,15 @@ public class CardDeck
         return HasCards();
     }
 
+    /// <summary>
+    /// Remove a specific card from the deck
+    /// </summary>
+    public void RemoveCard(ConversationCard card)
+    {
+        cards.Remove(card);
+        drawnCardIds.Remove(card.Id);
+    }
+
     public static void InitializeGameWorld(GameWorld gameWorld)
     {
         // Card decks are initialized from JSON
