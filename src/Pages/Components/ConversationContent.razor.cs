@@ -229,7 +229,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to disable buttons
 
                 // Validate conversation is still active before executing
-                if (!ConversationFacade.IsConversationActive())
+                if (!GameFacade.IsConversationActive())
                 {
                     Console.WriteLine("[ExecuteListen] Warning: Conversation is not active");
                     return;
@@ -242,7 +242,7 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
-                ConversationTurnResult listenResult = await ConversationFacade.ExecuteListen();
+                ConversationTurnResult listenResult = await GameFacade.ExecuteListen();
 
                 // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
                 IsProcessing = false;
@@ -376,7 +376,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to show the card in processing state
 
                 // ExecuteSpeak expects a single card - this removes it from hand
-                ConversationTurnResult turnResult = await ConversationFacade.ExecuteSpeakSingleCard(SelectedCard);
+                ConversationTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
                 CardPlayResult result = turnResult?.CardPlayResult;
 
                 // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
@@ -1015,7 +1015,7 @@ namespace Wayfarer.Pages.Components
             if (Session == null || card == null) return false;
 
             // UI MUST ONLY ASK BACKEND - NO GAME LOGIC IN UI
-            return ConversationFacade.CanPlayCard(card, Session);
+            return GameFacade.CanPlayCard(card, Session);
         }
 
         protected bool IsCardSelected(CardInstance card)
@@ -1058,7 +1058,7 @@ namespace Wayfarer.Pages.Components
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                ConversationOutcome outcome = ConversationFacade.EndConversation();
+                ConversationOutcome outcome = GameFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 
@@ -1074,7 +1074,7 @@ namespace Wayfarer.Pages.Components
             // End the conversation properly to calculate and award tokens
             if (Session != null)
             {
-                ConversationOutcome outcome = ConversationFacade.EndConversation();
+                ConversationOutcome outcome = GameFacade.EndConversation();
                 Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
             }
 

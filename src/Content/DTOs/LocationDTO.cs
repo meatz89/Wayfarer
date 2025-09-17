@@ -8,6 +8,7 @@ public class LocationDTO
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
+    public string DistrictId { get; set; }
     public EnvironmentalPropertiesDTO EnvironmentalProperties { get; set; }
     public List<string> DomainTags { get; set; } = new List<string>();
     public List<string> LocationSpots { get; set; } = new List<string>();

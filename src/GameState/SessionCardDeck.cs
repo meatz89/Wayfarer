@@ -159,14 +159,44 @@ public class SessionCardDeck
 
     /// <summary>
     /// Play a card - removes from hand, adds to played history and discard pile
+    /// CRITICAL: This method MUST ensure cards go to discard pile for reshuffling
     /// </summary>
     public void PlayCard(CardInstance card)
     {
-        if (card == null) return;
+        if (card == null)
+        {
+            Console.WriteLine("[SessionCardDeck] ERROR: PlayCard called with null card!");
+            return;
+        }
+
+        Console.WriteLine($"[SessionCardDeck] Playing card {card.Id} from hand");
+
+        // Track total cards before operation
+        int totalCardsBefore = handPile.Count + drawPile.Count + discardPile.Count + playedPile.Count + requestPile.Count;
+
+        // Check if card exists in hand before removing
+        if (!handPile.Contains(card))
+        {
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.Id} not found in hand!");
+            return;
+        }
 
         handPile.Remove(card);
-        playedPile.Add(card);
-        discardPile.Add(card);  // For reshuffling later
+
+        // CRITICAL FIX: Card goes to discard pile for reshuffling
+        // playedPile is history - we should track differently to avoid duplication
+        discardPile.Add(card);
+
+        Console.WriteLine($"[SessionCardDeck] Card {card.Id} added to discard. Discard count: {discardPile.Count}");
+
+        // Validate total card count remains constant
+        int totalCardsAfter = handPile.Count + drawPile.Count + discardPile.Count + playedPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Total cards: {totalCardsBefore} -> {totalCardsAfter} (should be equal)");
+
+        if (totalCardsBefore != totalCardsAfter)
+        {
+            Console.WriteLine($"[SessionCardDeck] CRITICAL ERROR: Card count mismatch! Lost {totalCardsBefore - totalCardsAfter} cards!");
+        }
     }
 
     /// <summary>

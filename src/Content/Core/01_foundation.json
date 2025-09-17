@@ -8,11 +8,68 @@
     "version": "4.0.0"
   },
   "content": {
+    "regions": [
+      {
+        "id": "lower_wards",
+        "name": "Lower Wards",
+        "description": "The common districts of the city where merchants and workers live",
+        "districtIds": ["market_district", "warehouse_district", "riverside_district"],
+        "government": "City Council",
+        "culture": "Trade-focused",
+        "population": 50000,
+        "majorExports": ["Textiles", "Grain", "Crafts"],
+        "majorImports": ["Luxury goods", "Spices", "Metals"]
+      },
+      {
+        "id": "upper_wards",
+        "name": "Upper Wards",
+        "description": "The elevated districts where nobility and wealthy merchants reside",
+        "districtIds": ["noble_quarter", "temple_district"],
+        "government": "Noble Houses",
+        "culture": "Traditional",
+        "population": 10000,
+        "majorExports": ["Laws", "Culture", "Art"],
+        "majorImports": ["Everything"]
+      }
+    ],
+    "districts": [
+      {
+        "id": "market_district",
+        "name": "Market District",
+        "description": "The commercial heart of the Lower Wards",
+        "regionId": "lower_wards",
+        "locationIds": ["market_square", "copper_kettle_tavern"],
+        "districtType": "Trade Quarter",
+        "dangerLevel": 2,
+        "characteristics": ["Crowded", "Lively", "Well-patrolled"]
+      },
+      {
+        "id": "warehouse_district",
+        "name": "Warehouse District",
+        "description": "Industrial storage and trade logistics",
+        "regionId": "lower_wards",
+        "locationIds": ["warehouse_district"],
+        "districtType": "Industrial Zone",
+        "dangerLevel": 3,
+        "characteristics": ["Quiet at night", "Workers by day", "Some crime"]
+      },
+      {
+        "id": "noble_quarter",
+        "name": "Noble Quarter",
+        "description": "Exclusive estates and gardens of the aristocracy",
+        "regionId": "upper_wards",
+        "locationIds": ["noble_district"],
+        "districtType": "Elite Quarter",
+        "dangerLevel": 1,
+        "characteristics": ["Heavily guarded", "Quiet", "Exclusive"]
+      }
+    ],
     "locations": [
       {
         "id": "market_square",
         "name": "Market Square",
         "description": "The bustling heart of the city where merchants hawk their wares",
+        "districtId": "market_district",
         "tier": 1,
         "locationType": "Hub",
         "travelHubSpotId": "central_fountain",
@@ -23,6 +80,7 @@
         "id": "copper_kettle_tavern",
         "name": "Copper Kettle Tavern",
         "description": "A warm, inviting tavern with the famous copper kettle over the hearth",
+        "districtId": "market_district",
         "tier": 1,
         "locationType": "Tavern",
         "travelHubSpotId": "main_hall",
@@ -33,6 +91,7 @@
         "id": "noble_district",
         "name": "Noble District",
         "description": "Quiet streets lined with grand estates, heavily guarded",
+        "districtId": "noble_quarter",
         "tier": 2,
         "locationType": "Palace",
         "travelHubSpotId": "gate_entrance",
@@ -43,6 +102,7 @@
         "id": "warehouse_district",
         "name": "Warehouse District",
         "description": "Rows of warehouses storing goods from across the realm",
+        "districtId": "warehouse_district",
         "tier": 1,
         "locationType": "Market",
         "travelHubSpotId": "warehouse_entrance",

@@ -457,8 +457,62 @@ public class GameFacade
         var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
             return new List<ConversationOption>();
-            
+
         return _conversationFacade.GetAvailableConversationOptions(npc);
+    }
+
+    /// <summary>
+    /// Play a conversation card - proper architectural flow through GameFacade
+    /// </summary>
+    public async Task<ConversationTurnResult> PlayConversationCard(CardInstance card)
+    {
+        if (_conversationFacade == null)
+            throw new InvalidOperationException("ConversationFacade not available");
+
+        if (!_conversationFacade.IsConversationActive())
+            throw new InvalidOperationException("No active conversation");
+
+        return await _conversationFacade.ExecuteSpeakSingleCard(card);
+    }
+
+    /// <summary>
+    /// Execute listen action in current conversation - proper architectural flow through GameFacade
+    /// </summary>
+    public async Task<ConversationTurnResult> ExecuteListen()
+    {
+        if (_conversationFacade == null)
+            throw new InvalidOperationException("ConversationFacade not available");
+
+        if (!_conversationFacade.IsConversationActive())
+            throw new InvalidOperationException("No active conversation");
+
+        return await _conversationFacade.ExecuteListen();
+    }
+
+    /// <summary>
+    /// Check if a conversation is currently active
+    /// </summary>
+    public bool IsConversationActive()
+    {
+        return _conversationFacade?.IsConversationActive() ?? false;
+    }
+
+    /// <summary>
+    /// Check if a card can be played in the current conversation
+    /// </summary>
+    public bool CanPlayCard(CardInstance card, ConversationSession session)
+    {
+        if (_conversationFacade == null) return false;
+        return _conversationFacade.CanPlayCard(card, session);
+    }
+
+    /// <summary>
+    /// End the current conversation and return the outcome
+    /// </summary>
+    public ConversationOutcome EndConversation()
+    {
+        if (_conversationFacade == null) return null;
+        return _conversationFacade.EndConversation();
     }
 
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)
@@ -780,6 +834,22 @@ public class GameFacade
     public List<Location> GetAllLocations()
     {
         return _gameWorld.WorldState.locations;
+    }
+
+    /// <summary>
+    /// Gets a location by its name
+    /// </summary>
+    public Location GetLocationByName(string locationName)
+    {
+        return _gameWorld.LocationManager.GetLocationByName(locationName);
+    }
+
+    /// <summary>
+    /// Gets a district by its ID
+    /// </summary>
+    public District GetDistrictById(string districtId)
+    {
+        return _gameWorld.WorldState.Districts.FirstOrDefault(d => d.Id == districtId);
     }
 
     /// <summary>
