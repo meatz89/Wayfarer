@@ -64,9 +64,7 @@ public static class ServiceConfiguration
         services.AddSingleton<AtmosphereManager>();
         services.AddSingleton<FocusManager>();
         services.AddSingleton<CategoricalEffectResolver>();
-        services.AddSingleton<CardDeckManager>();
         services.AddSingleton<ExchangeHandler>();
-        services.AddSingleton<ConversationOrchestrator>();
         services.AddSingleton<ConversationFacade>();
 
         // NPC deck initialization handled directly in PackageLoader

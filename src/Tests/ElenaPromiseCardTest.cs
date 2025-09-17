@@ -57,7 +57,7 @@ namespace Wayfarer.Tests
             Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.GoalCard), 
                 "CardInstance should preserve the GoalCard property");
             
-            // The actual success check happens in CardDeckManager.PlayCard
+            // The actual success check happens in ConversationFacade.PlayCard
             // which checks for GoalCard and sets success = true
             Console.WriteLine($"Card '{cardInstance.Description}' has properties: {string.Join(", ", cardInstance.Properties)}");
             Console.WriteLine($"Card with GoalCard property will always succeed (100% success rate)");
@@ -88,14 +88,14 @@ namespace Wayfarer.Tests
             Assert.IsTrue(cardInstance.Properties.Contains(CardProperty.GoalCard), 
                 "Promise cards must have GoalCard property");
             
-            // CardDeckManager.PlayCard checks:
+            // ConversationFacade.PlayCard checks:
             // if (selectedCard.Properties.Contains(CardProperty.GoalCard))
             // {
             //     success = true;
             //     roll = 100;
             //     successPercentage = 100;
             // }
-            Console.WriteLine("Promise cards with GoalCard are guaranteed 100% success in CardDeckManager.PlayCard");
+            Console.WriteLine("Promise cards with GoalCard are guaranteed 100% success in ConversationFacade.PlayCard");
         }
     }
 }

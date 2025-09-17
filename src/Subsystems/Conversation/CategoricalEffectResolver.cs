@@ -100,7 +100,7 @@ public class CategoricalEffectResolver
                 // Move obligation to position 1 and gain rapport based on magnitude
                 result.RapportChange = magnitude * 2; // Promising gives double rapport
                 result.EffectDescription = $"Promise made, +{magnitude * 2} rapport";
-                // Queue manipulation handled by ConversationOrchestrator
+                // Queue manipulation handled by ConversationFacade
                 break;
 
             case SuccessEffectType.Advancing:

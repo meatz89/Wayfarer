@@ -144,12 +144,12 @@ public class ConversationSession
 
     public void ExecuteListen(TokenMechanicsManager tokenManager, ObligationQueueManager queueManager, GameWorld gameWorld)
     {
-        // Implementation handled by ConversationOrchestrator
+        // Implementation handled by ConversationFacade
     }
 
     public CardPlayResult ExecuteSpeak(HashSet<CardInstance> selectedCards)
     {
-        // Implementation handled by ConversationOrchestrator
+        // Implementation handled by ConversationFacade
         return new CardPlayResult
         {
             FinalFlow = 0,
@@ -168,7 +168,7 @@ public class ConversationSession
         // Determine initial state
         ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
 
-        // Create session deck from NPC's progression cards (this is legacy - should use CardDeckManager)
+        // Create session deck from NPC's progression cards (this is legacy - should use ConversationFacade)
         SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ProgressionDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
 
         // Add observation cards if provided

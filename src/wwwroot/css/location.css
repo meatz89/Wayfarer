@@ -439,6 +439,145 @@ body * {
     background: #f4f9e9;
 }
 
+.action-card.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f0ebe4;
+}
+
+.action-card.unavailable:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Investigation Action Card - when unavailable */
+.action-card.investigation {
+    background: linear-gradient(135deg, #f9f3e9, #f4e8d0);
+    border-color: #c4a684;
+}
+
+.action-card.investigation:hover:not(.unavailable) {
+    background: linear-gradient(135deg, #fefaf0, #f9f3e9);
+    border-color: #a68b6f;
+}
+
+.action-card.investigation.unavailable {
+    background: #f0ebe4;
+    border-color: #d4c5a0;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.action-card.investigation.unavailable:hover {
+    transform: none;
+    background: #f0ebe4;
+}
+
+.action-card.investigation .action-detail {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-top: 6px;
+}
+
+/* Investigation Section - when available with approaches */
+.investigation-section {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+    grid-column: 1 / -1; /* Span full width of actions grid */
+}
+
+.investigation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8dcc4;
+}
+
+.investigation-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.investigation-info {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+.investigation-approaches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.approach-btn {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.approach-btn:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.approach-btn.approach-locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #e8dcc4;
+    border-style: dashed;
+}
+
+.approach-btn.approach-locked:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.approach-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 4px;
+}
+
+.approach-cost {
+    font-size: 11px;
+    color: #8b4726;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.approach-description {
+    font-size: 11px;
+    color: #5c4a3a;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.approach-requirement {
+    font-size: 10px;
+    color: #8b4726;
+    font-weight: bold;
+    background: #faf0e6;
+    padding: 3px 6px;
+    border-radius: 2px;
+    border: 1px solid #d4a76a;
+    display: inline-block;
+}
+
 .action-name {
     font-size: 14px;
     color: #5c4a3a;
@@ -454,6 +593,18 @@ body * {
 .cost-value {
     color: #8b4726;
     font-focus: bold;
+}
+
+.unavailable-reason {
+    color: #8b4726;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.action-detail {
+    font-size: 11px;
+    color: #7a6250;
+    margin-top: 4px;
 }
 
 /* NPCs Section */

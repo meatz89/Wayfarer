@@ -9,12 +9,12 @@ using System.Linq;
 public class StrangerConversationManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConversationOrchestrator _conversationOrchestrator;
+    private readonly ConversationFacade _conversationFacade;
 
-    public StrangerConversationManager(GameWorld gameWorld, ConversationOrchestrator conversationOrchestrator)
+    public StrangerConversationManager(GameWorld gameWorld, ConversationFacade conversationFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _conversationOrchestrator = conversationOrchestrator ?? throw new ArgumentNullException(nameof(conversationOrchestrator));
+        _conversationFacade = conversationFacade ?? throw new ArgumentNullException(nameof(conversationFacade));
     }
 
     /// <summary>
@@ -41,8 +41,11 @@ public class StrangerConversationManager
         // Create a temporary NPC representation for the stranger
         var tempNPC = CreateTemporaryNPCFromStranger(stranger);
 
-        // Create conversation session using orchestrator
-        var session = _conversationOrchestrator.CreateSession(tempNPC, ConversationType.Stranger);
+        // Add temp NPC to GameWorld temporarily so ConversationFacade can find it
+        _gameWorld.NPCs.Add(tempNPC);
+
+        // Create conversation session using facade
+        var session = _conversationFacade.StartConversation(tempNPC.ID, ConversationType.Stranger);
 
         // Mark as stranger conversation and set level for XP scaling
         session.IsStrangerConversation = true;
@@ -65,6 +68,13 @@ public class StrangerConversationManager
 
         // Mark stranger as talked to
         stranger.MarkAsTalkedTo();
+
+        // Remove temporary NPC from GameWorld
+        var tempNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NPC.ID);
+        if (tempNPC != null)
+        {
+            _gameWorld.NPCs.Remove(tempNPC);
+        }
 
         // Determine which reward tier based on rapport achieved
         var conversationType = stranger.ConversationTypes.First().Key; // Simplified - should match actual type used
@@ -190,7 +200,7 @@ public class StrangerConversationManager
     private int CalculateXPGranted(ConversationSession session)
     {
         // Calculate total XP granted during the conversation
-        // This would be tracked during card plays in ConversationOrchestrator
+        // This would be tracked during card plays in ConversationFacade
         return session.TurnHistory.Count * (session.StrangerLevel ?? 1);
     }
 }
