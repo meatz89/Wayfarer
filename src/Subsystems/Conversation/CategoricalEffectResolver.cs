@@ -414,4 +414,5 @@ public class CardEffectResult
     public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public bool EndsConversation { get; set; }
+    public string SpecialEffect { get; set; }
 }
