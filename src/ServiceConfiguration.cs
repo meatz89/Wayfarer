@@ -52,8 +52,6 @@ public static class ServiceConfiguration
 
         // Managers that depend on TimeManager
         services.AddSingleton<TravelManager>();
-        services.AddSingleton<MarketManager>();
-        services.AddSingleton<TradeManager>();
         services.AddSingleton<TransportCompatibilityValidator>();
 
         // DeliveryObligation Queue System

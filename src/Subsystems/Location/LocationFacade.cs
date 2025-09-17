@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.GameState.Actions;
+using Wayfarer.GameState.Enums;
 using Wayfarer.Subsystems.NarrativeSubsystem;
 
 namespace Wayfarer.Subsystems.LocationSubsystem
@@ -635,6 +636,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             int newFamiliarity = Math.Min(location.MaxFamiliarity, currentFam + familiarityGain);
             player.SetLocationFamiliarity(locationId, newFamiliarity);
 
+            // Check for observation rewards at new familiarity level
+            CheckAndGrantObservationRewards(location, player, currentFam, newFamiliarity);
+
             // Apply costs
             player.SpendAttention(attentionCost);
             if (coinCost > 0)
@@ -660,6 +664,107 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             Console.WriteLine($"[InvestigateLocation] {player.Name} investigated {location.Name} from {currentFam} to {newFamiliarity} familiarity using {approach}");
 
             return true;
+        }
+
+        /// <summary>
+        /// Check and grant observation rewards when reaching new familiarity levels
+        /// </summary>
+        private void CheckAndGrantObservationRewards(Location location, Player player, int oldFamiliarity, int newFamiliarity)
+        {
+            // Check each familiarity level between old and new (in case of multi-level jumps)
+            for (int level = oldFamiliarity + 1; level <= newFamiliarity; level++)
+            {
+                // Find observation rewards for this familiarity level
+                List<ObservationReward> applicableRewards = location.ObservationRewards
+                    .Where(r => r.FamiliarityRequired == level)
+                    .Where(r => !r.PriorObservationRequired.HasValue ||
+                               location.HighestObservationCompleted >= r.PriorObservationRequired.Value)
+                    .ToList();
+
+                foreach (ObservationReward reward in applicableRewards)
+                {
+                    if (reward.ObservationCard != null)
+                    {
+                        // Grant the observation card to the player
+                        GrantObservationCard(reward.ObservationCard, player);
+
+                        // Update the highest observation completed
+                        location.HighestObservationCompleted = Math.Max(location.HighestObservationCompleted, level);
+
+                        // Notify player
+                        _messageSystem.AddSystemMessage(
+                            $"Discovered observation: {reward.ObservationCard.Name}",
+                            SystemMessageTypes.Success
+                        );
+
+                        Console.WriteLine($"[LocationFacade] Granted observation card '{reward.ObservationCard.Name}' for reaching familiarity {level} at {location.Name}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Grant an observation card to the player by adding it to the target NPC's observation deck
+        /// </summary>
+        private void GrantObservationCard(ObservationCardReward cardReward, Player player)
+        {
+            // Find the target NPC
+            NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == cardReward.TargetNpcId);
+            if (targetNpc == null)
+            {
+                Console.WriteLine($"[LocationFacade] Warning: Could not find target NPC '{cardReward.TargetNpcId}' for observation card");
+                return;
+            }
+
+            // Create the observation card
+            ObservationCard observationCard = new ObservationCard(cardReward.Id, cardReward.Name)
+            {
+                LocationDiscovered = player.CurrentLocationSpot?.LocationId ?? "Unknown",
+                ItemName = cardReward.Name,
+                ObservationId = cardReward.Id,
+                TimeDiscovered = _timeManager.GetCurrentTimeBlock().ToString(),
+                TokenType = ConnectionType.None, // Default for observations
+                SuccessType = ParseSuccessType(cardReward.Effect),
+                DialogueFragment = cardReward.Description
+            };
+
+            // Initialize NPC's observation deck if needed
+            if (targetNpc.ObservationDeck == null)
+            {
+                targetNpc.ObservationDeck = new CardDeck();
+            }
+
+            // Add the observation card to the NPC's observation deck
+            targetNpc.ObservationDeck.AddCard(observationCard);
+
+            // Track that player has this observation
+            if (!player.CollectedObservations.Contains(cardReward.Id))
+            {
+                player.CollectedObservations.Add(cardReward.Id);
+            }
+
+            Console.WriteLine($"[LocationFacade] Added observation card '{cardReward.Name}' to {targetNpc.Name}'s observation deck");
+        }
+
+        /// <summary>
+        /// Parse effect string into success type for observation cards
+        /// </summary>
+        private SuccessEffectType ParseSuccessType(string effect)
+        {
+            if (string.IsNullOrEmpty(effect))
+                return SuccessEffectType.None;
+
+            string lowerEffect = effect.ToLower();
+            if (lowerEffect.Contains("rapport"))
+                return SuccessEffectType.Rapport;
+            if (lowerEffect.Contains("thread"))
+                return SuccessEffectType.Threading;
+            if (lowerEffect.Contains("focus"))
+                return SuccessEffectType.Focusing;
+            if (lowerEffect.Contains("advance"))
+                return SuccessEffectType.Advancing;
+
+            return SuccessEffectType.None;
         }
 
         /// <summary>

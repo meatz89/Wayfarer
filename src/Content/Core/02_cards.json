@@ -659,16 +659,34 @@
           "ALL"
         ],
         "focus": 3,
+        "persistence": "Thought",
+        "successType": "Promising",
+        "failureType": "Backfire",
+        "exhaustType": "None",
         "connectionType": "Trust",
         "description": "Make Elena my priority",
         "difficulty": "Easy",
         "rapportThreshold": 5,
-        "successEffect": {
-          "type": "ForceQueuePosition",
-          "value": "1"
-        },
         "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
         "boundStat": "authority"
+      },
+      {
+        "id": "marcus_urgent_promise",
+        "type": "Promise",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 2,
+        "persistence": "Impulse",
+        "successType": "Promising",
+        "failureType": "Backfire",
+        "exhaustType": "Regret",
+        "connectionType": "Commerce",
+        "description": "Guarantee Marcus immediate action",
+        "difficulty": "Medium",
+        "rapportThreshold": 8,
+        "dialogueFragment": "Marcus, I'll drop everything to handle your business first. You have my word.",
+        "boundStat": "commerce"
       }
     ],
     "exchangeCards": [

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Subsystems.ObligationSubsystem;
 
 /// <summary>
 /// Public API for the Conversation subsystem.
@@ -25,6 +26,7 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
+    private readonly DisplacementCalculator _displacementCalculator;
     private readonly Random _random;
 
     private ConversationSession _currentSession;
@@ -45,7 +47,8 @@ public class ConversationFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        TimeBlockAttentionManager timeBlockAttentionManager)
+        TimeBlockAttentionManager timeBlockAttentionManager,
+        DisplacementCalculator displacementCalculator)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
@@ -60,6 +63,7 @@ public class ConversationFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
+        _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
         _random = new Random();
     }
 
@@ -604,7 +608,7 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Get available conversation types for an NPC (legacy method for backward compatibility)
+    /// Get available conversation types for an NPC
     /// </summary>
     public List<ConversationType> GetAvailableConversationTypes(NPC npc)
     {
@@ -1171,6 +1175,12 @@ public class ConversationFacade
                 _atmosphereManager.SetAtmosphere(effectResult.AtmosphereTypeChange.Value);
             }
 
+            // Handle Promise card queue manipulation (for Promising success effect)
+            if (selectedCard.SuccessType == SuccessEffectType.Promising)
+            {
+                HandlePromiseCardQueueManipulation(selectedCard, session);
+            }
+
             // Consume one-time atmosphere effects after successful card play
             _atmosphereManager.OnCardSuccess();
         }
@@ -1254,6 +1264,118 @@ public class ConversationFacade
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Handle Promise card queue manipulation - moves target obligation to position 1
+    /// and burns tokens with all displaced NPCs
+    /// </summary>
+    private void HandlePromiseCardQueueManipulation(CardInstance promiseCard, ConversationSession session)
+    {
+        // Promise cards manipulate the queue mid-conversation
+        // They force a specific obligation to position 1, burning tokens with displaced NPCs
+
+        if (_displacementCalculator == null || _queueManager == null)
+        {
+            Console.WriteLine("[ConversationFacade] Cannot manipulate queue - displacement or queue manager not available");
+            return;
+        }
+
+        // Find the target obligation for this promise card
+        // Promise cards are typically associated with a specific NPC's request
+        DeliveryObligation targetObligation = FindTargetObligationForPromise(promiseCard, session);
+
+        if (targetObligation == null)
+        {
+            Console.WriteLine("[ConversationFacade] No target obligation found for promise card");
+            return;
+        }
+
+        // Calculate the current position of the target obligation
+        int currentPosition = GetObligationPosition(targetObligation);
+
+        if (currentPosition <= 0)
+        {
+            Console.WriteLine("[ConversationFacade] Target obligation not in queue");
+            return;
+        }
+
+        if (currentPosition == 1)
+        {
+            Console.WriteLine("[ConversationFacade] Obligation already at position 1, no displacement needed");
+            return;
+        }
+
+        // Execute automatic displacement to position 1
+        string displacementReason = $"Promise made to {session.NPC?.Name ?? "unknown"} - immediate action guaranteed";
+        DisplacementResult result = _displacementCalculator.ExecuteAutomaticDisplacement(
+            targetObligation,
+            1, // Force to position 1
+            displacementReason
+        );
+
+        if (result.CanExecute)
+        {
+            _messageSystem.AddSystemMessage(
+                $"💫 Your promise to {session.NPC?.Name} moves their letter to the front of the queue!",
+                SystemMessageTypes.Success
+            );
+
+            // The displacement calculator already handled token burning and burden cards
+            Console.WriteLine($"[ConversationFacade] Promise card successfully moved obligation to position 1");
+        }
+        else
+        {
+            Console.WriteLine($"[ConversationFacade] Failed to execute promise displacement: {result.ErrorMessage}");
+        }
+    }
+
+    /// <summary>
+    /// Find the target obligation for a promise card
+    /// </summary>
+    private DeliveryObligation FindTargetObligationForPromise(CardInstance promiseCard, ConversationSession session)
+    {
+        // Promise cards are associated with the NPC in the current conversation
+        // Find an obligation from this NPC in the queue
+
+        if (session.NPC == null || _queueManager == null)
+            return null;
+
+        DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
+
+        // Look for an obligation from the current NPC
+        // Priority: obligations where this NPC is the sender
+        DeliveryObligation targetObligation = activeObligations.FirstOrDefault(o =>
+            o != null && (o.SenderId == session.NPC.ID || o.SenderName == session.NPC.Name));
+
+        if (targetObligation == null)
+        {
+            // Fallback: look for obligations where this NPC is the recipient
+            targetObligation = activeObligations.FirstOrDefault(o =>
+                o != null && (o.RecipientId == session.NPC.ID || o.RecipientName == session.NPC.Name));
+        }
+
+        return targetObligation;
+    }
+
+    /// <summary>
+    /// Get the current position of an obligation in the queue
+    /// </summary>
+    private int GetObligationPosition(DeliveryObligation obligation)
+    {
+        if (obligation == null || _gameWorld == null)
+            return -1;
+
+        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
+        for (int i = 0; i < queue.Length; i++)
+        {
+            if (queue[i]?.Id == obligation.Id)
+            {
+                return i + 1; // Return 1-based position
+            }
+        }
+
+        return -1; // Not found
     }
 
     /// <summary>

@@ -99,6 +99,9 @@
     // Key is location ID, value is familiarity level (0-3)
     public Dictionary<string, int> LocationFamiliarity { get; set; } = new Dictionary<string, int>();
 
+    // Observation tracking - IDs of observation cards collected
+    public List<string> CollectedObservations { get; set; } = new List<string>();
+
     public void AddKnownRoute(RouteOption route)
     {
         string originName = route.OriginLocationSpot;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.Subsystems.TokenSubsystem;
 
 /// <summary>
 /// Manages stranger conversations which provide practice XP and immediate rewards
@@ -10,11 +11,16 @@ public class StrangerConversationManager
 {
     private readonly GameWorld _gameWorld;
     private readonly ConversationFacade _conversationFacade;
+    private readonly TokenFacade _tokenFacade;
+    private readonly MessageSystem _messageSystem;
 
-    public StrangerConversationManager(GameWorld gameWorld, ConversationFacade conversationFacade)
+    public StrangerConversationManager(GameWorld gameWorld, ConversationFacade conversationFacade,
+        TokenFacade tokenFacade, MessageSystem messageSystem)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _conversationFacade = conversationFacade ?? throw new ArgumentNullException(nameof(conversationFacade));
+        _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
 
     /// <summary>
@@ -86,7 +92,7 @@ public class StrangerConversationManager
         if (rewardTier >= 0 && rewardTier < conversation.Rewards.Count)
         {
             reward = conversation.Rewards[rewardTier];
-            ApplyStrangerReward(reward);
+            ApplyStrangerReward(reward, stranger);
         }
 
         return new StrangerConversationResult
@@ -179,7 +185,7 @@ public class StrangerConversationManager
         return -1; // No reward tier achieved
     }
 
-    private void ApplyStrangerReward(StrangerReward reward)
+    private void ApplyStrangerReward(StrangerReward reward, StrangerNPC stranger)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -193,8 +199,29 @@ public class StrangerConversationManager
         if (reward.Food > 0)
             player.ReduceHunger(reward.Food);
 
-        // TODO: Apply other rewards (items, permits, observations, tokens)
-        // These would need additional systems to handle properly
+        // Apply item reward
+        if (!string.IsNullOrEmpty(reward.Item))
+        {
+            player.Inventory.AddItem(reward.Item);
+            _messageSystem.AddSystemMessage($"Received {reward.Item}", SystemMessageTypes.Success);
+        }
+
+        // Apply token rewards
+        if (reward.Tokens != null && reward.Tokens.Any())
+        {
+            foreach (var (tokenType, count) in reward.Tokens)
+            {
+                // Parse the token type and apply it
+                if (Enum.TryParse<ConnectionType>(tokenType, true, out ConnectionType connectionType))
+                {
+                    _tokenFacade.AddTokensToNPC(connectionType, count, stranger.Id);
+                    _messageSystem.AddSystemMessage($"Gained {count} {tokenType} token(s) with {stranger.Name}", SystemMessageTypes.Success);
+                }
+            }
+        }
+
+        // Note: Permits and Observations systems not yet implemented in game
+        // When these systems are added, rewards should be applied here
     }
 
     private int CalculateXPGranted(ConversationSession session)

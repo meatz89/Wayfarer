@@ -58,8 +58,11 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                // TODO: Add messaging system notification about failed conversation start
-                Console.WriteLine($"Failed to start stranger conversation with {strangerId}");
+                StrangerNPC stranger = AvailableStrangers.FirstOrDefault(s => s.Id == strangerId);
+                string strangerName = stranger?.Name ?? "stranger";
+                GameFacade.GetMessageSystem().AddSystemMessage(
+                    $"Unable to start conversation with {strangerName}. They may be unavailable or you lack the required resources.",
+                    SystemMessageTypes.Warning);
             }
         }
 

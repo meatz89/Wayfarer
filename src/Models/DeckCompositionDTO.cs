@@ -68,9 +68,3 @@ public class NPCDeckDefinitionDTO
     }
 }
 
-// Keep old class for backwards compatibility temporarily
-public class DeckDefinitionDTO : NPCDeckDefinitionDTO
-{
-    [Obsolete("Use NPCDeckDefinitionDTO instead")]
-    public Dictionary<string, int> ConversationDeck { get; set; }
-}

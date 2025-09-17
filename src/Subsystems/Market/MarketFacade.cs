@@ -11,7 +11,6 @@ namespace Wayfarer.Subsystems.MarketSubsystem
     public class MarketFacade
     {
         private readonly GameWorld _gameWorld;
-        private readonly MarketManager _legacyMarketManager;
         private readonly MarketSubsystemManager _marketManager;
         private readonly PriceManager _priceManager;
         private readonly ArbitrageCalculator _arbitrageCalculator;
@@ -23,7 +22,6 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
         public MarketFacade(
             GameWorld gameWorld,
-            MarketManager legacyMarketManager,
             MarketSubsystemManager marketManager,
             PriceManager priceManager,
             ArbitrageCalculator arbitrageCalculator,
@@ -34,7 +32,6 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             TimeManager timeManager)
         {
             _gameWorld = gameWorld;
-            _legacyMarketManager = legacyMarketManager;
             _marketManager = marketManager;
             _priceManager = priceManager;
             _arbitrageCalculator = arbitrageCalculator;
@@ -162,7 +159,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         /// </summary>
         public List<MarketItem> GetAvailableItems(string locationId)
         {
-            return _marketManager.GetAvailableItems(locationId);
+            return _marketManager.GetAvailableMarketItems(locationId);
         }
 
         // ========== ARBITRAGE ANALYSIS ==========

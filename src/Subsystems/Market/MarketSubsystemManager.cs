@@ -5,13 +5,12 @@ using System.Linq;
 namespace Wayfarer.Subsystems.MarketSubsystem
 {
     /// <summary>
-    /// Core market logic manager that wraps and enhances the legacy MarketManager.
-    /// Provides clean APIs for trading operations and market queries.
+    /// Core market logic manager for all trading operations and market queries.
+    /// Implements dynamic pricing system with location-based arbitrage opportunities.
     /// </summary>
     public class MarketSubsystemManager
     {
         private readonly GameWorld _gameWorld;
-        private readonly MarketManager _legacyMarketManager;
         private readonly ItemRepository _itemRepository;
         private readonly NPCRepository _npcRepository;
         private readonly MessageSystem _messageSystem;
@@ -19,14 +18,12 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
         public MarketSubsystemManager(
             GameWorld gameWorld,
-            MarketManager legacyMarketManager,
             ItemRepository itemRepository,
             NPCRepository npcRepository,
             MessageSystem messageSystem,
             TimeManager timeManager)
         {
             _gameWorld = gameWorld;
-            _legacyMarketManager = legacyMarketManager;
             _itemRepository = itemRepository;
             _npcRepository = npcRepository;
             _messageSystem = messageSystem;
@@ -146,6 +143,117 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             return GetTradersAtTime(locationId, timeBlock);
         }
 
+        // ========== PRICING LOGIC ==========
+
+        private class LocationPricing
+        {
+            public int BuyPrice { get; set; }
+            public int SellPrice { get; set; }
+            public bool IsAvailable { get; set; }
+            public float SupplyLevel { get; set; }
+        }
+
+        /// <summary>
+        /// Get dynamic pricing for an item at a location
+        /// </summary>
+        private LocationPricing GetDynamicPricing(string locationId, string itemId)
+        {
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item == null)
+            {
+                return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
+            }
+
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+            bool marketAvailable = IsMarketAvailable(locationId, currentTime);
+
+            if (!marketAvailable)
+            {
+                return new LocationPricing { BuyPrice = 0, SellPrice = 0, IsAvailable = false };
+            }
+
+            LocationPricing pricing = new LocationPricing
+            {
+                IsAvailable = true,
+                SupplyLevel = 1.0f
+            };
+
+            // Location-specific pricing logic
+            switch (locationId)
+            {
+                case "town_square":
+                    pricing.BuyPrice = item.BuyPrice + 1;
+                    pricing.SellPrice = item.SellPrice + 1;
+                    break;
+                case "dusty_flagon":
+                    pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);
+                    pricing.SellPrice = Math.Max(1, item.SellPrice - 1);
+                    break;
+                default:
+                    pricing.BuyPrice = item.BuyPrice;
+                    pricing.SellPrice = item.SellPrice;
+                    break;
+            }
+
+            // Ensure buy price is always higher than sell price
+            int minimumBuyPrice = (int)Math.Ceiling(pricing.SellPrice * 1.15);
+            if (pricing.BuyPrice < minimumBuyPrice)
+            {
+                pricing.BuyPrice = minimumBuyPrice;
+            }
+
+            return pricing;
+        }
+
+        /// <summary>
+        /// Get the price for a specific item at a specific location
+        /// </summary>
+        public int GetItemPrice(string locationId, string itemId, bool isBuyPrice)
+        {
+            LocationPricing pricing = GetDynamicPricing(locationId, itemId);
+            if (!pricing.IsAvailable) return -1;
+            return isBuyPrice ? pricing.BuyPrice : pricing.SellPrice;
+        }
+
+        /// <summary>
+        /// Get all items available for purchase at a location
+        /// </summary>
+        public List<Item> GetAvailableItems(string locationId)
+        {
+            List<Item> availableItems = new List<Item>();
+
+            TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+            if (!IsMarketAvailable(locationId, currentTime))
+            {
+                return availableItems;
+            }
+
+            List<Item> allItems = _itemRepository.GetAllItems();
+            foreach (Item item in allItems)
+            {
+                LocationPricing pricing = GetDynamicPricing(locationId, item.Id);
+                if (pricing.IsAvailable && pricing.BuyPrice > 0)
+                {
+                    // Create a copy with location-specific pricing
+                    Item pricedItem = new Item
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Description = item.Description,
+                        Focus = item.Focus,
+                        BuyPrice = pricing.BuyPrice,
+                        SellPrice = pricing.SellPrice,
+                        Categories = item.Categories,
+                        InventorySlots = item.InventorySlots,
+                        Size = item.Size
+                    };
+                    availableItems.Add(pricedItem);
+                }
+            }
+
+            return availableItems;
+        }
+
         // ========== TRADING OPERATIONS ==========
 
         /// <summary>
@@ -157,8 +265,20 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
                 return false;
 
-            // Check item availability and player resources
-            return _legacyMarketManager.CanBuyItem(itemId, locationId);
+            // Check item availability
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item == null) return false;
+
+            // Check pricing
+            int buyPrice = GetItemPrice(locationId, itemId, true);
+            if (buyPrice <= 0) return false;
+
+            // Check player resources
+            Player player = _gameWorld.GetPlayer();
+            if (player.Coins < buyPrice) return false;
+
+            // Check inventory space
+            return player.Inventory.CanAddItem(item, _itemRepository);
         }
 
         /// <summary>
@@ -177,7 +297,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 return false;
 
             // Check if location buys this item
-            int sellPrice = _legacyMarketManager.GetItemPrice(locationId, itemId, false);
+            int sellPrice = GetItemPrice(locationId, itemId, false);
             return sellPrice > 0;
         }
 
@@ -208,11 +328,18 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             }
 
             // Get price
-            int buyPrice = _legacyMarketManager.GetItemPrice(locationId, itemId, true);
+            int buyPrice = GetItemPrice(locationId, itemId, true);
             result.Price = buyPrice;
 
-            // Attempt purchase through legacy manager
-            bool success = _legacyMarketManager.BuyItem(itemId, locationId);
+            // Attempt purchase
+            bool success = false;
+            if (buyPrice > 0 && player.Coins >= buyPrice && player.Inventory.CanAddItem(item, _itemRepository))
+            {
+                player.AddCoins(-buyPrice);
+                player.Inventory.AddItem(itemId);
+                success = true;
+                _messageSystem.AddSystemMessage($"Bought {item?.Name ?? itemId} for {buyPrice} coins", SystemMessageTypes.Success);
+            }
 
             result.Success = success;
             result.CoinsAfter = player.Coins;
@@ -271,11 +398,18 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             }
 
             // Get price
-            int sellPrice = _legacyMarketManager.GetItemPrice(locationId, itemId, false);
+            int sellPrice = GetItemPrice(locationId, itemId, false);
             result.Price = sellPrice;
 
-            // Attempt sale through legacy manager
-            bool success = _legacyMarketManager.SellItem(itemId, locationId);
+            // Attempt sale
+            bool success = false;
+            if (sellPrice > 0 && player.Inventory.HasItem(itemId))
+            {
+                player.Inventory.RemoveItem(itemId);
+                player.AddCoins(sellPrice);
+                success = true;
+                _messageSystem.AddSystemMessage($"Sold {item?.Name ?? itemId} for {sellPrice} coins", SystemMessageTypes.Success);
+            }
 
             result.Success = success;
             result.CoinsAfter = player.Coins;
@@ -308,17 +442,17 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         }
 
         /// <summary>
-        /// Get items available for purchase at a location
+        /// Get market items with UI-friendly information for purchase at a location
         /// </summary>
-        public List<MarketItem> GetAvailableItems(string locationId)
+        public List<MarketItem> GetAvailableMarketItems(string locationId)
         {
             if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
             {
                 return new List<MarketItem>();
             }
 
-            // Use legacy manager to get items with location-specific pricing
-            List<Item> items = _legacyMarketManager.GetAvailableItems(locationId);
+            // Get items with location-specific pricing
+            List<Item> items = GetAvailableItems(locationId);
 
             // Convert to MarketItem format
             return items.Select(item => new MarketItem
@@ -349,7 +483,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 Item item = _itemRepository.GetItemById(itemId);
                 if (item == null) continue;
 
-                int sellPriceHere = _legacyMarketManager.GetItemPrice(currentLocationId, itemId, false);
+                int sellPriceHere = GetItemPrice(currentLocationId, itemId, false);
                 if (sellPriceHere <= 0) continue;
 
                 // Check if this is a good place to sell
@@ -359,7 +493,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
 
                 foreach (Location loc in locations)
                 {
-                    int price = _legacyMarketManager.GetItemPrice(loc.Id, itemId, false);
+                    int price = GetItemPrice(loc.Id, itemId, false);
                     if (price > 0)
                     {
                         avgSellPrice += price;
@@ -391,7 +525,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
             // Recommend buying items that are cheap here
             if (player.Coins > 10) // Only if player has money to invest
             {
-                List<Item> availableItems = _legacyMarketManager.GetAvailableItems(currentLocationId);
+                List<Item> availableItems = GetAvailableItems(currentLocationId);
 
                 foreach (Item item in availableItems)
                 {
@@ -407,7 +541,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                     foreach (Location loc in locations)
                     {
                         if (loc.Id == currentLocationId) continue;
-                        int sellPrice = _legacyMarketManager.GetItemPrice(loc.Id, item.Id, false);
+                        int sellPrice = GetItemPrice(loc.Id, item.Id, false);
                         if (sellPrice > maxSellPrice)
                         {
                             maxSellPrice = sellPrice;
@@ -459,14 +593,14 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                 List<NPC> traders = GetAvailableTraders(locationId, currentTime);
                 summary.AvailableTraders = traders.Select(t => t.Name).ToList();
 
-                List<Item> items = _legacyMarketManager.GetAvailableItems(locationId);
+                List<Item> items = GetAvailableItems(locationId);
                 summary.TotalItemsAvailable = items.Count;
                 summary.AffordableItems = items.Count(i => i.BuyPrice <= player.Coins);
 
                 // Count items profitable to sell
                 foreach (string itemId in player.Inventory.GetItemIds())
                 {
-                    int sellPrice = _legacyMarketManager.GetItemPrice(locationId, itemId, false);
+                    int sellPrice = GetItemPrice(locationId, itemId, false);
                     if (sellPrice > 0)
                     {
                         summary.ProfitableToSell++;
