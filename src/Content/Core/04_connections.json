@@ -37,8 +37,7 @@
         "travelTimeSegments": 1,
         "hungerEffect": 0,
         "oneTimeReward": null,
-        "narrativeText": "A quicker but riskier path through the narrow alleys.",
-        "statRequirements": {"cunning": 2}
+        "narrativeText": "A quicker but riskier path through the narrow alleys."
       },
       {
         "id": "dock_workers_path",

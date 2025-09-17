@@ -1,0 +1,182 @@
+/* Debug Panel Styles */
+.debug-panel {
+    position: fixed;
+    top: 80px;
+    right: 10px;
+    background: rgba(61, 52, 41, 0.95);
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.debug-panel.collapsed {
+    width: auto;
+}
+
+.debug-panel.expanded {
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.debug-toggle {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #5c4a3a;
+    color: #f9f3e9;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+.debug-toggle:hover {
+    background: #6d5949;
+}
+
+.debug-content {
+    padding: 15px;
+    color: #f9f3e9;
+}
+
+.debug-content h3 {
+    margin: 0 0 15px 0;
+    color: #d4a76a;
+    font-size: 16px;
+    border-bottom: 1px solid #8b7355;
+    padding-bottom: 8px;
+}
+
+.debug-section {
+    margin-bottom: 20px;
+}
+
+.debug-section h4 {
+    margin: 0 0 10px 0;
+    color: #e8dcc4;
+    font-size: 14px;
+}
+
+/* Stat Controls */
+.stat-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.stat-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-name {
+    width: 80px;
+    font-size: 12px;
+    color: #c4a684;
+}
+
+/* Debug Buttons */
+.debug-btn {
+    padding: 4px 8px;
+    background: #7a6250;
+    color: #f9f3e9;
+    border: 1px solid #8b7355;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s ease;
+    min-width: 28px;
+}
+
+.debug-btn:hover {
+    background: #8b7355;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.debug-btn:active {
+    transform: translateY(0);
+}
+
+.debug-btn.xp {
+    background: #5a6b3a;
+    border-color: #7a8b5a;
+    margin-left: 8px;
+}
+
+.debug-btn.xp:hover {
+    background: #7a8b5a;
+}
+
+.debug-btn.bulk {
+    background: #8b4726;
+    border-color: #a85634;
+    flex: 1;
+}
+
+.debug-btn.bulk:hover {
+    background: #a85634;
+}
+
+.debug-btn.info {
+    background: #4a6b8a;
+    border-color: #5a7ba0;
+    flex: 1;
+}
+
+.debug-btn.info:hover {
+    background: #5a7ba0;
+}
+
+/* Bulk Controls */
+.stat-bulk-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Resource Controls */
+.resource-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.resource-controls .debug-btn {
+    width: 100%;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quick-actions .debug-btn {
+    width: 100%;
+    padding: 8px;
+}
+
+/* Scrollbar Styling */
+.debug-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.debug-panel::-webkit-scrollbar-track {
+    background: #3d3429;
+}
+
+.debug-panel::-webkit-scrollbar-thumb {
+    background: #8b7355;
+    border-radius: 4px;
+}
+
+.debug-panel::-webkit-scrollbar-thumb:hover {
+    background: #a68b6f;
+}

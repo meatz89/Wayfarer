@@ -1,0 +1,121 @@
+@namespace Wayfarer.Pages.Components
+@inject GameFacade GameFacade
+@inject MessageSystem MessageSystem
+
+<div class="debug-panel @(IsExpanded ? "expanded" : "collapsed")">
+    <div class="debug-toggle" @onclick="TogglePanel">
+        <span>🛠️ Debug</span>
+    </div>
+
+    @if (IsExpanded)
+    {
+        <div class="debug-content">
+            <h3>Debug Commands</h3>
+
+            <!-- Stat Controls -->
+            <div class="debug-section">
+                <h4>Player Stats</h4>
+                <div class="stat-controls">
+                    @foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+                    {
+                        <div class="stat-control">
+                            <span class="stat-name">@statType:</span>
+                            <button class="debug-btn" @onclick="() => SetStatLevel(statType, 1)">L1</button>
+                            <button class="debug-btn" @onclick="() => SetStatLevel(statType, 2)">L2</button>
+                            <button class="debug-btn" @onclick="() => SetStatLevel(statType, 3)">L3</button>
+                            <button class="debug-btn" @onclick="() => SetStatLevel(statType, 4)">L4</button>
+                            <button class="debug-btn" @onclick="() => SetStatLevel(statType, 5)">L5</button>
+                            <button class="debug-btn xp" @onclick="() => AddStatXP(statType, 10)">+10 XP</button>
+                        </div>
+                    }
+                </div>
+                <div class="stat-bulk-controls">
+                    <button class="debug-btn bulk" @onclick="() => SetAllStats(2)">All L2</button>
+                    <button class="debug-btn bulk" @onclick="() => SetAllStats(3)">All L3</button>
+                    <button class="debug-btn bulk" @onclick="() => SetAllStats(5)">All L5</button>
+                    <button class="debug-btn info" @onclick="ShowStatInfo">Show Stats</button>
+                </div>
+            </div>
+
+            <!-- Resource Controls -->
+            <div class="debug-section">
+                <h4>Resources</h4>
+                <div class="resource-controls">
+                    <button class="debug-btn" @onclick="() => GiveResources(10, 0, 0)">+10 Coins</button>
+                    <button class="debug-btn" @onclick="() => GiveResources(50, 0, 0)">+50 Coins</button>
+                    <button class="debug-btn" @onclick="() => GiveResources(0, 20, 0)">+20 Health</button>
+                    <button class="debug-btn" @onclick="() => GiveResources(0, 100, 0)">Full Health</button>
+                    <button class="debug-btn" @onclick="() => GiveResources(0, 0, -30)">-30 Hunger</button>
+                    <button class="debug-btn" @onclick="() => GiveResources(0, 0, -100)">No Hunger</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="debug-section">
+                <h4>Quick Actions</h4>
+                <div class="quick-actions">
+                    <button class="debug-btn" @onclick="RevealAllPaths">Reveal All Paths</button>
+                    <button class="debug-btn" @onclick="UnlockAllTokens">Max All Tokens</button>
+                    <button class="debug-btn" @onclick="SkipTime">Skip 1 Hour</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool IsExpanded = false;
+
+    private void TogglePanel()
+    {
+        IsExpanded = !IsExpanded;
+    }
+
+    private void SetStatLevel(PlayerStatType statType, int level)
+    {
+        GameFacade.DebugSetStatLevel(statType, level);
+        StateHasChanged();
+    }
+
+    private void AddStatXP(PlayerStatType statType, int xp)
+    {
+        GameFacade.DebugAddStatXP(statType, xp);
+        StateHasChanged();
+    }
+
+    private void SetAllStats(int level)
+    {
+        GameFacade.DebugSetAllStats(level);
+        StateHasChanged();
+    }
+
+    private void ShowStatInfo()
+    {
+        string info = GameFacade.DebugGetStatInfo();
+        MessageSystem.AddSystemMessage(info, SystemMessageTypes.Info);
+    }
+
+    private void GiveResources(int coins, int health, int hunger)
+    {
+        GameFacade.DebugGiveResources(coins, health, hunger);
+        StateHasChanged();
+    }
+
+    private void RevealAllPaths()
+    {
+        // This would need to be implemented in TravelFacade
+        MessageSystem.AddSystemMessage("Path revelation not yet implemented", SystemMessageTypes.Warning);
+    }
+
+    private void UnlockAllTokens()
+    {
+        // This would need to be implemented in TokenFacade
+        MessageSystem.AddSystemMessage("Token unlock not yet implemented", SystemMessageTypes.Warning);
+    }
+
+    private void SkipTime()
+    {
+        // This would need to be implemented in TimeFacade
+        MessageSystem.AddSystemMessage("Time skip not yet implemented", SystemMessageTypes.Warning);
+    }
+}

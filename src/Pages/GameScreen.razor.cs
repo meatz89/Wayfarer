@@ -245,6 +245,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         return true;
     }
 
+    protected bool IsDevelopmentMode()
+    {
+        // Check if running in development environment
+        // This could be based on configuration, environment variable, or build mode
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
+    }
+
     public async Task NavigateToScreen(ScreenMode newMode)
     {
         if (!CanNavigateTo(newMode))

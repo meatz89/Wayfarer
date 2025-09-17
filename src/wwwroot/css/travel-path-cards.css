@@ -142,12 +142,21 @@
 }
 
 .path-card.unavailable {
-    opacity: 0.4;
+    opacity: 0.6;
     cursor: not-allowed;
+    position: relative;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(139, 71, 37, 0.1) 10px,
+        rgba(139, 71, 37, 0.1) 20px
+    );
 }
 
 .path-card.unavailable:hover {
     transform: none;
+    opacity: 0.7;
 }
 
 /* Complete state - cards are display only when route is finished */
@@ -423,6 +432,111 @@
     color: #8b7355;
     font-style: italic;
     margin-left: 4px;
+}
+
+/* Stat Requirements */
+.path-stat-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.stat-requirement {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+    transition: all 0.2s ease;
+}
+
+.stat-requirement.met {
+    background: rgba(122, 139, 90, 0.1);
+    border-color: #7a8b5a;
+    color: #5a6b3a;
+}
+
+.stat-requirement.unmet {
+    background: rgba(139, 71, 37, 0.15);
+    border-color: #8b4726;
+    color: #8b4726;
+    position: relative;
+    animation: pulse-warning 2s infinite;
+}
+
+.stat-requirement.unmet .current-level {
+    color: #a85834;
+    font-weight: normal;
+    margin-left: 2px;
+}
+
+.stat-requirement .stat-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+}
+
+.stat-requirement .stat-info {
+    text-transform: capitalize;
+}
+
+/* Stat Icon Classes */
+.stat-icon.cunning {
+    background: url('/images/icons/cunning.png') center/contain no-repeat;
+}
+
+.stat-icon.insight {
+    background: url('/images/icons/insight.png') center/contain no-repeat;
+}
+
+.stat-icon.rapport {
+    background: url('/images/icons/rapport.png') center/contain no-repeat;
+}
+
+.stat-icon.authority {
+    background: url('/images/icons/authority.png') center/contain no-repeat;
+}
+
+.stat-icon.commerce {
+    background: url('/images/icons/commerce.png') center/contain no-repeat;
+}
+
+/* Unavailable Path Tooltip */
+.path-card.unavailable::after {
+    content: attr(data-unavailable-reason);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #3d3429;
+    color: #f9f3e9;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.path-card.unavailable:hover::after {
+    opacity: 1;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(139, 71, 37, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 3px rgba(139, 71, 37, 0.2);
+    }
 }
 
 /* Encounter Warning */

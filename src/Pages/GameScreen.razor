@@ -77,6 +77,12 @@
         </div>
     </CascadingValue>
     
+    <!-- Debug Panel (Development Only) -->
+    @if (IsDevelopmentMode())
+    {
+        <DebugPanel />
+    }
+
     <!-- Toast Notifications -->
     <MessageDisplay />
 </div>

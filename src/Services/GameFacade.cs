@@ -880,4 +880,145 @@ public class GameFacade
             AvailableTimeBlocks = exchangeData?.TimeRestrictions ?? new List<TimeBlocks>()
         };
     }
+
+    // ============================================
+    // DEBUG COMMANDS
+    // ============================================
+
+    /// <summary>
+    /// Debug: Set player stat to specific level
+    /// </summary>
+    public bool DebugSetStatLevel(PlayerStatType statType, int level)
+    {
+        if (level < 1 || level > 5)
+        {
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 1-5.", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Since there's no SetLevel method, we need to manipulate the internal state
+        // We'll add XP to reach the desired level
+        int currentLevel = player.Stats.GetLevel(statType);
+
+        if (currentLevel < level)
+        {
+            // Calculate XP needed to reach target level
+            int totalXPNeeded = 0;
+            for (int lvl = 1; lvl < level; lvl++)
+            {
+                totalXPNeeded += lvl switch
+                {
+                    1 => 10,
+                    2 => 25,
+                    3 => 50,
+                    4 => 100,
+                    _ => 0
+                };
+            }
+
+            // Add enough XP to reach the target level
+            player.Stats.AddXP(statType, totalXPNeeded);
+        }
+
+        _messageSystem.AddSystemMessage($"Set {statType} to level {level}", SystemMessageTypes.Success);
+        return true;
+    }
+
+    /// <summary>
+    /// Debug: Add XP to a specific stat
+    /// </summary>
+    public bool DebugAddStatXP(PlayerStatType statType, int xp)
+    {
+        if (xp <= 0)
+        {
+            _messageSystem.AddSystemMessage($"Invalid XP amount {xp}. Must be positive.", SystemMessageTypes.Danger);
+            return false;
+        }
+
+        Player player = _gameWorld.GetPlayer();
+        int oldLevel = player.Stats.GetLevel(statType);
+        player.Stats.AddXP(statType, xp);
+        int newLevel = player.Stats.GetLevel(statType);
+
+        if (newLevel > oldLevel)
+        {
+            _messageSystem.AddSystemMessage($"Added {xp} XP to {statType}. LEVEL UP! Now level {newLevel}.", SystemMessageTypes.Success);
+        }
+        else
+        {
+            int currentXP = player.Stats.GetXP(statType);
+            int required = player.Stats.GetXPToNextLevel(statType);
+            _messageSystem.AddSystemMessage($"Added {xp} XP to {statType}. Progress: {currentXP}/{required}", SystemMessageTypes.Success);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Debug: Set all stats to a specific level
+    /// </summary>
+    public void DebugSetAllStats(int level)
+    {
+        if (level < 1 || level > 5)
+        {
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 1-5.", SystemMessageTypes.Danger);
+            return;
+        }
+
+        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+        {
+            DebugSetStatLevel(statType, level);
+        }
+
+        _messageSystem.AddSystemMessage($"All stats set to level {level}", SystemMessageTypes.Success);
+    }
+
+    /// <summary>
+    /// Debug: Display current stat levels and XP
+    /// </summary>
+    public string DebugGetStatInfo()
+    {
+        Player player = _gameWorld.GetPlayer();
+        var statInfo = new System.Text.StringBuilder();
+
+        statInfo.AppendLine("=== Player Stats ===");
+        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+        {
+            int level = player.Stats.GetLevel(statType);
+            int xp = player.Stats.GetXP(statType);
+            int required = player.Stats.GetXPToNextLevel(statType);
+
+            statInfo.AppendLine($"{statType}: Level {level} ({xp}/{required} XP)");
+        }
+
+        return statInfo.ToString();
+    }
+
+    /// <summary>
+    /// Debug: Grant resources (coins, health, etc.)
+    /// </summary>
+    public void DebugGiveResources(int coins = 0, int health = 0, int hunger = 0)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        if (coins != 0)
+        {
+            player.Coins = Math.Max(0, player.Coins + coins);
+            _messageSystem.AddSystemMessage($"Coins {(coins > 0 ? "+" : "")}{coins} (now {player.Coins})", SystemMessageTypes.Success);
+        }
+
+        if (health != 0)
+        {
+            player.Health = Math.Clamp(player.Health + health, 0, 100);
+            _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
+        }
+
+        if (hunger != 0)
+        {
+            player.Hunger = Math.Clamp(player.Hunger + hunger, 0, 100);
+            _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
+        }
+    }
 }
