@@ -76,23 +76,23 @@
         "dialogueFragment": "What would you do in my position?",
         "boundStat": "insight"
       },
-      {
-        "id": "i_need_your_advice",
-        "type": "Conversation",
-        "personalityTypes": [
-          "ALL"
-        ],
-        "focus": 3,
-        "persistence": "Impulse",
-        "successType": "Rapport",
-        "failureType": "Backfire",
-        "exhaustType": "None",
-        "connectionType": "Trust",
-        "description": "I need your advice",
-        "difficulty": "Medium",
-        "dialogueFragment": "I need your advice on something important.",
-        "boundStat": "authority"
-      },
+        {
+            "id": "i_need_your_advice",
+            "type": "Conversation",
+            "personalityTypes": [
+                "ALL"
+            ],
+            "focus": 3,
+            "persistence": "Thought",
+            "successType": "Rapport",
+            "failureType": "Backfire",
+            "exhaustType": "None",
+            "connectionType": "Trust",
+            "description": "I need your advice",
+            "difficulty": "Medium",
+            "dialogueFragment": "I need your advice on something important.",
+            "boundStat": "authority"
+        },
       {
         "id": "that_must_have_been_difficult",
         "type": "Conversation",
@@ -134,7 +134,7 @@
           "ALL"
         ],
         "focus": 3,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Advancing",
         "failureType": "None",
         "exhaustType": "None",
@@ -185,7 +185,7 @@
           "ALL"
         ],
         "focus": 3,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Atmospheric",
         "failureType": "Backfire",
         "exhaustType": "None",
@@ -202,7 +202,7 @@
           "ALL"
         ],
         "focus": 2,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Threading",
         "failureType": "None",
         "exhaustType": "Focusing",
@@ -253,7 +253,7 @@
           "ALL"
         ],
         "focus": 4,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Advancing",
         "failureType": "None",
         "exhaustType": "Regret",
@@ -287,7 +287,7 @@
           "ALL"
         ],
         "focus": 4,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Advancing",
         "failureType": "Backfire",
         "exhaustType": "None",
@@ -304,7 +304,7 @@
           "ALL"
         ],
         "focus": 2,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Atmospheric",
         "failureType": "None",
         "exhaustType": "Threading",
@@ -574,7 +574,7 @@
           "MERCANTILE"
         ],
         "focus": 3,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Threading",
         "failureType": "None",
         "exhaustType": "Threading",

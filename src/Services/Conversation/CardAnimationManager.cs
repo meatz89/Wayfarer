@@ -13,6 +13,12 @@ namespace Wayfarer
     /// </summary>
     public class CardAnimationManager
     {
+        /// <summary>
+        /// Master flag to enable/disable all animations.
+        /// Set to false to focus on fixing mechanical bugs.
+        /// </summary>
+        public static bool AnimationsEnabled = false;
+
         private readonly List<AnimatingCard> animatingCards = new();
         private readonly Dictionary<string, CardAnimationState> cardStates = new();
 

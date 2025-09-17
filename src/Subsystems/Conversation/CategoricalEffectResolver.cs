@@ -54,7 +54,7 @@ public class CategoricalEffectResolver
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
-            SpecialEffect = "",
+            EffectDescription = "",
             EndsConversation = false
         };
 
@@ -65,7 +65,7 @@ public class CategoricalEffectResolver
         {
             case SuccessEffectType.Rapport:
                 result.RapportChange = magnitude;
-                result.SpecialEffect = $"+{magnitude} rapport";
+                result.EffectDescription = $"+{magnitude} rapport";
                 break;
 
             case SuccessEffectType.Threading:
@@ -78,7 +78,7 @@ public class CategoricalEffectResolver
                         result.CardsToAdd.Add(drawn);
                     }
                 }
-                result.SpecialEffect = $"Draw {magnitude} cards";
+                result.EffectDescription = $"Draw {magnitude} cards";
                 break;
 
             case SuccessEffectType.Atmospheric:
@@ -87,19 +87,19 @@ public class CategoricalEffectResolver
                 if (newAtmosphere.HasValue)
                 {
                     result.AtmosphereTypeChange = newAtmosphere.Value;
-                    result.SpecialEffect = $"Set {newAtmosphere.Value} atmosphere";
+                    result.EffectDescription = $"Set {newAtmosphere.Value} atmosphere";
                 }
                 break;
 
             case SuccessEffectType.Focusing:
                 result.FocusAdded = magnitude;
-                result.SpecialEffect = $"+{magnitude} focus";
+                result.EffectDescription = $"+{magnitude} focus";
                 break;
 
             case SuccessEffectType.Promising:
                 // Move obligation to position 1 and gain rapport based on magnitude
                 result.RapportChange = magnitude * 2; // Promising gives double rapport
-                result.SpecialEffect = $"Promise made, +{magnitude * 2} rapport";
+                result.EffectDescription = $"Promise made, +{magnitude * 2} rapport";
                 // Queue manipulation handled by ConversationOrchestrator
                 break;
 
@@ -107,7 +107,7 @@ public class CategoricalEffectResolver
                 // Advances flow battery by magnitude (which may trigger connection state change)
                 // Flow battery changes are what actually drive connection state advancement
                 result.FlowChange = magnitude; // Add flow equal to magnitude
-                result.SpecialEffect = $"+{magnitude} flow";
+                result.EffectDescription = $"+{magnitude} flow";
                 break;
 
             case SuccessEffectType.None:
@@ -123,7 +123,7 @@ public class CategoricalEffectResolver
             if (card.SuccessType == SuccessEffectType.Rapport)
             {
                 result.RapportChange *= 2;
-                result.SpecialEffect += " (synchronized)";
+                result.EffectDescription += " (synchronized)";
             }
             else if (card.SuccessType == SuccessEffectType.Threading)
             {
@@ -136,17 +136,17 @@ public class CategoricalEffectResolver
                         result.CardsToAdd.Add(drawn);
                     }
                 }
-                result.SpecialEffect += " (synchronized)";
+                result.EffectDescription += " (synchronized)";
             }
             else if (card.SuccessType == SuccessEffectType.Focusing)
             {
                 result.FocusAdded *= 2;
-                result.SpecialEffect += " (synchronized)";
+                result.EffectDescription += " (synchronized)";
             }
             else if (card.SuccessType == SuccessEffectType.Advancing)
             {
                 result.FlowChange *= 2;
-                result.SpecialEffect += " (synchronized)";
+                result.EffectDescription += " (synchronized)";
             }
         }
 
@@ -168,7 +168,7 @@ public class CategoricalEffectResolver
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
-            SpecialEffect = "",
+            EffectDescription = "",
             EndsConversation = false
         };
 
@@ -180,7 +180,7 @@ public class CategoricalEffectResolver
             case FailureEffectType.Backfire:
                 // Negative rapport based on magnitude
                 result.RapportChange = -magnitude;
-                result.SpecialEffect = $"-{magnitude} rapport";
+                result.EffectDescription = $"-{magnitude} rapport";
                 break;
 
             case FailureEffectType.ForceListen:
@@ -190,11 +190,11 @@ public class CategoricalEffectResolver
                 {
                     // Indicate focus would be depleted
                     result.FocusAdded = -session.GetAvailableFocus();
-                    result.SpecialEffect = "Must LISTEN next turn";
+                    result.EffectDescription = "Must LISTEN next turn";
                 }
                 else
                 {
-                    result.SpecialEffect = "Immune to forced LISTEN (Level 5)";
+                    result.EffectDescription = "Immune to forced LISTEN (Level 5)";
                 }
                 break;
 
@@ -225,7 +225,7 @@ public class CategoricalEffectResolver
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             AtmosphereTypeChange = null,
-            SpecialEffect = "",
+            EffectDescription = "",
             EndsConversation = false
         };
 
@@ -239,29 +239,16 @@ public class CategoricalEffectResolver
 
         switch (card.ExhaustType)
         {
-            case ExhaustEffectType.Threading:
-                // PENALTY: Lose cards from hand when exhausted
-                // Note: CardsToAdd with negative semantics means cards to remove
-                // The UI interprets this as "lose X cards" based on exhaust context
-                for (int i = 0; i < magnitude; i++)
-                {
-                    // We populate CardsToAdd to indicate how many cards would be lost
-                    // The actual removal is handled by the caller
-                    result.CardsToAdd.Add(new CardInstance { Template = new ConversationCard() });
-                }
-                result.SpecialEffect = $"Exhausted: Lose {magnitude} cards";
-                break;
-
             case ExhaustEffectType.Focusing:
                 // PENALTY: Lose focus when exhausted
                 result.FocusAdded = -magnitude; // Negative focus = penalty
-                result.SpecialEffect = $"Exhausted: -{magnitude} focus";
+                result.EffectDescription = $"Exhausted: -{magnitude} focus";
                 break;
 
             case ExhaustEffectType.Regret:
                 // PENALTY: Lose rapport when not played - the cost of silence
                 result.RapportChange = -magnitude;
-                result.SpecialEffect = $"Regret: -{magnitude} rapport";
+                result.EffectDescription = $"Regret: -{magnitude} rapport";
                 break;
 
             case ExhaustEffectType.None:
@@ -414,5 +401,5 @@ public class CardEffectResult
     public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public bool EndsConversation { get; set; }
-    public string SpecialEffect { get; set; }
+    public string EffectDescription { get; set; }
 }

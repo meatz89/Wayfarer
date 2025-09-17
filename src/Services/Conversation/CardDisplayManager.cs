@@ -18,6 +18,28 @@ namespace Wayfarer
         {
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
+            // SINGLE CHECK: If animations disabled, just return hand cards without any animation info
+            if (!CardAnimationManager.AnimationsEnabled)
+            {
+                if (session?.Deck?.Hand?.Cards != null)
+                {
+                    foreach (CardInstance? card in session.Deck.Hand.Cards)
+                    {
+                        displayCards.Add(new CardDisplayInfo
+                        {
+                            Card = card,
+                            IsAnimating = false,
+                            IsExhausting = false,
+                            AnimationDelay = 0,
+                            AnimationDirection = null,
+                            AnimationState = null
+                        });
+                    }
+                }
+                return SortCardsWithPromiseFirst(displayCards);
+            }
+
+            // ANIMATIONS ENABLED: Normal animation logic
             // FIRST: Add current hand cards
             if (session?.Deck?.Hand?.Cards != null)
             {
@@ -42,7 +64,7 @@ namespace Wayfarer
                 }
             }
 
-            // SECOND: Add animating cards that were just played (no longer in hand)
+            // SECOND: Add animating cards that were just played
             foreach (AnimatingCard animatingCard in animatingCards)
             {
                 bool inHand = session?.Deck?.Hand?.Cards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;

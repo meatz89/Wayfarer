@@ -98,11 +98,6 @@ public enum ExhaustEffectType
     None,
 
     /// <summary>
-    /// Draw cards when discarded (magnitude from difficulty)
-    /// </summary>
-    Threading,
-
-    /// <summary>
     /// Restore focus when discarded (magnitude from difficulty)
     /// </summary>
     Focusing,
