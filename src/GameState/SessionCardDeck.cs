@@ -120,6 +120,8 @@ public class SessionCardDeck
     /// </summary>
     public void DrawToHand(int count)
     {
+        int cardsDrawn = 0;
+
         for (int i = 0; i < count; i++)
         {
             // Reshuffle if needed
@@ -128,15 +130,30 @@ public class SessionCardDeck
                 ReshuffleDiscardPile();
             }
 
-            if (drawPile.Count > 0)
+            // If still no cards after reshuffling, we're out of cards entirely
+            if (drawPile.Count == 0)
             {
-                var card = drawPile.DrawTop();
-                if (card != null)
-                {
-                    AssignPreRoll(card);
-                    handPile.Add(card);
-                }
+                Console.WriteLine($"[SessionCardDeck] WARNING: Requested {count} cards but only {cardsDrawn} available (draw pile and discard both empty)");
+                break;
             }
+
+            var card = drawPile.DrawTop();
+            if (card != null)
+            {
+                AssignPreRoll(card);
+                handPile.Add(card);
+                cardsDrawn++;
+            }
+        }
+
+        // Log the actual draw result
+        if (cardsDrawn < count)
+        {
+            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (not enough cards in circulation)");
+        }
+        else
+        {
+            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards");
         }
     }
 
