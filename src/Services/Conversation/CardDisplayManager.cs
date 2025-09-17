@@ -5,39 +5,20 @@ using System.Linq;
 namespace Wayfarer
 {
     /// <summary>
-    /// Manages card display logic for conversations, including animations and positioning.
-    /// Uses composition to provide card display functionality to ConversationContent component.
+    /// Manages card display logic for conversations.
+    /// SIMPLIFIED: Only displays actual hand cards and animating played cards.
     /// </summary>
     public class CardDisplayManager
     {
         /// <summary>
-        /// Get all cards to display, combining exhausting cards, regular hand cards, and animating cards.
-        /// Ensures promise cards appear first and maintains original positions during animation.
-        /// CRITICAL: Exhausting cards are shown FIRST to maintain their DOM presence for animation.
+        /// Get all cards to display: hand cards + animating played cards.
+        /// Promise cards appear first for visibility.
         /// </summary>
-        public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards, ExhaustingCardStore exhaustingCardStore)
+        public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards)
         {
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            // FIRST: Add exhausting cards (these are being animated out)
-            // These are copies that exist ONLY for animation display
-            if (exhaustingCardStore != null)
-            {
-                foreach (var exhaustingCard in exhaustingCardStore.GetExhaustingCards())
-                {
-                    displayCards.Add(new CardDisplayInfo
-                    {
-                        Card = exhaustingCard.Card,
-                        IsAnimating = false,  // Not using the old animation system
-                        IsExhausting = true,  // New flag for exhaust animations
-                        AnimationDelay = exhaustingCard.AnimationDelay,
-                        AnimationDirection = exhaustingCard.AnimationDirection,
-                        AnimationState = "card-exhausting"
-                    });
-                }
-            }
-
-            // SECOND: Add current hand cards (preserving positions)
+            // FIRST: Add current hand cards
             if (session?.Deck?.Hand?.Cards != null)
             {
                 List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
@@ -61,7 +42,7 @@ namespace Wayfarer
                 }
             }
 
-            // THIRD: Add any animating cards that are no longer in the hand (just played and removed)
+            // SECOND: Add animating cards that were just played (no longer in hand)
             foreach (AnimatingCard animatingCard in animatingCards)
             {
                 bool inHand = session?.Deck?.Hand?.Cards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;

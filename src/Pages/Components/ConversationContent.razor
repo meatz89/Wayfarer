@@ -34,30 +34,6 @@
                 <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
 
-            <!-- Flow State Container - Centered wrapper -->
-            <div class="flow-state-wrapper">
-                <div class="flow-container">
-                    <div class="flow-negative">
-                        @for (int i = -1; i >= -3; i--)
-                        {
-                            <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                        }
-                    </div>
-
-                    <div class="current-state">
-                        <div class="state-name">@GetConnectionStateDisplay()</div>
-                        <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
-                    </div>
-
-                    <div class="flow-positive">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <span class="flow-segment @GetFlowSegmentClass(i)"></span>
-                        }
-                    </div>
-                </div>
-            </div>
-
             <div class="personality-badge">@GetPersonalityRuleShort()</div>
         </div>
 
@@ -70,6 +46,30 @@
                         {
                             <span class="patience-slot @GetPatienceSlotClass(i)"></span>
                         }
+                    </div>
+                </div>
+
+                <!-- Flow State Container - Centered wrapper -->
+                <div class="flow-state-wrapper">
+                    <div class="flow-container">
+                        <div class="flow-negative">
+                            @for (int i = -1; i >= -3; i--)
+                            {
+                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                            }
+                        </div>
+
+                        <div class="current-state">
+                            <div class="state-name">@GetConnectionStateDisplay()</div>
+                            <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
+                        </div>
+
+                        <div class="flow-positive">
+                            @for (int i = 1; i <= 3; i++)
+                            {
+                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -219,28 +219,8 @@
                 {
                     var convCard = displayCard.Card;
 
-                    @if (displayCard.IsExhausting)
-                    {
-                        @* Exhausting card with sequential animation *@
-                        var exhaustStyle = displayCard.AnimationDelay > 0
-                            ? $"animation-delay: {displayCard.AnimationDelay:F2}s;"
-                            : "";
-
-                        <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)" style="@exhaustStyle">
-                            <div class="card-content">
-                                <div class="card-main">
-                                    <div class="card-header">
-                                        <div class="card-name">@GetProperCardName(convCard)</div>
-                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                    </div>
-                                    <div class="card-text @GetNarrativeClass()">
-                                        "@GetProperCardDialogue(convCard)"
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else if (displayCard.IsAnimating)
+                    @* Display regular hand cards and animating played cards *@
+                    @if (displayCard.IsAnimating)
                     {
                         @* Animating card that's been played *@
                         <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)">

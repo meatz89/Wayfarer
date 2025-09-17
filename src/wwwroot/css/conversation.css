@@ -435,7 +435,7 @@ body {
     border-radius: 4px;
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: transform 0.3s ease, opacity 0.15s ease, margin 0.3s ease, max-height 0.3s ease;
     position: relative;
 }
 
@@ -846,54 +846,25 @@ body {
     }
 }
 
-/* Exhaust animation - exit to right (discard pile) */
-@keyframes card-exhaust-right {
+/* SIMPLIFIED: Basic fade out for removed cards */
+@keyframes card-fade-out {
     0% {
         opacity: 1;
-        transform: translateX(0) scale(1) rotateY(0);
-        filter: grayscale(0) brightness(1);
-    }
-    30% {
-        opacity: 0.8;
-        transform: translateX(50px) scale(0.95) rotateY(-10deg);
-        filter: grayscale(0.3) brightness(0.9) sepia(0.3);
-    }
-    60% {
-        opacity: 0.5;
-        transform: translateX(150px) scale(0.8) rotateY(-20deg);
-        filter: grayscale(0.6) brightness(0.7) sepia(0.6);
     }
     100% {
         opacity: 0;
-        transform: translateX(300px) scale(0.3) rotateY(-30deg);
-        filter: grayscale(1) brightness(0.5) sepia(1);
-        max-height: 0;
-        margin: 0;
-        padding: 0;
     }
 }
 
-/* Draw animation - enter from left (deck) */
-@keyframes card-draw-left {
+/* SIMPLIFIED: Basic fade in for new cards */
+@keyframes card-fade-in {
     0% {
         opacity: 0;
-        transform: translateX(-300px) scale(0.3) rotateY(30deg);
-        filter: brightness(1.2);
-    }
-    40% {
-        opacity: 0.5;
-        transform: translateX(-150px) scale(0.6) rotateY(15deg);
-        filter: brightness(1.1);
-    }
-    70% {
-        opacity: 0.9;
-        transform: translateX(-50px) scale(0.9) rotateY(5deg);
-        filter: brightness(1.05);
+        transform: scale(0.95);
     }
     100% {
         opacity: 1;
-        transform: translateX(0) scale(1) rotateY(0);
-        filter: brightness(1);
+        transform: scale(1);
     }
 }
 
@@ -909,11 +880,9 @@ body {
     }
 }
 
-/* Newly drawn cards - enter from left */
+/* Newly drawn cards - simple fade in */
 .card-new {
-    animation: card-draw-left 0.5s ease-out;
-    animation-fill-mode: both;
-    /* animation-delay set inline for sequential animation */
+    animation: card-fade-in 0.3s ease-out;
 }
 
 /* Successfully played card */
@@ -930,13 +899,7 @@ body {
     pointer-events: none;
 }
 
-/* Exhausting cards - exit to right */
-.card-exhausting {
-    animation: card-exhaust-right 0.5s ease-out;
-    animation-fill-mode: forwards;
-    pointer-events: none;
-    /* animation-delay set inline for sequential animation */
-}
+/* Exhausting cards - removed immediately (no animation needed) */
 
 /* === ACTION SECTION === */
 
@@ -1004,6 +967,7 @@ body {
     gap: 12px;
     max-width: 900px;
     margin: 0 auto;
+    position: relative;
 }
 
 /* === CONVERSATION NARRATIVE === */
@@ -1346,7 +1310,7 @@ body {
 /* Flow State Bar */
 .flow-state-bar {
     background: #2c241a;
-    padding: 15px 20px;
+    padding: 10px 15px;
     border-bottom: 2px solid #5c4a3a;
 }
 
