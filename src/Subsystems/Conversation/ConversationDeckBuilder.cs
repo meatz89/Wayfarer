@@ -287,7 +287,7 @@ public class ConversationDeckBuilder
     /// <summary>
     /// Get current token counts for an NPC
     /// </summary>
-    private Dictionary<ConnectionType, int> GetNpcTokenCounts(NPC npc)
+    public Dictionary<ConnectionType, int> GetNpcTokenCounts(NPC npc)
     {
         Dictionary<ConnectionType, int> tokenCounts = new Dictionary<ConnectionType, int>
         {
