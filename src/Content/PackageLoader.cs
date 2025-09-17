@@ -143,6 +143,10 @@ public class PackageLoader
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadCards(package.Content.Cards, allowSkeletons);
+        LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
+        LoadNpcProgressionCards(package.Content.NpcProgressionCards, allowSkeletons);
+        LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
+        LoadExchangeCards(package.Content.ExchangeCards, allowSkeletons);
 
         // 4. NPCs (reference locations, spots, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -323,7 +327,7 @@ public class PackageLoader
         }
     }
 
-    private void LoadPlayerStatsConfiguration(PlayerStatsConfigDTO playerStatsConfig, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadPlayerStatsConfiguration(PlayerStatsConfigDTO playerStatsConfig, bool allowSkeletons)
     {
         if (playerStatsConfig == null) return;
 
@@ -337,7 +341,6 @@ public class PackageLoader
         _gameWorld.StatProgression = progression;
 
         Console.WriteLine($"[PackageLoader] Loaded {statDefinitions.Count} stat definitions and progression configuration");
-        if (counts != null) counts.Cards++; // Count as one entity for tracking
     }
 
     private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
@@ -451,6 +454,70 @@ public class PackageLoader
             // Use static method from ConversationCardParser
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions[card.Id] = card;
+            if (counts != null) counts.Cards++;
+        }
+    }
+
+    private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons, EntityCounts counts = null)
+    {
+        if (npcRequestCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
+        foreach (var kvp in npcRequestCards)
+        {
+            string npcId = kvp.Key;
+            foreach (ConversationCardDTO dto in kvp.Value)
+            {
+                ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+                _gameWorld.AllCardDefinitions[card.Id] = card;
+                Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
+                if (counts != null) counts.Cards++;
+            }
+        }
+    }
+
+    private void LoadNpcProgressionCards(Dictionary<string, List<ConversationCardDTO>> npcProgressionCards, bool allowSkeletons, EntityCounts counts = null)
+    {
+        if (npcProgressionCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading NPC progression cards...");
+        foreach (var kvp in npcProgressionCards)
+        {
+            string npcId = kvp.Key;
+            foreach (ConversationCardDTO dto in kvp.Value)
+            {
+                ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+                _gameWorld.AllCardDefinitions[card.Id] = card;
+                Console.WriteLine($"[PackageLoader] Loaded progression card '{card.Id}' for NPC '{npcId}'");
+                if (counts != null) counts.Cards++;
+            }
+        }
+    }
+
+    private void LoadPromiseCards(List<ConversationCardDTO> promiseCards, bool allowSkeletons, EntityCounts counts = null)
+    {
+        if (promiseCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading promise cards...");
+        foreach (ConversationCardDTO dto in promiseCards)
+        {
+            ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+            _gameWorld.AllCardDefinitions[card.Id] = card;
+            Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
+            if (counts != null) counts.Cards++;
+        }
+    }
+
+    private void LoadExchangeCards(List<ConversationCardDTO> exchangeCards, bool allowSkeletons, EntityCounts counts = null)
+    {
+        if (exchangeCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading exchange cards...");
+        foreach (ConversationCardDTO dto in exchangeCards)
+        {
+            ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+            _gameWorld.AllCardDefinitions[card.Id] = card;
+            Console.WriteLine($"[PackageLoader] Loaded exchange card '{card.Id}'");
             if (counts != null) counts.Cards++;
         }
     }
@@ -1862,17 +1929,8 @@ public class PackageLoader
     /// </summary>
     private bool IsStarterCard(ConversationCard card)
     {
-        // Exclude special card types that are never starter cards
-        if (card.CardType == CardType.Letter ||
-            card.CardType == CardType.Promise ||
-            card.CardType == CardType.BurdenGoal ||
-            card.CardType == CardType.Observation)
-        {
-            return false;
-        }
+        if (card.CardType != CardType.Conversation) return false;
 
-        // All basic conversation cards from default deck are starter cards
-        // NPC-specific cards will have MinimumTokensRequired > 0
         return true;
     }
 }

@@ -349,6 +349,301 @@
         "boundStat": "authority"
       },
       {
+        "id": "elena_letter_request",
+        "type": "Request",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 5,
+        "rapportThreshold": 5,
+        "connectionType": "Trust",
+        "description": "Deliver my letter to Lord Blackwood",
+        "difficulty": "Easy",
+        "successEffect": {
+          "type": "OfferLetter",
+          "value": "elena_urgent_letter"
+        },
+        "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
+        "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word.",
+        "boundStat": "authority"
+      },
+      {
+        "id": "elena_safety_request",
+        "type": "Request",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 7,
+        "rapportThreshold": 10,
+        "connectionType": "Trust",
+        "description": "Get me to safety before nightfall",
+        "difficulty": "Medium",
+        "rapportThreshold": 10,
+        "successEffect": {
+          "type": "AddObligation",
+          "value": "elena_safety_obligation"
+        },
+        "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
+        "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon.",
+        "boundStat": "authority"
+      },
+      {
+        "id": "elena_priority_promise",
+        "type": "Promise",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "focus": 3,
+        "connectionType": "Trust",
+        "description": "Make Elena my priority",
+        "difficulty": "Easy",
+        "rapportThreshold": 5,
+        "successEffect": {
+          "type": "ForceQueuePosition",
+          "value": "1"
+        },
+        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
+        "boundStat": "authority"
+      },
+      {
+        "id": "marcus_trade_request",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 4,
+        "connectionType": "Commerce",
+        "description": "Discuss trade opportunities",
+        "difficulty": "Easy",
+        "rapportThreshold": 5,
+        "successEffect": {
+          "type": "GainCoins",
+          "value": "10"
+        },
+        "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
+        "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "marcus_business_proposal",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 6,
+        "connectionType": "Commerce",
+        "description": "Partner in a business venture",
+        "difficulty": "Medium",
+        "rapportThreshold": 10,
+        "successEffect": {
+          "type": "GainCard",
+          "value": "commercial_insight"
+        },
+        "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
+        "dialogueFragment": "Marcus, I have a business proposal that could benefit us both.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "elena_shared_understanding",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "We understand each other",
+        "difficulty": "Easy",
+        "minimumTokensRequired": 1,
+        "dialogueFragment": "Elena, I feel like we're beginning to understand each other.",
+        "boundStat": "rapport"
+      },
+      {
+        "id": "elena_trusted_confidant",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 3,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "Backfire",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "You can trust me completely",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 3,
+        "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence.",
+        "boundStat": "rapport"
+      },
+      {
+        "id": "elena_deep_bond",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 4,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Trust",
+        "description": "Our bond runs deep",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 6,
+        "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined.",
+        "boundStat": "rapport"
+      },
+      {
+        "id": "elena_absolute_devotion",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 5,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "Regret",
+        "connectionType": "Trust",
+        "description": "My devotion is absolute",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 10,
+        "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you.",
+        "boundStat": "rapport"
+      },
+      {
+        "id": "elena_eternal_loyalty",
+        "type": "Normal",
+        "personalityTypes": [
+          "DEVOTED"
+        ],
+        "focus": 6,
+        "persistence": "Impulse",
+        "successType": "Advancing",
+        "failureType": "None",
+        "exhaustType": "Regret",
+        "connectionType": "Trust",
+        "description": "Pledge eternal loyalty",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 15,
+        "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side.",
+        "boundStat": "rapport"
+      },
+      {
+        "id": "marcus_bargain",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 2,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Marcus's Bargain - A deal you can't refuse",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 1,
+        "dialogueFragment": "Marcus, let's make a deal that benefits us both.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "trade_knowledge",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 3,
+        "persistence": "Thought",
+        "successType": "Threading",
+        "failureType": "None",
+        "exhaustType": "Threading",
+        "connectionType": "Commerce",
+        "description": "Trade Knowledge - Marcus shares market secrets",
+        "difficulty": "Medium",
+        "minimumTokensRequired": 3,
+        "dialogueFragment": "Marcus, share with me your knowledge of the trade routes.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "commercial_trust",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 1,
+        "persistence": "Thought",
+        "successType": "Atmospheric-Focused",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Commercial Trust - Years of reliable business",
+        "difficulty": "Easy",
+        "minimumTokensRequired": 6,
+        "dialogueFragment": "Marcus, our years of trade have built a foundation of trust.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "marcus_favor",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 4,
+        "persistence": "Thought",
+        "successType": "Advancing",
+        "failureType": "None",
+        "exhaustType": "None",
+        "connectionType": "Commerce",
+        "description": "Marcus's Favor - He owes you one",
+        "difficulty": "VeryHard",
+        "minimumTokensRequired": 10,
+        "dialogueFragment": "Marcus, I'm calling in that favor you owe me.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "master_trader_secret",
+        "type": "Normal",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 5,
+        "persistence": "Thought",
+        "successType": "Rapport",
+        "failureType": "None",
+        "exhaustType": "Regret",
+        "connectionType": "Commerce",
+        "description": "Master Trader's Secret - The ultimate negotiation",
+        "difficulty": "Hard",
+        "minimumTokensRequired": 15,
+        "dialogueFragment": "Marcus, teach me the master trader's ultimate secret.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "marcus_quick_trade",
+        "type": "Exchange",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "focus": 0,
+        "connectionType": "Commerce",
+        "description": "Trade 10 coins for 1 food",
+        "difficulty": "Easy",
+        "tokenRequirement": {
+          "Commerce": 1
+        },
+        "successEffect": {
+          "type": "Exchange",
+          "value": "quick_food_trade"
+        },
+        "dialogueFragment": "Need some food? 10 coins for a meal's worth.",
+        "boundStat": "commerce"
+      },
+      {
         "id": "safe_passage_knowledge",
         "type": "Observation",
         "personalityTypes": [
@@ -381,316 +676,6 @@
         "difficulty": "Auto",
         "dialogueFragment": "You mention the merchant patterns you've observed in the market.",
         "boundStat": "insight"
-      }
-    ],
-    "npcRequestCards": {
-      "elena": [
-        {
-          "id": "elena_letter_request",
-          "type": "Request",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 5,
-          "rapportThreshold": 5,
-          "connectionType": "Trust",
-          "description": "Deliver my letter to Lord Blackwood",
-          "difficulty": "Easy",
-          "successEffect": {
-            "type": "OfferLetter",
-            "value": "elena_urgent_letter"
-          },
-          "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
-          "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word.",
-          "boundStat": "authority"
-        },
-        {
-          "id": "elena_safety_request",
-          "type": "Request",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 7,
-          "rapportThreshold": 10,
-          "connectionType": "Trust",
-          "description": "Get me to safety before nightfall",
-          "difficulty": "Medium",
-          "successEffect": {
-            "type": "AddObligation",
-            "value": "elena_safety_obligation"
-          },
-          "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
-          "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon.",
-          "boundStat": "authority"
-        }
-      ],
-      "marcus": [
-        {
-          "id": "marcus_trade_request",
-          "type": "Request",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 4,
-          "connectionType": "Commerce",
-          "description": "Discuss trade opportunities",
-          "difficulty": "Easy",
-          "rapportThreshold": 5,
-          "successEffect": {
-            "type": "GainCoins",
-            "value": "10"
-          },
-          "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
-          "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "marcus_business_proposal",
-          "type": "Request",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 6,
-          "connectionType": "Commerce",
-          "description": "Partner in a business venture",
-          "difficulty": "Medium",
-          "rapportThreshold": 10,
-          "successEffect": {
-            "type": "GainCard",
-            "value": "commercial_insight"
-          },
-          "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
-          "dialogueFragment": "Marcus, I have a business proposal that could benefit us both.",
-          "boundStat": "commerce"
-        }
-      ]
-    },
-    "npcProgressionCards": {
-      "elena": [
-        {
-          "id": "elena_shared_understanding",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 2,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "We understand each other",
-          "difficulty": "Easy",
-          "minimumTokensRequired": 1,
-          "dialogueFragment": "Elena, I feel like we're beginning to understand each other.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_trusted_confidant",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 3,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "Backfire",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "You can trust me completely",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 3,
-          "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_deep_bond",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 4,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "Our bond runs deep",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 6,
-          "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_absolute_devotion",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 5,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Trust",
-          "description": "My devotion is absolute",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 10,
-          "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_eternal_loyalty",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 6,
-          "persistence": "Impulse",
-          "successType": "Advancing",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Trust",
-          "description": "Pledge eternal loyalty",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 15,
-          "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side.",
-          "boundStat": "rapport"
-        }
-      ],
-      "marcus": [
-        {
-          "id": "marcus_bargain",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 2,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Marcus's Bargain - A deal you can't refuse",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 1,
-          "dialogueFragment": "Marcus, let's make a deal that benefits us both.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "trade_knowledge",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 3,
-          "persistence": "Thought",
-          "successType": "Threading",
-          "failureType": "None",
-          "exhaustType": "Threading",
-          "connectionType": "Commerce",
-          "description": "Trade Knowledge - Marcus shares market secrets",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 3,
-          "dialogueFragment": "Marcus, share with me your knowledge of the trade routes.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "commercial_trust",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 1,
-          "persistence": "Thought",
-          "successType": "Atmospheric-Focused",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Commercial Trust - Years of reliable business",
-          "difficulty": "Easy",
-          "minimumTokensRequired": 6,
-          "dialogueFragment": "Marcus, our years of trade have built a foundation of trust.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "marcus_favor",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 4,
-          "persistence": "Thought",
-          "successType": "Advancing",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Marcus's Favor - He owes you one",
-          "difficulty": "VeryHard",
-          "minimumTokensRequired": 10,
-          "dialogueFragment": "Marcus, I'm calling in that favor you owe me.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "master_trader_secret",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 5,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Commerce",
-          "description": "Master Trader's Secret - The ultimate negotiation",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 15,
-          "dialogueFragment": "Marcus, teach me the master trader's ultimate secret.",
-          "boundStat": "commerce"
-        }
-      ]
-    },
-    "promiseCards": [
-      {
-        "id": "elena_priority_promise",
-        "type": "Promise",
-        "personalityTypes": [
-          "ALL"
-        ],
-        "focus": 3,
-        "connectionType": "Trust",
-        "description": "Make Elena my priority",
-        "difficulty": "Easy",
-        "rapportThreshold": 5,
-        "successEffect": {
-          "type": "ForceQueuePosition",
-          "value": "1"
-        },
-        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
-        "boundStat": "authority"
-      }
-    ],
-    "exchangeCards": [
-      {
-        "id": "marcus_quick_trade",
-        "type": "Exchange",
-        "personalityTypes": [
-          "MERCANTILE"
-        ],
-        "focus": 0,
-        "connectionType": "Commerce",
-        "description": "Trade 10 coins for 1 food",
-        "difficulty": "Easy",
-        "tokenRequirement": {
-          "Commerce": 1
-        },
-        "successEffect": {
-          "type": "Exchange",
-          "value": "quick_food_trade"
-        },
-        "dialogueFragment": "Need some food? 10 coins for a meal's worth.",
-        "boundStat": "commerce"
       }
     ],
     "deckCompositions": {

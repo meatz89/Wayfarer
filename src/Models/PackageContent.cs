@@ -71,6 +71,26 @@ public class PackageContent
     public List<NPCRequestDTO> NpcRequests { get; set; }
 
     /// <summary>
+    /// NPC-specific request cards organized by NPC ID
+    /// </summary>
+    public Dictionary<string, List<ConversationCardDTO>> NpcRequestCards { get; set; }
+
+    /// <summary>
+    /// NPC-specific progression cards organized by NPC ID
+    /// </summary>
+    public Dictionary<string, List<ConversationCardDTO>> NpcProgressionCards { get; set; }
+
+    /// <summary>
+    /// Promise cards - special cards that can force queue positions or make commitments
+    /// </summary>
+    public List<ConversationCardDTO> PromiseCards { get; set; }
+
+    /// <summary>
+    /// Exchange cards - cards that offer trades between resources
+    /// </summary>
+    public List<ConversationCardDTO> ExchangeCards { get; set; }
+
+    /// <summary>
     /// Path cards for travel system
     /// </summary>
     public List<PathCardDTO> PathCards { get; set; }
