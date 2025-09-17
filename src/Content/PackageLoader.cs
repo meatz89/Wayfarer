@@ -375,7 +375,7 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Loaded {drawCountEntries.Count} listen draw count entries");
     }
 
-    private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons)
     {
         if (strangerDtos == null) return;
 
@@ -394,13 +394,12 @@ public class PackageLoader
             _gameWorld.LocationStrangers[stranger.LocationId].Add(stranger);
 
             Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.LocationId}' for time block '{stranger.AvailableTime}'");
-            if (counts != null) counts.NPCs++;
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading strangers. Total locations with strangers: {_gameWorld.LocationStrangers.Count}");
     }
 
-    private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
     {
         if (regionDtos == null) return;
 
@@ -419,11 +418,10 @@ public class PackageLoader
                 MajorImports = dto.MajorImports ?? new List<string>()
             };
             _gameWorld.WorldState.Regions.Add(region);
-            if (counts != null) counts.Regions++;
         }
     }
 
-    private void LoadDistricts(List<DistrictDTO> districtDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadDistricts(List<DistrictDTO> districtDtos, bool allowSkeletons)
     {
         if (districtDtos == null) return;
 
@@ -441,11 +439,10 @@ public class PackageLoader
                 Characteristics = dto.Characteristics ?? new List<string>()
             };
             _gameWorld.WorldState.Districts.Add(district);
-            if (counts != null) counts.Districts++;
         }
     }
 
-    private void LoadCards(List<ConversationCardDTO> cardDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadCards(List<ConversationCardDTO> cardDtos, bool allowSkeletons)
     {
         if (cardDtos == null) return;
 
@@ -454,11 +451,10 @@ public class PackageLoader
             // Use static method from ConversationCardParser
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions[card.Id] = card;
-            if (counts != null) counts.Cards++;
         }
     }
 
-    private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons)
     {
         if (npcRequestCards == null) return;
 
@@ -471,12 +467,11 @@ public class PackageLoader
                 ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
                 _gameWorld.AllCardDefinitions[card.Id] = card;
                 Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
-                if (counts != null) counts.Cards++;
             }
         }
     }
 
-    private void LoadNpcProgressionCards(Dictionary<string, List<ConversationCardDTO>> npcProgressionCards, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadNpcProgressionCards(Dictionary<string, List<ConversationCardDTO>> npcProgressionCards, bool allowSkeletons)
     {
         if (npcProgressionCards == null) return;
 
@@ -489,12 +484,11 @@ public class PackageLoader
                 ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
                 _gameWorld.AllCardDefinitions[card.Id] = card;
                 Console.WriteLine($"[PackageLoader] Loaded progression card '{card.Id}' for NPC '{npcId}'");
-                if (counts != null) counts.Cards++;
             }
         }
     }
 
-    private void LoadPromiseCards(List<ConversationCardDTO> promiseCards, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadPromiseCards(List<ConversationCardDTO> promiseCards, bool allowSkeletons)
     {
         if (promiseCards == null) return;
 
@@ -504,11 +498,10 @@ public class PackageLoader
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions[card.Id] = card;
             Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
-            if (counts != null) counts.Cards++;
         }
     }
 
-    private void LoadExchangeCards(List<ConversationCardDTO> exchangeCards, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadExchangeCards(List<ConversationCardDTO> exchangeCards, bool allowSkeletons)
     {
         if (exchangeCards == null) return;
 
@@ -518,11 +511,10 @@ public class PackageLoader
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions[card.Id] = card;
             Console.WriteLine($"[PackageLoader] Loaded exchange card '{card.Id}'");
-            if (counts != null) counts.Cards++;
         }
     }
 
-    private void LoadLocations(List<LocationDTO> locationDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadLocations(List<LocationDTO> locationDtos, bool allowSkeletons)
     {
         if (locationDtos == null) return;
 
@@ -551,11 +543,10 @@ public class PackageLoader
 
             _gameWorld.Locations.Add(location);
             _gameWorld.WorldState.locations.Add(location);
-            if (counts != null) counts.Locations++;
         }
     }
 
-    private void LoadLocationSpots(List<LocationSpotDTO> spotDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadLocationSpots(List<LocationSpotDTO> spotDtos, bool allowSkeletons)
     {
         if (spotDtos == null) return;
 
@@ -579,11 +570,10 @@ public class PackageLoader
 
             // Add to primary spots dictionary
             _gameWorld.Spots[spot.SpotID] = spot;
-            if (counts != null) counts.Spots++;
         }
     }
 
-    private void LoadNPCs(List<NPCDTO> npcDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadNPCs(List<NPCDTO> npcDtos, bool allowSkeletons)
     {
         if (npcDtos == null) return;
 
@@ -702,7 +692,6 @@ public class PackageLoader
                 // Add the new NPC to game world
                 _gameWorld.NPCs.Add(npc);
                 _gameWorld.WorldState.NPCs.Add(npc);
-                if (counts != null) counts.NPCs++;
             }
             else
             {
@@ -710,12 +699,11 @@ public class PackageLoader
                 NPC npc = NPCParser.ConvertDTOToNPC(dto);
                 _gameWorld.NPCs.Add(npc);
                 _gameWorld.WorldState.NPCs.Add(npc);
-                if (counts != null) counts.NPCs++;
             }
         }
     }
 
-    private void LoadRoutes(List<RouteDTO> routeDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadRoutes(List<RouteDTO> routeDtos, bool allowSkeletons)
     {
         if (routeDtos == null)
         {
@@ -806,14 +794,12 @@ public class PackageLoader
             _gameWorld.WorldState.Routes.Add(forwardRoute);
             Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
             AddRouteToLocationConnections(forwardRoute);
-            if (counts != null) counts.Routes++;
 
             // Automatically generate the reverse route
             RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
             _gameWorld.WorldState.Routes.Add(reverseRoute);
             Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
             AddRouteToLocationConnections(reverseRoute);
-            if (counts != null) counts.Routes++;
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.WorldState.Routes.Count}");
@@ -890,7 +876,7 @@ public class PackageLoader
         return spot?.LocationId;
     }
 
-    private void LoadObservations(List<ObservationDTO> observationDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadObservations(List<ObservationDTO> observationDtos, bool allowSkeletons)
     {
         if (observationDtos == null) return;
 
@@ -903,22 +889,19 @@ public class PackageLoader
             // Also create Observation domain object and store in GameWorld
             Observation observationDomain = ConvertDTOToObservation(dto);
             _gameWorld.Observations.Add(observationDomain);
-
-            if (counts != null) counts.Cards++;
         }
     }
 
-    private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
     {
         if (dialogueTemplates == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading dialogue templates...");
         _gameWorld.DialogueTemplates = dialogueTemplates;
-        if (counts != null) counts.Cards++; // Count as one entity
         Console.WriteLine($"[PackageLoader] Dialogue templates loaded successfully");
     }
 
-    private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons, EntityCounts counts = null)
+    private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
     {
         if (pathCardDtos == null) return new List<PathCardEntry>();
 
@@ -929,14 +912,13 @@ public class PackageLoader
         {
             pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
             Console.WriteLine($"[PackageLoader] Loaded path card '{dto.Id}': {dto.Name}");
-            if (counts != null) counts.Cards++;
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading path cards. Total: {pathCardLookup.Count}");
         return pathCardLookup;
     }
 
-    private List<PathCardEntry> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons, EntityCounts counts = null)
+    private List<PathCardEntry> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
     {
         if (eventCardDtos == null) return new List<PathCardEntry>();
 
@@ -947,14 +929,13 @@ public class PackageLoader
         {
             eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
             Console.WriteLine($"[PackageLoader] Loaded event card '{dto.Id}': {dto.Name}");
-            if (counts != null) counts.Events++;
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading event cards. Total: {eventCardLookup.Count}");
         return eventCardLookup;
     }
 
-    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
         
@@ -977,14 +958,13 @@ public class PackageLoader
             
             _gameWorld.AllTravelEvents[dto.Id] = dto;
             Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name} with {dto.EventCards.Count} event cards");
-            if (counts != null) counts.Events++;
         }
         
         Console.WriteLine($"[PackageLoader] Completed loading travel events. Total: {_gameWorld.AllTravelEvents.Count}");
     }
     
     
-    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
 
@@ -1311,7 +1291,7 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] NPC exchange deck initialization completed");
     }
 
-    private void LoadItems(List<ItemDTO> itemDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadItems(List<ItemDTO> itemDtos, bool allowSkeletons)
     {
         if (itemDtos == null) return;
 
@@ -1319,11 +1299,10 @@ public class PackageLoader
         {
             Item item = ItemParser.ConvertDTOToItem(dto);
             _gameWorld.WorldState.Items.Add(item);
-            if (counts != null) counts.Items++;
         }
     }
 
-    private void LoadLetterTemplates(List<LetterTemplateDTO> letterDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadLetterTemplates(List<LetterTemplateDTO> letterDtos, bool allowSkeletons)
     {
         if (letterDtos == null) return;
 
@@ -1331,11 +1310,10 @@ public class PackageLoader
         {
             LetterTemplate letter = LetterTemplateParser.ConvertDTOToLetterTemplate(dto);
             _gameWorld.WorldState.LetterTemplates.Add(letter);
-            if (counts != null) counts.LetterTemplates++;
         }
     }
 
-    private void LoadStandingObligations(List<StandingObligationDTO> obligationDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadStandingObligations(List<StandingObligationDTO> obligationDtos, bool allowSkeletons)
     {
         if (obligationDtos == null) return;
 
@@ -1343,11 +1321,10 @@ public class PackageLoader
         {
             StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
             _gameWorld.WorldState.StandingObligationTemplates.Add(obligation);
-            if (counts != null) counts.Obligations++;
         }
     }
 
-    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
     {
         if (locationActionDtos == null) return;
 
@@ -1355,7 +1332,6 @@ public class PackageLoader
         {
             LocationAction locationAction = ConvertLocationActionDTOToModel(dto);
             _gameWorld.LocationActions.Add(locationAction);
-            if (counts != null) counts.Cards++; // Location actions are card-like
         }
     }
 
@@ -1549,7 +1525,7 @@ public class PackageLoader
         return action;
     }
 
-    private void LoadInvestigationRewards(List<ObservationRewardDTO> investigationRewardDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadInvestigationRewards(List<ObservationRewardDTO> investigationRewardDtos, bool allowSkeletons)
     {
         if (investigationRewardDtos == null) return;
 
@@ -1562,7 +1538,6 @@ public class PackageLoader
                 // Convert DTO to domain model
                 ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
                 location.ObservationRewards.Add(reward);
-                if (counts != null) counts.Cards++;
             }
             else
             {
@@ -1572,7 +1547,6 @@ public class PackageLoader
                 skeletonLocation.ObservationRewards.Add(reward);
                 _gameWorld.Locations.Add(skeletonLocation);
                 _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
-                if (counts != null) counts.Cards++;
             }
         }
     }
@@ -1595,7 +1569,7 @@ public class PackageLoader
         };
     }
 
-    private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons, EntityCounts counts = null)
+    private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons)
     {
         if (exchangeDtos == null) return;
 
@@ -1604,7 +1578,6 @@ public class PackageLoader
         {
             _gameWorld.ExchangeDefinitions.Add(dto);
             Console.WriteLine($"[PackageLoader] Loaded exchange definition: {dto.Id} ({dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency})");
-            if (counts != null) counts.Exchanges++;
         }
 
         // Parse exchanges into ExchangeCard objects and store them

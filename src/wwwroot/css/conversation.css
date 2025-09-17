@@ -152,6 +152,7 @@ body {
 
 /* Patience Display */
 .patience-display {
+    flex: 1;
     text-align: left;
 }
 
@@ -1079,6 +1080,8 @@ body {
 
 .rapport-display {
     display: flex;
+    flex: 1;
+    justify-content: flex-end;
     align-items: center;
     gap: 10px;
 }

@@ -36,38 +36,8 @@ public class LoadedPackage
     /// </summary>
     public PackageMetadata Metadata { get; set; }
 
-    /// <summary>
-    /// Count of entities loaded from this package
-    /// </summary>
-    public EntityCounts EntityCounts { get; set; }
-
     public LoadedPackage()
     {
         LoadedAt = DateTime.Now;
-        EntityCounts = new EntityCounts();
     }
-}
-
-/// <summary>
-/// Tracks counts of different entity types loaded from a package
-/// </summary>
-public class EntityCounts
-{
-    public int Regions { get; set; }
-    public int Districts { get; set; }
-    public int Locations { get; set; }
-    public int Spots { get; set; }
-    public int NPCs { get; set; }
-    public int Cards { get; set; }
-    public int Routes { get; set; }
-    public int Items { get; set; }
-    public int LetterTemplates { get; set; }
-    public int Exchanges { get; set; }
-    public int Events { get; set; }
-    public int Obligations { get; set; }
-
-    public int TotalEntities =>
-        Regions + Districts + Locations + Spots + NPCs +
-        Cards + Routes + Items + LetterTemplates +
-        Exchanges + Events + Obligations;
 }
