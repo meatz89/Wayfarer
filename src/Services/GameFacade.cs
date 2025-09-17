@@ -837,14 +837,6 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Gets a location by its name
-    /// </summary>
-    public Location GetLocationByName(string locationName)
-    {
-        return _gameWorld.LocationManager.GetLocationByName(locationName);
-    }
-
-    /// <summary>
     /// Gets a district by its ID
     /// </summary>
     public District GetDistrictById(string districtId)

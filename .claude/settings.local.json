@@ -30,7 +30,8 @@
       "mcp__playwright__browser_wait_for",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run --no-build)",
       "mcp__playwright__browser_console_messages",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []

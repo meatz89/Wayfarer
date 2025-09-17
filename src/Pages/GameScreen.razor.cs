@@ -204,43 +204,29 @@ namespace Wayfarer.Pages
 
         private string BuildLocationPath(string locationName)
         {
-            // Build breadcrumb path based on location patterns
+            // Get the current location directly from GameFacade by ID
+            var location = GameFacade.GetCurrentLocation();
+            if (location == null) return locationName;
+
+            // Get the district from the location's district ID
+            if (string.IsNullOrEmpty(location.District))
+                return location.Name;
+
+            var district = GameFacade.GetDistrictById(location.District);
+            if (district == null)
+                return location.Name;
+
+            // Get the region from the district
+            var region = GameFacade.GetRegionForDistrict(district.Id);
+
+            // Build the breadcrumb path
             List<string> path = new List<string>();
 
-            // Determine district from location name
-            string locationLower = locationName?.ToLower() ?? "";
+            if (region != null)
+                path.Add(region.Name);
 
-            // Add city/ward level
-            path.Add("Lower Wards");
-
-            // Add district based on location
-            if (locationLower.Contains("market") || locationLower.Contains("merchant"))
-            {
-                path.Add("Market District");
-            }
-            else if (locationLower.Contains("noble") || locationLower.Contains("lord"))
-            {
-                path.Add("Noble District");
-            }
-            else if (locationLower.Contains("temple") || locationLower.Contains("shrine"))
-            {
-                path.Add("Temple District");
-            }
-            else if (locationLower.Contains("gate") || locationLower.Contains("guard"))
-            {
-                path.Add("Gate District");
-            }
-            else if (locationLower.Contains("river") || locationLower.Contains("dock"))
-            {
-                path.Add("Riverside District");
-            }
-            else if (locationLower.Contains("tavern") || locationLower.Contains("kettle"))
-            {
-                path.Add("Market District"); // Taverns are often in market areas
-            }
-
-            // Add the specific location
-            path.Add(locationName);
+            path.Add(district.Name);
+            path.Add(location.Name);
 
             return string.Join(" → ", path);
         }
