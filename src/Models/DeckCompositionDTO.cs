@@ -6,26 +6,43 @@ using System.Collections.Generic;
 public class DeckCompositionDTO
 {
     /// <summary>
-    /// Default deck composition for all NPCs
+    /// Player starter deck composition
     /// </summary>
-    public DeckDefinitionDTO DefaultDeck { get; set; }
+    public PlayerDeckDefinitionDTO PlayerStarterDeck { get; set; }
 
     /// <summary>
-    /// NPC-specific deck overrides (key is NPC ID)
+    /// NPC-specific deck compositions (key is NPC ID)
     /// </summary>
-    public Dictionary<string, DeckDefinitionDTO> NpcDecks { get; set; }
+    public Dictionary<string, NPCDeckDefinitionDTO> NpcDecks { get; set; }
 }
 
 /// <summary>
-/// Defines the composition of a single deck
+/// Defines the composition of the player's starter deck
 /// </summary>
-public class DeckDefinitionDTO
+public class PlayerDeckDefinitionDTO
 {
     /// <summary>
-    /// Conversation deck card composition (card ID -> count)
+    /// Player's conversation deck card composition (card ID -> count)
     /// </summary>
     public Dictionary<string, int> ConversationDeck { get; set; }
 
+    /// <summary>
+    /// Player's starting observation cards (card ID -> count)
+    /// </summary>
+    public Dictionary<string, int> ObservationDeck { get; set; }
+
+    public PlayerDeckDefinitionDTO()
+    {
+        ConversationDeck = new Dictionary<string, int>();
+        ObservationDeck = new Dictionary<string, int>();
+    }
+}
+
+/// <summary>
+/// Defines the composition of an NPC's deck
+/// </summary>
+public class NPCDeckDefinitionDTO
+{
     /// <summary>
     /// Progression deck card composition (card ID -> count)
     /// NPC-specific cards that unlock at token thresholds
@@ -43,11 +60,17 @@ public class DeckDefinitionDTO
     /// </summary>
     public Dictionary<string, int> ExchangeDeck { get; set; }
 
-    public DeckDefinitionDTO()
+    public NPCDeckDefinitionDTO()
     {
-        ConversationDeck = new Dictionary<string, int>();
         ProgressionDeck = new Dictionary<string, int>();
         RequestDeck = new Dictionary<string, int>();
         ExchangeDeck = new Dictionary<string, int>();
     }
+}
+
+// Keep old class for backwards compatibility temporarily
+public class DeckDefinitionDTO : NPCDeckDefinitionDTO
+{
+    [Obsolete("Use NPCDeckDefinitionDTO instead")]
+    public Dictionary<string, int> ConversationDeck { get; set; }
 }

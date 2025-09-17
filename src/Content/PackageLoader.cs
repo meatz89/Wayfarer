@@ -1036,7 +1036,7 @@ public class PackageLoader
                 npc.ProgressionDeck = new CardDeck();
 
                 // Only load NPC-specific progression cards, not default deck
-                DeckDefinitionDTO deckDef = null;
+                NPCDeckDefinitionDTO deckDef = null;
                 if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
                 {
                     deckDef = deckCompositions.NpcDecks[npc.ID];
@@ -1220,7 +1220,7 @@ public class PackageLoader
                 List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
 
                 // Check deck compositions for this NPC's exchange deck
-                DeckDefinitionDTO deckDef = null;
+                NPCDeckDefinitionDTO deckDef = null;
                 if (deckCompositions != null)
                 {
                     // Check for NPC-specific deck first
@@ -1229,11 +1229,7 @@ public class PackageLoader
                         deckDef = deckCompositions.NpcDecks[npc.ID];
                         Console.WriteLine($"[PackageLoader] Using custom exchange deck for {npc.Name}");
                     }
-                    else if (deckCompositions.DefaultDeck != null)
-                    {
-                        deckDef = deckCompositions.DefaultDeck;
-                        Console.WriteLine($"[PackageLoader] Using default exchange deck for {npc.Name}");
-                    }
+                    // No default deck anymore - NPCs only have specific decks
                 }
 
                 // Build exchange deck from composition
@@ -1861,13 +1857,13 @@ public class PackageLoader
             player.ConversationDeck = new PlayerCardDeck();
         }
 
-        // Use the "default" deck from NpcDecks as the player's starter deck
-        if (deckCompositions?.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey("default"))
+        // Use the PlayerStarterDeck for the player's conversation deck
+        if (deckCompositions?.PlayerStarterDeck != null)
         {
-            DeckDefinitionDTO defaultDeck = deckCompositions.NpcDecks["default"];
-            if (defaultDeck?.ConversationDeck != null)
+            PlayerDeckDefinitionDTO starterDeck = deckCompositions.PlayerStarterDeck;
+            if (starterDeck?.ConversationDeck != null)
             {
-                foreach (KeyValuePair<string, int> kvp in defaultDeck.ConversationDeck)
+                foreach (KeyValuePair<string, int> kvp in starterDeck.ConversationDeck)
                 {
                     string cardId = kvp.Key;
                     int count = kvp.Value;
