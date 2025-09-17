@@ -220,7 +220,7 @@ namespace Wayfarer.Pages.Components
             AnimationManager.CleanupOldAnimations();
 
             // Store current cards before listen for animation tracking
-            List<CardInstance> previousCards = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+            List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
             try
             {
@@ -273,7 +273,7 @@ namespace Wayfarer.Pages.Components
                 CheckRequestPileThresholds();
 
                 // Track cards after action
-                List<CardInstance> currentCards = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+                List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
                 // SIMPLIFIED: Cards are already removed from hand, no exhaust animation needed
                 // Just mark new cards for simple fade-in
@@ -288,9 +288,10 @@ namespace Wayfarer.Pages.Components
                 }
 
                 // Notify about cards drawn
-                if (messageSystem != null && Session.Deck.Hand.Cards.Any())
+                IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+                if (messageSystem != null && handCards.Any())
                 {
-                    messageSystem.AddSystemMessage(string.Format("Drew {0} cards", Session.Deck.Hand.Cards.Count), SystemMessageTypes.Success);
+                    messageSystem.AddSystemMessage(string.Format("Drew {0} cards", handCards.Count), SystemMessageTypes.Success);
                 }
 
                 // Refresh resources after listen action
@@ -337,7 +338,7 @@ namespace Wayfarer.Pages.Components
                 AnimationManager.CleanupOldAnimations();
 
                 // Store cards before speak to track what gets removed
-                List<CardInstance> cardsBeforeSpeak = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+                List<CardInstance> cardsBeforeSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
                 StateHasChanged(); // Update UI to disable buttons
 
@@ -487,7 +488,7 @@ namespace Wayfarer.Pages.Components
                 }
 
                 // Track cards after action
-                List<CardInstance> currentCardsAfterSpeak = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+                List<CardInstance> currentCardsAfterSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
                 // SIMPLIFIED: Played card animation handled above, other cards removed immediately
                 // Check for new cards drawn (if Threading success effect or other draw effects)
@@ -570,7 +571,7 @@ namespace Wayfarer.Pages.Components
                 if (Session != null && Context?.Npc != null && NarrativeService != null)
                 {
                     // Get the active cards for the initial state
-                    List<CardInstance> activeCards = Session.Deck.Hand.Cards?.ToList() ?? new List<CardInstance>();
+                    List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
                     // Start AI generation
                     IsGeneratingNarrative = true;
@@ -663,7 +664,7 @@ namespace Wayfarer.Pages.Components
                 Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Starting second phase card narrative generation");
 
                 // Get the active cards for current state
-                List<CardInstance> activeCards = Session.Deck.Hand.Cards?.ToList() ?? new List<CardInstance>();
+                List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
                 if (!activeCards.Any())
                     return;
 
@@ -1334,7 +1335,7 @@ namespace Wayfarer.Pages.Components
         {
             try
             {
-                if (Session?.Deck?.RequestCards == null || Session.RapportManager == null || Session.Deck.Hand == null)
+                if (Session?.RapportManager == null)
                 {
                     Console.WriteLine("[CheckRequestPileThresholds] Session or components are null - skipping");
                     return;
@@ -1342,8 +1343,9 @@ namespace Wayfarer.Pages.Components
 
                 int currentRapport = Session.RapportManager.CurrentRapport;
                 List<CardInstance> cardsToMove = new List<CardInstance>();
+                IReadOnlyList<CardInstance> requestCards = ConversationFacade.GetRequestCards();
 
-                foreach (CardInstance card in Session.Deck.RequestCards.Cards)
+                foreach (CardInstance card in requestCards)
                 {
                     // Skip cards that have already been moved
                     if (MovedRequestCardIds.Contains(card.InstanceId))
@@ -1358,25 +1360,32 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                foreach (CardInstance card in cardsToMove)
+                // Use SessionCardDeck's proper method instead of direct manipulation
+                // This prevents card loss and maintains proper encapsulation
+                if (cardsToMove.Count > 0)
                 {
-                    Console.WriteLine($"[CheckRequestPileThresholds] Moving card {card.Id} from RequestPile to ActiveCards (Rapport {currentRapport})");
-                    Session.Deck.RequestCards.Remove(card);
-                    Session.Deck.Hand.Add(card);
+                    Console.WriteLine($"[CheckRequestPileThresholds] Checking request thresholds with rapport {currentRapport}");
 
-                    // Track that this card has been moved
-                    MovedRequestCardIds.Add(card.InstanceId);
+                    // Let ConversationFacade handle the move properly
+                    ConversationFacade.CheckAndMoveRequestCards();
 
-                    // Mark card as playable now that rapport threshold is met
-                    card.IsPlayable = true;
-
-                    // Notify player
-                    MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
-                    if (messageSystem != null)
+                    // Track and notify for moved cards
+                    foreach (CardInstance card in cardsToMove)
                     {
-                        string cardName = GetCardName(card);
-                        string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
-                        messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+                        // Track that this card has been moved
+                        MovedRequestCardIds.Add(card.InstanceId);
+
+                        // Mark card as playable now that rapport threshold is met
+                        card.IsPlayable = true;
+
+                        // Notify player
+                        MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+                        if (messageSystem != null)
+                        {
+                            string cardName = GetCardName(card);
+                            string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
+                            messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
+                        }
                     }
                 }
             }
@@ -1583,12 +1592,12 @@ namespace Wayfarer.Pages.Components
 
         protected int CountImpulseCards()
         {
-            return Session?.Deck?.Hand?.Cards?.Count(c => c.Persistence == PersistenceType.Impulse) ?? 0;
+            return ConversationFacade.GetHandCards()?.Count(c => c.Persistence == PersistenceType.Impulse) ?? 0;
         }
 
         protected bool HasRequestCards()
         {
-            return Session?.Deck?.Hand?.Cards?.Any(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) ?? false;
+            return ConversationFacade.GetHandCards()?.Any(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) ?? false;
         }
 
         protected string GetCardName(CardInstance card)
@@ -2003,7 +2012,7 @@ namespace Wayfarer.Pages.Components
             }
 
 
-            if (!Session.Deck.Hand.Cards.Any() && Session.Deck.RemainingDrawCards == 0)
+            if (!ConversationFacade.GetHandCards().Any() && Session.Deck.RemainingDrawCards == 0)
             {
                 return "No more cards available - conversation ended";
             }
@@ -2320,9 +2329,10 @@ namespace Wayfarer.Pages.Components
             {
                 // Find the maximum focus among all available cards in hand
                 int maxFocusInHand = 0;
-                if (Session.Deck.Hand?.Cards != null)
+                IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+                if (handCards != null)
                 {
-                    foreach (CardInstance c in Session.Deck.Hand.Cards)
+                    foreach (CardInstance c in handCards)
                     {
                         int focusCost = c.GetEffectiveFocus(Session.CurrentState);
                         if (focusCost > maxFocusInHand)
@@ -2725,9 +2735,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetImpulseCards()
         {
-            if (Session?.Deck?.Hand?.Cards == null) return new List<CardInstance>();
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards == null) return new List<CardInstance>();
 
-            return Session.Deck.Hand.Cards
+            return handCards
                 .Where(c => c.Persistence == PersistenceType.Impulse && c != SelectedCard) // Don't include the played card
                 .ToList();
         }
@@ -2763,9 +2774,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetOpeningCards()
         {
-            if (Session?.Deck?.Hand?.Cards == null) return new List<CardInstance>();
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards == null) return new List<CardInstance>();
 
-            return Session.Deck.Hand.Cards
+            return handCards
                 .Where(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) // Request cards have Opening property
                 .ToList();
         }
@@ -3174,7 +3186,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
-            return DisplayManager.GetAllDisplayCards(Session, AnimatingCards);
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            return DisplayManager.GetAllDisplayCards(handCards, AnimatingCards);
         }
 
         /// <summary>
@@ -3182,7 +3195,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardPosition(CardInstance card)
         {
-            return DisplayManager.GetCardPosition(card, Session);
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            return DisplayManager.GetCardPosition(card, handCards);
         }
 
         /// <summary>
@@ -3215,13 +3229,13 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteListenWithAnimations()
         {
             // Store current cards before listen
-            List<CardInstance> previousCards = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+            List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
             // Execute the normal listen action
             await ExecuteListen();
 
             // Track newly drawn cards
-            List<CardInstance> currentCards = Session?.Deck?.Hand?.Cards?.ToList() ?? new List<CardInstance>();
+            List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
             TrackNewlyDrawnCards(previousCards, currentCards);
 
             // Mark impulse cards that will exhaust on next SPEAK
@@ -3250,7 +3264,7 @@ namespace Wayfarer.Pages.Components
             MarkCardAsPlayed(playedCard, wasSuccessful);
 
             // Get impulse cards to exhaust
-            List<CardInstance> impulseCards = Session?.Deck?.Hand?.Cards?
+            List<CardInstance> impulseCards = ConversationFacade.GetHandCards()?
                 .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
                 .ToList() ?? new List<CardInstance>();
 
@@ -3400,10 +3414,11 @@ namespace Wayfarer.Pages.Components
             List<RequestGoal> goals = new List<RequestGoal>();
 
             // First check if we have an active session with request cards
-            if (Session?.Deck?.Hand != null)
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards != null)
             {
                 // Look for request/promise cards that are already loaded in the session
-                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInSession = Session.Deck.Hand.Cards
+                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInSession = handCards
                 // HIGHLANDER: DrawPile removed - deck manages all internally
                 .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
                 .Where(c => c.Template?.RapportThreshold > 0)

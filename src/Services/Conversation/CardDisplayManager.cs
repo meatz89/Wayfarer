@@ -14,16 +14,16 @@ namespace Wayfarer
         /// Get all cards to display: hand cards + animating played cards.
         /// Promise cards appear first for visibility.
         /// </summary>
-        public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards)
+        public List<CardDisplayInfo> GetAllDisplayCards(IReadOnlyList<CardInstance> handCards, List<AnimatingCard> animatingCards)
         {
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
             // SINGLE CHECK: If animations disabled, just return hand cards without any animation info
             if (!CardAnimationManager.AnimationsEnabled)
             {
-                if (session?.Deck?.Hand?.Cards != null)
+                if (handCards != null)
                 {
-                    foreach (CardInstance? card in session.Deck.Hand.Cards)
+                    foreach (CardInstance? card in handCards)
                     {
                         displayCards.Add(new CardDisplayInfo
                         {
@@ -41,9 +41,9 @@ namespace Wayfarer
 
             // ANIMATIONS ENABLED: Normal animation logic
             // FIRST: Add current hand cards
-            if (session?.Deck?.Hand?.Cards != null)
+            if (handCards != null)
             {
-                List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
+                List<CardInstance> handList = handCards.ToList();
 
                 // Add all cards, checking if they're animating
                 foreach (CardInstance? card in handList)
@@ -67,7 +67,7 @@ namespace Wayfarer
             // SECOND: Add animating cards that were just played
             foreach (AnimatingCard animatingCard in animatingCards)
             {
-                bool inHand = session?.Deck?.Hand?.Cards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
+                bool inHand = handCards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
 
                 if (!inHand)
                 {
@@ -108,11 +108,11 @@ namespace Wayfarer
         /// <summary>
         /// Get the position of a card in the current hand.
         /// </summary>
-        public int GetCardPosition(CardInstance card, ConversationSession session)
+        public int GetCardPosition(CardInstance card, IReadOnlyList<CardInstance> handCards)
         {
-            if (card == null || session?.Deck?.Hand?.Cards == null) return -1;
+            if (card == null || handCards == null) return -1;
 
-            List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
+            List<CardInstance> handList = handCards.ToList();
             for (int i = 0; i < handList.Count; i++)
             {
                 if (handList[i].InstanceId == card.InstanceId)

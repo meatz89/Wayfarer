@@ -32,16 +32,17 @@ public class SessionCardDeck
         this.npcId = npcId;
     }
 
-    // Direct Pile access - NO compatibility wrappers, NO IReadOnlyList
-    public Pile Hand => handPile;
-    public Pile RequestCards => requestPile;
-    public Pile PlayedHistory => playedPile;
+    // ENCAPSULATED: Read-only access to pile contents through Pile's IReadOnlyList property
+    public IReadOnlyList<CardInstance> HandCards => handPile.Cards;
+    public IReadOnlyList<CardInstance> RequestCards => requestPile.Cards;
+    public IReadOnlyList<CardInstance> PlayedHistoryCards => playedPile.Cards;
 
     // Read-only properties for deck state
     public int RemainingDrawCards => drawPile.Count;
     public int DiscardPileCount => discardPile.Count;
     public int TotalDeckCards => drawPile.Count + discardPile.Count;
     public int HandSize => handPile.Count;
+    public int RequestPileSize => requestPile.Count;
 
     /// <summary>
     /// Create a deck from card templates
@@ -157,7 +158,7 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Play a card - removes from hand, adds to played history and discard pile
+    /// Play a card - removes from hand, adds to discard pile
     /// CRITICAL: This method MUST ensure cards go to discard pile for reshuffling
     /// </summary>
     public void PlayCard(CardInstance card)
@@ -170,8 +171,9 @@ public class SessionCardDeck
 
         Console.WriteLine($"[SessionCardDeck] Playing card {card.Id} from hand");
 
-        // Track total cards before operation
-        int totalCardsBefore = handPile.Count + drawPile.Count + discardPile.Count + playedPile.Count + requestPile.Count;
+        // Track total cards before operation (excluding playedPile which is never used)
+        int totalCardsBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Before play - Hand: {handPile.Count}, Draw: {drawPile.Count}, Discard: {discardPile.Count}, Request: {requestPile.Count}, Total: {totalCardsBefore}");
 
         // Check if card exists in hand before removing
         if (!handPile.Contains(card))
@@ -182,19 +184,19 @@ public class SessionCardDeck
 
         handPile.Remove(card);
 
-        // CRITICAL FIX: Card goes to discard pile for reshuffling
-        // playedPile is history - we should track differently to avoid duplication
+        // Card goes to discard pile for reshuffling
         discardPile.Add(card);
 
-        Console.WriteLine($"[SessionCardDeck] Card {card.Id} added to discard. Discard count: {discardPile.Count}");
+        Console.WriteLine($"[SessionCardDeck] Card {card.Id} moved to discard. Discard count: {discardPile.Count}");
 
-        // Validate total card count remains constant
-        int totalCardsAfter = handPile.Count + drawPile.Count + discardPile.Count + playedPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Total cards: {totalCardsBefore} -> {totalCardsAfter} (should be equal)");
+        // Validate total card count remains constant (excluding unused playedPile)
+        int totalCardsAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] After play - Hand: {handPile.Count}, Draw: {drawPile.Count}, Discard: {discardPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
 
         if (totalCardsBefore != totalCardsAfter)
         {
             Console.WriteLine($"[SessionCardDeck] CRITICAL ERROR: Card count mismatch! Lost {totalCardsBefore - totalCardsAfter} cards!");
+            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.Id} (Type: {card.CardType}, Persistence: {card.Persistence})");
         }
     }
 
@@ -216,25 +218,48 @@ public class SessionCardDeck
     {
         if (card == null) return;
 
+        int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Exhausting card {card.Id} from hand");
+
         handPile.Remove(card);
         discardPile.Add(card);
+
+        int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        if (totalBefore != totalAfter)
+        {
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during exhaust! {card.Id} disappeared");
+        }
     }
 
     /// <summary>
     /// Check request pile and move cards to hand if rapport threshold met
+    /// Returns the list of cards that were moved
     /// </summary>
-    public void CheckRequestThresholds(int currentRapport)
+    public List<CardInstance> CheckRequestThresholds(int currentRapport)
     {
         List<CardInstance> toMove = requestPile.Cards
             .Where(c => c.Context?.RapportThreshold <= currentRapport)
             .ToList();
 
+        List<CardInstance> movedCards = new List<CardInstance>();
+
         foreach (CardInstance? card in toMove)
         {
+            int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+
             requestPile.Remove(card);
             handPile.Add(card);
             Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to hand (rapport {currentRapport})");
+            movedCards.Add(card);
+
+            int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+            if (totalBefore != totalAfter)
+            {
+                Console.WriteLine($"[SessionCardDeck] ERROR: Card count changed during request move! Expected {totalBefore}, got {totalAfter}");
+            }
         }
+
+        return movedCards;
     }
 
     /// <summary>
@@ -311,5 +336,64 @@ public class SessionCardDeck
         drawPile.Shuffle();
     }
 
-    // NO COMPATIBILITY METHODS - ALL CALLERS MUST BE UPDATED!
+    /// <summary>
+    /// Check if a card is in the hand
+    /// </summary>
+    public bool IsCardInHand(CardInstance card)
+    {
+        return handPile.Contains(card);
+    }
+
+    /// <summary>
+    /// Check if a card is in the request pile
+    /// </summary>
+    public bool IsCardInRequestPile(CardInstance card)
+    {
+        return requestPile.Contains(card);
+    }
+
+    /// <summary>
+    /// Add a card directly to hand (use carefully - prefer DrawToHand)
+    /// </summary>
+    public void AddCardToHand(CardInstance card)
+    {
+        if (card != null)
+        {
+            int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+            handPile.Add(card);
+            int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+
+            if (totalBefore + 1 != totalAfter)
+            {
+                Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding to hand! Expected {totalBefore + 1}, got {totalAfter}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Add multiple cards directly to hand (for Threading effect)
+    /// </summary>
+    public void AddCardsToHand(List<CardInstance> cards)
+    {
+        if (cards == null || cards.Count == 0) return;
+
+        int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Adding {cards.Count} cards to hand");
+
+        foreach (CardInstance card in cards)
+        {
+            if (card != null)
+            {
+                handPile.Add(card);
+            }
+        }
+
+        int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        if (totalBefore + cards.Count != totalAfter)
+        {
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding cards to hand! Expected {totalBefore + cards.Count}, got {totalAfter}");
+        }
+    }
+
+    // NO DIRECT PILE ACCESS - ALL OPERATIONS GO THROUGH METHODS!
 }

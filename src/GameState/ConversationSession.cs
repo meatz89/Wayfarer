@@ -49,8 +49,8 @@ public class ConversationSession
     public int? StrangerLevel { get; set; } // 1-3, affects XP multiplier
 
     // NO COMPATIBILITY PROPERTIES - update all references immediately!
-    // Use Deck.Hand.Cards for hand cards
-    // Use Deck.Hand for the hand pile
+    // Use Deck.HandCards for read-only access to hand cards
+    // Use Deck.HandSize for hand count
 
     // New helper methods
     public int GetAvailableFocus()
@@ -99,7 +99,7 @@ public class ConversationSession
 
     public bool IsHandOverflowing()
     {
-        return Deck.Hand.Count > 10; // Check hand size from deck
+        return Deck.HandSize > 10; // Check hand size from deck
     }
 
     public bool ShouldEnd()

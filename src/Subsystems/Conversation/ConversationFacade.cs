@@ -402,7 +402,7 @@ public class ConversationFacade
         HandleSpecialCardEffects(singleCardSet, new ConversationTurnResult { Success = playResult.Success });
 
         // Generate NPC response through narrative service
-        List<CardInstance> activeCards = _currentSession.Deck.Hand.Cards.ToList();
+        List<CardInstance> activeCards = _currentSession.Deck.HandCards.ToList();
         NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
             _currentSession,
             _currentSession.NPC,
@@ -687,13 +687,13 @@ public class ConversationFacade
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
             // If card is in ActiveCards, it's already playable (threshold was met)
-            if (session.Deck?.Hand?.Cards?.Contains(card) == true)
+            if (session.Deck?.IsCardInHand(card) == true)
             {
                 return true;  // Card already in active hand, no need for rapport check
             }
 
             // If card is in RequestPile, check rapport threshold
-            if (session.Deck?.RequestCards?.Contains(card) == true)
+            if (session.Deck?.IsCardInRequestPile(card) == true)
             {
                 int rapportThreshold = card.Context?.RapportThreshold ?? 0;
                 int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
@@ -807,7 +807,7 @@ public class ConversationFacade
             return true;
 
         // End if deck is empty and no active cards
-        if (!session.Deck.HasCardsAvailable() && session.Deck.Hand.Count == 0)
+        if (!session.Deck.HasCardsAvailable() && session.Deck.HandSize == 0)
             return true;
 
         return false;
@@ -837,7 +837,7 @@ public class ConversationFacade
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
-        bool requestAchieved = session.Deck.PlayedHistory.Cards.Any(c =>
+        bool requestAchieved = session.Deck.PlayedHistoryCards.Any(c =>
             c.CardType == CardType.Letter ||
             c.CardType == CardType.Promise ||
             c.CardType == CardType.BurdenGoal);
@@ -1010,7 +1010,7 @@ public class ConversationFacade
         session.Deck.DrawToHand(drawCount);
 
         // Get the drawn cards for return value
-        List<CardInstance> drawnCards = session.Deck.Hand.Cards.TakeLast(drawCount).ToList();
+        List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(drawCount).ToList();
 
         // Check if any goal cards should become playable based on rapport
         UpdateGoalCardPlayabilityAfterListen(session);
@@ -1149,7 +1149,7 @@ public class ConversationFacade
             // Add drawn cards to active cards (for Threading success effect)
             if (effectResult.CardsToAdd.Any())
             {
-                session.Deck.Hand.AddRange(effectResult.CardsToAdd);
+                session.Deck.AddCardsToHand(effectResult.CardsToAdd);
             }
 
             // Handle atmosphere change (for Atmospheric success effect)
@@ -1235,7 +1235,7 @@ public class ConversationFacade
         int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
 
         // Check all goal cards in active hand
-        foreach (CardInstance card in session.Deck.Hand.Cards)
+        foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
             if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
@@ -1263,7 +1263,7 @@ public class ConversationFacade
     private void UpdateRequestCardPlayability(ConversationSession session)
     {
         // This is called at conversation start - just check for goal card presence
-        bool hasRequestCard = session.Deck.Hand.Cards
+        bool hasRequestCard = session.Deck.HandCards
             .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
 
         if (hasRequestCard)
@@ -1283,7 +1283,7 @@ public class ConversationFacade
         // Check if next speak is free (from observation effect)
         bool isNextSpeakFree = _atmosphereManager.IsNextSpeakFree();
 
-        foreach (CardInstance card in session.Deck.Hand.Cards)
+        foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on rapport, not focus
             if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
@@ -1309,7 +1309,7 @@ public class ConversationFacade
     private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
         // Get all impulse cards
-        List<CardInstance> impulseCards = session.Deck.Hand.Cards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
+        List<CardInstance> impulseCards = session.Deck.HandCards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
 
         foreach (CardInstance card in impulseCards)
         {
@@ -1336,7 +1336,7 @@ public class ConversationFacade
     private bool ExhaustOpeningCards(ConversationSession session)
     {
         // Get all opening cards
-        List<CardInstance> openingCards = session.Deck.Hand.Cards
+        List<CardInstance> openingCards = session.Deck.HandCards
             .Where(c => c.Persistence == PersistenceType.Opening)
             .ToList();
 
@@ -1387,12 +1387,12 @@ public class ConversationFacade
         if (projection.CardsToAdd?.Count > 0)
         {
             // For exhaust Threading, CardsToAdd represents cards to LOSE from hand
-            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.Deck.Hand.Count);
+            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.Deck.HandSize);
             for (int i = 0; i < cardsToLose; i++)
             {
-                if (session.Deck.Hand.Cards.Any())
+                if (session.Deck.HandCards.Any())
                 {
-                    CardInstance cardToRemove = session.Deck.Hand.Cards.First();
+                    CardInstance cardToRemove = session.Deck.HandCards.First();
                     session.Deck.ExhaustFromHand(cardToRemove); // HIGHLANDER: Use deck method
                 }
             }
@@ -1473,6 +1473,141 @@ public class ConversationFacade
             }
         }
     }
+
+    /// <summary>
+    /// Check and move request cards to hand if rapport threshold is met
+    /// This should only be called by UI components, never directly on Session
+    /// </summary>
+    public List<CardInstance> CheckAndMoveRequestCards()
+    {
+        if (_currentSession == null || _currentSession.Deck == null)
+        {
+            return new List<CardInstance>();
+        }
+
+        int currentRapport = _currentSession.RapportManager?.CurrentRapport ?? 0;
+        List<CardInstance> movedCards = _currentSession.Deck.CheckRequestThresholds(currentRapport);
+
+        // Notify about moved cards
+        foreach (CardInstance card in movedCards)
+        {
+            card.IsPlayable = true;
+            _messageSystem.AddSystemMessage(
+                $"{card.Description} is now available (Rapport threshold met)",
+                SystemMessageTypes.Success);
+        }
+
+        return movedCards;
+    }
+
+    #region UI Access Methods - Encapsulated Deck Access
+
+    /// <summary>
+    /// Get current hand cards (read-only) for UI display
+    /// UI should NEVER access Session.Deck directly
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetHandCards()
+    {
+        if (_currentSession?.Deck == null)
+            return new List<CardInstance>();
+
+        return _currentSession.Deck.HandCards;
+    }
+
+    /// <summary>
+    /// Get request pile cards (read-only) for UI display
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetRequestCards()
+    {
+        if (_currentSession?.Deck == null)
+            return new List<CardInstance>();
+
+        return _currentSession.Deck.RequestCards;
+    }
+
+    /// <summary>
+    /// Get played cards history (read-only) for UI display
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetPlayedHistory()
+    {
+        if (_currentSession?.Deck == null)
+            return new List<CardInstance>();
+
+        return _currentSession.Deck.PlayedHistoryCards;
+    }
+
+    /// <summary>
+    /// Check if a card is in the hand
+    /// </summary>
+    public bool IsCardInHand(CardInstance card)
+    {
+        if (_currentSession?.Deck == null || card == null)
+            return false;
+
+        return _currentSession.Deck.IsCardInHand(card);
+    }
+
+    /// <summary>
+    /// Check if a card is in the request pile
+    /// </summary>
+    public bool IsCardInRequestPile(CardInstance card)
+    {
+        if (_currentSession?.Deck == null || card == null)
+            return false;
+
+        return _currentSession.Deck.IsCardInRequestPile(card);
+    }
+
+    /// <summary>
+    /// Get the current hand size
+    /// </summary>
+    public int GetHandSize()
+    {
+        if (_currentSession?.Deck == null)
+            return 0;
+
+        return _currentSession.Deck.HandSize;
+    }
+
+    /// <summary>
+    /// Get the current request pile size
+    /// </summary>
+    public int GetRequestPileSize()
+    {
+        if (_currentSession?.Deck == null)
+            return 0;
+
+        return _currentSession.Deck.RequestPileSize;
+    }
+
+    /// <summary>
+    /// Get deck statistics for UI display
+    /// </summary>
+    public (int drawPile, int discardPile, int handSize, int requestPile) GetDeckStatistics()
+    {
+        if (_currentSession?.Deck == null)
+            return (0, 0, 0, 0);
+
+        return (
+            _currentSession.Deck.RemainingDrawCards,
+            _currentSession.Deck.DiscardPileCount,
+            _currentSession.Deck.HandSize,
+            _currentSession.Deck.RequestPileSize
+        );
+    }
+
+    /// <summary>
+    /// Check if there are cards available to draw
+    /// </summary>
+    public bool HasCardsAvailable()
+    {
+        if (_currentSession?.Deck == null)
+            return false;
+
+        return _currentSession.Deck.HasCardsAvailable();
+    }
+
+    #endregion
 
     #endregion
 }
