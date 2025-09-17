@@ -107,21 +107,10 @@ namespace Wayfarer.Pages
 
             try
             {
-                Console.WriteLine("[GameScreen] Calling RefreshResourceDisplay...");
                 await RefreshResourceDisplay();
-                Console.WriteLine("[GameScreen] RefreshResourceDisplay completed");
-
-                Console.WriteLine("[GameScreen] Calling RefreshTimeDisplay...");
                 await RefreshTimeDisplay();
-                Console.WriteLine("[GameScreen] RefreshTimeDisplay completed");
-
-                Console.WriteLine("[GameScreen] Calling RefreshLocationDisplay...");
                 await RefreshLocationDisplay();
-                Console.WriteLine("[GameScreen] RefreshLocationDisplay completed");
-
-                Console.WriteLine("[GameScreen] Calling base.OnInitializedAsync...");
                 await base.OnInitializedAsync();
-                Console.WriteLine("[GameScreen] base.OnInitializedAsync completed");
             }
             catch (Exception ex)
             {
@@ -129,40 +118,27 @@ namespace Wayfarer.Pages
                 Console.WriteLine($"[GameScreen] Stack trace: {ex.StackTrace}");
                 throw;
             }
-
-            Console.WriteLine("[GameScreen] OnInitializedAsync completed");
         }
 
         public async Task RefreshResourceDisplay()
         {
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Starting...");
-            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] GameFacade null? {GameFacade == null}");
-
             if (GameFacade == null)
             {
                 Console.WriteLine("[GameScreen.RefreshResourceDisplay] GameFacade is null, skipping");
                 return;
             }
 
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting player...");
             Player? player = GameFacade.GetPlayer();
-            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player null? {player == null}");
-
             if (player != null)
             {
                 Coins = player.Coins;
                 Health = player.Health;
                 Hunger = player.Hunger;
-                Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Player resources: Coins={Coins}, Health={Health}, Hunger={Hunger}");
             }
 
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Getting attention state...");
             AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
             Attention = attentionState.Current;
             MaxAttention = attentionState.Max;
-            Console.WriteLine($"[GameScreen.RefreshResourceDisplay] Attention: {Attention}/{MaxAttention}");
-
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] Completed");
         }
 
         protected async Task RefreshTimeDisplay()
