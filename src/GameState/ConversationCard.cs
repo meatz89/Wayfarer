@@ -65,7 +65,38 @@ public class ConversationCard
         };
     }
 
-
-
-
+    /// <summary>
+    /// Creates a deep clone of this conversation card
+    /// Used when adding observation cards to multiple NPCs
+    /// Each NPC needs their own instance to track consumption
+    /// </summary>
+    public ConversationCard DeepClone()
+    {
+        return new ConversationCard
+        {
+            Id = this.Id,
+            Description = this.Description,
+            CardType = this.CardType,
+            Persistence = this.Persistence,
+            SuccessType = this.SuccessType,
+            FailureType = this.FailureType,
+            ExhaustType = this.ExhaustType,
+            IsSkeleton = this.IsSkeleton,
+            SkeletonSource = this.SkeletonSource,
+            TokenType = this.TokenType,
+            Focus = this.Focus,
+            Difficulty = this.Difficulty,
+            MinimumTokensRequired = this.MinimumTokensRequired,
+            RequiredTokenType = this.RequiredTokenType,
+            PersonalityTypes = this.PersonalityTypes,
+            RapportThreshold = this.RapportThreshold,
+            QueuePosition = this.QueuePosition,
+            InstantRapport = this.InstantRapport,
+            RequestId = this.RequestId,
+            DialogueFragment = this.DialogueFragment,
+            VerbPhrase = this.VerbPhrase,
+            LevelBonuses = this.LevelBonuses,
+            BoundStat = this.BoundStat
+        };
+    }
 }

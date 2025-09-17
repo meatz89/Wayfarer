@@ -79,11 +79,6 @@
     // Stores actual CardInstance objects to maintain XP between conversations
     public PlayerCardDeck ConversationDeck { get; set; } = new();
 
-    // PLAYER OBSERVATION DECK - Cards gained from exploring locations
-    // Maximum 20 cards, tracks acquisition time for expiration
-    public PlayerObservationDeck ObservationDeck { get; set; } = new();
-
-
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();

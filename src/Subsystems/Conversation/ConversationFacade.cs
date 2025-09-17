@@ -492,8 +492,10 @@ public class ConversationFacade
             return ConversationContextFactory.CreateInvalidContext("Failed to spend attention");
         }
 
-        // Get observation cards
-        List<ConversationCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards();
+        // Get observation cards from the specific NPC's deck
+        // ARCHITECTURE: Each NPC maintains their own observation deck
+        // This ensures observations are contextually relevant to conversations
+        List<ConversationCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards(npcId);
         List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
         // Start conversation
@@ -1110,6 +1112,10 @@ public class ConversationFacade
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
         _focusManager.SpendFocus(focusCost);
+        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+
+        // Update card playability immediately after spending focus
+        UpdateCardPlayabilityBasedOnFocus(session);
 
         CardEffectResult effectResult = null;
         int flowChange = 0;
@@ -1202,6 +1208,23 @@ public class ConversationFacade
 
         // HIGHLANDER: Use deck's PlayCard method which handles all transitions
         session.Deck.PlayCard(selectedCard);
+
+        // Remove observation card from NPC's observation deck if it was played
+        // ARCHITECTURE: Observations are stored per-NPC, not globally on player
+        // This ensures observations are contextually relevant to specific NPCs
+        if (selectedCard.CardType == CardType.Observation && selectedCard.Context != null && session.NPC != null)
+        {
+            // Observation cards are consumed when played - remove from NPC's observation deck
+            string observationCardId = selectedCard.Context.Id;
+            ConversationCard cardToRemove = session.NPC.ObservationDeck?.GetAllCards()
+                .FirstOrDefault(c => c.Id == observationCardId);
+
+            if (cardToRemove != null)
+            {
+                session.NPC.ObservationDeck.RemoveCard(cardToRemove);
+                Console.WriteLine($"[ConversationFacade] Consumed observation card {observationCardId} from {session.NPC.Name}'s deck");
+            }
+        }
 
         // Remove impulse cards from hand after SPEAK, executing exhaust effects
         bool conversationContinues = RemoveImpulseCardsFromHand(session);

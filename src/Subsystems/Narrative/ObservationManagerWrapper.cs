@@ -59,27 +59,27 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         }
 
         /// <summary>
-        /// Get all active observation cards
+        /// Get all active observation cards for a specific NPC
         /// </summary>
-        public List<ObservationCard> GetObservationCards()
+        public List<ObservationCard> GetObservationCards(string npcId)
         {
-            return _observationManager.GetObservationCards();
+            return _observationManager.GetObservationCards(npcId);
         }
 
         /// <summary>
-        /// Get observation cards as conversation cards
+        /// Get observation cards as conversation cards for a specific NPC
         /// </summary>
-        public List<ConversationCard> GetObservationCardsAsConversationCards()
+        public List<ConversationCard> GetObservationCardsAsConversationCards(string npcId)
         {
-            return _observationManager.GetObservationCardsAsConversationCards();
+            return _observationManager.GetObservationCardsAsConversationCards(npcId);
         }
 
         /// <summary>
-        /// Remove an observation card
+        /// Remove an observation card from a specific NPC's deck
         /// </summary>
-        public void RemoveObservationCard(string cardId)
+        public void RemoveObservationCard(string npcId, string cardId)
         {
-            _observationManager.RemoveObservationCard(cardId);
+            _observationManager.RemoveObservationCard(npcId, cardId);
         }
 
         /// <summary>

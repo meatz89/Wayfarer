@@ -47,8 +47,9 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Take an observation and generate an observation card with decay tracking
-    /// Returns the generated observation card on success, null if already taken or invalid
+    /// Take an observation and generate observation cards for relevant NPCs
+    /// Each observation is added to the specific NPC's observation deck
+    /// Returns the first generated observation card on success, null if already taken or invalid
     /// </summary>
     public ObservationCard TakeObservation(Observation observation, TokenMechanicsManager tokenManager)
     {
@@ -79,35 +80,91 @@ public class ObservationManager
             // Create observation card with decay tracking
             DateTime currentGameTime = GetCurrentGameTime();
             ObservationCard observationCard = ObservationCard.FromConversationCard(conversationCard);
-            // Note: SourceObservationId is set in the FromConversationCard method using the card.Id
 
-            // Add to player's observation deck instead of internal storage
-            int currentDay = _timeManager.GetCurrentDay();
-            TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
-            bool addedToDeck = _gameWorld.GetPlayer().ObservationDeck.AddCard(observationCard, currentDay, timeBlock);
-
-            if (addedToDeck)
+            // ARCHITECTURE: Observations are stored in NPC-specific decks
+            // Each observation must specify which NPCs it's relevant to
+            // This ensures observations are contextually appropriate when played
+            if (observation.RelevantNPCs != null && observation.RelevantNPCs.Length > 0)
             {
-                Console.WriteLine($"[ObservationManager] Generated observation card {observationCard.Id} from {observation.Id} at {currentGameTime}");
+                bool addedToAnyNPC = false;
 
-                // Store taken observation details for UI display
-                TakenObservation takenObs = new TakenObservation
+                // Add observation to each relevant NPC's deck
+                foreach (string npcId in observation.RelevantNPCs)
                 {
-                    Id = observation.Id,
-                    Name = observation.Text,
-                    Description = observation.Description,
-                    NarrativeText = observation.Description,  // Use description as narrative
-                    GeneratedCard = observationCard,
-                    TimeTaken = currentGameTime,
-                    TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
-                };
-                _takenObservations[observation.Id] = takenObs;
+                    NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+                    if (targetNpc != null)
+                    {
+                        // Initialize NPC's observation deck if needed
+                        if (targetNpc.ObservationDeck == null)
+                        {
+                            targetNpc.ObservationDeck = new CardDeck();
+                        }
 
-                return observationCard;
+                        // Clone the card for this NPC (each NPC gets their own instance)
+                        ConversationCard npcObservationCard = conversationCard.DeepClone();
+                        npcObservationCard = new ConversationCard
+                        {
+                            Id = $"{observation.Id}_card_{npcId}_{Guid.NewGuid()}",
+                            Description = npcObservationCard.Description,
+                            CardType = npcObservationCard.CardType,
+                            Persistence = npcObservationCard.Persistence,
+                            SuccessType = npcObservationCard.SuccessType,
+                            FailureType = npcObservationCard.FailureType,
+                            ExhaustType = npcObservationCard.ExhaustType,
+                            IsSkeleton = npcObservationCard.IsSkeleton,
+                            SkeletonSource = npcObservationCard.SkeletonSource,
+                            TokenType = npcObservationCard.TokenType,
+                            Focus = npcObservationCard.Focus,
+                            Difficulty = npcObservationCard.Difficulty,
+                            MinimumTokensRequired = npcObservationCard.MinimumTokensRequired,
+                            RequiredTokenType = npcObservationCard.RequiredTokenType,
+                            PersonalityTypes = npcObservationCard.PersonalityTypes,
+                            RapportThreshold = npcObservationCard.RapportThreshold,
+                            QueuePosition = npcObservationCard.QueuePosition,
+                            InstantRapport = npcObservationCard.InstantRapport,
+                            RequestId = npcObservationCard.RequestId,
+                            DialogueFragment = npcObservationCard.DialogueFragment,
+                            VerbPhrase = npcObservationCard.VerbPhrase,
+                            LevelBonuses = npcObservationCard.LevelBonuses,
+                            BoundStat = npcObservationCard.BoundStat
+                        };
+
+                        targetNpc.ObservationDeck.AddCard(npcObservationCard);
+                        Console.WriteLine($"[ObservationManager] Added observation {observation.Id} to {targetNpc.Name}'s deck");
+                        addedToAnyNPC = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[ObservationManager] Warning: NPC {npcId} not found for observation {observation.Id}");
+                    }
+                }
+
+                if (addedToAnyNPC)
+                {
+                    // Store taken observation details for UI display
+                    TakenObservation takenObs = new TakenObservation
+                    {
+                        Id = observation.Id,
+                        Name = observation.Text,
+                        Description = observation.Description,
+                        NarrativeText = observation.Description,  // Use description as narrative
+                        GeneratedCard = observationCard,
+                        TimeTaken = currentGameTime,
+                        TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
+                    };
+                    _takenObservations[observation.Id] = takenObs;
+
+                    return observationCard;
+                }
+                else
+                {
+                    Console.WriteLine($"[ObservationManager] Failed to add observation to any NPC deck");
+                    return null;
+                }
             }
             else
             {
-                Console.WriteLine($"[ObservationManager] Failed to add observation card to player deck (deck full?)");
+                Console.WriteLine($"[ObservationManager] Observation {observation.Id} has no relevant NPCs specified");
                 return null;
             }
         }
@@ -116,39 +173,62 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Get all current observation cards in player's deck
-    /// Delegates to player's observation deck for proper tracking
+    /// Get all observation cards for a specific NPC
+    /// Each NPC maintains their own observation deck
     /// </summary>
-    public List<ObservationCard> GetObservationCards()
+    public List<ObservationCard> GetObservationCards(string npcId)
     {
-        int currentDay = _timeManager.GetCurrentDay();
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc?.ObservationDeck == null)
+            return new List<ObservationCard>();
 
-        // Get cards from player's deck with automatic expiration handling
-        return _gameWorld.GetPlayer().ObservationDeck.GetActiveCards(currentDay, currentTimeBlock);
+        // Convert NPC's observation cards to ObservationCard type
+        List<ObservationCard> observationCards = new List<ObservationCard>();
+        foreach (ConversationCard card in npc.ObservationDeck.GetAllCards())
+        {
+            if (card.CardType == CardType.Observation)
+            {
+                observationCards.Add(ObservationCard.FromConversationCard(card));
+            }
+        }
+        return observationCards;
     }
 
     /// <summary>
-    /// Get observation cards as conversation cards for use in conversation system
-    /// Delegates to player's observation deck
+    /// Get observation cards as conversation cards for a specific NPC
+    /// Used when starting a conversation to include relevant observations
     /// </summary>
-    public List<ConversationCard> GetObservationCardsAsConversationCards()
+    public List<ConversationCard> GetObservationCardsAsConversationCards(string npcId)
     {
-        DateTime currentGameTime = GetCurrentGameTime();
-        int currentDay = _timeManager.GetCurrentDay();
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc?.ObservationDeck == null)
+            return new List<ConversationCard>();
 
-        // Get cards from player's deck already formatted as conversation cards
-        return _gameWorld.GetPlayer().ObservationDeck.GetAsConversationCards(currentGameTime, currentDay, currentTimeBlock);
+        // Return all observation cards from NPC's deck
+        return npc.ObservationDeck.GetAllCards()
+            .Where(c => c.CardType == CardType.Observation)
+            .ToList();
     }
 
     /// <summary>
-    /// Remove an observation card after it's been played or has expired
-    /// Delegates to player's observation deck
+    /// Remove an observation card from a specific NPC's deck after it's been played
+    /// Observations are consumed when used in conversation
     /// </summary>
-    public void RemoveObservationCard(string observationCardId)
+    public void RemoveObservationCard(string npcId, string observationCardId)
     {
-        _gameWorld.GetPlayer().ObservationDeck.RemoveCard(observationCardId);
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc?.ObservationDeck != null)
+        {
+            // Find and remove the card from NPC's observation deck
+            ConversationCard cardToRemove = npc.ObservationDeck.GetAllCards()
+                .FirstOrDefault(c => c.Id == observationCardId);
+
+            if (cardToRemove != null)
+            {
+                npc.ObservationDeck.RemoveCard(cardToRemove);
+                Console.WriteLine($"[ObservationManager] Removed observation {observationCardId} from {npc.Name}'s deck");
+            }
+        }
     }
 
     /// <summary>
@@ -195,6 +275,7 @@ public class ObservationManager
         _takenObservationsByTimeBlock.Clear();
         // Note: Player's observation deck handles its own expiration, not cleared on new day
     }
+
 
     /// <summary>
     /// Generate a conversation card from an observation using JSON-based card templates

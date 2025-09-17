@@ -33,7 +33,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run)",
       "Bash(dotnet build:*)",
       "Bash(awk:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6215\" dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6215\" dotnet run)",
+      "Bash(xargs -r kill -9)"
     ],
     "deny": [],
     "ask": []
