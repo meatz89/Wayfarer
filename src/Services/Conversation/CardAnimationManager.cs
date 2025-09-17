@@ -17,11 +17,17 @@ namespace Wayfarer
         private readonly List<AnimatingCard> animatingCards = new();
         private readonly Dictionary<string, CardAnimationState> cardStates = new();
         private readonly HashSet<string> exhaustingCardIds = new();
+        private readonly ExhaustingCardStore exhaustingCardStore = new();
 
         /// <summary>
         /// Get the list of currently animating cards.
         /// </summary>
         public List<AnimatingCard> AnimatingCards => animatingCards;
+
+        /// <summary>
+        /// Get the exhausting card store for display purposes.
+        /// </summary>
+        public ExhaustingCardStore ExhaustingCardStore => exhaustingCardStore;
 
         /// <summary>
         /// Get the current animation states for cards.
@@ -129,10 +135,14 @@ namespace Wayfarer
         /// <summary>
         /// Mark cards for sequential exhaust animation with staggered delays.
         /// Cards exit to the right one by one.
+        /// CRITICAL: Also stores copies in ExhaustingCardStore for display.
         /// </summary>
         public void MarkCardsForExhaustSequential(List<CardInstance> cardsToExhaust, double baseDelay, Action stateChangedCallback)
         {
             const double STAGGER_DELAY = 0.15; // 150ms between each card
+
+            // Store copies in ExhaustingCardStore for display while animating
+            exhaustingCardStore.AddExhaustingCards(cardsToExhaust, baseDelay);
 
             for (int i = 0; i < cardsToExhaust.Count; i++)
             {
@@ -227,6 +237,9 @@ namespace Wayfarer
         public void CleanupOldAnimations()
         {
             DateTime now = DateTime.Now;
+
+            // Clean up exhausting card store
+            exhaustingCardStore.CleanupExpiredCards();
 
             // Different cleanup times based on animation type
             // Exhaust animations complete in 0.5s, so cleanup at 0.6s

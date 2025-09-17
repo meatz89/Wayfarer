@@ -218,8 +218,29 @@
                 @foreach (var displayCard in GetAllDisplayCards())
                 {
                     var convCard = displayCard.Card;
-                    
-                    @if (displayCard.IsAnimating)
+
+                    @if (displayCard.IsExhausting)
+                    {
+                        @* Exhausting card with sequential animation *@
+                        var exhaustStyle = displayCard.AnimationDelay > 0
+                            ? $"animation-delay: {displayCard.AnimationDelay:F2}s;"
+                            : "";
+
+                        <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)" style="@exhaustStyle">
+                            <div class="card-content">
+                                <div class="card-main">
+                                    <div class="card-header">
+                                        <div class="card-name">@GetProperCardName(convCard)</div>
+                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                    </div>
+                                    <div class="card-text @GetNarrativeClass()">
+                                        "@GetProperCardDialogue(convCard)"
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (displayCard.IsAnimating)
                     {
                         @* Animating card that's been played *@
                         <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)">

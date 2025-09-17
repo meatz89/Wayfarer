@@ -3207,11 +3207,11 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get all cards to display (both regular hand cards and animating cards)
+        /// Get all cards to display (exhausting cards, regular hand cards, and animating cards)
         /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
-            return DisplayManager.GetAllDisplayCards(Session, AnimatingCards);
+            return DisplayManager.GetAllDisplayCards(Session, AnimatingCards, AnimationManager?.ExhaustingCardStore);
         }
 
         /// <summary>

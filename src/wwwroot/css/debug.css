@@ -1,247 +1,330 @@
 /* Debug CSS for NPCDeckViewer Component */
-/* Development/debugging tool styles with technical appearance */
+/* Development/debugging tool styles with game-like card appearance */
 
-.npc-deck-viewer {
-    font-family: 'Courier New', 'Monaco', 'Menlo', 'DejaVu Sans Mono', monospace;
-    background: #1a1a1a;
-    border: 2px solid #333;
-    border-radius: 4px;
-    padding: 16px;
-    margin: 20px 0;
-    color: #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.npc-deck-viewer h3 {
-    margin: 0 0 12px 0;
-    color: #4a90e2;
-    font-size: 16px;
-    font-focus: bold;
-    border-bottom: 1px solid #333;
-    padding-bottom: 8px;
+.deck-viewer {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #f4e8d0;
+    padding: 20px;
+    color: #3a2f24;
+    min-height: 100vh;
 }
 
 .deck-viewer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    font-size: 14px;
+    background: #e8dcc4;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #a68b6f;
 }
 
-.deck-stats {
-    color: #888;
+.deck-viewer-header h2 {
+    margin: 0 0 10px 0;
+    color: #5c4a3a;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.back-button {
+    background: #d4b896;
+    color: #3a2f24;
+    border: 2px solid #a68b6f;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.back-button:hover {
+    background: #c4a886;
+}
+
+.npc-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.npc-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.npc-id {
+    font-size: 12px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+.npc-personality {
+    background: #a68b6f;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+/* Conversation Availability Panel */
+.conversation-availability-panel {
+    background: #faf4ea;
+    border: 2px solid #a68b6f;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.conversation-availability-panel h3 {
+    margin: 0 0 15px 0;
+    color: #5c4a3a;
+    font-size: 18px;
+    border-bottom: 1px solid #d4b896;
+    padding-bottom: 8px;
+}
+
+.conversation-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.conversation-type-card {
+    background: #fff;
+    border: 2px solid #d4b896;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.conversation-type-card.enabled {
+    border-color: #7a8b5a;
+    background: #f9fff4;
+}
+
+.conversation-type-card.disabled {
+    opacity: 0.6;
+    background: #f5f5f5;
+}
+
+.conversation-type-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.type-name {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.attention-cost {
+    background: #d4b896;
+    color: #3a2f24;
+    padding: 2px 8px;
+    border-radius: 12px;
     font-size: 12px;
 }
 
-.npc-deck-viewer .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
+.enabling-condition {
+    margin-bottom: 8px;
+    font-size: 13px;
 }
 
-.debug-card {
-    background: #2d2d2d;
-    border: 1px solid #444;
+.enabled-by {
+    color: #059669;
+}
+
+.disabled-reason {
+    color: #dc2626;
+}
+
+.type-description {
+    font-size: 12px;
+    color: #7a6250;
+    font-style: italic;
+}
+
+/* Deck Sections */
+.decks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.deck-section {
+    background: #faf4ea;
+    border: 2px solid #a68b6f;
     border-radius: 4px;
-    padding: 12px;
-    font-size: 11px;
-    line-height: 1.4;
+    padding: 20px;
+}
+
+.deck-section h3 {
+    margin: 0 0 8px 0;
+    color: #5c4a3a;
+    font-size: 18px;
+}
+
+.deck-purpose {
+    color: #7a6250;
+    font-size: 13px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.urgency-rule {
+    display: block;
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 8px;
+    margin-top: 8px;
+    font-style: normal;
+}
+
+/* Card Lists */
+.card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+/* Debug Cards - Game-like styling */
+.debug-card {
+    background: #faf4ea;
+    border: 2px solid #a68b6f;
+    border-radius: 4px;
+    padding: 15px;
     position: relative;
-    transition: border-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .debug-card:hover {
-    border-color: #666;
-    background: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.debug-card-header {
+.card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #d4b896;
+    padding-bottom: 8px;
 }
 
-.debug-card-id {
-    color: #7dd3fc;
-    font-focus: bold;
+.card-id {
     font-size: 10px;
-    text-transform: uppercase;
-}
-
-.debug-card-focus {
-    color: #fbbf24;
-    font-size: 10px;
-    background: #44403c;
-    padding: 2px 6px;
-    border-radius: 2px;
-}
-
-.debug-card-description {
-    color: #d1d5db;
-    margin-bottom: 8px;
-    font-focus: bold;
-}
-
-.debug-card-properties {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 8px;
-}
-
-.property-badge, .personality-badge, .difficulty-badge {
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-transform: uppercase;
-    font-focus: bold;
-}
-
-.property-badge {
-    background: #374151;
-    color: #9ca3af;
-}
-
-.personality-badge {
-    background: #7c2d12;
-    color: #fed7aa;
-}
-
-.personality-badge.all {
-    background: #065f46;
-    color: #a7f3d0;
-}
-
-.difficulty-badge {
-    background: #1e40af;
-    color: #bfdbfe;
-}
-
-.difficulty-badge.easy { background: #059669; color: #a7f3d0; }
-.difficulty-badge.medium { background: #d97706; color: #fed7aa; }
-.difficulty-badge.hard { background: #dc2626; color: #fecaca; }
-.difficulty-badge.veryhard { background: #7c2d12; color: #fed7aa; }
-
-.debug-card-connection {
-    color: #a78bfa;
-    font-size: 10px;
-    margin-bottom: 4px;
-}
-
-.debug-card-effects {
-    border-top: 1px solid #404040;
-    padding-top: 8px;
-    margin-top: 8px;
-}
-
-.debug-effect {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    margin-bottom: 3px;
-}
-
-.debug-effect-label {
     color: #9ca3af;
     text-transform: uppercase;
-    font-focus: bold;
+    font-family: monospace;
 }
 
-.debug-effect-value {
-    color: #34d399;
+.card-name {
+    font-weight: bold;
+    color: #5c4a3a;
+    font-size: 14px;
+    flex: 1;
+    margin: 0 10px;
 }
 
-.debug-effect-value.negative {
-    color: #f87171;
-}
-
-.debug-dialogue {
-    background: #111827;
-    border-left: 3px solid #4338ca;
-    padding: 8px;
-    margin-top: 8px;
-    font-style: italic;
-    color: #c7d2fe;
+.card-category {
+    padding: 2px 8px;
+    border-radius: 4px;
     font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
-.no-cards-message {
-    text-align: center;
-    color: #6b7280;
-    font-style: italic;
-    padding: 20px;
-    background: #2d2d2d;
-    border-radius: 4px;
-    border: 1px dashed #444;
+.card-category.flow {
+    background: #ddd6fe;
+    color: #6b21a8;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-    .npc-deck-viewer .card-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .npc-deck-viewer {
-        margin: 10px 0;
-        padding: 12px;
-    }
+.card-category.observation {
+    background: #fef3c7;
+    color: #92400e;
 }
 
-/* Special highlighting for debugging */
-.debug-card.impulse {
-    border-left: 3px solid #f59e0b;
+.card-category.promise {
+    background: #dcfce7;
+    color: #14532d;
 }
 
-.debug-card.opening {
-    border-left: 3px solid #10b981;
+.card-category.burden {
+    background: #fee2e2;
+    color: #7f1d1d;
 }
 
-.debug-card.persistent {
-    border-left: 3px solid #6366f1;
-}
-
-.debug-toggle {
-    background: #374151;
-    color: #d1d5db;
-    border: 1px solid #4b5563;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
+/* Card Properties */
+.card-properties {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
     font-size: 12px;
-    margin-bottom: 12px;
+    color: #7a6250;
 }
 
-.debug-toggle:hover {
-    background: #4b5563;
-    border-color: #6b7280;
+.card-properties span {
+    display: flex;
+    align-items: center;
 }
 
-/* Progression Card Styles */
-.progression-deck-section {
-    background: #1f2937;
-    border: 2px solid #4b5563;
-    padding: 16px;
-    margin-bottom: 20px;
-    border-radius: 4px;
+/* Card Text */
+.card-text {
+    background: #fff;
+    padding: 10px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #5c4a3a;
+    font-size: 13px;
+    border-left: 3px solid #d4b896;
 }
 
+/* Card Outcomes */
+.card-outcomes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.outcome {
+    padding: 8px;
+    border-radius: 2px;
+    font-size: 11px;
+}
+
+.outcome.success {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+}
+
+.outcome.failure {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+.outcome span:first-child {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+/* Special Card Types */
 .debug-card.progression-card {
-    background: linear-gradient(135deg, #2d2d2d, #3a3a3a);
-    border: 2px solid #5c5c5c;
+    background: linear-gradient(135deg, #faf4ea, #f4e8d0);
+    border-color: #8b7355;
 }
 
 .debug-card.progression-card.locked {
     opacity: 0.6;
     background: repeating-linear-gradient(
         45deg,
-        #2d2d2d,
-        #2d2d2d 10px,
-        #262626 10px,
-        #262626 20px
+        #faf4ea,
+        #faf4ea 10px,
+        #f0e4cc 10px,
+        #f0e4cc 20px
     );
 }
 
@@ -250,23 +333,151 @@
     top: 8px;
     right: 8px;
     font-size: 20px;
-    filter: grayscale(100%);
 }
 
 .token-requirement {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 12px;
-    background: #1f2937;
-    border: 1px solid #374151;
-    color: #9ca3af;
+    background: #f4e8d0;
+    border: 1px solid #a68b6f;
+    color: #5c4a3a;
     font-size: 10px;
     margin-left: 10px;
 }
 
 .token-requirement.met {
-    background: #10b981;
-    border-color: #059669;
+    background: #7a8b5a;
+    border-color: #5a6b3a;
     color: #ffffff;
     font-weight: bold;
+}
+
+.debug-card.letter-card,
+.debug-card.request-card {
+    background: #fff8dc;
+    border-color: #d4a574;
+}
+
+.debug-card.promise-card {
+    background: linear-gradient(135deg, #fff8dc, #ffeaa7);
+    border-color: #f39c12;
+}
+
+.debug-card.exchange-card {
+    background: #e8f5e9;
+    border-color: #66bb6a;
+}
+
+.request-type-badge {
+    background: #f39c12;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+/* Request Groups */
+.request-group {
+    background: #fff;
+    border: 1px solid #d4b896;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.request-header {
+    margin: 0 0 8px 0;
+    color: #5c4a3a;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.request-description {
+    color: #7a6250;
+    font-size: 13px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.request-group h5 {
+    margin: 15px 0 10px 0;
+    color: #5c4a3a;
+    font-size: 14px;
+    border-bottom: 1px dotted #d4b896;
+    padding-bottom: 4px;
+}
+
+/* Exchange Details */
+.exchange-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.exchange-details h4 {
+    margin: 0 0 8px 0;
+    color: #5c4a3a;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.costs, .exchange-info {
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    font-size: 12px;
+}
+
+/* Empty Deck Message */
+.empty-deck {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 30px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    border: 2px dashed #d4d4d4;
+}
+
+/* Persistence type indicators */
+.debug-card.conversation-card {
+    position: relative;
+}
+
+.debug-card .card-properties span:contains("Impulse") {
+    color: #f59e0b;
+    font-weight: bold;
+}
+
+.debug-card .card-properties span:contains("Opening") {
+    color: #10b981;
+    font-weight: bold;
+}
+
+.debug-card .card-properties span:contains("Thought") {
+    color: #6366f1;
+    font-weight: bold;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .card-list {
+        grid-template-columns: 1fr;
+    }
+
+    .conversation-types-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .exchange-details {
+        grid-template-columns: 1fr;
+    }
+
+    .card-outcomes {
+        grid-template-columns: 1fr;
+    }
 }

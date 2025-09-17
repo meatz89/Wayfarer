@@ -11,14 +11,33 @@ namespace Wayfarer
     public class CardDisplayManager
     {
         /// <summary>
-        /// Get all cards to display, combining regular hand cards with animating cards.
+        /// Get all cards to display, combining exhausting cards, regular hand cards, and animating cards.
         /// Ensures promise cards appear first and maintains original positions during animation.
+        /// CRITICAL: Exhausting cards are shown FIRST to maintain their DOM presence for animation.
         /// </summary>
-        public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards)
+        public List<CardDisplayInfo> GetAllDisplayCards(ConversationSession session, List<AnimatingCard> animatingCards, ExhaustingCardStore exhaustingCardStore)
         {
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            // Start with ALL cards in their current hand order (preserving positions)
+            // FIRST: Add exhausting cards (these are being animated out)
+            // These are copies that exist ONLY for animation display
+            if (exhaustingCardStore != null)
+            {
+                foreach (var exhaustingCard in exhaustingCardStore.GetExhaustingCards())
+                {
+                    displayCards.Add(new CardDisplayInfo
+                    {
+                        Card = exhaustingCard.Card,
+                        IsAnimating = false,  // Not using the old animation system
+                        IsExhausting = true,  // New flag for exhaust animations
+                        AnimationDelay = exhaustingCard.AnimationDelay,
+                        AnimationDirection = exhaustingCard.AnimationDirection,
+                        AnimationState = "card-exhausting"
+                    });
+                }
+            }
+
+            // SECOND: Add current hand cards (preserving positions)
             if (session?.Deck?.Hand?.Cards != null)
             {
                 List<CardInstance> handList = session.Deck.Hand.Cards.ToList();
@@ -32,6 +51,9 @@ namespace Wayfarer
                     {
                         Card = card,
                         IsAnimating = animatingCard != null,
+                        IsExhausting = false,
+                        AnimationDelay = 0,
+                        AnimationDirection = null,
                         AnimationState = animatingCard != null
                             ? GetAnimationClass(animatingCard.AnimationType)
                             : null
@@ -39,7 +61,7 @@ namespace Wayfarer
                 }
             }
 
-            // Add any animating cards that are no longer in the hand (just played and removed)
+            // THIRD: Add any animating cards that are no longer in the hand (just played and removed)
             foreach (AnimatingCard animatingCard in animatingCards)
             {
                 bool inHand = session?.Deck?.Hand?.Cards?.Any(c => c.InstanceId == animatingCard.Card.InstanceId) ?? false;
@@ -53,6 +75,9 @@ namespace Wayfarer
                     {
                         Card = animatingCard.Card,
                         IsAnimating = true,
+                        IsExhausting = false,
+                        AnimationDelay = 0,
+                        AnimationDirection = null,
                         AnimationState = GetAnimationClass(animatingCard.AnimationType)
                     });
                 }

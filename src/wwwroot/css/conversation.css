@@ -846,29 +846,54 @@ body {
     }
 }
 
-/* Exhaust animation - burn/dissolve effect */
-@keyframes card-exhaust {
+/* Exhaust animation - exit to right (discard pile) */
+@keyframes card-exhaust-right {
     0% {
         opacity: 1;
+        transform: translateX(0) scale(1) rotateY(0);
         filter: grayscale(0) brightness(1);
     }
-    25% {
-        opacity: 0.9;
-        filter: grayscale(0.3) brightness(0.9) sepia(0.5);
+    30% {
+        opacity: 0.8;
+        transform: translateX(50px) scale(0.95) rotateY(-10deg);
+        filter: grayscale(0.3) brightness(0.9) sepia(0.3);
     }
-    50% {
-        opacity: 0.7;
-        filter: grayscale(0.6) brightness(0.7) sepia(0.8);
-        background-color: #d4b896;
-    }
-    75% {
-        opacity: 0.3;
-        filter: grayscale(0.9) brightness(0.5) sepia(1);
-        background-color: #8b7355;
+    60% {
+        opacity: 0.5;
+        transform: translateX(150px) scale(0.8) rotateY(-20deg);
+        filter: grayscale(0.6) brightness(0.7) sepia(0.6);
     }
     100% {
         opacity: 0;
-        filter: grayscale(1) brightness(0.3) sepia(1);
+        transform: translateX(300px) scale(0.3) rotateY(-30deg);
+        filter: grayscale(1) brightness(0.5) sepia(1);
+        max-height: 0;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+/* Draw animation - enter from left (deck) */
+@keyframes card-draw-left {
+    0% {
+        opacity: 0;
+        transform: translateX(-300px) scale(0.3) rotateY(30deg);
+        filter: brightness(1.2);
+    }
+    40% {
+        opacity: 0.5;
+        transform: translateX(-150px) scale(0.6) rotateY(15deg);
+        filter: brightness(1.1);
+    }
+    70% {
+        opacity: 0.9;
+        transform: translateX(-50px) scale(0.9) rotateY(5deg);
+        filter: brightness(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1) rotateY(0);
+        filter: brightness(1);
     }
 }
 
@@ -884,38 +909,33 @@ body {
     }
 }
 
-/* Newly drawn cards */
+/* Newly drawn cards - enter from left */
 .card-new {
-    animation: card-slide-in 0.25s ease-out;
+    animation: card-draw-left 0.5s ease-out;
     animation-fill-mode: both;
+    /* animation-delay set inline for sequential animation */
 }
-
-/* Stagger animation for multiple new cards */
-.card-new:nth-child(1) { animation-delay: 0s; }
-.card-new:nth-child(2) { animation-delay: 0.05s; }
-.card-new:nth-child(3) { animation-delay: 0.1s; }
-.card-new:nth-child(4) { animation-delay: 0.15s; }
-.card-new:nth-child(5) { animation-delay: 0.2s; }
 
 /* Successfully played card */
 .card-played-success {
-    animation: card-success-flash 0.75s ease-out, card-play-out 0.25s ease-out 0.75s;
+    animation: card-success-flash 1.25s ease-out, card-play-out 0.25s ease-out 1.25s;
     animation-fill-mode: forwards;
     pointer-events: none;
 }
 
 /* Failed played card */
 .card-played-failure {
-    animation: card-failure-flash 0.75s ease-out, card-play-out 0.25s ease-out 0.75s;
+    animation: card-failure-flash 1.25s ease-out, card-play-out 0.25s ease-out 1.25s;
     animation-fill-mode: forwards;
     pointer-events: none;
 }
 
-/* Exhausting cards (impulse/opening) */
+/* Exhausting cards - exit to right */
 .card-exhausting {
-    animation: card-exhaust 0.5s ease-out;
+    animation: card-exhaust-right 0.5s ease-out;
     animation-fill-mode: forwards;
     pointer-events: none;
+    /* animation-delay set inline for sequential animation */
 }
 
 /* === ACTION SECTION === */
