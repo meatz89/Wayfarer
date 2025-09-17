@@ -16,6 +16,7 @@ public class ConversationFacade
     private readonly AtmosphereManager _atmosphereManager;
     private readonly CategoricalEffectResolver _effectResolver;
     private readonly ConversationNarrativeService _narrativeService;
+    private readonly ConversationDeckBuilder _deckBuilder;
 
     // External dependencies
     private readonly ObligationQueueManager _queueManager;
@@ -38,6 +39,7 @@ public class ConversationFacade
         AtmosphereManager atmosphereManager,
         CategoricalEffectResolver effectResolver,
         ConversationNarrativeService narrativeService,
+        ConversationDeckBuilder deckBuilder,
         ObligationQueueManager queueManager,
         ObservationManager observationManager,
         TimeManager timeManager,
@@ -51,6 +53,7 @@ public class ConversationFacade
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
+        _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
@@ -104,7 +107,7 @@ public class ConversationFacade
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
 
         // Create session deck and get request cards
-        (SessionCardDeck deck, List<CardInstance> requestCards) = CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
+        (SessionCardDeck deck, List<CardInstance> requestCards) = _deckBuilder.CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
 
         // Create rapport manager with initial token counts
         Dictionary<ConnectionType, int> npcTokens = GetNpcTokenCounts(npc);
@@ -514,67 +517,6 @@ public class ConversationFacade
     public bool IsConversationActive()
     {
         return _currentSession != null;
-    }
-
-    /// <summary>
-    /// Save conversation state for persistence
-    /// </summary>
-    public ConversationMemento SaveState()
-    {
-        if (!IsConversationActive())
-            return null;
-
-        return new ConversationMemento
-        {
-            NpcId = _currentSession.NPC.ID,
-            ConversationType = _currentSession.ConversationType,
-            CurrentState = _currentSession.CurrentState,
-            CurrentFlow = _currentSession.FlowBattery,
-            CurrentPatience = _currentSession.CurrentPatience,
-            MaxPatience = _currentSession.MaxPatience,
-            TurnNumber = _currentSession.TurnNumber,
-            LetterGenerated = _currentSession.LetterGenerated,
-            RequestCardDrawn = _currentSession.RequestCardDrawn,
-            RequestUrgencyCounter = _currentSession.RequestUrgencyCounter,
-            RequestCardPlayed = _currentSession.RequestCardPlayed,
-            HandCardIds = _currentSession.Deck.Hand.Cards.Select(c => c.InstanceId).ToList(),
-            // HIGHLANDER: Collect all card IDs from all piles in deck
-            DeckCardIds = new List<string>()
-        };
-    }
-
-    /// <summary>
-    /// Restore conversation state from persistence
-    /// </summary>
-    public void RestoreState(ConversationMemento memento)
-    {
-        if (memento == null)
-            return;
-
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == memento.NpcId);
-        if (npc == null)
-            return;
-
-        // Create basic session
-        _currentSession = new ConversationSession
-        {
-            NPC = npc,
-            ConversationType = memento.ConversationType,
-            CurrentState = memento.CurrentState,
-            // FlowBattery restored from memento
-            CurrentPatience = memento.CurrentPatience,
-            TurnNumber = memento.TurnNumber,
-            LetterGenerated = memento.LetterGenerated,
-            RequestCardDrawn = memento.RequestCardDrawn,
-            RequestUrgencyCounter = memento.RequestUrgencyCounter,
-            RequestCardPlayed = memento.RequestCardPlayed,
-            MaxPatience = memento.MaxPatience,  // Use stored max patience from memento
-            TokenManager = _tokenManager,
-            Deck = SessionCardDeck.CreateFromTemplates(npc.ProgressionDeck.GetAllCards(), npc.ID),
-        };
-
-        // Restore hand and deck cards
-        RestoreSessionCards(_currentSession, memento.HandCardIds, memento.DeckCardIds);
     }
 
     /// <summary>
@@ -1732,15 +1674,6 @@ public class ConversationFacade
     {
         // For now, return null - burden resolution not fully implemented
         return null;
-    }
-
-    /// <summary>
-    /// Restore session cards from memento data
-    /// </summary>
-    private void RestoreSessionCards(ConversationSession session, List<string> handCardIds, List<string> deckCardIds)
-    {
-        // This would restore cards from saved IDs - implementation depends on persistence system
-        // For now, leave as stub
     }
 
     /// <summary>

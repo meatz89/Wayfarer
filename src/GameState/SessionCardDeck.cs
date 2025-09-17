@@ -65,10 +65,9 @@ public class SessionCardDeck
         SessionCardDeck deck = new SessionCardDeck(npcId);
         foreach (CardInstance instance in instances)
         {
-            // Preserve XP and context
+            // Preserve context
             CardInstance sessionInstance = new CardInstance(instance.Template, instance.SourceContext)
             {
-                XP = instance.XP,
                 InstanceId = instance.InstanceId,
                 Context = instance.Context,
                 IsPlayable = instance.IsPlayable

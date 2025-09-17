@@ -114,7 +114,7 @@
         return "eyes darting to the door with each patron's entrance";
     }
 
-    private string GetObservationHint()
+    private string? GetObservationHint()
     {
         if (CurrentSpot == null)
             return null;
@@ -128,13 +128,13 @@
         // Generate hints based on view properties
         if (activeProperties.Contains(SpotPropertyType.ViewsMarket))
             return "Commerce flows visibly. Merchant patterns emerge.";
-        
+
         if (activeProperties.Contains(SpotPropertyType.ViewsMainEntrance))
             return "Guard rotations and arrivals draw your attention.";
-        
+
         if (activeProperties.Contains(SpotPropertyType.ViewsBackAlley))
             return "Discrete movements catch your eye.";
-        
+
         if (activeProperties.Contains(SpotPropertyType.ViewsTemple))
             return "Devotional patterns become apparent.";
 

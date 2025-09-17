@@ -362,16 +362,19 @@ public class CategoricalEffectResolver
             baseChance += 20; // +20% success for focused atmosphere
         }
 
-        // Apply level bonuses
+        // Apply level bonuses from player stats
+        PlayerStats playerStats = gameWorld.GetPlayer().Stats;
+        int effectiveLevel = card.GetEffectiveLevel(playerStats);
+
         // Standard progression: +10% at level 2, +10% at level 4, then +10% every even level
-        int levelBonus = card.Level switch
+        int levelBonus = effectiveLevel switch
         {
             1 => 0,
             2 => 10,
             3 => 10,
             4 => 20,
             5 => 20,
-            _ => 20 + ((card.Level - 5) / 2) * 10  // +10% every even level after 5
+            _ => 20 + ((effectiveLevel - 5) / 2) * 10  // +10% every even level after 5
         };
 
         baseChance += levelBonus;

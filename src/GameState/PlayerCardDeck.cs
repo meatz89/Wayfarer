@@ -51,17 +51,6 @@ public class PlayerCardDeck
         return cardInstances.FirstOrDefault(c => c.InstanceId == instanceId);
     }
 
-    /// <summary>
-    /// Update the XP of a specific card instance
-    /// </summary>
-    public void UpdateInstanceXP(string instanceId, int newXP)
-    {
-        CardInstance instance = FindInstanceById(instanceId);
-        if (instance != null)
-        {
-            instance.XP = newXP;
-        }
-    }
 
     /// <summary>
     /// Clear all cards (used for reinitialization)

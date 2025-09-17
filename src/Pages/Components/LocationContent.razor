@@ -5,7 +5,7 @@
 @if (CurrentSpot != null)
 {
     <!-- Active Obligations Queue (from mockup) -->
-    <div class="obligations-panel" @onclick="() => GameScreen?.NavigateToQueue()">
+    <div class="obligations-panel" @onclick="() => GameScreen.NavigateToQueue()">
         <div class="obligations-header">
             <span>Active Obligations</span>
             <span class="queue-rule">Must complete Position 1 first!</span>
@@ -216,7 +216,7 @@
                         @foreach (var option in npc.ConversationOptions)
                         {
                             <div class="npc-action @(option.IsExchange ? "exchange" : GetActionClass(option.Type)) @(!option.IsAvailable ? "unavailable" : "")" 
-                                 @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else await StartTypedConversation(npc.Id, option.Type.Value, option.GoalCardId); } }">
+                                 @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else if (option.Type.HasValue) await StartTypedConversation(npc.Id, option.Type.Value, option.GoalCardId); } }">
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
                                     @if (option.AttentionCost == 0)
@@ -228,7 +228,7 @@
                                         <span class="cost-value">@option.AttentionCost attention</span>
                                     }
                                     <span> • </span>
-                                    <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot)</span>
+                                    <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot!)</span>
                                     @if (option.Type == ConversationType.Request && HasLetterRequest(npc.Id))
                                     {
                                         <span> • Letter request available!</span>

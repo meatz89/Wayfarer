@@ -49,8 +49,8 @@ public class CardInstance
     }
 
     /// <summary>
-    /// Legacy Persistence property for backwards compatibility
-    /// Use GetPersistence(PlayerStats) for stat-aware persistence
+    /// Get base persistence without stat bonuses - used for CSS class generation
+    /// For stat-aware persistence, use GetPersistence(PlayerStats)
     /// </summary>
     public PersistenceType Persistence => Template.Persistence;
 
@@ -86,18 +86,6 @@ public class CardInstance
         return false;
     }
 
-    /// <summary>
-    /// Legacy XP property for backwards compatibility - now always returns 0
-    /// XP is tracked at the stat level, not individual cards
-    /// </summary>
-    [Obsolete("XP is now tracked at player stat level, not individual cards")]
-    public int XP { get; set; } = 0;
-
-    /// <summary>
-    /// Legacy Level property for backwards compatibility - use GetEffectiveLevel instead
-    /// </summary>
-    [Obsolete("Use GetEffectiveLevel(PlayerStats) instead")]
-    public int Level => 1;
 
     public string GetCategoryClass()
     {
@@ -148,22 +136,22 @@ public class CardInstance
         return Focus;
     }
 
-    public int CalculateSuccessChance()
+    public int CalculateSuccessChance(PlayerStats playerStats)
     {
         // Request/Promise cards always succeed (100%)
         if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
             return 100;
 
-        return GetBaseSuccessPercentage();
+        return GetBaseSuccessPercentage(playerStats);
     }
 
-    public int CalculateSuccessChance(ConnectionState state)
+    public int CalculateSuccessChance(PlayerStats playerStats, ConnectionState state)
     {
         // Request/Promise cards always succeed (100%)
         if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
             return 100;
 
-        return GetBaseSuccessPercentage();
+        return GetBaseSuccessPercentage(playerStats);
     }
     public ConnectionType GetConnectionType()
     {
@@ -187,14 +175,6 @@ public class CardInstance
         return baseChance;
     }
 
-    /// <summary>
-    /// Legacy method for backwards compatibility - use GetBaseSuccessPercentage(PlayerStats) instead
-    /// </summary>
-    [Obsolete("Use GetBaseSuccessPercentage(PlayerStats) instead")]
-    public int GetBaseSuccessPercentage()
-    {
-        return Template.GetBaseSuccessPercentage();
-    }
 
     public CardInstance() { }
 

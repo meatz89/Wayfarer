@@ -2295,11 +2295,15 @@ namespace Wayfarer.Pages.Components
         {
             if (card == null) return 0;
 
+            // Get player stats for effective level calculation
+            PlayerStats playerStats = GameFacade.GetPlayerStats();
+            int effectiveLevel = card.GetEffectiveLevel(playerStats);
+
             // Level 2 adds +10% success
             // Level 4 adds another +10% success (cumulative)
             int levelBonus = 0;
-            if (card.Level >= 2) levelBonus += 10;
-            if (card.Level >= 4) levelBonus += 10;
+            if (effectiveLevel >= 2) levelBonus += 10;
+            if (effectiveLevel >= 4) levelBonus += 10;
 
             return levelBonus;
         }

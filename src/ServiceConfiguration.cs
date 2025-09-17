@@ -64,6 +64,7 @@ public static class ServiceConfiguration
         services.AddSingleton<AtmosphereManager>();
         services.AddSingleton<FocusManager>();
         services.AddSingleton<CategoricalEffectResolver>();
+        services.AddSingleton<ConversationDeckBuilder>();
         services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<ConversationFacade>();
 
