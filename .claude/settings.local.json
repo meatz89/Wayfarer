@@ -32,7 +32,8 @@
       "mcp__playwright__browser_console_messages",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6212\" dotnet run)",
       "Bash(dotnet build:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6215\" dotnet run)"
     ],
     "deny": [],
     "ask": []
