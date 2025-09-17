@@ -284,22 +284,6 @@ public class CardDeckManager
                 _focusManager.AddFocus(effectResult.FocusAdded); // Adding negative = removing
             }
 
-            // Apply card removal effects (Overreach/Disrupting)
-            if (effectResult.CardsToAdd.Any())
-            {
-                // For failure effects, CardsToAdd represents cards to REMOVE
-                // Overreach: all cards marked for removal
-                // Disrupting: specific high-focus cards marked for removal
-                foreach (var cardToRemove in effectResult.CardsToAdd)
-                {
-                    if (session.Deck.Hand.Contains(cardToRemove))
-                    {
-                        session.Deck.Hand.Remove(cardToRemove);
-                        session.Deck.DiscardCard(cardToRemove); // HIGHLANDER: Use deck's discard
-                    }
-                }
-            }
-
             // Clear atmosphere on failure
             _atmosphereManager.ClearAtmosphereOnFailure();
         }

@@ -957,8 +957,6 @@ Each card is defined by exactly five categorical properties that determine its b
 - **None**: No effect on success
 
 #### Failure (effect type on failure)
-- **Disrupting**: Discard all cards with Focus 3+ from hand
-- **Overreach**: Discard entire hand
 - **Backfire**: Negative rapport change
 - **ForceListen**: Player must LISTEN on next turn after failure
 - **None**: No additional effect (automatically applies ForceListen as fallback)
@@ -1913,7 +1911,7 @@ Your conversation deck IS your character. Every card represents a social skill y
 
 ### Conversations as Combat
 
-The categorical property system means cards represent conversational approaches rather than specific outcomes. A Thought/Rapport/Overreach/None card represents a calculated statement that could strengthen or destroy the relationship. The same card performs differently under various atmospheres and rapport levels, creating emergent complexity from simple rules.
+The categorical property system means cards represent conversational approaches rather than specific outcomes. A Thought/Rapport/None/None card represents a calculated statement that could strengthen or destroy the relationship. The same card performs differently under various atmospheres and rapport levels, creating emergent complexity from simple rules.
 
 Each conversation is a tactical puzzle where you play your deck against NPC personality rules:
 - **Proud NPCs** force ascending focus order - like enemies that punish repetition

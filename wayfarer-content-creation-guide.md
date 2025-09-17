@@ -151,8 +151,6 @@ What happens when the card succeeds:
 
 What happens on failure (beyond forced LISTEN):
 
-- **Disrupting**: Discard all Focus 3+ cards
-- **Overreach**: Discard entire hand
 - **Backfire**: Negative rapport (doubled by Devoted)
 - **None**: Just forces LISTEN
 

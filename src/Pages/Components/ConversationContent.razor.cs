@@ -1730,17 +1730,6 @@ namespace Wayfarer.Pages.Components
                 {
                     return "Force LISTEN";
                 }
-
-                if (!string.IsNullOrEmpty(projection.SpecialEffect))
-                {
-                    // Use the special effect description from projection
-                    // This handles Overreach, Disrupting, etc.
-                    if (projection.SpecialEffect.Contains("Overreach"))
-                        return "Clear entire hand";
-                    if (projection.SpecialEffect.Contains("Disrupted"))
-                        return "Discard cards with focus 3+";
-                    return projection.SpecialEffect;
-                }
             }
 
             // Default failure effect is forcing LISTEN

@@ -454,7 +454,6 @@ Time    Action
 #### Special Cases:
 - Some cards have **Exhaust effects** that trigger penalties when they leave without being played
 - **Threading** success effect draws new cards after the exhaust phase
-- **Overreach** failure effect clears the entire hand
 
 ## Summary
 

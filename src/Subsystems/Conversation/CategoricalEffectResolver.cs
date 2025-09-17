@@ -176,36 +176,11 @@ public class CategoricalEffectResolver
         magnitude = ApplyAtmosphereModifiers(magnitude, SuccessEffectType.Rapport, session); // Use Rapport for failure magnitude
 
         switch (card.FailureType)
-        {
-            case FailureEffectType.Overreach:
-                // PROJECTION: Would clear entire hand - catastrophic conversation breakdown
-                // Populate CardsToAdd to indicate cards that would be removed
-                int cardsToOverreach = session.Deck.Hand.Count;
-                for (int i = 0; i < cardsToOverreach; i++)
-                {
-                    // Add placeholder cards to indicate removals
-                    result.CardsToAdd.Add(new CardInstance { Template = new ConversationCard() });
-                }
-                result.SpecialEffect = $"Overreach! All {cardsToOverreach} cards discarded";
-                break;
-
+        { 
             case FailureEffectType.Backfire:
                 // Negative rapport based on magnitude
                 result.RapportChange = -magnitude;
                 result.SpecialEffect = $"-{magnitude} rapport";
-                break;
-
-            case FailureEffectType.Disrupting:
-                // PROJECTION: Would discard all cards with focus 3+ from hand
-                List<CardInstance> wouldDiscard = session.Deck.Hand.Cards
-                    .Where(c => c.Focus >= 3)
-                    .ToList();
-                // Populate CardsToAdd to indicate which cards would be removed
-                foreach (var disruptedCard in wouldDiscard)
-                {
-                    result.CardsToAdd.Add(disruptedCard);
-                }
-                result.SpecialEffect = $"Disrupted {wouldDiscard.Count} high-focus cards";
                 break;
 
             case FailureEffectType.ForceListen:
@@ -438,6 +413,5 @@ public class CardEffectResult
     public List<CardInstance> CardsToAdd { get; set; }
     public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
-    public string SpecialEffect { get; set; }
     public bool EndsConversation { get; set; }
 }

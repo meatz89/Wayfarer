@@ -82,19 +82,9 @@ public enum FailureEffectType
     ForceListen,
 
     /// <summary>
-    /// Clears entire hand on failure - catastrophic conversation breakdown
-    /// </summary>
-    Overreach,
-
-    /// <summary>
     /// Negative rapport change (magnitude from difficulty)
     /// </summary>
-    Backfire,
-
-    /// <summary>
-    /// Discards high-focus cards (3+) from hand
-    /// </summary>
-    Disrupting
+    Backfire
 }
 
 /// <summary>

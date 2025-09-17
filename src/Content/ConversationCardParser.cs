@@ -350,7 +350,7 @@ public class ConversationCardDTO
     // Categorical properties - define behavior through context
     public string Persistence { get; set; } // Thought/Impulse/Opening
     public string SuccessType { get; set; } // Rapport/Threading/Atmospheric/Focusing/Promising/Advancing/None
-    public string FailureType { get; set; } // Overreach/Backfire/Disrupting/None
+    public string FailureType { get; set; } // Backfire/None
     public string ExhaustType { get; set; } // Threading/Focusing/Regret/None
 
     // Personality targeting - which NPCs can use this card

@@ -374,17 +374,6 @@ public class ConversationNarrativeService
         {
             return "atmosphere_change";
         }
-
-        // Check for failure effects (indicates risk)
-        if (card.FailureType != FailureEffectType.None)
-        {
-            if (card.FailureType == FailureEffectType.Overreach)
-                return "risk_extreme";
-            if (card.FailureType == FailureEffectType.Backfire)
-                return "risk_with_consequence";
-            if (card.FailureType == FailureEffectType.Disrupting)
-                return "risk_disrupting";
-        }
         
         // Difficulty-based risk assessment
         if (card.Difficulty == Difficulty.VeryHard) 
