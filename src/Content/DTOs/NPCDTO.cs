@@ -19,6 +19,7 @@ public class NPCDTO
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
     public int Tier { get; set; }
+    public int ConversationDifficulty { get; set; } = 1; // Level 1-3 for XP multipliers
 
     // REMOVED: Boolean flags violate deck-based architecture
     // Letters are detected by checking Request deck contents

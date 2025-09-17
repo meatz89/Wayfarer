@@ -27,6 +27,9 @@ public class NPC
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
 
+    // Conversation difficulty level (1-3) for XP multipliers
+    public int ConversationDifficulty { get; set; } = 1;
+
     // NPCs are always available - no schedule system
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;

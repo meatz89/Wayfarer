@@ -338,10 +338,15 @@ public class ConversationFacade
             // Calculate XP amount based on conversation difficulty/level
             int xpAmount = 1; // Base XP
 
-            // Scale XP by conversation difficulty if this is a stranger conversation
+            // Conversations give 1x/2x/3x XP based on difficulty level
             if (_currentSession.IsStrangerConversation && _currentSession.StrangerLevel.HasValue)
             {
                 xpAmount = _currentSession.StrangerLevel.Value; // Stranger level 1-3 = 1-3x XP
+            }
+            else if (_currentSession.NPC != null)
+            {
+                // Regular NPC conversation difficulty (1-3 for XP multiplier)
+                xpAmount = _currentSession.NPC.ConversationDifficulty;
             }
 
             // Grant XP to the bound stat regardless of success/failure (practice makes perfect)

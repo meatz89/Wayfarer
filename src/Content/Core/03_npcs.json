@@ -25,7 +25,8 @@
         "patience": 15,
         "initialTokens": {
           "Trust": 0
-        }
+        },
+        "conversationDifficulty": 3
       },
       {
         "id": "marcus",
@@ -43,7 +44,8 @@
         "patience": 12,
         "initialTokens": {
           "Commerce": 0
-        }
+        },
+        "conversationDifficulty": 1
       },
       {
         "id": "lord_blackwood",
@@ -61,7 +63,8 @@
         "patience": 8,
         "initialTokens": {
           "Status": 0
-        }
+        },
+        "conversationDifficulty": 2
       },
       {
         "id": "warehouse_recipient",
@@ -79,7 +82,8 @@
         "patience": 10,
         "initialTokens": {
           "Commerce": 0
-        }
+        },
+        "conversationDifficulty": 1
       },
       {
         "id": "victor",

@@ -26,7 +26,8 @@ public static class NPCParser
             Description = dto.Description ?? string.Empty, // Description is optional
             Location = dto.LocationId,
             SpotId = dto.SpotId,
-            Tier = dto.Tier
+            Tier = dto.Tier,
+            ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
         };
 
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{dto.LocationId}'");
