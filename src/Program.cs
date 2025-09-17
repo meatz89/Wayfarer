@@ -6,8 +6,8 @@ Environment.SetEnvironmentVariable("ASPNETCORE_SUPPRESSSTATUSMESSAGES", "true");
 WebApplicationOptions options = new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = Directory.GetCurrentDirectory(),
-    WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+    ContentRootPath = Path.GetFullPath(Directory.GetCurrentDirectory()),
+    WebRootPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
 };
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(options);

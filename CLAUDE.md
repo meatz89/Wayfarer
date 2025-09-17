@@ -1,26 +1,10 @@
 * CLAUDE.md
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
-**⚠️ MANDATORY: READ ALL MD FILES IN DOCS FOLDER FULLY ⚠️**
-**⚠️ MANDATORY: READ ALL HTML FILES IN UI-MOCKUPS FOLDER FULLY ⚠️**
-**⚠️ MANDATORY: READ OUR EXiSTING JSON CONTENT FILES AND CSS FILES ⚠️**
+**⚠️ MANDATORY: READ OUR EXISTING JSON CONTENT FILES AND CSS FILES ⚠️**
 
-**🚨 CRITICAL RULE: NEVER MARK ANYTHING AS COMPLETE WITHOUT TESTING 🚨**
-**ALWAYS CHECK BEFORE CLAIMING SUCCESS. TAKE SCREENSHOTS. VERIFY THE ACTUAL RESULT.**
-**DO NOT LIE OR MAKE FALSE CLAIMS. IF YOU HAVEN'T VERIFIED, SAY "LET ME CHECK" NOT "IT'S FIXED"**
-- You MUST clean build and run manual playwright tests before claiming completion
-- You MUST verify the code works before saying "done" or "complete"
-- NEVER assume code works - ALWAYS TEST
-- If you haven't run `dotnet build`, IT'S NOT COMPLETE
-- Saying something is "complete" without testing is UNACCEPTABLE
-
-**⚠️ MANDATORY: READ ALL MARKDOWN FILES IN /DOCS FOLDER FULLY ⚠️**
-
-**🚨 USE PLAYWRIGHT TO TEST THE GAME IN CHROME 🚨**
 **🧪 TESTING PRINCIPLE: ALWAYS USE PLAYWRIGHT FOR E2E TESTS 🧪**
-**NEVER create test API endpoints. Use Playwright browser automation for all testing.**
 **Test the actual UI experience that players will see, not backend endpoints.**
-**IMPORTANT: Server port is configured in Properties/launchSettings.json**
 
 **🚨🚨🚨 CRITICAL: NEVER ASSUME - ASK QUESTIONS FIRST 🚨🚨🚨**
 - BEFORE implementing any feature, ASK: "What are the ACTUAL values of the data I'm working with?"
@@ -31,17 +15,17 @@
 - LOOK AT THE FULL PICTURE: Examine the complete system, not just the piece you're working on
 - THINK FIRST: Before writing code, understand WHY the current approach isn't working
 
-**🚨 MANDATORY: ANALYZE BEFORE ANY CHANGE 🚨**
-- You MUST ALWAYS proactively DEBATE WITH EVERY ONE of my specialized agents for EVERY CHANGE
-- You MUST ALWAYS proactively think ahead and plan your steps BEFORE making ANY change
-- You MUST analyze ALL related files and understand the complete system BEFORE modifying anything
-- You MUST understand how components interact and depend on each other
-- You MUST check for compilation errors BEFORE assuming a change will work
-- NEVER make changes based on assumptions - ALWAYS verify first
-- NEVER make partial changes without understanding the full impact
-- If you haven't analyzed the codebase thoroughly, DO NOT MAKE THE CHANGE
-- ALWAYS check if a file exist before creating it
-- **ALWAYS understand the full context before writing ANY code**
+**🚨 HOLISTIC IMPACT ANALYSIS: NEVER VIEW FEATURES IN ISOLATION 🚨**
+- **CRITICAL: You MUST NEVER view features in isolation** - ALWAYS check for side effects, edge cases, and ramifications
+- **BEFORE implementing** - Analyze impact on ALL connected systems, not just the immediate feature
+- **DURING implementation** - Continuously validate that changes don't break other systems
+- **BEFORE claiming success** - Thoroughly test all related functionality, not just the changed code
+- **Check for ripple effects** - One change can affect multiple systems (e.g., card flow affects conversations, exchanges, UI)
+- **Test edge cases** - Empty states, boundary conditions, error paths, concurrent operations
+- **Verify integration points** - Where systems connect is where bugs hide
+- **NO tunnel vision** - If fixing conversations, also test exchanges. If changing UI, test all screens
+- **Document discovered connections** - When you find unexpected system interactions, document them
+- Example: Changing card pile management affects → conversations → exchanges → UI display → save/load → tutorials
 
 **🚨 COMPLETE REFACTORING RULE: NO LEGACY CODE LEFT BEHIND 🚨**
 - **NEVER leave TODO comments in code** - If you're refactoring, COMPLETE IT
@@ -206,27 +190,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - Parent creates contexts, switches screens, manages state
    - NO callbacks with complex signatures like `EventCallback<(string, object)>`
 
-**Example Pattern**:
-```csharp
-// Parent (GameScreen)
-public async Task StartConversation(string npcId, ConversationType type)
-{
-    CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type);
-    if (CurrentConversationContext != null)
-    {
-        CurrentScreen = ScreenMode.Conversation;
-        StateHasChanged();
-    }
-}
-
-// Child (LocationContent)
-[CascadingParameter] public GameScreenBase GameScreen { get; set; }
-
-protected async Task OnNpcClick(string npcId)
-{
-    await GameScreen.StartConversation(npcId, ConversationType.Standard);
-}
-```
 
 This architecture ensures:
 - Simple, traceable data flow
@@ -285,26 +248,6 @@ This architecture ensures:
 - **Never keep legacy code for compatibility** - Delete it immediately and fix all callers
 - **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
 - **NO deprecated methods or backwards compatibility** - When changing a method signature, update ALL callers immediately. Never leave old versions around.
-- **NEVER use Compile Remove in .csproj files** - This hides compilation errors and mistakes. Fix the code, rename files, or delete them entirely. Using Remove patterns in project files masks problems instead of solving them.
-- **ALWAYS read files FULLY before making changes** - Never make assumptions about file contents. Read the entire file to understand context and avoid mistakes.
-- **RENAME instead of DELETE/RECREATE** - When refactoring systems (e.g., Encounter → Conversation), rename files and classes to preserve git history and ensure complete transformation.
-- **COMPLETE refactorings IMMEDIATELY** - Never leave systems half-renamed. If you start renaming Encounter to Conversation, finish ALL references before moving to other tasks.
-
-*** GAME DESIGN PRINCIPLE: NO SPECIAL RULES (CRITICAL)
-
-**"Special rules" are a design smell. When tempted to add special behavior, create new categorical mechanics instead.**
-
-**Key Principle**: The game should have very few special rules. When you find yourself wanting to add special cases or unique behaviors, this indicates a need to enrich the existing systems rather than adding exceptions.
-
-**📝 JSON VALIDATION BEST PRACTICES**
-- **Always use case-insensitive property matching** - JSON files use camelCase while C# DTOs use PascalCase
-- **Inherit from BaseValidator** - Provides TryGetPropertyCaseInsensitive helper method for robust validation
-- **Test validators with actual JSON** - Don't assume field names match between JSON and DTOs
-
-**Principles and Memories:**
-- ALWAYS read the full file before editing
-- game mechanical values, that could be changed during balancing, should be read from GameRules configuration file.
-- strictly avoid defensive programming like checking for null values, try catch blocks, throwing exceptions, using defaults or fallback values and so on. this increases complexity of the code and hides errors. just let it fail and let the program crash fast
 
 ## CRITICAL REFACTORING RULES
 
@@ -335,36 +278,3 @@ This architecture ensures:
   - Update ALL references at once
   - NO partial migrations
   - NO leaving code in both places
-
-**🔥 MANDATORY UI VERIFICATION STRATEGY 🔥**
-
-When evaluating UI implementation, you MUST follow this EXACT process:
-
-1. **OPEN THE MOCKUP HTML** 
-   - Read EVERY element in the mockup
-   - List ALL UI components shown (resources bar, headers, cards, buttons)
-   - Note EXACT text and layout
-
-2. **TAKE ACTUAL SCREENSHOTS**
-   - Launch the game with Playwright
-   - Navigate to the screen being evaluated
-   - Take a screenshot with browser_take_screenshot
-   - NEVER claim something works without a screenshot
-
-3. **COMPARE LINE BY LINE**
-   - Does the implementation have a resources bar? (Coins/Health/Hunger/Attention)
-   - Are cards displayed as cards or as buttons?
-   - Is the layout matching the mockup?
-   - Are all data fields visible that should be visible?
-
-4. **CHECK CORE DESIGN PRINCIPLES**
-   - Exchange cards are JUST conversation cards (not special UI)
-   - All costs/effects must be visible (Perfect Information principle)
-   - Cards should look like cards, not buttons
-   - Resources must be visible at all times
-
-5. **BE BRUTALLY HONEST**
-   - If it uses buttons instead of cards, it's WRONG
-   - If resources aren't visible, it's BROKEN
-   - If it doesn't match the mockup, it's NOT WORKING
-   - Don't say "90% complete" when basic UI is missing
