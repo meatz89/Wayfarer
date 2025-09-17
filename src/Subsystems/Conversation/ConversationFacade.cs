@@ -685,20 +685,20 @@ public class ConversationFacade
         if (!card.IsPlayable)
             return false;
 
-        // Check focus availability
-        if (!_focusManager.CanAffordCard(card.Focus))
+        // Check focus availability - THIS IS CRITICAL FOR ALL CARDS
+        int cardFocus = card.Focus;
+        int availableFocus = _focusManager.AvailableFocus;
+        bool canAfford = _focusManager.CanAffordCard(cardFocus);
+
+        Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}");
+
+        if (!canAfford)
             return false;
 
-        // Only check rapport threshold for goal cards that are still in RequestPile
+        // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
-            // If card is in ActiveCards, it's already playable (threshold was met)
-            if (session.Deck?.IsCardInHand(card) == true)
-            {
-                return true;  // Card already in active hand, no need for rapport check
-            }
-
             // If card is in RequestPile, check rapport threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
             {
@@ -706,8 +706,10 @@ public class ConversationFacade
                 int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
                 return currentRapport >= rapportThreshold;
             }
+            // If card is in ActiveCards (hand), it's already playable (threshold was met)
         }
 
+        // All other checks passed, card can be played
         return true;
     }
 
