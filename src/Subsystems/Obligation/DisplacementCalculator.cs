@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Subsystems.ObligationSubsystem;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Subsystems.ObligationSubsystem;
 
 namespace Wayfarer.Subsystems.ObligationSubsystem
 {

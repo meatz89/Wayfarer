@@ -110,7 +110,7 @@ public class GameFacade
     {
         // Find the stranger across all locations
         StrangerNPC stranger = null;
-        foreach (var locationStrangers in _gameWorld.LocationStrangers.Values)
+        foreach (List<StrangerNPC> locationStrangers in _gameWorld.LocationStrangers.Values)
         {
             stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
             if (stranger != null) break;
@@ -454,7 +454,7 @@ public class GameFacade
 
     public List<ConversationOption> GetAvailableConversationOptions(string npcId)
     {
-        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
             return new List<ConversationOption>();
 
@@ -518,7 +518,7 @@ public class GameFacade
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)
     {
         // Get NPC
-        var npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
             _messageSystem.AddSystemMessage($"NPC {npcId} not found", SystemMessageTypes.Danger);
@@ -526,17 +526,17 @@ public class GameFacade
         }
 
         // Get current location
-        var currentLocation = GetCurrentLocation();
-        var currentSpot = GetCurrentLocationSpot();
+        Location? currentLocation = GetCurrentLocation();
+        LocationSpot? currentSpot = GetCurrentLocationSpot();
 
         // Get current time block and attention
-        var timeBlock = _timeFacade.GetCurrentTimeBlock();
-        var attentionInfo = _resourceFacade.GetAttention(timeBlock);
+        TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
+        AttentionInfo attentionInfo = _resourceFacade.GetAttention(timeBlock);
 
         // Get player resources and tokens
-        var playerResources = _gameWorld.GetPlayerResourceState();
-        var playerTokens = new Dictionary<ConnectionType, int>();
-        
+        PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
+        Dictionary<ConnectionType, int> playerTokens = new Dictionary<ConnectionType, int>();
+
         // Get player's total tokens of each type (aggregated across all NPCs)
         foreach (ConnectionType tokenType in Enum.GetValues(typeof(ConnectionType)))
         {
@@ -544,8 +544,8 @@ public class GameFacade
         }
 
         // Get available exchanges from ExchangeFacade
-        var availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId);
-        
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId);
+
         if (!availableExchanges.Any())
         {
             _messageSystem.AddSystemMessage($"{npc.Name} has no exchanges available", SystemMessageTypes.Info);
@@ -553,10 +553,10 @@ public class GameFacade
         }
 
         // Convert ExchangeOptions to ExchangeCards
-        var exchangeCards = availableExchanges.Select(option => ConvertToExchangeCard(option)).ToList();
+        List<ExchangeCard> exchangeCards = availableExchanges.Select(option => ConvertToExchangeCard(option)).ToList();
 
         // Create exchange session through ExchangeFacade
-        var session = _exchangeFacade.CreateExchangeSession(npcId);
+        Wayfarer.Subsystems.ExchangeSubsystem.ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
         if (session == null)
         {
             _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
@@ -564,7 +564,7 @@ public class GameFacade
         }
 
         // Build the context
-        var context = new ExchangeContext
+        ExchangeContext context = new ExchangeContext
         {
             NpcInfo = new NpcInfo
             {
@@ -615,7 +615,7 @@ public class GameFacade
         // Check if this is a new-style observation reward
         List<ObservationReward> availableRewards = _narrativeFacade.GetAvailableObservationRewards(currentLocation?.Id);
         ObservationReward? reward = availableRewards.FirstOrDefault(r => r.ObservationCard.Id == observationId);
-        
+
         if (reward != null)
         {
             // New system: costs 0 attention, goes to NPC observation deck
@@ -629,7 +629,7 @@ public class GameFacade
     {
         Location currentLocation = _locationFacade.GetCurrentLocation();
         if (currentLocation == null) return new List<ObservationReward>();
-        
+
         return _narrativeFacade.GetAvailableObservationRewards(currentLocation.Id);
     }
 
@@ -849,15 +849,15 @@ public class GameFacade
     /// </summary>
     private ExchangeCard ConvertToExchangeCard(ExchangeOption option)
     {
-        var exchangeData = option.ExchangeData;
-        
+        ExchangeData? exchangeData = option.ExchangeData;
+
         // Build token requirements from ExchangeData
-        var tokenRequirements = new Dictionary<ConnectionType, int>();
+        Dictionary<ConnectionType, int> tokenRequirements = new Dictionary<ConnectionType, int>();
         if (exchangeData?.RequiredTokenType != null && exchangeData.MinimumTokensRequired > 0)
         {
             tokenRequirements[exchangeData.RequiredTokenType.Value] = exchangeData.MinimumTokensRequired;
         }
-        
+
         return new ExchangeCard
         {
             Id = option.ExchangeId,

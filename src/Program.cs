@@ -48,12 +48,12 @@ WebApplication app = builder.Build();
 // Test Ollama connection on startup
 try
 {
-    var ollamaConfig = app.Services.GetService<OllamaConfiguration>();
+    OllamaConfiguration? ollamaConfig = app.Services.GetService<OllamaConfiguration>();
     if (ollamaConfig != null)
     {
         Console.WriteLine($"[STARTUP] Ollama config loaded - BaseUrl: {ollamaConfig.BaseUrl}, Model: {ollamaConfig.Model}");
-        
-        var ollamaClient = app.Services.GetService<OllamaClient>();
+
+        OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
         if (ollamaClient != null)
         {
             Console.WriteLine("[STARTUP] Testing Ollama connection...");

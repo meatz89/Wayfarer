@@ -105,7 +105,7 @@ public class PlayerStats
     {
         if (amount <= 0) return;
 
-        var progress = _stats[stat];
+        StatProgress progress = _stats[stat];
         progress.XP += amount;
 
         // Check for level ups (max level 5)
@@ -163,7 +163,7 @@ public class PlayerStats
     public void SetStats(Dictionary<PlayerStatType, StatProgress> stats)
     {
         _stats = new Dictionary<PlayerStatType, StatProgress>();
-        foreach (var kvp in stats)
+        foreach (KeyValuePair<PlayerStatType, StatProgress> kvp in stats)
         {
             _stats[kvp.Key] = kvp.Value.Clone();
         }
@@ -174,8 +174,8 @@ public class PlayerStats
     /// </summary>
     public PlayerStats Clone()
     {
-        var clone = new PlayerStats();
-        foreach (var kvp in _stats)
+        PlayerStats clone = new PlayerStats();
+        foreach (KeyValuePair<PlayerStatType, StatProgress> kvp in _stats)
         {
             clone._stats[kvp.Key] = kvp.Value.Clone();
         }
@@ -196,7 +196,7 @@ public class PlayerStats
     public int GetTotalXP()
     {
         int total = 0;
-        foreach (var stat in _stats.Values)
+        foreach (StatProgress stat in _stats.Values)
         {
             total += stat.XP;
             // Add XP spent on previous levels
@@ -236,8 +236,8 @@ public class PlayerStats
     /// </summary>
     public PlayerStatType GetPrimaryStat()
     {
-        var maxLevel = GetHighestStatLevel();
-        var primaryCandidates = _stats.Where(kvp => kvp.Value.Level == maxLevel).ToList();
+        int maxLevel = GetHighestStatLevel();
+        List<KeyValuePair<PlayerStatType, StatProgress>> primaryCandidates = _stats.Where(kvp => kvp.Value.Level == maxLevel).ToList();
 
         if (primaryCandidates.Count == 1)
         {
@@ -247,7 +247,7 @@ public class PlayerStats
         // Break ties by total XP in that stat
         return primaryCandidates.OrderByDescending(kvp =>
         {
-            var stat = kvp.Value;
+            StatProgress stat = kvp.Value;
             int totalXp = stat.XP;
             for (int level = 1; level < stat.Level; level++)
             {

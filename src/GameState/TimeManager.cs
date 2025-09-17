@@ -11,11 +11,11 @@ public class TimeManager
     public TimeModel TimeModel => _timeModel;
 
     public int CurrentDay => _timeModel.CurrentDay;
-    
+
     public int CurrentSegment => _timeModel.CurrentSegment;
-    
+
     public int SegmentsRemainingInDay => _timeModel.SegmentsRemainingInDay;
-    
+
     public int SegmentsRemainingInBlock => _timeModel.SegmentsRemainingInBlock;
 
     public TimeBlocks CurrentTimeBlock => _timeModel.CurrentTimeBlock;
@@ -65,7 +65,7 @@ public class TimeManager
 
         // Log the time advancement
         _logger.LogDebug($"Advanced time by {segments} segments. New time: {result.NewState}");
-        
+
         // Handle time block and day transitions
         HandleTimeAdvancement(result);
     }
@@ -81,9 +81,9 @@ public class TimeManager
             SystemMessageTypes.Info);
 
         TimeAdvancementResult result = _timeModel.JumpToNextPeriod();
-        
+
         _logger.LogDebug($"Jumped to next period. New time: {result.NewState}");
-        
+
         HandleTimeAdvancement(result);
     }
 
@@ -113,7 +113,7 @@ public class TimeManager
         }
 
         AdvanceSegments(segments);
-        
+
         if (!string.IsNullOrEmpty(description))
         {
             string segmentDesc = segments == 1 ? "1 segment" : $"{segments} segments";
@@ -171,19 +171,19 @@ public class TimeManager
             _logger.LogInformation("Time block changed from {OldBlock} to {NewBlock}",
                 result.OldTimeBlock,
                 result.NewTimeBlock);
-                
+
             _messageSystem.AddSystemMessage(
                 $"🕐 Entering {result.NewTimeBlock.ToString().ToLower()} period",
                 SystemMessageTypes.Info);
         }
-        
+
         // Log day transitions
         if (result.CrossedDayBoundary)
         {
             _logger.LogInformation("Day advanced from {OldDay} to {NewDay}",
                 result.OldState.CurrentDay,
                 result.NewState.CurrentDay);
-                
+
             _messageSystem.AddSystemMessage(
                 $"🌅 Day {result.NewState.CurrentDay} begins",
                 SystemMessageTypes.Info);

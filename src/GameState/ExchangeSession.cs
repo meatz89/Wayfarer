@@ -112,11 +112,11 @@ public class ExchangeSession
     /// </summary>
     public void CompleteExchange(string exchangeId, bool success, ExchangeCostStructure actualCost, ExchangeRewardStructure actualReward)
     {
-        var exchange = AvailableExchanges.Find(e => e.Id == exchangeId);
+        ExchangeCard? exchange = AvailableExchanges.Find(e => e.Id == exchangeId);
         if (exchange == null)
             return;
 
-        var completed = new CompletedExchange
+        CompletedExchange completed = new CompletedExchange
         {
             ExchangeId = exchangeId,
             ExchangeName = exchange.Name,
@@ -157,10 +157,10 @@ public class ExchangeSession
         if (CompletedExchanges.Count == 0)
             return "No exchanges completed";
 
-        var parts = new List<string>();
-        foreach (var exchange in CompletedExchanges)
+        List<string> parts = new List<string>();
+        foreach (CompletedExchange exchange in CompletedExchanges)
         {
-            var status = exchange.Success ? "✓" : "✗";
+            string status = exchange.Success ? "✓" : "✗";
             parts.Add($"{status} {exchange.ExchangeName}");
         }
 

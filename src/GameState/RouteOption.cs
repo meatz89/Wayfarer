@@ -98,10 +98,10 @@ public class RouteOption
 
     // PATH CARD SYSTEM - Route segments with path card options
     public List<RouteSegment> Segments { get; set; } = new List<RouteSegment>();
-    
+
     // Encounter deck for this route
     public List<string> EncounterDeckIds { get; set; } = new List<string>();
-    
+
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
 

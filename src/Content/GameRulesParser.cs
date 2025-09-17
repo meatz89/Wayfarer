@@ -12,7 +12,7 @@ public class GameRulesParser
         // Parse listenDrawCounts
         if (root.TryGetProperty("listenDrawCounts", out JsonElement listenDrawCounts))
         {
-            var drawCounts = new List<ListenDrawCountEntry>();
+            List<ListenDrawCountEntry> drawCounts = new List<ListenDrawCountEntry>();
 
             if (listenDrawCounts.TryGetProperty("Disconnected", out JsonElement disconnected))
                 drawCounts.Add(new ListenDrawCountEntry { State = ConnectionState.DISCONNECTED, DrawCount = disconnected.GetInt32() });
@@ -35,12 +35,12 @@ public class GameRulesParser
         // Parse cardProgression
         if (root.TryGetProperty("cardProgression", out JsonElement cardProgression))
         {
-            var progression = new CardProgression();
+            CardProgression progression = new CardProgression();
 
             // Parse XP thresholds
             if (cardProgression.TryGetProperty("xpThresholds", out JsonElement xpThresholds))
             {
-                var thresholds = new List<int>();
+                List<int> thresholds = new List<int>();
                 foreach (JsonElement threshold in xpThresholds.EnumerateArray())
                 {
                     thresholds.Add(threshold.GetInt32());
@@ -51,10 +51,10 @@ public class GameRulesParser
             // Parse level bonuses
             if (cardProgression.TryGetProperty("levelBonuses", out JsonElement levelBonuses))
             {
-                var bonuses = new List<LevelBonus>();
+                List<LevelBonus> bonuses = new List<LevelBonus>();
                 foreach (JsonElement bonus in levelBonuses.EnumerateArray())
                 {
-                    var levelBonus = new LevelBonus
+                    LevelBonus levelBonus = new LevelBonus
                     {
                         Level = bonus.GetProperty("level").GetInt32(),
                         SuccessBonus = bonus.GetProperty("successBonus").GetInt32()
@@ -63,7 +63,7 @@ public class GameRulesParser
                     // Parse effects
                     if (bonus.TryGetProperty("effects", out JsonElement effects))
                     {
-                        var effectsList = new List<string>();
+                        List<string> effectsList = new List<string>();
                         foreach (JsonElement effect in effects.EnumerateArray())
                         {
                             effectsList.Add(effect.GetString());

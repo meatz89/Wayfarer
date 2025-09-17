@@ -54,7 +54,7 @@ public class PackageLoadException : Exception
         string missingDependency,
         string suggestion = null)
     {
-        var exception = new PackageLoadException(
+        PackageLoadException exception = new PackageLoadException(
             $"[{packageId}] {entityType} '{referencingEntity}' references missing {missingDependency}")
         {
             PackageId = packageId,
@@ -78,7 +78,7 @@ public class PackageLoadException : Exception
         string packageId,
         List<string> errors)
     {
-        var message = $"Package '{packageId}' failed validation with {errors.Count} error(s):\n" +
+        string message = $"Package '{packageId}' failed validation with {errors.Count} error(s):\n" +
                      string.Join("\n  - ", errors);
 
         return new PackageLoadException(message)
@@ -93,7 +93,7 @@ public class PackageLoadException : Exception
     /// </summary>
     public string GetDetailedReport()
     {
-        var report = new System.Text.StringBuilder();
+        StringBuilder report = new System.Text.StringBuilder();
         report.AppendLine("=== PACKAGE LOAD ERROR ===");
 
         if (!string.IsNullOrEmpty(PackageId))
@@ -111,7 +111,7 @@ public class PackageLoadException : Exception
         if (ValidationErrors.Count > 0)
         {
             report.AppendLine($"\nValidation Errors ({ValidationErrors.Count}):");
-            foreach (var error in ValidationErrors)
+            foreach (string error in ValidationErrors)
             {
                 report.AppendLine($"  - {error}");
             }
@@ -120,7 +120,7 @@ public class PackageLoadException : Exception
         if (Suggestions.Count > 0)
         {
             report.AppendLine("\nSuggestions:");
-            foreach (var suggestion in Suggestions)
+            foreach (string suggestion in Suggestions)
             {
                 report.AppendLine($"  → {suggestion}");
             }

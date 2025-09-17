@@ -78,10 +78,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             catch (Exception ex)
             {
                 Console.WriteLine($"[ExchangeProcessor] Error processing exchange: {ex.Message}");
-                
+
                 // Attempt rollback on error
                 RollbackCosts(result);
-                
+
                 result.Success = false;
                 result.Message = $"Exchange failed: {ex.Message}";
                 return result;
@@ -292,7 +292,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         {
             Player player = _gameWorld.GetPlayer();
 
-            foreach (var cost in result.CostsApplied)
+            foreach (KeyValuePair<ResourceType, int> cost in result.CostsApplied)
             {
                 switch (cost.Key)
                 {
@@ -322,7 +322,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private bool ShouldAdvanceTime(ExchangeData exchange)
         {
             // Work-like exchanges that cost significant attention advance time
-            return exchange.AdvancesTime || 
+            return exchange.AdvancesTime ||
                    exchange.Costs.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3);
         }
 
@@ -369,8 +369,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// </summary>
         private string GenerateSuccessMessage(ExchangeData exchange, NPC npc, ExchangeResult result)
         {
-            string baseName = !string.IsNullOrEmpty(exchange.ExchangeName) 
-                ? exchange.ExchangeName 
+            string baseName = !string.IsNullOrEmpty(exchange.ExchangeName)
+                ? exchange.ExchangeName
                 : "exchange";
 
             string message = $"Completed {baseName} with {npc.Name}";

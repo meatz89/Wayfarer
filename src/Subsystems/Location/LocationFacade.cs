@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Subsystems.NarrativeSubsystem;
 using Wayfarer.GameState.Actions;
+using Wayfarer.Subsystems.NarrativeSubsystem;
 
 namespace Wayfarer.Subsystems.LocationSubsystem
 {
@@ -505,7 +505,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         /// </summary>
         public List<InvestigationApproach> GetAvailableApproaches(Player player)
         {
-            var approaches = new List<InvestigationApproach> { InvestigationApproach.Standard };
+            List<InvestigationApproach> approaches = new List<InvestigationApproach> { InvestigationApproach.Standard };
 
             if (player.Stats.GetLevel(PlayerStatType.Insight) >= 2)
                 approaches.Add(InvestigationApproach.Systematic);
@@ -559,7 +559,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             }
 
             // Check if player can use this approach
-            var availableApproaches = GetAvailableApproaches(player);
+            List<InvestigationApproach> availableApproaches = GetAvailableApproaches(player);
             if (!availableApproaches.Contains(approach))
             {
                 _messageSystem.AddSystemMessage($"Cannot use {approach} approach - insufficient stats", SystemMessageTypes.Warning);

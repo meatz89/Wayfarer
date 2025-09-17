@@ -67,7 +67,7 @@ public class DeliveryContext : ConversationContextBase
     public bool IsLetterUrgent()
     {
         if (SelectedLetter == null) return false;
-        
+
         return SelectedLetter.EmotionalFocus == EmotionalFocus.CRITICAL ||
                GetUrgencyFromDeadline(SelectedLetter.DeadlineInSegments) == "HIGH" ||
                (SelectedLetter.DeadlineInSegments > 0 && SelectedLetter.DeadlineInSegments <= 2);

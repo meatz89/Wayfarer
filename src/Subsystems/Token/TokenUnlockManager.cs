@@ -192,7 +192,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case "secret":
                 case "clandestine":
                     return _tokenManager.GetTokenCount(npcId, ConnectionType.Shadow) >= 2;
-                    
+
                 case "standard":
                 case "friendlychat":
                 case "friendly":

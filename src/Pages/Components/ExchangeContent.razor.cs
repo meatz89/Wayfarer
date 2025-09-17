@@ -42,7 +42,7 @@ namespace Wayfarer.Pages.Components
         protected override async Task OnParametersSetAsync()
         {
             await base.OnParametersSetAsync();
-            
+
             // Reset selection when context changes
             if (Context?.Session?.SessionId != LastContextId)
             {
@@ -62,7 +62,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Context?.LocationInfo != null)
             {
-                var timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
+                string timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
                 return $"{timeStr} - {Context.LocationInfo.Name}";
             }
             return "Unknown Location";
@@ -94,11 +94,11 @@ namespace Wayfarer.Pages.Components
             if (Context?.NpcInfo == null)
                 return "";
 
-            var parts = new List<string>();
-            
+            List<string> parts = new List<string>();
+
             // Add time-specific status
             parts.Add($"{GetTimeBlockDisplay(Context.CurrentTimeBlock)} business period");
-            
+
             // Add merchant status if they have commerce tokens
             if (GetCommerceTokens() > 0)
             {
@@ -124,12 +124,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetDiscountDescription()
         {
-            var tokens = GetCommerceTokens();
+            int tokens = GetCommerceTokens();
             if (tokens <= 0)
                 return "No discount";
 
             // 5% discount per commerce token
-            var discount = Math.Min(tokens * 5, 25); // Cap at 25%
+            int discount = Math.Min(tokens * 5, 25); // Cap at 25%
             return $"-{discount}% discount on all prices";
         }
 
@@ -159,9 +159,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GenerateNpcGreeting()
         {
-            var npcName = Context?.NpcInfo?.Name ?? "The merchant";
-            var hasQueue = Context?.Session?.AvailableExchanges?.Any(e => e.ExchangeType == ExchangeType.Service) ?? false;
-            
+            string npcName = Context?.NpcInfo?.Name ?? "The merchant";
+            bool hasQueue = Context?.Session?.AvailableExchanges?.Any(e => e.ExchangeType == ExchangeType.Service) ?? false;
+
             if (hasQueue)
             {
                 return $"{npcName} glances at you. \"I see you're a courier. Need supplies? Or perhaps you have time for a delivery?\"";
@@ -220,7 +220,7 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(SelectedExchangeId))
                 return false;
 
-            var exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
+            ExchangeCard? exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
             return exchange != null && Context.CanAfford(exchange);
         }
 
@@ -252,14 +252,14 @@ namespace Wayfarer.Pages.Components
             try
             {
                 // Execute the exchange through the facade
-                var npcId = Context?.NpcInfo?.NpcId ?? "";
+                string npcId = Context?.NpcInfo?.NpcId ?? "";
                 LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId);
 
                 if (LastResult?.Success == true)
                 {
                     // Generate success narrative
                     CurrentNarrative = GenerateSuccessNarrative(LastResult);
-                    
+
                     // Clear selection
                     SelectedExchangeId = null;
 
@@ -287,13 +287,13 @@ namespace Wayfarer.Pages.Components
             if (result == null || !result.Success)
                 return "The exchange was completed.";
 
-            var rewardDesc = "";
-            if ((result.RewardsGranted != null && result.RewardsGranted.Any()) || 
+            string rewardDesc = "";
+            if ((result.RewardsGranted != null && result.RewardsGranted.Any()) ||
                 (result.ItemsGranted != null && result.ItemsGranted.Any()))
             {
-                var rewards = result.RewardsGranted?.Select(kvp => $"{kvp.Value} {kvp.Key}") ?? new List<string>();
-                var items = result.ItemsGranted ?? new List<string>();
-                var allRewards = rewards.Concat(items);
+                IEnumerable<string> rewards = result.RewardsGranted?.Select(kvp => $"{kvp.Value} {kvp.Key}") ?? new List<string>();
+                List<string> items = result.ItemsGranted ?? new List<string>();
+                IEnumerable<string> allRewards = rewards.Concat(items);
                 rewardDesc = string.Join(", ", allRewards);
             }
 
@@ -331,7 +331,7 @@ namespace Wayfarer.Pages.Components
 
             // Notify parent
             await OnExchangeEnd.InvokeAsync();
-            
+
             // Return to location through GameScreen
             if (GameScreen != null)
             {
@@ -347,17 +347,17 @@ namespace Wayfarer.Pages.Components
             if (exchange?.Cost == null)
                 return "Free";
 
-            var parts = new List<string>();
-            
+            List<string> parts = new List<string>();
+
             // Apply commerce discount if applicable
-            var discount = GetCommerceDiscount();
-            
-            foreach (var resource in exchange.Cost.Resources)
+            int discount = GetCommerceDiscount();
+
+            foreach (ResourceAmount resource in exchange.Cost.Resources)
             {
-                var amount = resource.Amount;
+                int amount = resource.Amount;
                 if (resource.Type == ResourceType.Coins && discount > 0)
                 {
-                    var discounted = (int)(amount * (1 - discount / 100.0));
+                    int discounted = (int)(amount * (1 - discount / 100.0));
                     if (discounted < amount)
                     {
                         parts.Add($"<span class='original-cost'>{amount}</span>{discounted} {resource.Type}");
@@ -368,13 +368,13 @@ namespace Wayfarer.Pages.Components
             }
 
             // Add token requirements
-            foreach (var token in exchange.Cost.TokenRequirements)
+            foreach (KeyValuePair<ConnectionType, int> token in exchange.Cost.TokenRequirements)
             {
                 parts.Add($"Requires {token.Value} {token.Key} tokens");
             }
 
             // Add item requirements
-            foreach (var itemId in exchange.Cost.ConsumedItemIds)
+            foreach (string itemId in exchange.Cost.ConsumedItemIds)
             {
                 parts.Add($"Consumes {itemId}");
             }
@@ -387,7 +387,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCommerceDiscount()
         {
-            var tokens = GetCommerceTokens();
+            int tokens = GetCommerceTokens();
             return Math.Min(tokens * 5, 25); // 5% per token, max 25%
         }
 
@@ -411,29 +411,29 @@ namespace Wayfarer.Pages.Components
                 return "Invalid exchange";
 
             // Check resource costs
-            foreach (var cost in exchange.Cost.Resources)
+            foreach (ResourceAmount cost in exchange.Cost.Resources)
             {
-                var available = GetAvailableResource(cost.Type);
+                int available = GetAvailableResource(cost.Type);
                 if (available < cost.Amount)
                 {
-                    var needed = cost.Amount - available;
+                    int needed = cost.Amount - available;
                     return $"You only have {available} {cost.Type} - need {needed} more";
                 }
             }
 
             // Check token requirements
-            foreach (var token in exchange.Cost.TokenRequirements)
+            foreach (KeyValuePair<ConnectionType, int> token in exchange.Cost.TokenRequirements)
             {
-                var playerTokens = Context.PlayerTokens.GetValueOrDefault(token.Key, 0);
+                int playerTokens = Context.PlayerTokens.GetValueOrDefault(token.Key, 0);
                 if (playerTokens < token.Value)
                 {
-                    var needed = token.Value - playerTokens;
+                    int needed = token.Value - playerTokens;
                     return $"Requires {token.Value} {token.Key} tokens - you have {playerTokens}";
                 }
             }
 
             // Check item requirements
-            foreach (var itemId in exchange.Cost.RequiredItemIds)
+            foreach (string itemId in exchange.Cost.RequiredItemIds)
             {
                 if (!Context.PlayerInventory.ContainsKey(itemId) || Context.PlayerInventory[itemId] <= 0)
                 {

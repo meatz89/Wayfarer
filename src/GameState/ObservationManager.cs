@@ -268,7 +268,7 @@ public class ObservationManager
         DateTime baseDate = new DateTime(2024, 1, 1, 0, 0, 0); // Arbitrary base date
         int gameDay = _timeManager.GetCurrentDay();
         int gameSegment = _timeManager.CurrentSegment;
-        
+
         // Convert segments to fractional hours for DateTime calculation
         double segmentAsHours = gameSegment * 0.5; // Convert segments to hours for DateTime
 

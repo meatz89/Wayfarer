@@ -18,7 +18,7 @@ public class ExchangeData
     public int BaseSuccessRate { get; set; }
     public bool CanBarter { get; set; }
     public string TemplateId { get; set; }
-    
+
     // Exchange validation properties
     public string ExchangeId { get; set; }
     public int MinimumRelationshipTier { get; set; }
@@ -32,7 +32,7 @@ public class ExchangeData
     public List<string> RequiredItems { get; set; }
     public bool RequiresPatience { get; set; }
     public ConnectionState? RequiredConnectionState { get; set; }
-    
+
     // Exchange effects
     public bool GrantsTokens { get; set; }
     public string UnlocksExchangeId { get; set; }

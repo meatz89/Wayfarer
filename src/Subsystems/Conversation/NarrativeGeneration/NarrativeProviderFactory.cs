@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// Factory for selecting appropriate narrative provider based on configuration and availability.
@@ -42,7 +42,7 @@ public class NarrativeProviderFactory
                 Console.WriteLine("[NarrativeProviderFactory] Checking AI availability...");
                 bool isAvailable = await _aiProvider.IsAvailableAsync();
                 Console.WriteLine($"[NarrativeProviderFactory] AI availability: {isAvailable}");
-                
+
                 if (isAvailable)
                 {
                     Console.WriteLine("[NarrativeProviderFactory] Using AI provider");

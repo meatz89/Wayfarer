@@ -13,7 +13,7 @@ public static class StrangerParser
     /// </summary>
     public static List<StrangerNPC> ParseStrangers(JsonElement root)
     {
-        var strangers = new List<StrangerNPC>();
+        List<StrangerNPC> strangers = new List<StrangerNPC>();
 
         // Parse content section
         if (root.TryGetProperty("content", out JsonElement content))
@@ -23,7 +23,7 @@ public static class StrangerParser
             {
                 foreach (JsonElement strangerElement in strangersElement.EnumerateArray())
                 {
-                    var strangerDto = JsonSerializer.Deserialize<StrangerNPCDTO>(strangerElement.GetRawText());
+                    StrangerNPCDTO? strangerDto = JsonSerializer.Deserialize<StrangerNPCDTO>(strangerElement.GetRawText());
                     if (strangerDto != null)
                     {
                         strangers.Add(ConvertDTOToStrangerNPC(strangerDto));
@@ -52,7 +52,7 @@ public static class StrangerParser
             throw new ArgumentException($"Invalid time block: {dto.TimeBlock}");
         }
 
-        var stranger = new StrangerNPC
+        StrangerNPC stranger = new StrangerNPC
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
@@ -67,9 +67,9 @@ public static class StrangerParser
         // Parse conversation types
         if (dto.ConversationTypes != null)
         {
-            foreach (var conversationDto in dto.ConversationTypes)
+            foreach (StrangerConversationDTO conversationDto in dto.ConversationTypes)
             {
-                var conversation = ConvertDTOToStrangerConversation(conversationDto);
+                StrangerConversation conversation = ConvertDTOToStrangerConversation(conversationDto);
                 stranger.ConversationTypes[conversationDto.Type] = conversation;
             }
         }
@@ -82,7 +82,7 @@ public static class StrangerParser
     /// </summary>
     private static StrangerConversation ConvertDTOToStrangerConversation(StrangerConversationDTO dto)
     {
-        var conversation = new StrangerConversation
+        StrangerConversation conversation = new StrangerConversation
         {
             Type = dto.Type ?? "",
             RapportThresholds = new List<int>(dto.RapportThresholds ?? new List<int>()),
@@ -92,7 +92,7 @@ public static class StrangerParser
         // Parse rewards
         if (dto.Rewards != null)
         {
-            foreach (var rewardDto in dto.Rewards)
+            foreach (StrangerRewardDTO rewardDto in dto.Rewards)
             {
                 conversation.Rewards.Add(ConvertDTOToStrangerReward(rewardDto));
             }
@@ -106,7 +106,7 @@ public static class StrangerParser
     /// </summary>
     private static StrangerReward ConvertDTOToStrangerReward(StrangerRewardDTO dto)
     {
-        var reward = new StrangerReward
+        StrangerReward reward = new StrangerReward
         {
             Coins = dto.Coins,
             Health = dto.Health,
@@ -196,7 +196,7 @@ public class StrangerNPC
     /// </summary>
     public StrangerReward GetRewardForThreshold(string conversationType, int thresholdIndex)
     {
-        var conversation = ConversationTypes.GetValueOrDefault(conversationType);
+        StrangerConversation? conversation = ConversationTypes.GetValueOrDefault(conversationType);
         if (conversation == null || thresholdIndex >= conversation.Rewards.Count)
             return null;
 

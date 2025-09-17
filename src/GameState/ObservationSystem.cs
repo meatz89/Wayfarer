@@ -38,14 +38,14 @@ public class ObservationSystem
                 Console.WriteLine($"[ObservationSystem] Found {_gameWorld.Observations.Count} observations in GameWorld");
 
                 // Group observations by location, then by spot
-                var locationGroups = _gameWorld.Observations.GroupBy(obs =>
+                IEnumerable<IGrouping<string, Observation>> locationGroups = _gameWorld.Observations.GroupBy(obs =>
                 {
                     // Since observations don't have locationId directly, we'll use a default grouping
                     // In the future, observations should be enhanced to have location context
                     return "default_location";
                 });
 
-                foreach (var locationGroup in locationGroups)
+                foreach (IGrouping<string, Observation> locationGroup in locationGroups)
                 {
                     string locationId = locationGroup.Key;
                     Dictionary<string, List<Observation>> spotObservations = new Dictionary<string, List<Observation>>();

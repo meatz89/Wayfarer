@@ -38,7 +38,7 @@ public class CardProgression
 
     public int GetTotalSuccessBonusForLevel(int level)
     {
-        var bonus = LevelBonuses.FirstOrDefault(b => b.Level == level);
+        LevelBonus? bonus = LevelBonuses.FirstOrDefault(b => b.Level == level);
         return bonus?.SuccessBonus ?? 0;
     }
 }
@@ -63,7 +63,7 @@ public class GameRules
             throw new System.InvalidOperationException($"ListenDrawCounts not loaded from package content. Ensure 05_gameplay.json contains listenDrawCounts configuration.");
         }
 
-        var entry = ListenDrawCounts.FirstOrDefault(e => e.State == state);
+        ListenDrawCountEntry? entry = ListenDrawCounts.FirstOrDefault(e => e.State == state);
         if (entry == null)
         {
             throw new System.InvalidOperationException($"No draw count configured for connection state {state}. Available states: {string.Join(", ", ListenDrawCounts.Select(e => e.State))}");

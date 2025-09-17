@@ -82,12 +82,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
 
             // Get exchanges from NPC's inventory
             List<ExchangeData> npcExchanges = _inventory.GetNPCExchanges(npcId);
-            
+
             // Get player's current location for domain validation
             Player player = _gameWorld.GetPlayer();
             LocationSpot currentSpot = _gameWorld.WorldState.locationSpots
                 .FirstOrDefault(s => s.SpotID == player.CurrentLocationSpot?.SpotID);
-            
+
             // Convert SpotProperties to domain strings for validation
             List<string> spotDomains = currentSpot?.SpotProperties?
                 .Select(p => p.ToString())
@@ -101,9 +101,9 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             {
                 // Check if exchange is valid in current context
                 ExchangeValidationResult validation = _validator.ValidateExchange(
-                    exchange, 
-                    npc, 
-                    playerResources, 
+                    exchange,
+                    npc,
+                    playerResources,
                     spotDomains);
 
                 if (validation.IsVisible)
@@ -153,7 +153,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             if (exchange == null)
             {
                 Console.WriteLine($"[ExchangeFacade] Exchange not found! Available NPCs: {string.Join(", ", _inventory.GetNPCsWithExchanges())}");
-                var availableExchanges = _inventory.GetNPCExchanges(npcId);
+                List<ExchangeData> availableExchanges = _inventory.GetNPCExchanges(npcId);
                 Console.WriteLine($"[ExchangeFacade] Available exchanges for '{npcId}': {string.Join(", ", availableExchanges.Select(e => e.Id))}");
                 return new ExchangeResult
                 {
@@ -165,9 +165,9 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             // Validate exchange
             PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
             ExchangeValidationResult validation = _validator.ValidateExchange(
-                exchange, 
-                npc, 
-                playerResources, 
+                exchange,
+                npc,
+                playerResources,
                 new List<string>());
 
             if (!validation.IsValid)
@@ -186,7 +186,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             if (result.Success)
             {
                 _inventory.RecordExchange(npcId, exchangeId);
-                
+
                 // Check if this was a unique exchange
                 if (exchange.IsUnique)
                 {
@@ -266,12 +266,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private string FormatExchangeDescription(ExchangeData exchange)
         {
             List<string> parts = new List<string>();
-            
+
             if (exchange.Costs.Any())
             {
                 parts.Add($"Pay: {FormatCost(exchange.Costs)}");
             }
-            
+
             if (exchange.Rewards.Any())
             {
                 parts.Add($"Receive: {FormatReward(exchange.Rewards)}");
@@ -283,7 +283,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private string FormatCost(List<ResourceAmount> costs)
         {
             if (!costs.Any()) return "Free";
-            
+
             IEnumerable<string> parts = costs.Select(c => $"{c.Amount} {GetResourceName(c.Type)}");
             return string.Join(", ", parts);
         }
@@ -291,7 +291,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private string FormatReward(List<ResourceAmount> rewards)
         {
             if (!rewards.Any()) return "Nothing";
-            
+
             IEnumerable<string> parts = rewards.Select(r => $"{r.Amount} {GetResourceName(r.Type)}");
             return string.Join(", ", parts);
         }

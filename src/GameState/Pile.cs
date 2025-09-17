@@ -12,7 +12,7 @@ public class Pile
     public void Add(CardInstance card)
     {
         if (card == null) return;
-        
+
         // Ensure card has a pre-rolled value
         if (card.Context == null)
             card.Context = new CardContext();
@@ -28,7 +28,7 @@ public class Pile
 
     public void AddRange(IEnumerable<CardInstance> cardsToAdd)
     {
-        foreach (var card in cardsToAdd)
+        foreach (CardInstance card in cardsToAdd)
         {
             Add(card);
         }
@@ -37,15 +37,15 @@ public class Pile
     public CardInstance DrawTop()
     {
         if (cards.Count == 0) return null;
-        
-        var card = cards[0];
+
+        CardInstance card = cards[0];
         cards.RemoveAt(0);
         return card;
     }
 
     public List<CardInstance> DrawMultiple(int count)
     {
-        var drawn = new List<CardInstance>();
+        List<CardInstance> drawn = new List<CardInstance>();
         for (int i = 0; i < count && cards.Count > 0; i++)
         {
             drawn.Add(DrawTop());
@@ -55,7 +55,7 @@ public class Pile
 
     public List<CardInstance> DrawAll()
     {
-        var all = new List<CardInstance>(cards);
+        List<CardInstance> all = new List<CardInstance>(cards);
         cards.Clear();
         return all;
     }
@@ -78,7 +78,7 @@ public class Pile
         {
             n--;
             int k = random.Next(n + 1);
-            var temp = cards[k];
+            CardInstance temp = cards[k];
             cards[k] = cards[n];
             cards[n] = temp;
         }

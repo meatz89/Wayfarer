@@ -109,30 +109,30 @@ public class GameWorld
 
     // PATH CARD SYSTEM - Travel path card discovery mechanics
     // Path cards are now stored in collections (AllPathCollections)
-    
+
     // Persistent discovery states
     public Dictionary<string, bool> PathCardDiscoveries { get; set; } = new Dictionary<string, bool>();
-    
+
     // Track one-time rewards
     public Dictionary<string, bool> PathCardRewardsClaimed { get; set; } = new Dictionary<string, bool>();
-    
+
     // Track event deck positions for deterministic draws
     public Dictionary<string, int> EventDeckPositions { get; set; } = new Dictionary<string, int>();
-    
+
     // Active travel session
     public TravelSession CurrentTravelSession { get; set; }
-    
+
     // PATH SYSTEM - For FixedPath segments that always show the same cards
     // Path card collections for FixedPath route segments (collections contain the actual cards)
     public Dictionary<string, PathCardCollectionDTO> AllPathCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
-    
+
     // EVENT SYSTEM - For Event segments that randomly select from a pool
     // Travel events containing narrative and card references
     public Dictionary<string, TravelEventDTO> AllTravelEvents { get; set; } = new Dictionary<string, TravelEventDTO>();
-    
+
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
     public Dictionary<string, PathCardCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
-    
+
     /// <summary>
     /// Get a report of all skeletons that need to be populated
     /// </summary>
@@ -237,9 +237,9 @@ public class GameWorld
     /// </summary>
     public StrangerNPC GetStrangerById(string strangerId)
     {
-        foreach (var locationStrangers in LocationStrangers.Values)
+        foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
         {
-            var stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
+            StrangerNPC? stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
             if (stranger != null)
                 return stranger;
         }
@@ -253,9 +253,9 @@ public class GameWorld
     {
         if (_lastTimeBlock != newTimeBlock)
         {
-            foreach (var locationStrangers in LocationStrangers.Values)
+            foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
             {
-                foreach (var stranger in locationStrangers)
+                foreach (StrangerNPC stranger in locationStrangers)
                 {
                     stranger.RefreshForNewTimeBlock();
                 }
@@ -269,7 +269,7 @@ public class GameWorld
     /// </summary>
     public void MarkStrangerAsTalkedTo(string strangerId)
     {
-        var stranger = GetStrangerById(strangerId);
+        StrangerNPC stranger = GetStrangerById(strangerId);
         stranger?.MarkAsTalkedTo();
     }
 
@@ -278,8 +278,8 @@ public class GameWorld
     /// </summary>
     public List<StrangerNPC> GetAllStrangers()
     {
-        var allStrangers = new List<StrangerNPC>();
-        foreach (var locationStrangers in LocationStrangers.Values)
+        List<StrangerNPC> allStrangers = new List<StrangerNPC>();
+        foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
         {
             allStrangers.AddRange(locationStrangers);
         }

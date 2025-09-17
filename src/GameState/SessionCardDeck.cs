@@ -109,7 +109,7 @@ public class SessionCardDeck
         if (drawPile.Count == 0)
             return null;
 
-        var card = drawPile.DrawTop();
+        CardInstance card = drawPile.DrawTop();
         AssignPreRoll(card);
         return card;
     }
@@ -136,7 +136,7 @@ public class SessionCardDeck
                 break;
             }
 
-            var card = drawPile.DrawTop();
+            CardInstance card = drawPile.DrawTop();
             if (card != null)
             {
                 AssignPreRoll(card);
@@ -225,11 +225,11 @@ public class SessionCardDeck
     /// </summary>
     public void CheckRequestThresholds(int currentRapport)
     {
-        var toMove = requestPile.Cards
+        List<CardInstance> toMove = requestPile.Cards
             .Where(c => c.Context?.RapportThreshold <= currentRapport)
             .ToList();
 
-        foreach (var card in toMove)
+        foreach (CardInstance? card in toMove)
         {
             requestPile.Remove(card);
             handPile.Add(card);
@@ -253,7 +253,7 @@ public class SessionCardDeck
         Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard into draw");
 
         // Move all discard to draw using Pile methods
-        var allDiscards = discardPile.DrawAll();
+        List<CardInstance> allDiscards = discardPile.DrawAll();
         drawPile.AddRange(allDiscards);
         drawPile.Shuffle();
     }

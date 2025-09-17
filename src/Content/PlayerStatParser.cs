@@ -13,12 +13,12 @@ public static class PlayerStatParser
     /// </summary>
     public static (List<PlayerStatDefinition> stats, StatProgression progression) ParseStatsPackage(PlayerStatsConfigDTO configDto)
     {
-        var stats = new List<PlayerStatDefinition>();
+        List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
 
         // Parse stat definitions
         if (configDto.Stats != null)
         {
-            foreach (var statDto in configDto.Stats)
+            foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
             {
                 stats.Add(ConvertDTOToStatDefinition(statDto));
             }
@@ -39,7 +39,7 @@ public static class PlayerStatParser
     /// </summary>
     public static (List<PlayerStatDefinition> stats, StatProgression progression) ParseStatsPackage(JsonElement root)
     {
-        var stats = new List<PlayerStatDefinition>();
+        List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
         StatProgression progression = null;
 
         // Parse content section
@@ -50,7 +50,7 @@ public static class PlayerStatParser
             {
                 foreach (JsonElement statElement in statsElement.EnumerateArray())
                 {
-                    var statDto = JsonSerializer.Deserialize<PlayerStatDefinitionDTO>(statElement.GetRawText());
+                    PlayerStatDefinitionDTO? statDto = JsonSerializer.Deserialize<PlayerStatDefinitionDTO>(statElement.GetRawText());
                     if (statDto != null)
                     {
                         stats.Add(ConvertDTOToStatDefinition(statDto));
@@ -61,7 +61,7 @@ public static class PlayerStatParser
             // Parse progression rules
             if (content.TryGetProperty("progression", out JsonElement progressionElement))
             {
-                var progressionDto = JsonSerializer.Deserialize<StatProgressionDTO>(progressionElement.GetRawText());
+                StatProgressionDTO? progressionDto = JsonSerializer.Deserialize<StatProgressionDTO>(progressionElement.GetRawText());
                 if (progressionDto != null)
                 {
                     progression = ConvertDTOToProgression(progressionDto);
@@ -99,7 +99,7 @@ public static class PlayerStatParser
     /// </summary>
     private static StatProgression ConvertDTOToProgression(StatProgressionDTO dto)
     {
-        var progression = new StatProgression();
+        StatProgression progression = new StatProgression();
 
         // Set XP thresholds
         if (dto.XpThresholds != null)
@@ -111,9 +111,9 @@ public static class PlayerStatParser
         if (dto.LevelBonuses != null)
         {
             progression.LevelBonuses = new List<StatLevelBonus>();
-            foreach (var bonusDto in dto.LevelBonuses)
+            foreach (StatLevelBonusDTO bonusDto in dto.LevelBonuses)
             {
-                var bonus = new StatLevelBonus
+                StatLevelBonus bonus = new StatLevelBonus
                 {
                     Level = bonusDto.Level,
                     SuccessBonus = bonusDto.SuccessBonus,

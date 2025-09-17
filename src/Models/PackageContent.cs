@@ -114,17 +114,17 @@ public class PackageContent
     /// Exchange definitions - defines trade details for exchange cards
     /// </summary>
     public List<ExchangeDTO> Exchanges { get; set; }
-    
+
     /// <summary>
     /// Path card collections for FixedPath segments
     /// </summary>
     public List<PathCardCollectionDTO> PathCardCollections { get; set; }
-    
+
     /// <summary>
     /// Travel events for the normalized event system
     /// </summary>
     public List<TravelEventDTO> TravelEvents { get; set; }
-    
+
     /// <summary>
     /// Event cards for the normalized event system (reuses PathCardDTO structure)
     /// </summary>

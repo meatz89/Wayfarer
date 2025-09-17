@@ -22,30 +22,30 @@ public class StrangerConversationManager
     /// </summary>
     public ConversationSession StartStrangerConversation(string strangerId, string conversationType)
     {
-        var stranger = _gameWorld.GetStrangerById(strangerId);
+        StrangerNPC stranger = _gameWorld.GetStrangerById(strangerId);
         if (stranger == null)
             throw new ArgumentException($"Stranger with ID '{strangerId}' not found");
 
         if (stranger.HasBeenTalkedTo)
             throw new InvalidOperationException($"Stranger '{stranger.Name}' has already been talked to this time block");
 
-        var currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
+        TimeBlock currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
         if (!stranger.IsAvailableAtTime(currentTimeBlock))
             throw new InvalidOperationException($"Stranger '{stranger.Name}' is not available at time {currentTimeBlock}");
 
         // Get the conversation configuration
-        var conversation = stranger.GetAvailableConversation(conversationType);
+        StrangerConversation conversation = stranger.GetAvailableConversation(conversationType);
         if (conversation == null)
             throw new ArgumentException($"Conversation type '{conversationType}' not available for stranger '{stranger.Name}'");
 
         // Create a temporary NPC representation for the stranger
-        var tempNPC = CreateTemporaryNPCFromStranger(stranger);
+        NPC tempNPC = CreateTemporaryNPCFromStranger(stranger);
 
         // Add temp NPC to GameWorld temporarily so ConversationFacade can find it
         _gameWorld.NPCs.Add(tempNPC);
 
         // Create conversation session using facade
-        var session = _conversationFacade.StartConversation(tempNPC.ID, ConversationType.Stranger);
+        ConversationSession session = _conversationFacade.StartConversation(tempNPC.ID, ConversationType.Stranger);
 
         // Mark as stranger conversation and set level for XP scaling
         session.IsStrangerConversation = true;
@@ -62,7 +62,7 @@ public class StrangerConversationManager
         if (!session.IsStrangerConversation)
             throw new ArgumentException("Session is not a stranger conversation");
 
-        var stranger = _gameWorld.GetStrangerById(session.NPC.ID);
+        StrangerNPC stranger = _gameWorld.GetStrangerById(session.NPC.ID);
         if (stranger == null)
             throw new ArgumentException($"Stranger with ID '{session.NPC.ID}' not found");
 
@@ -70,15 +70,15 @@ public class StrangerConversationManager
         stranger.MarkAsTalkedTo();
 
         // Remove temporary NPC from GameWorld
-        var tempNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NPC.ID);
+        NPC? tempNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NPC.ID);
         if (tempNPC != null)
         {
             _gameWorld.NPCs.Remove(tempNPC);
         }
 
         // Determine which reward tier based on rapport achieved
-        var conversationType = stranger.ConversationTypes.First().Key; // Simplified - should match actual type used
-        var conversation = stranger.ConversationTypes[conversationType];
+        string conversationType = stranger.ConversationTypes.First().Key; // Simplified - should match actual type used
+        StrangerConversation conversation = stranger.ConversationTypes[conversationType];
 
         int rewardTier = DetermineRewardTier(conversation.RapportThresholds, finalRapport);
 
@@ -104,10 +104,10 @@ public class StrangerConversationManager
     /// </summary>
     public bool IsStrangerAvailable(string strangerId)
     {
-        var stranger = _gameWorld.GetStrangerById(strangerId);
+        StrangerNPC stranger = _gameWorld.GetStrangerById(strangerId);
         if (stranger == null) return false;
 
-        var currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
+        TimeBlock currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
         return stranger.IsAvailableAtTime(currentTimeBlock) && !stranger.HasBeenTalkedTo;
     }
 
@@ -116,7 +116,7 @@ public class StrangerConversationManager
     /// </summary>
     public List<StrangerNPC> GetAvailableStrangersAtLocation(string locationId)
     {
-        var currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
+        TimeBlock currentTimeBlock = _gameWorld.GetCurrentTimeBlock();
         return _gameWorld.GetAvailableStrangers(locationId, currentTimeBlock);
     }
 
@@ -125,10 +125,10 @@ public class StrangerConversationManager
     /// </summary>
     public StrangerConversationPreview GetConversationPreview(string strangerId, string conversationType)
     {
-        var stranger = _gameWorld.GetStrangerById(strangerId);
+        StrangerNPC stranger = _gameWorld.GetStrangerById(strangerId);
         if (stranger == null) return null;
 
-        var conversation = stranger.GetAvailableConversation(conversationType);
+        StrangerConversation conversation = stranger.GetAvailableConversation(conversationType);
         if (conversation == null) return null;
 
         return new StrangerConversationPreview
@@ -181,7 +181,7 @@ public class StrangerConversationManager
 
     private void ApplyStrangerReward(StrangerReward reward)
     {
-        var player = _gameWorld.GetPlayer();
+        Player player = _gameWorld.GetPlayer();
 
         // Apply immediate rewards
         if (reward.Coins > 0)

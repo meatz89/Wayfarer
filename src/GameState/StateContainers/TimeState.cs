@@ -41,18 +41,18 @@ public sealed class TimeState
         get
         {
             int remaining = SegmentsRemainingInBlock;
-            
+
             // Add segments from future blocks today
-            var currentBlockIndex = (int)_currentTimeBlock;
+            int currentBlockIndex = (int)_currentTimeBlock;
             for (int i = currentBlockIndex + 1; i < 5; i++) // 5 playable blocks (Dawn through Night)
             {
-                var futureBlock = (TimeBlocks)i;
+                TimeBlocks futureBlock = (TimeBlocks)i;
                 if (futureBlock != TimeBlocks.Night)
                 {
                     remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
                 }
             }
-            
+
             return remaining;
         }
     }
@@ -61,7 +61,7 @@ public sealed class TimeState
     /// Active segments remaining in the current day
     /// </summary>
     public int ActiveSegmentsRemaining => IsActiveTime ? SegmentsRemainingInDay : 0;
-    
+
     /// <summary>
     /// True if the current time allows active gameplay
     /// </summary>
@@ -121,12 +121,12 @@ public sealed class TimeState
         if (segments <= 0)
             throw new ArgumentException("Segments to advance must be positive", nameof(segments));
 
-        var oldState = this;
-        var oldTimeBlock = _currentTimeBlock;
-        
+        TimeState oldState = this;
+        TimeBlocks oldTimeBlock = _currentTimeBlock;
+
         int remainingSegments = segments;
         int currentDay = _currentDay;
-        var currentTimeBlock = _currentTimeBlock;
+        TimeBlocks currentTimeBlock = _currentTimeBlock;
         int currentSegment = _currentSegment;
         int totalSegments = _totalSegmentsElapsed;
 
@@ -147,7 +147,7 @@ public sealed class TimeState
                 // Need to advance to next block
                 remainingSegments -= segmentsRemainingInCurrentBlock;
                 totalSegments += segmentsRemainingInCurrentBlock;
-                
+
                 // Move to next time block
                 if (currentTimeBlock == TimeBlocks.Evening)
                 {
@@ -164,7 +164,7 @@ public sealed class TimeState
             }
         }
 
-        var newState = new TimeState(currentDay, currentTimeBlock, currentSegment, totalSegments);
+        TimeState newState = new TimeState(currentDay, currentTimeBlock, currentSegment, totalSegments);
 
         return new TimeAdvancementResult
         {
@@ -215,12 +215,12 @@ public sealed class TimeState
     {
         int totalSegments = SegmentsInCurrentBlock;
         string dots = "";
-        
+
         for (int i = 1; i <= totalSegments; i++)
         {
             dots += i <= _currentSegment ? "●" : "○";
         }
-        
+
         return $"{_currentTimeBlock.ToString().ToUpper()} {dots} [{_currentSegment}/{totalSegments}]";
     }
 
@@ -232,12 +232,12 @@ public sealed class TimeState
     {
         int totalSegments = SegmentsInCurrentBlock;
         string dots = "";
-        
+
         for (int i = 1; i <= totalSegments; i++)
         {
             dots += i <= _currentSegment ? "●" : "○";
         }
-        
+
         return dots;
     }
 
@@ -264,16 +264,16 @@ public sealed class TimeState
     private static int CalculateTotalSegments(int day, TimeBlocks timeBlock, int segment)
     {
         int total = (day - 1) * TimeBlockSegments.TOTAL_SEGMENTS_PER_DAY;
-        
+
         // Add segments from completed blocks in current day
-        for (var block = TimeBlocks.Dawn; block < timeBlock; block++)
+        for (TimeBlocks block = TimeBlocks.Dawn; block < timeBlock; block++)
         {
             total += TimeBlockSegments.GetSegmentsForBlock(block);
         }
-        
+
         // Add current segment within current block
         total += segment;
-        
+
         return total;
     }
 
@@ -293,8 +293,8 @@ public sealed class TimeState
     public override bool Equals(object obj)
     {
         if (obj is not TimeState other) return false;
-        return _currentDay == other._currentDay && 
-               _currentTimeBlock == other._currentTimeBlock && 
+        return _currentDay == other._currentDay &&
+               _currentTimeBlock == other._currentTimeBlock &&
                _currentSegment == other._currentSegment;
     }
 

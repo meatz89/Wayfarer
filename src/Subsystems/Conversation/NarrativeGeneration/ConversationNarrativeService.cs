@@ -106,8 +106,8 @@ public class ConversationNarrativeService
     /// <param name="activeCards">List of cards currently available to player</param>
     /// <returns>Generated narrative output or fallback content</returns>
     public async Task<NarrativeOutput> GenerateNarrativeAsync(
-        ConversationSession session, 
-        NPC npc, 
+        ConversationSession session,
+        NPC npc,
         List<CardInstance> activeCards)
     {
         Console.WriteLine("[ConversationNarrativeService] GenerateNarrativeAsync called");
@@ -125,20 +125,20 @@ public class ConversationNarrativeService
 
             // Generate NPC dialogue first
             NarrativeOutput narrativeOutput = await provider.GenerateNPCDialogueAsync(
-                conversationState, 
-                npcData, 
+                conversationState,
+                npcData,
                 cardCollection);
-            
+
             // Then generate card narratives using the NPC dialogue
             List<CardNarrative> cardNarratives = await provider.GenerateCardNarrativesAsync(
                 conversationState,
                 npcData,
                 cardCollection,
                 narrativeOutput.NPCDialogue);
-            
+
             // Add card narratives to output
             narrativeOutput.CardNarratives = cardNarratives;
-            
+
             // Add provider source for UI styling
             narrativeOutput.ProviderSource = provider.GetProviderType();
 
@@ -157,8 +157,8 @@ public class ConversationNarrativeService
     /// Ensures game continues functioning with basic descriptive text.
     /// </summary>
     private NarrativeOutput CreateMinimalFallbackNarrative(
-        ConversationSession session, 
-        NPC npc, 
+        ConversationSession session,
+        NPC npc,
         List<CardInstance> activeCards)
     {
         NarrativeOutput fallback = new NarrativeOutput
@@ -194,7 +194,7 @@ public class ConversationNarrativeService
     {
         int rapport = session.RapportManager?.CurrentRapport ?? 0;
         TopicLayer currentLayer = DetermineTopicLayer(rapport);
-        
+
         return new ConversationState
         {
             Flow = session.FlowBattery, // Internal 0-24 scale from FlowBattery
@@ -209,7 +209,7 @@ public class ConversationNarrativeService
             ConversationHistory = BuildConversationHistory(session.TurnHistory)
         };
     }
-    
+
     /// <summary>
     /// Converts conversation turn history to strings for AI narrative generation.
     /// </summary>
@@ -218,7 +218,7 @@ public class ConversationNarrativeService
     private List<string> BuildConversationHistory(List<ConversationTurn> turnHistory)
     {
         List<string> history = new List<string>();
-        
+
         foreach (ConversationTurn turn in turnHistory)
         {
             // Format each turn as a readable conversation entry
@@ -237,7 +237,7 @@ public class ConversationNarrativeService
                 {
                     string cardDescription = turn.CardPlayed.Description ?? turn.CardPlayed.Id;
                     history.Add($"Player: {cardDescription}");
-                    
+
                     // Also include NPC's response if available
                     if (!string.IsNullOrEmpty(turn.Narrative?.NPCDialogue))
                     {
@@ -246,10 +246,10 @@ public class ConversationNarrativeService
                 }
             }
         }
-        
+
         return history;
     }
-    
+
     /// <summary>
     /// Determines the topic layer based on rapport level.
     /// </summary>
@@ -318,14 +318,14 @@ public class ConversationNarrativeService
         {
             // Check for common crisis patterns in personality description
             string personality = npc.PersonalityDescription?.ToLower() ?? "";
-            
+
             if (personality.Contains("forced") || personality.Contains("marriage"))
                 return "forced_marriage";
             if (personality.Contains("debt") || personality.Contains("money"))
                 return "financial_troubles";
             if (personality.Contains("family") || personality.Contains("children"))
                 return "family_crisis";
-                
+
             // Generic crisis for disconnected NPCs without specific patterns
             return "personal_troubles";
         }
@@ -374,29 +374,29 @@ public class ConversationNarrativeService
         {
             return "atmosphere_change";
         }
-        
+
         // Difficulty-based risk assessment
-        if (card.Difficulty == Difficulty.VeryHard) 
+        if (card.Difficulty == Difficulty.VeryHard)
             return "risk_high";
-        if (card.Difficulty == Difficulty.Hard) 
+        if (card.Difficulty == Difficulty.Hard)
             return "risk_moderate";
-        
+
         // Card persistence-based categories
         if (card.Persistence == PersistenceType.Opening)
             return "probe";
         if (card.Persistence == PersistenceType.Impulse)
             return "pressure";
-        
+
         // Token type indicates support/connection building
-        if (card.TokenType == ConnectionType.Trust) 
+        if (card.TokenType == ConnectionType.Trust)
             return "support_trust";
-        if (card.TokenType == ConnectionType.Commerce) 
+        if (card.TokenType == ConnectionType.Commerce)
             return "support_commerce";
-        if (card.TokenType == ConnectionType.Status) 
+        if (card.TokenType == ConnectionType.Status)
             return "support_status";
-        if (card.TokenType == ConnectionType.Shadow) 
+        if (card.TokenType == ConnectionType.Shadow)
             return "support_shadow";
-        
+
         // Default
         return "standard";
     }

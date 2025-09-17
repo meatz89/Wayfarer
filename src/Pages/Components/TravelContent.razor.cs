@@ -58,14 +58,14 @@ namespace Wayfarer.Pages.Components
         {
             // Check if there's an active travel session
             CurrentTravelContext = TravelFacade.GetCurrentTravelContext();
-            
+
             // If no active travel session, load available routes for selection
             if (CurrentTravelContext == null)
             {
                 LoadAvailableRoutes();
             }
         }
-        
+
         private void LoadAvailableRoutes()
         {
             Location currentLoc = GameFacade.GetCurrentLocation();

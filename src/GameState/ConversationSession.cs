@@ -40,7 +40,7 @@ public class ConversationSession
     public List<CardInstance> NPCObservationCards { get; set; } = new();
 
     // DELETED: RequestPile - now in Deck.RequestCards
-    
+
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
 
@@ -176,7 +176,7 @@ public class ConversationSession
         {
             sessionDeck.AddCard(obsCard);
         }
-        
+
         // Load NPC observation cards from their ObservationDeck
         List<CardInstance> npcObservationCards = new List<CardInstance>();
         if (npc.ObservationDeck != null && npc.ObservationDeck.Any())

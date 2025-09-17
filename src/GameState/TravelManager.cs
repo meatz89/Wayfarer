@@ -32,7 +32,7 @@ public class TravelManager
         // Get derived stamina based on hunger/health state
         Player player = _gameWorld.GetPlayer();
         int startingStamina = GetDerivedStamina(player);
-        
+
         TravelSession session = new TravelSession
         {
             RouteId = routeId,
@@ -76,7 +76,7 @@ public class TravelManager
         {
             return GetPathCardsForEventSegment(segment, session);
         }
-        
+
         return new List<PathCardDTO>();
     }
 
@@ -86,18 +86,18 @@ public class TravelManager
     private List<PathCardDTO> GetPathCardsForFixedPathSegment(RouteSegment segment)
     {
         string collectionId = segment.PathCollectionId;
-        
+
         if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
         {
             return new List<PathCardDTO>();
         }
-        
+
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-        
+
         // Return embedded cards directly - no lookup needed
         return collection.PathCards ?? new List<PathCardDTO>();
     }
-    
+
     /// <summary>
     /// Get path cards for Event segments - two-step resolution: Collection → Event → Cards
     /// </summary>
@@ -105,21 +105,21 @@ public class TravelManager
     {
         // Step 1: Get event collection ID (new normalized or legacy)
         string eventCollectionId = segment.EventCollectionId;
-        
+
         if (string.IsNullOrEmpty(eventCollectionId))
         {
             return new List<PathCardDTO>();
         }
-        
+
         // Check for normalized structure
         if (_gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
         {
             return HandleNormalizedEventSegment(segment, session, eventCollectionId);
         }
-        
+
         return new List<PathCardDTO>();
     }
-    
+
     /// <summary>
     /// Handle normalized event structure: EventCollection → Event → EventCards
     /// </summary>
@@ -127,31 +127,31 @@ public class TravelManager
     {
         // Step 1: Get event collection
         PathCardCollectionDTO eventCollection = _gameWorld.AllEventCollections[eventCollectionId];
-        
+
         if (eventCollection.EventIds == null || eventCollection.EventIds.Count == 0)
         {
             return new List<PathCardDTO>();
         }
-        
+
         // Step 2: Get or draw event for this segment  
         string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
-        
+
         // Step 3: Get the event
         if (!_gameWorld.AllTravelEvents.ContainsKey(eventId))
         {
             return new List<PathCardDTO>();
         }
-        
+
         TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[eventId];
-        
+
         // Step 4: Set narrative for UI
         session.CurrentEventNarrative = travelEvent.NarrativeText;
-        
+
         // Step 5: Return embedded event cards directly - no lookup needed
         return travelEvent.EventCards ?? new List<PathCardDTO>();
     }
-    
-    
+
+
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
     /// </summary>
@@ -163,14 +163,14 @@ public class TravelManager
         {
             return session.SegmentEventDraws[key];
         }
-        
+
         // Draw random event from collection
         string eventId = eventIds[_random.Next(eventIds.Count)];
         session.SegmentEventDraws[key] = eventId;
-        
+
         return eventId;
     }
-    
+
 
     /// <summary>
     /// Reveal a face-down path card without playing it
@@ -195,7 +195,7 @@ public class TravelManager
         {
             return false; // Card already revealed
         }
-        
+
         // Basic affordability checks (same as SelectPathCard)
         if (session.StaminaRemaining < card.StaminaCost)
         {
@@ -208,7 +208,7 @@ public class TravelManager
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId) 
+        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId)
             && _gameWorld.PathCardRewardsClaimed[pathCardId])
         {
             return false;
@@ -216,7 +216,7 @@ public class TravelManager
 
         // Mark card as discovered (face-up)
         _gameWorld.PathCardDiscoveries[pathCardId] = true;
-        
+
         // Set reveal state
         session.IsRevealingCard = true;
         session.RevealedCardId = pathCardId;
@@ -236,14 +236,14 @@ public class TravelManager
         }
 
         string pathCardId = session.RevealedCardId;
-        
+
         // Get the card from the current segment's collection
         PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
         if (card == null)
         {
             return false;
         }
-        
+
         // Final affordability check (in case something changed)
         if (session.StaminaRemaining < card.StaminaCost)
         {
@@ -261,7 +261,7 @@ public class TravelManager
             session.StaminaRemaining -= card.StaminaCost;
             _messageSystem.AddSystemMessage($"Spent {card.StaminaCost} stamina for path choice", SystemMessageTypes.Info);
         }
-        
+
         if (card.CoinRequirement > 0)
         {
             _gameWorld.GetPlayer().ModifyCoins(-card.CoinRequirement);
@@ -336,9 +336,9 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        bool isDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && 
+        bool isDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) &&
                            _gameWorld.PathCardDiscoveries[pathCardId];
-        
+
         // For already discovered cards, set them as revealed immediately so player can confirm
         if (isDiscovered)
         {
@@ -347,7 +347,7 @@ public class TravelManager
             session.RevealedCardId = pathCardId;
             return true;
         }
-        
+
         // For undiscovered cards, use the reveal mechanic
         return RevealPathCard(pathCardId);
     }
@@ -388,10 +388,10 @@ public class TravelManager
 
         // Clear the travel session
         _gameWorld.CurrentTravelSession = null;
-        
+
         // Player returns to origin location - no actual movement needed
         // as they haven't completed the journey
-        
+
         return true;
     }
 
@@ -410,7 +410,7 @@ public class TravelManager
         CompleteJourney(session);
         return true;
     }
-    
+
     /// <summary>
     /// Get current event narrative for UI display (null if not an event or no event selected)
     /// </summary>
@@ -440,7 +440,7 @@ public class TravelManager
         }
 
         RouteSegment segment = route.Segments[session.CurrentSegment - 1];
-        
+
         if (segment.Type == SegmentType.FixedPath)
         {
             return GetCardFromFixedPathSegment(segment, cardId);
@@ -449,28 +449,28 @@ public class TravelManager
         {
             return GetCardFromEventSegment(segment, session, cardId);
         }
-        
+
         return null;
     }
-    
+
     /// <summary>
     /// Get a specific card from a FixedPath segment
     /// </summary>
     private PathCardDTO GetCardFromFixedPathSegment(RouteSegment segment, string cardId)
     {
         string collectionId = segment.PathCollectionId;
-        
+
         if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
         {
             return null;
         }
-        
+
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-        
+
         // Look in embedded path cards
         return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
     }
-    
+
     /// <summary>
     /// Get a specific card from an Event segment
     /// </summary>
@@ -479,13 +479,13 @@ public class TravelManager
         // Get the current event ID from session state
         if (string.IsNullOrEmpty(session.CurrentEventId))
             return null;
-            
+
         // Get the travel event
         if (!_gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
             return null;
-            
+
         TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[session.CurrentEventId];
-        
+
         // Find the card in the embedded event cards
         return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
     }
@@ -636,7 +636,7 @@ public class TravelManager
             // Clear event state for the new segment
             session.CurrentEventId = null;
             session.CurrentEventNarrative = null;
-            
+
             // Pre-load cards for the new segment (works for both FixedPath and Event segments)
             // For Event segments, this triggers event selection and sets CurrentEventId
             // For FixedPath segments, this just ensures cards are ready
@@ -657,7 +657,7 @@ public class TravelManager
         // Move player to destination
         LocationSpot targetSpot = _gameWorld.WorldState.locationSpots
             .FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
-        
+
         if (targetSpot != null)
         {
             _gameWorld.GetPlayer().CurrentLocationSpot = targetSpot;
@@ -678,9 +678,9 @@ public class TravelManager
         // Stamina is derived from hunger and health state
         // Lower hunger = higher stamina capacity
         // Better health = better stamina efficiency
-        
+
         int baseStamina = 5; // Default Fresh state
-        
+
         // Health affects maximum stamina capacity
         if (player.Health >= 80)
         {
@@ -710,7 +710,7 @@ public class TravelManager
     private TravelState DetermineInitialTravelState(Player player)
     {
         int stamina = GetDerivedStamina(player);
-        
+
         return stamina switch
         {
             >= 6 => TravelState.Steady,

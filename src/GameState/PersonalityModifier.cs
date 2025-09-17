@@ -21,7 +21,7 @@ public class PersonalityModifier
     /// </summary>
     public static PersonalityModifier CreateFromPersonalityType(PersonalityType personalityType)
     {
-        var modifier = new PersonalityModifier();
+        PersonalityModifier modifier = new PersonalityModifier();
 
         switch (personalityType)
         {

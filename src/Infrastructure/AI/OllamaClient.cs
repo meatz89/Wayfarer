@@ -53,7 +53,7 @@ public class OllamaClient
                 continue;
 
             OllamaStreamResponse streamResponse = JsonSerializer.Deserialize<OllamaStreamResponse>(line);
-            
+
             if (streamResponse.Done)
                 break;
 
@@ -67,15 +67,15 @@ public class OllamaClient
         try
         {
             // Use a reasonable timeout for health checks
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
-            
+
             string healthUrl = $"{configuration.BaseUrl}/api/tags";
             Console.WriteLine($"[OllamaClient] Checking health at: {healthUrl}");
-            
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
             HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
-            
+
             bool isHealthy = response.IsSuccessStatusCode;
             Console.WriteLine($"[OllamaClient] Health check result: {isHealthy}");
             return isHealthy;

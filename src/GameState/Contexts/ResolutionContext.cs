@@ -51,7 +51,7 @@ public class ResolutionContext : ConversationContextBase
     public void SetNPCPersonality(PersonalityType personality)
     {
         NPCPersonality = personality;
-        
+
         // Set resolution options based on personality
         ResolutionOptions.Clear();
         switch (personality)

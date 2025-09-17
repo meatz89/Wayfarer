@@ -31,7 +31,7 @@ public class StandardContext : ConversationContextBase
     public void SetNPCPersonality(PersonalityType personality)
     {
         NPCPersonality = personality;
-        
+
         // Map personality to appropriate token type
         TargetTokenType = personality switch
         {

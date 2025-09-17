@@ -270,9 +270,9 @@ public class NPCRepository
     }
 
     #endregion
-    
+
     #region Request Card Resolution
-    
+
     /// <summary>
     /// Get request cards from an NPCRequest by resolving IDs from GameWorld
     /// </summary>
@@ -281,7 +281,7 @@ public class NPCRepository
         if (request == null) return new List<ConversationCard>();
         return request.GetRequestCards(_gameWorld);
     }
-    
+
     /// <summary>
     /// Get promise cards from an NPCRequest by resolving IDs from GameWorld
     /// </summary>
@@ -290,6 +290,6 @@ public class NPCRepository
         if (request == null) return new List<ConversationCard>();
         return request.GetPromiseCards(_gameWorld);
     }
-    
+
     #endregion
 }

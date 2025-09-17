@@ -103,12 +103,12 @@ public class ExchangeCard
             return false;
 
         // Check location requirement
-        if (!string.IsNullOrEmpty(RequiredLocationId) && 
+        if (!string.IsNullOrEmpty(RequiredLocationId) &&
             currentLocationId != RequiredLocationId)
             return false;
 
         // Check time block requirement
-        if (AvailableTimeBlocks.Count > 0 && 
+        if (AvailableTimeBlocks.Count > 0 &&
             !AvailableTimeBlocks.Contains(currentTimeBlock))
             return false;
 
@@ -147,8 +147,8 @@ public class ExchangeCard
     /// </summary>
     public string GetExchangeRatio()
     {
-        var costDesc = Cost?.GetDescription() ?? "Nothing";
-        var rewardDesc = Reward?.GetDescription() ?? "Nothing";
+        string costDesc = Cost?.GetDescription() ?? "Nothing";
+        string rewardDesc = Reward?.GetDescription() ?? "Nothing";
         return $"{costDesc} → {rewardDesc}";
     }
 

@@ -109,20 +109,20 @@ public static class NPCParser
 
         // Observation deck will be populated from deck compositions if NPC has observation cards
         // The deck initialization happens in PackageLoader when processing deckCompositions
-        
+
         // Parse one-time requests
         if (dto.Requests != null && dto.Requests.Count > 0)
         {
-            foreach (var requestDto in dto.Requests)
+            foreach (NPCRequestDTO requestDto in dto.Requests)
             {
-                var request = new NPCRequest
+                NPCRequest request = new NPCRequest
                 {
                     Id = requestDto.Id,
                     Name = requestDto.Name,
                     Description = requestDto.Description,
                     Status = RequestStatus.Available
                 };
-                
+
                 // Request and promise cards will be populated later by PackageLoader
                 // when it processes the card definitions
                 npc.Requests.Add(request);
@@ -313,14 +313,14 @@ public static class NPCParser
     {
         if (!element.TryGetProperty(propertyName, out JsonElement property))
             throw new InvalidOperationException($"Missing required property '{propertyName}' in NPC JSON");
-        
+
         if (property.ValueKind != JsonValueKind.String)
             throw new InvalidOperationException($"Property '{propertyName}' must be a string in NPC JSON");
-        
+
         string value = property.GetString();
         if (string.IsNullOrWhiteSpace(value))
             throw new InvalidOperationException($"Property '{propertyName}' cannot be empty in NPC JSON");
-        
+
         return value;
     }
 
@@ -328,10 +328,10 @@ public static class NPCParser
     {
         if (!element.TryGetProperty(propertyName, out JsonElement property))
             return null;
-        
+
         if (property.ValueKind != JsonValueKind.String)
             return null;
-        
+
         return property.GetString();
     }
 

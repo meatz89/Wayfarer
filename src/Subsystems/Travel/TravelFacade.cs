@@ -339,7 +339,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             List<PathCardDTO> currentSegmentCards = _travelManager.GetSegmentCards();
 
             // Check if player must turn back (exhausted with no paths available)
-            bool mustTurnBack = session.CurrentState == TravelState.Exhausted && 
+            bool mustTurnBack = session.CurrentState == TravelState.Exhausted &&
                                !currentSegmentCards.Any(card => CanPlayPathCard(card.Id));
 
             return new TravelContext
@@ -401,7 +401,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             // Check stat requirements
             if (card.StatRequirements != null && card.StatRequirements.Count > 0)
             {
-                foreach (var statRequirement in card.StatRequirements)
+                foreach (KeyValuePair<string, int> statRequirement in card.StatRequirements)
                 {
                     // Convert string stat name to PlayerStatType enum
                     if (Enum.TryParse<PlayerStatType>(statRequirement.Key, true, out PlayerStatType statType))
@@ -453,9 +453,9 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             {
                 // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
                 // FixedPath segments: check PathCardDiscoveries dictionary
-                bool isDiscovered = isEventSegment || 
+                bool isDiscovered = isEventSegment ||
                                   (_gameWorld.PathCardDiscoveries.ContainsKey(card.Id) && _gameWorld.PathCardDiscoveries[card.Id]);
-                
+
                 bool canPlay = CanPlayPathCard(card.Id);
 
                 pathCardInfos.Add(new PathCardInfo
@@ -511,7 +511,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         {
             // Start with base Fresh state (3 stamina)
             int stamina = 3;
-            
+
             // Well-fed and well-rested gives Steady (4 stamina)
             if (player.Health >= 80 && player.Hunger <= 20)
             {
@@ -598,7 +598,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
 
             // Check if we have a current event ID from the drawn event
-            if (!string.IsNullOrEmpty(session.CurrentEventId) && 
+            if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                 _gameWorld.AllPathCollections.ContainsKey(session.CurrentEventId))
             {
                 PathCardCollectionDTO collection = _gameWorld.AllPathCollections[session.CurrentEventId];
@@ -626,12 +626,12 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
 
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
-            
+
             // Handle different segment types
             if (segment.Type == SegmentType.Event)
             {
                 // For Event segments: get card from current event
-                if (!string.IsNullOrEmpty(session.CurrentEventId) && 
+                if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                     _gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
                 {
                     TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[session.CurrentEventId];
@@ -642,18 +642,18 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             {
                 // For FixedPath segments: use PathCollectionId
                 string collectionId = segment.PathCollectionId;
-                
+
                 if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
                 {
                     return null;
                 }
-                
+
                 PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
-                
+
                 // Look in embedded path cards
                 return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
             }
-            
+
             return null;
         }
 
@@ -675,7 +675,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             }
             return null;
         }
-        
+
         /// <summary>
         /// Turn back and cancel the journey
         /// </summary>
@@ -683,16 +683,16 @@ namespace Wayfarer.Subsystems.TravelSubsystem
         {
             return _travelManager.TurnBack();
         }
-        
+
         /// <summary>
         /// Check if journey is ready to complete (last segment finished)
         /// </summary>
         public bool IsReadyToComplete()
         {
-            var session = _gameWorld.CurrentTravelSession;
+            TravelSession session = _gameWorld.CurrentTravelSession;
             return session != null && session.IsReadyToComplete;
         }
-        
+
         /// <summary>
         /// Complete the journey after last segment
         /// </summary>

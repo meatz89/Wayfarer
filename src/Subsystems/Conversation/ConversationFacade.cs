@@ -126,7 +126,7 @@ public class ConversationFacade
         string requestText = null;
         if (conversationType == ConversationType.Request && !string.IsNullOrEmpty(goalCardId))
         {
-            var request = npc.GetRequestById(goalCardId);
+            NPCRequest request = npc.GetRequestById(goalCardId);
             if (request != null)
             {
                 requestText = request.NpcRequestText;
@@ -550,10 +550,10 @@ public class ConversationFacade
         // Get one-time requests as conversation options
         if (npc.Requests != null && npc.Requests.Count > 0)
         {
-            var availableRequests = npc.GetAvailableRequests();
+            List<NPCRequest> availableRequests = npc.GetAvailableRequests();
 
             // Add each available request as a conversation option
-            foreach (var request in availableRequests)
+            foreach (NPCRequest request in availableRequests)
             {
                 // For now, add the request as a single option that will show all cards
                 // Later we'll update the UI to show all cards from the request
@@ -1010,7 +1010,7 @@ public class ConversationFacade
         session.Deck.DrawToHand(drawCount);
 
         // Get the drawn cards for return value
-        var drawnCards = session.Deck.Hand.Cards.TakeLast(drawCount).ToList();
+        List<CardInstance> drawnCards = session.Deck.Hand.Cards.TakeLast(drawCount).ToList();
 
         // Check if any goal cards should become playable based on rapport
         UpdateGoalCardPlayabilityAfterListen(session);
@@ -1086,7 +1086,7 @@ public class ConversationFacade
             if (selectedCard.CardType == CardType.BurdenGoal && selectedCard.Context?.RequestId != null)
             {
                 // Find and complete the request
-                var request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
+                NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
                 if (request != null)
                 {
                     request.Complete();
@@ -1369,7 +1369,7 @@ public class ConversationFacade
             return true; // No exhaust effect, conversation continues
 
         // PROJECTION PRINCIPLE: Get projection from resolver
-        var projection = _effectResolver.ProcessExhaustEffect(card, session);
+        CardEffectResult projection = _effectResolver.ProcessExhaustEffect(card, session);
 
         // Apply rapport penalty
         if (projection.RapportChange < 0 && session.RapportManager != null)
@@ -1392,7 +1392,7 @@ public class ConversationFacade
             {
                 if (session.Deck.Hand.Cards.Any())
                 {
-                    var cardToRemove = session.Deck.Hand.Cards.First();
+                    CardInstance cardToRemove = session.Deck.Hand.Cards.First();
                     session.Deck.ExhaustFromHand(cardToRemove); // HIGHLANDER: Use deck method
                 }
             }

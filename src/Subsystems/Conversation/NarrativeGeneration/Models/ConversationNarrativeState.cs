@@ -9,31 +9,31 @@ public class ConversationNarrativeState
     /// Used to show loading indicators or prevent user actions during generation.
     /// </summary>
     public bool IsStreaming { get; set; }
-    
+
     /// <summary>
     /// Current narrative text being built or displayed.
     /// Updated progressively during streaming, holds partial content.
     /// </summary>
     public string CurrentNarrative { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Current dialogue text being built or displayed.
     /// Updated progressively during streaming, holds partial NPC speech.
     /// </summary>
     public string CurrentDialogue { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Completed narrative text from the previous turn or generation.
     /// Stores finalized environmental/descriptive content.
     /// </summary>
     public string CompletedNarrative { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Completed dialogue text from the previous turn or generation.
     /// Stores finalized NPC speech content.
     /// </summary>
     public string CompletedDialogue { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Resets all state to prepare for new narrative generation.
     /// Clears both current and completed content, stops streaming.
@@ -46,7 +46,7 @@ public class ConversationNarrativeState
         CompletedNarrative = string.Empty;
         CompletedDialogue = string.Empty;
     }
-    
+
     /// <summary>
     /// Appends text to the current narrative content.
     /// Used during streaming to progressively build environmental text.
@@ -56,7 +56,7 @@ public class ConversationNarrativeState
     {
         CurrentNarrative += text;
     }
-    
+
     /// <summary>
     /// Appends text to the current dialogue content.
     /// Used during streaming to progressively build NPC speech.
@@ -66,7 +66,7 @@ public class ConversationNarrativeState
     {
         CurrentDialogue += text;
     }
-    
+
     /// <summary>
     /// Marks the current generation as complete and moves content to completed state.
     /// Stops streaming and preserves final content for display.

@@ -92,7 +92,7 @@ public class ExchangeContext
             return false;
 
         // Check item requirements
-        foreach (var itemId in exchange.Cost.RequiredItemIds)
+        foreach (string itemId in exchange.Cost.RequiredItemIds)
         {
             if (!PlayerInventory.ContainsKey(itemId) || PlayerInventory[itemId] <= 0)
                 return false;
@@ -107,10 +107,10 @@ public class ExchangeContext
     /// </summary>
     public Dictionary<ExchangeType, List<ExchangeCard>> GetExchangesByType()
     {
-        var result = new Dictionary<ExchangeType, List<ExchangeCard>>();
-        var available = GetAvailableExchanges();
+        Dictionary<ExchangeType, List<ExchangeCard>> result = new Dictionary<ExchangeType, List<ExchangeCard>>();
+        List<ExchangeCard> available = GetAvailableExchanges();
 
-        foreach (var exchange in available)
+        foreach (ExchangeCard exchange in available)
         {
             if (!result.ContainsKey(exchange.ExchangeType))
             {
@@ -128,7 +128,7 @@ public class ExchangeContext
     /// </summary>
     public ExchangePreview GetExchangePreview(string exchangeId)
     {
-        var exchange = Session?.AvailableExchanges?.Find(e => e.Id == exchangeId);
+        ExchangeCard? exchange = Session?.AvailableExchanges?.Find(e => e.Id == exchangeId);
         if (exchange == null)
             return null;
 
@@ -154,7 +154,7 @@ public class ExchangeContext
         if (exchange == null)
             return null;
 
-        var preview = new ResourcePreview
+        ResourcePreview preview = new ResourcePreview
         {
             Coins = PlayerResources.Coins,
             Health = PlayerResources.Health,
@@ -163,7 +163,7 @@ public class ExchangeContext
         };
 
         // Apply costs
-        foreach (var cost in exchange.Cost.Resources)
+        foreach (ResourceAmount cost in exchange.Cost.Resources)
         {
             switch (cost.Type)
             {
@@ -183,7 +183,7 @@ public class ExchangeContext
         }
 
         // Apply rewards
-        foreach (var reward in exchange.Reward.Resources)
+        foreach (ResourceAmount reward in exchange.Reward.Resources)
         {
             switch (reward.Type)
             {

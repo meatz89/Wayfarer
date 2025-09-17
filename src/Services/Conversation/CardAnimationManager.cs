@@ -127,7 +127,7 @@ namespace Wayfarer
             animatingCards.RemoveAll(ac => (now - ac.AddedAt).TotalSeconds > 1.6);
 
             // Remove old card states
-            var oldStates = cardStates
+            List<string> oldStates = cardStates
                 .Where(kvp => (now - kvp.Value.StateChangedAt).TotalSeconds > 1.6)
                 .Select(kvp => kvp.Key)
                 .ToList();

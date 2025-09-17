@@ -33,7 +33,7 @@ public class CardInstance
     /// </summary>
     public PersistenceType GetPersistence(PlayerStats playerStats)
     {
-        var basePersistence = Template.Persistence;
+        PersistenceType basePersistence = Template.Persistence;
 
         // Check if bound stat has persistence bonus (level 3+)
         if (Template.BoundStat.HasValue && playerStats.HasPersistenceBonus(Template.BoundStat.Value))

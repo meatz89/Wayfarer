@@ -399,6 +399,9 @@ dotnet_diagnostic.IDE0055.severity = none
 # RCS1037: Remove trailing white-space
 dotnet_diagnostic.RCS1037.severity = none
 
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion

@@ -87,7 +87,7 @@ public enum CardEffectType
     /// Gain connection tokens (goal cards)
     /// </summary>
     GainToken,
-    
+
     /// <summary>
     /// Force an obligation to queue position 1, burning tokens with displaced NPCs.
     /// Promise cards use this to manipulate queue at the cost of relationships.

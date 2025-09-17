@@ -68,7 +68,7 @@ public class SpotDescriptionGenerator
     private static readonly string[] FallbackDescriptions = new[]
     {
         "a notable location",
-        "an interesting spot", 
+        "an interesting spot",
         "a distinctive place",
         "a marked area",
         "a particular locale"
@@ -92,10 +92,10 @@ public class SpotDescriptionGenerator
     /// </summary>
     public static List<SpotPropertyType> ValidatePropertyMappings()
     {
-        var allProperties = Enum.GetValues<SpotPropertyType>();
-        var unmappedProperties = new List<SpotPropertyType>();
+        SpotPropertyType[] allProperties = Enum.GetValues<SpotPropertyType>();
+        List<SpotPropertyType> unmappedProperties = new List<SpotPropertyType>();
 
-        foreach (var property in allProperties)
+        foreach (SpotPropertyType property in allProperties)
         {
             if (!PropertyAtmosphere.ContainsKey(property))
             {
@@ -106,7 +106,7 @@ public class SpotDescriptionGenerator
         if (unmappedProperties.Any())
         {
             Console.WriteLine($"SpotDescriptionGenerator: Found {unmappedProperties.Count} unmapped properties:");
-            foreach (var property in unmappedProperties)
+            foreach (SpotPropertyType property in unmappedProperties)
             {
                 Console.WriteLine($"  - {property}");
             }
@@ -121,14 +121,14 @@ public class SpotDescriptionGenerator
     private string GetPropertyDescription(SpotPropertyType property, int variantIndex)
     {
         // First try direct mapping
-        if (PropertyAtmosphere.TryGetValue(property, out var descriptions))
+        if (PropertyAtmosphere.TryGetValue(property, out string[]? descriptions))
         {
             return descriptions[variantIndex % descriptions.Length];
         }
 
         // Try category-based fallback
         string propertyName = property.ToString();
-        foreach (var category in CategoryFallbacks)
+        foreach (KeyValuePair<string, string[]> category in CategoryFallbacks)
         {
             if (propertyName.Contains(category.Key))
             {
@@ -171,7 +171,7 @@ public class SpotDescriptionGenerator
         }
 
         // Add time-based activity - with safe access
-        if (TimeActivity.TryGetValue(currentTime, out var timeActivities))
+        if (TimeActivity.TryGetValue(currentTime, out string[]? timeActivities))
         {
             int variantIndex = GetVariantIndex(currentTime);
             if (timeActivities != null && timeActivities.Length > 0)

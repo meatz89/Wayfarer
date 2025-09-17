@@ -11,13 +11,13 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
     public class ExchangeInventory
     {
         private readonly GameWorld _gameWorld;
-        
+
         // NPC ID -> List of available exchanges
         private Dictionary<string, List<ExchangeData>> _npcExchanges;
-        
+
         // NPC ID -> Exchange history
         private Dictionary<string, List<ExchangeHistoryEntry>> _exchangeHistory;
-        
+
         // Track unique exchanges that have been used
         private HashSet<string> _usedUniqueExchanges;
 
@@ -35,7 +35,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         public void InitializeFromGameWorld(GameWorld gameWorld)
         {
             _npcExchanges.Clear();
-            
+
             // Load exchanges from NPC exchange decks
             foreach (NPC npc in gameWorld.NPCs)
             {
@@ -137,10 +137,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             if (_npcExchanges.TryGetValue(npcId, out List<ExchangeData> exchanges))
             {
                 exchanges.RemoveAll(e => e.Id == exchangeId);
-                
+
                 // Mark as used if unique
                 _usedUniqueExchanges.Add(exchangeId);
-                
+
                 Console.WriteLine($"[ExchangeInventory] Removed exchange {exchangeId} from NPC {npcId}");
             }
         }
@@ -180,8 +180,9 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 if (exchange.SingleUse)
                 {
                     exchange.IsAvailable = false;
-                };
-                
+                }
+                ;
+
                 // Mark unique exchanges as used
                 if (exchange.SingleUse)
                 {
@@ -292,7 +293,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             // This would load the exchange from a template/database
             // For now, log the unlock
             Console.WriteLine($"[ExchangeInventory] Unlocking exchange {exchangeId} for NPC {npcId}");
-            
+
             // In a full implementation, this would:
             // 1. Load exchange template from GameWorld or content files
             // 2. Add it to the NPC's available exchanges

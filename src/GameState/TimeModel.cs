@@ -24,17 +24,17 @@ public class TimeModel
     }
 
     public int CurrentDay => CurrentState.CurrentDay;
-    
+
     public int CurrentSegment => CurrentState.CurrentSegment;
-    
+
     public int SegmentInCurrentBlock => CurrentState.SegmentInCurrentBlock;
-    
+
     public int SegmentsInCurrentBlock => CurrentState.SegmentsInCurrentBlock;
-    
+
     public int SegmentsRemainingInBlock => CurrentState.SegmentsRemainingInBlock;
-    
+
     public int SegmentsRemainingInDay => CurrentState.SegmentsRemainingInDay;
-    
+
     public int ActiveSegmentsRemaining => CurrentState.ActiveSegmentsRemaining;
 
     public TimeBlocks CurrentTimeBlock => CurrentState.CurrentTimeBlock;
@@ -126,7 +126,7 @@ public class TimeModel
             int segmentsToNextPeriod = SegmentsRemainingInBlock;
             if (segmentsToNextPeriod == 0)
                 segmentsToNextPeriod = 1; // Already at end, move to next block
-            
+
             return AdvanceSegments(segmentsToNextPeriod);
         }
     }

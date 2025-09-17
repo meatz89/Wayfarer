@@ -9,46 +9,49 @@ public class NPCRequest
     /// Unique identifier for the request
     /// </summary>
     public string Id { get; set; }
-    
+
     /// <summary>
     /// Display name for the request
     /// </summary>
     public string Name { get; set; }
-    
+
     /// <summary>
     /// Narrative description of what the NPC is asking
     /// </summary>
     public string Description { get; set; }
-    
+
     /// <summary>
     /// The text displayed when the NPC presents this request (shown on LISTEN action)
     /// </summary>
     public string NpcRequestText { get; set; }
-    
+
     /// <summary>
     /// Current status of the request
     /// </summary>
     public RequestStatus Status { get; set; } = RequestStatus.Available;
-    
+
     /// <summary>
     /// Request card IDs with different rapport thresholds offering varying rewards
     /// Each card represents a different level of commitment to the request
     /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
     /// </summary>
     public List<string> RequestCardIds { get; set; } = new List<string>();
-    
+
     /// <summary>
     /// Promise card IDs that force queue position 1 and burn tokens for instant rapport
     /// These represent immediate action at the cost of other relationships
     /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
     /// </summary>
     public List<string> PromiseCardIds { get; set; } = new List<string>();
-    
+
     /// <summary>
     /// Check if this request is available to attempt
     /// </summary>
-    public bool IsAvailable() => Status == RequestStatus.Available;
-    
+    public bool IsAvailable()
+    {
+        return Status == RequestStatus.Available;
+    }
+
     /// <summary>
     /// Mark this request as completed
     /// </summary>
@@ -56,55 +59,55 @@ public class NPCRequest
     {
         Status = RequestStatus.Completed;
     }
-    
+
     /// <summary>
     /// Get all cards associated with this request (both request and promise cards)
     /// Resolves card IDs to actual cards from GameWorld
     /// </summary>
     public List<ConversationCard> GetAllCards(GameWorld gameWorld)
     {
-        var allCards = new List<ConversationCard>();
-        
+        List<ConversationCard> allCards = new List<ConversationCard>();
+
         // Resolve request card IDs
-        foreach (var cardId in RequestCardIds)
+        foreach (string cardId in RequestCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
                 allCards.Add(card);
         }
-        
+
         // Resolve promise card IDs
-        foreach (var cardId in PromiseCardIds)
+        foreach (string cardId in PromiseCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
                 allCards.Add(card);
         }
-        
+
         return allCards;
     }
-    
+
     /// <summary>
     /// Get request cards by resolving IDs from GameWorld
     /// </summary>
     public List<ConversationCard> GetRequestCards(GameWorld gameWorld)
     {
-        var cards = new List<ConversationCard>();
-        foreach (var cardId in RequestCardIds)
+        List<ConversationCard> cards = new List<ConversationCard>();
+        foreach (string cardId in RequestCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
                 cards.Add(card);
         }
         return cards;
     }
-    
+
     /// <summary>
     /// Get promise cards by resolving IDs from GameWorld
     /// </summary>
     public List<ConversationCard> GetPromiseCards(GameWorld gameWorld)
     {
-        var cards = new List<ConversationCard>();
-        foreach (var cardId in PromiseCardIds)
+        List<ConversationCard> cards = new List<ConversationCard>();
+        foreach (string cardId in PromiseCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out var card))
+            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
                 cards.Add(card);
         }
         return cards;
@@ -120,12 +123,12 @@ public enum RequestStatus
     /// Request is available to attempt
     /// </summary>
     Available,
-    
+
     /// <summary>
     /// Request has been completed (any card was successfully played)
     /// </summary>
     Completed,
-    
+
     /// <summary>
     /// Request was failed and is no longer available
     /// </summary>

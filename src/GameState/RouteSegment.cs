@@ -16,10 +16,10 @@ public class RouteSegment
 {
     public int SegmentNumber { get; set; }
     public SegmentType Type { get; set; } = SegmentType.FixedPath;  // Determines selection behavior
-    
+
     // For FixedPath segments
     public string PathCollectionId { get; set; }  // References AllPathCollections
-    
+
     // For Event segments  
     public string EventCollectionId { get; set; }  // References AllEventCollections
 }

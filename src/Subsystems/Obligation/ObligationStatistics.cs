@@ -183,14 +183,14 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             foreach (NPC npc in _npcRepository.GetAllNPCs())
             {
                 Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
-                
+
                 // If NPC has no letter history, they haven't interacted yet
                 if (!player.NPCLetterHistory.ContainsKey(npc.ID))
                 {
                     // Skip NPCs with no letter history - they have no relationship health to report
                     continue;
                 }
-                
+
                 LetterHistory history = player.NPCLetterHistory[npc.ID];
 
                 RelationshipHealth health = new RelationshipHealth
@@ -226,7 +226,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 // Skip NPCs with no letter history - they have no performance metrics
                 if (!player.NPCLetterHistory.ContainsKey(npc.ID))
                     continue;
-                    
+
                 LetterHistory history = player.NPCLetterHistory[npc.ID];
                 Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 

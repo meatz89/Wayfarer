@@ -32,7 +32,7 @@ namespace Wayfarer.GameState.Actions
         {
             if (spot == null) return 1;
 
-            var activeProperties = spot.GetActiveProperties(currentTime);
+            List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
 
             // Check for Quiet property first (higher priority)
             if (activeProperties.Contains(SpotPropertyType.Quiet))

@@ -1,8 +1,8 @@
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
 
 namespace Wayfarer.Pages.Components
 {
@@ -50,7 +50,7 @@ namespace Wayfarer.Pages.Components
         protected async Task StartStrangerConversation(string strangerId, string conversationType)
         {
             // For now, use the simpler approach - start conversation without specific type
-            var context = GameFacade.StartStrangerConversation(strangerId);
+            ConversationContext context = GameFacade.StartStrangerConversation(strangerId);
             if (context != null)
             {
                 RefreshStrangers();
@@ -139,8 +139,8 @@ namespace Wayfarer.Pages.Components
                 return "Experience and insights";
             }
 
-            var rewardTexts = new List<string>();
-            var reward = conversation.Rewards.First(); // Show first tier reward as preview
+            List<string> rewardTexts = new List<string>();
+            StrangerReward reward = conversation.Rewards.First(); // Show first tier reward as preview
 
             if (reward.Coins > 0)
                 rewardTexts.Add($"{reward.Coins} coins");
@@ -173,7 +173,7 @@ public static class StringExtensions
         if (string.IsNullOrEmpty(input))
             return input;
 
-        var words = input.Split(' ');
+        string[] words = input.Split(' ');
         for (int i = 0; i < words.Length; i++)
         {
             if (words[i].Length > 0)

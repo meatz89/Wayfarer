@@ -27,7 +27,7 @@ public class JsonNarrativeRepository
     public void LoadNarratives()
     {
         string filePath = Path.Combine(contentDirectory.Path, "Narratives", "conversation_narratives.json");
-        
+
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"Narrative file not found at: {filePath}");
@@ -195,8 +195,8 @@ public class JsonNarrativeRepository
         JsonElement conditionsElement = element.GetProperty("conditions");
         template.Conditions = new NarrativeConditions
         {
-            NpcId = conditionsElement.TryGetProperty("npcId", out JsonElement npcIdElement) && npcIdElement.ValueKind != JsonValueKind.Null 
-                ? npcIdElement.GetString() 
+            NpcId = conditionsElement.TryGetProperty("npcId", out JsonElement npcIdElement) && npcIdElement.ValueKind != JsonValueKind.Null
+                ? npcIdElement.GetString()
                 : null,
             FlowMin = conditionsElement.GetProperty("flowMin").GetInt32(),
             FlowMax = conditionsElement.GetProperty("flowMax").GetInt32(),

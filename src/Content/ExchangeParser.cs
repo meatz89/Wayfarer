@@ -22,16 +22,16 @@ public static class ExchangeParser
             Name = dto.Name ?? $"Exchange {dto.Id}",
             Description = GenerateDescription(dto),
             NpcId = npcId ?? string.Empty,
-            
+
             // Default to trade type
             ExchangeType = DetermineExchangeType(dto),
-            
+
             // Parse cost structure
             Cost = ParseCostStructure(dto),
-            
+
             // Parse reward structure
             Reward = ParseRewardStructure(dto),
-            
+
             // Default properties
             SingleUse = false,
             SuccessRate = 100,
@@ -68,7 +68,7 @@ public static class ExchangeParser
         // Simple heuristics for exchange type
         if (dto.GiveCurrency == "coins")
             return ExchangeType.Purchase;
-        
+
         // Default to trade
         return ExchangeType.Trade;
     }
@@ -95,7 +95,7 @@ public static class ExchangeParser
         if (dto.TokenGate != null && dto.TokenGate.Count > 0)
         {
             cost.TokenRequirements = new Dictionary<ConnectionType, int>();
-            foreach (var kvp in dto.TokenGate)
+            foreach (KeyValuePair<string, int> kvp in dto.TokenGate)
             {
                 if (Enum.TryParse<ConnectionType>(kvp.Key, true, out ConnectionType tokenType))
                 {
@@ -172,15 +172,15 @@ public static class ExchangeParser
                     Description = "Purchase provisions from the merchant",
                     NpcId = npc.ID,
                     ExchangeType = ExchangeType.Purchase,
-                    Cost = new ExchangeCostStructure 
-                    { 
+                    Cost = new ExchangeCostStructure
+                    {
                         Resources = new List<ResourceAmount>
                         {
                             new ResourceAmount { Type = ResourceType.Coins, Amount = 5 }
                         }
                     },
-                    Reward = new ExchangeRewardStructure 
-                    { 
+                    Reward = new ExchangeRewardStructure
+                    {
                         Resources = new List<ResourceAmount>
                         {
                             new ResourceAmount { Type = ResourceType.Hunger, Amount = 2 }
@@ -189,7 +189,7 @@ public static class ExchangeParser
                     SuccessRate = 100
                 });
                 break;
-                
+
             case Professions.Innkeeper:
                 exchanges.Add(new ExchangeCard
                 {
@@ -198,15 +198,15 @@ public static class ExchangeParser
                     Description = "Pay for a comfortable rest",
                     NpcId = npc.ID,
                     ExchangeType = ExchangeType.Service,
-                    Cost = new ExchangeCostStructure 
-                    { 
+                    Cost = new ExchangeCostStructure
+                    {
                         Resources = new List<ResourceAmount>
                         {
                             new ResourceAmount { Type = ResourceType.Coins, Amount = 10 }
                         }
                     },
-                    Reward = new ExchangeRewardStructure 
-                    { 
+                    Reward = new ExchangeRewardStructure
+                    {
                         Resources = new List<ResourceAmount>
                         {
                             new ResourceAmount { Type = ResourceType.Health, Amount = 3 },

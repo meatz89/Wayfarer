@@ -80,7 +80,7 @@ public static class ConversationContextFactory
     }
 
     // REMOVED: InitializeCommerceContext deleted - exchanges use separate Exchange system
-    
+
     private static void InitializePromiseContext(PromiseContext context, GameWorld gameWorld)
     {
         // PromiseContext now handles Request bundles (which contain promise cards)

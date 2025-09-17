@@ -21,11 +21,11 @@ public static class TimeBlockSegments
         { TimeBlocks.Evening, 1 },
         { TimeBlocks.Night, 0 } // No playable segments during sleep time
     };
-    
+
     public const int TOTAL_SEGMENTS_PER_DAY = 16; // Dawn(3) + Morning(4) + Afternoon(4) + Evening(4) + Night(1)
-    
+
     public static int GetSegmentsForBlock(TimeBlocks block)
     {
-        return SegmentsPerBlock.TryGetValue(block, out var segments) ? segments : 0;
+        return SegmentsPerBlock.TryGetValue(block, out int segments) ? segments : 0;
     }
 }

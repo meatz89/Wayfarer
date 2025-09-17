@@ -62,7 +62,7 @@ public class NPC
     // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
     // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ±4)
     public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
-    
+
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
     public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
@@ -108,7 +108,7 @@ public class NPC
         {
             BurdenDeck = new CardDeck();
         }
-        
+
         if (burdenCards != null)
         {
             foreach (ConversationCard card in burdenCards)
@@ -208,7 +208,7 @@ public class NPC
     }
 
 
-    
+
     /// <summary>
     /// Initialize daily patience based on personality type
     /// </summary>
@@ -223,7 +223,7 @@ public class NPC
             PersonalityType.PROUD => 10,
             _ => 12 // Default fallback
         };
-        
+
         // Set current patience to max on initialization
         DailyPatience = MaxDailyPatience;
     }
@@ -266,7 +266,7 @@ public class NPC
             _ => ConnectionState.TRUSTING
         };
     }
-    
+
     /// <summary>
     /// Get flow battery (-2 to +2, displayed as -3 to +3) from single value
     /// </summary>
@@ -275,7 +275,7 @@ public class NPC
         int position = RelationshipFlow % 5;
         return position - 2; // Maps 0->-2, 1->-1, 2->0, 3->+1, 4->+2
     }
-    
+
     /// <summary>
     /// Apply daily decay - move flow toward global neutral value 12
     /// </summary>
@@ -292,16 +292,16 @@ public class NPC
         }
         // If at neutral (12), stay there
     }
-    
+
     /// <summary>
     /// Get available one-time requests
     /// </summary>
     public List<NPCRequest> GetAvailableRequests()
     {
-        var available = new List<NPCRequest>();
+        List<NPCRequest> available = new List<NPCRequest>();
         if (Requests != null)
         {
-            foreach (var request in Requests)
+            foreach (NPCRequest request in Requests)
             {
                 if (request.IsAvailable())
                 {
@@ -311,7 +311,7 @@ public class NPC
         }
         return available;
     }
-    
+
     /// <summary>
     /// Check if NPC has any available one-time requests
     /// </summary>
@@ -319,7 +319,7 @@ public class NPC
     {
         return GetAvailableRequests().Count > 0;
     }
-    
+
     /// <summary>
     /// Get a specific request by ID
     /// </summary>
@@ -327,7 +327,7 @@ public class NPC
     {
         if (Requests != null)
         {
-            foreach (var request in Requests)
+            foreach (NPCRequest request in Requests)
             {
                 if (request.Id == requestId)
                 {
@@ -337,13 +337,13 @@ public class NPC
         }
         return null;
     }
-    
+
     /// <summary>
     /// Mark a request as completed
     /// </summary>
     public void CompleteRequest(string requestId)
     {
-        var request = GetRequestById(requestId);
+        NPCRequest request = GetRequestById(requestId);
         if (request != null)
         {
             request.Complete();

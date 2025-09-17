@@ -51,7 +51,7 @@ public class ConversationDeckBuilder
 
         // Add unlocked NPC progression cards as new instances
         List<ConversationCard> unlockedProgressionCards = GetUnlockedProgressionCards(npc);
-        foreach (var progressionCard in unlockedProgressionCards)
+        foreach (ConversationCard progressionCard in unlockedProgressionCards)
         {
             CardInstance progressionInstance = new CardInstance(progressionCard, npc.ID);
             deck.AddCard(progressionInstance);
@@ -77,7 +77,7 @@ public class ConversationDeckBuilder
         List<CardInstance> requestCards = SelectGoalCardsForConversationType(npc, conversationType, goalCardId, deck);
 
         // HIGHLANDER: Add request cards directly to deck's request pile
-        foreach (var requestCard in requestCards)
+        foreach (CardInstance requestCard in requestCards)
         {
             deck.AddRequestCard(requestCard);
         }
@@ -136,16 +136,16 @@ public class ConversationDeckBuilder
         if (!string.IsNullOrEmpty(goalCardId) && npc.Requests != null)
         {
             // First check if it's a request ID
-            var request = npc.GetRequestById(goalCardId);
+            NPCRequest request = npc.GetRequestById(goalCardId);
             if (request != null && request.IsAvailable())
             {
                 // Load ALL cards from the Request bundle
 
                 // Add ALL request cards to be returned for active pile
-                foreach (var requestCardId in request.RequestCardIds)
+                foreach (string requestCardId in request.RequestCardIds)
                 {
                     // Retrieve the card from GameWorld - single source of truth
-                    if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out var requestCard))
+                    if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out ConversationCard? requestCard))
                     {
                         Console.WriteLine($"[ConversationDeckBuilder] Warning: Request card ID '{requestCardId}' not found in GameWorld.AllCardDefinitions");
                         continue;
@@ -195,10 +195,10 @@ public class ConversationDeckBuilder
                 }
 
                 // Add promise cards to the deck for shuffling (not returned)
-                foreach (var promiseCardId in request.PromiseCardIds)
+                foreach (string promiseCardId in request.PromiseCardIds)
                 {
                     // Retrieve the card from GameWorld - single source of truth
-                    if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out var promiseCard))
+                    if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out ConversationCard? promiseCard))
                     {
                         Console.WriteLine($"[ConversationDeckBuilder] Warning: Promise card ID '{promiseCardId}' not found in GameWorld.AllCardDefinitions");
                         continue;
@@ -217,7 +217,7 @@ public class ConversationDeckBuilder
         {
             case ConversationType.FriendlyChat:
                 // For FriendlyChat, select from NPC's connection token goal cards
-                var goalCard = SelectConnectionTokenGoalCard(npc);
+                CardInstance goalCard = SelectConnectionTokenGoalCard(npc);
                 return goalCard != null ? new List<CardInstance> { goalCard } : new List<CardInstance>();
 
             case ConversationType.Delivery:
@@ -227,7 +227,7 @@ public class ConversationDeckBuilder
 
             case ConversationType.Resolution:
                 // For Resolution, select from burden resolution cards
-                var burdenCard = SelectBurdenResolutionCard(npc);
+                CardInstance burdenCard = SelectBurdenResolutionCard(npc);
                 return burdenCard != null ? new List<CardInstance> { burdenCard } : new List<CardInstance>();
 
             default:
@@ -246,16 +246,16 @@ public class ConversationDeckBuilder
             return null;
 
         // Look for cards with CardType Promise in available requests
-        var availableRequests = npc.GetAvailableRequests();
+        List<NPCRequest> availableRequests = npc.GetAvailableRequests();
         if (!availableRequests.Any())
             return null;
 
         // Get all promise cards from all available requests
         List<ConversationCard> goalCards = new List<ConversationCard>();
-        foreach (var request in availableRequests)
+        foreach (NPCRequest request in availableRequests)
         {
             // Retrieve promise cards from GameWorld using IDs
-            var promiseCards = request.GetPromiseCards(_gameWorld);
+            List<ConversationCard> promiseCards = request.GetPromiseCards(_gameWorld);
             goalCards.AddRange(promiseCards.Where(card => card.CardType == CardType.Promise));
         }
 

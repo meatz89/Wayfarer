@@ -33,8 +33,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// Validate if an exchange can be performed
         /// </summary>
         public ExchangeValidationResult ValidateExchange(
-            ExchangeData exchange, 
-            NPC npc, 
+            ExchangeData exchange,
+            NPC npc,
             PlayerResourceState playerResources,
             List<string> currentSpotDomains)
         {
@@ -170,7 +170,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check if any required domain matches current spot domains
-            return exchange.RequiredDomains.Any(required => 
+            return exchange.RequiredDomains.Any(required =>
                 currentSpotDomains.Contains(required, StringComparer.OrdinalIgnoreCase));
         }
 
@@ -273,7 +273,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         {
             // Get total tokens with this NPC
             int totalTokens = _tokenFacade.GetTotalTokensWithNPC(npc.ID);
-            
+
             // Map token count to connection state
             if (totalTokens <= 0) return ConnectionState.DISCONNECTED;
             if (totalTokens <= 2) return ConnectionState.GUARDED;

@@ -122,7 +122,7 @@ namespace Wayfarer.Pages.Components
 
                     // Get actual connection state using the same logic as conversations
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
-                    
+
                     // Include flow in the display
                     string stateDisplay = connectionState.ToString();
                     if (npc.CurrentFlow != 0)
@@ -145,7 +145,7 @@ namespace Wayfarer.Pages.Components
             AvailableObservations.Clear();
             TakenObservations.Clear();
             Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
-            
+
             // Get taken observations
             List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
@@ -153,7 +153,7 @@ namespace Wayfarer.Pages.Components
             // Get available observation rewards and convert to view models
             List<ObservationReward> availableRewards = GameFacade.GetAvailableObservationRewards();
             Console.WriteLine($"[LocationContent] Got {availableRewards?.Count ?? 0} available observation rewards");
-            
+
             if (availableRewards != null && availableRewards.Any())
             {
                 AvailableObservations = availableRewards
@@ -448,7 +448,7 @@ namespace Wayfarer.Pages.Components
         protected string GetFamiliarityDisplay()
         {
             if (CurrentLocation == null) return "";
-            
+
             Player player = GameWorld.GetPlayer();
             int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
             return $"{currentFamiliarity}/{CurrentLocation.MaxFamiliarity}";
@@ -460,9 +460,9 @@ namespace Wayfarer.Pages.Components
         protected int GetExpectedFamiliarityGain()
         {
             if (CurrentSpot == null) return 1;
-            
-            var activeProperties = CurrentSpot.GetActiveProperties(CurrentTime);
-            
+
+            List<SpotPropertyType> activeProperties = CurrentSpot.GetActiveProperties(CurrentTime);
+
             // Quiet spots give +2, Busy spots give +1, others give +1
             if (activeProperties.Contains(SpotPropertyType.Quiet))
             {
@@ -655,7 +655,7 @@ namespace Wayfarer.Pages.Components
                 {
                     actualNPC.InitializeDailyPatience();
                 }
-                
+
                 // Return formatted patience display (current/max)
                 return $"{actualNPC.DailyPatience}/{actualNPC.MaxDailyPatience} patience today";
             }
@@ -676,7 +676,7 @@ namespace Wayfarer.Pages.Components
                 {
                     actualNPC.InitializeDailyPatience();
                 }
-                
+
                 // Return current daily patience remaining
                 return actualNPC.DailyPatience;
             }

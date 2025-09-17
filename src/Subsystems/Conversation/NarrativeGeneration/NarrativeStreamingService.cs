@@ -142,14 +142,14 @@ public class NarrativeStreamingService
         if (!string.IsNullOrWhiteSpace(output.ProgressionHint))
         {
             await Task.Delay(delayMs * 2, cancellationToken);
-            
+
             await foreach (NarrativeChunk chunk in StreamNarrativeAsync($"[{output.ProgressionHint}]", chunkSize, delayMs, cancellationToken))
             {
                 chunk.IsDialogue = false;
                 yield return chunk;
             }
         }
-        
+
         // Note: Card narratives are generated separately and not streamed here
         // They are handled by a separate call to GenerateCardNarrativesAsync
     }
@@ -212,16 +212,16 @@ public class NarrativeStreamingService
             return false;
 
         string trimmed = text.Trim();
-        
+
         // Check for quoted text
         if (trimmed.StartsWith("\"") && trimmed.EndsWith("\""))
             return true;
-        
+
         if (trimmed.StartsWith("'") && trimmed.EndsWith("'"))
             return true;
 
         // Check for common dialogue patterns
-        if (trimmed.StartsWith("I ") || trimmed.StartsWith("You ") || 
+        if (trimmed.StartsWith("I ") || trimmed.StartsWith("You ") ||
             trimmed.StartsWith("We ") || trimmed.StartsWith("They "))
             return true;
 

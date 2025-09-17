@@ -28,9 +28,9 @@ public class JsonNarrativeProvider : INarrativeProvider
     {
         // Find the best matching template for current state
         NarrativeTemplate template = repository.FindBestMatch(state, npcData);
-        
+
         NarrativeOutput output;
-        
+
         if (template == null)
         {
             // Use smart fallback
@@ -49,8 +49,8 @@ public class JsonNarrativeProvider : INarrativeProvider
             output = new NarrativeOutput
             {
                 NPCDialogue = ApplyVariableSubstitution(template.NPCDialogue, npcData),
-                NarrativeText = template.NarrativeText != null 
-                    ? ApplyVariableSubstitution(template.NarrativeText, npcData) 
+                NarrativeText = template.NarrativeText != null
+                    ? ApplyVariableSubstitution(template.NarrativeText, npcData)
                     : null,
                 ProgressionHint = GenerateProgressionHint(state, npcData, template),
                 CardNarratives = new List<CardNarrative>(), // Empty for phase 1
@@ -60,7 +60,7 @@ public class JsonNarrativeProvider : INarrativeProvider
 
         return Task.FromResult(output);
     }
-    
+
     /// <summary>
     /// Phase 2: Generates card-specific narratives based on NPC dialogue.
     /// For JSON fallback, doesn't use NPC dialogue but generates based on card properties.
@@ -72,20 +72,20 @@ public class JsonNarrativeProvider : INarrativeProvider
         string npcDialogue)
     {
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
-        
+
         // Find template for card narratives (may be different from dialogue template)
         NarrativeTemplate template = repository.FindBestMatch(state, npcData);
-        
+
         // Generate card narratives for all active cards
         foreach (CardInfo card in activeCards.Cards)
         {
             string narrativeText;
-            
+
             if (template != null)
             {
                 narrativeText = repository.GetCardNarrative(
-                    card.Id, 
-                    card.NarrativeCategory ?? "default", 
+                    card.Id,
+                    card.NarrativeCategory ?? "default",
                     template);
                 narrativeText = ApplyVariableSubstitution(narrativeText, npcData);
             }
@@ -94,7 +94,7 @@ public class JsonNarrativeProvider : INarrativeProvider
                 // Use smart fallback
                 narrativeText = GenerateSmartCardNarrative(card, state, npcData);
             }
-            
+
             cardNarratives.Add(new CardNarrative
             {
                 CardId = card.Id,
@@ -238,17 +238,17 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return "I trust you. Here's the truth.";
         }
-        
+
         if (state.Rapport >= 11 && state.Rapport <= 15 && hasHighFocusCards)
         {
             return "You're pushing hard. Why?";
         }
-        
+
         if (state.Rapport >= 6 && state.Rapport <= 10 && activeCards.Cards.Any(c => c.NarrativeCategory == "risk"))
         {
             return "This is difficult to discuss.";
         }
-        
+
         if (state.Rapport >= 0 && state.Rapport <= 5)
         {
             if (hasImpulse)
@@ -349,7 +349,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return $"{baseNarrative} with bold conviction";
         }
-        
+
         if (card.Difficulty == Difficulty.VeryHard || card.Difficulty == Difficulty.Hard)
         {
             return $"{baseNarrative}, risking their reaction";
@@ -396,12 +396,12 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return "Gather thoughts";
         }
-        
+
         if (card.Effect?.Contains("focus") == true || card.Id.Contains("focus"))
         {
             return "Center yourself";
         }
-        
+
         return "Take a moment to think";
     }
 
@@ -415,7 +415,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return "An urgent matter requires immediate attention.";
         }
-        
+
         if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Opening))
         {
             return "There's an opportunity to invite deeper discussion.";
@@ -426,22 +426,22 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return "Time is running out. Direct action may be necessary.";
         }
-        
+
         if (state.Focus < 2)
         {
             return "Consider gathering focus before attempting difficult conversations.";
         }
-        
+
         if (state.Rapport < 0)
         {
             return "Building trust through supportive responses may open new opportunities.";
         }
-        
+
         if (state.Flow < 5)
         {
             return "The conversation feels distant. Finding common ground might help.";
         }
-        
+
         if (state.Rapport >= 15 && state.Flow >= 15)
         {
             return "High trust and connection suggest deeper topics may be accessible.";

@@ -88,7 +88,7 @@ namespace Wayfarer.Pages.Components
         protected string LastNarrative { get; set; }
         protected string LastDialogue { get; set; }
         protected NarrativeProviderType LastProviderSource { get; set; } = NarrativeProviderType.JsonFallback; // Default to fallback
-        
+
         // AI narrative generation state
         protected bool IsGeneratingNarrative { get; set; } = false;
         protected List<CardNarrative> CurrentCardNarratives { get; set; } = new List<CardNarrative>();
@@ -100,7 +100,7 @@ namespace Wayfarer.Pages.Components
         /// This is different from animations - we only block during ACTUAL backend processing, not visual feedback.
         /// </summary>
         protected bool IsProcessing { get; set; } = false;
-        
+
         protected string GetNarrativeClass()
         {
             if (IsGeneratingNarrative)
@@ -119,7 +119,7 @@ namespace Wayfarer.Pages.Components
                     return cardNarrative.ProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
                 }
             }
-            
+
             // Default to template/fallback
             return "json-fallback";
         }
@@ -192,13 +192,13 @@ namespace Wayfarer.Pages.Components
         {
             // SYNCHRONOUS PRINCIPLE: Block during backend processing only, not animations
             if (Session == null || IsProcessing) return;
-            
+
             // If initial narrative is still generating, wait for it instead of triggering new generation
             if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
             {
                 Console.WriteLine("[ConversationContent.ExecuteListen] Waiting for initial narrative to complete...");
                 NarrativeOutput initialNarrative = await _initialNarrativeTask;
-                
+
                 if (initialNarrative != null)
                 {
                     Console.WriteLine($"[ConversationContent.ExecuteListen] Using initial narrative. Card narratives: {initialNarrative.CardNarratives?.Count ?? 0}");
@@ -206,11 +206,11 @@ namespace Wayfarer.Pages.Components
                     ApplyNarrativeOutput(initialNarrative);
                     StateHasChanged();
                 }
-                
+
                 // Clear the task so we don't reuse it again
                 _initialNarrativeTask = null;
             }
-            
+
             // Return early if AI is still generating (shouldn't happen after await above)
             if (IsGeneratingNarrative) return;
 
@@ -251,7 +251,7 @@ namespace Wayfarer.Pages.Components
                 if (_initialNarrativeTask == null)
                 {
                     // Use AI-generated narrative from the result
-                    if (listenResult?.Narrative != null && 
+                    if (listenResult?.Narrative != null &&
                         !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
                     {
                         Console.WriteLine("[ConversationContent.ExecuteListen] Applying new narrative from listen result");
@@ -404,7 +404,7 @@ namespace Wayfarer.Pages.Components
                     {
                         ProcessSpeakResult(result);
                     }
-                    
+
                     // Use AI NPC dialogue if available
                     if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NPCDialogue))
                     {
@@ -557,11 +557,11 @@ namespace Wayfarer.Pages.Components
             LastDialogue = GetInitialDialogue();
             LastProviderSource = NarrativeProviderType.JsonFallback;
             StateHasChanged(); // Update UI with fallback
-            
+
             // Start the AI generation task but don't await it yet
             _initialNarrativeTask = GenerateInitialNarrativeAsync();
         }
-        
+
         private async Task<NarrativeOutput> GenerateInitialNarrativeAsync()
         {
             try
@@ -571,21 +571,21 @@ namespace Wayfarer.Pages.Components
                 {
                     // Get the active cards for the initial state
                     List<CardInstance> activeCards = Session.Deck.Hand.Cards?.ToList() ?? new List<CardInstance>();
-                    
+
                     // Start AI generation
                     IsGeneratingNarrative = true;
                     StateHasChanged(); // Update UI to show loading state
-                    
+
                     Console.WriteLine("[ConversationContent] Starting initial AI narrative generation (Phase 1 - NPC dialogue only)...");
-                    
+
                     // Request phase 1 narrative (NPC dialogue only) for faster initial UI update
                     NarrativeOutput narrative = await NarrativeService.GenerateOnlyNPCDialogueAsync(
                         Session,
                         Context.Npc,
                         activeCards);
-                    
+
                     Console.WriteLine($"[ConversationContent] Phase 1 AI narrative received. Has NPC dialogue: {!string.IsNullOrWhiteSpace(narrative?.NPCDialogue)}");
-                    
+
                     if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
                         ApplyNarrativeOutput(narrative);
@@ -603,18 +603,18 @@ namespace Wayfarer.Pages.Components
                 IsGeneratingNarrative = false;
                 StateHasChanged(); // Ensure loading state is cleared
             }
-            
+
             return null;
         }
-        
+
         private void ApplyNarrativeOutput(NarrativeOutput narrative)
         {
             if (narrative == null) return;
-            
+
             Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying narrative output. Provider: {narrative.ProviderSource}");
-            
+
             CurrentNarrativeOutput = narrative;
-            
+
             // Update NPC dialogue and narrative
             if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
             {
@@ -625,16 +625,16 @@ namespace Wayfarer.Pages.Components
             {
                 LastNarrative = narrative.NarrativeText;
             }
-            
+
             LastProviderSource = narrative.ProviderSource;
-            
+
             // Apply card narratives
             CurrentCardNarratives.Clear();
             if (narrative.CardNarratives != null && narrative.CardNarratives.Any())
             {
                 Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying {narrative.CardNarratives.Count} card narratives");
                 CurrentCardNarratives.AddRange(narrative.CardNarratives);
-                foreach (var cardNarrative in narrative.CardNarratives)
+                foreach (CardNarrative cardNarrative in narrative.CardNarratives)
                 {
                     if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
                     {
@@ -652,44 +652,44 @@ namespace Wayfarer.Pages.Components
                 }
             }
         }
-        
+
         private async Task GenerateCardNarrativesAsync(string npcDialogue)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
                     return;
-                
+
                 Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Starting second phase card narrative generation");
-                
+
                 // Get the active cards for current state
                 List<CardInstance> activeCards = Session.Deck.Hand.Cards?.ToList() ?? new List<CardInstance>();
                 if (!activeCards.Any())
                     return;
-                
+
                 // Call phase 2 to generate card narratives based on NPC dialogue
                 List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
                     Session,
                     Context.Npc,
                     activeCards,
                     npcDialogue);
-                
+
                 if (cardNarratives != null && cardNarratives.Any())
                 {
                     Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Generated {cardNarratives.Count} card narratives");
-                    
+
                     // Apply the card narratives to the UI
                     CurrentCardNarratives.Clear();
                     CurrentCardNarratives.AddRange(cardNarratives);
-                    
-                    foreach (var cardNarrative in cardNarratives)
+
+                    foreach (CardNarrative cardNarrative in cardNarratives)
                     {
                         if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
                         {
                             Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Card {cardNarrative.CardId}: {cardNarrative.NarrativeText.Substring(0, Math.Min(50, cardNarrative.NarrativeText.Length))}...");
                         }
                     }
-                    
+
                     // Update UI to show the new card narratives
                     StateHasChanged();
                 }
@@ -703,14 +703,14 @@ namespace Wayfarer.Pages.Components
                 Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Error generating card narratives: {ex.Message}");
             }
         }
-        
+
         private ConversationState BuildConversationState(ConversationSession session)
         {
             int rapport = session.RapportManager?.CurrentRapport ?? 0;
             TopicLayer currentLayer = rapport <= 5 ? TopicLayer.Deflection :
                                     rapport <= 10 ? TopicLayer.Gateway :
                                     TopicLayer.Core;
-            
+
             return new ConversationState
             {
                 Flow = session.FlowBattery,
@@ -725,7 +725,7 @@ namespace Wayfarer.Pages.Components
                 ConversationHistory = new List<string>()
             };
         }
-        
+
         private NPCData BuildNPCData(NPC npc)
         {
             return new NPCData
@@ -737,7 +737,7 @@ namespace Wayfarer.Pages.Components
                 CurrentTopic = "general"
             };
         }
-        
+
         private CardCollection BuildCardCollection(List<CardInstance> cards)
         {
             CardCollection collection = new CardCollection();
@@ -760,7 +760,7 @@ namespace Wayfarer.Pages.Components
         private void GenerateListenNarrative()
         {
             LastNarrative = "You listen attentively...";
-            
+
             // For Request conversations, display the request text on LISTEN
             if (Context?.Type == ConversationType.Request && !string.IsNullOrEmpty(Context.RequestText))
             {
@@ -1321,12 +1321,12 @@ namespace Wayfarer.Pages.Components
             {
                 throw new InvalidOperationException($"Goal card '{card?.Id}' has no context!");
             }
-            
+
             if (card.Context.RapportThreshold <= 0)
             {
                 throw new InvalidOperationException($"Goal card '{card.Id}' has invalid rapport threshold: {card.Context.RapportThreshold}");
             }
-            
+
             return card.Context.RapportThreshold;
         }
 
@@ -1340,10 +1340,10 @@ namespace Wayfarer.Pages.Components
                     return;
                 }
 
-                var currentRapport = Session.RapportManager.CurrentRapport;
-                var cardsToMove = new List<CardInstance>();
+                int currentRapport = Session.RapportManager.CurrentRapport;
+                List<CardInstance> cardsToMove = new List<CardInstance>();
 
-                foreach (var card in Session.Deck.RequestCards.Cards)
+                foreach (CardInstance card in Session.Deck.RequestCards.Cards)
                 {
                     // Skip cards that have already been moved
                     if (MovedRequestCardIds.Contains(card.InstanceId))
@@ -1351,14 +1351,14 @@ namespace Wayfarer.Pages.Components
                         continue;
                     }
 
-                    var threshold = GetRequestRapportThreshold(card);
+                    int threshold = GetRequestRapportThreshold(card);
                     if (currentRapport >= threshold)
                     {
                         cardsToMove.Add(card);
                     }
                 }
 
-                foreach (var card in cardsToMove)
+                foreach (CardInstance card in cardsToMove)
                 {
                     Console.WriteLine($"[CheckRequestPileThresholds] Moving card {card.Id} from RequestPile to ActiveCards (Rapport {currentRapport})");
                     Session.Deck.RequestCards.Remove(card);
@@ -1481,7 +1481,7 @@ namespace Wayfarer.Pages.Components
                 if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
                     return cardNarrative.NarrativeText;
             }
-            
+
             // Fallback to card's Description property or name
             return !string.IsNullOrEmpty(card.Description) ? card.Description : GetProperCardName(card);
         }
@@ -1654,7 +1654,7 @@ namespace Wayfarer.Pages.Components
             // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects
             if (card.SuccessType != SuccessEffectType.None)
             {
-                var projection = EffectResolver.ProcessSuccessEffect(card, Session);
+                CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
                 // Build description from projection data
                 if (projection.AtmosphereTypeChange.HasValue)
@@ -1718,7 +1718,7 @@ namespace Wayfarer.Pages.Components
             // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL failure effects
             if (card.FailureType != FailureEffectType.None)
             {
-                var projection = EffectResolver.ProcessFailureEffect(card, Session);
+                CardEffectResult projection = EffectResolver.ProcessFailureEffect(card, Session);
 
                 // Build description from projection data
                 if (projection.RapportChange < 0)
@@ -2322,7 +2322,7 @@ namespace Wayfarer.Pages.Components
                 int maxFocusInHand = 0;
                 if (Session.Deck.Hand?.Cards != null)
                 {
-                    foreach (var c in Session.Deck.Hand.Cards)
+                    foreach (CardInstance c in Session.Deck.Hand.Cards)
                     {
                         int focusCost = c.GetEffectiveFocus(Session.CurrentState);
                         if (focusCost > maxFocusInHand)
@@ -2518,7 +2518,7 @@ namespace Wayfarer.Pages.Components
             // Add exhaust penalty if present - ALWAYS use projection
             if (card.ExhaustType != ExhaustEffectType.None)
             {
-                var projection = EffectResolver.ProcessExhaustEffect(card, Session);
+                CardEffectResult projection = EffectResolver.ProcessExhaustEffect(card, Session);
 
                 // Build penalty description from projection (penalties only, never bonuses)
                 if (projection.RapportChange < 0)
@@ -2750,10 +2750,10 @@ namespace Wayfarer.Pages.Components
             // Observation cards cost 0 focus and count as SPEAK actions
             // Set the card as selected and execute speak
             SelectedCard = observationCard;
-            
+
             // Execute the SPEAK action
             await ExecuteSpeak();
-            
+
             // Remove the observation card from the session (consumed permanently)
             Session.NPCObservationCards.Remove(observationCard);
         }
@@ -3261,333 +3261,333 @@ namespace Wayfarer.Pages.Components
                 MarkCardsForExhaust(impulseCards);
             }
         }
-    
-    private string FormatResourceList(List<ResourceAmount> resources)
-    {
-        if (resources == null || resources.Count == 0)
-            return "nothing";
 
-        return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
-    }
-
-    // ===== NEW UI UPDATE METHODS =====
-
-    /// <summary>
-    /// Helper class for player stat display information
-    /// </summary>
-    public class PlayerStatInfo
-    {
-        public string Name { get; set; }
-        public int Level { get; set; }
-        public int CurrentXP { get; set; }
-        public int RequiredXP { get; set; }
-    }
-
-    /// <summary>
-    /// Returns list of player stats for display in conversation UI
-    /// </summary>
-    protected List<PlayerStatInfo> GetPlayerStats()
-    {
-        var result = new List<PlayerStatInfo>();
-
-        if (GameFacade == null) return result;
-
-        try
+        private string FormatResourceList(List<ResourceAmount> resources)
         {
-            PlayerStats stats = GameFacade.GetPlayerStats();
+            if (resources == null || resources.Count == 0)
+                return "nothing";
 
-            // Get all five core stats
-            foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
+            return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
+        }
+
+        // ===== NEW UI UPDATE METHODS =====
+
+        /// <summary>
+        /// Helper class for player stat display information
+        /// </summary>
+        public class PlayerStatInfo
+        {
+            public string Name { get; set; }
+            public int Level { get; set; }
+            public int CurrentXP { get; set; }
+            public int RequiredXP { get; set; }
+        }
+
+        /// <summary>
+        /// Returns list of player stats for display in conversation UI
+        /// </summary>
+        protected List<PlayerStatInfo> GetPlayerStats()
+        {
+            List<PlayerStatInfo> result = new List<PlayerStatInfo>();
+
+            if (GameFacade == null) return result;
+
+            try
             {
-                result.Add(new PlayerStatInfo
+                PlayerStats stats = GameFacade.GetPlayerStats();
+
+                // Get all five core stats
+                foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
                 {
-                    Name = GetStatDisplayName(stat),
-                    Level = stats.GetLevel(stat),
-                    CurrentXP = stats.GetXP(stat),
-                    RequiredXP = stats.GetXPToNextLevel(stat)
-                });
+                    result.Add(new PlayerStatInfo
+                    {
+                        Name = GetStatDisplayName(stat),
+                        Level = stats.GetLevel(stat),
+                        CurrentXP = stats.GetXP(stat),
+                        RequiredXP = stats.GetXPToNextLevel(stat)
+                    });
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
+            }
+
+            return result;
         }
-        catch (Exception ex)
+
+        /// <summary>
+        /// Get display name for a stat type
+        /// </summary>
+        private string GetStatDisplayName(PlayerStatType stat)
         {
-            Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
+            return stat switch
+            {
+                PlayerStatType.Insight => "Insight",
+                PlayerStatType.Rapport => "Rapport",
+                PlayerStatType.Authority => "Authority",
+                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Cunning => "Cunning",
+                _ => stat.ToString()
+            };
         }
 
-        return result;
-    }
-
-    /// <summary>
-    /// Get display name for a stat type
-    /// </summary>
-    private string GetStatDisplayName(PlayerStatType stat)
-    {
-        return stat switch
+        /// <summary>
+        /// Returns short personality rule text for the NPC bar badge
+        /// </summary>
+        protected string GetPersonalityRuleShort()
         {
-            PlayerStatType.Insight => "Insight",
-            PlayerStatType.Rapport => "Rapport",
-            PlayerStatType.Authority => "Authority",
-            PlayerStatType.Commerce => "Commerce",
-            PlayerStatType.Cunning => "Cunning",
-            _ => stat.ToString()
-        };
-    }
+            if (Session?.NPC == null) return "";
 
-    /// <summary>
-    /// Returns short personality rule text for the NPC bar badge
-    /// </summary>
-    protected string GetPersonalityRuleShort()
-    {
-        if (Session?.NPC == null) return "";
+            // Get the actual mechanical rules from the personality type
+            PersonalityType personality = Session.NPC.PersonalityType;
+            return personality switch
+            {
+                PersonalityType.DEVOTED => "Devoted: Rapport losses doubled",
+                PersonalityType.MERCANTILE => "Mercantile: Highest focus +30% success",
+                PersonalityType.PROUD => "Proud: Cards must ascend in focus",
+                PersonalityType.CUNNING => "Cunning: Same focus as prev -2 rapport",
+                PersonalityType.STEADFAST => "Steadfast: Rapport changes capped ±2",
+                _ => $"{personality}: Special rules apply"
+            };
+        }
 
-        // Get the actual mechanical rules from the personality type
-        var personality = Session.NPC.PersonalityType;
-        return personality switch
+        /// <summary>
+        /// Returns CSS class for patience slots based on current usage
+        /// </summary>
+        protected string GetPatienceSlotClass(int slot)
         {
-            PersonalityType.DEVOTED => "Devoted: Rapport losses doubled",
-            PersonalityType.MERCANTILE => "Mercantile: Highest focus +30% success",
-            PersonalityType.PROUD => "Proud: Cards must ascend in focus",
-            PersonalityType.CUNNING => "Cunning: Same focus as prev -2 rapport",
-            PersonalityType.STEADFAST => "Steadfast: Rapport changes capped ±2",
-            _ => $"{personality}: Special rules apply"
-        };
-    }
+            if (Session == null) return "";
 
-    /// <summary>
-    /// Returns CSS class for patience slots based on current usage
-    /// </summary>
-    protected string GetPatienceSlotClass(int slot)
-    {
-        if (Session == null) return "";
+            int currentPatienceUsed = Session.CurrentPatience;
 
-        int currentPatienceUsed = Session.CurrentPatience;
+            if (slot <= currentPatienceUsed)
+                return "used";
+            else if (slot == currentPatienceUsed + 1)
+                return "current";
+            else
+                return "";
+        }
 
-        if (slot <= currentPatienceUsed)
-            return "used";
-        else if (slot == currentPatienceUsed + 1)
-            return "current";
-        else
+        /// <summary>
+        /// Returns CSS classes for flow battery segments based on current flow value
+        /// </summary>
+        protected string GetFlowSegmentClass(int segment)
+        {
+            if (Session == null) return "";
+
+            int currentFlow = Session.FlowBattery;
+
+            // Negative segments (-3 to -1)
+            if (segment < 0)
+            {
+                return currentFlow <= segment ? "active" : "inactive";
+            }
+            // Positive segments (1 to 3)
+            else if (segment > 0)
+            {
+                return currentFlow >= segment ? "active" : "inactive";
+            }
+
             return "";
-    }
-
-    /// <summary>
-    /// Returns CSS classes for flow battery segments based on current flow value
-    /// </summary>
-    protected string GetFlowSegmentClass(int segment)
-    {
-        if (Session == null) return "";
-
-        int currentFlow = Session.FlowBattery;
-
-        // Negative segments (-3 to -1)
-        if (segment < 0)
-        {
-            return currentFlow <= segment ? "active" : "inactive";
-        }
-        // Positive segments (1 to 3)
-        else if (segment > 0)
-        {
-            return currentFlow >= segment ? "active" : "inactive";
         }
 
-        return "";
-    }
-
-    /// <summary>
-    /// Returns list of request goals/thresholds for the current conversation
-    /// </summary>
-    protected List<RequestGoal> GetRequestGoals()
-    {
-        var goals = new List<RequestGoal>();
-
-        // First check if we have an active session with request cards
-        if (Session?.Deck?.Hand != null)
+        /// <summary>
+        /// Returns list of request goals/thresholds for the current conversation
+        /// </summary>
+        protected List<RequestGoal> GetRequestGoals()
         {
-            // Look for request/promise cards that are already loaded in the session
-            var requestCardsInSession = Session.Deck.Hand.Cards
+            List<RequestGoal> goals = new List<RequestGoal>();
+
+            // First check if we have an active session with request cards
+            if (Session?.Deck?.Hand != null)
+            {
+                // Look for request/promise cards that are already loaded in the session
+                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInSession = Session.Deck.Hand.Cards
                 // HIGHLANDER: DrawPile removed - deck manages all internally
                 .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
                 .Where(c => c.Template?.RapportThreshold > 0)
                 .GroupBy(c => c.Template.RapportThreshold)
                 .OrderBy(g => g.Key);
 
-            foreach (var group in requestCardsInSession)
+                foreach (IGrouping<int, CardInstance>? group in requestCardsInSession)
+                {
+                    int threshold = group.Key;
+                    CardInstance firstCard = group.First();
+
+                    // Determine reward based on threshold
+                    string reward = threshold switch
+                    {
+                        <= 5 => "1 Trust token",
+                        <= 10 => "2 Trust tokens",
+                        <= 15 => "3 Trust tokens + Observation",
+                        _ => "Special reward"
+                    };
+
+                    // Use descriptive name based on threshold
+                    string goalName = threshold switch
+                    {
+                        <= 5 => "Basic Delivery",
+                        <= 10 => "Priority Delivery",
+                        <= 15 => "Immediate Action",
+                        _ => firstCard.Template?.Description ?? "Special Request"
+                    };
+
+                    goals.Add(new RequestGoal
+                    {
+                        Threshold = threshold,
+                        Name = goalName,
+                        Reward = reward
+                    });
+                }
+            }
+
+            // Fallback to hardcoded goals if no session cards found
+            if (!goals.Any())
             {
-                var threshold = group.Key;
-                var firstCard = group.First();
+                goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "1 Trust token" });
+                goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "2 Trust tokens" });
+                goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "3 Trust tokens + Observation" });
+            }
 
-                // Determine reward based on threshold
-                string reward = threshold switch
-                {
-                    <= 5 => "1 Trust token",
-                    <= 10 => "2 Trust tokens",
-                    <= 15 => "3 Trust tokens + Observation",
-                    _ => "Special reward"
-                };
+            return goals;
+        }
 
-                // Use descriptive name based on threshold
-                string goalName = threshold switch
-                {
-                    <= 5 => "Basic Delivery",
-                    <= 10 => "Priority Delivery",
-                    <= 15 => "Immediate Action",
-                    _ => firstCard.Template?.Description ?? "Special Request"
-                };
+        /// <summary>
+        /// Helper class for request goal information
+        /// </summary>
+        public class RequestGoal
+        {
+            public int Threshold { get; set; }
+            public string Name { get; set; }
+            public string Reward { get; set; }
+        }
 
-                goals.Add(new RequestGoal
-                {
-                    Threshold = threshold,
-                    Name = goalName,
-                    Reward = reward
-                });
+        /// <summary>
+        /// Returns the name of the current request/letter being worked on
+        /// </summary>
+        protected string GetRequestName()
+        {
+            // Try to get the current letter or conversation context
+            if (Session?.NPC != null)
+            {
+                return $"Conversation with {Session.NPC.Name}";
+            }
+
+            return "Current Request";
+        }
+
+        /// <summary>
+        /// Returns CSS class for goal cards based on current rapport vs threshold
+        /// </summary>
+        protected string GetGoalCardClass(int threshold)
+        {
+            if (Session?.RapportManager == null) return "";
+
+            int currentRapport = Session.RapportManager.CurrentRapport;
+
+            if (currentRapport >= threshold)
+                return "achievable";
+            else if (currentRapport >= threshold - 2) // Close to achievable
+                return "active";
+            else
+                return "";
+        }
+
+        /// <summary>
+        /// Returns CSS class name for card stat badges (lowercase stat name)
+        /// </summary>
+        protected string GetCardStatClass(CardInstance card)
+        {
+            if (card?.Template?.BoundStat == null) return "";
+
+            return card.Template.BoundStat.Value.ToString().ToLower();
+        }
+
+        /// <summary>
+        /// Returns the stat type as a lowercase string for applying stat-based color classes
+        /// </summary>
+        protected string GetCardStatColorClass(CardInstance card)
+        {
+            if (card?.Template?.BoundStat == null) return "";
+
+            return card.Template.BoundStat.Value.ToString().ToLower();
+        }
+
+        /// <summary>
+        /// Analyzes card effects and returns appropriate effect tags
+        /// </summary>
+        protected List<string> GetCardEffectTags(CardInstance card)
+        {
+            List<string> tags = new List<string>();
+
+            if (card?.Template == null) return tags;
+
+            // Success effect tags
+            if (card.SuccessType != SuccessEffectType.None)
+            {
+                tags.Add(card.SuccessType.ToString());
+            }
+
+            // Failure effect tags
+            if (card.FailureType != FailureEffectType.None)
+            {
+                tags.Add(card.FailureType.ToString());
+            }
+
+            // Exhaust effect tags (only if not None)
+            if (card.ExhaustType != ExhaustEffectType.None)
+            {
+                tags.Add($"Exhaust: {card.ExhaustType}");
+            }
+
+            return tags;
+        }
+
+        /// <summary>
+        /// Returns proper display name for card's bound stat
+        /// </summary>
+        protected string GetCardStatName(CardInstance card)
+        {
+            if (card?.Template?.BoundStat == null) return "";
+
+            return GetStatDisplayName(card.Template.BoundStat.Value);
+        }
+
+        /// <summary>
+        /// Returns the effective level of a card based on player's stat level
+        /// </summary>
+        protected int GetCardLevel(CardInstance card)
+        {
+            if (card?.Template?.BoundStat == null || GameFacade == null) return 1;
+
+            try
+            {
+                PlayerStats stats = GameFacade.GetPlayerStats();
+                return stats.GetLevel(card.Template.BoundStat.Value);
+            }
+            catch
+            {
+                return 1;
             }
         }
 
-        // Fallback to hardcoded goals if no session cards found
-        if (!goals.Any())
+        /// <summary>
+        /// Returns XP gain for playing cards in this conversation based on conversation level
+        /// </summary>
+        protected int GetXPGain()
         {
-            goals.Add(new RequestGoal { Threshold = 5, Name = "Basic Progress", Reward = "1 Trust token" });
-            goals.Add(new RequestGoal { Threshold = 10, Name = "Good Progress", Reward = "2 Trust tokens" });
-            goals.Add(new RequestGoal { Threshold = 15, Name = "Excellent Progress", Reward = "3 Trust tokens + Observation" });
-        }
+            // XP is based on conversation difficulty/level
+            // For now, return a base value - this should be enhanced based on actual conversation level
+            if (Session?.NPC != null)
+            {
+                // If it's a stranger conversation, use stranger level
+                // Otherwise use base conversation XP
+                return 1; // Level 1 conversations give 1 XP, Level 2 give 2 XP, Level 3 give 3 XP
+            }
 
-        return goals;
-    }
-
-    /// <summary>
-    /// Helper class for request goal information
-    /// </summary>
-    public class RequestGoal
-    {
-        public int Threshold { get; set; }
-        public string Name { get; set; }
-        public string Reward { get; set; }
-    }
-
-    /// <summary>
-    /// Returns the name of the current request/letter being worked on
-    /// </summary>
-    protected string GetRequestName()
-    {
-        // Try to get the current letter or conversation context
-        if (Session?.NPC != null)
-        {
-            return $"Conversation with {Session.NPC.Name}";
-        }
-
-        return "Current Request";
-    }
-
-    /// <summary>
-    /// Returns CSS class for goal cards based on current rapport vs threshold
-    /// </summary>
-    protected string GetGoalCardClass(int threshold)
-    {
-        if (Session?.RapportManager == null) return "";
-
-        int currentRapport = Session.RapportManager.CurrentRapport;
-
-        if (currentRapport >= threshold)
-            return "achievable";
-        else if (currentRapport >= threshold - 2) // Close to achievable
-            return "active";
-        else
-            return "";
-    }
-
-    /// <summary>
-    /// Returns CSS class name for card stat badges (lowercase stat name)
-    /// </summary>
-    protected string GetCardStatClass(CardInstance card)
-    {
-        if (card?.Template?.BoundStat == null) return "";
-
-        return card.Template.BoundStat.Value.ToString().ToLower();
-    }
-
-    /// <summary>
-    /// Returns the stat type as a lowercase string for applying stat-based color classes
-    /// </summary>
-    protected string GetCardStatColorClass(CardInstance card)
-    {
-        if (card?.Template?.BoundStat == null) return "";
-
-        return card.Template.BoundStat.Value.ToString().ToLower();
-    }
-
-    /// <summary>
-    /// Analyzes card effects and returns appropriate effect tags
-    /// </summary>
-    protected List<string> GetCardEffectTags(CardInstance card)
-    {
-        var tags = new List<string>();
-
-        if (card?.Template == null) return tags;
-
-        // Success effect tags
-        if (card.SuccessType != SuccessEffectType.None)
-        {
-            tags.Add(card.SuccessType.ToString());
-        }
-
-        // Failure effect tags
-        if (card.FailureType != FailureEffectType.None)
-        {
-            tags.Add(card.FailureType.ToString());
-        }
-
-        // Exhaust effect tags (only if not None)
-        if (card.ExhaustType != ExhaustEffectType.None)
-        {
-            tags.Add($"Exhaust: {card.ExhaustType}");
-        }
-
-        return tags;
-    }
-
-    /// <summary>
-    /// Returns proper display name for card's bound stat
-    /// </summary>
-    protected string GetCardStatName(CardInstance card)
-    {
-        if (card?.Template?.BoundStat == null) return "";
-
-        return GetStatDisplayName(card.Template.BoundStat.Value);
-    }
-
-    /// <summary>
-    /// Returns the effective level of a card based on player's stat level
-    /// </summary>
-    protected int GetCardLevel(CardInstance card)
-    {
-        if (card?.Template?.BoundStat == null || GameFacade == null) return 1;
-
-        try
-        {
-            PlayerStats stats = GameFacade.GetPlayerStats();
-            return stats.GetLevel(card.Template.BoundStat.Value);
-        }
-        catch
-        {
             return 1;
         }
+
     }
-
-    /// <summary>
-    /// Returns XP gain for playing cards in this conversation based on conversation level
-    /// </summary>
-    protected int GetXPGain()
-    {
-        // XP is based on conversation difficulty/level
-        // For now, return a base value - this should be enhanced based on actual conversation level
-        if (Session?.NPC != null)
-        {
-            // If it's a stranger conversation, use stranger level
-            // Otherwise use base conversation XP
-            return 1; // Level 1 conversations give 1 XP, Level 2 give 2 XP, Level 3 give 3 XP
-        }
-
-        return 1;
-    }
-
-}
 }

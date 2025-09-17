@@ -15,7 +15,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private readonly ExchangeValidator _validator;
         private readonly ExchangeProcessor _processor;
         private readonly MessageSystem _messageSystem;
-        
+
         private Dictionary<string, ExchangeSession> _activeSessions;
 
         public ExchangeOrchestrator(
@@ -124,8 +124,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             // Validate the exchange is still possible
             PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
             ExchangeValidationResult validation = _validator.ValidateExchange(
-                selectedExchange.ExchangeData, 
-                session.NPC, 
+                selectedExchange.ExchangeData,
+                session.NPC,
                 playerResources,
                 new List<string>());
 
@@ -140,7 +140,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
 
             // Process the exchange
             ExchangeResult result = await _processor.ProcessExchange(
-                selectedExchange.ExchangeData, 
+                selectedExchange.ExchangeData,
                 session.NPC);
 
             // Update session state if successful

@@ -26,7 +26,7 @@ public class ResourceState
             Tokens = new Dictionary<ConnectionType, int>()
         };
     }
-    
+
     public static ResourceState FromPlayerResourceState(PlayerResourceState playerState)
     {
         return new ResourceState

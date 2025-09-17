@@ -174,14 +174,14 @@ public static class LocationParser
     {
         if (!element.TryGetProperty(propertyName, out JsonElement property))
             throw new InvalidOperationException($"Missing required property '{propertyName}' in Location JSON");
-        
+
         if (property.ValueKind != JsonValueKind.String)
             throw new InvalidOperationException($"Property '{propertyName}' must be a string in Location JSON");
-        
+
         string value = property.GetString();
         if (string.IsNullOrWhiteSpace(value))
             throw new InvalidOperationException($"Property '{propertyName}' cannot be empty in Location JSON");
-        
+
         return value;
     }
 
@@ -189,10 +189,10 @@ public static class LocationParser
     {
         if (!element.TryGetProperty(propertyName, out JsonElement property))
             return null;
-        
+
         if (property.ValueKind != JsonValueKind.String)
             return null;
-        
+
         return property.GetString();
     }
 }

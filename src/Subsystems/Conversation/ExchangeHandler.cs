@@ -271,16 +271,16 @@ public class ExchangeHandler
 
         // Check if player has required minimum tokens with this NPC
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        
-        foreach (var tokenReq in card.Cost.TokenRequirements)
+
+        foreach (KeyValuePair<ConnectionType, int> tokenReq in card.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.ContainsKey(tokenReq.Key) 
-                ? npcTokens[tokenReq.Key] 
+            int currentTokens = npcTokens.ContainsKey(tokenReq.Key)
+                ? npcTokens[tokenReq.Key]
                 : 0;
             if (currentTokens < tokenReq.Value)
                 return false;
         }
-        
+
         return true;
     }
 

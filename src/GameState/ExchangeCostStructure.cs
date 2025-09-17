@@ -42,7 +42,7 @@ public class ExchangeCostStructure
     {
         if (playerResources == null) return false;
 
-        foreach (var cost in Resources)
+        foreach (ResourceAmount cost in Resources)
         {
             switch (cost.Type)
             {
@@ -72,9 +72,9 @@ public class ExchangeCostStructure
         if (TokenRequirements == null || TokenRequirements.Count == 0)
             return true;
 
-        foreach (var requirement in TokenRequirements)
+        foreach (KeyValuePair<ConnectionType, int> requirement in TokenRequirements)
         {
-            if (!playerTokens.ContainsKey(requirement.Key) || 
+            if (!playerTokens.ContainsKey(requirement.Key) ||
                 playerTokens[requirement.Key] < requirement.Value)
             {
                 return false;
@@ -90,7 +90,7 @@ public class ExchangeCostStructure
     {
         return new ExchangeCostStructure
         {
-            Resources = new List<ResourceAmount>(Resources.Count > 0 
+            Resources = new List<ResourceAmount>(Resources.Count > 0
                 ? Resources.ConvertAll(r => new ResourceAmount(r.Type, r.Amount))
                 : new List<ResourceAmount>()),
             TokenRequirements = new Dictionary<ConnectionType, int>(TokenRequirements),
@@ -104,14 +104,14 @@ public class ExchangeCostStructure
     /// </summary>
     public string GetDescription()
     {
-        var parts = new List<string>();
-        
-        foreach (var resource in Resources)
+        List<string> parts = new List<string>();
+
+        foreach (ResourceAmount resource in Resources)
         {
             parts.Add($"{resource.Amount} {resource.Type}");
         }
 
-        foreach (var item in ConsumedItemIds)
+        foreach (string item in ConsumedItemIds)
         {
             parts.Add($"1x {item}");
         }

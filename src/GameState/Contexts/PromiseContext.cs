@@ -81,8 +81,8 @@ public class PromiseContext : ConversationContextBase
 
     public bool IsUrgent()
     {
-        return EmotionalFocus == EmotionalFocus.CRITICAL || 
-               UrgencyLevel == "HIGH" || 
+        return EmotionalFocus == EmotionalFocus.CRITICAL ||
+               UrgencyLevel == "HIGH" ||
                (HasDeadline && SegmentsUntilDeadline < 2); // Less than 2 segments = urgent
     }
 }

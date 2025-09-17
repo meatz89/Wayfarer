@@ -43,7 +43,7 @@ public class FlowManager
 
         // Apply the change
         int newFlow = currentFlow + modifiedChange;
-        
+
         // Allow flow to reach ±3 (displays as ±4) before transition
         currentFlow = newFlow;
 
@@ -83,7 +83,7 @@ public class FlowManager
                 return (false, currentState, false);
             }
         }
-        
+
         return (false, currentState, false);
     }
 
@@ -108,7 +108,7 @@ public class FlowManager
             StateTransitioned?.Invoke(oldState, newState);
             return (true, newState, false);
         }
-        
+
         return (false, currentState, false);
     }
 

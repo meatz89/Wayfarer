@@ -207,7 +207,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                     // Refresh to maximum
                     npc.RefreshDailyPatience();
                 }
-                
+
                 // Apply daily decay to flow and connection state
                 // This moves relationships toward neutral over time
                 npc.ApplyDailyDecay();
@@ -307,7 +307,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         {
             // Base work payment
             int baseAmount = 8;
-            
+
             // Apply hunger penalty: coins = base_amount - floor(hunger/25)
             int currentHunger = GetHunger();
             int hungerPenalty = currentHunger / 25; // Integer division = floor
@@ -317,7 +317,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             AttentionManager currentAttentionManager = _attentionManager.GetCurrentAttention(currentTimeBlock);
             int attentionCost = 2;
-            
+
             if (currentAttentionManager.Current < attentionCost)
             {
                 return new WorkResult
@@ -333,10 +333,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             // Spend attention and add coins
             currentAttentionManager.TrySpend(attentionCost);
             AddCoins(coinsEarned, "Work performed");
-            
+
             // Generate message about hunger impact if any
             string hungerMessage = hungerPenalty > 0 ? $" (reduced by {hungerPenalty} due to hunger)" : "";
-            
+
             _messageSystem.AddSystemMessage($"💼 Earned {coinsEarned} coins from work{hungerMessage}", SystemMessageTypes.Success);
 
             return new WorkResult

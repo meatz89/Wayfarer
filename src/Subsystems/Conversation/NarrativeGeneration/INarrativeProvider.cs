@@ -22,7 +22,7 @@ public interface INarrativeProvider
         ConversationState state,
         NPCData npcData,
         CardCollection activeCards);
-    
+
     /// <summary>
     /// Phase 2: Generates card-specific narratives based on NPC dialogue.
     /// Uses the NPC dialogue from Phase 1 to create contextually appropriate card responses.
@@ -38,7 +38,7 @@ public interface INarrativeProvider
         NPCData npcData,
         CardCollection activeCards,
         string npcDialogue);
-    
+
     /// <summary>
     /// Checks if this provider is currently available for use.
     /// PRINCIPLE: Always use async/await for I/O operations. Never block async code
@@ -46,7 +46,7 @@ public interface INarrativeProvider
     /// </summary>
     /// <returns>True if provider can generate content, false otherwise</returns>
     Task<bool> IsAvailableAsync();
-    
+
     /// <summary>
     /// Gets the provider type for identifying this provider.
     /// </summary>

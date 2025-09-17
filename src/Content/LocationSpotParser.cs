@@ -41,7 +41,7 @@ public static class LocationSpotParser
         if (dto.Properties != null)
         {
             Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID} properties");
-            
+
             // Parse base properties (always active)
             if (dto.Properties.Base != null)
             {
@@ -60,7 +60,7 @@ public static class LocationSpotParser
                     }
                 }
             }
-            
+
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
             {
@@ -82,7 +82,7 @@ public static class LocationSpotParser
 
             // Parse time-specific properties
             Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
-            
+
             // Morning properties
             ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
             // Midday properties
@@ -95,9 +95,9 @@ public static class LocationSpotParser
             ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
             // Dawn properties
             ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
-            
+
             // Assign to spot
-            foreach (var kvp in timeProperties)
+            foreach (KeyValuePair<TimeBlocks, List<SpotPropertyType>> kvp in timeProperties)
             {
                 if (kvp.Value.Count > 0)
                 {
@@ -114,7 +114,7 @@ public static class LocationSpotParser
 
         return spot;
     }
-    
+
     /// <summary>
     /// Helper method to parse time-specific properties
     /// </summary>
@@ -122,7 +122,7 @@ public static class LocationSpotParser
     {
         if (propertyStrings == null || propertyStrings.Count == 0)
             return;
-            
+
         List<SpotPropertyType> properties = new List<SpotPropertyType>();
         foreach (string propString in propertyStrings)
         {
@@ -132,7 +132,7 @@ public static class LocationSpotParser
                 properties.Add(prop);
             }
         }
-        
+
         if (properties.Count > 0)
         {
             timeProperties[timeBlock] = properties;

@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO;
 
 public static class ServiceConfiguration
 {
@@ -83,17 +83,17 @@ public static class ServiceConfiguration
         services.AddSingleton<OllamaConfiguration>(serviceProvider =>
         {
             IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
-            
+
             // Check environment variable first, then fall back to config
             string baseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL");
-            
+
             if (string.IsNullOrEmpty(baseUrl))
             {
                 // Use default from config - Development.json will override for WSL
                 baseUrl = config["Ollama:BaseUrl"];
             }
-            
-            var ollamaConfig = new OllamaConfiguration
+
+            OllamaConfiguration ollamaConfig = new OllamaConfiguration
             {
                 BaseUrl = baseUrl,
                 Model = config["Ollama:Model"],
@@ -108,15 +108,15 @@ public static class ServiceConfiguration
         services.AddSingleton<NarrativeStreamingService>();
         services.AddSingleton<JsonNarrativeRepository>();
         services.AddSingleton<ConversationNarrativeService>();
-        
+
         // AI Narrative Generation Support Components
         services.AddSingleton<ConversationNarrativeGenerator>();
         services.AddSingleton<PromptBuilder>();
-        
+
         // Always register both providers as concrete types
         services.AddSingleton<JsonNarrativeProvider>();
         services.AddSingleton<AIConversationNarrativeProvider>();
-        
+
         // NarrativeProviderFactory will handle selection based on config
         services.AddSingleton<NarrativeProviderFactory>();
 

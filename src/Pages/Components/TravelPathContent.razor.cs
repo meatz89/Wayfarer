@@ -37,7 +37,7 @@ namespace Wayfarer.Pages.Components
             // Get path cards for current segment with discovery state
             AvailablePathCards = TravelFacade.GetAvailablePathCards();
         }
-        
+
         /// <summary>
         /// Get available path cards for display
         /// </summary>
@@ -45,10 +45,10 @@ namespace Wayfarer.Pages.Components
         {
             if (TravelContext == null)
                 return new List<PathCardInfo>();
-            
+
             return TravelFacade.GetAvailablePathCards();
         }
-        
+
         /// <summary>
         /// Get base travel time for route
         /// </summary>
@@ -56,7 +56,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelContext?.CurrentRoute?.TravelTimeSegments ?? 0;
         }
-        
+
         /// <summary>
         /// Get segment count
         /// </summary>
@@ -64,7 +64,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelContext?.CurrentRoute?.Segments?.Count ?? 0;
         }
-        
+
         /// <summary>
         /// Get current segment number
         /// </summary>
@@ -72,7 +72,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelContext?.Session?.CurrentSegment ?? 1;
         }
-        
+
         /// <summary>
         /// Get route familiarity display
         /// </summary>
@@ -81,7 +81,7 @@ namespace Wayfarer.Pages.Components
             // Mock data for now - should come from game state
             return "0/3";
         }
-        
+
         /// <summary>
         /// Get stamina display string
         /// </summary>
@@ -89,20 +89,20 @@ namespace Wayfarer.Pages.Components
         {
             if (TravelContext?.Session == null)
                 return "0/0";
-            
+
             return $"{TravelContext.Session.StaminaRemaining}/{TravelContext.Session.StaminaCapacity}";
         }
-        
+
         /// <summary>
         /// Get CSS class for path card
         /// </summary>
         protected string GetPathCardCssClass(bool isDiscovered, bool isAvailable)
         {
             List<string> classes = new() { "path-card" };
-            
+
             // Event cards should never get face-down class
             bool isEventSegment = IsCurrentSegmentEventType();
-            
+
             if (isDiscovered || isEventSegment)
             {
                 classes.Add("face-up");
@@ -111,15 +111,15 @@ namespace Wayfarer.Pages.Components
             {
                 classes.Add("face-down");
             }
-            
+
             if (!isAvailable)
             {
                 classes.Add("unavailable");
             }
-            
+
             return string.Join(" ", classes);
         }
-        
+
         /// <summary>
         /// Get one-time reward status
         /// </summary>
@@ -129,7 +129,7 @@ namespace Wayfarer.Pages.Components
             // This should check game state to see if reward was already collected
             return "";  // For now, assume not claimed, or "(already claimed)"
         }
-        
+
         /// <summary>
         /// Check if player can rest
         /// </summary>
@@ -137,7 +137,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelContext?.Session != null && TravelContext.Session.CurrentState != TravelState.Fresh;
         }
-        
+
         /// <summary>
         /// Check if player must turn back
         /// </summary>
@@ -146,11 +146,11 @@ namespace Wayfarer.Pages.Components
             // Player must turn back if they can't afford any path cards and can't rest
             if (TravelContext?.Session == null)
                 return false;
-            
-            var availableCards = GetAvailablePathCards();
+
+            List<PathCardInfo> availableCards = GetAvailablePathCards();
             return !availableCards.Any(c => c.CanPlay) && !CanRest();
         }
-        
+
         /// <summary>
         /// Get destination name (same as existing method)
         /// </summary>
@@ -158,23 +158,23 @@ namespace Wayfarer.Pages.Components
         {
             if (TravelContext?.CurrentRoute == null)
                 return "Unknown Destination";
-            
+
             // Extract destination from route
-            var destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
+            string destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
             if (string.IsNullOrEmpty(destinationSpot))
                 return "Unknown Destination";
-            
+
             // Get location spot and location name
-            var spot = GameFacade.GetLocationSpot(destinationSpot);
+            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpot);
             if (spot != null)
             {
-                var location = GameFacade.GetLocationById(spot.LocationId);
+                Location location = GameFacade.GetLocationById(spot.LocationId);
                 if (location != null)
                 {
                     return location.Name;
                 }
             }
-            
+
             return "Unknown Destination";
         }
 
@@ -184,7 +184,7 @@ namespace Wayfarer.Pages.Components
         protected async Task SelectPathCard(string pathCardId)
         {
             Console.WriteLine($"[TravelPathContent] SelectPathCard called with: {pathCardId}");
-            
+
             if (TravelContext?.Session == null)
             {
                 Console.WriteLine("[TravelPathContent] No travel session, returning");
@@ -195,19 +195,19 @@ namespace Wayfarer.Pages.Components
             Console.WriteLine($"[TravelPathContent] Looking for card in {TravelContext.CurrentSegmentCards?.Count ?? 0} cards");
             if (TravelContext.CurrentSegmentCards != null)
             {
-                foreach (var c in TravelContext.CurrentSegmentCards)
+                foreach (PathCardDTO c in TravelContext.CurrentSegmentCards)
                 {
                     Console.WriteLine($"[TravelPathContent]   Available card: {c.Id}");
                 }
             }
-            
+
             PathCardDTO card = TravelContext.CurrentSegmentCards?.FirstOrDefault(c => c.Id == pathCardId);
             if (card == null)
             {
                 Console.WriteLine($"[TravelPathContent] Card not found: {pathCardId}");
                 return;
             }
-            
+
             if (!TravelFacade.CanPlayPathCard(pathCardId))
             {
                 Console.WriteLine($"[TravelPathContent] Cannot play card: {pathCardId}");
@@ -218,7 +218,7 @@ namespace Wayfarer.Pages.Components
             // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
             bool success = TravelManager.SelectPathCard(pathCardId);
             Console.WriteLine($"[TravelPathContent] SelectPathCard result: {success}");
-            
+
             if (success)
             {
                 // Refresh the context after card selection
@@ -299,7 +299,7 @@ namespace Wayfarer.Pages.Components
                 SegmentDotState state = i < currentSegment ? SegmentDotState.Complete :
                                      i == currentSegment ? SegmentDotState.Current :
                                      SegmentDotState.Pending;
-                
+
                 dots.Add(new SegmentDot { State = state });
             }
 
@@ -330,7 +330,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsCardDiscovered(string pathCardId)
         {
-            return TravelContext?.CardDiscoveries.ContainsKey(pathCardId) == true && 
+            return TravelContext?.CardDiscoveries.ContainsKey(pathCardId) == true &&
                    TravelContext.CardDiscoveries[pathCardId];
         }
 
@@ -387,7 +387,7 @@ namespace Wayfarer.Pages.Components
             if (card.StatRequirements != null && card.StatRequirements.Count > 0)
             {
                 Player player = GameFacade.GetPlayer();
-                foreach (var statReq in card.StatRequirements)
+                foreach (KeyValuePair<string, int> statReq in card.StatRequirements)
                 {
                     if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
                     {
@@ -455,7 +455,7 @@ namespace Wayfarer.Pages.Components
         {
             return IsCurrentSegmentEventType() ? "Choose Your Response" : "Choose Your Path";
         }
-        
+
         /// <summary>
         /// Get event narrative for current segment if applicable
         /// </summary>
@@ -463,7 +463,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelFacade.GetCurrentEventNarrative();
         }
-        
+
         /// <summary>
         /// Check if current segment is Event type
         /// </summary>
@@ -471,7 +471,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelFacade.IsCurrentSegmentEventType();
         }
-        
+
         /// <summary>
         /// Confirm the revealed card and proceed to next segment
         /// </summary>
@@ -487,7 +487,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged();
             }
         }
-        
+
         /// <summary>
         /// Finish the route when ready to complete
         /// </summary>
@@ -499,7 +499,7 @@ namespace Wayfarer.Pages.Components
                 await OnNavigate.InvokeAsync("location");
             }
         }
-        
+
         /// <summary>
         /// Check if journey is ready to complete
         /// </summary>
@@ -507,7 +507,7 @@ namespace Wayfarer.Pages.Components
         {
             return TravelFacade.IsReadyToComplete();
         }
-        
+
 
         /// <summary>
         /// Check if we're in card reveal state

@@ -176,7 +176,7 @@ public class CategoricalEffectResolver
         magnitude = ApplyAtmosphereModifiers(magnitude, SuccessEffectType.Rapport, session); // Use Rapport for failure magnitude
 
         switch (card.FailureType)
-        { 
+        {
             case FailureEffectType.Backfire:
                 // Negative rapport based on magnitude
                 result.RapportChange = -magnitude;
@@ -303,7 +303,7 @@ public class CategoricalEffectResolver
                 magnitude *= 2;
                 break;
 
-            // Synchronized handled separately in effect processing
+                // Synchronized handled separately in effect processing
         }
 
         return Math.Max(1, magnitude); // Never go below 1

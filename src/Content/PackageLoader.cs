@@ -58,12 +58,12 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Starting static package loading...");
 
         // Sort by filename to ensure proper loading order (01_, 02_, etc.)
-        var sortedPackages = packageFilePaths
+        List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
         Console.WriteLine($"[PackageLoader] Loading {sortedPackages.Count} packages in order:");
-        foreach (var path in sortedPackages)
+        foreach (string? path in sortedPackages)
         {
             Console.WriteLine($"  - {Path.GetFileName(path)}");
         }
@@ -170,8 +170,8 @@ public class PackageLoader
         LoadLocationActions(package.Content.LocationActions, allowSkeletons);
 
         // 8. Travel content
-        var pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
-        var eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
+        List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
+        List<PathCardEntry> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
     }
@@ -334,7 +334,7 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Loading player stats configuration...");
 
         // Parse the player stats configuration using PlayerStatParser
-        var (statDefinitions, progression) = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
+        (List<PlayerStatDefinition> statDefinitions, StatProgression progression) = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
 
         // Store the configuration in GameWorld
         _gameWorld.PlayerStatDefinitions = statDefinitions;
@@ -350,9 +350,9 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Loading listen draw counts...");
 
         // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
-        var drawCountEntries = new List<ListenDrawCountEntry>();
+        List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
 
-        foreach (var kvp in listenDrawCounts)
+        foreach (KeyValuePair<string, int> kvp in listenDrawCounts)
         {
             // Parse connection state from string key
             if (Enum.TryParse<ConnectionState>(kvp.Key.ToUpper(), out ConnectionState state))
@@ -459,7 +459,7 @@ public class PackageLoader
         if (npcRequestCards == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
-        foreach (var kvp in npcRequestCards)
+        foreach (KeyValuePair<string, List<ConversationCardDTO>> kvp in npcRequestCards)
         {
             string npcId = kvp.Key;
             foreach (ConversationCardDTO dto in kvp.Value)
@@ -476,7 +476,7 @@ public class PackageLoader
         if (npcProgressionCards == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading NPC progression cards...");
-        foreach (var kvp in npcProgressionCards)
+        foreach (KeyValuePair<string, List<ConversationCardDTO>> kvp in npcProgressionCards)
         {
             string npcId = kvp.Key;
             foreach (ConversationCardDTO dto in kvp.Value)
@@ -625,11 +625,11 @@ public class PackageLoader
                 Console.WriteLine($"[PackageLoader] Replacing skeleton NPC '{existingSkeleton.Name}' (ID: {existingSkeleton.ID}) with real content");
 
                 // Preserve all cards from the 5 persistent decks
-                var preservedProgressionCards = existingSkeleton.ProgressionDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
-                var preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
-                var preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
-                var preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
-                var preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
+                List<ConversationCard> preservedProgressionCards = existingSkeleton.ProgressionDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
+                List<ConversationCard> preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                List<ConversationCard> preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                List<NPCRequest> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
 
                 int totalPreservedCards = preservedProgressionCards.Count + preservedExchangeCards.Count +
                                         preservedObservationCards.Count + preservedBurdenCards.Count +
@@ -653,7 +653,7 @@ public class PackageLoader
                 // Restore preserved cards to the new NPC's persistent decks
                 if (preservedProgressionCards.Any())
                 {
-                    foreach (var card in preservedProgressionCards)
+                    foreach (ConversationCard? card in preservedProgressionCards)
                     {
                         npc.ProgressionDeck.AddCard(card);
                     }
@@ -666,7 +666,7 @@ public class PackageLoader
 
                 if (preservedObservationCards.Any())
                 {
-                    foreach (var card in preservedObservationCards)
+                    foreach (ConversationCard? card in preservedObservationCards)
                     {
                         npc.ObservationDeck.AddCard(card);
                     }
@@ -674,7 +674,7 @@ public class PackageLoader
 
                 if (preservedBurdenCards.Any())
                 {
-                    foreach (var card in preservedBurdenCards)
+                    foreach (ConversationCard? card in preservedBurdenCards)
                     {
                         npc.BurdenDeck.AddCard(card);
                     }
@@ -907,7 +907,7 @@ public class PackageLoader
 
         Console.WriteLine($"[PackageLoader] Loading {pathCardDtos.Count} path cards...");
 
-        var pathCardLookup = new List<PathCardEntry>();
+        List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in pathCardDtos)
         {
             pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
@@ -924,7 +924,7 @@ public class PackageLoader
 
         Console.WriteLine($"[PackageLoader] Loading {eventCardDtos.Count} event cards...");
 
-        var eventCardLookup = new List<PathCardEntry>();
+        List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in eventCardDtos)
         {
             eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
@@ -938,9 +938,9 @@ public class PackageLoader
     private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
-        
+
         Console.WriteLine($"[PackageLoader] Loading {travelEventDtos.Count} travel events...");
-        
+
         foreach (TravelEventDTO dto in travelEventDtos)
         {
             // Embed actual event cards if this event has event card IDs (for JSON loaded events)
@@ -948,22 +948,22 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.EventCardIds)
                 {
-                    var eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
+                    PathCardEntry? eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
                     if (eventCardEntry != null)
                     {
                         dto.EventCards.Add(eventCardEntry.Card);
                     }
                 }
             }
-            
+
             _gameWorld.AllTravelEvents[dto.Id] = dto;
             Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name} with {dto.EventCards.Count} event cards");
         }
-        
+
         Console.WriteLine($"[PackageLoader] Completed loading travel events. Total: {_gameWorld.AllTravelEvents.Count}");
     }
-    
-    
+
+
     private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
@@ -977,18 +977,18 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.PathCardIds)
                 {
-                    var pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
+                    PathCardEntry? pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
                     if (pathCardEntry != null)
                     {
                         dto.PathCards.Add(pathCardEntry.Card);
                     }
                 }
             }
-            
+
             // Determine if this is a path collection or event collection based on contents
             bool isEventCollection = (dto.Events != null && dto.Events.Count > 0);
             bool isPathCollection = (dto.PathCards != null && dto.PathCards.Count > 0);
-            
+
             if (isEventCollection)
             {
                 // This is an event collection - contains child events for random selection
@@ -1239,13 +1239,13 @@ public class PackageLoader
                 // Build exchange deck from composition
                 if (deckDef != null && deckDef.ExchangeDeck != null)
                 {
-                    foreach (var kvp in deckDef.ExchangeDeck)
+                    foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
                     {
                         string cardId = kvp.Key;
                         int count = kvp.Value;
 
                         // Find the exchange card from the parsed exchange cards
-                        var exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
+                        ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
                         if (exchangeEntry != null)
                         {
                             ExchangeCard exchangeCard = exchangeEntry.Card;
@@ -1370,7 +1370,7 @@ public class PackageLoader
 
         // Parse travel path cards system properties
         route.StartingStamina = dto.StartingStamina;
-        
+
         // Parse route segments
         if (dto.Segments != null)
         {
@@ -1382,13 +1382,13 @@ public class PackageLoader
                 {
                     Enum.TryParse<SegmentType>(segmentDto.Type, out segmentType);
                 }
-                
+
                 RouteSegment segment = new RouteSegment
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
                     Type = segmentType
                 };
-                
+
                 // Set collection properties based on segment type using normalized properties
                 if (segmentType == SegmentType.FixedPath)
                 {
@@ -1408,17 +1408,17 @@ public class PackageLoader
                         Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.EventCollectionId}'");
                     }
                 }
-                
+
                 route.Segments.Add(segment);
             }
         }
-        
+
         // Parse encounter deck IDs
         if (dto.EncounterDeckIds != null)
         {
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
         }
-        
+
         return route;
     }
 
@@ -1600,25 +1600,25 @@ public class PackageLoader
 
         // Initialize PathCardDiscoveries from cards embedded in collections
         // First from path collections
-        foreach (var collection in _gameWorld.AllPathCollections.Values)
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.Values)
         {
-            foreach (var pathCard in collection.PathCards)
+            foreach (PathCardDTO pathCard in collection.PathCards)
             {
                 _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
                 Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
-        
+
         // Also initialize discovery states for event cards in event collections
-        foreach (var collection in _gameWorld.AllEventCollections.Values)
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.Values)
         {
-            foreach (var eventCard in collection.EventCards)
+            foreach (PathCardDTO eventCard in collection.EventCards)
             {
                 _gameWorld.PathCardDiscoveries[eventCard.Id] = eventCard.StartsRevealed;
                 Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
-        
+
         // Cards are now embedded directly in collections
         // No separate card dictionaries needed
 
@@ -1627,10 +1627,10 @@ public class PackageLoader
         {
             string routeId = kvp.Key;
             string deckKey = $"route_{routeId}_events";
-            
+
             // Start at position 0 for deterministic event drawing
             _gameWorld.EventDeckPositions[deckKey] = 0;
-            
+
             int eventCount = kvp.Value.Events?.Count ?? 0;
             Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {eventCount} events");
         }
@@ -1667,13 +1667,13 @@ public class PackageLoader
         // Extract location IDs from the spot IDs for naming
         string originLocationId = GetLocationIdFromSpotId(forwardRoute.OriginLocationSpot);
         string destLocationId = GetLocationIdFromSpotId(forwardRoute.DestinationLocationSpot);
-        
+
         // Generate reverse route ID by swapping origin and destination
         string[] idParts = forwardRoute.Id.Split("_to_");
-        string reverseId = idParts.Length == 2 
+        string reverseId = idParts.Length == 2
             ? $"{idParts[1]}_to_{idParts[0]}"
             : $"{destLocationId}_to_{originLocationId}";
-        
+
         RouteOption reverseRoute = new RouteOption
         {
             Id = reverseId,
@@ -1681,7 +1681,7 @@ public class PackageLoader
             // Swap origin and destination
             OriginLocationSpot = forwardRoute.DestinationLocationSpot,
             DestinationLocationSpot = forwardRoute.OriginLocationSpot,
-            
+
             // Keep the same properties for both directions
             Method = forwardRoute.Method,
             BaseCoinCost = forwardRoute.BaseCoinCost,
@@ -1696,27 +1696,27 @@ public class PackageLoader
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
             StartingStamina = forwardRoute.StartingStamina
         };
-        
+
         // Copy terrain categories
         reverseRoute.TerrainCategories.AddRange(forwardRoute.TerrainCategories);
-        
+
         // Copy weather modifications
-        foreach (var kvp in forwardRoute.WeatherModifications)
+        foreach (KeyValuePair<WeatherCondition, RouteModification> kvp in forwardRoute.WeatherModifications)
         {
             reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
         }
-        
+
         // Copy unlock condition if present
         if (forwardRoute.UnlockCondition != null)
         {
             reverseRoute.UnlockCondition = forwardRoute.UnlockCondition;
         }
-        
+
         // CRITICAL: Reverse the segments order for the return journey
         // This ensures the path is traversed in reverse (C->B->A instead of A->B->C)
-        var reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();
+        List<RouteSegment> reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();
         int segmentNumber = 1;
-        foreach (var originalSegment in reversedSegments)
+        foreach (RouteSegment? originalSegment in reversedSegments)
         {
             RouteSegment reverseSegment = new RouteSegment
             {
@@ -1728,19 +1728,19 @@ public class PackageLoader
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
-        
+
         // Copy encounter deck IDs
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
-        
+
         // If the forward route has a route-level event pool, copy it to the reverse route
         if (_gameWorld.AllEventCollections.ContainsKey(forwardRoute.Id))
         {
             _gameWorld.AllEventCollections[reverseRoute.Id] = _gameWorld.AllEventCollections[forwardRoute.Id];
         }
-        
+
         return reverseRoute;
     }
-    
+
     private string GetLocationNameFromId(string locationId)
     {
         // Helper to get friendly location name from ID for route naming
@@ -1749,22 +1749,22 @@ public class PackageLoader
             return "Unknown Location";
         }
 
-        var location = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == locationId);
+        Location? location = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == locationId);
         return location?.Name ?? locationId.Replace("_", " ").Replace("-", " ");
     }
 
     private void ValidateCrossroadsConfiguration()
     {
         Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
-        
+
         // Group spots by location using tuples
-        var spotsByLocation = new List<(string LocationId, List<LocationSpot> Spots)>();
+        List<(string LocationId, List<LocationSpot> Spots)> spotsByLocation = new List<(string LocationId, List<LocationSpot> Spots)>();
         foreach (LocationSpot spot in _gameWorld.WorldState.locationSpots)
         {
-            var groupIndex = spotsByLocation.FindIndex(g => g.LocationId == spot.LocationId);
+            int groupIndex = spotsByLocation.FindIndex(g => g.LocationId == spot.LocationId);
             if (groupIndex == -1)
             {
-                var spots = new List<LocationSpot>();
+                List<LocationSpot> spots = new List<LocationSpot>();
                 spots.Add(spot);
                 spotsByLocation.Add((spot.LocationId, spots));
             }
@@ -1777,7 +1777,7 @@ public class PackageLoader
         // Validate each location has exactly one crossroads spot
         foreach (Location location in _gameWorld.WorldState.locations)
         {
-            var locationGroup = spotsByLocation.FirstOrDefault(g => g.LocationId == location.Id);
+            (string LocationId, List<LocationSpot> Spots) locationGroup = spotsByLocation.FirstOrDefault(g => g.LocationId == location.Id);
             if (locationGroup.LocationId == null)
             {
                 throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has no spots defined");
@@ -1864,29 +1864,29 @@ public class PackageLoader
         // Use the "default" deck from NpcDecks as the player's starter deck
         if (deckCompositions?.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey("default"))
         {
-            var defaultDeck = deckCompositions.NpcDecks["default"];
+            DeckDefinitionDTO defaultDeck = deckCompositions.NpcDecks["default"];
             if (defaultDeck?.ConversationDeck != null)
             {
                 foreach (KeyValuePair<string, int> kvp in defaultDeck.ConversationDeck)
-            {
-                string cardId = kvp.Key;
-                int count = kvp.Value;
-
-                if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                 {
-                    ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                    // Add starter cards to player deck as CardInstances (to track XP)
-                    if (cardTemplate != null && IsStarterCard(cardTemplate))
+                    string cardId = kvp.Key;
+                    int count = kvp.Value;
+
+                    if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
                     {
-                        for (int i = 0; i < count; i++)
+                        ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
+                        // Add starter cards to player deck as CardInstances (to track XP)
+                        if (cardTemplate != null && IsStarterCard(cardTemplate))
                         {
-                            // Create a new CardInstance for each copy of the card
-                            CardInstance instance = new CardInstance(cardTemplate, "player_deck");
-                            player.ConversationDeck.AddCardInstance(instance);
+                            for (int i = 0; i < count; i++)
+                            {
+                                // Create a new CardInstance for each copy of the card
+                                CardInstance instance = new CardInstance(cardTemplate, "player_deck");
+                                player.ConversationDeck.AddCardInstance(instance);
+                            }
                         }
                     }
                 }
-            }
 
                 Console.WriteLine($"[PackageLoader] Initialized player's starter deck with {player.ConversationDeck.Count} cards");
             }

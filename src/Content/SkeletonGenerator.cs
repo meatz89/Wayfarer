@@ -239,7 +239,7 @@ public static class SkeletonGenerator
             // Default exchange properties
             SingleUse = false,
             SuccessRate = 100,
-            
+
             // Generic flavor
             FlavorText = "An exchange of mutual benefit."
         };

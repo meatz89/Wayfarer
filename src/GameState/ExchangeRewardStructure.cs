@@ -52,19 +52,19 @@ public class ExchangeRewardStructure
     /// </summary>
     public string GetDescription()
     {
-        var parts = new List<string>();
-        
-        foreach (var resource in Resources)
+        List<string> parts = new List<string>();
+
+        foreach (ResourceAmount resource in Resources)
         {
             parts.Add($"{resource.Amount} {resource.Type}");
         }
 
-        foreach (var item in ItemIds)
+        foreach (string item in ItemIds)
         {
             parts.Add($"1x {item}");
         }
 
-        foreach (var token in Tokens)
+        foreach (KeyValuePair<ConnectionType, int> token in Tokens)
         {
             if (token.Value > 0)
             {

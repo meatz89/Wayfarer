@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 /// <summary>
 /// AI-powered narrative provider using Ollama for conversation generation.
@@ -18,7 +18,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     private readonly ConversationNarrativeGenerator generator;
     private readonly PromptBuilder promptBuilder;
     private readonly IConfiguration configuration;
-    
+
     /// <summary>
     /// Initializes the AI narrative provider with required dependencies.
     /// </summary>
@@ -37,7 +37,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         this.promptBuilder = promptBuilder;
         this.configuration = configuration;
     }
-    
+
     /// <summary>
     /// Phase 1: Generates NPC dialogue and environmental narrative only.
     /// Analyzes active cards to create NPC dialogue that all cards can respond to.
@@ -54,15 +54,15 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     {
         // Step 1: Use backwards construction to analyze cards
         CardAnalysis analysis = generator.AnalyzeActiveCards(activeCards);
-        
+
         // Step 2: Determine prompt type and build appropriate prompt for NPC dialogue
         string npcPrompt = DetermineAndBuildPrompt(state, npcData, activeCards, analysis);
-        
+
         // Step 3: Generate NPC dialogue using AI with 5 second timeout
         string npcResponse;
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             npcResponse = await GenerateAIResponseAsync(npcPrompt, cts.Token);
         }
         catch (OperationCanceledException)
@@ -75,29 +75,29 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             // AI generation failed - use fallback
             npcResponse = string.Empty;
         }
-        
+
         // Step 4: Parse NPC response into structured output
         NarrativeOutput output = ParseAIResponse(npcResponse, activeCards, state);
-        
+
         // Ensure we have NPC dialogue (use fallback if needed)
         if (string.IsNullOrEmpty(output.NPCDialogue))
         {
             output.NPCDialogue = GenerateFallbackNPCDialogue(state, npcData, analysis);
         }
-        
+
         // Add environmental narrative if missing
         if (string.IsNullOrEmpty(output.NarrativeText))
         {
             output.NarrativeText = GenerateFallbackEnvironmental(state, npcData);
         }
-        
+
         // Set provider source
-        output.ProviderSource = !string.IsNullOrEmpty(npcResponse) ? 
+        output.ProviderSource = !string.IsNullOrEmpty(npcResponse) ?
             NarrativeProviderType.AIGenerated : NarrativeProviderType.JsonFallback;
-        
+
         return output;
     }
-    
+
     /// <summary>
     /// Phase 2: Generates card-specific narratives based on NPC dialogue.
     /// Uses the NPC dialogue from Phase 1 to create contextually appropriate card responses.
@@ -116,24 +116,24 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     {
         Console.WriteLine($"[AIProvider] GenerateCardNarrativesAsync called with {activeCards.Cards.Count} cards");
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
-        
+
         if (string.IsNullOrEmpty(npcDialogue))
         {
             Console.WriteLine("[AIProvider] No NPC dialogue - using fallback card narratives");
             // Return fallback narratives if no NPC dialogue
             return GenerateFallbackCardNarratives(activeCards, state.Rapport);
         }
-        
+
         // Build prompt for card generation
         string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue);
         Console.WriteLine($"[AIProvider] Card generation prompt built, length: {cardPrompt.Length}");
-        
+
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);
             Console.WriteLine($"[AIProvider] AI card response received, length: {cardResponse?.Length ?? 0}");
-            
+
             if (!string.IsNullOrEmpty(cardResponse))
             {
                 // Parse the card narratives from AI response
@@ -151,7 +151,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             Console.WriteLine($"[AIProvider] Card generation failed: {ex.Message}");
             // AI generation failed - use fallback
         }
-        
+
         // Fill in any missing card narratives with fallbacks
         foreach (CardInfo card in activeCards.Cards)
         {
@@ -165,10 +165,10 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 });
             }
         }
-        
+
         return cardNarratives;
     }
-    
+
     /// <summary>
     /// Checks if the AI provider is available for use.
     /// Tests Ollama connectivity and configuration.
@@ -195,7 +195,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             return false;
         }
     }
-    
+
     /// <summary>
     /// Gets the provider type for identifying this provider.
     /// </summary>
@@ -204,12 +204,12 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     {
         return NarrativeProviderType.AIGenerated;
     }
-    
+
     private async Task<string> GenerateAIResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
         Console.WriteLine($"[AIProvider] GenerateAIResponseAsync called, prompt length: {prompt?.Length ?? 0}");
         StringBuilder responseBuilder = new StringBuilder();
-        
+
         try
         {
             await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
@@ -222,11 +222,11 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             Console.WriteLine($"[AIProvider] GenerateAIResponseAsync error: {ex.Message}");
             throw;
         }
-        
+
         Console.WriteLine($"[AIProvider] GenerateAIResponseAsync response length: {responseBuilder.Length}");
         return responseBuilder.ToString();
     }
-    
+
     /// <summary>
     /// Parses the card narrative response from the AI and returns a list of CardNarrative objects.
     /// </summary>
@@ -236,24 +236,24 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     private List<CardNarrative> ParseCardNarrativesAsList(string jsonResponse, CardCollection activeCards)
     {
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
-        
+
         if (string.IsNullOrEmpty(jsonResponse))
         {
             Console.WriteLine("[AIProvider] ParseCardNarrativesAsList: Empty response");
             return cardNarratives;
         }
-        
+
         Console.WriteLine($"[AIProvider] ParseCardNarrativesAsList: Parsing response: {jsonResponse.Substring(0, Math.Min(200, jsonResponse.Length))}...");
-        
+
         try
         {
-            var cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
-            
+            NarrativeOutput cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
+
             // Convert dictionary to list of CardNarrative objects
             if (cardNarrativeOutput.CardNarratives != null)
             {
                 Console.WriteLine($"[AIProvider] Found {cardNarrativeOutput.CardNarratives.Count} card narratives in parsed output");
-                foreach (var cn in cardNarrativeOutput.CardNarratives)
+                foreach (CardNarrative cn in cardNarrativeOutput.CardNarratives)
                 {
                     Console.WriteLine($"[AIProvider] Adding card narrative: {cn.CardId} = '{cn.NarrativeText}'");
                     cardNarratives.Add(new CardNarrative
@@ -274,17 +274,17 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             Console.WriteLine($"[AIProvider] JSON parsing failed: {ex.Message}");
             // JSON parsing failed - return empty list for fallback handling
         }
-        
+
         return cardNarratives;
     }
-    
+
     /// <summary>
     /// Generates fallback card narratives for all active cards.
     /// </summary>
     private List<CardNarrative> GenerateFallbackCardNarratives(CardCollection activeCards, int rapport)
     {
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
-        
+
         foreach (CardInfo card in activeCards.Cards)
         {
             cardNarratives.Add(new CardNarrative
@@ -294,23 +294,23 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 ProviderSource = NarrativeProviderType.JsonFallback
             });
         }
-        
+
         return cardNarratives;
     }
-    
+
     private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, ConversationState state)
     {
         NarrativeOutput output = new NarrativeOutput
         {
             CardNarratives = new List<CardNarrative>()
         };
-        
+
         // If no AI response, return empty output for fallback handling
         if (string.IsNullOrEmpty(aiResponse))
         {
             return output;
         }
-        
+
         try
         {
             // Parse as JSON based on conversation state
@@ -331,7 +331,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             return ParseLegacyTextResponse(aiResponse, activeCards);
         }
     }
-    
+
     /// <summary>
     /// Determines which prompt template to use and builds the appropriate prompt.
     /// </summary>
@@ -348,54 +348,54 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             return promptBuilder.BuildDialoguePrompt(state, npcData, activeCards, analysis, state.ConversationHistory);
         }
     }
-    
+
     /// <summary>
     /// Parses introduction JSON response format.
     /// </summary>
     private NarrativeOutput ParseIntroductionJSON(string jsonResponse, CardCollection activeCards)
     {
-        var jsonDoc = JsonDocument.Parse(jsonResponse);
-        var root = jsonDoc.RootElement;
-        
-        var output = new NarrativeOutput
+        JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+        JsonElement root = jsonDoc.RootElement;
+
+        NarrativeOutput output = new NarrativeOutput
         {
             CardNarratives = new List<CardNarrative>()
         };
-        
+
         if (root.TryGetProperty("introduction", out JsonElement intro))
         {
             output.NPCDialogue = intro.GetString();
         }
-        
+
         if (root.TryGetProperty("body_language", out JsonElement bodyLang))
         {
             output.NarrativeText = bodyLang.GetString();
         }
-        
+
         if (root.TryGetProperty("emotional_tone", out JsonElement emotionalTone))
         {
             output.ProgressionHint = emotionalTone.GetString();
         }
-        
+
         // For introduction, we still need to generate card narratives separately
         // This will be handled by the batch card generation in a separate AI call
-        
+
         return output;
     }
-    
+
     /// <summary>
     /// Parses dialogue JSON response format.
     /// </summary>
     private NarrativeOutput ParseDialogueJSON(string jsonResponse, CardCollection activeCards)
     {
-        var jsonDoc = JsonDocument.Parse(jsonResponse);
-        var root = jsonDoc.RootElement;
-        
-        var output = new NarrativeOutput
+        JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+        JsonElement root = jsonDoc.RootElement;
+
+        NarrativeOutput output = new NarrativeOutput
         {
             CardNarratives = new List<CardNarrative>()
         };
-        
+
         if (root.TryGetProperty("dialogue", out JsonElement dialogue))
         {
             output.NPCDialogue = dialogue.GetString();
@@ -404,36 +404,36 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         {
             output.NPCDialogue = npcDialogue.GetString();
         }
-        
+
         if (root.TryGetProperty("emotional_tone", out JsonElement emotionalTone))
         {
             output.NarrativeText = emotionalTone.GetString();
         }
-        
+
         if (root.TryGetProperty("topic_progression", out JsonElement topicProgression))
         {
             output.ProgressionHint = topicProgression.GetString();
         }
-        
+
         return output;
     }
-    
+
     /// <summary>
     /// Parses batch card generation JSON response format.
     /// </summary>
     private NarrativeOutput ParseCardGenerationJSON(string jsonResponse, CardCollection activeCards)
     {
-        var jsonDoc = JsonDocument.Parse(jsonResponse);
-        var root = jsonDoc.RootElement;
-        
-        var output = new NarrativeOutput
+        JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+        JsonElement root = jsonDoc.RootElement;
+
+        NarrativeOutput output = new NarrativeOutput
         {
             CardNarratives = new List<CardNarrative>()
         };
-        
+
         if (root.TryGetProperty("card_narratives", out JsonElement cardNarratives))
         {
-            foreach (var cardProp in cardNarratives.EnumerateObject())
+            foreach (JsonProperty cardProp in cardNarratives.EnumerateObject())
             {
                 string cardId = cardProp.Name;
                 if (cardProp.Value.TryGetProperty("card_text", out JsonElement cardText))
@@ -447,15 +447,15 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 }
             }
         }
-        
+
         if (root.TryGetProperty("narrative_coherence", out JsonElement coherence))
         {
             output.ProgressionHint = coherence.GetString();
         }
-        
+
         return output;
     }
-    
+
     /// <summary>
     /// Fallback parser for legacy text format responses.
     /// </summary>
@@ -465,13 +465,13 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         {
             CardNarratives = new List<CardNarrative>()
         };
-        
+
         string[] lines = aiResponse.Split('\n');
-        
+
         foreach (string line in lines)
         {
             string trimmedLine = line.Trim();
-            
+
             if (trimmedLine.StartsWith("NPC_DIALOGUE:"))
             {
                 output.NPCDialogue = ExtractQuotedText(trimmedLine);
@@ -489,45 +489,45 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 ParseCardNarrative(trimmedLine, output.CardNarratives);
             }
         }
-        
+
         return output;
     }
-    
+
     private string ExtractQuotedText(string line)
     {
         int firstQuote = line.IndexOf('"');
         int lastQuote = line.LastIndexOf('"');
-        
+
         if (firstQuote != -1 && lastQuote != -1 && firstQuote != lastQuote)
         {
             return line.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
         }
-        
+
         // Fallback: extract after colon
         int colonIndex = line.IndexOf(':');
         if (colonIndex != -1 && colonIndex < line.Length - 1)
         {
             return line.Substring(colonIndex + 1).Trim().Trim('"');
         }
-        
+
         return line;
     }
-    
+
     private void ParseCardNarrative(string line, List<CardNarrative> cardNarratives)
     {
         // Expected format: CARD_[ID]: "narrative text"
         int colonIndex = line.IndexOf(':');
         if (colonIndex == -1) return;
-        
+
         string cardPart = line.Substring(0, colonIndex).Trim();
         string narrativePart = line.Substring(colonIndex + 1).Trim();
-        
+
         // Extract card ID
         if (cardPart.StartsWith("CARD_"))
         {
             string cardId = cardPart.Substring(5); // Remove "CARD_" prefix
             string narrative = ExtractQuotedText(narrativePart);
-            
+
             if (!string.IsNullOrEmpty(cardId) && !string.IsNullOrEmpty(narrative))
             {
                 cardNarratives.Add(new CardNarrative
@@ -539,11 +539,11 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             }
         }
     }
-    
+
     private NarrativeOutput ValidateAndEnhanceOutput(
-        NarrativeOutput output, 
-        ConversationState state, 
-        NPCData npcData, 
+        NarrativeOutput output,
+        ConversationState state,
+        NPCData npcData,
         CardCollection activeCards,
         CardAnalysis analysis)
     {
@@ -552,7 +552,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         {
             output.NPCDialogue = GenerateFallbackNPCDialogue(state, npcData, analysis);
         }
-        
+
         // Ensure all cards have narratives
         foreach (CardInfo card in activeCards.Cards)
         {
@@ -566,23 +566,23 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 });
             }
         }
-        
+
         // Add environmental narrative if missing
         if (string.IsNullOrEmpty(output.NarrativeText))
         {
             output.NarrativeText = GenerateFallbackEnvironmental(state, npcData);
         }
-        
+
         return output;
     }
-    
+
     private string GenerateFallbackNPCDialogue(ConversationState state, NPCData npcData, CardAnalysis analysis)
     {
         // Use the generator's logic as fallback
         NarrativeConstraints constraints = generator.DetermineNarrativeConstraints(analysis);
         return generator.GenerateNPCDialogue(constraints, npcData, state);
     }
-    
+
     private string GenerateFallbackCardNarrative(CardInfo card, int rapport)
     {
         // Simple fallback based on card category and focus
@@ -595,10 +595,10 @@ public class AIConversationNarrativeProvider : INarrativeProvider
             "utility" => "ask for more information",
             _ => "respond thoughtfully"
         };
-        
+
         return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {action}";
     }
-    
+
     private string GenerateFallbackEnvironmental(ConversationState state, NPCData npcData)
     {
         return state.Flow switch

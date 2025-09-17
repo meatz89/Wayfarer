@@ -1,7 +1,7 @@
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Components;
 
 namespace Wayfarer.Pages.Components
 {
@@ -40,17 +40,17 @@ namespace Wayfarer.Pages.Components
 
         protected void RefreshStatData()
         {
-            var playerStats = GameFacade.GetPlayerStats();
+            PlayerStats playerStats = GameFacade.GetPlayerStats();
 
             StatDisplayInfos = new List<StatDisplayInfo>();
 
             foreach (PlayerStatType statType in Enum.GetValues<PlayerStatType>())
             {
-                var level = playerStats.GetLevel(statType);
-                var currentXP = playerStats.GetXP(statType);
-                var xpToNext = playerStats.GetXPToNextLevel(statType);
-                var progressPercent = playerStats.GetProgressPercent(statType);
-                var successBonus = playerStats.GetSuccessBonus(statType);
+                int level = playerStats.GetLevel(statType);
+                int currentXP = playerStats.GetXP(statType);
+                int xpToNext = playerStats.GetXPToNextLevel(statType);
+                int progressPercent = playerStats.GetProgressPercent(statType);
+                int successBonus = playerStats.GetSuccessBonus(statType);
 
                 StatDisplayInfos.Add(new StatDisplayInfo
                 {

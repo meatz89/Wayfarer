@@ -22,16 +22,16 @@ public class ConversationNarrativeGenerator
     {
         // Phase 1: Analyze what cards player has available
         CardAnalysis analysis = AnalyzeActiveCards(cards);
-        
+
         // Phase 2: Determine what kind of NPC dialogue is needed
         NarrativeConstraints constraints = DetermineNarrativeConstraints(analysis);
-        
+
         // Phase 3: Generate NPC dialogue that works for all cards
         string npcDialogue = GenerateNPCDialogue(constraints, npc, state);
-        
+
         // Phase 4: Map each card to appropriate response narrative
         List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Rapport);
-        
+
         return new NarrativeOutput
         {
             NPCDialogue = npcDialogue,
@@ -40,7 +40,7 @@ public class ConversationNarrativeGenerator
             ProgressionHint = GenerateProgressionHint(state, npc, analysis)
         };
     }
-    
+
     /// <summary>
     /// Analyzes active cards to understand player options and constraints.
     /// Identifies persistence requirements, focus patterns, and dominant categories.
@@ -54,38 +54,38 @@ public class ConversationNarrativeGenerator
             HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Impulse),
             HasOpening = cards.Cards.Any(c => c.Persistence == PersistenceType.Opening)
         };
-        
+
         // Categorize each card
         foreach (CardInfo card in cards.Cards)
         {
             analysis.CategoryBreakdown[card.Id] = card.NarrativeCategory;
-            
+
             // Identify risk cards
             if (card.NarrativeCategory.StartsWith("risk"))
             {
                 analysis.RiskCards.Add(card.Id);
             }
-            
+
             // Identify atmosphere setters
-            if (card.NarrativeCategory.Contains("atmosphere") || 
+            if (card.NarrativeCategory.Contains("atmosphere") ||
                 card.NarrativeCategory.Contains("volatile") ||
                 card.NarrativeCategory.Contains("pressured"))
             {
                 analysis.AtmosphereSetters.Add(card.Id);
             }
         }
-        
+
         // Determine focus pattern and dominant category
         analysis.FocusPattern = DetermineFocusPattern(cards);
         analysis.DominantCategory = DetermineDominantCategory(cards);
-        
+
         // Set urgency and invitation requirements
         analysis.RequiresUrgency = analysis.HasImpulse || analysis.RiskCards.Any();
         analysis.RequiresInvitation = analysis.HasOpening || analysis.DominantCategory == "probe";
-        
+
         return analysis;
     }
-    
+
     /// <summary>
     /// Determines narrative constraints based on card analysis.
     /// Creates requirements for NPC dialogue generation.
@@ -102,7 +102,7 @@ public class ConversationNarrativeGenerator
             NarrativeStyle = analysis.DominantCategory
         };
     }
-    
+
     /// <summary>
     /// Generates NPC dialogue that all cards can respond to appropriately.
     /// Uses backwards construction principle to ensure narrative coherence.
@@ -115,19 +115,19 @@ public class ConversationNarrativeGenerator
     {
         RapportStage rapportStage = GetRapportStage(state.Rapport);
         TopicLayer topicLayer = GetTopicLayer(state.Rapport, npc.CurrentCrisis);
-        
+
         // Build base statement appropriate for rapport level and topic
         string baseStatement = GenerateBaseStatement(npc, rapportStage, topicLayer);
-        
+
         // Add emotional coloring from atmosphere and flow
         string emotionalModifier = GenerateEmotionalModifier(state.Atmosphere, state.Flow);
-        
+
         // Add persistence hooks if needed
         string persistenceHook = GeneratePersistenceHook(constraints);
-        
+
         return CombineDialogueElements(baseStatement, emotionalModifier, persistenceHook, npc.Personality);
     }
-    
+
     /// <summary>
     /// Maps each card to appropriate response narrative based on NPC dialogue.
     /// Ensures each card's response makes sense in context.
@@ -140,7 +140,7 @@ public class ConversationNarrativeGenerator
     {
         List<CardNarrative> narratives = new List<CardNarrative>();
         RapportStage rapportStage = GetRapportStage(rapport);
-        
+
         foreach (CardInfo card in cards.Cards)
         {
             string narrative = GenerateCardResponse(card, npcDialogue, rapportStage);
@@ -151,10 +151,10 @@ public class ConversationNarrativeGenerator
                 ProviderSource = NarrativeProviderType.JsonFallback // This generator is used as fallback
             });
         }
-        
+
         return narratives;
     }
-    
+
     /// <summary>
     /// Determines rapport stage based on current rapport value.
     /// Used to gate narrative depth and topic accessibility.
@@ -168,7 +168,7 @@ public class ConversationNarrativeGenerator
         if (rapport <= 15) return RapportStage.Personal;
         return RapportStage.Intimate;
     }
-    
+
     /// <summary>
     /// Determines topic layer based on rapport and crisis presence.
     /// Controls how directly NPC addresses their core problem.
@@ -179,34 +179,34 @@ public class ConversationNarrativeGenerator
     public TopicLayer GetTopicLayer(int rapport, string crisis)
     {
         if (string.IsNullOrEmpty(crisis)) return TopicLayer.Deflection;
-        
+
         if (rapport <= 5) return TopicLayer.Deflection;
         if (rapport <= 10) return TopicLayer.Gateway;
         return TopicLayer.Core;
     }
-    
+
     private FocusPattern DetermineFocusPattern(CardCollection cards)
     {
         int[] focusCosts = cards.Cards.Select(c => c.Focus).ToArray();
-        
+
         if (focusCosts.All(f => f <= 2)) return FocusPattern.AllLow;
         if (focusCosts.All(f => f >= 3)) return FocusPattern.AllHigh;
         return FocusPattern.Mixed;
     }
-    
+
     private string DetermineDominantCategory(CardCollection cards)
     {
         Dictionary<string, int> categoryCounts = new Dictionary<string, int>();
-        
+
         foreach (CardInfo card in cards.Cards)
         {
             string category = card.NarrativeCategory ?? "utility";
             categoryCounts[category] = categoryCounts.GetValueOrDefault(category, 0) + 1;
         }
-        
+
         return categoryCounts.OrderByDescending(kv => kv.Value).First().Key;
     }
-    
+
     private int GetIntensityFromFocusPattern(FocusPattern pattern)
     {
         return pattern switch
@@ -217,7 +217,7 @@ public class ConversationNarrativeGenerator
             _ => 2
         };
     }
-    
+
     private string GenerateBaseStatement(NPCData npc, RapportStage rapportStage, TopicLayer topicLayer)
     {
         // Generate context-appropriate base statement
@@ -225,7 +225,7 @@ public class ConversationNarrativeGenerator
         string topic = DetermineCurrentTopic(npc, topicLayer);
         return FormatStatementForRapport(topic, rapportStage, npc.Personality);
     }
-    
+
     private string DetermineCurrentTopic(NPCData npc, TopicLayer layer)
     {
         return layer switch
@@ -236,7 +236,7 @@ public class ConversationNarrativeGenerator
             _ => "general_conversation"
         };
     }
-    
+
     private string FormatStatementForRapport(string topic, RapportStage stage, PersonalityType personality)
     {
         // Placeholder implementation - in real system this would use templates
@@ -249,7 +249,7 @@ public class ConversationNarrativeGenerator
             _ => "Having a conversation"
         };
     }
-    
+
     private string GenerateEmotionalModifier(AtmosphereType atmosphere, int flow)
     {
         // Generate emotional coloring based on current atmosphere and flow
@@ -261,7 +261,7 @@ public class ConversationNarrativeGenerator
             _ => "naturally"
         };
     }
-    
+
     private string GeneratePersistenceHook(NarrativeConstraints constraints)
     {
         if (constraints.MustIncludeUrgency && constraints.MustIncludeInvitation)
@@ -272,8 +272,8 @@ public class ConversationNarrativeGenerator
             return "inviting further discussion";
         return "";
     }
-    
-    private string CombineDialogueElements(string baseStatement, string emotionalModifier, 
+
+    private string CombineDialogueElements(string baseStatement, string emotionalModifier,
         string persistenceHook, PersonalityType personality)
     {
         // Combine elements into coherent NPC dialogue
@@ -282,10 +282,10 @@ public class ConversationNarrativeGenerator
             combined += $" {emotionalModifier}";
         if (!string.IsNullOrEmpty(persistenceHook))
             combined += $", {persistenceHook}";
-        
+
         return FormatForPersonality(combined, personality);
     }
-    
+
     private string FormatForPersonality(string dialogue, PersonalityType personality)
     {
         // Apply personality-specific formatting
@@ -297,14 +297,14 @@ public class ConversationNarrativeGenerator
             _ => $"\"{dialogue}\""
         };
     }
-    
+
     private string GenerateCardResponse(CardInfo card, string npcDialogue, RapportStage rapportStage)
     {
         // Generate response narrative based on card type and context
         string baseResponse = GenerateResponseByCategory(card.NarrativeCategory, card.Effect);
         return ScaleResponseToRapport(baseResponse, rapportStage, card.Focus);
     }
-    
+
     private string GenerateResponseByCategory(string category, string effect)
     {
         return category switch
@@ -316,7 +316,7 @@ public class ConversationNarrativeGenerator
             _ => "Responding thoughtfully"
         };
     }
-    
+
     private string ScaleResponseToRapport(string response, RapportStage stage, int focus)
     {
         string intensity = focus switch
@@ -326,28 +326,28 @@ public class ConversationNarrativeGenerator
             >= 3 => "boldly",
             _ => "carefully"
         };
-        
+
         return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {response.ToLower()}";
     }
-    
+
     private string GenerateEnvironmentalNarrative(ConversationState state, NPCData npc)
     {
         // Generate environmental description based on current state
         return "The conversation continues with growing understanding";
     }
-    
+
     private string GenerateProgressionHint(ConversationState state, NPCData npc, CardAnalysis analysis)
     {
         // Generate hint about conversation progression
         if (state.Rapport >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
             return "The conversation has reached a point where deeper trust might unlock new possibilities";
-        
+
         if (analysis.HasImpulse)
             return "Some opportunities require immediate action";
-        
+
         if (analysis.HasOpening)
             return "There are opportunities to learn more about the situation";
-        
+
         return null;
     }
 }
