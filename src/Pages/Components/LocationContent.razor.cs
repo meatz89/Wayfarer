@@ -253,10 +253,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartConversation(string npcId)
-        {
-            await StartTypedConversation(npcId, "friendly_chat");
-        }
 
         protected async Task StartConversationWithRequest(string npcId, string requestId)
         {
@@ -272,32 +268,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartTypedConversation(string npcId, string conversationTypeId, string goalCardId = null)
-        {
-            Console.WriteLine($"[LocationContent] Starting {conversationTypeId} conversation with NPC ID: '{npcId}', GoalCard: '{goalCardId}'");
-
-            if (GameScreen != null)
-            {
-                // For now, use a default requestId pattern until we implement proper request selection
-                // In the new system, conversations are driven by specific NPCRequests, not just types
-                string requestId = GetDefaultRequestId(npcId, conversationTypeId);
-                await GameScreen.StartConversation(npcId, requestId);
-            }
-            else
-            {
-                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
-            }
-        }
-
-        private string GetDefaultRequestId(string npcId, string conversationTypeId)
-        {
-            // TODO: This is a temporary solution. The proper implementation should:
-            // 1. Get available requests for the NPC
-            // 2. Find the first request that matches the conversation type
-            // 3. Return that requestId
-            // For now, return a placeholder that follows the pattern
-            return $"{npcId}_{conversationTypeId}_default";
-        }
 
         protected async Task StartExchange(string npcId)
         {
