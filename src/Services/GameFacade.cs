@@ -92,42 +92,87 @@ public class GameFacade
         return _gameWorld.GetPlayer().Stats;
     }
 
-    public List<StrangerNPC> GetAvailableStrangers(string locationId)
+    public List<NPC> GetAvailableStrangers(string locationId)
     {
-        if (!_gameWorld.LocationStrangers.ContainsKey(locationId))
-        {
-            return new List<StrangerNPC>();
-        }
-
-        TimeBlocks currentTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        TimeBlock currentTime = ConvertTimeBlocks(currentTimeBlock);
-
-        return _gameWorld.LocationStrangers[locationId]
-            .Where(s => s.IsAvailableAtTime(currentTime) && !s.HasBeenTalkedTo)
-            .ToList();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        return _gameWorld.GetAvailableStrangers(locationId, currentTime);
     }
 
     public ConversationContext StartStrangerConversation(string strangerId)
     {
-        // Find the stranger across all locations
-        StrangerNPC stranger = null;
-        foreach (List<StrangerNPC> locationStrangers in _gameWorld.LocationStrangers.Values)
-        {
-            stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
-            if (stranger != null) break;
-        }
+        // Find the stranger
+        NPC stranger = _gameWorld.GetStrangerById(strangerId);
 
-        if (stranger == null)
+        if (stranger == null || !stranger.HasAvailableRequests())
         {
             return null;
         }
 
-        // Mark stranger as talked to for this time block
-        stranger.MarkAsTalkedTo();
+        // Get the first available request (strangers have single request)
+        NPCRequest request = stranger.GetAvailableRequests().FirstOrDefault();
+        if (request == null || string.IsNullOrEmpty(request.ConversationTypeId))
+        {
+            return null;
+        }
 
-        // For now, return null - stranger conversation context creation needs more implementation
-        // This will be expanded when the stranger system is fully integrated
-        return null;
+        // Get conversation type
+        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+        {
+            return null;
+        }
+
+        // Mark stranger as encountered
+        stranger.MarkAsEncountered();
+
+        // Create conversation context
+        ConversationContext context = new ConversationContext
+        {
+            IsValid = true,
+            Npc = stranger,
+            NpcId = stranger.ID,
+            ConversationTypeId = conversationType.Id,
+            RequestId = request.Id,
+            RequestText = request.Description,
+            InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
+            AttentionSpent = conversationType.AttentionCost
+        };
+
+        return context;
+    }
+
+    public bool CanAffordStrangerConversation(string requestId)
+    {
+        // Find stranger with this request
+        foreach (NPC stranger in _gameWorld.GetAllStrangers())
+        {
+            NPCRequest request = stranger.GetRequestById(requestId);
+            if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
+            {
+                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+                {
+                    AttentionStateInfo attentionState = GetCurrentAttentionState();
+                    return attentionState.Current >= conversationType.AttentionCost;
+                }
+            }
+        }
+        return false;
+    }
+
+    public int GetStrangerConversationAttentionCost(string requestId)
+    {
+        // Find stranger with this request
+        foreach (NPC stranger in _gameWorld.GetAllStrangers())
+        {
+            NPCRequest request = stranger.GetRequestById(requestId);
+            if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
+            {
+                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+                {
+                    return conversationType.AttentionCost;
+                }
+            }
+        }
+        return 1; // Default cost
     }
 
     public List<InvestigationApproach> GetAvailableInvestigationApproaches()
@@ -136,20 +181,6 @@ public class GameFacade
         return _locationFacade.GetAvailableApproaches(player);
     }
 
-    // Helper method to convert TimeBlocks to TimeBlock enum
-    private TimeBlock ConvertTimeBlocks(TimeBlocks timeBlocks)
-    {
-        return timeBlocks switch
-        {
-            TimeBlocks.Dawn => TimeBlock.Dawn,
-            TimeBlocks.Morning => TimeBlock.Morning,
-            TimeBlocks.Midday => TimeBlock.Afternoon, // Map Midday to Afternoon
-            TimeBlocks.Afternoon => TimeBlock.Afternoon,
-            TimeBlocks.Evening => TimeBlock.Evening,
-            TimeBlocks.Night => TimeBlock.Night,
-            _ => TimeBlock.Morning
-        };
-    }
 
     // ========== LOCATION OPERATIONS ==========
 

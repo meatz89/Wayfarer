@@ -11,15 +11,20 @@ public class StrangerNPCDTO
     public string Personality { get; set; }
     public string LocationId { get; set; }
     public string TimeBlock { get; set; }
-    public List<StrangerConversationDTO> AvailableConversationTypes { get; set; } = new();
+    public StrangerRequestDTO Request { get; set; } // Single request per stranger
 }
 
 /// <summary>
-/// DTO for stranger conversation types and thresholds
+/// DTO for stranger request with tiered rewards
 /// </summary>
-public class StrangerConversationDTO
+public class StrangerRequestDTO
 {
-    public string Type { get; set; }
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string ConversationTypeId { get; set; } // The conversation type to use
+    public List<string> RequestCards { get; set; } = new(); // Not used - cards come from conversation type deck
+    public List<string> PromiseCards { get; set; } = new(); // Not used - cards come from conversation type deck
     public List<int> RapportThresholds { get; set; } = new();
     public List<StrangerRewardDTO> Rewards { get; set; } = new();
 }

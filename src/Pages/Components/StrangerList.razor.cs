@@ -16,7 +16,7 @@ namespace Wayfarer.Pages.Components
 
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
-        protected List<StrangerNPC> AvailableStrangers { get; set; } = new();
+        protected List<NPC> AvailableStrangers { get; set; } = new();
 
         protected override void OnInitialized()
         {
@@ -43,7 +43,7 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                AvailableStrangers = new List<StrangerNPC>();
+                AvailableStrangers = new List<NPC>();
             }
         }
 
@@ -58,7 +58,7 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                StrangerNPC stranger = AvailableStrangers.FirstOrDefault(s => s.Id == strangerId);
+                NPC stranger = AvailableStrangers.FirstOrDefault(s => s.ID == strangerId);
                 string strangerName = stranger?.Name ?? "stranger";
                 GameFacade.GetMessageSystem().AddSystemMessage(
                     $"Unable to start conversation with {strangerName}. They may be unavailable or you lack the required resources.",
@@ -66,24 +66,16 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected bool CanAffordConversation(string conversationType)
+        protected bool CanAffordConversation(string requestId)
         {
-            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-            int requiredAttention = GetAttentionCost(conversationType);
-            return attentionState.Current >= requiredAttention;
+            // Backend determines if we can afford based on conversation type's attention cost
+            return GameFacade.CanAffordStrangerConversation(requestId);
         }
 
-        protected int GetAttentionCost(string conversationType)
+        protected int GetAttentionCost(string requestId)
         {
-            // Different conversation types have different attention costs
-            return conversationType.ToLower() switch
-            {
-                "friendly_chat" => 1,
-                "deep_conversation" => 2,
-                "business_discussion" => 1,
-                "casual_talk" => 1,
-                _ => 1
-            };
+            // Get attention cost from backend based on conversation type
+            return GameFacade.GetStrangerConversationAttentionCost(requestId);
         }
 
         protected string GetPersonalityDescription(PersonalityType personality)
@@ -99,10 +91,10 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetStrangerDescription(StrangerNPC stranger)
+        protected string GetStrangerDescription(NPC stranger)
         {
             // Generate contextual description based on personality and level
-            string baseDesc = stranger.Personality switch
+            string baseDesc = stranger.PersonalityType switch
             {
                 PersonalityType.DEVOTED => "A family-oriented person with deep emotional connections.",
                 PersonalityType.MERCANTILE => "A business-minded person focused on practical matters.",
@@ -135,15 +127,15 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(StrangerConversation conversation)
+        protected string GetRewardsPreview(NPCRequest request)
         {
-            if (conversation?.Rewards == null || !conversation.Rewards.Any())
+            if (request?.Rewards == null || !request.Rewards.Any())
             {
                 return "Experience and insights";
             }
 
             List<string> rewardTexts = new List<string>();
-            StrangerReward reward = conversation.Rewards.First(); // Show first tier reward as preview
+            RequestReward reward = request.Rewards.First(); // Show first tier reward as preview
 
             if (reward.Coins > 0)
                 rewardTexts.Add($"{reward.Coins} coins");

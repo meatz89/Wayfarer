@@ -24,6 +24,9 @@ public class NPC
     public PersonalityType PersonalityType { get; set; } // NO DEFAULT - must be set explicitly from JSON
     public PersonalityModifier ConversationModifier { get; set; } // Personality-specific conversation rules
 
+    // Level system (1-5) for difficulty/content progression and XP scaling
+    public int Level { get; set; } = 1;
+
     // Tier system (1-5) for difficulty/content progression
     public int Tier { get; set; } = 1;
 
@@ -82,6 +85,11 @@ public class NPC
 
     // Requests system - Multiple requests, each with multiple cards at different rapport thresholds
     public List<NPCRequest> Requests { get; set; } = new List<NPCRequest>();
+
+    // Stranger-specific properties (for unnamed one-time NPCs)
+    public bool IsStranger { get; set; } = false;
+    public TimeBlocks? AvailableTimeBlock { get; set; } = null; // When stranger appears
+    public bool HasBeenEncountered { get; set; } = false; // One-time flag
 
     // Initialize exchange deck (for Mercantile NPCs only)
     public void InitializeExchangeDeck(List<ExchangeCard> exchangeCards = null)
@@ -350,6 +358,47 @@ public class NPC
         {
             request.Complete();
         }
+    }
+
+    // Stranger-specific methods
+
+    /// <summary>
+    /// Check if this stranger is available at the current time block
+    /// </summary>
+    public bool IsAvailableAtTime(TimeBlocks currentTime)
+    {
+        if (!IsStranger) return true; // Named NPCs are always available
+        return AvailableTimeBlock.HasValue && AvailableTimeBlock.Value == currentTime && !HasBeenEncountered;
+    }
+
+    /// <summary>
+    /// Mark this stranger as encountered (one-time flag)
+    /// </summary>
+    public void MarkAsEncountered()
+    {
+        if (IsStranger)
+        {
+            HasBeenEncountered = true;
+        }
+    }
+
+    /// <summary>
+    /// Reset stranger availability for new time block
+    /// </summary>
+    public void RefreshForNewTimeBlock()
+    {
+        if (IsStranger)
+        {
+            HasBeenEncountered = false;
+        }
+    }
+
+    /// <summary>
+    /// Get XP multiplier based on NPC level
+    /// </summary>
+    public int GetXPMultiplier()
+    {
+        return Level;
     }
 
 }

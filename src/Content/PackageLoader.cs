@@ -383,19 +383,15 @@ public class PackageLoader
         foreach (StrangerNPCDTO dto in strangerDtos)
         {
             // Convert DTO to domain model using StrangerParser
-            StrangerNPC stranger = StrangerParser.ConvertDTOToStrangerNPC(dto);
+            NPC stranger = StrangerParser.ConvertDTOToNPC(dto);
 
-            // Add to GameWorld's LocationStrangers dictionary organized by location
-            if (!_gameWorld.LocationStrangers.ContainsKey(stranger.LocationId))
-            {
-                _gameWorld.LocationStrangers[stranger.LocationId] = new List<StrangerNPC>();
-            }
-            _gameWorld.LocationStrangers[stranger.LocationId].Add(stranger);
+            // Add stranger to the unified NPCs list
+            _gameWorld.NPCs.Add(stranger);
 
-            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.LocationId}' for time block '{stranger.AvailableTime}'");
+            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.Location}' for time block '{stranger.AvailableTimeBlock}'");
         }
 
-        Console.WriteLine($"[PackageLoader] Completed loading strangers. Total locations with strangers: {_gameWorld.LocationStrangers.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading strangers. Total strangers loaded: {strangerDtos.Count}");
     }
 
     private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)

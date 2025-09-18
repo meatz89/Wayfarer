@@ -637,6 +637,22 @@
       "deckId": "deck_intimate_deep",
       "category": "emotional",
       "attentionCost": 3
+    },
+    "seek_favor": {
+      "id": "seek_favor",
+      "name": "Seek Favor",
+      "description": "Request help or special treatment",
+      "deckId": "deck_seek_favor",
+      "category": "request",
+      "attentionCost": 2
+    },
+    "casual_exchange": {
+      "id": "casual_exchange",
+      "name": "Casual Exchange",
+      "description": "Light vendor interactions and small talk",
+      "deckId": "deck_casual_exchange",
+      "category": "social",
+      "attentionCost": 1
     }
     }
   }

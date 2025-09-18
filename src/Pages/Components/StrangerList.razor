@@ -15,18 +15,18 @@
         <div class="stranger-list">
             @foreach (var stranger in AvailableStrangers)
             {
-                <div class="stranger-card @(stranger.HasBeenTalkedTo ? "talked-to" : "")">
+                <div class="stranger-card @(stranger.HasBeenEncountered ? "talked-to" : "")">
                     <div class="stranger-header">
                         <div class="stranger-identity">
                             <div class="stranger-name">@stranger.Name</div>
-                            <div class="stranger-type">@GetPersonalityDescription(stranger.Personality)</div>
+                            <div class="stranger-type">@GetPersonalityDescription(stranger.PersonalityType)</div>
                         </div>
                         <div class="stranger-level stranger-level-@stranger.Level">
                             Level @stranger.Level
                         </div>
                     </div>
 
-                    @if (stranger.HasBeenTalkedTo)
+                    @if (stranger.HasBeenEncountered)
                     {
                         <div class="stranger-status">
                             <span class="talked-indicator">Already talked to this time block</span>
@@ -39,24 +39,23 @@
                         </div>
 
                         <div class="stranger-conversations">
-                            @foreach (var conversationType in stranger.ConversationTypes.Keys)
+                            @foreach (var request in stranger.GetAvailableRequests())
                             {
-                                var conversation = stranger.ConversationTypes[conversationType];
-                                bool canAfford = CanAffordConversation(conversationType);
+                                bool canAfford = CanAffordConversation(request.Id);
 
                                 <div class="stranger-conversation @(canAfford ? "" : "unavailable")"
-                                     @onclick="async () => { if (canAfford) await StartStrangerConversation(stranger.Id, conversationType); }">
-                                    <div class="conversation-type">@GetConversationTypeDisplay(conversationType)</div>
+                                     @onclick="async () => { if (canAfford) await StartStrangerConversation(stranger.ID, request.Id); }">
+                                    <div class="conversation-type">@request.Name</div>
                                     <div class="conversation-details">
                                         <span class="xp-gain">+@stranger.Level XP per card</span>
-                                        <span class="attention-cost">@GetAttentionCost(conversationType) attention</span>
+                                        <span class="attention-cost">@GetAttentionCost(request.Id) attention</span>
                                     </div>
                                     <div class="conversation-rewards">
-                                        @GetRewardsPreview(conversation)
+                                        @GetRewardsPreview(request)
                                     </div>
                                     @if (!canAfford)
                                     {
-                                        <div class="unavailable-reason">Need @GetAttentionCost(conversationType) attention</div>
+                                        <div class="unavailable-reason">Need @GetAttentionCost(request.Id) attention</div>
                                     }
                                 </div>
                             }

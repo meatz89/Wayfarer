@@ -27,6 +27,7 @@ public static class NPCParser
             Location = dto.LocationId,
             SpotId = dto.SpotId,
             Tier = dto.Tier,
+            Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
         };
 
@@ -121,11 +122,11 @@ public static class NPCParser
                     Id = requestDto.Id,
                     Name = requestDto.Name,
                     Description = requestDto.Description,
-                    Status = RequestStatus.Available
+                    Status = RequestStatus.Available,
+                    RequestCardIds = new List<string>(requestDto.RequestCards ?? new List<string>()),
+                    PromiseCardIds = new List<string>(requestDto.PromiseCards ?? new List<string>())
                 };
 
-                // Request and promise cards will be populated later by PackageLoader
-                // when it processes the card definitions
                 npc.Requests.Add(request);
             }
         }
@@ -152,6 +153,9 @@ public static class NPCParser
             Description = GetOptionalStringProperty(root, "description") ?? string.Empty,
             Location = locationId,
             SpotId = GetRequiredStringProperty(root, "spotId"),
+            Level = root.TryGetProperty("level", out JsonElement levelElem) && levelElem.ValueKind == JsonValueKind.Number
+                ? levelElem.GetInt32()
+                : 1 // Default to level 1 if not specified
         };
 
         Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{locationId}'");

@@ -44,9 +44,8 @@ public class GameWorld
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
-    // Stranger NPC system for practice conversations
-    public Dictionary<string, List<StrangerNPC>> LocationStrangers { get; set; } = new Dictionary<string, List<StrangerNPC>>();
-    private TimeBlock _lastTimeBlock = TimeBlock.Dawn;
+    // TimeBlock tracking for stranger refresh
+    private TimeBlocks _lastTimeBlock = TimeBlocks.Dawn;
 
     // Player stats system for character progression
     public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; } = new List<PlayerStatDefinition>();
@@ -213,38 +212,41 @@ public class GameWorld
     /// <summary>
     /// Add a stranger NPC to a specific location
     /// </summary>
-    public void AddStrangerToLocation(string locationId, StrangerNPC stranger)
+    public void AddStrangerToLocation(string locationId, NPC stranger)
     {
-        if (!LocationStrangers.ContainsKey(locationId))
-        {
-            LocationStrangers[locationId] = new List<StrangerNPC>();
-        }
-        LocationStrangers[locationId].Add(stranger);
+        if (stranger == null) return;
+        stranger.Location = locationId;
+        stranger.IsStranger = true;
+        NPCs.Add(stranger);
     }
 
     /// <summary>
     /// Get available strangers at a location for the current time block
     /// </summary>
-    public List<StrangerNPC> GetAvailableStrangers(string locationId, TimeBlock currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(string locationId, TimeBlocks currentTimeBlock)
     {
-        if (!LocationStrangers.ContainsKey(locationId))
-            return new List<StrangerNPC>();
-
-        return LocationStrangers[locationId]
-            .Where(s => s.IsAvailableAtTime(currentTimeBlock) && !s.HasBeenTalkedTo)
-            .ToList();
+        List<NPC> availableStrangers = new List<NPC>();
+        foreach (NPC npc in NPCs)
+        {
+            if (npc.IsStranger && npc.Location == locationId && npc.IsAvailableAtTime(currentTimeBlock))
+            {
+                availableStrangers.Add(npc);
+            }
+        }
+        return availableStrangers;
     }
 
     /// <summary>
     /// Get stranger by ID across all locations
     /// </summary>
-    public StrangerNPC GetStrangerById(string strangerId)
+    public NPC GetStrangerById(string strangerId)
     {
-        foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
+        foreach (NPC npc in NPCs)
         {
-            StrangerNPC? stranger = locationStrangers.FirstOrDefault(s => s.Id == strangerId);
-            if (stranger != null)
-                return stranger;
+            if (npc.IsStranger && npc.ID == strangerId)
+            {
+                return npc;
+            }
         }
         return null;
     }
@@ -252,15 +254,15 @@ public class GameWorld
     /// <summary>
     /// Refresh all strangers when time block changes
     /// </summary>
-    public void RefreshStrangersForTimeBlock(TimeBlock newTimeBlock)
+    public void RefreshStrangersForTimeBlock(TimeBlocks newTimeBlock)
     {
         if (_lastTimeBlock != newTimeBlock)
         {
-            foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
+            foreach (NPC npc in NPCs)
             {
-                foreach (StrangerNPC stranger in locationStrangers)
+                if (npc.IsStranger)
                 {
-                    stranger.RefreshForNewTimeBlock();
+                    npc.RefreshForNewTimeBlock();
                 }
             }
             _lastTimeBlock = newTimeBlock;
@@ -272,44 +274,47 @@ public class GameWorld
     /// </summary>
     public void MarkStrangerAsTalkedTo(string strangerId)
     {
-        StrangerNPC stranger = GetStrangerById(strangerId);
-        stranger?.MarkAsTalkedTo();
+        NPC stranger = GetStrangerById(strangerId);
+        stranger?.MarkAsEncountered();
     }
 
     /// <summary>
     /// Get all strangers across all locations (for debugging/admin)
     /// </summary>
-    public List<StrangerNPC> GetAllStrangers()
+    public List<NPC> GetAllStrangers()
     {
-        List<StrangerNPC> allStrangers = new List<StrangerNPC>();
-        foreach (List<StrangerNPC> locationStrangers in LocationStrangers.Values)
+        List<NPC> allStrangers = new List<NPC>();
+        foreach (NPC npc in NPCs)
         {
-            allStrangers.AddRange(locationStrangers);
+            if (npc.IsStranger)
+            {
+                allStrangers.Add(npc);
+            }
         }
         return allStrangers;
     }
 
     /// <summary>
-    /// Convert TimeBlocks enum to TimeBlock enum
+    /// Convert TimeBlocks enum (no longer needed as we unified to TimeBlocks)
     /// </summary>
-    private TimeBlock ConvertTimeBlocks(TimeBlocks timeBlocks)
+    private TimeBlocks ConvertTimeBlocks(TimeBlocks timeBlocks)
     {
         return timeBlocks switch
         {
-            TimeBlocks.Dawn => TimeBlock.Dawn,
-            TimeBlocks.Morning => TimeBlock.Morning,
-            TimeBlocks.Midday => TimeBlock.Midday,
-            TimeBlocks.Afternoon => TimeBlock.Afternoon,
-            TimeBlocks.Evening => TimeBlock.Evening,
-            TimeBlocks.Night => TimeBlock.Night,
-            _ => TimeBlock.Morning
+            TimeBlocks.Dawn => TimeBlocks.Dawn,
+            TimeBlocks.Morning => TimeBlocks.Morning,
+            TimeBlocks.Midday => TimeBlocks.Midday,
+            TimeBlocks.Afternoon => TimeBlocks.Afternoon,
+            TimeBlocks.Evening => TimeBlocks.Evening,
+            TimeBlocks.Night => TimeBlocks.Night,
+            _ => TimeBlocks.Morning
         };
     }
 
     /// <summary>
     /// Get current time block as TimeBlock enum
     /// </summary>
-    public TimeBlock GetCurrentTimeBlock()
+    public TimeBlocks GetCurrentTimeBlock()
     {
         return ConvertTimeBlocks(CurrentTimeBlock);
     }
