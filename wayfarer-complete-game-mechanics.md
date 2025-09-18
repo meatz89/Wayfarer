@@ -83,6 +83,7 @@ The mechanical depth comes from playing YOUR cards against each NPC's personalit
 - **Trusting**: 6 focus capacity, 5 cards drawn on LISTEN
 
 At -3 flow in Disconnected: Conversation ends immediately.
+At -3 flow in other states: State shifts left, flow resets to 0.
 
 #### NPC Deck Systems
 
@@ -212,7 +213,6 @@ Personality influences which requests are available:
   - Busy spots: +1 familiarity
   - Other spots: +1 familiarity
 - Can investigate same location multiple times
-- Creates Istanbul-style timing decisions
 
 #### Travel Mechanics
 
@@ -771,20 +771,16 @@ Four types, each with distinct identity:
   - Failure on SPEAK: -1 flow
 - **Effects**:
   - At +3: State shifts right, flow resets to 0
-  - At -3: State shifts left, flow resets to 0
+  - At -3 in Disconnected: Conversation ENDS
+  - At -3 in other states: State shifts left, flow resets to 0
   - Excess flow lost (no banking)
 - **State progression**: [Ends] ← Disconnected ← Guarded ← Neutral → Receptive → Trusting
 - **Strategic Role**: Progress tracker forcing consistent success
 
 #### Atmosphere
-**Standard Atmospheres** (~30% of cards):
+**Standard Atmospheres** (~30% of cards change atmosphere):
 - **Neutral**: No effect (default, set after any failure)
-- **Prepared**: +1 focus capacity
-- **Receptive**: +1 card on LISTEN
-- **Focused**: +20% success all cards
-- **Patient**: Actions cost 0 patience
-- **Volatile**: All rapport changes ±1
-- **Final**: Any failure ends conversation
+- **Other atmospheres**: TBD (specific effects to be determined)
 
 **Mechanics**:
 - Persistence: Remains until changed by another card or cleared by failure
@@ -870,8 +866,7 @@ Investigation has multiple approaches unlocked by player stats:
 
 **Standard Investigation** (Always available):
 - Cost: 1 segment
-- Effect: Normal familiarity gain
-- Morning quiet bonus: +1 familiarity
+- Effect: Normal familiarity gain based on spot properties
 
 **Systematic Observation** (Insight 2+):
 - Cost: 1 segment
@@ -1115,10 +1110,7 @@ Complete sequence:
    - If draw pile has fewer: Draw what's available
    - If draw pile empty: Shuffle exhaust → new draw pile → continue
 4. **Refresh focus** to connection state maximum
-5. **Apply atmosphere modifiers**:
-   - Receptive: Draw 1 additional card
-   - Pressured: Draw 1 fewer card
-   - Prepared: Add +1 to current focus
+5. **Apply atmosphere modifiers**: (TBD based on atmosphere type)
 6. **Check request card activation**:
    - Check ALL goal cards for rapport thresholds
    - Each card that meets its threshold becomes playable
@@ -1282,28 +1274,9 @@ Cards don't level individually. Instead, they gain power from their bound stat:
 
 All conversations have a difficulty level affecting both challenge and rewards:
 
-**Level 1**:
-- +10% success rate on all cards
-- 1 XP per card played to bound stat
-- Typical: Street vendors, pilgrims, clerks
-- Lower rapport thresholds for goals
-
-**Level 2**:
-- Normal success rates
-- 2 XP per card played to bound stat  
-- Typical: Named NPCs, traveling merchants
-- Standard rapport thresholds
-
-**Level 3**:
-- -10% success rate on all cards
-- 3 XP per card played to bound stat
-- Typical: Nobles, scholars, master traders
-- Higher rapport thresholds for goals
-
-Difficulty is determined by:
-- NPC level (strangers have explicit levels)
-- Conversation type chosen (request harder than chat)
-- NPC importance (Elena's letter is level 3)
+**Level 1**: +10% success rate, 1 XP per card, typical: street vendors
+**Level 2**: Normal success rates, 2 XP per card, typical: named NPCs
+**Level 3**: -10% success rate, 3 XP per card, typical: nobles, scholars
 
 ### Stranger Encounter System
 
@@ -1961,11 +1934,7 @@ The stat system transforms character progression from card-specific mastery to d
 - Hard: 3
 - Very Hard: 4
 
-**Atmosphere Magnitude Modifiers**:
-- Volatile: Rapport effects ±1
-- Focused: All magnitudes +1
-- Exposed: All magnitudes ×2
-- Synchronized: Effect happens twice
+**Atmosphere Effects**: TBD (to be determined based on atmosphere type)
 
 **Stat Level Thresholds**:
 - Level 1→2: 10 XP
@@ -2031,13 +2000,6 @@ Base XP × Conversation Difficulty Multiplier
 - Neutral: 4
 - Receptive: 4
 - Trusting: 5
-
-**Patience Base**:
-- Devoted: 15
-- Steadfast: 13
-- Mercantile: 12
-- Cunning: 12
-- Proud: 10
 
 **Item Weights**:
 - Letters: 1
