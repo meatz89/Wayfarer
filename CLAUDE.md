@@ -51,6 +51,32 @@
 - **COMPLETE OR NOTHING** - Never ship half-refactored code with TODOs
 - Example: To remove ConversationOrchestrator, DELETE the file first, then fix all compilation errors by moving logic to ConversationFacade. DO NOT create forwarding methods or compatibility shims.
 
+**🚨 CLEAN UP AFTER YOURSELF: NO DUPLICATE FILES LEFT BEHIND 🚨**
+- **NEVER leave multiple versions of the same file** - No file.md, file-v2.md, file-backup.md
+- **NEVER create a new version without removing the old** - Replace in place or delete old immediately
+- **NEVER leave backup files in the repository** - Use git for version control, not filename suffixes
+- **When making major changes** - Edit the existing file directly OR replace it atomically
+- **SERIOUS VIOLATION** - Creating wayfarer-complete-game-mechanics-v2.md without removing the original
+- **CORRECT APPROACH** - Either edit wayfarer-complete-game-mechanics.md directly or create new and immediately delete old
+- **NO EXCUSES** - "I'll clean it up later" is unacceptable. Clean as you go.
+- Example of WRONG: Creating design-v2.md, design-backup.md, design-old.md all in the same directory
+- Example of RIGHT: Edit design.md directly, let git track the changes
+
+**🚨 PRESERVATION PRINCIPLE: NEVER DELETE NON-CONTRADICTORY CONTENT 🚨**
+- **CATASTROPHIC VIOLATION** - Deleting 60% of a document when only 10% contradicted new design
+- **NEVER delete content just because you're refactoring** - Only remove what DIRECTLY contradicts
+- **PRESERVE all valid content** - If it doesn't contradict the change, KEEP IT
+- **TRANSFORM don't DELETE** - Sections needing updates should be modified, not removed
+- **Example of CATASTROPHIC FAILURE**: Removing entire travel system, weight system, investigation mechanics when changing conversation cards
+- **CORRECT APPROACH**: Keep ALL systems that aren't directly affected by the change
+- **When updating mechanics**:
+  - Identify ONLY the contradictory parts
+  - Transform those specific sections
+  - Preserve EVERYTHING else
+- **DELETION IS NOT REFACTORING** - Refactoring means improving structure, not destroying content
+- **If you're removing more than 20% of content** - STOP, you're doing it wrong
+- Example: Changing from player deck to conversation types should ONLY affect card acquisition/management sections, NOT delete time systems, travel, weight, investigation, etc.
+
 **🚨 GAMEWORLD ARCHITECTURE PRINCIPLES (CRITICAL - NEVER VIOLATE) 🚨**
 - **GameWorld is the SINGLE SOURCE OF TRUTH** - ALL game state lives in GameWorld, nowhere else
 - **NO SharedData dictionaries** - NEVER create SharedData, TempData, or any parallel data storage

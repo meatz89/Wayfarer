@@ -9,7 +9,7 @@
 6. [Resource Economy](#resource-economy)
 7. [Time Segment System](#time-segment-system)
 8. [Conversation System](#conversation-system)
-9. [Player Deck Design and Progression](#player-deck-design-and-progression)
+9. [Conversation Card Distribution](#conversation-card-distribution)
 10. [Queue Management System](#queue-management-system)
 11. [Strategic Resource Management](#strategic-resource-management)
 12. [Economic Balance Points](#economic-balance-points)
@@ -55,6 +55,66 @@ Examples of clean separation:
 **BAD**: "Investigation gives familiarity AND cards"
 **GOOD**: Investigation gives familiarity. Observation gives cards (requires familiarity). Two separate actions.
 
+## Conversation Type System
+
+### Core Concept
+
+Instead of players owning a personal conversation deck that levels up, each conversation TYPE has its own predefined deck. This ensures cards are always contextually appropriate - you won't have authority cards when comforting desperate Elena or rapport cards when confronting bandits. Cards feel like natural conversation options, not collectible battle cards.
+
+### Standard Conversation Types
+
+**Friendly Chat**: Casual, balanced mix of all stats
+- Used for building relationships without pressure
+- Contains cards from all five stats equally
+- Lower difficulty cards predominate
+
+**Desperate Request**: Heavy Rapport/Insight, zero Authority
+- For NPCs in crisis needing help
+- Empathetic and analytical approaches only
+- No commanding or controlling options
+
+**Trade Negotiation**: Heavy Commerce/Insight, zero Rapport
+- Business discussions and deals
+- Analytical and transactional focus
+- No emotional connection cards
+
+**Authority Challenge**: Heavy Authority/Cunning, zero Rapport
+- Confrontations and power struggles
+- Commanding and indirect approaches
+- No empathetic options
+
+**Information Gathering**: Heavy Insight/Cunning
+- Extracting knowledge and secrets
+- Analytical and subtle methods
+- Mixed other stats for support
+
+**Intimate Confession**: Emotional depth, all stats present
+- Deep personal conversations
+- Higher difficulty cards
+- Requires established relationships
+
+### Contextual Deck Usage
+
+The same NPC uses different conversation decks based on context:
+- Marcus at his shop: Trade Negotiation deck
+- Marcus at the tavern: Friendly Chat deck
+- Marcus when desperate: Desperate Request deck
+
+Elena's progression:
+- First meeting: Desperate Request (she needs help)
+- After trust built: Intimate Confession (deeper connection)
+- At market: Friendly Chat (casual interaction)
+
+### Verisimilitude Through Context
+
+This system prioritizes verisimilitude over mechanical flexibility. Conversations feel like real interactions where available responses match the context. You literally cannot play authority cards when someone needs emotional support because those cards aren't in that conversation type's deck.
+
+Player expression comes through:
+- Stat development determining effectiveness with cards
+- Choosing which conversation types to engage with
+- Building relationships that unlock different conversation contexts
+- Strategic use of the cards available in each situation
+
 ## Three Core Game Loops
 
 ### System Integration Philosophy
@@ -64,23 +124,25 @@ The three core game loops answer fundamental design questions while maintaining 
 ### Core Loop 1: Card-Based Conversations
 
 #### Design Questions Answered
-- **What provides challenge?** Managing your deck against NPC personality rules
+- **What provides challenge?** Using conversation type cards effectively against NPC personality rules
 - **Why grow stronger?** Leveling cards and gaining new ones improves success across all conversations
-- **Why engage with NPCs?** Request cards provide income, access, world progression, and new cards for your deck
+- **Why engage with NPCs?** Request cards provide income, access, world progression, and stat XP
 
 #### The Conversation as Core Activity
 
-Conversations are the primary gameplay loop - your "combat encounters" expressed through social dynamics. The player owns a conversation deck representing their growing social repertoire. This deck is used in all conversations but each NPC relationship modifies the available card pool through their unique signature cards.
+Conversations are the primary gameplay loop - your "combat encounters" expressed through social dynamics. Each conversation type provides a specific deck of cards appropriate to that social context. Your stats determine how effectively you can use these cards, representing your growing competence with different conversational approaches.
 
-The mechanical depth comes from playing YOUR cards against each NPC's personality rules, creating different puzzles with the same base deck. Success in conversations leads to request completion, which grants new cards and levels existing ones, making you permanently stronger for all future conversations.
+The mechanical depth comes from playing contextually appropriate cards against each NPC's personality rules, creating different puzzles based on the conversation type. Success in conversations leads to request completion and stat XP gain, making you permanently more effective with cards bound to those stats.
 
 #### Connection States
 
-- **Disconnected**: 3 focus capacity, 3 cards drawn on LISTEN
-- **Guarded**: 4 focus capacity, 3 cards drawn on LISTEN
-- **Neutral**: 5 focus capacity, 4 cards drawn on LISTEN
-- **Receptive**: 5 focus capacity, 4 cards drawn on LISTEN
-- **Trusting**: 6 focus capacity, 5 cards drawn on LISTEN
+- **Disconnected**: 3 focus capacity, 3 cards drawn on LISTEN (0 tokens)
+- **Guarded**: 4 focus capacity, 3 cards drawn on LISTEN (1-2 tokens)
+- **Neutral**: 5 focus capacity, 4 cards drawn on LISTEN (3-5 tokens)
+- **Receptive**: 5 focus capacity, 4 cards drawn on LISTEN (6-9 tokens)
+- **Trusting**: 6 focus capacity, 5 cards drawn on LISTEN (10+ tokens)
+
+Tokens with an NPC determine your starting connection state for conversations. This represents the accumulated relationship capital affecting how open they are from the start.
 
 At -3 flow in Disconnected: Conversation ends immediately.
 At -3 flow in other states: State shifts left, flow resets to 0.
@@ -90,7 +152,7 @@ At -3 flow in other states: State shifts left, flow resets to 0.
 Each NPC maintains four persistent decks and a list of requests:
 
 **Four Persistent Decks**:
-1. **Signature Deck**: Unique cards unlocked by token thresholds (replaces conversation deck)
+1. **Signature Deck**: Unique cards that enhance conversations based on token count
 2. **Observation Deck**: Cards from location discoveries relevant to this NPC
 3. **Burden Deck**: Cards from failed obligations and damaged relationships
 4. **Exchange Deck**: Commerce options (mercantile NPCs only)
@@ -105,21 +167,21 @@ When a player selects a request conversation type, all cards from that Request b
 
 #### NPC Signature Cards
 
-Each NPC has 5 unique signature cards unlocked at specific token thresholds:
-- **1 token**: Basic signature card
-- **3 tokens**: Intermediate signature card
-- **6 tokens**: Advanced signature card
-- **10 tokens**: Elite signature card
-- **15 tokens**: Legendary signature card
+Each NPC has 5 unique signature cards that are mixed into the conversation based on your token count:
+- **1-2 tokens**: 1 signature card added
+- **3-5 tokens**: 2 signature cards added
+- **6-9 tokens**: 3 signature cards added
+- **10-14 tokens**: 4 signature cards added
+- **15+ tokens**: All 5 signature cards added
 
-These cards are specific to that NPC, not generic token type cards. Marcus doesn't give "Commerce cards," he gives "Marcus's Bargain," "Silk Road Knowledge," and "Marcus's Favor." Elena gives "Elena's Trust," "Shared Burden," and "Elena's Hope." These cards mechanically represent the nature of your specific relationship.
+These cards are specific to that NPC, not generic token type cards. Marcus doesn't give "Commerce cards," he gives "Marcus's Bargain," "Silk Road Knowledge," and "Marcus's Favor." Elena gives "Elena's Trust," "Shared Burden," and "Elena's Hope." These cards mechanically represent the nature of your specific relationship and enhance the base conversation type deck.
 
 #### Personality Rules
 
 Each personality type applies one rule that fundamentally changes how conversations work:
 
 - **Proud**: Cards must be played in ascending focus order each turn (resets when you LISTEN)
-- **Devoted**: When rapport decreases, it decreases twice
+- **Devoted**: When rapport decreases, decrease by 1 additional point
 - **Mercantile**: Your highest focus card each turn gains +30% success
 - **Cunning**: Playing same focus as previous card costs -2 rapport
 - **Steadfast**: All rapport changes are capped at ±2 per card
@@ -128,7 +190,6 @@ These rules represent how different personalities respond to conversation. A Pro
 
 #### Conversation Outputs
 - **Stat XP**: Each card play grants XP to its bound stat (1 XP base, multiplied by conversation difficulty)
-- **New Cards**: Request completion grants new cards to player deck
 - **Tokens**: Gained through successful letter delivery (+1 to +3)
 - **Observations**: Cards added to specific NPCs' observation decks
 - **Permits**: Special promises that enable routes
@@ -714,10 +775,15 @@ Four types, each with distinct identity:
 - **Status**: Social standing (Proud NPCs prefer)
 - **Shadow**: Shared secrets (Cunning NPCs prefer)
 
-**Primary Effect**: Unlock NPC signature cards at thresholds (1, 3, 6, 10, 15 tokens)
+**Primary Effect**: Determine starting connection state for conversations
+- 0 tokens: Disconnected
+- 1-2 tokens: Guarded
+- 3-5 tokens: Neutral
+- 6-9 tokens: Receptive
+- 10+ tokens: Trusting
 
 **Additional Uses Through Different Mechanics**:
-1. **Signature Cards**: Each threshold unlocks unique cards for that NPC
+1. **Starting State**: Higher tokens mean better initial connection
 2. **Displacement Cost**: Burn tokens to jump queue positions
 3. **Exchange Gating**: Minimum tokens required for special exchanges
 
@@ -726,12 +792,11 @@ Four types, each with distinct identity:
 - Failed delivery: -2 tokens with sender
 - Special events and quests
 
-**Token Investment Return**:
-- 1 token = Basic signature card unlocked
-- 3 tokens = Two signature cards available
-- 6 tokens = Three signature cards in conversation
-- 10 tokens = Four powerful cards
-- 15 tokens = All five signature cards active
+**Token Investment Benefits**:
+- Better starting connection states
+- More signature cards mixed into conversation
+- Access to token-gated exchanges
+- Flexibility for queue displacement when needed
 
 ### Per-Conversation Resources
 
@@ -953,13 +1018,14 @@ Each card is defined by exactly five categorical properties that determine its b
 
 #### Failure (effect type on failure)
 - **Backfire**: Negative rapport change
+- **Reversal**: Move flow battery backward 1 step
 - **ForceListen**: Player must LISTEN on next turn after failure
 - **None**: No additional effect (automatically applies ForceListen as fallback)
 
 #### Exhaust (effect when discarded unplayed)
-- **Threading**: Draw cards when discarded
-- **Focusing**: Restore focus when discarded
 - **Regret**: Negative rapport when discarded
+- **Drain**: Lose focus when discarded
+- **Decay**: Move flow backward when discarded
 - **None**: No effect when discarded
 
 #### Stat Binding (which stat gains XP and provides bonuses)
@@ -1027,24 +1093,24 @@ Players have five core stats representing different problem-solving methodologie
 - Conversation difficulty multiplier (1x/2x/3x)
 - Success or failure both grant XP
 
-### Player Deck Architecture
+### Player Stats Architecture
 
-The player owns a single conversation deck used in all conversations:
+Players develop five core stats representing conversational methodologies:
 
-**Starting Deck**: 20 basic cards representing fundamental social skills
-**Deck Growth**: New cards gained through request completion
-**Stat Enhancement**: Cards gain bonuses from their bound stat's level, not individual progression
-**Deck Refinement**: Certain locations allow deck thinning for a cost
+**Stat System**: Five stats (Insight, Rapport, Authority, Commerce, Cunning)
+**Stat Growth**: XP gained by playing cards bound to that stat
+**Stat Enhancement**: Higher stat levels make all cards of that type more effective
+**No Deck Ownership**: Players don't collect cards - conversation types provide context-appropriate decks
 
 ### NPC Architecture
 
 Each NPC maintains four persistent decks plus a request system:
 
 **Persistent Decks**:
-1. **Signature Deck**: Unique cards unlocked by token thresholds
-   - Not drawn at start - shuffled into player deck
+1. **Signature Deck**: Unique cards mixed based on token count
+   - Not drawn at start - shuffled into conversation deck
    - Represents the specific relationship with this NPC
-   - 5 cards total, unlocked at 1, 3, 6, 10, 15 tokens
+   - 5 cards total, more added as tokens increase
    
 2. **Observation Deck**: Cards from location discoveries
    - Receives cards from location observations
@@ -1076,7 +1142,7 @@ When a player chooses a request conversation type, ALL cards from that Request b
 ### Four-Pile System
 
 #### Draw Pile
-- Created at conversation start from player deck + NPC signature cards + observation cards
+- Created at conversation start from conversation type deck + NPC signature cards + observation cards
 - Shuffled once at start
 - When empty, shuffle exhaust pile to reform
 
@@ -1284,7 +1350,7 @@ Strangers are unnamed NPCs that provide resource generation and stat grinding op
 
 #### Stranger Properties
 - **No Token Generation** - Only named NPCs build relationships
-- **No Signature Cards** - Use only player deck
+- **No Signature Cards** - Use only conversation type deck
 - **No Observation Deck** - Cannot receive observations
 - **No Burden Accumulation** - One-time interactions
 - **Standard Personality Rules** - Apply normally
@@ -1348,11 +1414,11 @@ Strangers appear at specific spots during certain blocks:
 
 [Additional locations and schedules as needed]
 
-## Player Deck Design and Progression
+## Conversation Card Distribution
 
-### Starting Deck Composition
+### Conversation Type Card Examples
 
-The player begins with 20 cards distributed across five stats:
+Each conversation type contains cards distributed across relevant stats:
 
 **Insight Cards** (4 cards) - Analytical and observational:
 - "Let me analyze" - Focus 1, Easy, Thought/Rapport/None/None
@@ -1401,23 +1467,24 @@ All cards bound to a stat gain uniform benefits:
 **Strategic Development**:
 Players naturally develop specialties through play patterns. High Rapport players find empathetic approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
 
-### Gaining New Cards
+### Stat Development Through Play
 
-**From Named NPCs**: Request completion grants 1-3 cards based on tier
-**From Strangers**: Never grant cards (only resources)
-**From Observations**: Some grant player cards instead of NPC advantages
-**Card Properties**: Every new card must specify its bound stat
+**From Named NPCs**: Conversations grant XP to stats based on cards played
+**From Strangers**: Higher XP rates (×2 or ×3) for stat grinding
+**From Observations**: Can unlock new conversation types or contexts
+**Stat Properties**: Every stat affects all cards bound to it uniformly
 
-### Deck Refinement
+### Stat Specialization
 
-Deck thinning services available at specific locations:
-- Cost: 10 coins per card removed
-- Minimum deck size: 20 cards
-- Strategic consideration: Remove cards from underdeveloped stats
+Players naturally specialize through play patterns:
+- Frequently used stats gain more XP
+- Higher stat levels make those approaches more reliable
+- Creates character differentiation through methodology preference
+- All stats remain viable but specialization provides advantages
 
 ### NPC Signature Cards
 
-Each NPC has 5 unique cards that shuffle into the player's deck based on tokens:
+Each NPC has 5 unique cards that mix into the conversation based on tokens:
 
 #### Example: Marcus's Commerce Cards
 - **1 token**: "Marcus's Rapport" - Focus 2, Hard, Thought/Rapport/None/None
@@ -1426,22 +1493,22 @@ Each NPC has 5 unique cards that shuffle into the player's deck based on tokens:
 - **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Rapport/None/None (special: None failure effect without ForceListen fallback)
 - **15 tokens**: "Master Trader" - Focus 5, Medium, Thought/Atmospheric-Focused/None/None
 
-These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same player deck.
+These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same conversation type.
 
-### Strategic Deck Building
+### Strategic Stat Development
 
-**Personality Optimization**: Build toward specific NPC types
-- **Proud Focus**: Many different focus values for ascending order
-- **Devoted Safety**: High success rate cards to avoid double penalties
-- **Mercantile Power**: High-focus cards to maximize +30% bonus
-- **Cunning Variety**: Diverse focus values to avoid repetition penalty
-- **Steadfast Consistency**: Many small rapport gains within ±2 cap
+**Personality Optimization**: Develop stats for specific NPC types
+- **Proud Focus**: Authority and Commerce work well with ascending requirements
+- **Devoted Safety**: Rapport minimizes negative effects from additional losses
+- **Mercantile Power**: Commerce naturally has high-focus cards for +30% bonus
+- **Cunning Variety**: Insight and Cunning provide diverse approaches
+- **Steadfast Consistency**: Rapport provides steady small gains within ±2 cap
 
 **Token Strategy**: Which relationships to prioritize
-- Commerce tokens for Marcus enable transport
-- Trust tokens for emotional NPCs unlock powerful state changes
-- Status tokens for proud NPCs provide authority
-- Shadow tokens for cunning NPCs reveal secrets
+- Commerce tokens for Marcus improve starting state for trade conversations
+- Trust tokens for emotional NPCs start intimate conversations in better states
+- Status tokens for proud NPCs begin authority challenges more favorably
+- Shadow tokens for cunning NPCs enable information gathering from connected state
 
 ## Queue Management System
 
@@ -1551,7 +1618,7 @@ Better output → More coins → Critical purchases
 ```
 Successful card plays → XP for connected Stat
 Card levels up → Better success rate / gains keywords
-Request completion → New cards for deck
+Request completion → Stat XP and progression
 Deck refinement → Remove weak cards
 Stronger deck → Handle harder NPCs
 Harder NPCs → Better rewards → More powerful cards
@@ -1561,7 +1628,7 @@ Harder NPCs → Better rewards → More powerful cards
 ```
 Successful deliveries → +1-3 tokens
 Higher tokens → Unlock signature cards
-Signature cards → Mixed into player deck
+Signature cards → Mixed into conversation
 More signature cards → Better conversation options
 Better options → Higher success rates
 More successes → More tokens
@@ -1719,7 +1786,7 @@ The tokens don't get spent - they just gate access to the exchange card.
 Some exchanges only appear after playing specific observation cards:
 - Play "Trade Route Knowledge" → Unlocks special transport exchange
 - Play "Black Market Contact" → Unlocks illegal goods exchanges
-- These permanently add new cards to the NPC's exchange deck
+- These permanently add new exchange options to the NPC's exchange deck
 
 ### Exchange vs Conversation
 
@@ -1878,15 +1945,15 @@ Stories emerge from mechanical interaction, not scripting:
 
 The core gameplay loop is **conversations as character progression**:
 
-### The Player Deck as Character
+### Stats as Character Development
 
-Your conversation deck IS your character. Every card represents a social skill you've learned. Every level up makes that specific approach more reliable. Every new card gained expands your repertoire. This isn't abstract character growth - it's tangible, visible, and strategic.
+Your stats represent your conversational competencies. Every successful approach reinforces that methodology. Higher stat levels make all cards of that type more reliable. This isn't abstract character growth - it's developing actual conversational skills through practice.
 
 ### Conversations as Combat
 
 The categorical property system means cards represent conversational approaches rather than specific outcomes. A Thought/Rapport/None/None card represents a calculated statement that could strengthen or destroy the relationship. The same card performs differently under various atmospheres and rapport levels, creating emergent complexity from simple rules.
 
-Each conversation is a tactical puzzle where you play your deck against NPC personality rules:
+Each conversation is a tactical puzzle where you play contextual cards against NPC personality rules:
 - **Proud NPCs** force ascending focus order - like enemies that punish repetition
 - **Devoted NPCs** double rapport losses - like glass cannon fights
 - **Mercantile NPCs** reward big plays - like bosses with weak points
@@ -1912,14 +1979,14 @@ NPC signature cards unlocked by tokens are like equipment in other RPGs. Marcus'
 ### Clear Progression Path
 
 The loop is crystal clear:
-1. **Have conversations** using your deck
-2. **Complete requests** to gain new cards and XP
+1. **Have conversations** using context-appropriate cards
+2. **Complete requests** to gain XP and progress stats
 3. **Level up cards** to improve success rates
 4. **Unlock signature cards** through token relationships
 5. **Build stronger deck** to tackle harder NPCs
 6. **Face tougher personalities** with complex rules
 
-This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and deck building rather than combat statistics.
+This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and stat progression rather than combat statistics.
 
 The stat system transforms character progression from card-specific mastery to developing problem-solving methodologies. Players literally become better conversationalists by practicing different approaches - analytical, empathetic, authoritative, mercantile, or cunning. These developed competencies then unlock investigation methods and travel paths, making conversation truly the engine for all progression. Stranger encounters provide the "grinding" layer expected from RPGs while maintaining focus on meaningful relationships with named NPCs.
 
@@ -2016,8 +2083,8 @@ Wayfarer achieves its design goals through making conversations the core gamepla
 
 The addition of weight and time segments transforms abstract resources into physical reality. You cannot carry more than 10 weight because that's what a person can physically manage. Travel takes longer when hungry because exhaustion slows movement. Morning investigations yield more because locations are quieter. Everything makes immediate intuitive sense.
 
-The genius is that this uses familiar deck-building mechanics to represent character progression, while NPC personality rules and signature cards ensure every conversation feels unique despite using the same player deck. The ForceListen failure effect creates natural conversation rhythm where success builds momentum and failure forces adaptation.
+The genius is that this uses contextual conversation decks to ensure verisimilitude, while NPC personality rules and signature cards ensure every conversation feels unique. The ForceListen failure effect creates natural conversation rhythm where success builds momentum and failure forces adaptation.
 
-Players always know what to do: have conversations to gain cards and XP, level up their deck, unlock signature cards through relationships, and tackle increasingly complex NPC personalities. The strategic depth emerges from how player deck composition, card levels, signature cards, personality rules, weight limits, and time constraints interact to create unique puzzles.
+Players always know what to do: have conversations to gain XP, level up their stats, build relationships for better starting states, and tackle increasingly complex NPC personalities. The strategic depth emerges from how conversation types, stat levels, signature cards, personality rules, weight limits, and time constraints interact to create unique puzzles.
 
 The system succeeds because mastery comes from understanding these interactions and building a deck that reflects your personal approach to social challenges while managing the physical realities of weight and time. Every conversation is practice. Every card gained is permanent progression. Every relationship built provides new tools. Every item carried has opportunity cost. This is character growth made tangible, strategic, and elegantly integrated with the narrative of becoming a better conversationalist and courier in a living world.

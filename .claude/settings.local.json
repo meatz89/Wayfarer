@@ -39,7 +39,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6230\" timeout 15 dotnet run -c Release --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6235\" dotnet run -c Release --no-build)",
       "mcp__playwright__browser_evaluate",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
