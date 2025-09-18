@@ -240,6 +240,9 @@ public class ConversationFacade
 
         _currentSession.TurnNumber++;
 
+        // Advance time by 1 segment per conversation round (per documentation)
+        _timeManager.AdvanceSegments(1);
+
         // Deduct patience cost (unless Patient atmosphere)
         if (!_atmosphereManager.ShouldWaivePatienceCost())
         {
@@ -294,6 +297,9 @@ public class ConversationFacade
         }
 
         _currentSession.TurnNumber++;
+
+        // Advance time by 1 segment per conversation round (per documentation)
+        _timeManager.AdvanceSegments(1);
 
         // SPEAK costs focus (focus), not patience
         // Patience is only deducted for LISTEN actions

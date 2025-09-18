@@ -779,5 +779,115 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 SystemMessageTypes.Info
             );
         }
+
+        // ========== WORK SYSTEM ==========
+
+        /// <summary>
+        /// Get available work actions at the current location
+        /// </summary>
+        public List<WorkAction> GetAvailableWork(string locationId)
+        {
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+            if (location == null) return new List<WorkAction>();
+
+            List<WorkAction> availableWork = new List<WorkAction>();
+            Player player = _gameWorld.GetPlayer();
+
+            foreach (WorkAction work in location.AvailableWork)
+            {
+                // Check requirements
+                if (work.RequiredTokens.HasValue && work.RequiredTokenType.HasValue)
+                {
+                    // Token checking should be done at a higher level (GameFacade)
+                    // For now, skip token-gated work until GameFacade can filter it
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(work.RequiredPermit))
+                {
+                    if (!player.Inventory.HasItem(work.RequiredPermit))
+                        continue;
+                }
+
+                availableWork.Add(work);
+            }
+
+            return availableWork;
+        }
+
+        /// <summary>
+        /// Perform work action, consuming entire time block and generating coins
+        /// </summary>
+        public bool PerformWork(string workActionId, string locationId)
+        {
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+            if (location == null) return false;
+
+            WorkAction work = location.AvailableWork.FirstOrDefault(w => w.Id == workActionId);
+            if (work == null) return false;
+
+            Player player = _gameWorld.GetPlayer();
+
+            // Calculate coin output based on hunger
+            int currentHunger = player.Hunger;
+            int hungerPenalty = currentHunger / 25; // floor(hunger/25)
+            int coinsEarned = Math.Max(0, work.BaseCoins - hungerPenalty);
+
+            // Apply rewards
+            player.ModifyCoins(coinsEarned);
+
+            // Apply additional benefits for service work
+            if (work.HungerReduction.HasValue)
+            {
+                player.ReduceHunger(work.HungerReduction.Value);
+            }
+
+            if (work.HealthRestore.HasValue)
+            {
+                player.ModifyHealth(work.HealthRestore.Value);
+            }
+
+            if (!string.IsNullOrEmpty(work.GrantedItem))
+            {
+                player.Inventory.AddItem(work.GrantedItem);
+            }
+
+            // Advance time by entire block (4 segments)
+            _timeManager.JumpToNextPeriod();
+
+            // Send success message
+            string workTypeText = work.Type == WorkType.Service ? "service" : "work";
+            _messageSystem.AddSystemMessage(
+                $"Completed {work.Name} - earned {coinsEarned} coins (base {work.BaseCoins} - {hungerPenalty} hunger penalty)",
+                SystemMessageTypes.Success
+            );
+
+            Console.WriteLine($"[LocationFacade.PerformWork] {player.Name} completed {work.Name} at {location.Name}, earned {coinsEarned} coins");
+
+            return true;
+        }
+
+        /// <summary>
+        /// Check if player can afford to work (has time in current block)
+        /// </summary>
+        public bool CanAffordWork()
+        {
+            // Work consumes entire block, so just check if we're not at the last segment
+            // The TimeManager will handle advancing to next block
+            return true; // Let TimeManager handle block advancement logic
+        }
+
+        /// <summary>
+        /// Get work efficiency preview showing hunger impact
+        /// </summary>
+        public (int baseCoins, int hungerPenalty, int actualCoins) CalculateWorkOutput(WorkAction work)
+        {
+            Player player = _gameWorld.GetPlayer();
+            int currentHunger = player.Hunger;
+            int hungerPenalty = currentHunger / 25;
+            int actualCoins = Math.Max(0, work.BaseCoins - hungerPenalty);
+
+            return (work.BaseCoins, hungerPenalty, actualCoins);
+        }
     }
 }

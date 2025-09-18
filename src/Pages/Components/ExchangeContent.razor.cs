@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wayfarer.Subsystems.ExchangeSubsystem;
+using Wayfarer.Subsystems.TokenSubsystem;
 
 namespace Wayfarer.Pages.Components
 {
@@ -253,7 +254,14 @@ namespace Wayfarer.Pages.Components
             {
                 // Execute the exchange through the facade
                 string npcId = Context?.NpcInfo?.NpcId ?? "";
-                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId);
+
+                // Get required parameters
+                PlayerResourceState playerResources = Context?.PlayerResources ?? new PlayerResourceState();
+                AttentionInfo attentionInfo = new AttentionInfo(Context?.CurrentAttention ?? 0, Context?.CurrentAttention ?? 0);
+                Dictionary<ConnectionType, int> npcTokens = Context?.NpcInfo?.TokenCounts ?? new Dictionary<ConnectionType, int>();
+                RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
+
+                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, attentionInfo, npcTokens, relationshipTier);
 
                 if (LastResult?.Success == true)
                 {

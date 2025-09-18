@@ -72,6 +72,9 @@ public class Location
     // Observation Rewards System (Work Packet 3)
     public List<ObservationReward> ObservationRewards { get; set; } = new List<ObservationReward>();
 
+    // Work System - Available work actions at this location
+    public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
+
     public Location(string id, string name)
     {
         Id = id;

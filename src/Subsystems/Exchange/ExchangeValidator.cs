@@ -13,19 +13,13 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
     public class ExchangeValidator
     {
         private readonly GameWorld _gameWorld;
-        private readonly ResourceFacade _resourceFacade;
-        private readonly TokenFacade _tokenFacade;
         private readonly TimeManager _timeManager;
 
         public ExchangeValidator(
             GameWorld gameWorld,
-            ResourceFacade resourceFacade,
-            TokenFacade tokenFacade,
             TimeManager timeManager)
         {
             _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-            _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-            _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
             _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         }
 
@@ -36,6 +30,9 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             ExchangeData exchange,
             NPC npc,
             PlayerResourceState playerResources,
+            AttentionInfo attentionInfo,
+            Dictionary<ConnectionType, int> npcTokens,
+            RelationshipTier relationshipTier,
             List<string> currentSpotDomains)
         {
             ExchangeValidationResult result = new ExchangeValidationResult
@@ -46,7 +43,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             };
 
             // Check visibility requirements first
-            if (!CheckVisibilityRequirements(exchange, npc))
+            if (!CheckVisibilityRequirements(exchange, npc, relationshipTier))
             {
                 result.IsVisible = false;
                 result.IsValid = false;
@@ -73,7 +70,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check token requirements
-            if (!CheckTokenRequirements(exchange, npc))
+            if (!CheckTokenRequirements(exchange, npc, npcTokens))
             {
                 result.IsVisible = true; // Show but disabled
                 result.IsValid = false;
@@ -82,7 +79,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check item requirements
-            if (!CheckItemRequirements(exchange))
+            if (!CheckItemRequirements(exchange, playerResources))
             {
                 result.IsVisible = true; // Show but disabled
                 result.IsValid = false;
@@ -91,7 +88,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check affordability
-            if (!CanAffordExchange(exchange, playerResources))
+            if (!CanAffordExchange(exchange, playerResources, attentionInfo, npcTokens))
             {
                 result.CanAfford = false;
                 result.IsValid = false;
@@ -100,7 +97,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check NPC state requirements
-            if (!CheckNPCStateRequirements(exchange, npc))
+            if (!CheckNPCStateRequirements(exchange, npc, npcTokens))
             {
                 result.IsVisible = true;
                 result.IsValid = false;
@@ -114,14 +111,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford the exchange costs
         /// </summary>
-        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
+        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens)
         {
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            AttentionInfo attentionInfo = _resourceFacade.GetAttention(currentTimeBlock);
 
             foreach (ResourceAmount cost in exchange.Costs)
             {
-                if (!CanAffordResource(cost, playerResources, attentionInfo))
+                if (!CanAffordResource(cost, playerResources, attentionInfo, npcTokens))
                 {
                     return false;
                 }
@@ -133,13 +128,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check visibility requirements (minimum relationship to even see the exchange)
         /// </summary>
-        private bool CheckVisibilityRequirements(ExchangeData exchange, NPC npc)
+        private bool CheckVisibilityRequirements(ExchangeData exchange, NPC npc, RelationshipTier relationshipTier)
         {
             // Check if exchange requires minimum relationship
             if (exchange.MinimumRelationshipTier > 0)
             {
-                RelationshipTier currentTier = _tokenFacade.GetRelationshipTier(npc.ID);
-                if ((int)currentTier < exchange.MinimumRelationshipTier)
+                if ((int)relationshipTier < exchange.MinimumRelationshipTier)
                 {
                     return false;
                 }
@@ -191,21 +185,21 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player has required tokens with NPC
         /// </summary>
-        private bool CheckTokenRequirements(ExchangeData exchange, NPC npc)
+        private bool CheckTokenRequirements(ExchangeData exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
         {
             if (!exchange.RequiredTokenType.HasValue || exchange.MinimumTokensRequired <= 0)
             {
                 return true; // No token requirements
             }
 
-            int currentTokens = _tokenFacade.GetTokenCount(npc.ID, exchange.RequiredTokenType.Value);
+            int currentTokens = npcTokens.GetValueOrDefault(exchange.RequiredTokenType.Value, 0);
             return currentTokens >= exchange.MinimumTokensRequired;
         }
 
         /// <summary>
         /// Check if player has required items
         /// </summary>
-        private bool CheckItemRequirements(ExchangeData exchange)
+        private bool CheckItemRequirements(ExchangeData exchange, PlayerResourceState playerResources)
         {
             if (exchange.RequiredItems == null || !exchange.RequiredItems.Any())
             {
@@ -214,7 +208,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
 
             foreach (string itemId in exchange.RequiredItems)
             {
-                if (!_resourceFacade.HasItem(itemId))
+                Player player = _gameWorld.GetPlayer();
+                if (!player.Inventory.HasItem(itemId))
                 {
                     return false;
                 }
@@ -226,7 +221,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check NPC-specific state requirements
         /// </summary>
-        private bool CheckNPCStateRequirements(ExchangeData exchange, NPC npc)
+        private bool CheckNPCStateRequirements(ExchangeData exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
         {
             // Check if NPC has patience for exchange
             if (exchange.RequiresPatience && !npc.HasPatienceForConversation())
@@ -237,7 +232,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             // Check connection state requirements
             if (exchange.RequiredConnectionState.HasValue)
             {
-                ConnectionState currentState = DetermineNPCConnectionState(npc);
+                ConnectionState currentState = DetermineNPCConnectionState(npcTokens);
                 if (currentState != exchange.RequiredConnectionState.Value)
                 {
                     return false;
@@ -250,7 +245,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford a specific resource cost
         /// </summary>
-        private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, AttentionInfo attentionInfo)
+        private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens)
         {
             return cost.Type switch
             {
@@ -258,10 +253,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 ResourceType.Health => playerResources.Health >= cost.Amount,
                 ResourceType.Hunger => true, // Hunger is usually a reward, not a cost
                 ResourceType.Attention => attentionInfo.Current >= cost.Amount,
-                ResourceType.TrustToken => _tokenFacade.HasTokens(ConnectionType.Trust, cost.Amount),
-                ResourceType.CommerceToken => _tokenFacade.HasTokens(ConnectionType.Commerce, cost.Amount),
-                ResourceType.StatusToken => _tokenFacade.HasTokens(ConnectionType.Status, cost.Amount),
-                ResourceType.ShadowToken => _tokenFacade.HasTokens(ConnectionType.Shadow, cost.Amount),
+                ResourceType.TrustToken => npcTokens.GetValueOrDefault(ConnectionType.Trust, 0) >= cost.Amount,
+                ResourceType.CommerceToken => npcTokens.GetValueOrDefault(ConnectionType.Commerce, 0) >= cost.Amount,
+                ResourceType.StatusToken => npcTokens.GetValueOrDefault(ConnectionType.Status, 0) >= cost.Amount,
+                ResourceType.ShadowToken => npcTokens.GetValueOrDefault(ConnectionType.Shadow, 0) >= cost.Amount,
                 _ => true
             };
         }
@@ -269,10 +264,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Determine NPC's current connection state
         /// </summary>
-        private ConnectionState DetermineNPCConnectionState(NPC npc)
+        private ConnectionState DetermineNPCConnectionState(Dictionary<ConnectionType, int> npcTokens)
         {
             // Get total tokens with this NPC
-            int totalTokens = _tokenFacade.GetTotalTokensWithNPC(npc.ID);
+            int totalTokens = npcTokens.Values.Sum();
 
             // Map token count to connection state
             if (totalTokens <= 0) return ConnectionState.DISCONNECTED;

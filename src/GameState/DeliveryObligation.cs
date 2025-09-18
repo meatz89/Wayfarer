@@ -122,13 +122,13 @@ public class DeliveryObligation
         if (DeadlineInSegments <= 2) return $"{DeadlineInSegments} segments ⚡ CRITICAL!";
         if (DeadlineInSegments <= 4) return $"{DeadlineInSegments} segments 🔥 URGENT";
 
-        if (DeadlineInSegments <= 16)
+        if (DeadlineInSegments <= 24)
         {
             return $"{DeadlineInSegments} segments ⚠️ urgent";
         }
 
-        int days = DeadlineInSegments / 16; // 16 segments per day
-        int remainingSegments = DeadlineInSegments % 16;
+        int days = DeadlineInSegments / 24; // 24 segments per day
+        int remainingSegments = DeadlineInSegments % 24;
         if (days == 0) return $"{DeadlineInSegments} segments";
         if (remainingSegments == 0) return $"{days}d";
         return $"{days}d {remainingSegments}s";

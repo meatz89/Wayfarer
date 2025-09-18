@@ -20,7 +20,7 @@ public class ObservationCardEntry
         int timeBlocksElapsed = (daysElapsed * 6) + (currentTimeBlock - TimeBlockAcquired);
         int segmentsElapsed = timeBlocksElapsed * 8; // Each time block is 8 segments
 
-        // Default 16 segment expiration
-        return segmentsElapsed >= 16;
+        // Default 24 segment expiration
+        return segmentsElapsed >= 24;
     }
 }

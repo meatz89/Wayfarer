@@ -149,6 +149,46 @@
                     </div>
                 }
                 
+                <!-- Work Actions -->
+                @if (AvailableWorkActions.Any())
+                {
+                    <div class="work-section">
+                        <div class="work-header">
+                            <span class="work-title">💼 Work Opportunities</span>
+                            <span class="work-info">Consumes entire time block (4 segments)</span>
+                        </div>
+                        <div class="work-actions">
+                            @foreach (var work in AvailableWorkActions)
+                            {
+                                var (baseCoins, hungerPenalty, actualCoins) = GetWorkOutputPreview(work);
+                                <div class="work-btn" @onclick="async () => await PerformWork(work)">
+                                    <div class="work-name">@work.Name</div>
+                                    <div class="work-type">@GetWorkTypeDisplay(work.Type)</div>
+                                    <div class="work-output">
+                                        Earn @actualCoins coins
+                                        @if (hungerPenalty > 0)
+                                        {
+                                            <span class="hunger-penalty">(base @baseCoins - @hungerPenalty hunger)</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(work.Description))
+                                    {
+                                        <div class="work-description">@work.Description</div>
+                                    }
+                                    @if (work.HungerReduction.HasValue)
+                                    {
+                                        <div class="work-benefit">🍞 Includes meal (-@work.HungerReduction hunger)</div>
+                                    }
+                                    @if (work.HealthRestore.HasValue)
+                                    {
+                                        <div class="work-benefit">❤️ Restores @work.HealthRestore health</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <!-- Dynamic Location Actions -->
                 @foreach (var action in LocationActions)
                 {

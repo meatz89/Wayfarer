@@ -540,7 +540,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                         if (npc == null || npc.ID != standingObligation.RelatedNPCId) continue;
                     }
 
-                    obligation.DeadlineInSegments += 2880; // 48 hours
+                    obligation.DeadlineInSegments += 48; // 2 days at 24 segments per day
                     _messageSystem.AddSystemMessage(
                         $"📅 {standingObligation.Name} grants +2 days to deadline for letter from {obligation.SenderName}",
                         SystemMessageTypes.Info

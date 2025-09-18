@@ -21,8 +21,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private readonly ExchangeInventory _inventory;
 
         // External dependencies
-        private readonly ResourceFacade _resourceFacade;
-        private readonly TokenFacade _tokenFacade;
         private readonly TimeManager _timeManager;
         private readonly MessageSystem _messageSystem;
 
@@ -32,8 +30,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             ExchangeValidator validator,
             ExchangeProcessor processor,
             ExchangeInventory inventory,
-            ResourceFacade resourceFacade,
-            TokenFacade tokenFacade,
             TimeManager timeManager,
             MessageSystem messageSystem)
         {
@@ -42,8 +38,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             _validator = validator ?? throw new ArgumentNullException(nameof(validator));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
-            _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-            _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
             _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
             _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         }
@@ -59,8 +53,14 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 throw new ArgumentException($"NPC with ID {npcId} not found");
             }
 
-            // Get available exchanges for this NPC
-            List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId);
+            // Get available exchanges for this NPC - placeholder parameters for now
+            PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
+            TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
+            Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>(); // Would need TokenFacade
+            RelationshipTier relationshipTier = RelationshipTier.None;
+            AttentionInfo attentionInfo = new AttentionInfo(0, 0); // Would need ResourceFacade
+
+            List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier);
             if (!availableExchanges.Any())
             {
                 return null;
@@ -72,7 +72,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Get all available exchanges for an NPC
         /// </summary>
-        public List<ExchangeOption> GetAvailableExchanges(string npcId)
+        public List<ExchangeOption> GetAvailableExchanges(string npcId, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
         {
             NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
             if (npc == null)
@@ -95,7 +95,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
 
             // Validate each exchange
             List<ExchangeOption> validExchanges = new List<ExchangeOption>();
-            PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
 
             foreach (ExchangeData exchange in npcExchanges)
             {
@@ -104,6 +103,9 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                     exchange,
                     npc,
                     playerResources,
+                    attentionInfo,
+                    npcTokens,
+                    relationshipTier,
                     spotDomains);
 
                 if (validation.IsVisible)
@@ -134,7 +136,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Execute an exchange with an NPC
         /// </summary>
-        public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId)
+        public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
         {
             // Get NPC
             NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -163,11 +165,13 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Validate exchange
-            PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
             ExchangeValidationResult validation = _validator.ValidateExchange(
                 exchange,
                 npc,
                 playerResources,
+                attentionInfo,
+                npcTokens,
+                relationshipTier,
                 new List<string>());
 
             if (!validation.IsValid)
@@ -179,8 +183,14 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 };
             }
 
-            // Process the exchange
-            ExchangeResult result = await _processor.ProcessExchange(exchange, npc);
+            // Process the exchange - return operation data for GameFacade to execute
+            ExchangeOperationData operationData = _processor.PrepareExchangeOperation(exchange, npc, playerResources, attentionInfo);
+            ExchangeResult result = new ExchangeResult
+            {
+                Success = true,
+                Message = "Exchange ready for execution",
+                OperationData = operationData
+            };
 
             // Track exchange history if successful
             if (result.Success)
@@ -200,10 +210,11 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford an exchange
         /// </summary>
-        public bool CanAffordExchange(ExchangeData exchange)
+        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, AttentionInfo attentionInfo)
         {
-            PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
-            return _validator.CanAffordExchange(exchange, playerResources);
+            // Need to get npcTokens to call validator properly
+            // This method should be updated to accept additional parameters
+            return false; // Placeholder - this method needs to be called with proper orchestration
         }
 
         /// <summary>
@@ -219,7 +230,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// </summary>
         public bool HasExchangesAvailable(string npcId)
         {
-            return GetAvailableExchanges(npcId).Any();
+            // Placeholder implementation - would need proper orchestration
+            PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
+            Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>();
+            RelationshipTier relationshipTier = RelationshipTier.None;
+            AttentionInfo attentionInfo = new AttentionInfo(0, 0);
+            return GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier).Any();
         }
 
         /// <summary>
@@ -336,6 +352,29 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         public Dictionary<ResourceType, int> RewardsGranted { get; set; }
         public List<string> ItemsGranted { get; set; } = new List<string>();
         public List<string> SideEffects { get; set; }
+        public ExchangeOperationData OperationData { get; set; }
+    }
+
+    /// <summary>
+    /// Data for GameFacade to execute an exchange operation
+    /// </summary>
+    public class ExchangeOperationData
+    {
+        public List<ResourceAmount> Costs { get; set; } = new List<ResourceAmount>();
+        public List<ResourceAmount> Rewards { get; set; } = new List<ResourceAmount>();
+        public List<string> ItemRewards { get; set; } = new List<string>();
+        public bool AdvancesTime { get; set; }
+        public int TimeAdvancementHours { get; set; }
+        public bool AffectsRelationship { get; set; }
+        public int FlowModifier { get; set; }
+        public bool ConsumesPatience { get; set; }
+        public int PatienceCost { get; set; }
+        public string UnlocksExchangeId { get; set; }
+        public string TriggerEvent { get; set; }
+        public string NPCId { get; set; }
+        public string ExchangeId { get; set; }
+        public bool IsUnique { get; set; }
+        public ConnectionState? ConnectionStateChange { get; set; }
     }
 
     /// <summary>

@@ -32,7 +32,7 @@ public class BindingObligationSystem
         string npcName,
         ObligationType type,
         string description,
-        int segmentsUntilDue = 16)
+        int segmentsUntilDue = 24)
     {
         BindingObligation obligation = new BindingObligation
         {

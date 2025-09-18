@@ -67,6 +67,34 @@ public static class LocationParser
             location.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
         }
 
+        // Parse available work actions
+        if (dto.AvailableWork != null)
+        {
+            foreach (var workDto in dto.AvailableWork)
+            {
+                var workAction = new WorkAction
+                {
+                    Id = workDto.Id,
+                    Name = workDto.Name,
+                    Description = workDto.Description,
+                    Type = Enum.TryParse<WorkType>(workDto.Type, out var workType)
+                        ? workType : WorkType.Standard,
+                    BaseCoins = workDto.BaseCoins,
+                    LocationId = workDto.LocationId,
+                    SpotId = workDto.SpotId,
+                    RequiredTokens = workDto.RequiredTokens,
+                    RequiredTokenType = workDto.RequiredTokenType != null &&
+                        Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out var tokenType)
+                        ? tokenType : (ConnectionType?)null,
+                    RequiredPermit = workDto.RequiredPermit,
+                    HungerReduction = workDto.HungerReduction,
+                    HealthRestore = workDto.HealthRestore,
+                    GrantedItem = workDto.GrantedItem
+                };
+                location.AvailableWork.Add(workAction);
+            }
+        }
+
         return location;
     }
     public static Location ParseLocation(string json)

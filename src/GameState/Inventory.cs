@@ -2,52 +2,41 @@
 
 public class Inventory
 {
-    public string[] ItemSlots;
-    public int Size => ItemSlots.Length;
-    public int UsedCapacity => ItemSlots.Count(s =>
-                                {
-                                    return s != string.Empty;
-                                });
+    // Weight-based inventory system: 10 weight capacity, items have 1-6 weight
+    private const int BASE_WEIGHT_CAPACITY = 10;
+    private readonly List<string> _items;
 
-    public Inventory(int size)
+    public int MaxWeight { get; private set; }
+
+    public Inventory(int maxWeight = BASE_WEIGHT_CAPACITY)
     {
-        ItemSlots = new string[size];
-        Clear();
+        MaxWeight = maxWeight;
+        _items = new List<string>();
     }
 
     public List<string> GetAllItems()
     {
-        return ItemSlots.ToList();
+        return _items.ToList();
     }
 
     public List<string> GetItemIds()
     {
-        return ItemSlots.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+        return _items.Distinct().ToList();
     }
 
     public void Clear()
     {
-        for (int i = 0; i < ItemSlots.Length; i++)
-        {
-            ItemSlots[i] = string.Empty;
-        }
+        _items.Clear();
     }
 
     public string GetFirstItem()
     {
-        foreach (string itemType in ItemSlots)
-        {
-            if (itemType != string.Empty && HasItem(itemType))
-            {
-                return itemType;
-            }
-        }
-        return string.Empty;
+        return _items.FirstOrDefault() ?? string.Empty;
     }
 
     public int GetCapacity()
     {
-        return ItemSlots.Length;
+        return MaxWeight;
     }
 
     public void SetItemCount(string item, int count)
@@ -120,28 +109,14 @@ public class Inventory
 
     public bool AddItem(string item)
     {
-        for (int i = 0; i < ItemSlots.Length; i++)
-        {
-            if (ItemSlots[i] == string.Empty)
-            {
-                ItemSlots[i] = item;
-                return true;
-            }
-        }
-        return false;
+        // Weight check happens in CanAddItem - this just adds to collection
+        _items.Add(item);
+        return true;
     }
 
     public bool RemoveItem(string item)
     {
-        for (int i = 0; i < ItemSlots.Length; i++)
-        {
-            if (ItemSlots[i] == item)
-            {
-                ItemSlots[i] = string.Empty;
-                return true;
-            }
-        }
-        return false;
+        return _items.Remove(item);
     }
 
     public bool TryAddItem(string item)
@@ -151,115 +126,90 @@ public class Inventory
 
     public bool HasItem(string item)
     {
-        foreach (string slot in ItemSlots)
-        {
-            if (slot == item)
-            {
-                return true;
-            }
-        }
-        return false;
+        return _items.Contains(item);
     }
 
-    public bool HasFreeSlot()
+    public bool HasFreeWeight(ItemRepository itemRepository)
     {
-        foreach (string slot in ItemSlots)
-        {
-            if (slot == string.Empty)
-            {
-                return true;
-            }
-        }
-        return false;
+        return GetUsedWeight(itemRepository) < MaxWeight;
     }
 
     public int GetItemCount(string item)
     {
-        int count = 0;
-        foreach (string slot in ItemSlots)
-        {
-            if (slot == item)
-            {
-                count++;
-            }
-        }
-        return count;
+        return _items.Count(i => i == item);
     }
 
     /// <summary>
-    /// Calculate the total number of slots currently used, considering item sizes
+    /// Calculate the total weight currently used
     /// </summary>
-    public int GetUsedSlots(ItemRepository itemRepository)
+    public int GetUsedWeight(ItemRepository itemRepository)
     {
-        int usedSlots = 0;
+        int totalWeight = 0;
 
-        foreach (string itemId in ItemSlots)
+        foreach (string itemId in _items)
         {
-            if (!string.IsNullOrEmpty(itemId))
+            Item item = itemRepository.GetItemById(itemId);
+            if (item != null)
             {
-                Item item = itemRepository.GetItemById(itemId);
-                if (item != null)
-                {
-                    usedSlots += item.GetRequiredSlots();
-                }
+                totalWeight += item.GetWeight();
             }
         }
 
-        return usedSlots;
+        return totalWeight;
     }
 
     /// <summary>
-    /// Check if there's enough space to add an item considering its size
+    /// Check if there's enough weight capacity to add an item
     /// </summary>
     public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
     {
         if (item == null) return false;
 
-        int requiredSlots = item.GetRequiredSlots();
-        int usedSlots = GetUsedSlots(itemRepository);
-        int maxSlots = GetMaxSlots(itemRepository, currentTransport);
+        int itemWeight = item.GetWeight();
+        int usedWeight = GetUsedWeight(itemRepository);
+        int maxWeight = GetMaxWeight(currentTransport);
 
-        return (usedSlots + requiredSlots) <= maxSlots;
+        return (usedWeight + itemWeight) <= maxWeight;
     }
 
     /// <summary>
-    /// Get the maximum number of slots available (base capacity + transport bonuses)
+    /// Get the maximum weight capacity (base capacity + transport bonuses)
     /// </summary>
-    public int GetMaxSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public int GetMaxWeight(TravelMethods? currentTransport = null)
     {
-        // Base inventory: 5 slots as specified in UserStories.md
-        int baseSlots = 5;
+        // Base inventory: 10 weight as per documentation
+        int baseWeight = MaxWeight;
 
-        // Add transport bonuses
+        // Add transport bonuses (converted from slot bonuses to weight)
         if (currentTransport.HasValue)
         {
             switch (currentTransport.Value)
             {
                 case TravelMethods.Cart:
-                    baseSlots += 2; // Cart adds 2 slots but blocks mountain routes
+                    baseWeight += 6; // Cart adds significant capacity
                     break;
                 case TravelMethods.Carriage:
-                    baseSlots += 1; // Carriage adds modest storage
+                    baseWeight += 3; // Carriage adds modest capacity
                     break;
                     // Walking, Horseback, Boat use base capacity
             }
         }
 
-        return baseSlots;
+        return baseWeight;
     }
 
     /// <summary>
-    /// Get available slot space
+    /// Get available weight capacity
     /// </summary>
-    public int GetAvailableSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public int GetAvailableWeight(ItemRepository itemRepository, TravelMethods? currentTransport = null)
     {
-        return GetMaxSlots(itemRepository, currentTransport) - GetUsedSlots(itemRepository);
+        return GetMaxWeight(currentTransport) - GetUsedWeight(itemRepository);
     }
 
     /// <summary>
-    /// Add item with size-aware slot checking
+    /// Add item with weight checking
     /// </summary>
-    public bool AddItemWithSizeCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public bool AddItemWithWeightCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
     {
         if (!CanAddItem(item, itemRepository, currentTransport))
         {
@@ -269,13 +219,19 @@ public class Inventory
         return AddItem(item.Id);
     }
 
-    public bool IsFull()
+    public bool IsFull(ItemRepository itemRepository)
     {
-        return !HasFreeSlot();
+        return GetUsedWeight(itemRepository) >= MaxWeight;
     }
 
     public void Remove(Item item)
     {
-        this.RemoveItem(item.Id);
+        RemoveItem(item.Id);
     }
+
+    // Legacy compatibility properties (for gradual migration)
+    public string[] ItemSlots => _items.ToArray();
+    public int Size => MaxWeight;
+    public int UsedCapacity => _items.Count;
+    public bool HasFreeSlot() => _items.Count < 100; // Arbitrary high number for compatibility
 }

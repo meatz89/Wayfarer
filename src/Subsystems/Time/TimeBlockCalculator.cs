@@ -103,11 +103,11 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             return timeBlock switch
             {
                 TimeBlocks.Dawn => 0,
-                TimeBlocks.Morning => 3,
-                TimeBlocks.Midday => 7,
-                TimeBlocks.Afternoon => 11,
-                TimeBlocks.Evening => 15,
-                TimeBlocks.Night => 16,
+                TimeBlocks.Morning => 4,
+                TimeBlocks.Midday => 8,
+                TimeBlocks.Afternoon => 12,
+                TimeBlocks.Evening => 16,
+                TimeBlocks.Night => 20,
                 _ => 0
             };
         }
@@ -119,13 +119,13 @@ namespace Wayfarer.Subsystems.TimeSubsystem
         {
             return timeBlock switch
             {
-                TimeBlocks.Dawn => 2,
-                TimeBlocks.Morning => 6,
-                TimeBlocks.Midday => 10,
-                TimeBlocks.Afternoon => 14,
-                TimeBlocks.Evening => 15,
-                TimeBlocks.Night => 16,
-                _ => 16
+                TimeBlocks.Dawn => 3,
+                TimeBlocks.Morning => 7,
+                TimeBlocks.Midday => 11,
+                TimeBlocks.Afternoon => 15,
+                TimeBlocks.Evening => 19,
+                TimeBlocks.Night => 23,
+                _ => 23
             };
         }
 
@@ -144,7 +144,7 @@ namespace Wayfarer.Subsystems.TimeSubsystem
             }
 
             // Target is tomorrow - calculate remaining segments today + segments to target tomorrow
-            int segmentsRemainingToday = 16 - currentSegment;
+            int segmentsRemainingToday = 24 - currentSegment;
             return segmentsRemainingToday + targetStartSegment;
         }
     }

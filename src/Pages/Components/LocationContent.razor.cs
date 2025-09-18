@@ -46,6 +46,7 @@ namespace Wayfarer.Pages.Components
         protected bool CanTravel { get; set; }
         protected bool CanWork { get; set; }
         protected List<LocationActionViewModel> LocationActions { get; set; } = new();
+        protected List<WorkAction> AvailableWorkActions { get; set; } = new();
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
@@ -236,6 +237,19 @@ namespace Wayfarer.Pages.Components
             // Get available investigation approaches based on player stats
             AvailableInvestigationApproaches = GameFacade.GetAvailableInvestigationApproaches();
             Console.WriteLine($"[LocationContent] Got {AvailableInvestigationApproaches.Count} investigation approaches available");
+
+            // Get available work actions at this location
+            AvailableWorkActions.Clear();
+            if (location != null)
+            {
+                LocationFacade locationFacade = GameFacade.GetLocationFacade();
+                if (locationFacade != null)
+                {
+                    List<WorkAction> workActions = locationFacade.GetAvailableWork(location.Id);
+                    AvailableWorkActions = workActions ?? new List<WorkAction>();
+                    Console.WriteLine($"[LocationContent] Got {AvailableWorkActions.Count} work actions available");
+                }
+            }
         }
 
         protected async Task StartConversation(string npcId)
@@ -469,6 +483,60 @@ namespace Wayfarer.Pages.Components
                 return 2;
             }
             return 1;
+        }
+
+        /// <summary>
+        /// Perform a work action, consuming entire time block and generating coins.
+        /// </summary>
+        protected async Task PerformWork(WorkAction work)
+        {
+            if (work == null || CurrentLocation == null)
+            {
+                Console.WriteLine("[LocationContent] Cannot perform work - invalid work action or location");
+                return;
+            }
+
+            Console.WriteLine($"[LocationContent] Starting work: {work.Name} at {CurrentLocation.Name}");
+
+            // Call LocationFacade to perform the work
+            LocationFacade locationFacade = GameFacade.GetLocationFacade();
+            bool success = locationFacade.PerformWork(work.Id, CurrentLocation.Id);
+
+            if (success)
+            {
+                Console.WriteLine($"[LocationContent] Successfully completed work: {work.Name}");
+                // Refresh the UI to show updated resources and time
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] Failed to perform work: {work.Name}");
+            }
+        }
+
+        /// <summary>
+        /// Calculate work output preview showing hunger impact.
+        /// </summary>
+        protected (int baseCoins, int hungerPenalty, int actualCoins) GetWorkOutputPreview(WorkAction work)
+        {
+            if (work == null) return (0, 0, 0);
+
+            LocationFacade locationFacade = GameFacade.GetLocationFacade();
+            return locationFacade.CalculateWorkOutput(work);
+        }
+
+        /// <summary>
+        /// Get display text for work type.
+        /// </summary>
+        protected string GetWorkTypeDisplay(WorkType type)
+        {
+            return type switch
+            {
+                WorkType.Service => "Service",
+                WorkType.Enhanced => "Enhanced",
+                _ => "Standard"
+            };
         }
 
         protected string GetStateClass(string connectionState)

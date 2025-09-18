@@ -10,23 +10,18 @@ using Wayfarer.Subsystems.TokenSubsystem;
 public class StrangerConversationManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConversationFacade _conversationFacade;
-    private readonly TokenFacade _tokenFacade;
     private readonly MessageSystem _messageSystem;
 
-    public StrangerConversationManager(GameWorld gameWorld, ConversationFacade conversationFacade,
-        TokenFacade tokenFacade, MessageSystem messageSystem)
+    public StrangerConversationManager(GameWorld gameWorld, MessageSystem messageSystem)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _conversationFacade = conversationFacade ?? throw new ArgumentNullException(nameof(conversationFacade));
-        _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
 
     /// <summary>
-    /// Start a conversation with a stranger NPC
+    /// Prepare data for GameFacade to start a stranger conversation
     /// </summary>
-    public ConversationSession StartStrangerConversation(string strangerId, string conversationType)
+    public StrangerConversationData PrepareStrangerConversation(string strangerId, string conversationType)
     {
         StrangerNPC stranger = _gameWorld.GetStrangerById(strangerId);
         if (stranger == null)
@@ -47,21 +42,19 @@ public class StrangerConversationManager
         // Create a temporary NPC representation for the stranger
         NPC tempNPC = CreateTemporaryNPCFromStranger(stranger);
 
-        // Add temp NPC to GameWorld temporarily so ConversationFacade can find it
-        _gameWorld.NPCs.Add(tempNPC);
-
-        // Create conversation session using facade
-        ConversationSession session = _conversationFacade.StartConversation(tempNPC.ID, ConversationType.Stranger);
-
-        // Mark as stranger conversation and set level for XP scaling
-        session.IsStrangerConversation = true;
-        session.StrangerLevel = stranger.Level;
-
-        return session;
+        // Return data for GameFacade to use
+        return new StrangerConversationData
+        {
+            Stranger = stranger,
+            TempNPC = tempNPC,
+            ConversationType = ConversationType.Stranger,
+            StrangerLevel = stranger.Level,
+            Conversation = conversation
+        };
     }
 
     /// <summary>
-    /// Complete a stranger conversation and apply rewards
+    /// Complete a stranger conversation and prepare reward data
     /// </summary>
     public StrangerConversationResult CompleteStrangerConversation(ConversationSession session, int finalRapport)
     {
@@ -92,7 +85,6 @@ public class StrangerConversationManager
         if (rewardTier >= 0 && rewardTier < conversation.Rewards.Count)
         {
             reward = conversation.Rewards[rewardTier];
-            ApplyStrangerReward(reward, stranger);
         }
 
         return new StrangerConversationResult
@@ -101,7 +93,9 @@ public class StrangerConversationManager
             RewardTier = rewardTier,
             Reward = reward,
             XPGranted = CalculateXPGranted(session),
-            StrangerName = stranger.Name
+            StrangerName = stranger.Name,
+            Stranger = stranger,
+            RewardData = reward
         };
     }
 
@@ -185,44 +179,6 @@ public class StrangerConversationManager
         return -1; // No reward tier achieved
     }
 
-    private void ApplyStrangerReward(StrangerReward reward, StrangerNPC stranger)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Apply immediate rewards
-        if (reward.Coins > 0)
-            player.AddCoins(reward.Coins);
-
-        if (reward.Health > 0)
-            player.ModifyHealth(reward.Health);
-
-        if (reward.Food > 0)
-            player.ReduceHunger(reward.Food);
-
-        // Apply item reward
-        if (!string.IsNullOrEmpty(reward.Item))
-        {
-            player.Inventory.AddItem(reward.Item);
-            _messageSystem.AddSystemMessage($"Received {reward.Item}", SystemMessageTypes.Success);
-        }
-
-        // Apply token rewards
-        if (reward.Tokens != null && reward.Tokens.Any())
-        {
-            foreach (var (tokenType, count) in reward.Tokens)
-            {
-                // Parse the token type and apply it
-                if (Enum.TryParse<ConnectionType>(tokenType, true, out ConnectionType connectionType))
-                {
-                    _tokenFacade.AddTokensToNPC(connectionType, count, stranger.Id);
-                    _messageSystem.AddSystemMessage($"Gained {count} {tokenType} token(s) with {stranger.Name}", SystemMessageTypes.Success);
-                }
-            }
-        }
-
-        // Note: Permits and Observations systems not yet implemented in game
-        // When these systems are added, rewards should be applied here
-    }
 
     private int CalculateXPGranted(ConversationSession session)
     {
@@ -230,6 +186,18 @@ public class StrangerConversationManager
         // This would be tracked during card plays in ConversationFacade
         return session.TurnHistory.Count * (session.StrangerLevel ?? 1);
     }
+}
+
+/// <summary>
+/// Data for GameFacade to start a stranger conversation
+/// </summary>
+public class StrangerConversationData
+{
+    public StrangerNPC Stranger { get; set; }
+    public NPC TempNPC { get; set; }
+    public ConversationType ConversationType { get; set; }
+    public int StrangerLevel { get; set; }
+    public StrangerConversation Conversation { get; set; }
 }
 
 /// <summary>
@@ -242,6 +210,8 @@ public class StrangerConversationResult
     public StrangerReward Reward { get; set; }
     public int XPGranted { get; set; }
     public string StrangerName { get; set; }
+    public StrangerNPC Stranger { get; set; }
+    public StrangerReward RewardData { get; set; }
 }
 
 /// <summary>

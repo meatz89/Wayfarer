@@ -28,11 +28,11 @@ public enum ItemCategory
 
 public enum SizeCategory
 {
-    Tiny,      // Fits in pocket, no transport concerns (1 slot)
-    Small,     // Single hand carry, minimal impact (1 slot)
-    Medium,    // Two-handed carry, some transport consideration (1 slot)
-    Large,     // Requires special transport planning or stamina cost (2 slots)
-    Massive    // Blocks route access without proper transport (3 slots)
+    Tiny,      // Weight 1 - Fits in pocket (letters, permits, coins)
+    Small,     // Weight 1-2 - Single hand carry (consumables, small packages)
+    Medium,    // Weight 2-3 - Two-handed carry (tools, trade goods)
+    Large,     // Weight 3-5 - Requires effort (heavy packages, bulk goods)
+    Massive    // Weight 5-6 - Maximum burden (crates, heavy deliveries)
 }
 
 public class Item
@@ -42,8 +42,11 @@ public class Item
     public int Focus { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
-    public int InventorySlots { get; set; } = 1;
+    public int InventorySlots { get; set; } = 1; // Legacy - now uses Weight
     public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
+
+    // Weight system - replaces slots (1-6 weight scale)
+    public int Weight { get; set; } = 1;
 
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
@@ -115,19 +118,31 @@ public class Item
     public bool IsAvailable { get; internal set; }
 
     /// <summary>
-    /// Get the number of inventory slots this item requires based on its size category
+    /// Get the weight of this item. If not explicitly set, derives from size category.
     /// </summary>
-    public int GetRequiredSlots()
+    public int GetWeight()
     {
+        // If weight explicitly set (>0), use that
+        if (Weight > 0) return Weight;
+
+        // Otherwise derive from size category
         return Size switch
         {
             SizeCategory.Tiny => 1,
-            SizeCategory.Small => 1,
-            SizeCategory.Medium => 1,
-            SizeCategory.Large => 2,
-            SizeCategory.Massive => 3,
+            SizeCategory.Small => 2,
+            SizeCategory.Medium => 3,
+            SizeCategory.Large => 4,
+            SizeCategory.Massive => 5,
             _ => 1
         };
+    }
+
+    /// <summary>
+    /// Legacy method for compatibility - redirects to weight
+    /// </summary>
+    public int GetRequiredSlots()
+    {
+        return GetWeight();
     }
 
     /// <summary>

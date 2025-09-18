@@ -30,7 +30,7 @@
     public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
 
 
-    public Inventory Inventory { get; set; } = new Inventory(6); // Starting inventory size - game balance
+    public Inventory Inventory { get; set; } = new Inventory(10); // 10 weight capacity per documentation
 
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
@@ -199,7 +199,7 @@
     public Player()
     {
         Background = GameRules.StandardRuleset.Background;
-        Inventory = new Inventory(10);
+        Inventory = new Inventory(10); // 10 weight capacity
 
         Coins = 5;
         Level = 1;

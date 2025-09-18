@@ -1634,7 +1634,7 @@ public class ObligationQueueManager
             RecipientId = recipient.ID,
             RecipientName = recipient.Name,
             TokenType = tokenType,
-            DeadlineInSegments = _random.Next(48, 80), // 3-5 days in segments (16 segments per day)
+            DeadlineInSegments = _random.Next(72, 120), // 3-5 days in segments (24 segments per day)
             Payment = _random.Next(3, 8)
         };
     }
@@ -1997,7 +1997,7 @@ public class ObligationQueueManager
         );
 
         _messageSystem.AddSystemMessage(
-            $"  • New deadline: {letter.DeadlineInSegments / 48} days (was {oldDeadlineSegments / 48})", // 48 segments per day
+            $"  • New deadline: {letter.DeadlineInSegments / 24} days (was {oldDeadlineSegments / 24})", // 24 segments per day
             SystemMessageTypes.Info
         );
 

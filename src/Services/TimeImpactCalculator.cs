@@ -27,10 +27,10 @@ public class TimeImpactCalculator
         int resultSegment = currentSegment + segments;
         int daysAdvanced = 0;
 
-        // Handle day advancement (16 segments per day)
-        while (resultSegment >= 16)
+        // Handle day advancement (24 segments per day)
+        while (resultSegment >= 24)
         {
-            resultSegment -= 16;
+            resultSegment -= 24;
             daysAdvanced++;
         }
 
@@ -81,12 +81,13 @@ public class TimeImpactCalculator
     {
         return segment switch
         {
-            >= 1 and <= 3 => TimeBlocks.Dawn,      // Segments 1-3 (Dawn)
-            >= 4 and <= 7 => TimeBlocks.Morning,    // Segments 4-7 (Midday)
-            >= 8 and <= 11 => TimeBlocks.Midday, // Segments 8-11 (Afternoon)
-            >= 12 and <= 15 => TimeBlocks.Afternoon,  // Segments 12-15 (Evening)
-            16 => TimeBlocks.Evening,                  // Segment 16 (Night)
-            _ => TimeBlocks.Night               // Default (should not happen)
+            >= 1 and <= 4 => TimeBlocks.Dawn,          // Segments 1-4 (Dawn)
+            >= 5 and <= 8 => TimeBlocks.Morning,       // Segments 5-8 (Morning)
+            >= 9 and <= 12 => TimeBlocks.Midday,       // Segments 9-12 (Midday)
+            >= 13 and <= 16 => TimeBlocks.Afternoon,   // Segments 13-16 (Afternoon)
+            >= 17 and <= 20 => TimeBlocks.Evening,     // Segments 17-20 (Evening)
+            >= 21 and <= 24 => TimeBlocks.Night,       // Segments 21-24 (Night)
+            _ => TimeBlocks.Dawn                       // Default (wrap to dawn)
         };
     }
 }

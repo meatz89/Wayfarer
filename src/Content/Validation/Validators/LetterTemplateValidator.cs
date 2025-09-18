@@ -167,7 +167,7 @@ public class LetterTemplateValidator : IContentValidator
         }
 
         // Validate numeric ranges
-        ValidateNumericRange(template, templateId, fileName, errors, "minDeadlineInSegments", "maxDeadlineInSegments", 2, 1440); // Min 2 segments, max 16 segments
+        ValidateNumericRange(template, templateId, fileName, errors, "minDeadlineInSegments", "maxDeadlineInSegments", 2, 1440); // Min 2 segments, max 60 days (1440 segments at 24 per day)
         ValidateNumericRange(template, templateId, fileName, errors, "minPayment", "maxPayment", 0, 10000);
     }
 

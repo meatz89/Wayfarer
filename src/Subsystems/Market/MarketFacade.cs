@@ -248,9 +248,9 @@ namespace Wayfarer.Subsystems.MarketSubsystem
         public string GetInventoryStatus()
         {
             Player player = _gameWorld.GetPlayer();
-            int usedSlots = player.Inventory.GetUsedSlots(_itemRepository);
-            int maxSlots = player.Inventory.GetMaxSlots(_itemRepository);
-            return $"Inventory: {usedSlots}/{maxSlots} slots";
+            int usedWeight = player.Inventory.GetUsedWeight(_itemRepository);
+            int maxWeight = player.Inventory.GetMaxWeight();
+            return $"Inventory: {usedWeight}/{maxWeight} weight";
         }
 
         /// <summary>

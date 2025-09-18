@@ -349,7 +349,7 @@
       "name": "Trade Opportunities",
       "description": "Marcus seeks profitable trading partners",
       "requestCards": ["marcus_trade_request", "marcus_business_proposal"],
-      "promiseCards": ["marcus_urgent_promise"]
+      "promiseCards": []
     }
     ]
   }

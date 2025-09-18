@@ -23,6 +23,29 @@ public class LocationDTO
     // Mechanical properties to replace hardcoded location checks
     public string LocationType { get; set; } // e.g., "Tavern", "Crossroads", "Elite Quarter"
     public bool IsStartingLocation { get; set; }
+
+    // Work System - Available work actions at this location
+    public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
+}
+
+/// <summary>
+/// Data Transfer Object for work actions available at locations
+/// </summary>
+public class WorkActionDTO
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Type { get; set; } // Standard, Enhanced, or Service
+    public int BaseCoins { get; set; }
+    public string LocationId { get; set; }
+    public string SpotId { get; set; }
+    public int? RequiredTokens { get; set; }
+    public string RequiredTokenType { get; set; }
+    public string RequiredPermit { get; set; }
+    public int? HungerReduction { get; set; }
+    public int? HealthRestore { get; set; }
+    public string GrantedItem { get; set; }
 }
 
 /// <summary>

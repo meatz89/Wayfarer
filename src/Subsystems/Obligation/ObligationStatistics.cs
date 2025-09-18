@@ -325,7 +325,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 return remainingSegments == 0 ? $"{hours}h ⚠️ urgent" : $"{hours}h {remainingSegments}seg ⚠️ urgent";
             }
 
-            return hours <= 16 ? $"{hours}h today" : $"{hours / 24}d {hours % 24}h";
+            return hours <= 24 ? $"{hours}h today" : $"{hours / 24}d {hours % 24}h";
         }
 
         private Dictionary<ConnectionType, int> CalculateTokenLeverage(DeliveryObligation[] obligations)

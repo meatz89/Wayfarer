@@ -74,7 +74,28 @@
         "locationType": "Hub",
         "travelHubSpotId": "central_fountain",
         "baseFamiliarity": 0,
-        "maxFamiliarity": 3
+        "maxFamiliarity": 3,
+        "availableWork": [
+          {
+            "id": "market_porter",
+            "name": "Market Porter",
+            "description": "Help vendors move goods between stalls",
+            "type": "Standard",
+            "baseCoins": 5,
+            "locationId": "market_square",
+            "spotId": "merchant_row"
+          },
+          {
+            "id": "tavern_helper",
+            "name": "Tavern Helper",
+            "description": "Serve meals and clean tables at the local tavern",
+            "type": "Service",
+            "baseCoins": 3,
+            "locationId": "market_square",
+            "spotId": "merchant_row",
+            "hungerReduction": 30
+          }
+        ]
       },
       {
         "id": "copper_kettle_tavern",

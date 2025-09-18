@@ -75,8 +75,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             CompactQueueAfterExpiration();
 
             // Phase 5: Identify still-expiring items for warnings
-            trackingInfo.ExpiringObligations = GetExpiringObligations(16); // Next 16 segments (1 day)
-            trackingInfo.ExpiringMeetings = GetExpiringMeetings(16);
+            trackingInfo.ExpiringObligations = GetExpiringObligations(24); // Next 24 segments (1 day)
+            trackingInfo.ExpiringMeetings = GetExpiringMeetings(24);
 
             return trackingInfo;
         }
@@ -161,7 +161,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Show current deadline pressure
             string urgency = letter.DeadlineInSegments <= 2 ? " 🆘 CRITICAL!" : "";
-            int currentDays = letter.DeadlineInSegments / 16; // 16 segments per day
+            int currentDays = letter.DeadlineInSegments / 24; // 24 segments per day
             _messageSystem.AddSystemMessage(
                 $"  • Current deadline: {currentDays} days{urgency}",
                 letter.DeadlineInSegments <= 2 ? SystemMessageTypes.Danger : SystemMessageTypes.Info
@@ -196,7 +196,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Extend the deadline by 2 days (32 segments)
             int oldDeadlineSegments = letter.DeadlineInSegments;
-            letter.DeadlineInSegments += 32; // 2 days * 16 segments per day
+            letter.DeadlineInSegments += 48; // 2 days * 24 segments per day
 
             result.Success = true;
             result.AffectedObligation = letter;
@@ -208,8 +208,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 SystemMessageTypes.Success
             );
 
-            int newDeadlineDays = letter.DeadlineInSegments / 16;
-            int oldDeadlineDays = oldDeadlineSegments / 16;
+            int newDeadlineDays = letter.DeadlineInSegments / 24;
+            int oldDeadlineDays = oldDeadlineSegments / 24;
             _messageSystem.AddSystemMessage(
                 $"  • New deadline: {newDeadlineDays} days (was {oldDeadlineDays})",
                 SystemMessageTypes.Info

@@ -9,6 +9,7 @@ using Wayfarer.Subsystems.ResourceSubsystem;
 using Wayfarer.Subsystems.TimeSubsystem;
 using Wayfarer.Subsystems.TokenSubsystem;
 using Wayfarer.Subsystems.TravelSubsystem;
+using Wayfarer.Subsystems.ExchangeSubsystem;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -535,16 +536,15 @@ public class GameFacade
 
         // Get player resources and tokens
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
-        Dictionary<ConnectionType, int> playerTokens = new Dictionary<ConnectionType, int>();
 
-        // Get player's total tokens of each type (aggregated across all NPCs)
-        foreach (ConnectionType tokenType in Enum.GetValues(typeof(ConnectionType)))
-        {
-            playerTokens[tokenType] = _tokenFacade.GetTotalTokensOfType(tokenType);
-        }
+        // Get player's tokens with this specific NPC
+        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
 
-        // Get available exchanges from ExchangeFacade
-        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId);
+        // Get relationship tier with this NPC
+        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
+
+        // Get available exchanges from ExchangeFacade - now orchestrating properly
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier);
 
         if (!availableExchanges.Any())
         {
@@ -582,7 +582,7 @@ public class GameFacade
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             CurrentAttention = attentionInfo.Current,
-            PlayerTokens = playerTokens,
+            PlayerTokens = npcTokens,
             Session = new ExchangeSession
             {
                 NpcId = npcId,
@@ -1021,4 +1021,171 @@ public class GameFacade
             _messageSystem.AddSystemMessage($"Hunger {(hunger > 0 ? "+" : "")}{hunger} (now {player.Hunger})", SystemMessageTypes.Success);
         }
     }
+
+    // ========== EXCHANGE ORCHESTRATION ==========
+
+    /// <summary>
+    /// Execute an exchange using proper facade orchestration
+    /// </summary>
+    public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId)
+    {
+        // Collect all data needed for exchange
+        PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
+        TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
+        AttentionInfo attentionInfo = _resourceFacade.GetAttention(timeBlock);
+        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
+        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
+
+        // Execute exchange through facade (this returns operation data)
+        ExchangeResult result = await _exchangeFacade.ExecuteExchange(npcId, exchangeId, playerResources, attentionInfo, npcTokens, relationshipTier);
+
+        if (!result.Success || result.OperationData == null)
+        {
+            return result;
+        }
+
+        // Now orchestrate the actual execution using the operation data
+        ExchangeOperationData operation = result.OperationData;
+
+        // Apply costs through appropriate facades
+        foreach (ResourceAmount cost in operation.Costs)
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    if (!_resourceFacade.SpendCoins(cost.Amount, $"Exchange with {npcId}"))
+                    {
+                        result.Success = false;
+                        result.Message = "Failed to spend coins";
+                        return result;
+                    }
+                    break;
+
+                case ResourceType.Health:
+                    _resourceFacade.TakeDamage(cost.Amount, $"Exchange with {npcId}");
+                    break;
+
+                case ResourceType.Attention:
+                    if (!_resourceFacade.SpendAttention(cost.Amount, timeBlock, $"Exchange with {npcId}"))
+                    {
+                        result.Success = false;
+                        result.Message = "Failed to spend attention";
+                        return result;
+                    }
+                    break;
+
+                case ResourceType.TrustToken:
+                case ResourceType.CommerceToken:
+                case ResourceType.StatusToken:
+                case ResourceType.ShadowToken:
+                    ConnectionType tokenType = cost.Type switch
+                    {
+                        ResourceType.TrustToken => ConnectionType.Trust,
+                        ResourceType.CommerceToken => ConnectionType.Commerce,
+                        ResourceType.StatusToken => ConnectionType.Status,
+                        ResourceType.ShadowToken => ConnectionType.Shadow,
+                        _ => ConnectionType.Trust
+                    };
+                    if (!_tokenFacade.SpendTokensWithNPC(tokenType, cost.Amount, npcId))
+                    {
+                        result.Success = false;
+                        result.Message = $"Failed to spend {tokenType} tokens";
+                        return result;
+                    }
+                    break;
+
+                case ResourceType.Item:
+                    if (!string.IsNullOrEmpty(cost.ItemId))
+                    {
+                        if (!_resourceFacade.RemoveItem(cost.ItemId))
+                        {
+                            result.Success = false;
+                            result.Message = $"Failed to remove item {cost.ItemId}";
+                            return result;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Apply rewards through appropriate facades
+        foreach (ResourceAmount reward in operation.Rewards)
+        {
+            switch (reward.Type)
+            {
+                case ResourceType.Coins:
+                    _resourceFacade.AddCoins(reward.Amount, $"Exchange with {npcId}");
+                    break;
+
+                case ResourceType.Health:
+                    _resourceFacade.Heal(reward.Amount, $"Exchange with {npcId}");
+                    break;
+
+                case ResourceType.Hunger:
+                    _resourceFacade.DecreaseHunger(reward.Amount, $"Exchange with {npcId}");
+                    break;
+
+                case ResourceType.TrustToken:
+                case ResourceType.CommerceToken:
+                case ResourceType.StatusToken:
+                case ResourceType.ShadowToken:
+                    ConnectionType tokenType = reward.Type switch
+                    {
+                        ResourceType.TrustToken => ConnectionType.Trust,
+                        ResourceType.CommerceToken => ConnectionType.Commerce,
+                        ResourceType.StatusToken => ConnectionType.Status,
+                        ResourceType.ShadowToken => ConnectionType.Shadow,
+                        _ => ConnectionType.Trust
+                    };
+                    _tokenFacade.AddTokensToNPC(tokenType, reward.Amount, npcId);
+                    break;
+            }
+        }
+
+        // Apply item rewards
+        foreach (string itemId in operation.ItemRewards)
+        {
+            _resourceFacade.AddItem(itemId);
+        }
+
+        // Handle side effects
+        if (operation.AdvancesTime)
+        {
+            _timeFacade.AdvanceSegments(operation.TimeAdvancementHours);
+            _messageSystem.AddSystemMessage($"Time passes... ({operation.TimeAdvancementHours} segment(s))", SystemMessageTypes.Info);
+        }
+
+        if (operation.AffectsRelationship)
+        {
+            NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+            if (npc != null)
+            {
+                npc.RelationshipFlow += operation.FlowModifier;
+                _messageSystem.AddSystemMessage($"Relationship with {npc.Name} {(operation.FlowModifier > 0 ? "improved" : "worsened")}", SystemMessageTypes.Info);
+            }
+        }
+
+        if (operation.ConsumesPatience)
+        {
+            NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+            if (npc != null)
+            {
+                npc.SpendPatience(operation.PatienceCost);
+            }
+        }
+
+        // Mark exchange as used if unique
+        if (operation.IsUnique)
+        {
+            _exchangeFacade.RemoveExchangeFromNPC(operation.NPCId, operation.ExchangeId);
+        }
+
+        // Update result with what was actually applied
+        result.Success = true;
+        result.Message = $"Exchange completed successfully";
+        _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Success);
+
+        return result;
+    }
+
 }

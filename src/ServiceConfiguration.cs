@@ -193,11 +193,26 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketFacade>();
 
         // Exchange Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>(serviceProvider =>
+            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator(
+                serviceProvider.GetRequiredService<GameWorld>(),
+                serviceProvider.GetRequiredService<TimeManager>()));
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>(serviceProvider =>
+            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor(
+                serviceProvider.GetRequiredService<GameWorld>(),
+                serviceProvider.GetRequiredService<TimeManager>(),
+                serviceProvider.GetRequiredService<MessageSystem>()));
         services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>();
         services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>(serviceProvider =>
+            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade(
+                serviceProvider.GetRequiredService<GameWorld>(),
+                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>(),
+                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>(),
+                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>(),
+                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>(),
+                serviceProvider.GetRequiredService<TimeManager>(),
+                serviceProvider.GetRequiredService<MessageSystem>()));
 
         // Token Subsystem
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();
