@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Builds conversation decks from conversation type cards and NPC signature cards.
+/// Builds conversation decks from conversation type cards.
 /// NO PLAYER DECK - cards come from conversation types defined in JSON.
 /// </summary>
 public class ConversationDeckBuilder
@@ -19,7 +19,7 @@ public class ConversationDeckBuilder
     }
 
     /// <summary>
-    /// Create a conversation deck from conversation type cards and NPC signature cards.
+    /// Create a conversation deck from conversation type cards.
     /// Request drives everything - it determines the conversation type and connection type.
     /// </summary>
     public (SessionCardDeck deck, List<CardInstance> requestCards) CreateConversationDeck(
@@ -53,14 +53,6 @@ public class ConversationDeckBuilder
 
         // Create card instances from the conversation type's deck
         List<CardInstance> deckInstances = CreateInstancesFromCardIds(cardDeck.CardIds, npc.ID);
-
-        // Get token count for this NPC and connection type
-        int tokenCount = _tokenManager.GetTokenCount(request.ConnectionType, npc.ID);
-
-        // Add signature cards based on token count (not thresholds)
-        int signatureCardCount = GetSignatureCardCountByTokens(tokenCount);
-        List<CardInstance> signatureInstances = GetSignatureCards(npc, signatureCardCount);
-        deckInstances.AddRange(signatureInstances);
 
         // Create session deck
         SessionCardDeck deck = SessionCardDeck.CreateFromInstances(deckInstances, sessionId);
@@ -120,30 +112,6 @@ public class ConversationDeckBuilder
         return instances;
     }
 
-    /// <summary>
-    /// Get signature card count based on token count (NO THRESHOLDS)
-    /// </summary>
-    private int GetSignatureCardCountByTokens(int tokens)
-    {
-        return tokens switch
-        {
-            0 => 0,
-            <= 2 => 1,
-            <= 5 => 2,
-            <= 9 => 3,
-            <= 14 => 4,
-            _ => 5
-        };
-    }
-
-    /// <summary>
-    /// Get NPC signature cards up to the specified count
-    /// </summary>
-    private List<CardInstance> GetSignatureCards(NPC npc, int count)
-    {
-        // NPCs no longer have progression decks - signature cards removed
-        return new List<CardInstance>();
-    }
 
     /// <summary>
     /// Create request card instances with proper rapport thresholds

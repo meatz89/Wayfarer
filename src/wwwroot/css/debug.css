@@ -312,21 +312,6 @@
 }
 
 /* Special Card Types */
-.debug-card.progression-card {
-    background: linear-gradient(135deg, #faf4ea, #f4e8d0);
-    border-color: #8b7355;
-}
-
-.debug-card.progression-card.locked {
-    opacity: 0.6;
-    background: repeating-linear-gradient(
-        45deg,
-        #faf4ea,
-        #faf4ea 10px,
-        #f0e4cc 10px,
-        #f0e4cc 20px
-    );
-}
 
 .lock-icon {
     position: absolute;

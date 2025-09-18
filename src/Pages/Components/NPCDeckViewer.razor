@@ -98,69 +98,7 @@
         </div>
 
         <div class="decks-container">
-            <!-- Progression Deck -->
-            <div class="deck-section progression-deck-section">
-                <h3>Progression Deck (@(ProgressionCards?.Count ?? 0) cards)</h3>
-                <div class="deck-purpose">Unique cards that unlock at specific token thresholds</div>
-                @if (ProgressionCards != null && ProgressionCards.Any())
-                {
-                    <div class="card-list">
-                        @foreach (var card in ProgressionCards.OrderBy(c => c.MinimumTokensRequired))
-                        {
-                            var isUnlocked = IsProgressionCardUnlocked(card);
-                            <div class="debug-card progression-card @(!isUnlocked ? "locked" : "")">
-                                @if (!isUnlocked)
-                                {
-                                    <div class="lock-icon">🔒</div>
-                                }
-                                <div class="card-header">
-                                    <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.Description ?? card.Id)</span>
-                                    <span class="token-requirement @(isUnlocked ? "met" : "")">
-                                        @card.TokenType Tokens: @GetCurrentTokenCount(card.TokenType)/@card.MinimumTokensRequired
-                                    </span>
-                                </div>
-                                <div class="card-properties">
-                                    <span>Focus: @card.Focus</span>
-                                    <span>Difficulty: @card.Difficulty</span>
-                                    <span>Persistence: @GetPersistenceText(card)</span>
-                                </div>
-                                <div class="card-text">@(card.Description ?? "Template: " + card.Id)</div>
-                                <div class="card-outcomes">
-                                    <div class="outcome success">
-                                        <span>Success Effect</span>
-                                        @if (card.SuccessType != SuccessEffectType.None)
-                                        {
-                                            <span>@card.SuccessType.ToString()</span>
-                                        }
-                                        else
-                                        {
-                                            <span>No effect</span>
-                                        }
-                                    </div>
-                                    <div class="outcome failure">
-                                        <span>Failure Effect</span>
-                                        @if (card.FailureType != FailureEffectType.None)
-                                        {
-                                            <span>@card.FailureType.ToString()</span>
-                                        }
-                                        else
-                                        {
-                                            <span>No effect</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="empty-deck">No progression cards configured</div>
-                }
-            </div>
-
-            <!-- Conversation Deck -->
+<!-- Conversation Deck -->
             <div class="deck-section conversation-deck-section">
                 <h3>Base Conversation Deck (@(ConversationCards?.Count ?? 0) cards)</h3>
                 <div class="deck-purpose">Contains flow, state, and token cards for standard conversations</div>
@@ -336,7 +274,6 @@
 
     private NPC CurrentNPC { get; set; }
     private List<CardInstance> ConversationCards { get; set; }
-    private List<CardInstance> ProgressionCards { get; set; }
 
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
@@ -367,27 +304,8 @@
         ConversationCards = new List<CardInstance>();
 
         // NPCs no longer have progression decks
-        ProgressionCards = new List<CardInstance>();
     }
 
-    private bool IsProgressionCardUnlocked(CardInstance card)
-    {
-        if (CurrentNPC == null || GameFacade == null) return false;
-
-        var tokenBalance = GameFacade.GetTokensWithNPC(CurrentNPC.ID);
-        var tokenCount = tokenBalance.Balances.FirstOrDefault(b => b.TokenType == card.TokenType)?.Amount ?? 0;
-
-        return tokenCount >= card.MinimumTokensRequired;
-    }
-
-    private int GetCurrentTokenCount(ConnectionType tokenType)
-    {
-        if (CurrentNPC == null || GameFacade == null) return 0;
-
-        var tokenBalance = GameFacade.GetTokensWithNPC(CurrentNPC.ID);
-        return tokenBalance.Balances.FirstOrDefault(b => b.TokenType == tokenType)?.Amount ?? 0;
-    }
-    
     private void GoBack()
     {
         _ = GameScreen?.NavigateToScreen(ScreenMode.Location);
