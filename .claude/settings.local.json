@@ -48,7 +48,10 @@
       "Bash(python3:*)",
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(sed:*)",
+      "Bash(python:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6240\" timeout 10 dotnet run --no-build)"
     ],
     "deny": [],
     "ask": []

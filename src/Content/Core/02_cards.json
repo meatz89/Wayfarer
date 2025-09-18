@@ -560,9 +560,8 @@
           "observationDeck": {}
         }
       }
-    }
-  },
-  "cardDecks": {
+    },
+    "cardDecks": {
     "deck_friendly_balanced": [
       "insight_opening_1", "insight_thought_1", "rapport_thought_1",
       "rapport_thought_2", "authority_thought_1", "commerce_thought_1",
@@ -638,6 +637,7 @@
       "deckId": "deck_intimate_deep",
       "category": "emotional",
       "attentionCost": 3
+    }
     }
   }
 }

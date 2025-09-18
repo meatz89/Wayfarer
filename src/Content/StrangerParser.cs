@@ -65,9 +65,9 @@ public static class StrangerParser
         };
 
         // Parse conversation types
-        if (dto.ConversationTypes != null)
+        if (dto.AvailableConversationTypes != null)
         {
-            foreach (StrangerConversationDTO conversationDto in dto.ConversationTypes)
+            foreach (StrangerConversationDTO conversationDto in dto.AvailableConversationTypes)
             {
                 StrangerConversation conversation = ConvertDTOToStrangerConversation(conversationDto);
                 stranger.ConversationTypes[conversationDto.Type] = conversation;

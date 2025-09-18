@@ -11,7 +11,7 @@ public class StrangerNPCDTO
     public string Personality { get; set; }
     public string LocationId { get; set; }
     public string TimeBlock { get; set; }
-    public List<StrangerConversationDTO> ConversationTypes { get; set; } = new();
+    public List<StrangerConversationDTO> AvailableConversationTypes { get; set; } = new();
 }
 
 /// <summary>

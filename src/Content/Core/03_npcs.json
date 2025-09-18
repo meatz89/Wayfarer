@@ -112,7 +112,7 @@
         "personality": "Steadfast",
         "locationId": "market_square",
         "timeBlock": "morning",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "friendly_chat",
             "rapportThresholds": [5, 10, 15],
@@ -131,7 +131,7 @@
         "personality": "Proud",
         "locationId": "market_square",
         "timeBlock": "afternoon",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "official_inquiry",
             "rapportThresholds": [8, 15, 20],
@@ -150,7 +150,7 @@
         "personality": "Devoted",
         "locationId": "copper_kettle_tavern",
         "timeBlock": "evening",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "share_stories",
             "rapportThresholds": [6, 12, 18],
@@ -169,7 +169,7 @@
         "personality": "Cunning",
         "locationId": "artisan_workshop",
         "timeBlock": "morning",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "trade_gossip",
             "rapportThresholds": [7, 14, 21],
@@ -188,7 +188,7 @@
         "personality": "Mercantile",
         "locationId": "noble_quarter",
         "timeBlock": "afternoon",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "information_exchange",
             "rapportThresholds": [10, 18, 25],
@@ -207,7 +207,7 @@
         "personality": "Steadfast",
         "locationId": "harbor_district",
         "timeBlock": "dawn",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "work_advice",
             "rapportThresholds": [8, 16, 24],
@@ -226,7 +226,7 @@
         "personality": "Proud",
         "locationId": "library",
         "timeBlock": "morning",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "academic_discussion",
             "rapportThresholds": [9, 17, 26],
@@ -245,7 +245,7 @@
         "personality": "Cunning",
         "locationId": "back_alley",
         "timeBlock": "night",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "shadow_dealings",
             "rapportThresholds": [12, 20, 30],
@@ -264,7 +264,7 @@
         "personality": "Mercantile",
         "locationId": "merchant_district",
         "timeBlock": "afternoon",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "trade_opportunities",
             "rapportThresholds": [6, 12, 18],
@@ -283,7 +283,7 @@
         "personality": "Devoted",
         "locationId": "temple",
         "timeBlock": "evening",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "spiritual_guidance",
             "rapportThresholds": [8, 15, 22],
@@ -302,7 +302,7 @@
         "personality": "Cunning",
         "locationId": "central_plaza",
         "timeBlock": "midday",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "news_exchange",
             "rapportThresholds": [9, 16, 24],
@@ -321,7 +321,7 @@
         "personality": "Mercantile",
         "locationId": "warehouse_district",
         "timeBlock": "morning",
-        "conversationTypes": [
+        "availableConversationTypes": [
           {
             "type": "logistics_discussion",
             "rapportThresholds": [11, 19, 28],
