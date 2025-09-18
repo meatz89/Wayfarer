@@ -49,7 +49,11 @@
 - **DELETE UNNECESSARY ABSTRACTIONS** - ConversationOrchestrator → DELETE. CardDeckManager → DELETE.
 - **LET IT BREAK** - Compilation errors show you exactly what needs fixing
 - **COMPLETE OR NOTHING** - Never ship half-refactored code with TODOs
+- **NEVER STOP HALFWAY** - SCORCHED EARTH IS ABSOLUTE. No excuses like "this would require many more changes" or "the scope is massive"
+- **NO LAZINESS** - If there are 100 compilation errors, fix all 100. If it touches 50 files, update all 50
+- **FINISH WHAT YOU START** - Once you begin a SCORCHED EARTH refactor, you MUST complete it entirely in the same session
 - Example: To remove ConversationOrchestrator, DELETE the file first, then fix all compilation errors by moving logic to ConversationFacade. DO NOT create forwarding methods or compatibility shims.
+- Example: When removing ConversationType enum, you MUST fix ALL references across ALL files, even if it's 46+ files with complex dependencies
 
 **🚨 CLEAN UP AFTER YOURSELF: NO DUPLICATE FILES LEFT BEHIND 🚨**
 - **NEVER leave multiple versions of the same file** - No file.md, file-v2.md, file-backup.md
