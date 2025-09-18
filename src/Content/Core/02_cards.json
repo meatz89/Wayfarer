@@ -525,72 +525,54 @@
         "boundStat": "commerce"
       }
     ],
-    "deckCompositions": {
-      "npcDecks": {
-        "default": {
-          "requestDeck": {},
-          "exchangeDeck": {},
-          "observationDeck": {}
-        },
-        "elena": {
-          "requestDeck": {},
-          "exchangeDeck": {},
-          "observationDeck": {}
-        },
-        "marcus": {
-          "requestDeck": {},
-          "exchangeDeck": {
-            "quick_food_trade": 1
-          },
-          "observationDeck": {}
-        },
-        "lord_blackwood": {
-          "requestDeck": {},
-          "exchangeDeck": {},
-          "observationDeck": {}
-        },
-        "warehouse_recipient": {
-          "requestDeck": {},
-          "exchangeDeck": {},
-          "observationDeck": {}
-        },
-        "victor": {
-          "requestDeck": {},
-          "exchangeDeck": {},
-          "observationDeck": {}
-        }
+    "cardDecks": [
+      {
+        "id": "deck_friendly_balanced",
+        "cardIds": [
+          "insight_opening_1", "insight_thought_1", "rapport_thought_1",
+          "rapport_thought_2", "authority_thought_1", "commerce_thought_1",
+          "cunning_thought_1", "insight_thought_2", "rapport_impulse_1"
+        ]
+      },
+      {
+        "id": "deck_desperate_empathy",
+        "cardIds": [
+          "rapport_thought_1", "rapport_thought_2", "rapport_impulse_1",
+          "insight_thought_1", "insight_thought_2", "insight_opening_1"
+        ]
+      },
+      {
+        "id": "deck_trade_mercantile",
+        "cardIds": [
+          "commerce_thought_1", "commerce_impulse_1", "cunning_thought_1",
+          "insight_thought_1", "insight_thought_2"
+        ]
+      },
+      {
+        "id": "deck_authority_power",
+        "cardIds": [
+          "authority_thought_1", "authority_impulse_1", "cunning_thought_1",
+          "cunning_impulse_1", "commerce_thought_1"
+        ]
+      },
+      {
+        "id": "deck_information_subtle",
+        "cardIds": [
+          "insight_thought_1", "insight_thought_2", "cunning_thought_1",
+          "cunning_impulse_1", "insight_opening_1"
+        ]
+      },
+      {
+        "id": "deck_intimate_deep",
+        "cardIds": [
+          "rapport_thought_1", "rapport_thought_2", "insight_thought_1",
+          "insight_thought_2", "authority_thought_1", "commerce_thought_1",
+          "cunning_thought_1", "rapport_impulse_1", "insight_opening_1"
+        ]
       }
-    },
-    "cardDecks": {
-    "deck_friendly_balanced": [
-      "insight_opening_1", "insight_thought_1", "rapport_thought_1",
-      "rapport_thought_2", "authority_thought_1", "commerce_thought_1",
-      "cunning_thought_1", "insight_thought_2", "rapport_impulse_1"
     ],
-    "deck_desperate_empathy": [
-      "rapport_thought_1", "rapport_thought_2", "rapport_impulse_1",
-      "insight_thought_1", "insight_thought_2", "insight_opening_1"
-    ],
-    "deck_trade_mercantile": [
-      "commerce_thought_1", "commerce_impulse_1", "cunning_thought_1",
-      "insight_thought_1", "insight_thought_2"
-    ],
-    "deck_authority_power": [
-      "authority_thought_1", "authority_impulse_1", "cunning_thought_1",
-      "cunning_impulse_1", "commerce_thought_1"
-    ],
-    "deck_information_subtle": [
-      "insight_thought_1", "insight_thought_2", "cunning_thought_1",
-      "cunning_impulse_1", "insight_opening_1"
-    ],
-    "deck_intimate_deep": [
-      "rapport_thought_1", "rapport_thought_2", "insight_thought_1",
-      "insight_thought_2", "authority_thought_1", "commerce_thought_1",
-      "cunning_thought_1", "rapport_impulse_1", "insight_opening_1"
-    ]
-  },
-  "conversationTypes": {
-    "friendly_chat": {
+  "conversationTypes": [
+    {
       "id": "friendly_chat",
       "name": "Friendly Chat",
       "description": "Casual conversation to build rapport",
@@ -598,7 +580,7 @@
       "category": "social",
       "attentionCost": 1
     },
-    "desperate_request": {
+    {
       "id": "desperate_request",
       "name": "Desperate Request",
       "description": "Someone in crisis needs help",
@@ -606,7 +588,7 @@
       "category": "crisis",
       "attentionCost": 2
     },
-    "trade_negotiation": {
+    {
       "id": "trade_negotiation",
       "name": "Trade Negotiation",
       "description": "Business and commerce discussions",
@@ -614,7 +596,7 @@
       "category": "commerce",
       "attentionCost": 1
     },
-    "authority_challenge": {
+    {
       "id": "authority_challenge",
       "name": "Authority Challenge",
       "description": "Confrontations and power struggles",
@@ -622,7 +604,7 @@
       "category": "confrontation",
       "attentionCost": 2
     },
-    "information_gathering": {
+    {
       "id": "information_gathering",
       "name": "Information Gathering",
       "description": "Extracting knowledge and secrets",
@@ -630,7 +612,7 @@
       "category": "investigation",
       "attentionCost": 1
     },
-    "intimate_confession": {
+    {
       "id": "intimate_confession",
       "name": "Intimate Confession",
       "description": "Deep personal conversations",
@@ -638,7 +620,7 @@
       "category": "emotional",
       "attentionCost": 3
     },
-    "seek_favor": {
+    {
       "id": "seek_favor",
       "name": "Seek Favor",
       "description": "Request help or special treatment",
@@ -646,7 +628,7 @@
       "category": "request",
       "attentionCost": 2
     },
-    "casual_exchange": {
+    {
       "id": "casual_exchange",
       "name": "Casual Exchange",
       "description": "Light vendor interactions and small talk",
@@ -654,6 +636,6 @@
       "category": "social",
       "attentionCost": 1
     }
-    }
+    ]
   }
 }
