@@ -349,7 +349,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
             // Set attention cost - get from ConversationTypeDefinition
             int attentionCost = 1;
-            if (_gameWorld.ConversationTypes.TryGetValue(conversationType, out var conversationTypeDef))
+            if (_gameWorld.ConversationTypes.TryGetValue(conversationType, out ConversationTypeDefinition? conversationTypeDef))
             {
                 attentionCost = conversationTypeDef.AttentionCost;
             }

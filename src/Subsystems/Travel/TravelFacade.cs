@@ -393,7 +393,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
 
             // Check one-time card usage
             if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId)
-                && _gameWorld.PathCardRewardsClaimed[pathCardId])
+                && _gameWorld.PathCardRewardsClaimed.GetItem(pathCardId))
             {
                 return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
             }
@@ -454,7 +454,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
                 // FixedPath segments: check PathCardDiscoveries dictionary
                 bool isDiscovered = isEventSegment ||
-                                  (_gameWorld.PathCardDiscoveries.ContainsKey(card.Id) && _gameWorld.PathCardDiscoveries[card.Id]);
+                                  (_gameWorld.PathCardDiscoveries.ContainsKey(card.Id) && _gameWorld.PathCardDiscoveries.GetItem(card.Id));
 
                 bool canPlay = CanPlayPathCard(card.Id);
 
@@ -601,7 +601,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                 _gameWorld.AllPathCollections.ContainsKey(session.CurrentEventId))
             {
-                PathCardCollectionDTO collection = _gameWorld.AllPathCollections[session.CurrentEventId];
+                PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetItem(session.CurrentEventId);
                 return collection.NarrativeText;
             }
 
@@ -634,7 +634,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                     _gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
                 {
-                    TravelEventDTO travelEvent = _gameWorld.AllTravelEvents[session.CurrentEventId];
+                    TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetItem(session.CurrentEventId);
                     return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
                 }
             }
@@ -648,7 +648,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                     return null;
                 }
 
-                PathCardCollectionDTO collection = _gameWorld.AllPathCollections[collectionId];
+                PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetItem(collectionId);
 
                 // Look in embedded path cards
                 return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);

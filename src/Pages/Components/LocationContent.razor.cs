@@ -181,7 +181,7 @@ namespace Wayfarer.Pages.Components
             AvailableSpots.Clear();
             if (location != null && GameWorld != null)
             {
-                IEnumerable<LocationSpot> allSpots = GameWorld.Spots.Values
+                IEnumerable<LocationSpot> allSpots = GameWorld.Spots.Values()
                     .Where(s => s.LocationId == location.Id);
                 AvailableSpots = allSpots
                     .Where(s => s != spot)
@@ -573,7 +573,7 @@ namespace Wayfarer.Pages.Components
             if (currentLocation == null) return new List<NPC>();
 
             // Get the spot we're checking
-            LocationSpot? spot = GameWorld.Spots.Values.FirstOrDefault(s => s.LocationId == currentLocation.Id && s.Name == spotId);
+            LocationSpot? spot = GameWorld.Spots.Values().FirstOrDefault(s => s.LocationId == currentLocation.Id && s.Name == spotId);
             if (spot == null) return new List<NPC>();
 
             // Get ALL NPCs at this location and filter by SpotId

@@ -14,7 +14,7 @@ public class PlayerInitialConfig
     public int? MaxHunger { get; set; }
     public string Personality { get; set; }
     public string Archetype { get; set; }
-    public Dictionary<string, int> InitialItems { get; set; }
+    public List<ResourceEntry> InitialItems { get; set; }
 }
 
 public class GameWorld
@@ -40,7 +40,7 @@ public class GameWorld
     // Player state is accessed through Player object, not duplicated here
     public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
-    public Dictionary<string, LocationSpot> Spots { get; set; } = new Dictionary<string, LocationSpot>();
+    public List<LocationSpotEntry> Spots { get; set; } = new List<LocationSpotEntry>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
@@ -69,17 +69,17 @@ public class GameWorld
     // Special letter events for UI translation
     public List<SpecialLetterEvent> SpecialLetterEvents { get; set; } = new List<SpecialLetterEvent>();
 
-    public Dictionary<PersonalityType, PersonalityCardMapping> PersonalityMappings { get; set; } = new Dictionary<PersonalityType, PersonalityCardMapping>();
-    public Dictionary<int, List<string>> TokenUnlocks { get; set; } = new Dictionary<int, List<string>>();
+    public List<PersonalityMappingEntry> PersonalityMappings { get; set; } = new List<PersonalityMappingEntry>();
+    public List<TokenUnlockEntry> TokenUnlocks { get; set; } = new List<TokenUnlockEntry>();
 
     // DECK ARCHITECTURE - Single source of truth for all deck configurations
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
-    public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
+    public List<CardDefinitionEntry> AllCardDefinitions { get; set; } = new List<CardDefinitionEntry>();
     // Conversation type definitions and card decks - fully extensible via JSON
-    public Dictionary<string, ConversationTypeDefinition> ConversationTypes { get; set; } = new Dictionary<string, ConversationTypeDefinition>();
-    public Dictionary<string, CardDeckDefinition> CardDecks { get; set; } = new Dictionary<string, CardDeckDefinition>();
+    public List<ConversationTypeEntry> ConversationTypes { get; set; } = new List<ConversationTypeEntry>();
+    public List<CardDeckDefinitionEntry> CardDecks { get; set; } = new List<CardDeckDefinitionEntry>();
     // Exchange cards are now completely separate from conversation cards
-    public Dictionary<string, List<ExchangeCard>> NPCExchangeCards { get; set; } = new Dictionary<string, List<ExchangeCard>>();
+    public List<NPCExchangeCardEntry> NPCExchangeCards { get; set; } = new List<NPCExchangeCardEntry>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
@@ -104,7 +104,7 @@ public class GameWorld
     public bool EndlessMode { get; set; } = false;
 
     // Skeleton tracking for lazy content resolution
-    public Dictionary<string, string> SkeletonRegistry { get; set; } = new Dictionary<string, string>();
+    public List<SkeletonRegistryEntry> SkeletonRegistry { get; set; } = new List<SkeletonRegistryEntry>();
 
     // Track if game has been started to prevent duplicate initialization
     public bool IsGameStarted { get; set; } = false;
@@ -113,27 +113,27 @@ public class GameWorld
     // Path cards are now stored in collections (AllPathCollections)
 
     // Persistent discovery states
-    public Dictionary<string, bool> PathCardDiscoveries { get; set; } = new Dictionary<string, bool>();
+    public List<PathCardDiscoveryEntry> PathCardDiscoveries { get; set; } = new List<PathCardDiscoveryEntry>();
 
     // Track one-time rewards
-    public Dictionary<string, bool> PathCardRewardsClaimed { get; set; } = new Dictionary<string, bool>();
+    public List<PathCardDiscoveryEntry> PathCardRewardsClaimed { get; set; } = new List<PathCardDiscoveryEntry>();
 
     // Track event deck positions for deterministic draws
-    public Dictionary<string, int> EventDeckPositions { get; set; } = new Dictionary<string, int>();
+    public List<EventDeckPositionEntry> EventDeckPositions { get; set; } = new List<EventDeckPositionEntry>();
 
     // Active travel session
     public TravelSession CurrentTravelSession { get; set; }
 
     // PATH SYSTEM - For FixedPath segments that always show the same cards
     // Path card collections for FixedPath route segments (collections contain the actual cards)
-    public Dictionary<string, PathCardCollectionDTO> AllPathCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
+    public List<PathCollectionEntry> AllPathCollections { get; set; } = new List<PathCollectionEntry>();
 
     // EVENT SYSTEM - For Event segments that randomly select from a pool
     // Travel events containing narrative and card references
-    public Dictionary<string, TravelEventDTO> AllTravelEvents { get; set; } = new Dictionary<string, TravelEventDTO>();
+    public List<TravelEventEntry> AllTravelEvents { get; set; } = new List<TravelEventEntry>();
 
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
-    public Dictionary<string, PathCardCollectionDTO> AllEventCollections { get; set; } = new Dictionary<string, PathCardCollectionDTO>();
+    public List<PathCollectionEntry> AllEventCollections { get; set; } = new List<PathCollectionEntry>();
 
     /// <summary>
     /// Get a report of all skeletons that need to be populated
@@ -141,9 +141,9 @@ public class GameWorld
     public List<string> GetSkeletonReport()
     {
         List<string> report = new List<string>();
-        foreach (KeyValuePair<string, string> kvp in SkeletonRegistry)
+        foreach (SkeletonRegistryEntry entry in SkeletonRegistry)
         {
-            report.Add($"{kvp.Value}: {kvp.Key}");
+            report.Add($"{entry.ContentType}: {entry.SkeletonKey}");
         }
         return report;
     }
@@ -195,7 +195,7 @@ public class GameWorld
     /// </summary>
     public LocationSpot GetSpot(string spotId)
     {
-        return Spots.TryGetValue(spotId, out LocationSpot? spot) ? spot : null;
+        return Spots.FindById(spotId)?.Spot;
     }
 
     /// <summary>

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-
-
 public static class LocationParser
 {
     /// <summary>
@@ -18,7 +12,7 @@ public static class LocationParser
         if (string.IsNullOrEmpty(dto.LocationType))
             throw new InvalidOperationException($"Location {dto.Id} missing required 'LocationType' field");
 
-        if (!Enum.TryParse<LocationTypes>(dto.LocationType, out LocationTypes locationType))
+        if (!Enum.TryParse(dto.LocationType, out LocationTypes locationType))
             throw new InvalidOperationException($"Location {dto.Id} has invalid LocationType: '{dto.LocationType}'");
 
         Location location = new Location(dto.Id, dto.Name)
@@ -70,22 +64,22 @@ public static class LocationParser
         // Parse available work actions
         if (dto.AvailableWork != null)
         {
-            foreach (var workDto in dto.AvailableWork)
+            foreach (WorkActionDTO workDto in dto.AvailableWork)
             {
-                var workAction = new WorkAction
+                WorkAction workAction = new WorkAction
                 {
                     Id = workDto.Id,
                     Name = workDto.Name,
                     Description = workDto.Description,
-                    Type = Enum.TryParse<WorkType>(workDto.Type, out var workType)
+                    Type = Enum.TryParse<WorkType>(workDto.Type, out WorkType workType)
                         ? workType : WorkType.Standard,
                     BaseCoins = workDto.BaseCoins,
                     LocationId = workDto.LocationId,
                     SpotId = workDto.SpotId,
                     RequiredTokens = workDto.RequiredTokens,
                     RequiredTokenType = workDto.RequiredTokenType != null &&
-                        Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out var tokenType)
-                        ? tokenType : (ConnectionType?)null,
+                        Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out ConnectionType tokenType)
+                        ? tokenType : null,
                     RequiredPermit = workDto.RequiredPermit,
                     HungerReduction = workDto.HungerReduction,
                     HealthRestore = workDto.HealthRestore,

@@ -135,7 +135,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetUnavailableReason(string pathCardId)
         {
-            var availability = TravelFacade.GetPathCardAvailability(pathCardId);
+            PathCardAvailability availability = TravelFacade.GetPathCardAvailability(pathCardId);
             if (availability != null && !availability.CanPlay)
             {
                 return availability.Reason ?? "Cannot select this path";

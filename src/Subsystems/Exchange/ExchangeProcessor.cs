@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.Subsystems.ExchangeSubsystem;
 using Wayfarer.Subsystems.ResourceSubsystem;
 using Wayfarer.Subsystems.TokenSubsystem;
-using Wayfarer.Subsystems.ExchangeSubsystem;
 
 namespace Wayfarer.Subsystems.ExchangeSubsystem
 {

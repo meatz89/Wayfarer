@@ -226,7 +226,7 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Dynamic package loaded with {_gameWorld.SkeletonRegistry.Count} skeletons");
 
             // Return skeleton IDs for AI completion
-            return _gameWorld.SkeletonRegistry.Keys.ToList();
+            return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
         }
         catch (Exception ex)
         {
@@ -271,7 +271,7 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Dynamic package {package.PackageId} loaded with {_gameWorld.SkeletonRegistry.Count} skeletons");
 
             // Return skeleton IDs for AI completion
-            return _gameWorld.SkeletonRegistry.Keys.ToList();
+            return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
         }
         catch (Exception ex)
         {
@@ -315,13 +315,11 @@ public class PackageLoader
             {
                 // Token relationships will be applied when NPCs are loaded
                 // Store for later application
-                _gameWorld.GetPlayer().NPCTokens[kvp.Key] = new Dictionary<ConnectionType, int>
-                {
-                    [ConnectionType.Trust] = kvp.Value.Trust,
-                    [ConnectionType.Commerce] = kvp.Value.Commerce,
-                    [ConnectionType.Status] = kvp.Value.Status,
-                    [ConnectionType.Shadow] = kvp.Value.Shadow
-                };
+                NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().NPCTokens.GetNPCTokenEntry(kvp.Key);
+                tokenEntry.Trust = kvp.Value.Trust;
+                tokenEntry.Commerce = kvp.Value.Commerce;
+                tokenEntry.Status = kvp.Value.Status;
+                tokenEntry.Shadow = kvp.Value.Shadow;
             }
         }
     }
@@ -445,7 +443,7 @@ public class PackageLoader
         {
             // Use static method from ConversationCardParser
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-            _gameWorld.AllCardDefinitions[card.Id] = card;
+            _gameWorld.AllCardDefinitions.SetItem(card.Id, card);
         }
     }
 
@@ -462,7 +460,7 @@ public class PackageLoader
                     Id = dto.Id,
                     CardIds = dto.CardIds ?? new List<string>()
                 };
-                _gameWorld.CardDecks[deck.Id] = deck;
+                _gameWorld.CardDecks.SetItem(deck.Id, deck);
                 Console.WriteLine($"[PackageLoader] Loaded card deck '{deck.Id}' with {deck.CardIds.Count} cards");
             }
         }
@@ -483,7 +481,7 @@ public class PackageLoader
                     AttentionCost = dto.AttentionCost,
                     AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>()
                 };
-                _gameWorld.ConversationTypes[conversationType.Id] = conversationType;
+                _gameWorld.ConversationTypes.SetItem(conversationType.Id, conversationType);
                 Console.WriteLine($"[PackageLoader] Loaded conversation type '{conversationType.Id}' using deck '{conversationType.DeckId}'");
             }
         }
@@ -500,7 +498,7 @@ public class PackageLoader
             foreach (ConversationCardDTO dto in kvp.Value)
             {
                 ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-                _gameWorld.AllCardDefinitions[card.Id] = card;
+                _gameWorld.AllCardDefinitions.SetItem(card.Id, card);
                 Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
             }
         }
@@ -515,7 +513,7 @@ public class PackageLoader
         foreach (ConversationCardDTO dto in promiseCards)
         {
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-            _gameWorld.AllCardDefinitions[card.Id] = card;
+            _gameWorld.AllCardDefinitions.SetItem(card.Id, card);
             Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
         }
     }
@@ -528,7 +526,7 @@ public class PackageLoader
         foreach (ConversationCardDTO dto in exchangeCards)
         {
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-            _gameWorld.AllCardDefinitions[card.Id] = card;
+            _gameWorld.AllCardDefinitions.SetItem(card.Id, card);
             Console.WriteLine($"[PackageLoader] Loaded exchange card '{card.Id}'");
         }
     }
@@ -588,7 +586,7 @@ public class PackageLoader
             _gameWorld.WorldState.locationSpots.Add(spot);
 
             // Add to primary spots dictionary
-            _gameWorld.Spots[spot.SpotID] = spot;
+            _gameWorld.Spots.SetItem(spot.SpotID, spot);
         }
     }
 
@@ -609,7 +607,7 @@ public class PackageLoader
 
                 _gameWorld.WorldState.locations.Add(skeletonLocation);
                 _gameWorld.Locations.Add(skeletonLocation);
-                _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
+                _gameWorld.SkeletonRegistry.Add(dto.LocationId, "Location");
 
                 // Also create a skeleton spot for the location
                 string hubSpotId = $"{dto.LocationId}_hub";
@@ -619,8 +617,8 @@ public class PackageLoader
                     $"location_{dto.LocationId}_hub");
 
                 _gameWorld.WorldState.locationSpots.Add(hubSpot);
-                _gameWorld.Spots[hubSpotId] = hubSpot;
-                _gameWorld.SkeletonRegistry[hubSpot.SpotID] = "LocationSpot";
+                _gameWorld.Spots.SetItem(hubSpotId, hubSpot);
+                _gameWorld.SkeletonRegistry.Add(hubSpot.SpotID, "LocationSpot");
             }
 
             // Check if NPC references a spot that doesn't exist
@@ -634,7 +632,7 @@ public class PackageLoader
                     $"npc_{dto.Id}_spot_reference");
 
                 _gameWorld.WorldState.locationSpots.Add(skeletonSpot);
-                _gameWorld.SkeletonRegistry[dto.SpotId] = "LocationSpot";
+                _gameWorld.SkeletonRegistry.Add(dto.SpotId, "LocationSpot");
             }
 
             // Check if this NPC was previously a skeleton, if so replace it and preserve persistent decks
@@ -721,7 +719,7 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
-        Console.WriteLine($"[PackageLoader] Currently loaded spots: {string.Join(", ", _gameWorld.Spots.Keys)}");
+        Console.WriteLine($"[PackageLoader] Currently loaded spots: {string.Join(", ", _gameWorld.Spots.Select(s => s.SpotId))}");
 
         // Check for missing spots and handle based on allowSkeletons
         foreach (RouteDTO dto in routeDtos)
@@ -748,8 +746,8 @@ public class PackageLoader
                     }
 
                     _gameWorld.WorldState.locationSpots.Add(originSpot);
-                    _gameWorld.Spots[dto.OriginSpotId] = originSpot;
-                    _gameWorld.SkeletonRegistry[dto.OriginSpotId] = "LocationSpot";
+                    _gameWorld.Spots.Add(new LocationSpotEntry { SpotId = dto.OriginSpotId, Spot = originSpot });
+                    _gameWorld.SkeletonRegistry.Add(dto.OriginSpotId, "LocationSpot");
 
                     Console.WriteLine($"[PackageLoader] Created skeleton spot '{dto.OriginSpotId}' for route '{dto.Id}'");
                 }
@@ -781,8 +779,8 @@ public class PackageLoader
                     }
 
                     _gameWorld.WorldState.locationSpots.Add(destSpot);
-                    _gameWorld.Spots[dto.DestinationSpotId] = destSpot;
-                    _gameWorld.SkeletonRegistry[dto.DestinationSpotId] = "LocationSpot";
+                    _gameWorld.Spots.Add(new LocationSpotEntry { SpotId = dto.DestinationSpotId, Spot = destSpot });
+                    _gameWorld.SkeletonRegistry.Add(dto.DestinationSpotId, "LocationSpot");
 
                     Console.WriteLine($"[PackageLoader] Created skeleton spot '{dto.DestinationSpotId}' for route '{dto.Id}'");
                 }
@@ -965,7 +963,7 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.AllTravelEvents[dto.Id] = dto;
+            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });
             Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name} with {dto.EventCards.Count} event cards");
         }
 
@@ -1001,19 +999,19 @@ public class PackageLoader
             if (isEventCollection)
             {
                 // This is an event collection - contains child events for random selection
-                _gameWorld.AllEventCollections[dto.Id] = dto;
+                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
                 Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name} with {dto.Events.Count} events");
             }
             else if (isPathCollection)
             {
                 // This is a path collection - contains actual path cards for FixedPath segments
-                _gameWorld.AllPathCollections[dto.Id] = dto;
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
                 Console.WriteLine($"[PackageLoader] Loaded path collection '{dto.Id}': {dto.Name} with {dto.PathCards.Count} path cards");
             }
             else
             {
                 // Fallback: treat as path collection if no clear indicators
-                _gameWorld.AllPathCollections[dto.Id] = dto;
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
                 Console.WriteLine($"[PackageLoader] Loaded collection '{dto.Id}' as path collection (default): {dto.Name}");
             }
         }
@@ -1479,7 +1477,7 @@ public class PackageLoader
                 ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
                 skeletonLocation.ObservationRewards.Add(reward);
                 _gameWorld.Locations.Add(skeletonLocation);
-                _gameWorld.SkeletonRegistry[dto.LocationId] = "Location";
+                _gameWorld.SkeletonRegistry.Add(dto.LocationId, "Location");
             }
         }
     }
@@ -1533,21 +1531,21 @@ public class PackageLoader
 
         // Initialize PathCardDiscoveries from cards embedded in collections
         // First from path collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.Values)
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.Values())
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.PathCardDiscoveries[pathCard.Id] = pathCard.StartsRevealed;
+                _gameWorld.PathCardDiscoveries.SetDiscovered(pathCard.Id, pathCard.StartsRevealed);
                 Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
 
         // Also initialize discovery states for event cards in event collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.Values)
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.Values())
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.PathCardDiscoveries[eventCard.Id] = eventCard.StartsRevealed;
+                _gameWorld.PathCardDiscoveries.SetDiscovered(eventCard.Id, eventCard.StartsRevealed);
                 Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
@@ -1556,15 +1554,15 @@ public class PackageLoader
         // No separate card dictionaries needed
 
         // Initialize EventDeckPositions for routes with event pools
-        foreach (KeyValuePair<string, PathCardCollectionDTO> kvp in _gameWorld.AllEventCollections)
+        foreach (PathCollectionEntry entry in _gameWorld.AllEventCollections)
         {
-            string routeId = kvp.Key;
+            string routeId = entry.CollectionId;
             string deckKey = $"route_{routeId}_events";
 
             // Start at position 0 for deterministic event drawing
-            _gameWorld.EventDeckPositions[deckKey] = 0;
+            _gameWorld.EventDeckPositions.SetValue(deckKey, 0);
 
-            int eventCount = kvp.Value.Events?.Count ?? 0;
+            int eventCount = entry.Collection.Events?.Count ?? 0;
             Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {eventCount} events");
         }
 
@@ -1668,7 +1666,8 @@ public class PackageLoader
         // If the forward route has a route-level event pool, copy it to the reverse route
         if (_gameWorld.AllEventCollections.ContainsKey(forwardRoute.Id))
         {
-            _gameWorld.AllEventCollections[reverseRoute.Id] = _gameWorld.AllEventCollections[forwardRoute.Id];
+            PathCardCollectionDTO forwardCollection = _gameWorld.AllEventCollections.GetItem(forwardRoute.Id);
+            _gameWorld.AllEventCollections.SetItem(reverseRoute.Id, forwardCollection);
         }
 
         return reverseRoute;
@@ -1765,8 +1764,8 @@ public class PackageLoader
                 }
 
                 _gameWorld.WorldState.locationSpots.Add(spot);
-                _gameWorld.Spots[spotId] = spot;
-                _gameWorld.SkeletonRegistry[spotId] = "LocationSpot";
+                _gameWorld.Spots.SetItem(spotId, spot);
+                _gameWorld.SkeletonRegistry.Add(spotId, "LocationSpot");
 
                 Console.WriteLine($"[PackageLoader] Created skeleton spot '{spotId}' with Crossroads property for route validation");
             }

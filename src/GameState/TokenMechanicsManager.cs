@@ -33,12 +33,22 @@ public class TokenMechanicsManager
         };
     }
 
-    // Get tokens with specific NPC
+    // Get tokens with specific NPC - returns a new dictionary for compatibility
     public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
     {
-        Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = _gameWorld.GetPlayer().NPCTokens;
-        if (npcTokens.ContainsKey(npcId))
-            return npcTokens[npcId];
+        List<NPCTokenEntry> npcTokens = _gameWorld.GetPlayer().NPCTokens;
+        NPCTokenEntry tokenEntry = npcTokens.FirstOrDefault(nt => nt.NpcId == npcId);
+
+        if (tokenEntry != null)
+        {
+            return new Dictionary<ConnectionType, int>
+            {
+                [ConnectionType.Trust] = tokenEntry.Trust,
+                [ConnectionType.Commerce] = tokenEntry.Commerce,
+                [ConnectionType.Status] = tokenEntry.Status,
+                [ConnectionType.Shadow] = tokenEntry.Shadow
+            };
+        }
 
         // Return empty dictionary if no tokens with this NPC
         Dictionary<ConnectionType, int> emptyTokens = new Dictionary<ConnectionType, int>();

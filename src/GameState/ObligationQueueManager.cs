@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Wayfarer.GameState.Enums;
 
 public class ObligationQueueManager
@@ -2019,29 +2016,16 @@ public class ObligationQueueManager
         DeliveryObligation? obligation = GetActiveObligations().FirstOrDefault(o => o.Id == obligationId);
         if (obligation == null) return false;
 
-        switch (manipulation)
+        return manipulation switch
         {
-            case ObligationManipulationType.Prioritize:
-                return PrioritizeObligation(obligation);
-
-            case ObligationManipulationType.BurnToClear:
-                return BurnTokensToClearPath(obligation, npcId);
-
-            case ObligationManipulationType.Purge:
-                return PurgeObligation(obligation, npcId);
-
-            case ObligationManipulationType.ExtendDeadline:
-                return ExtendObligationDeadline(obligation, npcId);
-
-            case ObligationManipulationType.Transfer:
-                return TransferObligation(obligation, npcId);
-
-            case ObligationManipulationType.Cancel:
-                return CancelObligation(obligation, npcId);
-
-            default:
-                return false;
-        }
+            ObligationManipulationType.Prioritize => PrioritizeObligation(obligation),
+            ObligationManipulationType.BurnToClear => BurnTokensToClearPath(obligation, npcId),
+            ObligationManipulationType.Purge => PurgeObligation(obligation, npcId),
+            ObligationManipulationType.ExtendDeadline => ExtendObligationDeadline(obligation, npcId),
+            ObligationManipulationType.Transfer => TransferObligation(obligation, npcId),
+            ObligationManipulationType.Cancel => CancelObligation(obligation, npcId),
+            _ => false,
+        };
     }
 
     /// <summary>

@@ -233,5 +233,8 @@ public class Inventory
     public string[] ItemSlots => _items.ToArray();
     public int Size => MaxWeight;
     public int UsedCapacity => _items.Count;
-    public bool HasFreeSlot() => _items.Count < 100; // Arbitrary high number for compatibility
+    public bool HasFreeSlot()
+    {
+        return _items.Count < 100; // Arbitrary high number for compatibility
+    }
 }

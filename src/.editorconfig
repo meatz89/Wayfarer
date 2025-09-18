@@ -405,6 +405,12 @@ dotnet_diagnostic.IDE0036.severity = none
 # IDE0001: Simplify Names
 dotnet_diagnostic.IDE0001.severity = none
 
+# IDE0320: Make anonymous function static
+dotnet_diagnostic.IDE0320.severity = none
+
+# IDE0056: Use index operator
+dotnet_diagnostic.IDE0056.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
@@ -429,3 +435,9 @@ dotnet_diagnostic.IDE0044.severity = none
 
 # Default severity for analyzer diagnostics with category 'Style'
 dotnet_analyzer_diagnostic.category-Style.severity = warning
+
+# IDE0306: Simplify collection initialization
+dotnet_diagnostic.IDE0306.severity = none
+
+# IDE0305: Simplify collection initialization
+dotnet_diagnostic.IDE0305.severity = none

@@ -76,7 +76,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             if (string.IsNullOrEmpty(locationId)) return new List<LocationSpot>();
             // Get from GameWorld's primary Spots dictionary
-            return _gameWorld.Spots.Values
+            return _gameWorld.Spots.Values()
                 .Where(s => s.LocationId.Equals(locationId, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }

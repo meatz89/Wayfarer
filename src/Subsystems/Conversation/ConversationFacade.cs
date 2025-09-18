@@ -635,7 +635,7 @@ public class ConversationFacade
         }
 
         // Get all available requests from the NPC
-        foreach (var request in npc.Requests)
+        foreach (NPCRequest request in npc.Requests)
         {
             if (request.IsAvailable())
             {
@@ -652,7 +652,7 @@ public class ConversationFacade
     public int GetRequestAttentionCost(NPCRequest request)
     {
         // Get the conversation type definition
-        if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+        if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
         {
             return conversationType.AttentionCost;
         }
@@ -756,7 +756,7 @@ public class ConversationFacade
 
     public int GetAttentionCost(string conversationTypeId)
     {
-        if (_gameWorld.ConversationTypes.TryGetValue(conversationTypeId, out var conversationType))
+        if (_gameWorld.ConversationTypes.TryGetValue(conversationTypeId, out ConversationTypeDefinition? conversationType))
         {
             return conversationType.AttentionCost;
         }

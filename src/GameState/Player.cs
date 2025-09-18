@@ -13,20 +13,17 @@
     public int CurrentXP { get; set; } = 0;
     public int XPToNextLevel { get; set; } = 100; // Base XP required for next level
 
-    // Tier system (T1: Stranger, T2: Associate, T3: Confidant)
-    public TierLevel CurrentTier { get; set; } = TierLevel.T1;
-
     // Resources
-    public int Coins { get; set; } = 10; // Starting coins - intentionally kept as literal as it's game balance
-    public int Attention { get; set; } = 6; // Starting attention
-    public int Health { get; set; }
-    public int Hunger { get; set; } = 0; // Starting hunger (0 = not hungry)
-    public int Stamina { get; set; } = 3; // Starting stamina for travel
-    public int MaxStamina { get; set; } = 3; // Maximum stamina
+    public int Coins { get; set; } // Starting coins - intentionally kept as literal as it's game balance
+    public int Attention { get; set; } // Starting attention
+    public int Health { get; set; } // Starting health
+    public int Hunger { get; set; } // Starting hunger (0 = not hungry)
+    public int Stamina { get; set; } // Starting stamina for travel
+    public int MaxStamina { get; set; } = 10; // Maximum stamina
 
     public int MaxAttention { get; set; } = 10;  // Maximum attention
-    public int MinHealth { get; set; }
-    public int MaxHealth { get; set; }
+    public int MinHealth { get; set; } = 0; // Minimum health before death
+    public int MaxHealth { get; set; } = 100; // Maximum health
     public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
 
 
@@ -38,14 +35,13 @@
 
     // Location knowledge
     // Location knowledge - Moved from action system
-    public HashSet<string> LocationActionAvailability { get; set; } = new HashSet<string>();
+    public List<string> LocationActionAvailability { get; set; } = new List<string>();
 
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
     public List<string> DiscoveredRoutes { get; set; } = new List<string>();
-
 
     public bool IsInitialized { get; set; } = false;
 
@@ -55,11 +51,11 @@
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
 
-    public Dictionary<string, List<RouteOption>> KnownRoutes { get; private set; } = new Dictionary<string, List<RouteOption>>();
+    public List<KnownRouteEntry> KnownRoutes { get; private set; } = new List<KnownRouteEntry>();
 
     public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
     public List<MeetingObligation> MeetingObligations { get; set; } = new List<MeetingObligation>();
-    public Dictionary<string, Dictionary<ConnectionType, int>> NPCTokens { get; private set; } = new Dictionary<string, Dictionary<ConnectionType, int>>();
+    public List<NPCTokenEntry> NPCTokens { get; private set; } = new List<NPCTokenEntry>();
 
     // Physical DeliveryObligation Carrying
     public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in satchel for delivery
@@ -69,7 +65,7 @@
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
 
     // DeliveryObligation history tracking
-    public Dictionary<string, LetterHistory> NPCLetterHistory { get; private set; } = new Dictionary<string, LetterHistory>();
+    public List<LetterHistoryEntry> NPCLetterHistory { get; private set; } = new List<LetterHistoryEntry>();
 
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
@@ -88,12 +84,12 @@
     public int TotalTokensSpent { get; set; } = 0;
 
     // Route Familiarity System (0-5 scale per route)
-    // Key is route ID, value is familiarity level (0=Unknown, 5=Mastered)
-    public Dictionary<string, int> RouteFamiliarity { get; set; } = new Dictionary<string, int>();
+    // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
+    public List<FamiliarityEntry> RouteFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
     // Location Familiarity System (Work Packet 1)
-    // Key is location ID, value is familiarity level (0-3)
-    public Dictionary<string, int> LocationFamiliarity { get; set; } = new Dictionary<string, int>();
+    // ID is location ID, level is familiarity level (0-3)
+    public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
     // Observation tracking - IDs of observation cards collected
     public List<string> CollectedObservations { get; set; } = new List<string>();
@@ -102,25 +98,26 @@
     {
         string originName = route.OriginLocationSpot;
 
-        if (!KnownRoutes.ContainsKey(originName))
+        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
+        if (routeEntry == null)
         {
-            KnownRoutes[originName] = new List<RouteOption>();
+            routeEntry = new KnownRouteEntry { OriginSpotId = originName };
+            KnownRoutes.Add(routeEntry);
         }
 
         // Only add if not already known
-        if (!KnownRoutes[originName].Any(r => r.DestinationLocationSpot == route.DestinationLocationSpot))
+        if (!routeEntry.Routes.Any(r => r.DestinationLocationSpot == route.DestinationLocationSpot))
         {
-            KnownRoutes[originName].Add(route);
+            routeEntry.Routes.Add(route);
         }
     }
-
 
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
     /// </summary>
     public int GetRouteFamiliarity(string routeId)
     {
-        return RouteFamiliarity.TryGetValue(routeId, out int familiarity) ? familiarity : 0;
+        return RouteFamiliarity.GetFamiliarity(routeId);
     }
 
     /// <summary>
@@ -129,7 +126,7 @@
     public void IncreaseRouteFamiliarity(string routeId, int amount = 1)
     {
         int current = GetRouteFamiliarity(routeId);
-        RouteFamiliarity[routeId] = Math.Min(5, current + amount);
+        RouteFamiliarity.SetFamiliarity(routeId, Math.Min(5, current + amount));
     }
 
     /// <summary>
@@ -145,7 +142,7 @@
     /// </summary>
     public int GetLocationFamiliarity(string locationId)
     {
-        return LocationFamiliarity.TryGetValue(locationId, out int familiarity) ? familiarity : 0;
+        return LocationFamiliarity.GetFamiliarity(locationId);
     }
 
     /// <summary>
@@ -153,7 +150,7 @@
     /// </summary>
     public void SetLocationFamiliarity(string locationId, int value)
     {
-        LocationFamiliarity[locationId] = Math.Min(3, Math.Max(0, value));
+        LocationFamiliarity.SetFamiliarity(locationId, Math.Min(3, Math.Max(0, value)));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
@@ -180,16 +177,6 @@
     public MemoryFlag GetMemory(string key)
     {
         return Memories.FirstOrDefault(m => m.Key == key);
-    }
-
-    public List<MemoryFlag> GetRecentMemories(int currentDay, int count = 5)
-    {
-        return Memories
-            .Where(m => m.IsActive(currentDay))
-            .OrderByDescending(m => m.Importance)
-            .ThenByDescending(m => m.CreationDay)
-            .Take(count)
-            .ToList();
     }
 
     public Player()
@@ -233,7 +220,7 @@
 
     public void SetArchetype(Professions archetype)
     {
-        this.Archetype = archetype;
+        Archetype = archetype;
 
         switch (archetype)
         {
@@ -319,120 +306,9 @@
         }
     }
 
-
-    public int GetRelationshipLevel(string character)
-    {
-        return 1;
-    }
-
-    public void UpdateRelationship(string characterId, int delta)
-    {
-        // Implementation for updating relationship
-    }
-
-
     public void SetNewAttention(int newAttention)
     {
-        this.Attention = Math.Clamp(newAttention, 0, MaxAttention);
-    }
-
-    public int GetSkillLevel(SkillTypes skill)
-    {
-        // Legacy compatibility - map old skill types to player stats
-        PlayerStatType stat = skill switch
-        {
-            SkillTypes.Investigation => PlayerStatType.Insight,
-            SkillTypes.Perception => PlayerStatType.Insight,
-            SkillTypes.Reasoning => PlayerStatType.Insight,
-            SkillTypes.Knowledge => PlayerStatType.Insight,
-            SkillTypes.Etiquette => PlayerStatType.Authority,
-            SkillTypes.Intimidation => PlayerStatType.Authority,
-            SkillTypes.Threatening => PlayerStatType.Authority,
-            SkillTypes.Negotiation => PlayerStatType.Commerce,
-            SkillTypes.Deception => PlayerStatType.Cunning,
-            SkillTypes.Finesse => PlayerStatType.Cunning,
-            SkillTypes.Charm => PlayerStatType.Rapport,
-            SkillTypes.Acting => PlayerStatType.Rapport,
-            _ => PlayerStatType.Rapport // Default fallback
-        };
-        return Stats.GetLevel(stat);
-    }
-
-    /// <summary>
-    /// Get stat level for a specific PlayerStatType
-    /// </summary>
-    public int GetStatLevel(PlayerStatType stat)
-    {
-        return Stats.GetLevel(stat);
-    }
-
-    public void AddSilver(int silverReward)
-    {
-        // Silver is now represented as Coins
-        this.Coins += silverReward;
-    }
-
-    public void AddInsightPoints(int insightPointReward)
-    {
-        // Insight points removed from new design - use memories instead
-        if (insightPointReward > 0)
-        {
-            // Use a generic key since we don't have access to GameWorld here
-            AddMemory($"insight_{Guid.NewGuid()}", $"Gained {insightPointReward} insight", 0, insightPointReward);
-        }
-    }
-
-    public Player Serialize()
-    {
-        // Create a new PlayerState instance
-        Player clone = new Player();
-
-        // Copy simple properties
-        clone.Name = this.Name;
-        clone.Gender = this.Gender;
-        clone.Background = this.Background;
-        clone.Archetype = this.Archetype;
-        clone.Level = this.Level;
-        clone.CurrentXP = this.CurrentXP;
-        clone.XPToNextLevel = this.XPToNextLevel;
-        clone.MaxAttention = this.MaxAttention;
-        clone.Attention = this.Attention;
-        clone.Coins = this.Coins;
-        clone.Hunger = this.Hunger;
-        clone.MinHealth = this.MinHealth;
-        clone.Health = this.Health;
-        clone.MaxHealth = this.MaxHealth;
-        clone.MaxHunger = this.MaxHunger;
-        clone.IsInitialized = this.IsInitialized;
-        clone.CurrentLocationSpot = this.CurrentLocationSpot;
-
-        // Deep copy Inventory
-        clone.Inventory = new Inventory(this.Inventory.Size);
-        foreach (string item in this.Inventory.GetAllItems())
-        {
-            clone.Inventory.AddItem(item);
-        }
-
-        // Deep copy of RelationshipList
-        clone.Relationships = this.Relationships.Clone();
-
-
-        // Deep copy of location knowledge
-        clone.DiscoveredLocationIds = [.. this.DiscoveredLocationIds];
-
-        // Deep copy of travel methods
-        clone.UnlockedTravelMethods = [.. this.UnlockedTravelMethods];
-
-        // Deep copy of LocationActionAvailability HashSet
-        clone.LocationActionAvailability = [.. this.LocationActionAvailability];
-
-        // Deep copy of Stats
-        clone.Stats = this.Stats.Clone();
-
-        // Deep copy of LocationFamiliarity dictionary (Work Packet 1)
-        clone.LocationFamiliarity = new Dictionary<string, int>(this.LocationFamiliarity);
-
-        return clone;
+        Attention = Math.Clamp(newAttention, 0, MaxAttention);
     }
 
     public void ModifyCoins(int amount)
@@ -450,24 +326,6 @@
 
         Attention -= amount;
         return true;
-    }
-
-    public bool SpendMoney(int amount)
-    {
-        if (Coins < amount) return false;
-
-        Coins -= amount;
-        return true;
-    }
-
-    public int GetMaxItemCapacity()
-    {
-        return Inventory.Size;
-    }
-
-    public bool HasVisitedLocation(string requiredLocation)
-    {
-        return false;
     }
 
     // === ATTENTION SYSTEM ===
@@ -527,83 +385,6 @@
         if (config.MaxHunger.HasValue) MaxHunger = config.MaxHunger.Value;
     }
 
-
-    /// <summary>
-    /// Get connection tokens with a specific NPC.
-    /// Returns a connection object that can be modified.
-    /// </summary>
-    public NPCConnection GetConnection(string npcId, ConnectionType tokenType)
-    {
-        // Initialize NPC token tracking if needed
-        if (!NPCTokens.ContainsKey(npcId))
-        {
-            NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
-            {
-                NPCTokens[npcId][type] = 0;
-            }
-        }
-
-        // Return a connection wrapper that can be modified
-        return new NPCConnection(this, npcId, tokenType);
-    }
-
-    /// <summary>
-    /// Get total token count across all NPCs and types.
-    /// Used for progression and special letter generation.
-    /// Aggregates from NPC-specific tokens only.
-    /// </summary>
-    public int GetTotalTokenCount()
-    {
-        int total = 0;
-        foreach (Dictionary<ConnectionType, int> tokenCounts in NPCTokens.Values)
-        {
-            // Only count positive tokens (negative represents leverage/debt)
-            total += tokenCounts.Values.Where(v => v > 0).Sum();
-        }
-        return total;
-    }
-
-    /// <summary>
-    /// Updates player tier based on deliveries and trust tokens.
-    /// T1 (Stranger): Default starting tier
-    /// T2 (Associate): 5+ deliveries OR 10+ total tokens
-    /// T3 (Confidant): 15+ deliveries AND 25+ total tokens
-    /// </summary>
-    public void UpdateTier()
-    {
-        int totalTokens = GetTotalTokenCount();
-        int totalDeliveries = TotalLettersDelivered;
-
-        TierLevel newTier = TierLevel.T1;
-
-        // Check for T3 (Confidant) - requires both deliveries AND tokens
-        if (totalDeliveries >= 15 && totalTokens >= 25)
-        {
-            newTier = TierLevel.T3;
-        }
-        // Check for T2 (Associate) - requires deliveries OR tokens
-        else if (totalDeliveries >= 5 || totalTokens >= 10)
-        {
-            newTier = TierLevel.T2;
-        }
-
-        CurrentTier = newTier;
-    }
-
-    /// <summary>
-    /// Get the display name for the current tier.
-    /// </summary>
-    public string GetTierDisplayName()
-    {
-        return CurrentTier switch
-        {
-            TierLevel.T1 => "Stranger",
-            TierLevel.T2 => "Associate",
-            TierLevel.T3 => "Confidant",
-            _ => "Stranger"
-        };
-    }
 }
 
 /// <summary>
@@ -625,29 +406,17 @@ public class NPCConnection
 
     public int GetCurrentValue()
     {
-        if (_player.NPCTokens.ContainsKey(_npcId) &&
-            _player.NPCTokens[_npcId].ContainsKey(_tokenType))
-        {
-            return _player.NPCTokens[_npcId][_tokenType];
-        }
-        return 0;
+        return _player.NPCTokens.GetTokenCount(_npcId, _tokenType);
     }
 
     public void AdjustValue(int amount)
     {
-        // Ensure NPC tracking exists
-        if (!_player.NPCTokens.ContainsKey(_npcId))
-        {
-            _player.NPCTokens[_npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
-            {
-                _player.NPCTokens[_npcId][type] = 0;
-            }
-        }
+        // Get current value and adjust it
+        int currentValue = _player.NPCTokens.GetTokenCount(_npcId, _tokenType);
+        int newValue = Math.Max(0, currentValue + amount);
 
-        // Adjust the token value
-        int currentValue = _player.NPCTokens[_npcId].GetValueOrDefault(_tokenType, 0);
-        _player.NPCTokens[_npcId][_tokenType] = Math.Max(0, currentValue + amount);
+        // Set the new value
+        _player.NPCTokens.SetTokenCount(_npcId, _tokenType, newValue);
 
         // Tokens are purely relational - no global count
     }

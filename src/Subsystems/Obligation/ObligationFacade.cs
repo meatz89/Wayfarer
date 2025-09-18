@@ -775,12 +775,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Player player = _gameWorld.GetPlayer();
             int totalTokens = 0;
 
-            foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
+            foreach (NPCTokenEntry npcTokenEntry in player.NPCTokens)
             {
-                foreach (int tokenCount in npcTokens.Values)
-                {
-                    totalTokens += Math.Max(0, tokenCount); // Only count positive tokens
-                }
+                totalTokens += Math.Max(0, npcTokenEntry.Trust);
+                totalTokens += Math.Max(0, npcTokenEntry.Commerce);
+                totalTokens += Math.Max(0, npcTokenEntry.Status);
+                totalTokens += Math.Max(0, npcTokenEntry.Shadow);
             }
 
             return totalTokens;
@@ -799,19 +799,16 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             };
 
             // Sum up all tokens by type
-            foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
+            foreach (NPCTokenEntry npcTokenEntry in player.NPCTokens)
             {
-                foreach (KeyValuePair<ConnectionType, int> kvp in npcTokens)
-                {
-                    // Skip None type as it's not a valid token type
-                    if (kvp.Key == ConnectionType.None)
-                        continue;
-
-                    if (tokenTotals.ContainsKey(kvp.Key))
-                    {
-                        tokenTotals[kvp.Key] += Math.Max(0, kvp.Value);
-                    }
-                }
+                if (tokenTotals.ContainsKey(ConnectionType.Trust))
+                    tokenTotals[ConnectionType.Trust] += Math.Max(0, npcTokenEntry.Trust);
+                if (tokenTotals.ContainsKey(ConnectionType.Commerce))
+                    tokenTotals[ConnectionType.Commerce] += Math.Max(0, npcTokenEntry.Commerce);
+                if (tokenTotals.ContainsKey(ConnectionType.Status))
+                    tokenTotals[ConnectionType.Status] += Math.Max(0, npcTokenEntry.Status);
+                if (tokenTotals.ContainsKey(ConnectionType.Shadow))
+                    tokenTotals[ConnectionType.Shadow] += Math.Max(0, npcTokenEntry.Shadow);
             }
 
             foreach (KeyValuePair<ConnectionType, int> kvp in tokenTotals.Where(t => t.Value > 0))

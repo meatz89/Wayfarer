@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.Subsystems.ExchangeSubsystem;
 using Wayfarer.Subsystems.LocationSubsystem;
 using Wayfarer.Subsystems.NarrativeSubsystem;
 using Wayfarer.Subsystems.ObligationSubsystem;
@@ -9,7 +10,6 @@ using Wayfarer.Subsystems.ResourceSubsystem;
 using Wayfarer.Subsystems.TimeSubsystem;
 using Wayfarer.Subsystems.TokenSubsystem;
 using Wayfarer.Subsystems.TravelSubsystem;
-using Wayfarer.Subsystems.ExchangeSubsystem;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -116,7 +116,7 @@ public class GameFacade
         }
 
         // Get conversation type
-        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
         {
             return null;
         }
@@ -148,7 +148,7 @@ public class GameFacade
             NPCRequest request = stranger.GetRequestById(requestId);
             if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
             {
-                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
                 {
                     AttentionStateInfo attentionState = GetCurrentAttentionState();
                     return attentionState.Current >= conversationType.AttentionCost;
@@ -166,7 +166,7 @@ public class GameFacade
             NPCRequest request = stranger.GetRequestById(requestId);
             if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
             {
-                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
                 {
                     return conversationType.AttentionCost;
                 }
@@ -1015,7 +1015,7 @@ public class GameFacade
     public string DebugGetStatInfo()
     {
         Player player = _gameWorld.GetPlayer();
-        var statInfo = new System.Text.StringBuilder();
+        StringBuilder statInfo = new System.Text.StringBuilder();
 
         statInfo.AppendLine("=== Player Stats ===");
         foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
