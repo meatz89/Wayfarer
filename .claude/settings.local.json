@@ -54,7 +54,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6240\" timeout 10 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6250\" timeout 10 dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6260\" timeout 10 dotnet run)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 30 dotnet run)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 30 dotnet run)",
+      "Bash(find:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6300\" timeout 10 dotnet run)"
     ],
     "deny": [],
     "ask": []

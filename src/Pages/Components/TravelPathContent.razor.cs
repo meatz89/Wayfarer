@@ -344,7 +344,7 @@ namespace Wayfarer.Pages.Components
         protected bool IsCardDiscovered(string pathCardId)
         {
             return TravelContext?.CardDiscoveries.ContainsKey(pathCardId) == true &&
-                   TravelContext.CardDiscoveries[pathCardId];
+                   TravelContext.CardDiscoveries.GetItem(pathCardId);
         }
 
         /// <summary>

@@ -457,7 +457,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId)) return;
 
-            LetterHistory history = player.NPCLetterHistory[senderId];
+            LetterHistory history = player.NPCLetterHistory.GetItem(senderId);
             if (history.ExpiredCount > 1)
             {
                 _messageSystem.AddSystemMessage(
@@ -496,9 +496,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
-                player.NPCLetterHistory[senderId] = new LetterHistory();
+                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory[senderId].RecordExpiry();
+            player.NPCLetterHistory.GetItem(senderId).RecordExpiry();
         }
 
         private bool ValidateTokenAvailability(Dictionary<ConnectionType, int> requiredTokens)

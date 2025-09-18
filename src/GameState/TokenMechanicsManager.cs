@@ -65,28 +65,21 @@ public class TokenMechanicsManager
         if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
+        List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
         // Apply equipment modifiers
         float modifier = GetEquipmentTokenModifier(type);
         int modifiedCount = (int)Math.Ceiling(count * modifier);
 
         // Initialize NPC token tracking if needed
-        if (!npcTokens.ContainsKey(npcId))
-        {
-            npcTokens[npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-            {
-                npcTokens[npcId][tokenType] = 0;
-            }
-        }
+        NPCTokenEntry npcEntry = npcTokens.GetNPCTokenEntry(npcId);
 
         // Track old token count for category unlock checking
-        int oldTokenCount = npcTokens[npcId][type];
+        int oldTokenCount = npcEntry.GetTokenCount(type);
 
         // Update NPC-specific tokens with modified amount
-        npcTokens[npcId][type] += modifiedCount;
-        int newTokenCount = npcTokens[npcId][type];
+        npcEntry.SetTokenCount(type, oldTokenCount + modifiedCount);
+        int newTokenCount = npcEntry.GetTokenCount(type);
 
         // Get NPC for narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
@@ -99,7 +92,7 @@ public class TokenMechanicsManager
             );
 
             // Check relationship milestones
-            int totalWithNPC = npcTokens[npcId].Values.Sum();
+            int totalWithNPC = npcEntry.Trust + npcEntry.Commerce + npcEntry.Status + npcEntry.Shadow;
             CheckRelationshipMilestone(npc, totalWithNPC);
 
             // Category service removed - letters created through conversation choices only
@@ -116,18 +109,12 @@ public class TokenMechanicsManager
 
         Player player = _gameWorld.GetPlayer();
 
-        // Ensure NPC token tracking exists
-        if (!player.NPCTokens.ContainsKey(npcId))
-        {
-            player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-            {
-                player.NPCTokens[npcId][tokenType] = 0;
-            }
-        }
+        // Get or create NPC token entry
+        NPCTokenEntry npcEntry = player.NPCTokens.GetNPCTokenEntry(npcId);
+        int currentCount = npcEntry.GetTokenCount(type);
 
         // reduce from NPC relationship (can go negative)
-        player.NPCTokens[npcId][type] -= count;
+        npcEntry.SetTokenCount(type, currentCount - count);
 
         // Add narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
@@ -138,7 +125,7 @@ public class TokenMechanicsManager
                 SystemMessageTypes.Info
             );
 
-            if (player.NPCTokens[npcId][type] < 0)
+            if (npcEntry.GetTokenCount(type) < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"You now owe {npc.Name} for this favor.",
@@ -155,9 +142,9 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
+        foreach (NPCTokenEntry entry in player.NPCTokens)
         {
-            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            int tokensWithNpc = entry.GetTokenCount(type);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
         }
         return totalOfType >= count;
@@ -168,9 +155,9 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
+        foreach (NPCTokenEntry entry in player.NPCTokens)
         {
-            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            int tokensWithNpc = entry.GetTokenCount(type);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
         }
         return totalOfType;
@@ -214,23 +201,16 @@ public class TokenMechanicsManager
         if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
+        List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        // Ensure NPC token dictionary exists
-        if (!npcTokens.ContainsKey(npcId))
-        {
-            npcTokens[npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-            {
-                npcTokens[npcId][tokenType] = 0;
-            }
-        }
+        // Get or create NPC token entry
+        NPCTokenEntry npcEntry = npcTokens.GetNPCTokenEntry(npcId);
 
         // Track old count for obligation checking
-        int oldCount = npcTokens[npcId][type];
+        int oldCount = npcEntry.GetTokenCount(type);
 
         // Remove tokens from NPC relationship (can go negative)
-        npcTokens[npcId][type] -= count;
+        npcEntry.SetTokenCount(type, oldCount - count);
 
         // Add narrative feedback for relationship damage
         NPC npc = _npcRepository.GetById(npcId);
@@ -241,7 +221,7 @@ public class TokenMechanicsManager
                 SystemMessageTypes.Warning
             );
 
-            if (npcTokens[npcId][type] < 0)
+            if (npcEntry.GetTokenCount(type) < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"{npc.Name} feels you owe them for past failures.",
@@ -258,9 +238,9 @@ public class TokenMechanicsManager
     {
         Player player = _gameWorld.GetPlayer();
         int totalOfType = 0;
-        foreach (Dictionary<ConnectionType, int> npcTokens in player.NPCTokens.Values)
+        foreach (NPCTokenEntry entry in player.NPCTokens)
         {
-            int tokensWithNpc = npcTokens.GetValueOrDefault(type, 0);
+            int tokensWithNpc = entry.GetTokenCount(type);
             if (tokensWithNpc > 0) totalOfType += tokensWithNpc;
         }
         return totalOfType;
@@ -279,24 +259,23 @@ public class TokenMechanicsManager
             return false;
 
         // Deduct from NPCs proportionally
-        Dictionary<string, Dictionary<ConnectionType, int>> npcTokens = player.NPCTokens;
+        List<NPCTokenEntry> npcTokens = player.NPCTokens;
         int remaining = amount;
 
-        foreach (string? npcId in npcTokens.Keys.ToList())
+        foreach (NPCTokenEntry npcEntry in npcTokens)
         {
             if (remaining <= 0) break;
 
-            Dictionary<ConnectionType, int> npcDict = npcTokens[npcId];
-            int tokensWithNpc = npcDict.GetValueOrDefault(type, 0);
+            int tokensWithNpc = npcEntry.GetTokenCount(type);
 
             if (tokensWithNpc > 0)
             {
                 int toSpend = Math.Min(tokensWithNpc, remaining);
-                npcDict[type] = tokensWithNpc - toSpend;
+                npcEntry.SetTokenCount(type, tokensWithNpc - toSpend);
                 remaining -= toSpend;
 
                 // Add narrative feedback for each NPC
-                NPC npc = _npcRepository.GetById(npcId);
+                NPC npc = _npcRepository.GetById(npcEntry.NpcId);
                 if (npc != null && toSpend > 0)
                 {
                     _messageSystem.AddSystemMessage(
@@ -330,16 +309,9 @@ public class TokenMechanicsManager
         if (tokensOfType < amount)
             return false;
 
-        // Deduct from NPC relationship
-        if (!player.NPCTokens.ContainsKey(npcId))
-        {
-            player.NPCTokens[npcId] = new Dictionary<ConnectionType, int>();
-            foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
-            {
-                player.NPCTokens[npcId][tokenType] = 0;
-            }
-        }
-        player.NPCTokens[npcId][type] = tokensOfType - amount;
+        // Get or create NPC token entry and deduct tokens
+        NPCTokenEntry npcEntry = player.NPCTokens.GetNPCTokenEntry(npcId);
+        npcEntry.SetTokenCount(type, tokensOfType - amount);
 
         // Add narrative feedback
         NPC npc = _npcRepository.GetById(npcId);

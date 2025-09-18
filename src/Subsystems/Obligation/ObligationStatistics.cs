@@ -186,7 +186,7 @@ public class ObligationStatistics
                 continue;
             }
 
-            LetterHistory history = player.NPCLetterHistory[npc.ID];
+            LetterHistory history = player.NPCLetterHistory.GetItem(npc.ID);
 
             RelationshipHealth health = new RelationshipHealth
             {
@@ -222,7 +222,7 @@ public class ObligationStatistics
             if (!player.NPCLetterHistory.ContainsKey(npc.ID))
                 continue;
 
-            LetterHistory history = player.NPCLetterHistory[npc.ID];
+            LetterHistory history = player.NPCLetterHistory.GetItem(npc.ID);
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
             metrics.Add(new NPCPerformanceMetric

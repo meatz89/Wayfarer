@@ -905,9 +905,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
-                player.NPCLetterHistory[senderId] = new LetterHistory();
+                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory[senderId].RecordExpiry();
+            player.NPCLetterHistory.GetItem(senderId).RecordExpiry();
         }
 
         private bool HasUsedMorningSwapToday()

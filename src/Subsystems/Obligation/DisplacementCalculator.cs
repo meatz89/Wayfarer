@@ -615,9 +615,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Player player = _gameWorld.GetPlayer();
             if (!player.NPCLetterHistory.ContainsKey(senderId))
             {
-                player.NPCLetterHistory[senderId] = new LetterHistory();
+                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory[senderId].RecordExpiry(); // Use existing expiry tracking for overflow
+            player.NPCLetterHistory.GetItem(senderId).RecordExpiry(); // Use existing expiry tracking for overflow
         }
 
         private DeliveryObligation FindObligationById(string obligationId)

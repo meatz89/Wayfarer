@@ -106,7 +106,7 @@ public class ActionGenerator
     private List<LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
-        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+        TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
         switch (service)
         {
@@ -177,7 +177,7 @@ public class ActionGenerator
 
     private LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
     {
-        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+        TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
         return tag.ToLower() switch
         {
@@ -252,7 +252,7 @@ public class ActionGenerator
     private List<LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
-        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+        TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
         switch (currentTime)
         {
@@ -300,7 +300,7 @@ public class ActionGenerator
     private List<LocationActionViewModel> GenerateAtmosphereActions(Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
-        TierLevel playerTier = _gameWorld.GetPlayer().CurrentTier;
+        TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
         // Generate actions based on atmosphere
         string? atmosphereValue = location.Atmosphere?.GetPropertyValue();
@@ -410,5 +410,15 @@ public class ActionGenerator
         if (location.Population?.GetPropertyValue() == "Crowded") return "Rumors abound";
         if (time == TimeBlocks.Afternoon) return "Whispered tales";
         return "Local gossip";
+    }
+
+    /// <summary>
+    /// Convert player level to tier level for action availability
+    /// </summary>
+    private TierLevel GetPlayerTier(int level)
+    {
+        if (level >= 7) return TierLevel.T3;
+        if (level >= 4) return TierLevel.T2;
+        return TierLevel.T1;
     }
 }

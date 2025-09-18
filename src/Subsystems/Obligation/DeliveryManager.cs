@@ -205,9 +205,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 // Track delivery history
                 if (!player.NPCLetterHistory.ContainsKey(senderId))
                 {
-                    player.NPCLetterHistory[senderId] = new LetterHistory();
+                    player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
                 }
-                player.NPCLetterHistory[senderId].RecordDelivery();
+                player.NPCLetterHistory.GetItem(senderId).RecordDelivery();
 
                 // Award reputation bonus for on-time delivery
                 if (letter.DeadlineInSegments > 0)
@@ -232,9 +232,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 if (!player.NPCLetterHistory.ContainsKey(senderId))
                 {
-                    player.NPCLetterHistory[senderId] = new LetterHistory();
+                    player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
                 }
-                player.NPCLetterHistory[senderId].RecordSkip();
+                player.NPCLetterHistory.GetItem(senderId).RecordSkip();
             }
         }
 
