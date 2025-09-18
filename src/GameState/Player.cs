@@ -74,10 +74,6 @@
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
-    // PLAYER CONVERSATION DECK - Starter cards used in all conversations
-    // The player's base conversation abilities that work with every NPC
-    // Stores actual CardInstance objects to maintain XP between conversations
-    public PlayerCardDeck ConversationDeck { get; set; } = new();
 
     // Token Favor System
     public List<string> PurchasedFavors { get; set; } = new List<string>();

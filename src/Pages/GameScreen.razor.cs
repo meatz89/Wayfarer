@@ -23,7 +23,7 @@ public class ScreenStateData
     public string NpcId { get; set; }
     public string LocationId { get; set; }
     public string TravelDestination { get; set; }
-    public ConversationType? ConversationType { get; set; }
+    public string RequestId { get; set; }
     public string SelectedCardId { get; set; }
     public int? SelectedObligationIndex { get; set; }
 }
@@ -357,9 +357,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartConversation(string npcId, ConversationType type, string goalCardId = null)
+    public async Task StartConversation(string npcId, string requestId)
     {
-        CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, type, goalCardId);
+        CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, requestId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();

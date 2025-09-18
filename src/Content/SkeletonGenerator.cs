@@ -64,7 +64,6 @@ public static class SkeletonGenerator
         };
 
         // Initialize card decks (required for NPC to function)
-        npc.ProgressionDeck = new CardDeck();
         npc.Requests = new List<NPCRequest>();
         npc.ExchangeDeck = new List<ExchangeCard>();
 

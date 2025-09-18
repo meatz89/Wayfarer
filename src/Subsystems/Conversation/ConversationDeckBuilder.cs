@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Builds conversation decks from player cards, NPC progression cards, observation cards, and goal cards.
-/// Extracted from ConversationFacade to follow single responsibility principle.
+/// Builds conversation decks from conversation type cards and NPC signature cards.
+/// NO PLAYER DECK - cards come from conversation types defined in JSON.
 /// </summary>
 public class ConversationDeckBuilder
 {
@@ -19,49 +19,51 @@ public class ConversationDeckBuilder
     }
 
     /// <summary>
-    /// Create a conversation deck from NPC templates (no filtering by type)
-    /// Returns both the deck and any request cards that should start in hand
+    /// Create a conversation deck from conversation type cards and NPC signature cards.
+    /// Request drives everything - it determines the conversation type and connection type.
     /// </summary>
     public (SessionCardDeck deck, List<CardInstance> requestCards) CreateConversationDeck(
         NPC npc,
-        ConversationType conversationType,
-        string goalCardId = null,
+        string requestId,
         List<CardInstance> observationCards = null)
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Start with player's conversation deck (persistent CardInstances with XP)
-        Player player = _gameWorld.GetPlayer();
-        List<CardInstance> playerInstances = new List<CardInstance>();
-
-        // Get all player's card instances (these have XP)
-        if (player.ConversationDeck != null && player.ConversationDeck.Count > 0)
+        // Get the request which drives everything
+        NPCRequest request = npc.GetRequestById(requestId);
+        if (request == null)
         {
-            playerInstances.AddRange(player.ConversationDeck.GetAllInstances());
-        }
-        else
-        {
-            // Critical error - player has no conversation abilities!
-            Console.WriteLine("[ConversationDeckBuilder] ERROR: Player has no conversation deck! Check PackageLoader initialization.");
-            // Continue anyway to avoid crash, but conversation will be unplayable
+            throw new ArgumentException($"Request {requestId} not found for NPC {npc.ID}");
         }
 
-        // Create session deck from player's instances (preserves XP)
-        SessionCardDeck deck = SessionCardDeck.CreateFromInstances(playerInstances, sessionId);
-
-        // Add unlocked NPC progression cards as new instances
-        List<ConversationCard> unlockedProgressionCards = GetUnlockedProgressionCards(npc);
-        foreach (ConversationCard progressionCard in unlockedProgressionCards)
+        // Get conversation type from request
+        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition conversationType))
         {
-            CardInstance progressionInstance = new CardInstance(progressionCard, npc.ID);
-            deck.AddCard(progressionInstance);
+            Console.WriteLine($"[ConversationDeckBuilder] WARNING: Conversation type '{request.ConversationTypeId}' not found, using fallback");
+            // Create a fallback conversation type if not found
+            conversationType = CreateFallbackConversationType();
         }
 
-        // Safety check - ensure we have at least some cards
-        if (playerInstances.Count == 0 && unlockedProgressionCards.Count == 0)
+        // Get card deck for this conversation type
+        if (!_gameWorld.CardDecks.TryGetValue(conversationType.DeckId, out CardDeckDefinition cardDeck))
         {
-            Console.WriteLine($"[ConversationDeckBuilder] WARNING: Creating conversation with {npc.Name} but deck has NO cards!");
+            Console.WriteLine($"[ConversationDeckBuilder] WARNING: Card deck '{conversationType.DeckId}' not found, using empty deck");
+            cardDeck = new CardDeckDefinition { Id = "fallback", CardIds = new List<string>() };
         }
+
+        // Create card instances from the conversation type's deck
+        List<CardInstance> deckInstances = CreateInstancesFromCardIds(cardDeck.CardIds, npc.ID);
+
+        // Get token count for this NPC and connection type
+        int tokenCount = _tokenManager.GetTokenCount(request.ConnectionType, npc.ID);
+
+        // Add signature cards based on token count (not thresholds)
+        int signatureCardCount = GetSignatureCardCountByTokens(tokenCount);
+        List<CardInstance> signatureInstances = GetSignatureCards(npc, signatureCardCount);
+        deckInstances.AddRange(signatureInstances);
+
+        // Create session deck
+        SessionCardDeck deck = SessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
         // Add observation cards if provided
         if (observationCards != null && observationCards.Any())
@@ -72,230 +74,166 @@ public class ConversationDeckBuilder
             }
         }
 
-        // Get request cards based on conversation type from JSON data
-        // For Request conversations, this loads ALL cards from the Request bundle
-        List<CardInstance> requestCards = SelectGoalCardsForConversationType(npc, conversationType, goalCardId, deck);
+        // Process request cards
+        List<CardInstance> requestCardInstances = CreateRequestCardInstances(request, npc);
 
-        // HIGHLANDER: Add request cards directly to deck's request pile
-        foreach (CardInstance requestCard in requestCards)
+        // Add request cards to deck's request pile
+        foreach (CardInstance requestCard in requestCardInstances)
         {
             deck.AddRequestCard(requestCard);
         }
 
-        // Now shuffle the deck after all cards (including promise cards) have been added
+        // Process promise cards and add them to the main deck
+        List<CardInstance> promiseCardInstances = CreatePromiseCardInstances(request, npc);
+        foreach (CardInstance promiseCard in promiseCardInstances)
+        {
+            deck.AddCard(promiseCard); // Promise cards go in main deck for shuffling
+        }
+
+        // Shuffle the deck after all cards have been added
         deck.ShuffleDrawPile();
 
-        // HIGHLANDER: Return only deck, not separate request cards
+        // Return deck with empty request cards (they're in the deck's request pile)
         return (deck, new List<CardInstance>());
     }
 
     /// <summary>
-    /// Get unlocked NPC progression cards based on current token counts
+    /// Create instances from card IDs in the conversation type's deck
     /// </summary>
-    private List<ConversationCard> GetUnlockedProgressionCards(NPC npc)
+    private List<CardInstance> CreateInstancesFromCardIds(List<string> cardIds, string ownerId)
     {
-        List<ConversationCard> unlockedCards = new List<ConversationCard>();
+        List<CardInstance> instances = new List<CardInstance>();
 
-        if (npc.ProgressionDeck == null)
-            return unlockedCards;
-
-        // Get current token counts for this NPC
-        Dictionary<ConnectionType, int> tokenCounts = GetNpcTokenCounts(npc);
-
-        // Check each card's unlock requirements
-        foreach (ConversationCard card in npc.ProgressionDeck.GetAllCards())
+        foreach (string cardId in cardIds)
         {
-            if (card.RequiredTokenType.HasValue && card.MinimumTokensRequired > 0)
+            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard cardTemplate))
             {
-                ConnectionType requiredType = card.RequiredTokenType.Value;
-                int currentTokens = tokenCounts.GetValueOrDefault(requiredType, 0);
-
-                if (currentTokens >= card.MinimumTokensRequired)
-                {
-                    unlockedCards.Add(card);
-                }
+                CardInstance instance = new CardInstance(cardTemplate, ownerId);
+                instances.Add(instance);
             }
             else
             {
-                // No token requirement - always unlocked
-                unlockedCards.Add(card);
+                Console.WriteLine($"[ConversationDeckBuilder] Warning: Card ID '{cardId}' not found in AllCardDefinitions");
             }
         }
 
-        return unlockedCards;
+        return instances;
     }
 
     /// <summary>
-    /// Select appropriate goal card from JSON data based on conversation type
+    /// Get signature card count based on token count (NO THRESHOLDS)
     /// </summary>
-    private List<CardInstance> SelectGoalCardsForConversationType(NPC npc, ConversationType conversationType, string goalCardId, SessionCardDeck deck)
+    private int GetSignatureCardCountByTokens(int tokens)
+    {
+        return tokens switch
+        {
+            0 => 0,
+            <= 2 => 1,
+            <= 5 => 2,
+            <= 9 => 3,
+            <= 14 => 4,
+            _ => 5
+        };
+    }
+
+    /// <summary>
+    /// Get NPC signature cards up to the specified count
+    /// </summary>
+    private List<CardInstance> GetSignatureCards(NPC npc, int count)
+    {
+        // NPCs no longer have progression decks - signature cards removed
+        return new List<CardInstance>();
+    }
+
+    /// <summary>
+    /// Create request card instances with proper rapport thresholds
+    /// </summary>
+    private List<CardInstance> CreateRequestCardInstances(NPCRequest request, NPC npc)
     {
         List<CardInstance> requestCards = new List<CardInstance>();
 
-        // If specific card ID provided, this might be a request ID - find that request
-        if (!string.IsNullOrEmpty(goalCardId) && npc.Requests != null)
+        foreach (string requestCardId in request.RequestCardIds)
         {
-            // First check if it's a request ID
-            NPCRequest request = npc.GetRequestById(goalCardId);
-            if (request != null && request.IsAvailable())
+            if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out ConversationCard requestCard))
             {
-                // Load ALL cards from the Request bundle
-
-                // Add ALL request cards to be returned for active pile
-                foreach (string requestCardId in request.RequestCardIds)
-                {
-                    // Retrieve the card from GameWorld - single source of truth
-                    if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out ConversationCard? requestCard))
-                    {
-                        Console.WriteLine($"[ConversationDeckBuilder] Warning: Request card ID '{requestCardId}' not found in GameWorld.AllCardDefinitions");
-                        continue;
-                    }
-
-                    // Create a new template with BurdenGoal type based on the original
-                    ConversationCard burdenGoalTemplate = new ConversationCard
-                    {
-                        Id = requestCard.Id,
-                        Description = requestCard.Description,
-                        Focus = requestCard.Focus,
-                        Difficulty = requestCard.Difficulty,
-                        TokenType = requestCard.TokenType,
-                        Persistence = requestCard.Persistence,
-                        SuccessType = requestCard.SuccessType,
-                        FailureType = requestCard.FailureType,
-                        ExhaustType = requestCard.ExhaustType,
-                        DialogueFragment = requestCard.DialogueFragment,
-                        VerbPhrase = requestCard.VerbPhrase,
-                        PersonalityTypes = requestCard.PersonalityTypes,
-                        LevelBonuses = requestCard.LevelBonuses,
-                        MinimumTokensRequired = requestCard.MinimumTokensRequired,
-                        RapportThreshold = requestCard.RapportThreshold,
-                        QueuePosition = requestCard.QueuePosition,
-                        InstantRapport = requestCard.InstantRapport,
-                        RequestId = requestCard.RequestId,
-                        IsSkeleton = requestCard.IsSkeleton,
-                        SkeletonSource = requestCard.SkeletonSource,
-                        RequiredTokenType = requestCard.RequiredTokenType,
-                        CardType = CardType.BurdenGoal // Override to mark as BurdenGoal
-                    };
-
-                    // Create a new card instance with BurdenGoal template
-                    CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);
-
-                    // Store the rapport threshold and request ID in the card context
-                    instance.Context = new CardContext
-                    {
-                        RapportThreshold = requestCard.RapportThreshold,
-                        RequestId = request.Id
-                    };
-
-                    // Request cards start as Unplayable until rapport threshold is met
-                    instance.IsPlayable = false;
-
-                    requestCards.Add(instance);
-                }
-
-                // Add promise cards to the deck for shuffling (not returned)
-                foreach (string promiseCardId in request.PromiseCardIds)
-                {
-                    // Retrieve the card from GameWorld - single source of truth
-                    if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out ConversationCard? promiseCard))
-                    {
-                        Console.WriteLine($"[ConversationDeckBuilder] Warning: Promise card ID '{promiseCardId}' not found in GameWorld.AllCardDefinitions");
-                        continue;
-                    }
-
-                    CardInstance promiseInstance = new CardInstance(promiseCard, npc.ID);
-                    deck.AddCard(promiseInstance); // Add to deck for shuffling into draw pile
-                }
-
-                return requestCards; // Return all request cards for active pile
+                Console.WriteLine($"[ConversationDeckBuilder] Warning: Request card ID '{requestCardId}' not found");
+                continue;
             }
+
+            // Create BurdenGoal type card for requests
+            ConversationCard burdenGoalTemplate = new ConversationCard
+            {
+                Id = requestCard.Id,
+                Description = requestCard.Description,
+                Focus = requestCard.Focus,
+                Difficulty = requestCard.Difficulty,
+                TokenType = requestCard.TokenType,
+                Persistence = requestCard.Persistence,
+                SuccessType = requestCard.SuccessType,
+                FailureType = requestCard.FailureType,
+                ExhaustType = requestCard.ExhaustType,
+                DialogueFragment = requestCard.DialogueFragment,
+                VerbPhrase = requestCard.VerbPhrase,
+                PersonalityTypes = requestCard.PersonalityTypes,
+                LevelBonuses = requestCard.LevelBonuses,
+                MinimumTokensRequired = requestCard.MinimumTokensRequired,
+                RapportThreshold = requestCard.RapportThreshold,
+                CardType = CardType.BurdenGoal // Mark as BurdenGoal
+            };
+
+            CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);
+
+            // Store context for rapport threshold and request tracking
+            instance.Context = new CardContext
+            {
+                RapportThreshold = requestCard.RapportThreshold,
+                RequestId = request.Id
+            };
+
+            // Request cards start as unplayable until rapport threshold is met
+            instance.IsPlayable = false;
+
+            requestCards.Add(instance);
         }
 
-        // Fallback to existing logic if no specific card ID provided
-        switch (conversationType)
-        {
-            case ConversationType.FriendlyChat:
-                // For FriendlyChat, select from NPC's connection token goal cards
-                CardInstance goalCard = SelectConnectionTokenGoalCard(npc);
-                return goalCard != null ? new List<CardInstance> { goalCard } : new List<CardInstance>();
-
-            case ConversationType.Delivery:
-                // For Delivery, the goal card is generated based on the letter being delivered
-                // This is handled by the obligation system when the delivery conversation starts
-                return new List<CardInstance>();
-
-            case ConversationType.Resolution:
-                // For Resolution, select from burden resolution cards
-                CardInstance burdenCard = SelectBurdenResolutionCard(npc);
-                return burdenCard != null ? new List<CardInstance> { burdenCard } : new List<CardInstance>();
-
-            default:
-                return new List<CardInstance>();
-        }
+        return requestCards;
     }
 
     /// <summary>
-    /// Select a connection token goal card from NPC's goal deck
+    /// Create promise card instances
     /// </summary>
-    private CardInstance SelectConnectionTokenGoalCard(NPC npc)
+    private List<CardInstance> CreatePromiseCardInstances(NPCRequest request, NPC npc)
     {
-        // Connection token goal cards should be in the NPC's one-time requests
-        // These are cards that grant connection tokens when played at rapport threshold
-        if (npc.Requests == null || !npc.Requests.Any())
-            return null;
+        List<CardInstance> promiseCards = new List<CardInstance>();
 
-        // Look for cards with CardType Promise in available requests
-        List<NPCRequest> availableRequests = npc.GetAvailableRequests();
-        if (!availableRequests.Any())
-            return null;
-
-        // Get all promise cards from all available requests
-        List<ConversationCard> goalCards = new List<ConversationCard>();
-        foreach (NPCRequest request in availableRequests)
+        foreach (string promiseCardId in request.PromiseCardIds)
         {
-            // Retrieve promise cards from GameWorld using IDs
-            List<ConversationCard> promiseCards = request.GetPromiseCards(_gameWorld);
-            goalCards.AddRange(promiseCards.Where(card => card.CardType == CardType.Promise));
+            if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out ConversationCard promiseCard))
+            {
+                Console.WriteLine($"[ConversationDeckBuilder] Warning: Promise card ID '{promiseCardId}' not found");
+                continue;
+            }
+
+            CardInstance instance = new CardInstance(promiseCard, npc.ID);
+            promiseCards.Add(instance);
         }
 
-        if (!goalCards.Any())
-            return null;
-
-        ConversationCard selectedGoal = goalCards[_random.Next(goalCards.Count)];
-        CardInstance goalInstance = new CardInstance(selectedGoal, npc.ID);
-
-        // Store the rapport threshold in the card context (same as Elena's letter)
-        if (goalInstance.Context == null)
-            goalInstance.Context = new CardContext();
-
-        // Use the rapport threshold from the card itself (from JSON)
-        goalInstance.Context.RapportThreshold = selectedGoal.RapportThreshold;
-
-        return goalInstance;
+        return promiseCards;
     }
 
     /// <summary>
-    /// Select a burden resolution card for Resolution conversations
+    /// Create a fallback conversation type for backward compatibility
     /// </summary>
-    private CardInstance SelectBurdenResolutionCard(NPC npc)
+    private ConversationTypeDefinition CreateFallbackConversationType()
     {
-        // For now, return null - burden resolution not fully implemented
-        return null;
-    }
-
-    /// <summary>
-    /// Get current token counts for an NPC
-    /// </summary>
-    public Dictionary<ConnectionType, int> GetNpcTokenCounts(NPC npc)
-    {
-        Dictionary<ConnectionType, int> tokenCounts = new Dictionary<ConnectionType, int>
+        return new ConversationTypeDefinition
         {
-            { ConnectionType.Trust, _tokenManager.GetTokenCount(ConnectionType.Trust, npc.ID) },
-            { ConnectionType.Commerce, _tokenManager.GetTokenCount(ConnectionType.Commerce, npc.ID) },
-            { ConnectionType.Status, _tokenManager.GetTokenCount(ConnectionType.Status, npc.ID) },
-            { ConnectionType.Shadow, _tokenManager.GetTokenCount(ConnectionType.Shadow, npc.ID) }
+            Id = "fallback_friendly",
+            Name = "Friendly Chat",
+            Description = "A casual conversation",
+            DeckId = "deck_friendly_balanced",
+            Category = "social",
+            AttentionCost = 1
         };
-        return tokenCounts;
     }
 }

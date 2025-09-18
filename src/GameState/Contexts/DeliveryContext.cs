@@ -24,7 +24,7 @@ public class DeliveryContext : ConversationContextBase
 
     public DeliveryContext()
     {
-        Type = ConversationType.Delivery;
+        ConversationTypeId = "delivery";
         LettersCarriedForNpc = new List<DeliveryObligation>();
         FlowBonus = 5; // Default flow bonus for successful delivery
     }

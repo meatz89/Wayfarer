@@ -13,9 +13,7 @@ public static class ConversationCardParser
     /// </summary>
     public static List<ConversationCard> GetCardsForNPC(NPC npc,
         Dictionary<string, ConversationCardDTO> cardTemplates,
-        Dictionary<PersonalityType, PersonalityCardMapping> personalityMappings,
-        Dictionary<int, List<string>> tokenUnlocks,
-        Dictionary<ConnectionType, int> tokens = null)
+        Dictionary<PersonalityType, PersonalityCardMapping> personalityMappings)
     {
         List<ConversationCard> cards = new List<ConversationCard>();
 
@@ -40,36 +38,17 @@ public static class ConversationCardParser
             }
         }
 
-        // Add token-unlocked cards
-        if (tokens != null)
-        {
-            int totalTokens = tokens.Values.Sum();
-            foreach (KeyValuePair<int, List<string>> kvp in tokenUnlocks.Where(u => u.Key <= totalTokens))
-            {
-                foreach (string cardId in kvp.Value)
-                {
-                    if (cardTemplates.TryGetValue(cardId, out ConversationCardDTO cardDto))
-                    {
-                        cards.Add(ConvertDTOToCard(cardDto, npc));
-                    }
-                }
-            }
-        }
-
         return cards;
     }
 
     /// <summary>
     /// Get request card for conversation type from provided card data
     /// </summary>
-    public static ConversationCard GetRequestCard(ConversationType conversationType, string npcId, string npcName,
+    public static ConversationCard GetRequestCard(string conversationTypeId, string npcId, string npcName,
         Dictionary<string, ConversationCardDTO> cardTemplates)
     {
-        ConversationType? requestType = GetRequestTypeForConversation(conversationType);
-        if (!requestType.HasValue)
-            return null;
-
-        string cardId = $"request_{requestType.Value.ToString().ToLower()}";
+        // Use conversation type ID directly to find request card template
+        string cardId = $"request_{conversationTypeId}";
         if (!cardTemplates.TryGetValue(cardId, out ConversationCardDTO dto))
             return null;
 
@@ -199,17 +178,6 @@ public static class ConversationCardParser
         };
     }
 
-    private static ConversationType? GetRequestTypeForConversation(ConversationType type)
-    {
-        return type switch
-        {
-            ConversationType.FriendlyChat => ConversationType.Request,
-            ConversationType.Request => ConversationType.Request,
-            ConversationType.Resolution => ConversationType.Resolution,
-            ConversationType.Delivery => ConversationType.Delivery,
-            _ => null
-        };
-    }
 
     /// <summary>
     /// Convert NPCGoalCardDTO to ConversationCard

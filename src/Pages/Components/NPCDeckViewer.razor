@@ -363,22 +363,11 @@
             return;
         }
 
-        // Get base conversation cards from the player's starter deck
-        var player = GameFacade?.GetPlayer();
-        if (player?.ConversationDeck != null)
-        {
-            ConversationCards = player.ConversationDeck.GetAllInstances().ToList();
-        }
+        // No player deck anymore - conversation cards come from conversation types
+        ConversationCards = new List<CardInstance>();
 
-        // Get progression cards (NPC-specific cards that unlock with tokens)
-        // Convert templates to instances for display consistency
-        if (CurrentNPC.ProgressionDeck != null)
-        {
-            ProgressionCards = CurrentNPC.ProgressionDeck.GetAllCards()
-                .Cast<ConversationCard>()
-                .Select(template => new CardInstance(template, "npc-progression"))
-                .ToList();
-        }
+        // NPCs no longer have progression decks
+        ProgressionCards = new List<CardInstance>();
     }
 
     private bool IsProgressionCardUnlocked(CardInstance card)

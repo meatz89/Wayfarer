@@ -87,8 +87,10 @@ public class LetterDeliveryCardTests
             queueManager,
             tokenManager,
             null, // no observation cards
-            ConversationType.Standard,
-            world.GetPlayerResourceState()
+            "test_request_1", // requestId
+            "friendly_chat", // conversationTypeId
+            world.GetPlayerResourceState(),
+            world
         );
         
         // Assert
@@ -160,8 +162,10 @@ public class LetterDeliveryCardTests
             queueManager,
             tokenManager,
             null,
-            ConversationType.Standard,
-            world.GetPlayerResourceState()
+            "test_request_2", // requestId
+            "friendly_chat", // conversationTypeId
+            world.GetPlayerResourceState(),
+            world
         );
         
         // Assert
@@ -218,8 +222,10 @@ public class LetterDeliveryCardTests
             queueManager,
             tokenManager,
             null,
-            ConversationType.Standard,
-            world.GetPlayerResourceState()
+            "test_request_3", // requestId
+            "friendly_chat", // conversationTypeId
+            world.GetPlayerResourceState(),
+            world
         );
         
         // Assert

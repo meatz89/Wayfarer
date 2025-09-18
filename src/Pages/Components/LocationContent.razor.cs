@@ -92,13 +92,13 @@ namespace Wayfarer.Pages.Components
                     {
                         // Get attention cost from backend mechanics
                         ConversationFacade conversationFacade = GameFacade.GetConversationFacade();
-                        int attentionCost = conversationFacade.GetConversationAttentionCost(conversationOption.Type);
+                        int attentionCost = conversationFacade.GetAttentionCost(conversationOption.ConversationTypeId);
 
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
-                            Type = conversationOption.Type,
+                            ConversationTypeId = conversationOption.ConversationTypeId,
                             GoalCardId = conversationOption.GoalCardId,
-                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.Type),
+                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ConversationTypeId),
                             Description = conversationOption.Description,
                             AttentionCost = attentionCost,
                             IsAvailable = true
@@ -112,7 +112,7 @@ namespace Wayfarer.Pages.Components
                         // Add exchange as a special option (not a conversation type)
                         ConversationOptionViewModel exchangeOption = new ConversationOptionViewModel
                         {
-                            Type = null, // No conversation type - this is an exchange!
+                            ConversationTypeId = null, // No conversation type - this is an exchange!
                             Label = "Quick Exchange",
                             AttentionCost = 1, // Exchanges always cost 1 attention
                             IsAvailable = true,
@@ -254,21 +254,34 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartConversation(string npcId)
         {
-            await StartTypedConversation(npcId, ConversationType.FriendlyChat);
+            await StartTypedConversation(npcId, "friendly_chat");
         }
 
-        protected async Task StartTypedConversation(string npcId, ConversationType type, string goalCardId = null)
+        protected async Task StartTypedConversation(string npcId, string conversationTypeId, string goalCardId = null)
         {
-            Console.WriteLine($"[LocationContent] Starting {type} conversation with NPC ID: '{npcId}', GoalCard: '{goalCardId}'");
+            Console.WriteLine($"[LocationContent] Starting {conversationTypeId} conversation with NPC ID: '{npcId}', GoalCard: '{goalCardId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversation(npcId, type, goalCardId);
+                // For now, use a default requestId pattern until we implement proper request selection
+                // In the new system, conversations are driven by specific NPCRequests, not just types
+                string requestId = GetDefaultRequestId(npcId, conversationTypeId);
+                await GameScreen.StartConversation(npcId, requestId);
             }
             else
             {
                 Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
             }
+        }
+
+        private string GetDefaultRequestId(string npcId, string conversationTypeId)
+        {
+            // TODO: This is a temporary solution. The proper implementation should:
+            // 1. Get available requests for the NPC
+            // 2. Find the first request that matches the conversation type
+            // 3. Return that requestId
+            // For now, return a placeholder that follows the pattern
+            return $"{npcId}_{conversationTypeId}_default";
         }
 
         protected async Task StartExchange(string npcId)
@@ -550,14 +563,14 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetActionClass(ConversationType? type)
+        protected string GetActionClass(string conversationTypeId)
         {
-            return type switch
+            return conversationTypeId switch
             {
-                ConversationType.FriendlyChat => "talk",
-                ConversationType.Request => "request",
-                ConversationType.Delivery => "delivery",
-                ConversationType.Resolution => "resolution",
+                "friendly_chat" => "talk",
+                "request" => "request",
+                "delivery" => "delivery",
+                "resolution" => "resolution",
                 _ => ""
             };
         }
@@ -612,15 +625,15 @@ namespace Wayfarer.Pages.Components
             return connectionState.ToString();
         }
 
-        protected string GetConversationLabel(ConversationType type)
+        protected string GetConversationLabel(string conversationTypeId)
         {
-            return type switch
+            return conversationTypeId switch
             {
-                ConversationType.FriendlyChat => "Talk",
-                ConversationType.Request => "Request", // Actual label comes from NPCRequest.Name
-                ConversationType.Delivery => "Deliver Letter",
-                ConversationType.Resolution => "Make Amends",
-                _ => type.ToString()
+                "friendly_chat" => "Talk",
+                "request" => "Request", // Actual label comes from NPCRequest.Name
+                "delivery" => "Deliver Letter",
+                "resolution" => "Make Amends",
+                _ => conversationTypeId
             };
         }
 
@@ -1022,7 +1035,7 @@ namespace Wayfarer.Pages.Components
 
     public class ConversationOptionViewModel
     {
-        public ConversationType? Type { get; set; }
+        public string ConversationTypeId { get; set; }
         public string GoalCardId { get; set; }  // The specific card ID from the NPC's requests
         public string Label { get; set; }
         public string Description { get; set; }  // Full description of the conversation option

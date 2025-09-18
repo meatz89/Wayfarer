@@ -68,9 +68,9 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Start a new conversation with an NPC
+    /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public ConversationSession StartConversation(string npcId, ConversationType conversationType, string goalCardId = null, List<CardInstance> observationCards = null)
+    public ConversationSession StartConversation(string npcId, string requestId, List<CardInstance> observationCards = null)
     {
         if (IsConversationActive())
         {
@@ -84,11 +84,11 @@ public class ConversationFacade
             throw new ArgumentException($"NPC with ID {npcId} not found");
         }
 
-        // Validate conversation type is available
-        List<ConversationType> availableTypes = GetAvailableConversationTypes(npc);
-        if (!availableTypes.Contains(conversationType))
+        // Get the request that drives this conversation
+        NPCRequest request = npc.GetRequestById(requestId);
+        if (request == null)
         {
-            throw new InvalidOperationException($"Conversation type {conversationType} is not available for {npc.Name}");
+            throw new ArgumentException($"Request {requestId} not found for NPC {npc.Name}");
         }
 
         // Extract connection state and flow from single value
@@ -110,11 +110,11 @@ public class ConversationFacade
         // Initialize personality rule enforcer based on NPC's personality
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
 
-        // Create session deck and get request cards
-        (SessionCardDeck deck, List<CardInstance> requestCards) = _deckBuilder.CreateConversationDeck(npc, conversationType, goalCardId, observationCards);
+        // Create session deck and get request cards from the request
+        (SessionCardDeck deck, List<CardInstance> requestCards) = _deckBuilder.CreateConversationDeck(npc, requestId, observationCards);
 
-        // Create rapport manager with initial token counts
-        Dictionary<ConnectionType, int> npcTokens = _deckBuilder.GetNpcTokenCounts(npc);
+        // Get NPC token counts directly from TokenMechanicsManager
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
         RapportManager rapportManager = new RapportManager(npcTokens);
 
         // Initialize NPC's daily patience if needed
@@ -126,22 +126,15 @@ public class ConversationFacade
         // Use NPC's current daily patience for the session
         int availablePatience = npc.DailyPatience;
 
-        // Get request text if this is a Request conversation
-        string requestText = null;
-        if (conversationType == ConversationType.Request && !string.IsNullOrEmpty(goalCardId))
-        {
-            NPCRequest request = npc.GetRequestById(goalCardId);
-            if (request != null)
-            {
-                requestText = request.NpcRequestText;
-            }
-        }
+        // Get request text from the request
+        string requestText = request.NpcRequestText;
 
         // Create session with new properties
         _currentSession = new ConversationSession
         {
             NPC = npc,
-            ConversationType = conversationType,
+            RequestId = requestId,
+            ConversationTypeId = request.ConversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             FlowBattery = initialFlow, // Start with persisted flow (-2 to +2)
@@ -478,7 +471,7 @@ public class ConversationFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType, string goalCardId = null)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, string requestId)
     {
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
@@ -486,8 +479,15 @@ public class ConversationFacade
             return ConversationContextFactory.CreateInvalidContext("NPC not found");
         }
 
-        // Check attention cost
-        int attentionCost = ConversationTypeConfig.GetAttentionCost(conversationType);
+        // Get request to determine attention cost
+        NPCRequest request = npc.GetRequestById(requestId);
+        if (request == null)
+        {
+            return ConversationContextFactory.CreateInvalidContext($"Request {requestId} not found");
+        }
+
+        // Check attention cost from conversation type
+        int attentionCost = GetRequestAttentionCost(request);
         TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
         AttentionManager currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
 
@@ -508,12 +508,12 @@ public class ConversationFacade
         List<ConversationCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards(npcId);
         List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
-        // Start conversation
-        ConversationSession session = StartConversation(npcId, conversationType, goalCardId, observationCards);
+        // Start conversation with the request
+        ConversationSession session = StartConversation(npcId, requestId, observationCards);
 
-        // Create typed context
+        // Create typed context based on request's conversation type
         ConversationContextBase context = ConversationContextFactory.CreateContext(
-            conversationType,
+            request.ConversationTypeId,
             npc,
             session,
             observationCards,
@@ -576,7 +576,7 @@ public class ConversationFacade
                 // Later we'll update the UI to show all cards from the request
                 options.Add(new ConversationOption
                 {
-                    Type = ConversationType.Request, // One-time requests use Request type
+                    ConversationTypeId = "request", // One-time requests use Request type
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
                     Description = request.Description,
@@ -599,7 +599,7 @@ public class ConversationFacade
                 // Delivery doesn't need a goal card from RequestDeck
                 options.Add(new ConversationOption
                 {
-                    Type = ConversationType.Delivery,
+                    ConversationTypeId = "delivery",
                     GoalCardId = null,
                     DisplayName = "Deliver Letter",
                     Description = "Deliver a letter from your queue",
@@ -614,11 +614,11 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Get available conversation types for an NPC
+    /// Get available requests for an NPC that can be started as conversations
     /// </summary>
-    public List<ConversationType> GetAvailableConversationTypes(NPC npc)
+    public List<NPCRequest> GetAvailableRequests(NPC npc)
     {
-        List<ConversationType> available = new List<ConversationType>();
+        List<NPCRequest> available = new List<NPCRequest>();
 
         // Initialize daily patience if needed
         if (npc.MaxDailyPatience == 0)
@@ -633,55 +633,29 @@ public class ConversationFacade
             return available;
         }
 
-        // COMMERCE: Check if NPC has exchange deck
-        if (_gameWorld.NPCExchangeCards.TryGetValue(npc.ID.ToLower(), out List<ExchangeCard> exchangeCards))
+        // Get all available requests from the NPC
+        foreach (var request in npc.Requests)
         {
-            npc.InitializeExchangeDeck(exchangeCards);
-        }
-        else
-        {
-            npc.InitializeExchangeDeck(null);
-        }
-
-        // REMOVED: Commerce is not a conversation type - exchanges use separate Exchange system
-
-        // REQUEST: Check if NPC has available request bundles
-        if (npc.HasAvailableRequests())
-        {
-            available.Add(ConversationType.Request);
-        }
-
-        // RESOLUTION: Check if NPC has burden cards that need resolving (2+ burden cards)
-        if (npc.CountBurdenCards() >= 2)
-        {
-            available.Add(ConversationType.Resolution);
-        }
-
-        // DELIVERY: Check if player has letter for this NPC in obligation queue
-        if (_queueManager != null)
-        {
-            DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
-            bool hasLetterForNpc = activeObligations.Any(o =>
-                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Description));
-
-            if (hasLetterForNpc)
+            if (request.IsAvailable())
             {
-                available.Add(ConversationType.Delivery);
+                available.Add(request);
             }
         }
-
-        // FRIENDLYCHAT: Always available (player has starter deck)
-        available.Add(ConversationType.FriendlyChat);
 
         return available;
     }
 
     /// <summary>
-    /// Get attention cost for a conversation type
+    /// Get attention cost for a request's conversation type
     /// </summary>
-    public int GetConversationAttentionCost(ConversationType type)
+    public int GetRequestAttentionCost(NPCRequest request)
     {
-        return ConversationTypeConfig.GetAttentionCost(type);
+        // Get the conversation type definition
+        if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out var conversationType))
+        {
+            return conversationType.AttentionCost;
+        }
+        return 1; // Default cost
     }
 
     /// <summary>
@@ -779,9 +753,15 @@ public class ConversationFacade
         return Task.FromResult(outcome != null);
     }
 
-    public int GetAttentionCost(ConversationType type)
+    public int GetAttentionCost(string conversationTypeId)
     {
-        return ConversationTypeConfig.GetAttentionCost(type);
+        if (_gameWorld.ConversationTypes.TryGetValue(conversationTypeId, out var conversationType))
+        {
+            return conversationType.AttentionCost;
+        }
+
+        // Fallback for unknown conversation types
+        return 1;
     }
 
     /// <summary>
@@ -991,13 +971,13 @@ public class ConversationFacade
     private ConnectionType DetermineConnectionTypeFromConversation(ConversationSession session)
     {
         // Map conversation types to their corresponding connection types
-        return session.ConversationType switch
+        return session.ConversationTypeId switch
         {
             // Commerce removed - exchanges use separate Exchange system
-            ConversationType.Request => ConnectionType.Trust, // Request bundles with promise cards
-            ConversationType.Resolution => ConnectionType.Trust,
-            ConversationType.Delivery => ConnectionType.Trust,
-            ConversationType.FriendlyChat => ConnectionType.Trust,
+            "request" => ConnectionType.Trust, // Request bundles with promise cards
+            "resolution" => ConnectionType.Trust,
+            "delivery" => ConnectionType.Trust,
+            "friendly_chat" => ConnectionType.Trust,
             _ => ConnectionType.Trust  // Default fallback
         };
     }

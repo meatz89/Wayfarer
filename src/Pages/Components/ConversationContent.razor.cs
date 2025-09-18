@@ -763,7 +763,7 @@ namespace Wayfarer.Pages.Components
             LastNarrative = "You listen attentively...";
 
             // For Request conversations, display the request text on LISTEN
-            if (Context?.Type == ConversationType.Request && !string.IsNullOrEmpty(Context.RequestText))
+            if (Context?.ConversationTypeId == "request" && !string.IsNullOrEmpty(Context.RequestText))
             {
                 LastDialogue = Context.RequestText;
             }
@@ -1086,11 +1086,11 @@ namespace Wayfarer.Pages.Components
         // UI Helper Methods
         protected string GetConversationModeTitle()
         {
-            ConversationType conversationType = Context?.Type ?? ConversationType.FriendlyChat;
-            return conversationType switch
+            string conversationTypeId = Context?.ConversationTypeId ?? "friendly_chat";
+            return conversationTypeId switch
             {
-                ConversationType.Resolution => "Burden Resolution",
-                ConversationType.FriendlyChat => "Friendly Conversation",
+                "resolution" => "Burden Resolution",
+                "friendly_chat" => "Friendly Conversation",
                 _ => "Conversation"
             };
         }

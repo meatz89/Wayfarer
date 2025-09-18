@@ -7,7 +7,8 @@ public abstract class ConversationContextBase
     public string ErrorMessage { get; set; }
     public string NpcId { get; set; }
     public NPC Npc { get; set; }
-    public ConversationType Type { get; set; }
+    public string RequestId { get; set; }
+    public string ConversationTypeId { get; set; }
     public ConnectionState InitialState { get; set; }
     public ConversationSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }

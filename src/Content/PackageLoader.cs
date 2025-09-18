@@ -143,8 +143,8 @@ public class PackageLoader
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadCards(package.Content.Cards, allowSkeletons);
+        LoadConversationTypesAndDecks(package.Content.ConversationTypes, package.Content.CardDecks, allowSkeletons);
         LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
-        LoadNpcProgressionCards(package.Content.NpcProgressionCards, allowSkeletons);
         LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
         LoadExchangeCards(package.Content.ExchangeCards, allowSkeletons);
 
@@ -157,7 +157,6 @@ public class PackageLoader
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
-        InitializeNPCConversationDecks(package.Content.DeckCompositions);
         InitializeNPCRequests(package.Content.NpcRequests, package.Content.NpcGoalCards, package.Content.DeckCompositions);
         InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
@@ -454,6 +453,46 @@ public class PackageLoader
         }
     }
 
+    private void LoadConversationTypesAndDecks(List<ConversationTypeDefinitionDTO> conversationTypeDtos, List<CardDeckDTO> cardDeckDtos, bool allowSkeletons)
+    {
+        // Load card decks first (conversation types reference them)
+        if (cardDeckDtos != null)
+        {
+            Console.WriteLine($"[PackageLoader] Loading {cardDeckDtos.Count} card decks...");
+            foreach (CardDeckDTO dto in cardDeckDtos)
+            {
+                CardDeckDefinition deck = new CardDeckDefinition
+                {
+                    Id = dto.Id,
+                    CardIds = dto.CardIds ?? new List<string>()
+                };
+                _gameWorld.CardDecks[deck.Id] = deck;
+                Console.WriteLine($"[PackageLoader] Loaded card deck '{deck.Id}' with {deck.CardIds.Count} cards");
+            }
+        }
+
+        // Load conversation types (they reference card decks by ID)
+        if (conversationTypeDtos != null)
+        {
+            Console.WriteLine($"[PackageLoader] Loading {conversationTypeDtos.Count} conversation types...");
+            foreach (ConversationTypeDefinitionDTO dto in conversationTypeDtos)
+            {
+                ConversationTypeDefinition conversationType = new ConversationTypeDefinition
+                {
+                    Id = dto.Id,
+                    Name = dto.Name,
+                    Description = dto.Description,
+                    DeckId = dto.DeckId,
+                    Category = dto.Category,
+                    AttentionCost = dto.AttentionCost,
+                    AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>()
+                };
+                _gameWorld.ConversationTypes[conversationType.Id] = conversationType;
+                Console.WriteLine($"[PackageLoader] Loaded conversation type '{conversationType.Id}' using deck '{conversationType.DeckId}'");
+            }
+        }
+    }
+
     private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons)
     {
         if (npcRequestCards == null) return;
@@ -471,22 +510,6 @@ public class PackageLoader
         }
     }
 
-    private void LoadNpcProgressionCards(Dictionary<string, List<ConversationCardDTO>> npcProgressionCards, bool allowSkeletons)
-    {
-        if (npcProgressionCards == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading NPC progression cards...");
-        foreach (KeyValuePair<string, List<ConversationCardDTO>> kvp in npcProgressionCards)
-        {
-            string npcId = kvp.Key;
-            foreach (ConversationCardDTO dto in kvp.Value)
-            {
-                ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-                _gameWorld.AllCardDefinitions[card.Id] = card;
-                Console.WriteLine($"[PackageLoader] Loaded progression card '{card.Id}' for NPC '{npcId}'");
-            }
-        }
-    }
 
     private void LoadPromiseCards(List<ConversationCardDTO> promiseCards, bool allowSkeletons)
     {
@@ -624,19 +647,17 @@ public class PackageLoader
             {
                 Console.WriteLine($"[PackageLoader] Replacing skeleton NPC '{existingSkeleton.Name}' (ID: {existingSkeleton.ID}) with real content");
 
-                // Preserve all cards from the 5 persistent decks
-                List<ConversationCard> preservedProgressionCards = existingSkeleton.ProgressionDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                // Preserve all cards from the persistent decks
                 List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
                 List<ConversationCard> preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
                 List<ConversationCard> preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
                 List<NPCRequest> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
 
-                int totalPreservedCards = preservedProgressionCards.Count + preservedExchangeCards.Count +
+                int totalPreservedCards = preservedExchangeCards.Count +
                                         preservedObservationCards.Count + preservedBurdenCards.Count +
                                         preservedRequests.SelectMany(r => r.PromiseCardIds).Count();
 
                 Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
-                Console.WriteLine($"  - Progression: {preservedProgressionCards.Count} cards");
                 Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
                 Console.WriteLine($"  - Observation: {preservedObservationCards.Count} cards");
                 Console.WriteLine($"  - Burden: {preservedBurdenCards.Count} cards");
@@ -651,14 +672,6 @@ public class PackageLoader
                 NPC npc = NPCParser.ConvertDTOToNPC(dto);
 
                 // Restore preserved cards to the new NPC's persistent decks
-                if (preservedProgressionCards.Any())
-                {
-                    foreach (ConversationCard? card in preservedProgressionCards)
-                    {
-                        npc.ProgressionDeck.AddCard(card);
-                    }
-                }
-
                 if (preservedExchangeCards.Any())
                 {
                     npc.ExchangeDeck.AddRange(preservedExchangeCards);
@@ -1012,78 +1025,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading collections. Path collections: {_gameWorld.AllPathCollections.Count}, Event collections: {_gameWorld.AllEventCollections.Count}");
     }
 
-    /// <summary>
-    /// Initialize player starter deck and NPC progression decks
-    /// </summary>
-    private void InitializeNPCConversationDecks(DeckCompositionDTO deckCompositions)
-    {
-        Console.WriteLine("[PackageLoader] Initializing player starter deck and NPC progression decks...");
-
-        if (deckCompositions == null)
-        {
-            Console.WriteLine("[PackageLoader] Error: No deck compositions defined in package");
-            return;
-        }
-
-        // Initialize player's starter deck with default/universal cards
-        InitializePlayerStarterDeck(deckCompositions);
-
-        // Initialize NPC progression decks with unique cards
-        foreach (NPC npc in _gameWorld.NPCs)
-        {
-            try
-            {
-                npc.ProgressionDeck = new CardDeck();
-
-                // Only load NPC-specific progression cards, not default deck
-                NPCDeckDefinitionDTO deckDef = null;
-                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
-                {
-                    deckDef = deckCompositions.NpcDecks[npc.ID];
-                    Console.WriteLine($"[PackageLoader] Loading progression cards for {npc.Name}");
-                }
-                // NPCs no longer get default deck - that's for player only
-
-                if (deckDef?.ProgressionDeck != null)
-                {
-                    // Add NPC-specific progression cards
-                    foreach (KeyValuePair<string, int> kvp in deckDef.ProgressionDeck)
-                    {
-                        string cardId = kvp.Key;
-                        int count = kvp.Value;
-
-                        if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
-                        {
-                            ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                            // Add all cards defined for this NPC - these are progression cards by definition
-                            if (cardTemplate != null)
-                            {
-                                // MinimumTokensRequired must be set in JSON - no defaults
-
-                                // Add multiple copies as specified
-                                for (int i = 0; i < count; i++)
-                                {
-                                    npc.ProgressionDeck.AddCard(cardTemplate);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[PackageLoader] Warning: Card '{cardId}' not found for deck composition");
-                        }
-                    }
-
-                    Console.WriteLine($"[PackageLoader] Initialized {npc.Name}'s progression deck with {npc.ProgressionDeck.Count} cards");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"[PackageLoader] Failed to initialize conversation deck for NPC {npc.Name}: {ex.Message}", ex);
-            }
-        }
-
-        Console.WriteLine("[PackageLoader] NPC conversation deck initialization completed");
-    }
 
 
     /// <summary>
@@ -1846,60 +1787,4 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.locations.Count} locations and {routeSpotIds.Count} route spots.");
     }
 
-    /// <summary>
-    /// Initialize player's starter conversation deck
-    /// </summary>
-    private void InitializePlayerStarterDeck(DeckCompositionDTO deckCompositions)
-    {
-        Player player = _gameWorld.GetPlayer();
-        if (player.ConversationDeck == null)
-        {
-            player.ConversationDeck = new PlayerCardDeck();
-        }
-
-        // Use the PlayerStarterDeck for the player's conversation deck
-        if (deckCompositions?.PlayerStarterDeck != null)
-        {
-            PlayerDeckDefinitionDTO starterDeck = deckCompositions.PlayerStarterDeck;
-            if (starterDeck?.ConversationDeck != null)
-            {
-                foreach (KeyValuePair<string, int> kvp in starterDeck.ConversationDeck)
-                {
-                    string cardId = kvp.Key;
-                    int count = kvp.Value;
-
-                    if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
-                    {
-                        ConversationCard cardTemplate = _gameWorld.AllCardDefinitions[cardId] as ConversationCard;
-                        // Add starter cards to player deck as CardInstances (to track XP)
-                        if (cardTemplate != null && IsStarterCard(cardTemplate))
-                        {
-                            for (int i = 0; i < count; i++)
-                            {
-                                // Create a new CardInstance for each copy of the card
-                                CardInstance instance = new CardInstance(cardTemplate, "player_deck");
-                                player.ConversationDeck.AddCardInstance(instance);
-                            }
-                        }
-                    }
-                }
-
-                Console.WriteLine($"[PackageLoader] Initialized player's starter deck with {player.ConversationDeck.Count} cards");
-            }
-        }
-        else
-        {
-            Console.WriteLine("[PackageLoader] Warning: No default deck defined for player starter cards");
-        }
-    }
-
-    /// <summary>
-    /// Check if a card should be in the player's starter deck
-    /// </summary>
-    private bool IsStarterCard(ConversationCard card)
-    {
-        if (card.CardType != CardType.Conversation) return false;
-
-        return true;
-    }
 }

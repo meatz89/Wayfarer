@@ -16,6 +16,23 @@ public class TokenMechanicsManager
         _itemRepository = itemRepository;
     }
 
+    /// <summary>
+    /// Get starting connection state based on token count
+    /// Replaces the old threshold unlocking system
+    /// </summary>
+    public ConnectionState GetStartingConnectionState(string npcId, ConnectionType tokenType)
+    {
+        int tokens = GetTokenCount(tokenType, npcId);
+        return tokens switch
+        {
+            0 => ConnectionState.DISCONNECTED,
+            <= 2 => ConnectionState.GUARDED,
+            <= 5 => ConnectionState.NEUTRAL,
+            <= 9 => ConnectionState.RECEPTIVE,
+            _ => ConnectionState.TRUSTING
+        };
+    }
+
     // Get tokens with specific NPC
     public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
     {

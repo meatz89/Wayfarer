@@ -21,6 +21,16 @@ public class PackageContent
     public List<ConversationCardDTO> Cards { get; set; }
 
     /// <summary>
+    /// Card deck definitions for conversation types
+    /// </summary>
+    public List<CardDeckDTO> CardDecks { get; set; }
+
+    /// <summary>
+    /// Conversation type definitions that reference card decks
+    /// </summary>
+    public List<ConversationTypeDefinitionDTO> ConversationTypes { get; set; }
+
+    /// <summary>
     /// NPC definitions - uses existing NPCDTO
     /// </summary>
     public List<NPCDTO> Npcs { get; set; }
@@ -74,11 +84,6 @@ public class PackageContent
     /// NPC-specific request cards organized by NPC ID
     /// </summary>
     public Dictionary<string, List<ConversationCardDTO>> NpcRequestCards { get; set; }
-
-    /// <summary>
-    /// NPC-specific progression cards organized by NPC ID
-    /// </summary>
-    public Dictionary<string, List<ConversationCardDTO>> NpcProgressionCards { get; set; }
 
     /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments

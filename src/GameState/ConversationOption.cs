@@ -7,9 +7,14 @@ using System;
 public class ConversationOption
 {
     /// <summary>
-    /// The type of conversation (Promise, FriendlyChat, Resolution, etc.)
+    /// The request ID that drives this conversation option
     /// </summary>
-    public ConversationType Type { get; set; }
+    public string RequestId { get; set; }
+
+    /// <summary>
+    /// The conversation type ID from the request
+    /// </summary>
+    public string ConversationTypeId { get; set; }
 
     /// <summary>
     /// The specific card ID from the NPC's requests that will be used as the goal card

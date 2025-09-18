@@ -6,7 +6,8 @@ public class ConversationSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public NPC NPC { get; set; }
-    public ConversationType ConversationType { get; set; }
+    public string RequestId { get; set; }
+    public string ConversationTypeId { get; set; }
     public ConnectionState CurrentState { get; set; }
     public ConnectionState InitialState { get; set; }
     public int CurrentPatience { get; set; }
@@ -158,18 +159,17 @@ public class ConversationSession
     }
 
     public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
-        List<CardInstance> observationCards, ConversationType conversationType, PlayerResourceState playerResourceState, GameWorld gameWorld)
+        List<CardInstance> observationCards, string requestId, string conversationTypeId, PlayerResourceState playerResourceState, GameWorld gameWorld)
     {
         // Use properly typed parameters
         List<CardInstance> obsCards = observationCards ?? new List<CardInstance>();
-        ConversationType convType = conversationType;
         GameWorld world = gameWorld;
 
         // Determine initial state
         ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
 
-        // Create session deck from NPC's progression cards (this is legacy - should use ConversationFacade)
-        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(npc.ProgressionDeck?.GetAllCards() ?? new List<ConversationCard>(), npc.ID);
+        // Create empty session deck (cards will be added separately)
+        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(new List<ConversationCard>(), npc.ID);
 
         // Add observation cards if provided
         foreach (CardInstance obsCard in obsCards)
@@ -191,7 +191,7 @@ public class ConversationSession
         ConversationSession session = new ConversationSession
         {
             NPC = npc,
-            ConversationType = convType,
+            ConversationTypeId = conversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             // FlowBattery initialized separately

@@ -211,8 +211,11 @@ public class GameFacade
 
         foreach (NPC npc in npcs)
         {
-            List<ConversationType> conversationTypes = _conversationFacade.GetAvailableConversationTypes(npc);
-            int attentionCost = _conversationFacade.GetAttentionCost(ConversationType.FriendlyChat);
+            List<ConversationOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
+            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ConversationTypeId).Distinct().ToList();
+
+            // Get attention cost for default conversation type (friendly_chat)
+            int attentionCost = _conversationFacade.GetAttentionCost("friendly_chat");
             AttentionInfo attentionInfo = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
             int currentAttention = attentionInfo.Current;
 
@@ -220,7 +223,7 @@ public class GameFacade
             {
                 NpcId = npc.ID,
                 NpcName = npc.Description,
-                AvailableTypes = conversationTypes,
+                AvailableTypes = conversationTypeIds,
                 AttentionCost = attentionCost,
                 CanAfford = currentAttention >= attentionCost
             });
@@ -448,9 +451,9 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, ConversationType conversationType = ConversationType.FriendlyChat, string goalCardId = null)
+    public async Task<ConversationContextBase> CreateConversationContext(string npcId, string requestId)
     {
-        return await _conversationFacade.CreateConversationContext(npcId, conversationType, goalCardId);
+        return await _conversationFacade.CreateConversationContext(npcId, requestId);
     }
 
     public List<ConversationOption> GetAvailableConversationOptions(string npcId)

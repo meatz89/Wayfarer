@@ -49,7 +49,7 @@ public class InteractionOptionViewModel
 {
     public string Text { get; set; }
     public string Cost { get; set; }
-    public ConversationType ConversationType { get; set; } = ConversationType.FriendlyChat;
+    public string ConversationTypeId { get; set; } = "friendly_chat";
 }
 
 public class ObservationViewModel

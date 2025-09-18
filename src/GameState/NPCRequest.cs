@@ -26,6 +26,21 @@ public class NPCRequest
     public string NpcRequestText { get; set; }
 
     /// <summary>
+    /// The conversation type ID this request uses (e.g., "desperate_request", "trade_negotiation")
+    /// </summary>
+    public string ConversationTypeId { get; set; }
+
+    /// <summary>
+    /// Category that must match the conversation type's category
+    /// </summary>
+    public string Category { get; set; }
+
+    /// <summary>
+    /// Connection type (token type) for this request
+    /// </summary>
+    public ConnectionType ConnectionType { get; set; } = ConnectionType.Trust;
+
+    /// <summary>
     /// Current status of the request
     /// </summary>
     public RequestStatus Status { get; set; } = RequestStatus.Available;

@@ -465,192 +465,6 @@
         }
       ]
     },
-    "npcProgressionCards": {
-      "elena": [
-        {
-          "id": "elena_shared_understanding",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 2,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "We understand each other",
-          "difficulty": "Easy",
-          "minimumTokensRequired": 1,
-          "dialogueFragment": "Elena, I feel like we're beginning to understand each other.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_trusted_confidant",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 3,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "Backfire",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "You can trust me completely",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 3,
-          "dialogueFragment": "Elena, you can trust me with anything. I'll never betray your confidence.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_deep_bond",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 4,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Trust",
-          "description": "Our bond runs deep",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 6,
-          "dialogueFragment": "Elena, the bond between us has grown stronger than I could have imagined.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_absolute_devotion",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 5,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Trust",
-          "description": "My devotion is absolute",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 10,
-          "dialogueFragment": "Elena, my devotion to you is absolute. I would do anything for you.",
-          "boundStat": "rapport"
-        },
-        {
-          "id": "elena_eternal_loyalty",
-          "type": "Normal",
-          "personalityTypes": [
-            "DEVOTED"
-          ],
-          "focus": 6,
-          "persistence": "Impulse",
-          "successType": "Advancing",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Trust",
-          "description": "Pledge eternal loyalty",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 15,
-          "dialogueFragment": "Elena, I pledge my eternal loyalty to you. Through all trials, I will stand by your side.",
-          "boundStat": "rapport"
-        }
-      ],
-      "marcus": [
-        {
-          "id": "marcus_bargain",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 2,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Marcus's Bargain - A deal you can't refuse",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 1,
-          "dialogueFragment": "Marcus, let's make a deal that benefits us both.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "trade_knowledge",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 3,
-          "persistence": "Thought",
-          "successType": "Threading",
-          "failureType": "None",
-          "exhaustType": "Threading",
-          "connectionType": "Commerce",
-          "description": "Trade Knowledge - Marcus shares market secrets",
-          "difficulty": "Medium",
-          "minimumTokensRequired": 3,
-          "dialogueFragment": "Marcus, share with me your knowledge of the trade routes.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "commercial_trust",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 1,
-          "persistence": "Thought",
-          "successType": "Atmospheric-Focused",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Commercial Trust - Years of reliable business",
-          "difficulty": "Easy",
-          "minimumTokensRequired": 6,
-          "dialogueFragment": "Marcus, our years of trade have built a foundation of trust.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "marcus_favor",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 4,
-          "persistence": "Thought",
-          "successType": "Advancing",
-          "failureType": "None",
-          "exhaustType": "None",
-          "connectionType": "Commerce",
-          "description": "Marcus's Favor - He owes you one",
-          "difficulty": "VeryHard",
-          "minimumTokensRequired": 10,
-          "dialogueFragment": "Marcus, I'm calling in that favor you owe me.",
-          "boundStat": "commerce"
-        },
-        {
-          "id": "master_trader_secret",
-          "type": "Normal",
-          "personalityTypes": [
-            "MERCANTILE"
-          ],
-          "focus": 5,
-          "persistence": "Thought",
-          "successType": "Rapport",
-          "failureType": "None",
-          "exhaustType": "Regret",
-          "connectionType": "Commerce",
-          "description": "Master Trader's Secret - The ultimate negotiation",
-          "difficulty": "Hard",
-          "minimumTokensRequired": 15,
-          "dialogueFragment": "Marcus, teach me the master trader's ultimate secret.",
-          "boundStat": "commerce"
-        }
-      ]
-    },
     "promiseCards": [
       {
         "id": "elena_priority_promise",
@@ -714,46 +528,16 @@
     "deckCompositions": {
       "npcDecks": {
         "default": {
-          "conversationDeck": {
-            "tell_me_what_happened": 1,
-            "what_would_you_do": 1,
-            "that_must_have_been_difficult": 1,
-            "this_is_important": 1,
-            "ive_been_there_too": 3,
-            "i_need_your_advice": 2,
-            "i_trust_your_judgment": 1,
-            "can_we_make_a_deal": 2,
-            "what_if_i_throw_in": 2,
-            "lets_shake_on_it": 1,
-            "between_you_and_me": 1,
-            "youre_right_about_that": 2,
-            "let_me_help_you_with_that": 1,
-            "thats_fair": 1
-          },
           "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
         "elena": {
-          "progressionDeck": {
-            "elena_shared_understanding": 1,
-            "elena_trusted_confidant": 1,
-            "elena_deep_bond": 1,
-            "elena_absolute_devotion": 1,
-            "elena_eternal_loyalty": 1
-          },
           "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
         "marcus": {
-          "progressionDeck": {
-            "marcus_bargain": 1,
-            "trade_knowledge": 1,
-            "commercial_trust": 1,
-            "marcus_favor": 1,
-            "master_trader_secret": 1
-          },
           "requestDeck": {},
           "exchangeDeck": {
             "quick_food_trade": 1
@@ -761,24 +545,99 @@
           "observationDeck": {}
         },
         "lord_blackwood": {
-          "progressionDeck": {},
           "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
         "warehouse_recipient": {
-          "progressionDeck": {},
           "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         },
         "victor": {
-          "progressionDeck": {},
           "requestDeck": {},
           "exchangeDeck": {},
           "observationDeck": {}
         }
       }
+    }
+  },
+  "cardDecks": {
+    "deck_friendly_balanced": [
+      "insight_opening_1", "insight_thought_1", "rapport_thought_1",
+      "rapport_thought_2", "authority_thought_1", "commerce_thought_1",
+      "cunning_thought_1", "insight_thought_2", "rapport_impulse_1"
+    ],
+    "deck_desperate_empathy": [
+      "rapport_thought_1", "rapport_thought_2", "rapport_impulse_1",
+      "insight_thought_1", "insight_thought_2", "insight_opening_1"
+    ],
+    "deck_trade_mercantile": [
+      "commerce_thought_1", "commerce_impulse_1", "cunning_thought_1",
+      "insight_thought_1", "insight_thought_2"
+    ],
+    "deck_authority_power": [
+      "authority_thought_1", "authority_impulse_1", "cunning_thought_1",
+      "cunning_impulse_1", "commerce_thought_1"
+    ],
+    "deck_information_subtle": [
+      "insight_thought_1", "insight_thought_2", "cunning_thought_1",
+      "cunning_impulse_1", "insight_opening_1"
+    ],
+    "deck_intimate_deep": [
+      "rapport_thought_1", "rapport_thought_2", "insight_thought_1",
+      "insight_thought_2", "authority_thought_1", "commerce_thought_1",
+      "cunning_thought_1", "rapport_impulse_1", "insight_opening_1"
+    ]
+  },
+  "conversationTypes": {
+    "friendly_chat": {
+      "id": "friendly_chat",
+      "name": "Friendly Chat",
+      "description": "Casual conversation to build rapport",
+      "deckId": "deck_friendly_balanced",
+      "category": "social",
+      "attentionCost": 1
+    },
+    "desperate_request": {
+      "id": "desperate_request",
+      "name": "Desperate Request",
+      "description": "Someone in crisis needs help",
+      "deckId": "deck_desperate_empathy",
+      "category": "crisis",
+      "attentionCost": 2
+    },
+    "trade_negotiation": {
+      "id": "trade_negotiation",
+      "name": "Trade Negotiation",
+      "description": "Business and commerce discussions",
+      "deckId": "deck_trade_mercantile",
+      "category": "commerce",
+      "attentionCost": 1
+    },
+    "authority_challenge": {
+      "id": "authority_challenge",
+      "name": "Authority Challenge",
+      "description": "Confrontations and power struggles",
+      "deckId": "deck_authority_power",
+      "category": "confrontation",
+      "attentionCost": 2
+    },
+    "information_gathering": {
+      "id": "information_gathering",
+      "name": "Information Gathering",
+      "description": "Extracting knowledge and secrets",
+      "deckId": "deck_information_subtle",
+      "category": "investigation",
+      "attentionCost": 1
+    },
+    "intimate_confession": {
+      "id": "intimate_confession",
+      "name": "Intimate Confession",
+      "description": "Deep personal conversations",
+      "deckId": "deck_intimate_deep",
+      "category": "emotional",
+      "attentionCost": 3
     }
   }
 }

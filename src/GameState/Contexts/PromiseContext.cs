@@ -35,7 +35,7 @@ public class PromiseContext : ConversationContextBase
 
     public PromiseContext()
     {
-        Type = ConversationType.Request; // Handles Request bundles with promise cards
+        ConversationTypeId = "request"; // Handles Request bundles with promise cards
         GeneratesLetterOnSuccess = true;
     }
 

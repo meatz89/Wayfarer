@@ -76,6 +76,9 @@ public class GameWorld
     // DECK ARCHITECTURE - Single source of truth for all deck configurations
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
     public Dictionary<string, ConversationCard> AllCardDefinitions { get; set; } = new Dictionary<string, ConversationCard>();
+    // Conversation type definitions and card decks - fully extensible via JSON
+    public Dictionary<string, ConversationTypeDefinition> ConversationTypes { get; set; } = new Dictionary<string, ConversationTypeDefinition>();
+    public Dictionary<string, CardDeckDefinition> CardDecks { get; set; } = new Dictionary<string, CardDeckDefinition>();
     // Exchange cards are now completely separate from conversation cards
     public Dictionary<string, List<ExchangeCard>> NPCExchangeCards { get; set; } = new Dictionary<string, List<ExchangeCard>>();
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();

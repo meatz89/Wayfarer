@@ -47,7 +47,7 @@ public class StrangerConversationManager
         {
             Stranger = stranger,
             TempNPC = tempNPC,
-            ConversationType = ConversationType.Stranger,
+            ConversationTypeId = "stranger",
             StrangerLevel = stranger.Level,
             Conversation = conversation
         };
@@ -195,7 +195,7 @@ public class StrangerConversationData
 {
     public StrangerNPC Stranger { get; set; }
     public NPC TempNPC { get; set; }
-    public ConversationType ConversationType { get; set; }
+    public string ConversationTypeId { get; set; }
     public int StrangerLevel { get; set; }
     public StrangerConversation Conversation { get; set; }
 }

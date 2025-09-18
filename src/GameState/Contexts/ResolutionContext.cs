@@ -21,7 +21,7 @@ public class ResolutionContext : ConversationContextBase
 
     public ResolutionContext()
     {
-        Type = ConversationType.Resolution;
+        ConversationTypeId = "resolution";
         BurdenCards = new List<ConversationCard>();
         ResolutionOptions = new List<string>();
         MinimumBurdensRequired = 2; // Default minimum burdens to resolve

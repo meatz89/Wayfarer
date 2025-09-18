@@ -8,7 +8,7 @@ public static class ConversationContextFactory
     /// Create a typed conversation context based on conversation type
     /// </summary>
     public static ConversationContextBase CreateContext(
-        ConversationType conversationType,
+        string conversationTypeId,
         NPC npc,
         ConversationSession session,
         List<CardInstance> observationCards,
@@ -17,13 +17,17 @@ public static class ConversationContextFactory
         string locationName,
         string timeDisplay)
     {
-        ConversationContextBase context = conversationType switch
+        // Create context based on conversation type ID
+        ConversationContextBase context = conversationTypeId switch
         {
-            // Commerce removed - exchanges use separate Exchange system
-            ConversationType.Request => new PromiseContext(), // PromiseContext handles Request bundles
-            ConversationType.Delivery => new DeliveryContext(),
-            ConversationType.FriendlyChat => new StandardContext(),
-            ConversationType.Resolution => new ResolutionContext(),
+            "desperate_request" => new PromiseContext(),
+            "trade_negotiation" => new PromiseContext(),
+            "authority_challenge" => new PromiseContext(),
+            "delivery" => new DeliveryContext(),
+            "friendly_chat" => new StandardContext(),
+            "information_gathering" => new StandardContext(),
+            "intimate_confession" => new StandardContext(),
+            "resolution" => new ResolutionContext(),
             _ => new StandardContext() // Default to standard context
         };
 
@@ -31,7 +35,7 @@ public static class ConversationContextFactory
         context.IsValid = true;
         context.NpcId = npc.ID;
         context.Npc = npc;
-        context.Type = conversationType;
+        context.ConversationTypeId = conversationTypeId;
         context.InitialState = session?.InitialState ?? ConnectionState.NEUTRAL;
         context.Session = session;
         context.ObservationCards = observationCards ?? new List<CardInstance>();

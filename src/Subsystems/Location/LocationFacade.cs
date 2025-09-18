@@ -27,7 +27,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     {
         public string NpcId { get; set; }
         public string NpcName { get; set; }
-        public List<ConversationType> AvailableTypes { get; set; } = new List<ConversationType>();
+        public List<string> AvailableTypes { get; set; } = new List<string>();
         public int AttentionCost { get; set; }
         public bool CanAfford { get; set; }
     }
@@ -290,7 +290,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 NPCConversationOptions? npcOptions = npcConversationOptions?.FirstOrDefault(opt => opt.NpcId == npc.ID);
                 if (npcOptions != null && npcOptions.AvailableTypes != null)
                 {
-                    foreach (ConversationType conversationType in npcOptions.AvailableTypes)
+                    foreach (string conversationType in npcOptions.AvailableTypes)
                     {
                         InteractionOptionViewModel interaction = GenerateConversationInteraction(npc, conversationType, connectionState);
                         if (interaction != null)
@@ -328,37 +328,31 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
         }
 
-        private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, ConversationType conversationType, ConnectionState connectionState)
+        private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, string conversationType, ConnectionState connectionState)
         {
             // Generate interaction based on conversation type
             InteractionOptionViewModel interaction = new InteractionOptionViewModel
             {
-                ConversationType = conversationType
+                ConversationTypeId = conversationType
             };
 
             // Set display text based on type
-            switch (conversationType)
+            string displayText = conversationType switch
             {
-                case ConversationType.FriendlyChat:
-                    interaction.Text = "Friendly Chat";
-                    break;
-                case ConversationType.Request:
-                    interaction.Text = "Request"; // Actual text comes from NPCRequest.Name
-                    break;
-                case ConversationType.Delivery:
-                    interaction.Text = "Deliver Letter";
-                    break;
-                case ConversationType.Resolution:
-                    interaction.Text = "Make Amends";
-                    break;
-                default:
-                    interaction.Text = "Talk";
-                    break;
-            }
+                "friendly_chat" => "Friendly Chat",
+                "request" => "Request", // Actual text comes from NPCRequest.Name
+                "delivery" => "Deliver Letter",
+                "resolution" => "Make Amends",
+                _ => "Talk"
+            };
+            interaction.Text = displayText;
 
-            // Set attention cost
-            // Default attention cost - should be determined by conversation rules
+            // Set attention cost - get from ConversationTypeDefinition
             int attentionCost = 1;
+            if (_gameWorld.ConversationTypes.TryGetValue(conversationType, out var conversationTypeDef))
+            {
+                attentionCost = conversationTypeDef.AttentionCost;
+            }
             interaction.Cost = $"Need {attentionCost} attention";
 
             return interaction;

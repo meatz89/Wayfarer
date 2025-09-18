@@ -19,7 +19,7 @@ public class StandardContext : ConversationContextBase
 
     public StandardContext()
     {
-        Type = ConversationType.FriendlyChat;
+        ConversationTypeId = "friendly_chat";
         ValidStates = new List<ConnectionState>();
         FlowThreshold = 100; // Default flow threshold for successful conversations
         TokenReward = 1; // Default token reward
