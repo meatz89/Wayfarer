@@ -98,61 +98,6 @@
         </div>
 
         <div class="decks-container">
-<!-- Conversation Deck -->
-            <div class="deck-section conversation-deck-section">
-                <h3>Base Conversation Deck (@(ConversationCards?.Count ?? 0) cards)</h3>
-                <div class="deck-purpose">Contains flow, state, and token cards for standard conversations</div>
-                @if (ConversationCards != null && ConversationCards.Any())
-                {
-                    <div class="card-list">
-                        @foreach (var card in ConversationCards.OrderBy(c => c.Focus))
-                        {
-                            <div class="debug-card conversation-card">
-                                <div class="card-header">
-                                    <span class="card-id">@card.Id</span>
-                                    <span class="card-name">@(card.Description ?? card.Id)</span>
-                                    <span class="card-category @GetCategoryClass(card)">@GetCategoryText(card)</span>
-                                </div>
-                                <div class="card-properties">
-                                    <span>Token: @card.TokenType</span>
-                                    <span>Focus: @card.Focus</span>
-                                    <span>Persistence: @GetPersistenceText(card)</span>
-                                </div>
-                                <div class="card-text">@(card.Description ?? "Template: " + card.Id)</div>
-                                <div class="card-outcomes">
-                                    <div class="outcome success">
-                                        <span>Success Effect</span>
-                                        @if (card.SuccessType != SuccessEffectType.None)
-                                        {
-                                            <span>@card.SuccessType.ToString()</span>
-                                        }
-                                        else
-                                        {
-                                            <span>No effect</span>
-                                        }
-                                    </div>
-                                    <div class="outcome failure">
-                                        <span>Failure Effect</span>
-                                        @if (card.FailureType != FailureEffectType.None)
-                                        {
-                                            <span>@card.FailureType.ToString()</span>
-                                        }
-                                        else
-                                        {
-                                            <span>No effect</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="empty-deck">No conversation cards</div>
-                }
-            </div>
-
             <!-- One-Time Requests -->
             <div class="deck-section request-deck-section @(HasRequestCards ? "has-requests" : "")">
                 <h3>One-Time Requests (@(TotalRequestCards) requests)</h3>
@@ -273,7 +218,6 @@
     [Inject] private GameFacade GameFacade { get; set; }
 
     private NPC CurrentNPC { get; set; }
-    private List<CardInstance> ConversationCards { get; set; }
 
     // Computed properties for conversation availability
     private bool HasExchangeCards => CurrentNPC?.ExchangeDeck?.Any() == true;
@@ -300,10 +244,6 @@
             return;
         }
 
-        // No player deck anymore - conversation cards come from conversation types
-        ConversationCards = new List<CardInstance>();
-
-        // NPCs no longer have progression decks
     }
 
     private void GoBack()
@@ -314,8 +254,6 @@
     private string GetCategoryClass(CardInstance card)
     {
         // Determine category based on card type
-        // Note: Exchange cards are now separate ExchangeCard entities
-        // This viewer only shows ConversationCards
         if (card.CardType == CardType.Observation)
             return "observation";
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)

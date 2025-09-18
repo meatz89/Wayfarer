@@ -198,44 +198,6 @@
           "personalityModifiers": {}
         }
       }
-    },
-    "deckCompositions": {
-      "playerStarterDeck": {
-        "conversationDeck": {},
-        "observationDeck": {}
-      },
-      "npcDecks": {
-        "elena": {
-          "progressionDeck": {
-            "elena_shared_understanding": 1,
-            "elena_trusted_confidant": 1,
-            "elena_deep_bond": 1,
-            "elena_absolute_devotion": 1,
-            "elena_eternal_loyalty": 1
-          },
-          "requestDeck": {
-            "elena_letter_request": 1,
-            "elena_safety_request": 1,
-            "elena_priority_promise": 1
-          },
-          "exchangeDeck": {}
-        },
-        "marcus": {
-          "progressionDeck": {
-            "marcus_bargain": 1,
-            "trade_knowledge": 1,
-            "commercial_trust": 1,
-            "marcus_favor": 1
-          },
-          "requestDeck": {
-            "marcus_trade_request": 1,
-            "marcus_business_proposal": 1
-          },
-          "exchangeDeck": {
-            "marcus_quick_trade": 1
-          }
-        }
-      }
     }
   }
 }

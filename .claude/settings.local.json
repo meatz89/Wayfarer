@@ -40,7 +40,15 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6235\" dotnet run -c Release --no-build)",
       "mcp__playwright__browser_evaluate",
       "Bash(timeout:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(for file in /mnt/c/git/wayfarer/src/Content/Core/*.json)",
+      "Bash(grep:*)",
+      "Bash(done)",
+      "Bash(do echo \"\")",
+      "Bash(python3:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(jq:*)"
     ],
     "deny": [],
     "ask": []

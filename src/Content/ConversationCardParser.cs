@@ -313,7 +313,7 @@ public class ConversationCardDTO
     public int? RapportThreshold { get; set; } // For request cards
     public string Description { get; set; }
     public string DialogueFragment { get; set; }
-    public int? MinimumTokensRequired { get; set; } // Tokens required to unlock NPC progression cards
+    public int? MinimumTokensRequired { get; set; }
 
     // Categorical properties - define behavior through context
     public string Persistence { get; set; } // Thought/Impulse/Opening
