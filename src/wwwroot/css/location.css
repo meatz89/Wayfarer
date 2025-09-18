@@ -35,7 +35,8 @@ body * {
     background: #e8dcc4;
     border: 3px solid #8b7355;
     border-radius: 8px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
@@ -1250,7 +1251,7 @@ body * {
 .travel-content {
     padding: 20px;
     background: #faf4ea;
-    min-height: calc(100vh - 200px);
+    min-height: 100vh;
 }
 
 .travel-header {

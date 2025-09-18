@@ -8,31 +8,9 @@ body {
 
 /* === CONVERSATION LAYOUT === */
 
-/* Main conversation content container with scrolling */
+/* Main conversation content container - no scrolling (handled by GameScreen) */
 .conversation-content {
-    height: calc(100vh - 50px); /* Full viewport minus header/resources */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden;
     position: relative;
-}
-
-/* Custom scrollbar styling for conversation */
-.conversation-content::-webkit-scrollbar {
-    width: 12px;
-}
-
-.conversation-content::-webkit-scrollbar-track {
-    background: #f4e8d0;
-    border-left: 1px solid #c4a684;
-}
-
-.conversation-content::-webkit-scrollbar-thumb {
-    background: #a68b6f;
-    border-radius: 6px;
-}
-
-.conversation-content::-webkit-scrollbar-thumb:hover {
-    background: #8a6f57;
 }
 
 /* Location Context */
