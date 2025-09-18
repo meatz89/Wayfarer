@@ -96,6 +96,7 @@ namespace Wayfarer.Pages.Components
 
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
+                            RequestId = conversationOption.RequestId,
                             ConversationTypeId = conversationOption.ConversationTypeId,
                             GoalCardId = conversationOption.GoalCardId,
                             Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ConversationTypeId),
@@ -255,6 +256,20 @@ namespace Wayfarer.Pages.Components
         protected async Task StartConversation(string npcId)
         {
             await StartTypedConversation(npcId, "friendly_chat");
+        }
+
+        protected async Task StartConversationWithRequest(string npcId, string requestId)
+        {
+            Console.WriteLine($"[LocationContent] Starting conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartConversation(npcId, requestId);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
+            }
         }
 
         protected async Task StartTypedConversation(string npcId, string conversationTypeId, string goalCardId = null)
@@ -1035,6 +1050,7 @@ namespace Wayfarer.Pages.Components
 
     public class ConversationOptionViewModel
     {
+        public string RequestId { get; set; }  // The actual request ID for NPC requests
         public string ConversationTypeId { get; set; }
         public string GoalCardId { get; set; }  // The specific card ID from the NPC's requests
         public string Label { get; set; }

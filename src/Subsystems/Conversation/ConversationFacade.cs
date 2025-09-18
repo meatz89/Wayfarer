@@ -576,6 +576,7 @@ public class ConversationFacade
                 // Later we'll update the UI to show all cards from the request
                 options.Add(new ConversationOption
                 {
+                    RequestId = request.Id, // Store the actual request ID
                     ConversationTypeId = "request", // One-time requests use Request type
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
