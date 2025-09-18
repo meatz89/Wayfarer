@@ -16,4 +16,9 @@ public interface IContentDirectory
 public class ContentDirectory : IContentDirectory
 {
     public string Path { get; set; }
+
+    public ContentDirectory()
+    {
+        Path = "Content";
+    }
 }

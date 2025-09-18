@@ -13,7 +13,7 @@ public static class ServiceConfiguration
         services.AddSingleton<DevModeService>();
 
         // Register configuration
-        services.AddSingleton<IContentDirectory>(_ => new ContentDirectory { Path = "Content" });
+        services.AddSingleton<IContentDirectory, ContentDirectory>();
 
         // Register game configuration and rule engine
         services.AddSingleton<GameConfiguration>();
@@ -78,29 +78,7 @@ public static class ServiceConfiguration
             // Short timeout to prevent hanging when Ollama unavailable
             client.Timeout = TimeSpan.FromSeconds(5);
         });
-        services.AddSingleton<OllamaConfiguration>(serviceProvider =>
-        {
-            IConfiguration config = serviceProvider.GetRequiredService<IConfiguration>();
-
-            // Check environment variable first, then fall back to config
-            string baseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL");
-
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                // Use default from config - Development.json will override for WSL
-                baseUrl = config["Ollama:BaseUrl"];
-            }
-
-            OllamaConfiguration ollamaConfig = new OllamaConfiguration
-            {
-                BaseUrl = baseUrl,
-                Model = config["Ollama:Model"],
-                BackupModel = config["Ollama:BackupModel"]
-            };
-            Console.WriteLine($"[ServiceConfiguration] Ollama BaseUrl: {ollamaConfig.BaseUrl}");
-            Console.WriteLine($"[ServiceConfiguration] Ollama Model: {ollamaConfig.Model}");
-            return ollamaConfig;
-        });
+        services.AddSingleton<OllamaConfiguration>();
 
         // Narrative Generation Services
         services.AddSingleton<NarrativeStreamingService>();
@@ -193,26 +171,11 @@ public static class ServiceConfiguration
         services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketFacade>();
 
         // Exchange Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>(serviceProvider =>
-            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator(
-                serviceProvider.GetRequiredService<GameWorld>(),
-                serviceProvider.GetRequiredService<TimeManager>()));
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>(serviceProvider =>
-            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor(
-                serviceProvider.GetRequiredService<GameWorld>(),
-                serviceProvider.GetRequiredService<TimeManager>(),
-                serviceProvider.GetRequiredService<MessageSystem>()));
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>();
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>();
         services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>();
         services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>(serviceProvider =>
-            new Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade(
-                serviceProvider.GetRequiredService<GameWorld>(),
-                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>(),
-                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>(),
-                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>(),
-                serviceProvider.GetRequiredService<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>(),
-                serviceProvider.GetRequiredService<TimeManager>(),
-                serviceProvider.GetRequiredService<MessageSystem>()));
+        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>();
 
         // Token Subsystem
         services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();

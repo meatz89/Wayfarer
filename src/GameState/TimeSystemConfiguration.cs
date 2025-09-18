@@ -12,11 +12,7 @@ public static class TimeSystemConfiguration
     public static IServiceCollection AddTimeSystem(this IServiceCollection services)
     {
         // Register the core time components
-        services.AddSingleton<TimeModel>(sp =>
-        {
-            // Initialize with game start time (Day 1 starts at Dawn segment 1)
-            return new TimeModel(startDay: 1);
-        });
+        services.AddSingleton<TimeModel>();
 
         // Register the TimeManager
         services.AddSingleton<TimeManager>();
