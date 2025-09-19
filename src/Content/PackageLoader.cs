@@ -554,7 +554,11 @@ public class PackageLoader
 
                 _gameWorld.WorldState.locations.Remove(existingSkeleton);
                 _gameWorld.Locations.Remove(existingSkeleton);
-                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                if (skeletonEntry != null)
+                {
+                    _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
+                }
             }
 
             _gameWorld.Locations.Add(location);
@@ -575,7 +579,11 @@ public class PackageLoader
             if (existingSkeleton != null)
             {
                 _gameWorld.WorldState.locationSpots.Remove(existingSkeleton);
-                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+                SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                if (spotSkeletonEntry != null)
+                {
+                    _gameWorld.SkeletonRegistry.Remove(spotSkeletonEntry);
+                }
 
                 // Remove from primary spots dictionary if exists
                 _gameWorld.Spots.RemoveSpot(dto.Id);
@@ -659,7 +667,11 @@ public class PackageLoader
                 // Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
                 _gameWorld.WorldState.NPCs.Remove(existingSkeleton);
-                _gameWorld.SkeletonRegistry.Remove(dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                if (skeletonEntry != null)
+                {
+                    _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
+                }
 
                 // Create new NPC from DTO
                 NPC npc = NPCParser.ConvertDTOToNPC(dto);
@@ -1040,7 +1052,7 @@ public class PackageLoader
                     if (npc == null)
                     {
                         // Check if this is a skeleton NPC
-                        if (!_gameWorld.SkeletonRegistry.ContainsKey(requestDto.NpcId))
+                        if (!_gameWorld.SkeletonRegistry.Any(s => s.SkeletonKey == requestDto.NpcId))
                         {
                             throw PackageLoadException.CreateMissingDependency(
                                 _currentPackageId,
@@ -1066,7 +1078,7 @@ public class PackageLoader
                     {
                         foreach (string cardId in requestDto.RequestCards)
                         {
-                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
+                            if (_gameWorld.AllCardDefinitions.Any(c => c.CardId == cardId))
                             {
                                 request.RequestCardIds.Add(cardId);
                                 Console.WriteLine($"[PackageLoader] Added request card ID '{cardId}' to request '{requestDto.Id}'");
@@ -1090,7 +1102,7 @@ public class PackageLoader
                     {
                         foreach (string cardId in requestDto.PromiseCards)
                         {
-                            if (_gameWorld.AllCardDefinitions.ContainsKey(cardId))
+                            if (_gameWorld.AllCardDefinitions.Any(c => c.CardId == cardId))
                             {
                                 request.PromiseCardIds.Add(cardId);
                                 Console.WriteLine($"[PackageLoader] Added promise card ID '{cardId}' to request '{requestDto.Id}'");

@@ -28,9 +28,17 @@ public class ConnectionTokenManager
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        if (npcTokens.ContainsKey(npcId))
+        NPCTokenEntry? entry = npcTokens.FindById(npcId);
+        if (entry != null)
         {
-            return npcTokens.GetTokens(npcId);
+            // Build dictionary from properties
+            Dictionary<ConnectionType, int> tokens = new Dictionary<ConnectionType, int>
+            {
+                [ConnectionType.Trust] = entry.Trust,
+                [ConnectionType.Commerce] = entry.Commerce,
+                [ConnectionType.Status] = entry.Status
+            };
+            return tokens;
         }
 
         // Return empty dictionary if no tokens with this NPC
@@ -287,7 +295,7 @@ public class ConnectionTokenManager
     {
         Player player = _gameWorld.GetPlayer();
 
-        if (!player.NPCTokens.ContainsKey(npcId))
+        if (!player.NPCTokens.Any(t => t.NpcId == npcId))
         {
             // The GetNPCTokenEntry method will create a new entry if needed
             player.NPCTokens.GetNPCTokenEntry(npcId);

@@ -371,7 +371,7 @@ public class ObligationQueueManager
         int position = _config.LetterQueue.MaxQueueSize - highestPositiveToken + worstNegativeTokenPenalty;
 
         // Apply Commerce debt leverage override
-        if (allTokens.Any(h => h.NpcId == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             position = 2; // Commerce debt >= 3 forces position 2
         }
@@ -460,7 +460,7 @@ public class ObligationQueueManager
             return LetterPositioningReason.Obligation;
         }
 
-        if (allTokens.Any(h => h.NpcId == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             return LetterPositioningReason.CommerceDebt;
         }

@@ -613,7 +613,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private void RecordOverflowInHistory(string senderId)
         {
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == senderId))
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
             {
                 player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
             }

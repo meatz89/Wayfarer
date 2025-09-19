@@ -37,19 +37,20 @@ public class ConversationDeckBuilder
         }
 
         // Get conversation type from request
-        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition conversationType))
+        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
+        if (typeEntry == null)
         {
-            Console.WriteLine($"[ConversationDeckBuilder] WARNING: Conversation type '{request.ConversationTypeId}' not found, using fallback");
-            // Create a fallback conversation type if not found
-            conversationType = CreateFallbackConversationType();
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation type '{request.ConversationTypeId}' not found. Request must have valid conversation type.");
         }
+        ConversationTypeDefinition conversationType = typeEntry.Definition;
 
         // Get card deck for this conversation type
-        if (!_gameWorld.CardDecks.TryGetValue(conversationType.DeckId, out CardDeckDefinition cardDeck))
+        CardDeckDefinitionEntry? deckEntry = _gameWorld.CardDecks.FindById(conversationType.DeckId);
+        if (deckEntry == null)
         {
-            Console.WriteLine($"[ConversationDeckBuilder] WARNING: Card deck '{conversationType.DeckId}' not found, using empty deck");
-            cardDeck = new CardDeckDefinition { Id = "fallback", CardIds = new List<string>() };
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Card deck '{conversationType.DeckId}' not found. Conversation type must reference valid deck.");
         }
+        CardDeckDefinition cardDeck = deckEntry.Definition;
 
         // Create card instances from the conversation type's deck
         List<CardInstance> deckInstances = CreateInstancesFromCardIds(cardDeck.CardIds, npc.ID);
@@ -98,9 +99,10 @@ public class ConversationDeckBuilder
 
         foreach (string cardId in cardIds)
         {
-            if (_gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard cardTemplate))
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(cardId);
+            if (cardEntry != null)
             {
-                CardInstance instance = new CardInstance(cardTemplate, ownerId);
+                CardInstance instance = new CardInstance(cardEntry.Card, ownerId);
                 instances.Add(instance);
             }
             else
@@ -193,18 +195,4 @@ public class ConversationDeckBuilder
         return promiseCards;
     }
 
-    /// <summary>
-    /// Create a fallback conversation type for backward compatibility
-    /// </summary>
-    private ConversationTypeDefinition CreateFallbackConversationType()
-    {
-        return new ConversationTypeDefinition
-        {
-            Id = "fallback_friendly",
-            Name = "Friendly Chat",
-            Description = "A casual conversation",
-            DeckId = "deck_friendly_balanced",
-            Category = "social",
-        };
-    }
 }

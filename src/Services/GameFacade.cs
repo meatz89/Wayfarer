@@ -675,7 +675,7 @@ public class GameFacade
         Location? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
         if (startingLocation != null)
         {
-            LocationSpot? startingSpot = _gameWorld.Spots.Values().FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
+            LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
             if (startingSpot != null)
             {
                 player.CurrentLocationSpot = startingSpot;

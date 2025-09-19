@@ -479,10 +479,11 @@ public class TravelManager
             return null;
 
         // Get the travel event
-        if (!_gameWorld.AllTravelEvents.ContainsKey(session.CurrentEventId))
+        TravelEventEntry? eventEntry = _gameWorld.AllTravelEvents.FindById(session.CurrentEventId);
+        if (eventEntry == null)
             return null;
 
-        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetItem(session.CurrentEventId);
+        TravelEventDTO travelEvent = eventEntry.TravelEvent;
 
         // Find the card in the embedded event cards
         return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);

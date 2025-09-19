@@ -180,7 +180,7 @@ public class ObligationStatistics
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
             // If NPC has no letter history, they haven't interacted yet
-            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == npc.ID))
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == npc.ID))
             {
                 // Skip NPCs with no letter history - they have no relationship health to report
                 continue;
@@ -219,7 +219,7 @@ public class ObligationStatistics
         foreach (NPC npc in _npcRepository.GetAllNPCs())
         {
             // Skip NPCs with no letter history - they have no performance metrics
-            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == npc.ID))
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == npc.ID))
                 continue;
 
             LetterHistory history = player.NPCLetterHistory.GetHistory(npc.ID);

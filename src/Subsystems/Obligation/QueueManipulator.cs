@@ -903,7 +903,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Record in history
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == senderId))
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
             {
                 player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
             }

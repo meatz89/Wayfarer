@@ -42,9 +42,10 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 List<ExchangeData> npcExchangeList = new List<ExchangeData>();
 
                 // Check if NPC has exchange deck in GameWorld
-                if (gameWorld.NPCExchangeCards.TryGetValue(npc.ID.ToLower(), out List<ExchangeCard> exchangeCards))
+                NPCExchangeCardEntry? exchangeEntry = gameWorld.NPCExchangeCards.FindById(npc.ID.ToLower());
+                if (exchangeEntry != null)
                 {
-                    foreach (ExchangeCard card in exchangeCards)
+                    foreach (ExchangeCard card in exchangeEntry.ExchangeCards)
                     {
                         // Convert ExchangeCard to ExchangeData for compatibility
                         ExchangeData exchangeData = ConvertExchangeCardToData(card);
