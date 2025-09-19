@@ -122,11 +122,13 @@ public class ConversationDeckBuilder
 
         foreach (string requestCardId in request.RequestCardIds)
         {
-            if (!_gameWorld.AllCardDefinitions.TryGetValue(requestCardId, out ConversationCard requestCard))
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(requestCardId);
+            if (cardEntry == null)
             {
                 Console.WriteLine($"[ConversationDeckBuilder] Warning: Request card ID '{requestCardId}' not found");
                 continue;
             }
+            ConversationCard requestCard = cardEntry.Card;
 
             // Create BurdenGoal type card for requests
             ConversationCard burdenGoalTemplate = new ConversationCard
@@ -176,11 +178,13 @@ public class ConversationDeckBuilder
 
         foreach (string promiseCardId in request.PromiseCardIds)
         {
-            if (!_gameWorld.AllCardDefinitions.TryGetValue(promiseCardId, out ConversationCard promiseCard))
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(promiseCardId);
+            if (cardEntry == null)
             {
                 Console.WriteLine($"[ConversationDeckBuilder] Warning: Promise card ID '{promiseCardId}' not found");
                 continue;
             }
+            ConversationCard promiseCard = cardEntry.Card;
 
             CardInstance instance = new CardInstance(promiseCard, npc.ID);
             promiseCards.Add(instance);

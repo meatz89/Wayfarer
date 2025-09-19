@@ -87,12 +87,12 @@ public class TravelManager
     {
         string collectionId = segment.PathCollectionId;
 
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
         {
             return new List<PathCardDTO>();
         }
 
-        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetItem(collectionId);
+        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Return embedded cards directly - no lookup needed
         return collection.PathCards ?? new List<PathCardDTO>();
@@ -112,7 +112,7 @@ public class TravelManager
         }
 
         // Check for normalized structure
-        if (_gameWorld.AllEventCollections.ContainsKey(eventCollectionId))
+        if (_gameWorld.AllEventCollections.Any(e => e.CollectionId == eventCollectionId))
         {
             return HandleNormalizedEventSegment(segment, session, eventCollectionId);
         }
@@ -126,7 +126,7 @@ public class TravelManager
     private List<PathCardDTO> HandleNormalizedEventSegment(RouteSegment segment, TravelSession session, string eventCollectionId)
     {
         // Step 1: Get event collection
-        PathCardCollectionDTO eventCollection = _gameWorld.AllEventCollections.GetItem(eventCollectionId);
+        PathCardCollectionDTO eventCollection = _gameWorld.AllEventCollections.GetCollection(eventCollectionId);
 
         if (eventCollection.EventIds == null || eventCollection.EventIds.Count == 0)
         {
@@ -137,12 +137,12 @@ public class TravelManager
         string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
 
         // Step 3: Get the event
-        if (!_gameWorld.AllTravelEvents.ContainsKey(eventId))
+        if (!_gameWorld.AllTravelEvents.Any(e => e.EventId == eventId))
         {
             return new List<PathCardDTO>();
         }
 
-        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetItem(eventId);
+        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetEvent(eventId);
 
         // Step 4: Set narrative for UI
         session.CurrentEventNarrative = travelEvent.NarrativeText;
@@ -159,7 +159,7 @@ public class TravelManager
     {
         // Check if we already drew an event for this segment
         string key = $"seg_{segment.SegmentNumber}_event";
-        if (session.SegmentEventDraws.ContainsKey(key))
+        if (session.SegmentEventDraws.Any(kvp => kvp.Key == key))
         {
             return session.SegmentEventDraws[key];
         }
@@ -191,7 +191,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        if (_gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) && _gameWorld.PathCardDiscoveries.GetItem(pathCardId))
+        if (_gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId))
         {
             return false; // Card already revealed
         }
@@ -208,14 +208,13 @@ public class TravelManager
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.ContainsKey(pathCardId)
-            && _gameWorld.PathCardRewardsClaimed.GetItem(pathCardId))
+        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.IsDiscovered(pathCardId))
         {
             return false;
         }
 
         // Mark card as discovered (face-up)
-        _gameWorld.PathCardDiscoveries.SetItem(pathCardId, true);
+        _gameWorld.PathCardDiscoveries.SetDiscovered(pathCardId, true);
 
         // Set reveal state
         session.IsRevealingCard = true;
@@ -336,8 +335,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        bool isDiscovered = _gameWorld.PathCardDiscoveries.ContainsKey(pathCardId) &&
-                           _gameWorld.PathCardDiscoveries.GetItem(pathCardId);
+        bool isDiscovered = _gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId);
 
         // For already discovered cards, set them as revealed immediately so player can confirm
         if (isDiscovered)
@@ -460,12 +458,12 @@ public class TravelManager
     {
         string collectionId = segment.PathCollectionId;
 
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.ContainsKey(collectionId))
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
         {
             return null;
         }
 
-        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetItem(collectionId);
+        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Look in embedded path cards
         return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
@@ -583,7 +581,7 @@ public class TravelManager
         }
 
         // Mark reward as claimed
-        _gameWorld.PathCardRewardsClaimed.SetItem(cardId, true);
+        _gameWorld.PathCardRewardsClaimed.SetDiscovered(cardId, true);
     }
 
     /// <summary>

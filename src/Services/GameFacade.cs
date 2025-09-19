@@ -110,10 +110,12 @@ public class GameFacade
         }
 
         // Get conversation type
-        if (!_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
+        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
+        if (typeEntry == null)
         {
             return null;
         }
+        ConversationTypeDefinition conversationType = typeEntry.Definition;
 
         // Mark stranger as encountered
         stranger.MarkAsEncountered();
@@ -141,7 +143,8 @@ public class GameFacade
             NPCRequest request = stranger.GetRequestById(requestId);
             if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
             {
-                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
+                ConversationTypeEntry? convTypeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
+                if (convTypeEntry != null)
                 {
                     return true; // No attention cost check needed
                 }

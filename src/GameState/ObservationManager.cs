@@ -290,13 +290,15 @@ public class ObservationManager
         }
 
         // Load the base card template from GameWorld's AllCardDefinitions
-        if (!_gameWorld.AllCardDefinitions.TryGetValue(observation.CardTemplate, out ConversationCard? baseCard))
+        CardDefinitionEntry? entry = _gameWorld.AllCardDefinitions.FindById(observation.CardTemplate);
+        if (entry == null)
         {
             Console.WriteLine($"[ObservationManager] Card template '{observation.CardTemplate}' not found in AllCardDefinitions for observation {observation.Id}");
             return null;
         }
 
         // Create new observation card based on template with observation-specific properties
+        ConversationCard baseCard = entry.Card;
         string description = !string.IsNullOrEmpty(baseCard.Description) ? baseCard.Description :
                            !string.IsNullOrEmpty(observation.Text) ? observation.Text : observation.Description;
 

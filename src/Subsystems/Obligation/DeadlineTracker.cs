@@ -455,9 +455,9 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private void ShowCumulativeDamage(DeliveryObligation expiredObligation, string senderId)
         {
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.ContainsKey(senderId)) return;
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId)) return;
 
-            LetterHistory history = player.NPCLetterHistory.GetItem(senderId);
+            LetterHistory history = player.NPCLetterHistory.GetHistory(senderId);
             if (history.ExpiredCount > 1)
             {
                 _messageSystem.AddSystemMessage(
@@ -494,11 +494,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private void RecordExpiryInHistory(string senderId)
         {
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.ContainsKey(senderId))
+            if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
             {
-                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+                player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory.GetItem(senderId).RecordExpiry();
+            player.NPCLetterHistory.GetHistory(senderId).RecordExpiry();
         }
 
         private bool ValidateTokenAvailability(Dictionary<ConnectionType, int> requiredTokens)

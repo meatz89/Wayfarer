@@ -251,12 +251,7 @@ public static class ListBasedHelperExtensions
         entry.SetTokenCount(type, count);
     }
 
-    public static bool ContainsKey(this List<NPCTokenEntry> tokens, string npcId)
-    {
-        return tokens.Any(t => t.NpcId == npcId);
-    }
-
-    public static Dictionary<ConnectionType, int> GetItem(this List<NPCTokenEntry> tokens, string npcId)
+    public static Dictionary<ConnectionType, int> GetTokens(this List<NPCTokenEntry> tokens, string npcId)
     {
         NPCTokenEntry entry = tokens.FirstOrDefault(t => t.NpcId == npcId);
         if (entry == null) return new Dictionary<ConnectionType, int>();
@@ -270,7 +265,7 @@ public static class ListBasedHelperExtensions
         };
     }
 
-    public static void SetItem(this List<NPCTokenEntry> tokens, string npcId, Dictionary<ConnectionType, int> tokenCounts)
+    public static void AddOrUpdateTokens(this List<NPCTokenEntry> tokens, string npcId, Dictionary<ConnectionType, int> tokenCounts)
     {
         NPCTokenEntry entry = tokens.GetNPCTokenEntry(npcId);
         if (tokenCounts.ContainsKey(ConnectionType.Trust))
@@ -339,75 +334,27 @@ public static class ListBasedHelperExtensions
     }
 
     // LocationSpot helpers
-    public static IEnumerable<LocationSpot> Values(this List<LocationSpotEntry> spots)
+    public static IEnumerable<LocationSpot> GetAllSpots(this List<LocationSpotEntry> spots)
     {
         return spots.Select(s => s.Spot);
     }
 
-    public static bool TryGetValue(this List<LocationSpotEntry> spots, string spotId, out LocationSpot spot)
-    {
-        LocationSpotEntry? entry = spots.FindById(spotId);
-        spot = entry?.Spot;
-        return entry != null;
-    }
-
-    public static bool ContainsKey(this List<LocationSpotEntry> spots, string spotId)
-    {
-        return spots.Any(s => s.SpotId == spotId);
-    }
+    // LocationSpotEntry lookups are handled by FindById
 
     // PathCollection helpers
-    public static IEnumerable<PathCardCollectionDTO> Values(this List<PathCollectionEntry> collections)
+    public static IEnumerable<PathCardCollectionDTO> GetAllCollections(this List<PathCollectionEntry> collections)
     {
         return collections.Select(c => c.Collection);
     }
 
-    public static bool ContainsKey(this List<PathCollectionEntry> collections, string collectionId)
-    {
-        return collections.Any(c => c.CollectionId == collectionId);
-    }
+    // PathCollectionEntry lookups are handled by FindById and Any()
 
-    public static PathCardCollectionDTO GetValue(this List<PathCollectionEntry> collections, string collectionId)
-    {
-        return collections.FindById(collectionId)?.Collection;
-    }
-
-    // NPC Exchange Card helpers
-    public static bool TryGetValue(this List<NPCExchangeCardEntry> exchanges, string npcId, out List<ExchangeCard> cards)
-    {
-        NPCExchangeCardEntry? entry = exchanges.FindById(npcId);
-        cards = entry?.ExchangeCards;
-        return entry != null;
-    }
-
-    // Conversation Type helpers
-    public static bool TryGetValue(this List<ConversationTypeEntry> types, string typeId, out ConversationTypeDefinition definition)
-    {
-        ConversationTypeEntry? entry = types.FindById(typeId);
-        definition = entry?.Definition;
-        return entry != null;
-    }
+    // NPC Exchange Card helpers are handled by FindById
 
     // Card Definition helpers
-    public static bool TryGetValue(this List<CardDefinitionEntry> cards, string cardId, out ConversationCard card)
-    {
-        CardDefinitionEntry? entry = cards.FindById(cardId);
-        card = entry?.Card;
-        return entry != null;
-    }
-
-    public static bool ContainsKey(this List<CardDefinitionEntry> cards, string cardId)
-    {
-        return cards.Any(c => c.CardId == cardId);
-    }
 
     // Skeleton Registry helpers
-    public static bool ContainsKey(this List<SkeletonRegistryEntry> registry, string key)
-    {
-        return registry.Any(r => r.SkeletonKey == key);
-    }
-
-    public static void Add(this List<SkeletonRegistryEntry> registry, string key, string contentType)
+    public static void AddSkeleton(this List<SkeletonRegistryEntry> registry, string key, string contentType)
     {
         if (!registry.Any(r => r.SkeletonKey == key))
         {
@@ -415,7 +362,7 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    public static void Remove(this List<SkeletonRegistryEntry> registry, string key)
+    public static void RemoveSkeleton(this List<SkeletonRegistryEntry> registry, string key)
     {
         SkeletonRegistryEntry entry = registry.FirstOrDefault(r => r.SkeletonKey == key);
         if (entry != null)
@@ -425,17 +372,12 @@ public static class ListBasedHelperExtensions
     }
 
     // Event deck position helpers
-    public static bool ContainsKey(this List<EventDeckPositionEntry> positions, string deckId)
-    {
-        return positions.Any(p => p.DeckId == deckId);
-    }
-
-    public static int GetValue(this List<EventDeckPositionEntry> positions, string deckId)
+    public static int GetPosition(this List<EventDeckPositionEntry> positions, string deckId)
     {
         return positions.FindById(deckId)?.Position ?? 0;
     }
 
-    public static void SetValue(this List<EventDeckPositionEntry> positions, string deckId, int position)
+    public static void SetPosition(this List<EventDeckPositionEntry> positions, string deckId, int position)
     {
         EventDeckPositionEntry existing = positions.FindById(deckId);
         if (existing != null)
@@ -467,13 +409,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Dictionary-style indexer for LocationSpotEntry
-    public static LocationSpot GetItem(this List<LocationSpotEntry> spots, string spotId)
+    // LocationSpotEntry helpers
+    public static LocationSpot GetSpot(this List<LocationSpotEntry> spots, string spotId)
     {
         return spots.FindById(spotId)?.Spot;
     }
 
-    public static void SetItem(this List<LocationSpotEntry> spots, string spotId, LocationSpot spot)
+    public static void AddOrUpdateSpot(this List<LocationSpotEntry> spots, string spotId, LocationSpot spot)
     {
         LocationSpotEntry existing = spots.FindById(spotId);
         if (existing != null)
@@ -486,7 +428,7 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    public static void Remove(this List<LocationSpotEntry> spots, string spotId)
+    public static void RemoveSpot(this List<LocationSpotEntry> spots, string spotId)
     {
         LocationSpotEntry entry = spots.FindById(spotId);
         if (entry != null)
@@ -495,13 +437,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Dictionary-style indexer for PathCollectionEntry
-    public static PathCardCollectionDTO GetItem(this List<PathCollectionEntry> collections, string collectionId)
+    // PathCollectionEntry helpers
+    public static PathCardCollectionDTO GetCollection(this List<PathCollectionEntry> collections, string collectionId)
     {
         return collections.FindById(collectionId)?.Collection;
     }
 
-    public static void SetItem(this List<PathCollectionEntry> collections, string collectionId, PathCardCollectionDTO collection)
+    public static void AddOrUpdateCollection(this List<PathCollectionEntry> collections, string collectionId, PathCardCollectionDTO collection)
     {
         PathCollectionEntry existing = collections.FindById(collectionId);
         if (existing != null)
@@ -514,13 +456,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Dictionary-style indexer for TravelEventEntry
-    public static TravelEventDTO GetItem(this List<TravelEventEntry> events, string eventId)
+    // TravelEventEntry helpers
+    public static TravelEventDTO GetEvent(this List<TravelEventEntry> events, string eventId)
     {
         return events.FindById(eventId)?.TravelEvent;
     }
 
-    public static void SetItem(this List<TravelEventEntry> events, string eventId, TravelEventDTO travelEvent)
+    public static void AddOrUpdateEvent(this List<TravelEventEntry> events, string eventId, TravelEventDTO travelEvent)
     {
         TravelEventEntry existing = events.FindById(eventId);
         if (existing != null)
@@ -533,13 +475,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Dictionary-style indexer for CardDefinitionEntry
-    public static ConversationCard GetItem(this List<CardDefinitionEntry> cards, string cardId)
+    // CardDefinitionEntry helpers
+    public static ConversationCard GetCard(this List<CardDefinitionEntry> cards, string cardId)
     {
         return cards.FindById(cardId)?.Card;
     }
 
-    public static void SetItem(this List<CardDefinitionEntry> cards, string cardId, ConversationCard card)
+    public static void AddOrUpdateCard(this List<CardDefinitionEntry> cards, string cardId, ConversationCard card)
     {
         CardDefinitionEntry existing = cards.FindById(cardId);
         if (existing != null)
@@ -552,13 +494,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Dictionary-style indexer for ConversationTypeEntry
-    public static ConversationTypeDefinition GetItem(this List<ConversationTypeEntry> types, string typeId)
+    // ConversationTypeEntry helpers
+    public static ConversationTypeDefinition GetConversationType(this List<ConversationTypeEntry> types, string typeId)
     {
         return types.FindById(typeId)?.Definition;
     }
 
-    public static void SetItem(this List<ConversationTypeEntry> types, string typeId, ConversationTypeDefinition definition)
+    public static void AddOrUpdateConversationType(this List<ConversationTypeEntry> types, string typeId, ConversationTypeDefinition definition)
     {
         ConversationTypeEntry existing = types.FindById(typeId);
         if (existing != null)
@@ -571,40 +513,17 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // PathCardDiscoveryEntry helpers
-    public static bool ContainsKey(this List<PathCardDiscoveryEntry> discoveries, string cardId)
-    {
-        return discoveries.Any(d => d.CardId == cardId);
-    }
-
-    public static bool GetItem(this List<PathCardDiscoveryEntry> discoveries, string cardId)
-    {
-        return discoveries.FirstOrDefault(d => d.CardId == cardId)?.IsDiscovered ?? false;
-    }
-
-    public static void SetItem(this List<PathCardDiscoveryEntry> discoveries, string cardId, bool isDiscovered)
-    {
-        discoveries.SetDiscovered(cardId, isDiscovered);
-    }
+    // PathCardDiscoveryEntry helpers already exist above as IsDiscovered/SetDiscovered
 
     // TravelEventEntry helpers
-    public static bool ContainsKey(this List<TravelEventEntry> events, string eventId)
-    {
-        return events.Any(e => e.EventId == eventId);
-    }
 
     // LetterHistoryEntry helpers
-    public static bool ContainsKey(this List<LetterHistoryEntry> history, string npcId)
-    {
-        return history.Any(h => h.NpcId == npcId);
-    }
-
-    public static LetterHistory GetItem(this List<LetterHistoryEntry> history, string npcId)
+    public static LetterHistory GetHistory(this List<LetterHistoryEntry> history, string npcId)
     {
         return history.FindById(npcId)?.History;
     }
 
-    public static void SetItem(this List<LetterHistoryEntry> history, string npcId, LetterHistory letterHistory)
+    public static void AddOrUpdateHistory(this List<LetterHistoryEntry> history, string npcId, LetterHistory letterHistory)
     {
         LetterHistoryEntry existing = history.FindById(npcId);
         if (existing != null)
@@ -617,19 +536,19 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // Values() method for LetterHistoryEntry
-    public static IEnumerable<LetterHistory> Values(this List<LetterHistoryEntry> history)
+    // Get all histories
+    public static IEnumerable<LetterHistory> GetAllHistories(this List<LetterHistoryEntry> history)
     {
         return history.Select(h => h.History);
     }
 
     // CardDeckDefinitionEntry helpers
-    public static CardDeckDefinition GetItem(this List<CardDeckDefinitionEntry> decks, string deckId)
+    public static CardDeckDefinition GetDeck(this List<CardDeckDefinitionEntry> decks, string deckId)
     {
         return decks.FindById(deckId)?.Definition;
     }
 
-    public static void SetItem(this List<CardDeckDefinitionEntry> decks, string deckId, CardDeckDefinition definition)
+    public static void AddOrUpdateDeck(this List<CardDeckDefinitionEntry> decks, string deckId, CardDeckDefinition definition)
     {
         CardDeckDefinitionEntry existing = decks.FindById(deckId);
         if (existing != null)
@@ -640,17 +559,5 @@ public static class ListBasedHelperExtensions
         {
             decks.Add(new CardDeckDefinitionEntry { DeckId = deckId, Definition = definition });
         }
-    }
-
-    public static bool ContainsKey(this List<CardDeckDefinitionEntry> decks, string deckId)
-    {
-        return decks.Any(d => d.DeckId == deckId);
-    }
-
-    public static bool TryGetValue(this List<CardDeckDefinitionEntry> decks, string deckId, out CardDeckDefinition definition)
-    {
-        CardDeckDefinitionEntry? entry = decks.FindById(deckId);
-        definition = entry?.Definition;
-        return entry != null;
     }
 }

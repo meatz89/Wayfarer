@@ -351,7 +351,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             foreach (ObligationDisplacement displacement in plan.Displacements)
             {
                 ConnectionType tokenType = displacement.DisplacedObligation.TokenType;
-                if (!required.ContainsKey(tokenType))
+                if (!required.Any(kvp => kvp.Key == tokenType))
                 {
                     required[tokenType] = 0;
                 }
@@ -613,11 +613,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         private void RecordOverflowInHistory(string senderId)
         {
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.ContainsKey(senderId))
+            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == senderId))
             {
-                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+                player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory.GetItem(senderId).RecordExpiry(); // Use existing expiry tracking for overflow
+            player.NPCLetterHistory.GetHistory(senderId).RecordExpiry(); // Use existing expiry tracking for overflow
         }
 
         private DeliveryObligation FindObligationById(string obligationId)

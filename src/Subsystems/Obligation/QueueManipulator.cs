@@ -531,7 +531,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             calc.CalculatedPosition = calc.BasePosition - calc.HighestPositiveToken + calc.WorstNegativeTokenPenalty;
 
             // Apply Commerce debt leverage override
-            calc.HasCommerceDebtOverride = calc.AllTokens.ContainsKey(ConnectionType.Commerce) &&
+            calc.HasCommerceDebtOverride = calc.AllTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) &&
                                           calc.AllTokens[ConnectionType.Commerce] <= -3;
 
             if (calc.HasCommerceDebtOverride)
@@ -784,7 +784,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (HasActiveObligationWithNPC(senderId))
                 return LetterPositioningReason.Obligation;
 
-            if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+            if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
                 return LetterPositioningReason.CommerceDebt;
 
             if (worstNegativeTokenPenalty > 0)
@@ -821,7 +821,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 string senderId = leverageCalc.NPCId;
                 if (!string.IsNullOrEmpty(senderId))
                 {
-                    int balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ?
+                    int balance = leverageCalc.AllTokens.Any(kvp => kvp.Key == letter.TokenType) ?
                                  leverageCalc.AllTokens[letter.TokenType] : 0;
 
                     if (balance < 0)
@@ -851,7 +851,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
         private void ShowLeverageDisplacement(DeliveryObligation letter, int targetPosition, LeverageCalculation leverageCalc)
         {
-            int balance = leverageCalc.AllTokens.ContainsKey(letter.TokenType) ?
+            int balance = leverageCalc.AllTokens.Any(kvp => kvp.Key == letter.TokenType) ?
                          leverageCalc.AllTokens[letter.TokenType] : 0;
 
             if (balance < 0)
@@ -903,11 +903,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             // Record in history
             Player player = _gameWorld.GetPlayer();
-            if (!player.NPCLetterHistory.ContainsKey(senderId))
+            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == senderId))
             {
-                player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+                player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
             }
-            player.NPCLetterHistory.GetItem(senderId).RecordExpiry();
+            player.NPCLetterHistory.GetHistory(senderId).RecordExpiry();
         }
 
         private bool HasUsedMorningSwapToday()

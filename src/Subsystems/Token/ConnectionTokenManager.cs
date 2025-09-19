@@ -30,7 +30,7 @@ public class ConnectionTokenManager
 
         if (npcTokens.ContainsKey(npcId))
         {
-            return npcTokens.GetItem(npcId);
+            return npcTokens.GetTokens(npcId);
         }
 
         // Return empty dictionary if no tokens with this NPC
@@ -105,7 +105,7 @@ public class ConnectionTokenManager
         EnsureNPCTokensInitialized(npcId);
 
         // Reduce from NPC relationship (can go negative)
-        player.NPCTokens.GetItem(npcId)[type] -= count;
+        player.NPCTokens.GetTokens(npcId)[type] -= count;
 
         // Add narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
@@ -116,7 +116,7 @@ public class ConnectionTokenManager
                 SystemMessageTypes.Info
             );
 
-            if (player.NPCTokens.GetItem(npcId)[type] < 0)
+            if (player.NPCTokens.GetTokens(npcId)[type] < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"You now owe {npc.Name} for this favor.",
@@ -139,10 +139,10 @@ public class ConnectionTokenManager
         EnsureNPCTokensInitialized(npcId);
 
         // Track old count for messaging
-        int oldCount = player.NPCTokens.GetItem(npcId)[type];
+        int oldCount = player.NPCTokens.GetTokens(npcId)[type];
 
         // Remove tokens from NPC relationship (can go negative)
-        player.NPCTokens.GetItem(npcId)[type] -= count;
+        player.NPCTokens.GetTokens(npcId)[type] -= count;
 
         // Add narrative feedback for relationship damage
         NPC npc = _npcRepository.GetById(npcId);
@@ -153,7 +153,7 @@ public class ConnectionTokenManager
                 SystemMessageTypes.Warning
             );
 
-            if (oldCount >= 0 && player.NPCTokens.GetItem(npcId)[type] < 0)
+            if (oldCount >= 0 && player.NPCTokens.GetTokens(npcId)[type] < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"{npc.Name} feels you owe them for past failures.",

@@ -203,11 +203,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (!string.IsNullOrEmpty(senderId))
             {
                 // Track delivery history
-                if (!player.NPCLetterHistory.ContainsKey(senderId))
+                if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
                 {
-                    player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+                    player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
                 }
-                player.NPCLetterHistory.GetItem(senderId).RecordDelivery();
+                player.NPCLetterHistory.GetHistory(senderId).RecordDelivery();
 
                 // Award reputation bonus for on-time delivery
                 if (letter.DeadlineInSegments > 0)
@@ -230,11 +230,11 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
 
             if (!string.IsNullOrEmpty(senderId))
             {
-                if (!player.NPCLetterHistory.ContainsKey(senderId))
+                if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
                 {
-                    player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+                    player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
                 }
-                player.NPCLetterHistory.GetItem(senderId).RecordSkip();
+                player.NPCLetterHistory.GetHistory(senderId).RecordSkip();
             }
         }
 

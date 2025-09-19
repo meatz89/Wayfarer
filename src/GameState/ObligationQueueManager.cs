@@ -371,7 +371,7 @@ public class ObligationQueueManager
         int position = _config.LetterQueue.MaxQueueSize - highestPositiveToken + worstNegativeTokenPenalty;
 
         // Apply Commerce debt leverage override
-        if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        if (allTokens.Any(h => h.NpcId == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             position = 2; // Commerce debt >= 3 forces position 2
         }
@@ -460,7 +460,7 @@ public class ObligationQueueManager
             return LetterPositioningReason.Obligation;
         }
 
-        if (allTokens.ContainsKey(ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        if (allTokens.Any(h => h.NpcId == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
         {
             return LetterPositioningReason.CommerceDebt;
         }
@@ -791,11 +791,11 @@ public class ObligationQueueManager
 
         // Record in history
         Player player = _gameWorld.GetPlayer();
-        if (!player.NPCLetterHistory.ContainsKey(senderId))
+        if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
         {
-            player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+            player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
         }
-        player.NPCLetterHistory.GetItem(senderId).RecordExpiry(); // Use existing expiry tracking
+        player.NPCLetterHistory.GetHistory(senderId).RecordExpiry(); // Use existing expiry tracking
     }
 
     // Handle patron letters that jump to top positions
@@ -1057,11 +1057,11 @@ public class ObligationQueueManager
     private void RecordExpiryInHistory(string senderId)
     {
         Player player = _gameWorld.GetPlayer();
-        if (!player.NPCLetterHistory.ContainsKey(senderId))
+        if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
         {
-            player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+            player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
         }
-        player.NPCLetterHistory.GetItem(senderId).RecordExpiry();
+        player.NPCLetterHistory.GetHistory(senderId).RecordExpiry();
     }
 
     // Show narrative for relationship damage
@@ -1094,7 +1094,7 @@ public class ObligationQueueManager
     private void ShowCumulativeDamage(DeliveryObligation letter, string senderId)
     {
         Player player = _gameWorld.GetPlayer();
-        LetterHistory history = player.NPCLetterHistory.GetItem(senderId);
+        LetterHistory history = player.NPCLetterHistory.GetHistory(senderId);
 
         if (history.ExpiredCount > 1)
         {
@@ -1171,12 +1171,12 @@ public class ObligationQueueManager
         if (string.IsNullOrEmpty(senderId)) return;
 
         Player player = _gameWorld.GetPlayer();
-        if (!player.NPCLetterHistory.ContainsKey(senderId))
+        if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
         {
-            player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+            player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
         }
 
-        player.NPCLetterHistory.GetItem(senderId).RecordDelivery();
+        player.NPCLetterHistory.GetHistory(senderId).RecordDelivery();
 
         // Get the sender NPC for narrative context
         NPC senderNpc = _npcRepository.GetById(senderId);
@@ -1189,7 +1189,7 @@ public class ObligationQueueManager
             );
 
             // Show trust building based on delivery history
-            LetterHistory history = player.NPCLetterHistory.GetItem(senderId);
+            LetterHistory history = player.NPCLetterHistory.GetHistory(senderId);
             if (history.DeliveredCount == 1)
             {
                 _messageSystem.AddSystemMessage(
@@ -1224,12 +1224,12 @@ public class ObligationQueueManager
         if (string.IsNullOrEmpty(senderId)) return;
 
         Player player = _gameWorld.GetPlayer();
-        if (!player.NPCLetterHistory.ContainsKey(senderId))
+        if (!player.NPCLetterHistory.Any(h => h.NpcId == senderId))
         {
-            player.NPCLetterHistory.SetItem(senderId, new LetterHistory());
+            player.NPCLetterHistory.AddOrUpdateHistory(senderId, new LetterHistory());
         }
 
-        player.NPCLetterHistory.GetItem(senderId).RecordSkip();
+        player.NPCLetterHistory.GetHistory(senderId).RecordSkip();
 
         // Get the sender NPC for narrative context
         NPC senderNpc = _npcRepository.GetById(senderId);
@@ -1243,7 +1243,7 @@ public class ObligationQueueManager
             );
 
             // Show cumulative damage if multiple skips
-            LetterHistory history = player.NPCLetterHistory.GetItem(senderId);
+            LetterHistory history = player.NPCLetterHistory.GetHistory(senderId);
             if (history.SkippedCount > 1)
             {
                 _messageSystem.AddSystemMessage(

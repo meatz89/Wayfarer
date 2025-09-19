@@ -96,15 +96,17 @@ public class NPCRequest
         // Resolve request card IDs
         foreach (string cardId in RequestCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
-                allCards.Add(card);
+            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
+            if (entry != null)
+                allCards.Add(entry.Card);
         }
 
         // Resolve promise card IDs
         foreach (string cardId in PromiseCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
-                allCards.Add(card);
+            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
+            if (entry != null)
+                allCards.Add(entry.Card);
         }
 
         return allCards;
@@ -118,8 +120,9 @@ public class NPCRequest
         List<ConversationCard> cards = new List<ConversationCard>();
         foreach (string cardId in RequestCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
-                cards.Add(card);
+            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
+            if (entry != null)
+                cards.Add(entry.Card);
         }
         return cards;
     }
@@ -132,8 +135,9 @@ public class NPCRequest
         List<ConversationCard> cards = new List<ConversationCard>();
         foreach (string cardId in PromiseCardIds)
         {
-            if (gameWorld.AllCardDefinitions.TryGetValue(cardId, out ConversationCard? card))
-                cards.Add(card);
+            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
+            if (entry != null)
+                cards.Add(entry.Card);
         }
         return cards;
     }

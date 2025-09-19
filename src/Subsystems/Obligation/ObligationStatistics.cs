@@ -180,13 +180,13 @@ public class ObligationStatistics
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
             // If NPC has no letter history, they haven't interacted yet
-            if (!player.NPCLetterHistory.ContainsKey(npc.ID))
+            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == npc.ID))
             {
                 // Skip NPCs with no letter history - they have no relationship health to report
                 continue;
             }
 
-            LetterHistory history = player.NPCLetterHistory.GetItem(npc.ID);
+            LetterHistory history = player.NPCLetterHistory.GetHistory(npc.ID);
 
             RelationshipHealth health = new RelationshipHealth
             {
@@ -219,10 +219,10 @@ public class ObligationStatistics
         foreach (NPC npc in _npcRepository.GetAllNPCs())
         {
             // Skip NPCs with no letter history - they have no performance metrics
-            if (!player.NPCLetterHistory.ContainsKey(npc.ID))
+            if (!player.NPCLetterHistory.Any(kvp => kvp.Key == npc.ID))
                 continue;
 
-            LetterHistory history = player.NPCLetterHistory.GetItem(npc.ID);
+            LetterHistory history = player.NPCLetterHistory.GetHistory(npc.ID);
             Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
             metrics.Add(new NPCPerformanceMetric
@@ -335,7 +335,7 @@ public class ObligationStatistics
                 Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(senderId);
                 foreach (KeyValuePair<ConnectionType, int> token in tokens)
                 {
-                    if (!leverage.ContainsKey(token.Key))
+                    if (!leverage.Any(kvp => kvp.Key == token.Key))
                         leverage[token.Key] = 0;
                     leverage[token.Key] += token.Value;
                 }
@@ -378,7 +378,7 @@ public class ObligationStatistics
         int totalExpired = 0;
         int totalSkipped = 0;
 
-        foreach (LetterHistory history in player.NPCLetterHistory.Values())
+        foreach (LetterHistory history in player.NPCLetterHistory.GetAllHistories())
         {
             totalDelivered += history.DeliveredCount;
             totalExpired += history.ExpiredCount;
