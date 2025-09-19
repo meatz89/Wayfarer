@@ -6,7 +6,6 @@ public enum ResourceType
     Coins,
     Health,
     Hunger,
-    Attention,
     TrustToken,
     CommerceToken,
     StatusToken,

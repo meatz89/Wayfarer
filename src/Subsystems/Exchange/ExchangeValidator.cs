@@ -30,7 +30,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             ExchangeData exchange,
             NPC npc,
             PlayerResourceState playerResources,
-            AttentionInfo attentionInfo,
             Dictionary<ConnectionType, int> npcTokens,
             RelationshipTier relationshipTier,
             List<string> currentSpotDomains)
@@ -88,7 +87,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Check affordability
-            if (!CanAffordExchange(exchange, playerResources, attentionInfo, npcTokens))
+            if (!CanAffordExchange(exchange, playerResources, npcTokens))
             {
                 result.CanAfford = false;
                 result.IsValid = false;
@@ -111,12 +110,12 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford the exchange costs
         /// </summary>
-        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens)
+        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
         {
 
             foreach (ResourceAmount cost in exchange.Costs)
             {
-                if (!CanAffordResource(cost, playerResources, attentionInfo, npcTokens))
+                if (!CanAffordResource(cost, playerResources, npcTokens))
                 {
                     return false;
                 }
@@ -245,14 +244,13 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford a specific resource cost
         /// </summary>
-        private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens)
+        private bool CanAffordResource(ResourceAmount cost, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
         {
             return cost.Type switch
             {
                 ResourceType.Coins => playerResources.Coins >= cost.Amount,
                 ResourceType.Health => playerResources.Health >= cost.Amount,
                 ResourceType.Hunger => true, // Hunger is usually a reward, not a cost
-                ResourceType.Attention => attentionInfo.Current >= cost.Amount,
                 ResourceType.TrustToken => npcTokens.GetValueOrDefault(ConnectionType.Trust, 0) >= cost.Amount,
                 ResourceType.CommerceToken => npcTokens.GetValueOrDefault(ConnectionType.Commerce, 0) >= cost.Amount,
                 ResourceType.StatusToken => npcTokens.GetValueOrDefault(ConnectionType.Status, 0) >= cost.Amount,

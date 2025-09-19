@@ -36,9 +36,8 @@ public class ExchangeCostStructure
     /// <summary>
     /// Checks if a player can afford all costs for this exchange.
     /// Does not check token requirements - those are prerequisites.
-    /// Attention must be passed separately as it's managed per time block.
     /// </summary>
-    public bool CanAfford(PlayerResourceState playerResources, int currentAttention = 0)
+    public bool CanAfford(PlayerResourceState playerResources)
     {
         if (playerResources == null) return false;
 
@@ -54,9 +53,6 @@ public class ExchangeCostStructure
                     break;
                 case ResourceType.Hunger:
                     if (playerResources.Stamina < cost.Amount) return false;
-                    break;
-                case ResourceType.Attention:
-                    if (currentAttention < cost.Amount) return false;
                     break;
             }
         }

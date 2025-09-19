@@ -10,6 +10,5 @@ public class ConversationTypeDefinitionDTO
     public string Description { get; set; }
     public string DeckId { get; set; }
     public string Category { get; set; }
-    public int AttentionCost { get; set; } = 1;
     public List<string> AvailableTimeBlocks { get; set; } = new List<string>();
 }

@@ -58,7 +58,6 @@ public class ObservationViewModel
     public string Icon { get; set; }
     public string Text { get; set; }
     public bool IsUnknown { get; set; }
-    public int AttentionCost { get; set; }
     public string Relevance { get; set; }
     public bool IsObserved { get; set; }
 }

@@ -90,9 +90,6 @@ namespace Wayfarer.Pages.Components
                     // Add each available option with its specific goal card
                     foreach (ConversationOption conversationOption in availableOptions)
                     {
-                        // Get attention cost from backend mechanics
-                        ConversationFacade conversationFacade = GameFacade.GetConversationFacade();
-                        int attentionCost = conversationFacade.GetAttentionCost(conversationOption.ConversationTypeId);
 
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
@@ -101,7 +98,6 @@ namespace Wayfarer.Pages.Components
                             GoalCardId = conversationOption.GoalCardId,
                             Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ConversationTypeId),
                             Description = conversationOption.Description,
-                            AttentionCost = attentionCost,
                             IsAvailable = true
                         };
                         options.Add(option);
@@ -115,7 +111,6 @@ namespace Wayfarer.Pages.Components
                         {
                             ConversationTypeId = null, // No conversation type - this is an exchange!
                             Label = "Quick Exchange",
-                            AttentionCost = 1, // Exchanges always cost 1 attention
                             IsAvailable = true,
                             IsExchange = true // Mark this as an exchange
                         };
@@ -413,13 +408,6 @@ namespace Wayfarer.Pages.Components
 
             Console.WriteLine($"[LocationContent] Starting investigation of {CurrentLocation.Name} at {CurrentSpot.Name}");
 
-            // Check attention first (quick check before calling facade)
-            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-            if (attentionState.Current < 1)
-            {
-                Console.WriteLine("[LocationContent] Not enough attention for investigation");
-                return;
-            }
 
             // Call LocationFacade to perform the investigation
             bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.SpotID);
@@ -444,9 +432,6 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null) return false;
 
-            // Check attention requirement
-            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-            if (attentionState.Current < 1) return false;
 
             // Check if location is already at max familiarity
             Player player = GameWorld.GetPlayer();
@@ -958,11 +943,7 @@ namespace Wayfarer.Pages.Components
                 _ => false
             };
 
-            // Also check attention cost
-            AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-            bool hasAttention = attentionState.Current >= 1;
-
-            return hasStatRequirement && hasAttention;
+            return hasStatRequirement;
         }
 
         protected string GetApproachDisplayName(InvestigationApproach approach)
@@ -1025,7 +1006,6 @@ namespace Wayfarer.Pages.Components
         public string GoalCardId { get; set; }  // The specific card ID from the NPC's requests
         public string Label { get; set; }
         public string Description { get; set; }  // Full description of the conversation option
-        public int AttentionCost { get; set; }
         public bool IsAvailable { get; set; }
         public bool IsExchange { get; set; } // True if this is an exchange, not a conversation
     }

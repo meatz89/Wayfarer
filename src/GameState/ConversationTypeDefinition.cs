@@ -11,7 +11,6 @@ public class ConversationTypeDefinition
     public string Description { get; set; }
     public string DeckId { get; set; }
     public string Category { get; set; }  // Links requests to conversation types
-    public int AttentionCost { get; set; }
     public List<string> AvailableTimeBlocks { get; set; } = new();
 }
 

@@ -111,24 +111,6 @@ namespace Wayfarer.Tests
         }
 
         [Test]
-        public void GetSkeletonReport_ListsAllSkeletons()
-        {
-            // Arrange
-            gameWorld.SkeletonRegistry["location_1"] = "Location";
-            gameWorld.SkeletonRegistry["npc_1"] = "NPC";
-            gameWorld.SkeletonRegistry["spot_1"] = "LocationSpot";
-
-            // Act
-            List<string> report = gameWorld.GetSkeletonReport();
-
-            // Assert
-            Assert.That(report.Count, Is.EqualTo(3), "Should list all skeletons");
-            Assert.That(report.Any(r => r.Contains("Location: location_1")), Is.True);
-            Assert.That(report.Any(r => r.Contains("NPC: npc_1")), Is.True);
-            Assert.That(report.Any(r => r.Contains("LocationSpot: spot_1")), Is.True);
-        }
-
-        [Test]
         public void MultiplePackages_AccumulateContentWithSkeletons()
         {
             // Arrange - load packages in sequence

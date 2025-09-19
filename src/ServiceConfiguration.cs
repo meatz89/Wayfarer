@@ -115,8 +115,6 @@ public static class ServiceConfiguration
         services.AddSingleton<SpecialLetterHandler>();
         services.AddSingleton<DailyActivitiesManager>();
 
-        // Attention management
-        services.AddSingleton<TimeBlockAttentionManager>();
 
         // Action generation service
         services.AddSingleton<ActionGenerator>();

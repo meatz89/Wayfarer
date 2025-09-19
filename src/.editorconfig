@@ -411,6 +411,12 @@ dotnet_diagnostic.IDE0320.severity = none
 # IDE0056: Use index operator
 dotnet_diagnostic.IDE0056.severity = none
 
+# IDE0078: Use pattern matching
+dotnet_diagnostic.IDE0078.severity = none
+
+# IDE0057: Use range operator
+dotnet_diagnostic.IDE0057.severity = none
+
 [*.{cs,vb}]
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion

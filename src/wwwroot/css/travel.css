@@ -1,4 +1,4 @@
-/* Travel Screen Styles - Exact Match to Mockup */
+/* Travel Screen Styles - Based on UI Mockup */
 
 .travel-container {
     width: 100%;
@@ -6,7 +6,7 @@
     background: #faf4ea;
 }
 
-/* Header */
+/* Route Selection Header */
 .travel-header {
     background: linear-gradient(to bottom, #2c241a, #3d3429);
     color: #e8dcc4;
@@ -26,6 +26,88 @@
     font-size: 12px;
     color: #d4a76a;
     font-style: italic;
+}
+
+/* Route Info Header (for active travel) */
+.route-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 20px;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.route-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.route-name {
+    font-size: 24px;
+    color: #5c4a3a;
+    letter-spacing: 1px;
+}
+
+.route-properties {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+}
+
+.route-property {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.property-label {
+    color: #7a6250;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.property-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* Transport Type Badge */
+.transport-badge {
+    background: #5c4a3a;
+    color: #faf4ea;
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Travel State Bar */
+.travel-state-bar {
+    background: #f9f3e9;
+    padding: 15px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.travel-state {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.state-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+}
+
+.state-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #8b4726;
 }
 
 /* Resources Bar */
@@ -366,5 +448,143 @@
 
 .no-routes p {
     margin: 10px 0;
+}
+
+/* Stamina and Segment Progress (Travel Path) */
+.stamina-section {
+    background: #f4e8d0;
+    padding: 15px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stamina-label {
+    font-size: 12px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stamina-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.stamina-dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #8b7355;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.stamina-dot.available {
+    background: #d4a76a;
+    box-shadow: 0 0 4px rgba(212, 167, 106, 0.5);
+}
+
+.stamina-dot.spent {
+    background: transparent;
+    opacity: 0.5;
+}
+
+.stamina-numbers {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-left: 10px;
+}
+
+.stamina-note {
+    font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-left: auto;
+}
+
+/* Segment Progress Bar */
+.segment-progress {
+    background: #e8dcc4;
+    padding: 12px 20px;
+    border-bottom: 1px solid #c4a684;
+    font-size: 12px;
+    color: #5c4a3a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.segment-progress .segment-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.segment-progress .segment-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #8b7355;
+}
+
+.segment-progress .segment-dot.complete {
+    background: #7a8b5a;
+}
+
+.segment-progress .segment-dot.current {
+    background: #d4a76a;
+    animation: pulse 2s infinite;
+}
+
+/* Encounter Preview */
+.encounter-preview {
+    background: #faf0e6;
+    border: 1px solid #d4a76a;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.encounter-icon {
+    font-size: 24px;
+}
+
+.encounter-info {
+    flex: 1;
+}
+
+.encounter-type {
+    font-size: 11px;
+    color: #8b4726;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.encounter-text {
+    font-size: 13px;
+    color: #5c4a3a;
+    font-style: italic;
+}
+
+/* Transport Type Icons */
+.transport-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #5c4a3a;
+    color: #faf4ea;
+    border-radius: 50%;
+    font-size: 12px;
 }
 

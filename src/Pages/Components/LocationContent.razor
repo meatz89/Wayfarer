@@ -123,17 +123,11 @@
                     Player player = GameWorld.GetPlayer();
                     int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
                     bool isMaxFamiliarity = currentFamiliarity >= CurrentLocation.MaxFamiliarity;
-                    AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-                    bool hasAttention = attentionState.Current >= 1;
                     <div class="action-card investigation unavailable">
                         <div class="action-name">🔍 Investigate</div>
                         <div class="action-cost">
                             <span class="unavailable-reason">
-                                @if (!hasAttention)
-                                {
-                                    <text>Need 1 attention</text>
-                                }
-                                else if (isMaxFamiliarity)
+                                @if (isMaxFamiliarity)
                                 {
                                     <text>Fully familiar (@GetFamiliarityDisplay())</text>
                                 }
@@ -259,15 +253,6 @@
                                  @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else if (!string.IsNullOrEmpty(option.RequestId)) await StartConversationWithRequest(npc.Id, option.RequestId); } }">
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
-                                    @if (option.AttentionCost == 0)
-                                    {
-                                        <span>Free!</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="cost-value">@option.AttentionCost attention</span>
-                                    }
-                                    <span> • </span>
                                     <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot!)</span>
                                     @if (option.ConversationTypeId == "request" && HasLetterRequest(npc.Id))
                                     {

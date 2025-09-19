@@ -4,36 +4,66 @@
 @namespace Wayfarer.Pages
 
 <div class="game-container">
-    <!-- Player Resources Bar (from mockup) -->
+    <!-- Time Segment Header (always visible) -->
+    <div class="time-header">
+        <div class="day-display">@GetDayDisplay()</div>
+        <div class="time-segment-display">
+            <div class="period-name">@GetTimePeriodName()</div>
+            <div class="segment-dots">
+                @foreach (var dot in GetSegmentDots())
+                {
+                    <div class="segment-dot @dot"></div>
+                }
+            </div>
+            <div class="segment-counter">[@GetCurrentSegmentInPeriod()/@GetTotalSegmentsInPeriod()]</div>
+        </div>
+    </div>
+
+    <!-- Player Resources Bar (enhanced from mockup) -->
     <div class="resources-bar">
         <div class="resource-group">
-            <div class="resource @(Coins < 5 ? "low" : "")">
-                <div class="resource-icon">💰</div>
-                <div class="resource-value">@Coins</div>
-                <span>Coins</span>
-            </div>
-            <div class="resource @(Health < 30 ? "low" : "")">
+            <div class="resource @(Health < 30 ? "low" : "") @(Health < 15 ? "critical" : "")">
                 <div class="resource-icon">❤️</div>
-                <div class="resource-value">@Health</div>
-                <span>Health</span>
+                <div class="resource-info">
+                    <div class="resource-label">Health</div>
+                    <div class="resource-value">@Health</div>
+                </div>
             </div>
-            <div class="resource @(Hunger > 60 ? "low" : "")">
+            <div class="resource @(Hunger > 60 ? "low" : "") @(Hunger > 80 ? "critical" : "")">
                 <div class="resource-icon">🍞</div>
-                <div class="resource-value">@Hunger</div>
-                <span>Hunger</span>
+                <div class="resource-info">
+                    <div class="resource-label">Hunger</div>
+                    <div class="resource-value">@Hunger</div>
+                </div>
             </div>
             <div class="resource">
-                <div class="resource-icon">👁️</div>
-                <div class="resource-value">@Attention/@MaxAttention</div>
-                <span>Attention</span>
+                <div class="resource-icon">⚡</div>
+                <div class="resource-info">
+                    <div class="resource-label">Stamina</div>
+                    <div class="resource-value">@GetStaminaDisplay()</div>
+                </div>
             </div>
-        </div>
-        <div class="resource-group">
-            <div class="resource">
-                <span>@CurrentTime • @TimePeriod</span>
+            <div class="resource @(Coins < 5 ? "low" : "") @(Coins < 2 ? "critical" : "")">
+                <div class="resource-icon">💰</div>
+                <div class="resource-info">
+                    <div class="resource-label">Coins</div>
+                    <div class="resource-value">@Coins</div>
+                </div>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(MostUrgentDeadline))
+    {
+        <!-- Deadline Warning (when applicable) -->
+        <div class="deadline-warning">
+            <div class="deadline-text">URGENT DEADLINE</div>
+            <div class="deadline-timer">
+                <span>@MostUrgentDeadline</span>
+                <span class="deadline-segments">@GetDeadlineSegments() segments</span>
+            </div>
+        </div>
+    }
 
     <!-- Dynamic Content Area -->
     <CascadingValue Value="@this">

@@ -1,0 +1,250 @@
+/* ==========================================
+   WAYFARER COMMON STYLES
+   Shared styles for time header and resources
+   Based on UI mockups
+   ========================================== */
+
+/* Base Typography */
+body {
+    font-family: 'Garamond', 'Georgia', serif;
+    background: linear-gradient(to bottom, #2a2520, #1a1612);
+    color: #2c241a;
+    margin: 0;
+    padding: 0;
+}
+
+.main-container {
+    max-width: 820px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 60px rgba(0,0,0,0.7);
+}
+
+/* ==========================================
+   TIME SEGMENT HEADER
+   ========================================== */
+.time-header {
+    background: linear-gradient(to bottom, #1a1612, #2c241a);
+    color: #e8dcc4;
+    padding: 15px 20px;
+    border-bottom: 3px solid #5c4a3a;
+}
+
+.day-display {
+    font-size: 11px;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.time-segment-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+}
+
+.period-name {
+    font-size: 18px;
+    color: #d4a76a;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.segment-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.segment-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #5c4a3a;
+    transition: all 0.3s;
+}
+
+.segment-dot.filled {
+    background: #d4a76a;
+    box-shadow: 0 0 6px rgba(212, 167, 106, 0.5);
+}
+
+.segment-dot.empty {
+    background: transparent;
+}
+
+.segment-dot.current {
+    border-color: #d4a76a;
+    animation: pulse 2s infinite;
+}
+
+.segment-counter {
+    font-size: 13px;
+    color: #8b7355;
+    margin-left: 10px;
+}
+
+/* ==========================================
+   RESOURCES BAR
+   ========================================== */
+.resources-bar {
+    background: #2c241a;
+    color: #e8dcc4;
+    padding: 12px 20px;
+    border-bottom: 2px solid #3d3429;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resource-group {
+    display: flex;
+    gap: 25px;
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.resource-icon {
+    width: 22px;
+    height: 22px;
+    background: #3d3429;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border: 1px solid #5c4a3a;
+}
+
+.resource-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.resource-label {
+    font-size: 10px;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.resource-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #d4a76a;
+}
+
+/* Resource States */
+.resource.low .resource-value {
+    color: #d4704a;
+}
+
+.resource.critical .resource-value {
+    color: #ff4444;
+    animation: blink 1s infinite;
+}
+
+/* ==========================================
+   DEADLINE WARNING BAR
+   ========================================== */
+.deadline-warning {
+    background: #8b4726;
+    color: #faf4ea;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #5c2a1a;
+}
+
+.deadline-text {
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.deadline-timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.deadline-segments {
+    padding: 3px 8px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ==========================================
+   GAME CONTAINER LAYOUT
+   ========================================== */
+.game-container {
+    max-width: 820px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #faf4ea;
+    box-shadow: 0 0 60px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Content area fills remaining space */
+.content-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* ==========================================
+   SHARED UI ELEMENTS
+   ========================================== */
+.section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7a6250;
+    margin-bottom: 12px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.property-tag {
+    font-size: 11px;
+    color: #7a6250;
+    padding: 3px 8px;
+    background: #faf4ea;
+    border: 1px solid #c4a684;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.property-tag.time-sensitive {
+    background: #fff4e6;
+    border-color: #d4a76a;
+    color: #8b5a26;
+}

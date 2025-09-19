@@ -6,7 +6,6 @@ public class ResourceState
     public int Health { get; set; }
     public int Hunger { get; set; }
     public int Stamina { get; set; }
-    public int Attention { get; set; }
     public Dictionary<ConnectionType, int> Tokens { get; set; }
 
     public ResourceState()
@@ -22,7 +21,6 @@ public class ResourceState
             Health = player.Health,
             Hunger = player.Hunger,
             Stamina = player.Stamina,
-            Attention = player.Attention,
             Tokens = new Dictionary<ConnectionType, int>()
         };
     }
@@ -35,7 +33,6 @@ public class ResourceState
             Health = playerState.Health,
             Hunger = playerState.Hunger,
             Stamina = playerState.Stamina,
-            Attention = playerState.Attention,
             Tokens = new Dictionary<ConnectionType, int>()
         };
     }

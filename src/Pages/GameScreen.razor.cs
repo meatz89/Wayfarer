@@ -53,7 +53,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
-    [Inject] protected TimeBlockAttentionManager AttentionManager { get; set; }
     [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
 
     public GameScreenBase()
@@ -75,8 +74,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public int Coins { get; set; }
     public int Health { get; set; }
     public int Hunger { get; set; }
-    public int Attention { get; set; }
-    public int MaxAttention { get; set; } = 10;
 
     // Time Display - Made public for child components to access for Perfect Information principle
     public string CurrentTime { get; set; } = "";
@@ -128,9 +125,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             Hunger = player.Hunger;
         }
 
-        AttentionStateInfo attentionState = GameFacade.GetCurrentAttentionState();
-        Attention = attentionState.Current;
-        MaxAttention = attentionState.Max;
     }
 
     protected async Task RefreshTimeDisplay()
@@ -499,5 +493,102 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         _stateLock?.Dispose();
+    }
+
+    // Time/Date Display Helper Methods
+    protected string GetDayDisplay()
+    {
+        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        int journeyDay = timeInfo.CurrentDay;
+
+        string[] dayNames = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+        int dayOfWeek = (journeyDay - 1) % 7;
+
+        return $"{dayNames[dayOfWeek]} - Day {journeyDay} of Journey";
+    }
+
+    protected string GetTimePeriodName()
+    {
+        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        return timeInfo.CurrentTimeBlock.ToString().ToUpper();
+    }
+
+    protected List<string> GetSegmentDots()
+    {
+        List<string> dots = new List<string>();
+        int currentSegment = GetCurrentSegmentInPeriod();
+        int totalSegments = GetTotalSegmentsInPeriod();
+
+        for (int i = 1; i <= totalSegments; i++)
+        {
+            if (i < currentSegment)
+                dots.Add("filled");
+            else if (i == currentSegment)
+                dots.Add("current");
+            else
+                dots.Add("empty");
+        }
+
+        return dots;
+    }
+
+    protected int GetCurrentSegmentInPeriod()
+    {
+        // Get the actual segment display from TimeInfo
+        // The SegmentDisplay is formatted like "MORNING ●●○○ [2/4]"
+        // We need to extract the current segment number
+        TimeInfo timeInfo = GameFacade.GetTimeInfo();
+        string segmentDisplay = timeInfo.SegmentDisplay;
+
+        // Extract the current segment from the display format "[current/total]"
+        int startIndex = segmentDisplay.LastIndexOf('[') + 1;
+        int endIndex = segmentDisplay.IndexOf('/', startIndex);
+
+        if (startIndex > 0 && endIndex > startIndex)
+        {
+            string currentStr = segmentDisplay.Substring(startIndex, endIndex - startIndex);
+            if (int.TryParse(currentStr, out int current))
+                return current;
+        }
+
+        return 1; // Default to 1 if parsing fails
+    }
+
+    protected int GetTotalSegmentsInPeriod()
+    {
+        // Each time period always has 4 segments
+        return 4;
+    }
+
+    protected string GetStaminaDisplay()
+    {
+        // For travel, get from the TravelManager if there's an active session
+        // Otherwise show player's base stamina
+        Player player = GameFacade.GetPlayer();
+        if (player != null)
+        {
+            // Default stamina when not traveling
+            int currentStamina = player.Stamina;
+            int maxStamina = player.MaxStamina;
+            return $"{currentStamina}/{maxStamina}";
+        }
+        return "0/0";
+    }
+
+    protected int GetDeadlineSegments()
+    {
+        // Get the most urgent deadline from the letter queue
+        LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
+        if (queueVM?.QueueSlots != null)
+        {
+            foreach (QueueSlotViewModel slot in queueVM.QueueSlots)
+            {
+                if (slot.IsOccupied && slot.DeliveryObligation != null)
+                {
+                    return slot.DeliveryObligation.DeadlineInSegments_Display;
+                }
+            }
+        }
+        return 0;
     }
 }

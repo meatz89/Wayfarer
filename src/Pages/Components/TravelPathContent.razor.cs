@@ -83,6 +83,17 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get transport type for current route
+        /// </summary>
+        protected string GetTransportType()
+        {
+            if (TravelContext?.CurrentRoute == null)
+                return "Walking";
+
+            return TravelContext.CurrentRoute.Method.ToString().Replace("_", " ");
+        }
+
+        /// <summary>
         /// Get stamina display string
         /// </summary>
         protected string GetStaminaDisplay()

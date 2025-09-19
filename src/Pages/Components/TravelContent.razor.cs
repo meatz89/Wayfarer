@@ -294,10 +294,6 @@ namespace Wayfarer.Pages.Components
             if (player.Coins < route.Cost)
                 return false;
 
-            // Check stamina cost (base 2 for any travel)
-            if (player.Attention < 2)
-                return false;
-
             // Check requirements (includes token requirements, time restrictions, etc.)
             // Requirements list is populated by GetRouteRequirements which checks tokens
             // If there are any unmet requirements, the route cannot be taken

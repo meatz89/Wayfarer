@@ -15,13 +15,11 @@
 
     // Resources
     public int Coins { get; set; } // Starting coins - intentionally kept as literal as it's game balance
-    public int Attention { get; set; } // Starting attention
     public int Health { get; set; } // Starting health
     public int Hunger { get; set; } // Starting hunger (0 = not hungry)
     public int Stamina { get; set; } // Starting stamina for travel
     public int MaxStamina { get; set; } = 10; // Maximum stamina
 
-    public int MaxAttention { get; set; } = 10;  // Maximum attention
     public int MinHealth { get; set; } = 0; // Minimum health before death
     public int MaxHealth { get; set; } = 100; // Maximum health
     public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
@@ -190,7 +188,6 @@
         XPToNextLevel = 100;
 
         // Set max values that match initial values
-        MaxAttention = 10; // Maximum attention
         MaxHealth = 10; // Set reasonable default for MaxHealth
         MaxHunger = 100; // Maximum hunger before starvation
 
@@ -212,7 +209,6 @@
 
     public void HealFully()
     {
-        Attention = MaxAttention;
         Health = MaxHealth;
         Hunger = 0; // Reset hunger to not hungry
     }
@@ -306,10 +302,6 @@
         }
     }
 
-    public void SetNewAttention(int newAttention)
-    {
-        Attention = Math.Clamp(newAttention, 0, MaxAttention);
-    }
 
     public void ModifyCoins(int amount)
     {
@@ -320,56 +312,13 @@
         }
     }
 
-    public bool SpendAttention(int amount)
-    {
-        if (Attention < amount) return false;
 
-        Attention -= amount;
-        return true;
-    }
-
-    // === ATTENTION SYSTEM ===
-    // Attention replaces stamina as the core conversation resource
-
-    /// <summary>
-    /// Modifies attention
-    /// </summary>
-    public bool ModifyAttention(int amount)
-    {
-        int newAttention = Math.Clamp(Attention + amount, 0, MaxAttention);
-        if (newAttention != Attention)
-        {
-            Attention = newAttention;
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if player has enough attention for an action
-    /// </summary>
-    public bool HasAttention(int amount)
-    {
-        return Attention >= amount;
-    }
-
-    /// <summary>
-    /// Refreshes attention at time block change
-    /// </summary>
-    public void RefreshAttention()
-    {
-        Attention = MaxAttention;
-    }
 
     internal void SetCoins(int value)
     {
         Coins = Math.Max(0, value);
     }
 
-    internal void SetAttention(int value)
-    {
-        Attention = Math.Clamp(value, 0, MaxAttention);
-    }
 
     /// <summary>
     /// Apply initial player configuration from package starting conditions

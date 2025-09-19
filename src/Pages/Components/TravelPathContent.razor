@@ -3,10 +3,41 @@
 
 @if (TravelContext != null && TravelContext.Session != null)
 {
-    <!-- Route Info -->
-    <div class="route-info">
-        <div class="route-title">@GetOriginLocationName() → @GetDestinationName()</div>
-        <div class="route-details">Base Time: @GetBaseTravelTime() minutes • Distance: @GetSegmentCount() segments • Route Familiarity: @GetRouteFamiliarity()</div>
+    <!-- Route Header (Enhanced from mockup) -->
+    <div class="route-header">
+        <div class="route-info">
+            <div class="route-name">@GetOriginLocationName() → @GetDestinationName()</div>
+            <div class="route-properties">
+                <div class="route-property">
+                    <span class="property-label">Transport</span>
+                    <span class="property-value">@GetTransportType()</span>
+                </div>
+                <div class="route-property">
+                    <span class="property-label">Distance</span>
+                    <span class="property-value">@GetSegmentCount() segments</span>
+                </div>
+                <div class="route-property">
+                    <span class="property-label">Base Time</span>
+                    <span class="property-value">@GetBaseTravelTime() min</span>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(GetTransportType()))
+            {
+                <span class="transport-badge">@GetTransportType().ToUpper()</span>
+            }
+        </div>
+    </div>
+
+    <!-- Travel State Bar -->
+    <div class="travel-state-bar">
+        <div class="travel-state">
+            <span class="state-label">Current Segment</span>
+            <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
+        </div>
+        <div class="travel-state">
+            <span class="state-label">Travel State</span>
+            <span class="state-name">@GetTravelStateText()</span>
+        </div>
     </div>
 
     <!-- Stamina Bar -->

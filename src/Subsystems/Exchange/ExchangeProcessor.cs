@@ -31,7 +31,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Prepare exchange operation data for GameFacade to execute
         /// </summary>
-        public ExchangeOperationData PrepareExchangeOperation(ExchangeData exchange, NPC npc, PlayerResourceState playerResources, AttentionInfo attentionInfo)
+        public ExchangeOperationData PrepareExchangeOperation(ExchangeData exchange, NPC npc, PlayerResourceState playerResources)
         {
             return new ExchangeOperationData
             {
@@ -59,9 +59,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// </summary>
         private bool ShouldAdvanceTime(ExchangeData exchange)
         {
-            // Work-like exchanges that cost significant attention advance time
-            return exchange.AdvancesTime ||
-                   exchange.Costs.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3);
+            // Exchanges advance time based on their configuration
+            return exchange.AdvancesTime;
         }
 
         /// <summary>
@@ -74,12 +73,8 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 return exchange.TimeAdvancementHours;
             }
 
-            // Default: 1 segment per 3 attention spent
-            int attentionCost = exchange.Costs
-                .Where(c => c.Type == ResourceType.Attention)
-                .Sum(c => c.Amount);
-
-            return Math.Max(1, attentionCost / 3);
+            // Default: 1 segment for most exchanges
+            return 1;
         }
 
     }

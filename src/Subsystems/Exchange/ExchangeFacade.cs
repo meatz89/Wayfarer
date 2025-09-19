@@ -58,9 +58,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
             Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>(); // Would need TokenFacade
             RelationshipTier relationshipTier = RelationshipTier.None;
-            AttentionInfo attentionInfo = new AttentionInfo(0, 0); // Would need ResourceFacade
-
-            List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier);
+            List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
             if (!availableExchanges.Any())
             {
                 return null;
@@ -72,7 +70,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Get all available exchanges for an NPC
         /// </summary>
-        public List<ExchangeOption> GetAvailableExchanges(string npcId, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
+        public List<ExchangeOption> GetAvailableExchanges(string npcId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
         {
             NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
             if (npc == null)
@@ -103,7 +101,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                     exchange,
                     npc,
                     playerResources,
-                    attentionInfo,
                     npcTokens,
                     relationshipTier,
                     spotDomains);
@@ -136,7 +133,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Execute an exchange with an NPC
         /// </summary>
-        public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, AttentionInfo attentionInfo, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
+        public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
         {
             // Get NPC
             NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -169,7 +166,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 exchange,
                 npc,
                 playerResources,
-                attentionInfo,
                 npcTokens,
                 relationshipTier,
                 new List<string>());
@@ -184,7 +180,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             }
 
             // Process the exchange - return operation data for GameFacade to execute
-            ExchangeOperationData operationData = _processor.PrepareExchangeOperation(exchange, npc, playerResources, attentionInfo);
+            ExchangeOperationData operationData = _processor.PrepareExchangeOperation(exchange, npc, playerResources);
             ExchangeResult result = new ExchangeResult
             {
                 Success = true,
@@ -210,7 +206,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// <summary>
         /// Check if player can afford an exchange
         /// </summary>
-        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, AttentionInfo attentionInfo)
+        public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
         {
             // Need to get npcTokens to call validator properly
             // This method should be updated to accept additional parameters
@@ -234,8 +230,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
             Dictionary<ConnectionType, int> npcTokens = new Dictionary<ConnectionType, int>();
             RelationshipTier relationshipTier = RelationshipTier.None;
-            AttentionInfo attentionInfo = new AttentionInfo(0, 0);
-            return GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier).Any();
+            return GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier).Any();
         }
 
         /// <summary>
@@ -319,7 +314,6 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 ResourceType.Coins => "coins",
                 ResourceType.Health => "health",
                 ResourceType.Hunger => "food",
-                ResourceType.Attention => "attention",
                 ResourceType.TrustToken => "trust",
                 ResourceType.CommerceToken => "commerce",
                 ResourceType.StatusToken => "status",

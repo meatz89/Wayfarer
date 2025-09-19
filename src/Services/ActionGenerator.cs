@@ -1,28 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-
 public class ActionGenerator
 {
     private readonly TimeManager _timeManager;
-    private readonly NPCRepository _npcRepository;
-    private readonly TokenMechanicsManager _tokenManager;
     private readonly GameWorld _gameWorld;
-    private readonly TimeBlockAttentionManager _timeBlockAttention;
 
     public ActionGenerator(
         TimeManager timeManager,
-        NPCRepository npcRepository,
-        TokenMechanicsManager tokenManager,
-        GameWorld gameWorld,
-        TimeBlockAttentionManager timeBlockAttention)
+        GameWorld gameWorld)
     {
         _timeManager = timeManager;
-        _npcRepository = npcRepository;
-        _tokenManager = tokenManager;
         _gameWorld = gameWorld;
-        _timeBlockAttention = timeBlockAttention;
     }
 
     /// <summary>
@@ -33,10 +19,6 @@ public class ActionGenerator
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Check attention state to determine if wait/rest is needed
-        AttentionInfo attentionState = _timeBlockAttention?.GetAttentionState() ?? new AttentionInfo(3, 5);
-        bool isExhausted = attentionState.Current == 0;
-        bool isLowAttention = attentionState.Current <= 1;
 
         // ALWAYS show Wait action for testing purposes
         // Previously only showed when exhausted, but need it visible for testing time block transitions

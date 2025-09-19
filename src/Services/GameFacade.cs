@@ -78,12 +78,6 @@ public class GameFacade
         return _messageSystem;
     }
 
-    public AttentionStateInfo GetCurrentAttentionState()
-    {
-        TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
-        AttentionInfo attention = _resourceFacade.GetAttention(timeBlock);
-        return new AttentionStateInfo(attention.Current, attention.Max, timeBlock);
-    }
 
     // ========== PLAYER STATS OPERATIONS ==========
 
@@ -134,7 +128,6 @@ public class GameFacade
             RequestId = request.Id,
             RequestText = request.Description,
             InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
-            AttentionSpent = conversationType.AttentionCost
         };
 
         return context;
@@ -150,30 +143,13 @@ public class GameFacade
             {
                 if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
                 {
-                    AttentionStateInfo attentionState = GetCurrentAttentionState();
-                    return attentionState.Current >= conversationType.AttentionCost;
+                    return true; // No attention cost check needed
                 }
             }
         }
         return false;
     }
 
-    public int GetStrangerConversationAttentionCost(string requestId)
-    {
-        // Find stranger with this request
-        foreach (NPC stranger in _gameWorld.GetAllStrangers())
-        {
-            NPCRequest request = stranger.GetRequestById(requestId);
-            if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
-            {
-                if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
-                {
-                    return conversationType.AttentionCost;
-                }
-            }
-        }
-        return 1; // Default cost
-    }
 
     public List<InvestigationApproach> GetAvailableInvestigationApproaches()
     {
@@ -245,18 +221,13 @@ public class GameFacade
             List<ConversationOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
             List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ConversationTypeId).Distinct().ToList();
 
-            // Get attention cost for default conversation type (friendly_chat)
-            int attentionCost = _conversationFacade.GetAttentionCost("friendly_chat");
-            AttentionInfo attentionInfo = _resourceFacade.GetAttention(_timeFacade.GetCurrentTimeBlock());
-            int currentAttention = attentionInfo.Current;
-
             options.Add(new NPCConversationOptions
             {
                 NpcId = npc.ID,
                 NpcName = npc.Description,
                 AvailableTypes = conversationTypeIds,
-                AttentionCost = attentionCost,
-                CanAfford = currentAttention >= attentionCost
+                AttentionCost = 0,
+                CanAfford = true
             });
         }
 
@@ -564,9 +535,8 @@ public class GameFacade
         Location? currentLocation = GetCurrentLocation();
         LocationSpot? currentSpot = GetCurrentLocationSpot();
 
-        // Get current time block and attention
+        // Get current time block
         TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
-        AttentionInfo attentionInfo = _resourceFacade.GetAttention(timeBlock);
 
         // Get player resources and tokens
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
@@ -578,7 +548,7 @@ public class GameFacade
         RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
 
         // Get available exchanges from ExchangeFacade - now orchestrating properly
-        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId, playerResources, attentionInfo, npcTokens, relationshipTier);
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
 
         if (!availableExchanges.Any())
         {
@@ -615,7 +585,6 @@ public class GameFacade
             },
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
-            CurrentAttention = attentionInfo.Current,
             PlayerTokens = npcTokens,
             Session = new ExchangeSession
             {
@@ -641,7 +610,7 @@ public class GameFacade
             currentSpot?.SpotID)
             .FirstOrDefault(o => o.Id == observationId);
 
-        if (observation != null && _resourceFacade.SpendAttention(observation.AttentionCost))
+        if (observation != null)
         {
             return _narrativeFacade.TakeObservation(observationId);
         }
@@ -1066,12 +1035,11 @@ public class GameFacade
         // Collect all data needed for exchange
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
         TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
-        AttentionInfo attentionInfo = _resourceFacade.GetAttention(timeBlock);
         Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
         RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
 
         // Execute exchange through facade (this returns operation data)
-        ExchangeResult result = await _exchangeFacade.ExecuteExchange(npcId, exchangeId, playerResources, attentionInfo, npcTokens, relationshipTier);
+        ExchangeResult result = await _exchangeFacade.ExecuteExchange(npcId, exchangeId, playerResources, npcTokens, relationshipTier);
 
         if (!result.Success || result.OperationData == null)
         {
@@ -1099,14 +1067,6 @@ public class GameFacade
                     _resourceFacade.TakeDamage(cost.Amount, $"Exchange with {npcId}");
                     break;
 
-                case ResourceType.Attention:
-                    if (!_resourceFacade.SpendAttention(cost.Amount, timeBlock, $"Exchange with {npcId}"))
-                    {
-                        result.Success = false;
-                        result.Message = "Failed to spend attention";
-                        return result;
-                    }
-                    break;
 
                 case ResourceType.TrustToken:
                 case ResourceType.CommerceToken:
