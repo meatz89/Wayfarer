@@ -9,7 +9,6 @@ public static class ResourceExtensions
         else if (resourcePair.Key == ResourceType.Health) resourceName = "health";
         else if (resourcePair.Key == ResourceType.Hunger) resourceName = "hunger";
         else if (resourcePair.Key == ResourceType.Hunger) resourceName = "food";
-        else if (resourcePair.Key == ResourceType.Attention) resourceName = "attention";
         else if (resourcePair.Key == ResourceType.TrustToken) resourceName = "trust tokens";
         else if (resourcePair.Key == ResourceType.CommerceToken) resourceName = "commerce tokens";
         else if (resourcePair.Key == ResourceType.StatusToken) resourceName = "status tokens";

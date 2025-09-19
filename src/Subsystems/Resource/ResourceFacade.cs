@@ -12,7 +12,6 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         private readonly CoinManager _coinManager;
         private readonly HealthManager _healthManager;
         private readonly HungerManager _hungerManager;
-        private readonly TimeBlockAttentionManager _attentionManager;
         private readonly ResourceCalculator _resourceCalculator;
         private readonly MessageSystem _messageSystem;
         private readonly TimeManager _timeManager;
@@ -23,7 +22,6 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             CoinManager coinManager,
             HealthManager healthManager,
             HungerManager hungerManager,
-            TimeBlockAttentionManager attentionManager,
             ResourceCalculator resourceCalculator,
             MessageSystem messageSystem,
             TimeManager timeManager,
@@ -33,7 +31,6 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             _coinManager = coinManager;
             _healthManager = healthManager;
             _hungerManager = hungerManager;
-            _attentionManager = attentionManager;
             _resourceCalculator = resourceCalculator;
             _messageSystem = messageSystem;
             _timeManager = timeManager;
@@ -111,57 +108,6 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return _hungerManager.IsStarving(_gameWorld.GetPlayer());
         }
 
-        // ========== ATTENTION OPERATIONS ==========
-
-        public AttentionInfo GetAttention(TimeBlocks timeBlock)
-        {
-            AttentionInfo attentionState = _attentionManager.GetAttentionState();
-            return new AttentionInfo(attentionState.Current, attentionState.Max);
-        }
-
-        public bool CanAffordAttention(int amount, TimeBlocks timeBlock)
-        {
-            return _attentionManager.HasAttentionRemaining() && _attentionManager.GetAttentionState().Current >= amount;
-        }
-
-        public bool SpendAttention(int amount, TimeBlocks timeBlock, string reason)
-        {
-            AttentionInfo currentAttention = _attentionManager.GetAttentionState();
-            if (currentAttention.Current >= amount)
-            {
-                // TimeBlockAttentionManager uses internal AttentionManager, need to access it
-                AttentionManager internalAttention = _attentionManager.GetCurrentAttention(timeBlock);
-                bool success = internalAttention.TrySpend(amount);
-                if (success)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"🧠 Spent {amount} attention on {reason} ({currentAttention.Current - amount}/{currentAttention.Max} remaining)",
-                        SystemMessageTypes.Info);
-                }
-                return success;
-            }
-
-            _messageSystem.AddSystemMessage(
-                $"🧠 Not enough attention! Need {amount}, have {currentAttention.Current}",
-                SystemMessageTypes.Warning);
-            return false;
-        }
-
-        public bool SpendAttention(int amount)
-        {
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            return SpendAttention(amount, currentTimeBlock, "Observation");
-        }
-
-        public void RefreshAttentionForNewTimeBlock(TimeBlocks newTimeBlock)
-        {
-            int hunger = GetHunger();
-            int maxAttention = _resourceCalculator.CalculateMorningAttention(hunger);
-            _attentionManager.ForceRefresh();
-            _messageSystem.AddSystemMessage(
-                $"🧠 Attention refreshed for {newTimeBlock}: {maxAttention} points available",
-                SystemMessageTypes.Success);
-        }
 
         // ========== RESOURCE CALCULATIONS ==========
 
@@ -171,19 +117,12 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return _resourceCalculator.CalculateFocusLimit(health);
         }
 
-        public int CalculateMorningAttention()
-        {
-            int hunger = GetHunger();
-            return _resourceCalculator.CalculateMorningAttention(hunger);
-        }
 
         public void ProcessTimeBlockTransition(TimeBlocks oldBlock, TimeBlocks newBlock)
         {
             // Increase hunger by 20 per time period
             IncreaseHunger(20, "Time passes");
 
-            // Refresh attention for new time block
-            RefreshAttentionForNewTimeBlock(newBlock);
 
             // Refresh NPC daily patience when transitioning to Dawn (morning refresh)
             if (newBlock == TimeBlocks.Dawn)
@@ -225,15 +164,10 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
         /// </summary>
         public PlayerResourcesInfo GetPlayerResources()
         {
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            AttentionInfo attentionInfo = GetAttention(currentTimeBlock);
-
             return new PlayerResourcesInfo(
                 coins: GetCoins(),
                 health: GetHealth(),
-                hunger: GetHunger(),
-                currentAttention: attentionInfo.Current,
-                maxAttention: attentionInfo.Max
+                hunger: GetHunger()
             );
         }
 
@@ -313,25 +247,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             int hungerPenalty = currentHunger / 25; // Integer division = floor
             int coinsEarned = Math.Max(0, baseAmount - hungerPenalty); // Never go below 0
 
-            // Check if we have enough attention
-            TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-            AttentionManager currentAttentionManager = _attentionManager.GetCurrentAttention(currentTimeBlock);
-            int attentionCost = 2;
-
-            if (currentAttentionManager.Current < attentionCost)
-            {
-                return new WorkResult
-                {
-                    Success = false,
-                    Message = $"Not enough attention! Need {attentionCost}, have {currentAttentionManager.Current}",
-                    CoinsEarned = 0,
-                    AttentionSpent = 0,
-                    RemainingAttention = currentAttentionManager.Current
-                };
-            }
-
-            // Spend attention and add coins
-            currentAttentionManager.TrySpend(attentionCost);
+            // Add coins
             AddCoins(coinsEarned, "Work performed");
 
             // Generate message about hunger impact if any
@@ -343,9 +259,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             {
                 Success = true,
                 Message = $"Earned {coinsEarned} coins from work{hungerMessage}",
-                CoinsEarned = coinsEarned,
-                AttentionSpent = attentionCost,
-                RemainingAttention = currentAttentionManager.Current
+                CoinsEarned = coinsEarned
             };
         }
 

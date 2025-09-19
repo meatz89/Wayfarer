@@ -12,7 +12,6 @@ public class ExchangeCost
     public int? Coins { get; set; }
     public int? Health { get; set; }
     public int? Hunger { get; set; }
-    public int? Attention { get; set; }
     public int? Stamina { get; set; }
 }
 
@@ -21,6 +20,5 @@ public class ExchangeReward
     public int? Coins { get; set; }
     public int? Health { get; set; }
     public int? Hunger { get; set; }
-    public int? Attention { get; set; }
     public int? Stamina { get; set; }
 }

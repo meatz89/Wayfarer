@@ -9,18 +9,15 @@ using System.Linq;
 public class ExchangeHandler
 {
     private readonly TimeManager _timeManager;
-    private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
 
     public ExchangeHandler(
         TimeManager timeManager,
-        TimeBlockAttentionManager timeBlockAttentionManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem)
     {
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
@@ -82,11 +79,7 @@ public class ExchangeHandler
     /// </summary>
     public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
     {
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        AttentionManager currentAttentionManager = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-        int currentAttention = currentAttentionManager?.Current ?? 0;
-
-        return exchange.CanAfford(playerResources, _tokenManager, currentAttention);
+        return exchange.CanAfford(playerResources, _tokenManager);
     }
 
     /// <summary>
@@ -153,12 +146,6 @@ public class ExchangeHandler
                     player.Health -= cost.Amount;
                     break;
 
-                case ResourceType.Attention:
-                    TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
-                    AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    if (!attentionMgr.TrySpend(cost.Amount))
-                        return false;
-                    break;
 
                 case ResourceType.TrustToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
@@ -207,11 +194,6 @@ public class ExchangeHandler
                     player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Amount));
                     break;
 
-                case ResourceType.Attention:
-                    TimeBlocks timeBlock = _timeManager.GetCurrentTimeBlock();
-                    AttentionManager attentionMgr = _timeBlockAttentionManager.GetCurrentAttention(timeBlock);
-                    attentionMgr.AddAttention(reward.Amount);
-                    break;
 
                 case ResourceType.TrustToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
@@ -310,8 +292,8 @@ public class ExchangeHandler
     /// </summary>
     private bool ShouldAdvanceTime(ExchangeData exchange)
     {
-        // Work exchanges that cost significant attention advance time
-        return exchange.Costs.Any(c => c.Type == ResourceType.Attention && c.Amount >= 3);
+        // Simple work exchanges advance time
+        return false;
     }
 
     /// <summary>
@@ -342,7 +324,6 @@ public class ExchangeHandler
             ResourceType.Coins => "coins",
             ResourceType.Health => "health",
             ResourceType.Hunger => "hunger",
-            ResourceType.Attention => "attention",
             ResourceType.TrustToken => "trust",
             ResourceType.CommerceToken => "commerce",
             ResourceType.StatusToken => "status",

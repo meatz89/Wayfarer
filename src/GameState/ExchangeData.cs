@@ -65,7 +65,7 @@ public class ExchangeData
         return true;
     }
 
-    public bool CanAfford(PlayerResourceState playerResources, TokenMechanicsManager tokenManager, int currentAttention)
+    public bool CanAfford(PlayerResourceState playerResources, TokenMechanicsManager tokenManager)
     {
         // Check if player can afford the exchange
         if (playerResources == null) return false;
@@ -82,9 +82,6 @@ public class ExchangeData
                     break;
                 case ResourceType.Hunger:
                     if (playerResources.Stamina < cost.Amount) return false;
-                    break;
-                case ResourceType.Attention:
-                    if (currentAttention < cost.Amount) return false;
                     break;
             }
         }

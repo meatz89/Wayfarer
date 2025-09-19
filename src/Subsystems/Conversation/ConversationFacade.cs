@@ -25,7 +25,6 @@ public class ConversationFacade
     private readonly TimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
-    private readonly TimeBlockAttentionManager _timeBlockAttentionManager;
     private readonly DisplacementCalculator _displacementCalculator;
     private readonly Random _random;
 
@@ -47,7 +46,6 @@ public class ConversationFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        TimeBlockAttentionManager timeBlockAttentionManager,
         DisplacementCalculator displacementCalculator)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
@@ -62,7 +60,6 @@ public class ConversationFacade
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _timeBlockAttentionManager = timeBlockAttentionManager ?? throw new ArgumentNullException(nameof(timeBlockAttentionManager));
         _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
         _random = new Random();
     }
@@ -486,21 +483,6 @@ public class ConversationFacade
             return ConversationContextFactory.CreateInvalidContext($"Request {requestId} not found");
         }
 
-        // Check attention cost from conversation type
-        int attentionCost = GetRequestAttentionCost(request);
-        TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
-        AttentionManager currentAttention = _timeBlockAttentionManager.GetCurrentAttention(currentTimeBlock);
-
-        if (!currentAttention.CanAfford(attentionCost))
-        {
-            return ConversationContextFactory.CreateInvalidContext("Not enough attention");
-        }
-
-        // Spend attention
-        if (!currentAttention.TrySpend(attentionCost))
-        {
-            return ConversationContextFactory.CreateInvalidContext("Failed to spend attention");
-        }
 
         // Get observation cards from the specific NPC's deck
         // ARCHITECTURE: Each NPC maintains their own observation deck
@@ -517,7 +499,6 @@ public class ConversationFacade
             npc,
             session,
             observationCards,
-            attentionCost,
             ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
             _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
@@ -649,15 +630,6 @@ public class ConversationFacade
     /// <summary>
     /// Get attention cost for a request's conversation type
     /// </summary>
-    public int GetRequestAttentionCost(NPCRequest request)
-    {
-        // Get the conversation type definition
-        if (_gameWorld.ConversationTypes.TryGetValue(request.ConversationTypeId, out ConversationTypeDefinition? conversationType))
-        {
-            return conversationType.AttentionCost;
-        }
-        return 1; // Default cost
-    }
 
     /// <summary>
     /// Check if a card can be played in the current conversation
@@ -754,16 +726,6 @@ public class ConversationFacade
         return Task.FromResult(outcome != null);
     }
 
-    public int GetAttentionCost(string conversationTypeId)
-    {
-        if (_gameWorld.ConversationTypes.TryGetValue(conversationTypeId, out ConversationTypeDefinition? conversationType))
-        {
-            return conversationType.AttentionCost;
-        }
-
-        // Fallback for unknown conversation types
-        return 1;
-    }
 
     /// <summary>
     /// Get the atmosphere manager for accessing atmosphere state

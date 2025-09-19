@@ -174,11 +174,9 @@ public class GameWorld
             stamina: Player.Stamina,
             health: Player.Health,
             hunger: Player.Hunger,
-            attention: Player.Attention,
             maxStamina: Player.MaxStamina,
             maxHealth: Player.MaxHealth,
-            maxHunger: Player.MaxHunger,
-            maxAttention: Player.MaxAttention
+            maxHunger: Player.MaxHunger
         );
     }
 

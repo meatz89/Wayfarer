@@ -28,7 +28,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         public string NpcId { get; set; }
         public string NpcName { get; set; }
         public List<string> AvailableTypes { get; set; } = new List<string>();
-        public int AttentionCost { get; set; }
         public bool CanAfford { get; set; }
     }
     /// <summary>
@@ -347,13 +346,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             };
             interaction.Text = displayText;
 
-            // Set attention cost - get from ConversationTypeDefinition
-            int attentionCost = 1;
-            if (_gameWorld.ConversationTypes.TryGetValue(conversationType, out ConversationTypeDefinition? conversationTypeDef))
-            {
-                attentionCost = conversationTypeDef.AttentionCost;
-            }
-            interaction.Cost = $"Need {attentionCost} attention";
+            interaction.Cost = "—";
 
             return interaction;
         }
@@ -400,7 +393,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         Id = obs.Id,
                         Text = obs.Text,
                         Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
-                        AttentionCost = obs.AttentionCost,
                         Relevance = BuildRelevanceString(obs),
                         IsObserved = _observationManager.HasTakenObservation(obs.Id)
                     });
@@ -566,19 +558,11 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             // Check basic investigation requirements
             if (!investigation.CanInvestigate(player, location))
             {
-                if (!player.HasAttention(investigation.AttentionCost))
-                {
-                    _messageSystem.AddSystemMessage("Not enough attention to investigate", SystemMessageTypes.Warning);
-                }
-                else
-                {
-                    _messageSystem.AddSystemMessage($"Already fully familiar with {location.Name}", SystemMessageTypes.Info);
-                }
+                _messageSystem.AddSystemMessage($"Already fully familiar with {location.Name}", SystemMessageTypes.Info);
                 return false;
             }
 
             // Handle approach-specific costs and requirements
-            int attentionCost = investigation.AttentionCost;
             int coinCost = 0;
 
             switch (approach)
@@ -634,7 +618,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             CheckAndGrantObservationRewards(location, player, currentFam, newFamiliarity);
 
             // Apply costs
-            player.SpendAttention(attentionCost);
             if (coinCost > 0)
             {
                 player.ModifyCoins(-coinCost);

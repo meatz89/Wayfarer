@@ -10,8 +10,6 @@ public interface IInteractiveChoice
     /// <summary>Display text shown to player</summary>
     string DisplayText { get; }
 
-    /// <summary>Attention cost (0 = free, 1-3 typical, 5 max)</summary>
-    int AttentionCost { get; }
 
     /// <summary>Time cost in minutes (for location actions)</summary>
     int TimeCostMinutes { get; }
@@ -32,7 +30,7 @@ public interface IInteractiveChoice
     InteractionStyle Style { get; }
 
     /// <summary>Execute the interaction and return results</summary>
-    InteractionResult Execute(GameWorld gameWorld, AttentionManager attention);
+    InteractionResult Execute(GameWorld gameWorld);
 }
 
 public enum InteractionType
@@ -98,5 +96,4 @@ public class ResourceChange
     public int? CoinsChange { get; set; }
     public int? HealthChange { get; set; }
     public int? HungerChange { get; set; }
-    public int? AttentionChange { get; set; }
 }

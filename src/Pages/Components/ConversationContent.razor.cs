@@ -29,7 +29,6 @@ namespace Wayfarer.Pages.Components
     /// - InitializeFromContext() only runs when Context.NpcId changes (safe guard)
     /// - Conversation state is ephemeral (OK to recreate on each render)
     /// - All game state mutations go through GameFacade (has idempotence)
-    /// - Attention managed by TimeBlockAttentionManager (singleton, persists)
     /// </summary>
     public class ConversationContentBase : ComponentBase
     {

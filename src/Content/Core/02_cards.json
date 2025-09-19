@@ -577,64 +577,56 @@
       "name": "Friendly Chat",
       "description": "Casual conversation to build rapport",
       "deckId": "deck_friendly_balanced",
-      "category": "social",
-      "attentionCost": 1
+      "category": "social"
     },
     {
       "id": "desperate_request",
       "name": "Desperate Request",
       "description": "Someone in crisis needs help",
       "deckId": "deck_desperate_empathy",
-      "category": "crisis",
-      "attentionCost": 2
+      "category": "crisis"
     },
     {
       "id": "trade_negotiation",
       "name": "Trade Negotiation",
       "description": "Business and commerce discussions",
       "deckId": "deck_trade_mercantile",
-      "category": "commerce",
-      "attentionCost": 1
+      "category": "commerce"
     },
     {
       "id": "authority_challenge",
       "name": "Authority Challenge",
       "description": "Confrontations and power struggles",
       "deckId": "deck_authority_power",
-      "category": "confrontation",
-      "attentionCost": 2
+      "category": "confrontation"
     },
     {
       "id": "information_gathering",
       "name": "Information Gathering",
       "description": "Extracting knowledge and secrets",
       "deckId": "deck_information_subtle",
-      "category": "investigation",
-      "attentionCost": 1
+      "category": "investigation"
     },
     {
       "id": "intimate_confession",
       "name": "Intimate Confession",
       "description": "Deep personal conversations",
       "deckId": "deck_intimate_deep",
-      "category": "emotional",
-      "attentionCost": 3
+      "category": "emotional"
     },
     {
       "id": "seek_favor",
       "name": "Seek Favor",
       "description": "Request help or special treatment",
       "deckId": "deck_seek_favor",
-      "category": "request",
-      "attentionCost": 2
+      "category": "request"
     },
     {
       "id": "casual_exchange",
       "name": "Casual Exchange",
       "description": "Light vendor interactions and small talk",
       "deckId": "deck_casual_exchange",
-      "category": "social",
-      "attentionCost": 1
+      "category": "social"
     }
     ]
   }

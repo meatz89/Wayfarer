@@ -11,7 +11,6 @@ public class ConversationContext
     public ConnectionState InitialState { get; set; }
     public ConversationSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
-    public int AttentionSpent { get; set; }
     public ResourceState PlayerResources { get; set; }
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }

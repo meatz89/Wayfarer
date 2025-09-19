@@ -24,7 +24,6 @@ public class PathCardDTO
 
     // Additional Mechanical Effects
     public int StaminaRestore { get; set; } = 0; // For REST actions
-    public int AttentionCost { get; set; } = 0; // For caravan events
     public int HealthEffect { get; set; } = 0; // Positive for healing, negative for damage
     public int CoinReward { get; set; } = 0; // Coins gained from this path
     public bool ForceReturn { get; set; } = false; // Dead-end paths that force return

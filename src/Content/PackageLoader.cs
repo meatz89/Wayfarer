@@ -478,7 +478,6 @@ public class PackageLoader
                     Description = dto.Description,
                     DeckId = dto.DeckId,
                     Category = dto.Category,
-                    AttentionCost = dto.AttentionCost,
                     AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>()
                 };
                 _gameWorld.ConversationTypes.SetItem(conversationType.Id, conversationType);

@@ -141,7 +141,6 @@
         "excludedTags": [],
         "triggerCondition": "familiarity >= 1",
         "oneTimeOnly": true,
-        "attentionCost": 0,
         "tokenType": "Trust",
         "difficulty": "Medium"
       },
@@ -157,7 +156,6 @@
         "excludedTags": [],
         "triggerCondition": "familiarity >= 2",
         "oneTimeOnly": true,
-        "attentionCost": 0,
         "tokenType": "Commerce",
         "difficulty": "Medium"
       }

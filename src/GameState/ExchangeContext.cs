@@ -18,10 +18,6 @@ public class ExchangeContext
     /// </summary>
     public PlayerResourceState PlayerResources { get; set; }
 
-    /// <summary>
-    /// Current attention available in this time block.
-    /// </summary>
-    public int CurrentAttention { get; set; }
 
     /// <summary>
     /// Player's current token counts.
@@ -84,7 +80,7 @@ public class ExchangeContext
             return false;
 
         // Check resource costs
-        if (!exchange.Cost.CanAfford(PlayerResources, CurrentAttention))
+        if (!exchange.Cost.CanAfford(PlayerResources))
             return false;
 
         // Check token requirements
@@ -159,7 +155,6 @@ public class ExchangeContext
             Coins = PlayerResources.Coins,
             Health = PlayerResources.Health,
             Stamina = PlayerResources.Stamina,
-            Attention = CurrentAttention
         };
 
         // Apply costs
@@ -175,9 +170,6 @@ public class ExchangeContext
                     break;
                 case ResourceType.Hunger:
                     preview.Stamina -= cost.Amount;
-                    break;
-                case ResourceType.Attention:
-                    preview.Attention -= cost.Amount;
                     break;
             }
         }
@@ -195,9 +187,6 @@ public class ExchangeContext
                     break;
                 case ResourceType.Hunger:
                     preview.Stamina += reward.Amount;
-                    break;
-                case ResourceType.Attention:
-                    preview.Attention += reward.Amount;
                     break;
             }
         }
@@ -229,7 +218,6 @@ public class ResourcePreview
     public int Coins { get; set; }
     public int Health { get; set; }
     public int Stamina { get; set; }
-    public int Attention { get; set; }
 }
 
 /// <summary>

@@ -48,15 +48,10 @@
                                     <div class="conversation-type">@request.Name</div>
                                     <div class="conversation-details">
                                         <span class="xp-gain">+@stranger.Level XP per card</span>
-                                        <span class="attention-cost">@GetAttentionCost(request.Id) attention</span>
                                     </div>
                                     <div class="conversation-rewards">
                                         @GetRewardsPreview(request)
                                     </div>
-                                    @if (!canAfford)
-                                    {
-                                        <div class="unavailable-reason">Need @GetAttentionCost(request.Id) attention</div>
-                                    }
                                 </div>
                             }
                         </div>

@@ -284,7 +284,6 @@ public static class ConversationCardParser
             "health" => ResourceType.Health,
             "food" => ResourceType.Hunger,
             "hunger" => ResourceType.Hunger,
-            "attention" => ResourceType.Attention,
             _ => null
         };
     }

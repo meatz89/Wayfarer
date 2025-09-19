@@ -182,7 +182,7 @@ public class DebugLogger
         report.Add("PLAYER STATE:");
         report.Add($"  Location: {player.CurrentLocationSpot?.LocationId ?? "NULL"}");
         report.Add($"  Spot: {player.CurrentLocationSpot?.SpotID ?? "NULL"}");
-        report.Add($"  Stamina: {player.Attention}");
+        report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");
 

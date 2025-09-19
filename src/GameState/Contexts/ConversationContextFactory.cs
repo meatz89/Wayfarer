@@ -12,7 +12,6 @@ public static class ConversationContextFactory
         NPC npc,
         ConversationSession session,
         List<CardInstance> observationCards,
-        int attentionSpent,
         ResourceState playerResources,
         string locationName,
         string timeDisplay)
@@ -39,7 +38,6 @@ public static class ConversationContextFactory
         context.InitialState = session?.InitialState ?? ConnectionState.NEUTRAL;
         context.Session = session;
         context.ObservationCards = observationCards ?? new List<CardInstance>();
-        context.AttentionSpent = attentionSpent;
         context.PlayerResources = playerResources;
         context.LocationName = locationName;
         context.TimeDisplay = timeDisplay;
@@ -181,7 +179,6 @@ public static class ConversationContextFactory
             "health" => ResourceType.Health,
             "food" => ResourceType.Hunger,
             "hunger" => ResourceType.Hunger,
-            "attention" => ResourceType.Attention,
             _ => null
         };
     }

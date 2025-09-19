@@ -170,7 +170,7 @@
                                     @{
                                         var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 || 
                                                         card.CoinReward > 0 || card.StaminaRestore > 0 || 
-                                                        card.AttentionCost > 0 || card.HealthEffect != 0 ||
+                                                        card.HealthEffect != 0 ||
                                                         card.ForceReturn || (card.TokenGains?.Any() ?? false) ||
                                                         (card.RevealsPaths?.Any() ?? false) || 
                                                         (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime);
@@ -207,10 +207,6 @@
                                                 <div class="path-stamina-restore">💪 Restore @card.StaminaRestore stamina</div>
                                             }
                                             
-                                            @if (card.AttentionCost > 0)
-                                            {
-                                                <div class="path-attention-cost">👁️ @card.AttentionCost attention</div>
-                                            }
                                             
                                             @if (card.HealthEffect != 0)
                                             {

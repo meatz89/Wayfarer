@@ -141,7 +141,6 @@ public static class ExchangeParser
             "coins" or "coin" => ResourceType.Coins,
             "food" => ResourceType.Hunger,  // Hunger maps to Hunger resource
             "health" => ResourceType.Health,
-            "attention" or "stamina" => ResourceType.Attention,
             "trust" => ResourceType.TrustToken,
             "commerce" => ResourceType.CommerceToken,
             "status" => ResourceType.StatusToken,
@@ -210,7 +209,6 @@ public static class ExchangeParser
                         Resources = new List<ResourceAmount>
                         {
                             new ResourceAmount { Type = ResourceType.Health, Amount = 3 },
-                            new ResourceAmount { Type = ResourceType.Attention, Amount = 2 }
                         }
                     },
                     SuccessRate = 100

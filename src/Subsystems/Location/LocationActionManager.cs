@@ -112,12 +112,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             Player player = _gameWorld.GetPlayer();
 
-            // Check attention cost
-            if (action.Cost.ContainsKey("attention"))
-            {
-                // For now, always return true until we have proper attention checking
-                return true;
-            }
 
             // Check coin cost
             if (action.Cost.ContainsKey("coins"))
@@ -168,8 +162,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     {
                         ActionType = "work",
                         Title = "Work for Coins",
-                        Detail = "Spend 2 attention to earn 8 coins",
-                        Cost = "2 attention",
+                        Detail = "Earn 8 coins",
+                        Cost = "Free!",
                         IsAvailable = CanPerformWork()
                     });
                     break;
@@ -238,8 +232,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                         ActionType = "inquire",
                         Title = $"Ask {provider.Name} for Information",
                         Detail = "Learn about local events and opportunities",
-                        Cost = "1 attention",
-                        IsAvailable = HasAttention(1)
+                        Cost = "Free!",
+                        IsAvailable = true
                     };
 
                 default:
@@ -267,8 +261,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         private bool CanPerformWork()
         {
             Player player = _gameWorld.GetPlayer();
-            // Need at least 2 attention to work
-            return HasAttention(2);
+            return true;
         }
 
         private bool CanBuyFood()
@@ -298,16 +291,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
         private bool CanRegister()
         {
-            // Registration might have specific requirements
-            return HasAttention(1);
-        }
-
-        private bool HasAttention(int amount)
-        {
-            // This would need proper attention checking through the attention manager
-            // For now, return true to avoid null reference issues
             return true;
         }
+
 
         /// <summary>
         /// Check if a specific action is available at the current location.
@@ -327,12 +313,12 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         {
             return actionType switch
             {
-                "work" => new ActionCost { AttentionCost = 2, TimeCost = 60 },
+                "work" => new ActionCost { TimeCost = 60 },
                 "buy_food" => new ActionCost { CoinCost = 5 },
                 "buy_drink" => new ActionCost { CoinCost = 2 },
                 "rest" => new ActionCost { TimeCost = 60 },
                 "heal" => new ActionCost { CoinCost = 10 },
-                "register" => new ActionCost { AttentionCost = 1 },
+                "register" => new ActionCost(),
                 _ => new ActionCost()
             };
         }
@@ -343,7 +329,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
     /// </summary>
     public class ActionCost
     {
-        public int AttentionCost { get; set; }
         public int CoinCost { get; set; }
         public int TimeCost { get; set; } // in segments
         public int HealthCost { get; set; }

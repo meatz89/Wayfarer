@@ -3,16 +3,12 @@ using System;
 namespace Wayfarer.GameState.Actions
 {
     /// <summary>
-    /// Investigation action allows players to spend 1 attention and 1 segment to gain familiarity with a location.
+    /// Investigation action allows players to spend 1 segment to gain familiarity with a location.
     /// Familiarity gain depends on spot properties: Quiet spots give +2, Busy spots give +1, others give +1.
     /// Used to unlock observation rewards at higher familiarity levels.
     /// </summary>
     public class InvestigationAction
     {
-        /// <summary>
-        /// Attention cost for investigating (always 1)
-        /// </summary>
-        public int AttentionCost => 1;
 
         /// <summary>
         /// Time required for investigation in segments (always 1)
@@ -61,8 +57,6 @@ namespace Wayfarer.GameState.Actions
         {
             if (player == null || location == null) return false;
 
-            // Check if player has enough attention
-            if (!player.HasAttention(AttentionCost)) return false;
 
             // Check if location familiarity is already at maximum
             int currentFamiliarity = player.GetLocationFamiliarity(location.Id);

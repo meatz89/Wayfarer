@@ -68,14 +68,7 @@ namespace Wayfarer.Pages.Components
 
         protected bool CanAffordConversation(string requestId)
         {
-            // Backend determines if we can afford based on conversation type's attention cost
-            return GameFacade.CanAffordStrangerConversation(requestId);
-        }
-
-        protected int GetAttentionCost(string requestId)
-        {
-            // Get attention cost from backend based on conversation type
-            return GameFacade.GetStrangerConversationAttentionCost(requestId);
+            return true;
         }
 
         protected string GetPersonalityDescription(PersonalityType personality)
