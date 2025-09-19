@@ -226,7 +226,6 @@ public class GameFacade
                 NpcId = npc.ID,
                 NpcName = npc.Description,
                 AvailableTypes = conversationTypeIds,
-                AttentionCost = 0,
                 CanAfford = true
             });
         }

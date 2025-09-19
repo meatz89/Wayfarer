@@ -201,7 +201,6 @@ public class ConversationDeckBuilder
             Description = "A casual conversation",
             DeckId = "deck_friendly_balanced",
             Category = "social",
-            AttentionCost = 1
         };
     }
 }

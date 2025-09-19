@@ -257,11 +257,10 @@ namespace Wayfarer.Pages.Components
 
                 // Get required parameters
                 PlayerResourceState playerResources = Context?.PlayerResources ?? new PlayerResourceState();
-                AttentionInfo attentionInfo = new AttentionInfo(Context?.CurrentAttention ?? 0, Context?.CurrentAttention ?? 0);
                 Dictionary<ConnectionType, int> npcTokens = Context?.NpcInfo?.TokenCounts ?? new Dictionary<ConnectionType, int>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
-                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, attentionInfo, npcTokens, relationshipTier);
+                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, npcTokens, relationshipTier);
 
                 if (LastResult?.Success == true)
                 {
@@ -465,7 +464,6 @@ namespace Wayfarer.Pages.Components
                 ResourceType.Coins => Context.PlayerResources.Coins,
                 ResourceType.Health => Context.PlayerResources.Health,
                 ResourceType.Hunger => Context.PlayerResources.Stamina,
-                ResourceType.Attention => Context.CurrentAttention,
                 _ => 0
             };
         }

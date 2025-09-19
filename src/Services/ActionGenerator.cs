@@ -26,7 +26,7 @@ public class ActionGenerator
         {
             Icon = "⏳",
             Title = "Wait",
-            Detail = isExhausted ? "Pass time until rested" : "Advance to next period",
+            Detail = "Advance to next period",
             Cost = "NEXT PERIOD",
             ActionType = "wait" // Special type for handling
         });
@@ -68,8 +68,8 @@ public class ActionGenerator
         // Generate atmosphere-based actions
         actions.AddRange(GenerateAtmosphereActions(location));
 
-        // Add optional Wait action when low on attention but not exhausted
-        if (!isExhausted && isLowAttention && actions.Count < 5)
+        // Add optional Rest action
+        if (actions.Count < 5)
         {
             actions.Add(new LocationActionViewModel
             {

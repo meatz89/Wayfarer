@@ -1956,7 +1956,6 @@ namespace Wayfarer.Pages.Components
                             ResourceType.Coins => "coins",
                             ResourceType.Health => "health",
                             ResourceType.Hunger => "food",
-                            ResourceType.Attention => "attention",
                             _ => reward.Type.ToString().ToLower()
                         };
                         rewardParts.Add($"{reward.Amount} {resourceName}");
