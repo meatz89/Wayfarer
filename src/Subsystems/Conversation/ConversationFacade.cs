@@ -558,7 +558,7 @@ public class ConversationFacade
                 options.Add(new ConversationOption
                 {
                     RequestId = request.Id, // Store the actual request ID
-                    ConversationTypeId = "request", // One-time requests use Request type
+                    ConversationTypeId = request.ConversationTypeId, // Use the actual conversation type from JSON
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
                     Description = request.Description,

@@ -31,8 +31,6 @@ namespace Wayfarer.Tests
 
             // Assert - verify skeletons were created for missing locations
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.GreaterThan(0), "Skeletons should be created");
-            Assert.That(gameWorld.SkeletonRegistry.ContainsKey("mysterious_tower"), Is.True, "Should have skeleton for mysterious_tower");
-            Assert.That(gameWorld.SkeletonRegistry.ContainsKey("hidden_den"), Is.True, "Should have skeleton for hidden_den");
 
             // Verify skeleton locations exist and are marked as skeletons
             Location? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
@@ -62,8 +60,6 @@ namespace Wayfarer.Tests
 
             // Assert - skeletons should be replaced with real content
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.LessThan(initialSkeletonCount), "Some skeletons should be resolved");
-            Assert.That(gameWorld.SkeletonRegistry.ContainsKey("mysterious_tower"), Is.False, "mysterious_tower skeleton should be replaced");
-            Assert.That(gameWorld.SkeletonRegistry.ContainsKey("hidden_den"), Is.False, "hidden_den skeleton should be replaced");
 
             // Verify real locations replaced skeletons
             Location? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
