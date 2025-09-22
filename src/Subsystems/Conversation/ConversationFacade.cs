@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Subsystems.ObligationSubsystem;
 
@@ -553,8 +549,19 @@ public class ConversationFacade
             // Add each available request as a conversation option
             foreach (NPCRequest request in availableRequests)
             {
-                // For now, add the request as a single option that will show all cards
-                // Later we'll update the UI to show all cards from the request
+                // CRITICAL: All requests MUST have valid conversation types defined in JSON
+                if (string.IsNullOrEmpty(request.ConversationTypeId))
+                {
+                    throw new InvalidOperationException($"NPCRequest '{request.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
+                }
+
+                // Verify the conversation type actually exists
+                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
+                if (typeEntry == null)
+                {
+                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.ConversationTypeId}' which does not exist in JSON. All conversation types must be defined.");
+                }
+
                 options.Add(new ConversationOption
                 {
                     RequestId = request.Id, // Store the actual request ID

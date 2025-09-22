@@ -117,11 +117,18 @@ public static class NPCParser
         {
             foreach (NPCRequestDTO requestDto in dto.Requests)
             {
+                // CRITICAL: ConversationTypeId is REQUIRED for all NPCRequests
+                if (string.IsNullOrEmpty(requestDto.ConversationTypeId))
+                {
+                    throw new InvalidOperationException($"NPCRequest '{requestDto.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
+                }
+
                 NPCRequest request = new NPCRequest
                 {
                     Id = requestDto.Id,
                     Name = requestDto.Name,
                     Description = requestDto.Description,
+                    ConversationTypeId = requestDto.ConversationTypeId, // REQUIRED: Must be defined in JSON
                     Status = RequestStatus.Available,
                     RequestCardIds = new List<string>(requestDto.RequestCards ?? new List<string>()),
                     PromiseCardIds = new List<string>(requestDto.PromiseCards ?? new List<string>())
