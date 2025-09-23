@@ -284,55 +284,6 @@ public class CategoricalEffectResolver
         return result;
     }
 
-    /// <summary>
-    /// PROJECTION: Returns what WOULD happen when card exhausts without modifying state.
-    /// Exhaust effects are ALWAYS penalties (negative rapport, focus loss, etc.)
-    /// The caller decides whether to apply these projected penalties.
-    /// </summary>
-    public CardEffectResult ProcessExhaustEffect(CardInstance card, ConversationSession session)
-    {
-        CardEffectResult result = new CardEffectResult
-        {
-            Card = card,
-            RapportChange = 0,
-            FlowChange = 0,
-            CardsToAdd = new List<CardInstance>(),
-            FocusAdded = 0,
-            AtmosphereTypeChange = null,
-            EffectDescription = "",
-            EndsConversation = false
-        };
-
-        // Only Impulse and Opening cards can have exhaust effects
-        if (card.Persistence == PersistenceType.Thought)
-        {
-            return result;
-        }
-
-        int magnitude = GetMagnitude(card.Difficulty);
-
-        switch (card.ExhaustType)
-        {
-            case ExhaustEffectType.Focusing:
-                // PENALTY: Lose focus when exhausted
-                result.FocusAdded = -magnitude; // Negative focus = penalty
-                result.EffectDescription = $"Exhausted: -{magnitude} focus";
-                break;
-
-            case ExhaustEffectType.Regret:
-                // PENALTY: Lose rapport when not played - the cost of silence
-                result.RapportChange = -magnitude;
-                result.EffectDescription = $"Regret: -{magnitude} rapport";
-                break;
-
-            case ExhaustEffectType.None:
-            default:
-                // No effect when exhausted
-                break;
-        }
-
-        return result;
-    }
 
     /// <summary>
     /// Get magnitude based on difficulty tier

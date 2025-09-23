@@ -95,12 +95,6 @@ public static class ConversationCardParser
             Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
         }
 
-        ExhaustEffectType exhaustType = ExhaustEffectType.None;
-        if (!string.IsNullOrEmpty(dto.ExhaustType))
-        {
-            Enum.TryParse<ExhaustEffectType>(dto.ExhaustType, true, out exhaustType);
-        }
-
         // Parse card type from DTO type field
         CardType cardType = ParseCardType(dto);
 
@@ -199,7 +193,6 @@ public static class ConversationCardParser
             Persistence = persistence,
             SuccessType = successType,
             FailureType = failureType,
-            ExhaustType = exhaustType,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueFragment = dto.DialogueFragment,
             VerbPhrase = "",
@@ -247,12 +240,6 @@ public static class ConversationCardParser
             Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
         }
 
-        ExhaustEffectType exhaustType = ExhaustEffectType.None;
-        if (!string.IsNullOrEmpty(dto.ExhaustType))
-        {
-            Enum.TryParse<ExhaustEffectType>(dto.ExhaustType, true, out exhaustType);
-        }
-
         // Parse difficulty if specified, otherwise use default
         Difficulty difficulty = Difficulty.VeryEasy; // Goal cards typically always succeed
         if (!string.IsNullOrEmpty(dto.Difficulty))
@@ -291,7 +278,6 @@ public static class ConversationCardParser
             Persistence = persistence,
             SuccessType = successType,
             FailureType = failureType,
-            ExhaustType = exhaustType,
             MomentumThreshold = dto.MomentumThreshold,
             TokenType = tokenType,
             VerbPhrase = "",
@@ -366,7 +352,6 @@ public class ConversationCardDTO
     public string Persistence { get; set; } // Thought/Impulse/Opening
     public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
     public string FailureType { get; set; } // Backfire/None
-    public string ExhaustType { get; set; } // Threading/Focusing/Regret/None
 
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; }

@@ -51,7 +51,6 @@ public class NPCGoalCardDTO
     public string Persistence { get; set; } // Usually "Thought" for goal cards
     public string SuccessType { get; set; } // Usually "Promising" or "Advancing"
     public string FailureType { get; set; } // Usually "None" for goal cards
-    public string ExhaustType { get; set; } // Usually "None" for goal cards
 
     /// <summary>
     /// Dialogue spoken when playing this card

@@ -1645,9 +1645,6 @@ namespace Wayfarer.Pages.Components
             if (card.FailureType != FailureEffectType.None)
                 tags.Add(card.FailureType.ToString());
 
-            // Add exhaust type if meaningful
-            if (card.ExhaustType != ExhaustEffectType.None)
-                tags.Add(card.ExhaustType.ToString());
 
             return tags;
         }
@@ -2509,14 +2506,6 @@ namespace Wayfarer.Pages.Components
             return string.Join(" ", classes);
         }
 
-        /// <summary>
-        /// PACKET 6: Check if card has an exhaust effect
-        /// </summary>
-        protected bool HasExhaustEffect(CardInstance card)
-        {
-            // Only impulse and opening cards have exhaust effects
-            return card?.Persistence == PersistenceType.Impulse || card?.Persistence == PersistenceType.Opening;
-        }
 
         /// <summary>
         /// PACKET 6: Get enhanced success effect description
@@ -2539,54 +2528,6 @@ namespace Wayfarer.Pages.Components
                 "No effect" : effect;
         }
 
-        /// <summary>
-        /// PROJECTION PRINCIPLE: Get exhaust effect description including proper trigger text.
-        /// Uses effect resolver to get projection of exhaust effects.
-        /// Shows WHEN the card will be removed and any PENALTIES applied.
-        /// </summary>
-        protected string GetExhaustEffectDescription(CardInstance card)
-        {
-            // Build trigger text based on Persistence type
-            string trigger = card.Persistence switch
-            {
-                PersistenceType.Impulse => "On SPEAK another card",
-                PersistenceType.Opening => "On LISTEN",
-                _ => "" // Thought cards don't exhaust
-            };
-
-            if (string.IsNullOrEmpty(trigger)) return "";
-
-            // Base effect is always card removal
-            string effect = "Card removed";
-
-            // Add exhaust penalty if present - ALWAYS use projection
-            if (card.ExhaustType != ExhaustEffectType.None)
-            {
-                CardEffectResult projection = EffectResolver.ProcessExhaustEffect(card, Session);
-
-                // Build penalty description from projection (penalties only, never bonuses)
-                if (projection.RapportChange < 0)
-                {
-                    effect += $", {projection.RapportChange} rapport";
-                }
-
-                if (projection.FocusAdded < 0)
-                {
-                    effect += $", {projection.FocusAdded} focus";
-                }
-
-                // Threading exhaust should be a penalty (losing cards from hand)
-                if (projection.CardsToAdd?.Count > 0)
-                {
-                    // This is actually cards being removed/discarded, not drawn
-                    // The resolver might need fixing if it's adding cards on exhaust
-                    int count = projection.CardsToAdd.Count;
-                    effect += $", lose {count} card{(count == 1 ? "" : "s")}";
-                }
-            }
-
-            return $"{trigger}: {effect}";
-        }
 
         /// <summary>
         /// PACKET 6: Calculate magnitude from difficulty
@@ -2873,14 +2814,6 @@ namespace Wayfarer.Pages.Components
                 {
                     builder.OpenElement(sequence++, "div");
                     builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
-
-                    string exhaustEffect = GetExhaustEffectDescription(card);
-                    if (!string.IsNullOrEmpty(exhaustEffect) && exhaustEffect != "No exhaust effect")
-                    {
-                        builder.OpenElement(sequence++, "span");
-                        builder.AddContent(sequence++, $" → {exhaustEffect}");
-                        builder.CloseElement();
-                    }
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -2950,14 +2883,6 @@ namespace Wayfarer.Pages.Components
                 {
                     builder.OpenElement(sequence++, "div");
                     builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
-
-                    string exhaustEffect = GetExhaustEffectDescription(card);
-                    if (!string.IsNullOrEmpty(exhaustEffect) && exhaustEffect != "No exhaust effect")
-                    {
-                        builder.OpenElement(sequence++, "span");
-                        builder.AddContent(sequence++, $" → {exhaustEffect}");
-                        builder.CloseElement();
-                    }
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -3009,24 +2934,6 @@ namespace Wayfarer.Pages.Components
             return Session.GetEffectiveFocusCapacity();
         }
 
-        /// <summary>
-        /// Enhanced exhaust effect description for preview system
-        /// </summary>
-        protected string GetPreviewExhaustEffect(CardInstance card)
-        {
-            if (card?.Persistence == PersistenceType.Impulse && card.Persistence == PersistenceType.Opening == true)
-            {
-                return "ENDS CONVERSATION!";
-            }
-            else if (card?.Persistence == PersistenceType.Impulse)
-            {
-                // Check if card has specific exhaust effects
-                // For now, use generic effect
-                return "Draw 1 card"; // Default impulse exhaust effect
-            }
-
-            return "No effect";
-        }
 
         /// <summary>
         /// Get atmospheric scaling information for cards based on current atmosphere
@@ -3579,11 +3486,6 @@ namespace Wayfarer.Pages.Components
                 tags.Add(card.FailureType.ToString());
             }
 
-            // Exhaust effect tags (only if not None)
-            if (card.ExhaustType != ExhaustEffectType.None)
-            {
-                tags.Add($"Exhaust: {card.ExhaustType}");
-            }
 
             return tags;
         }
@@ -3614,6 +3516,36 @@ namespace Wayfarer.Pages.Components
             {
                 return 1;
             }
+        }
+
+        /// <summary>
+        /// Returns the stat bonus text for Expression cards (e.g., "+2 momentum")
+        /// </summary>
+        protected string GetStatBonus(CardInstance card)
+        {
+            if (card?.Template?.BoundStat == null || GameFacade == null) return "";
+
+            // Only Expression cards get momentum bonuses
+            if (card.Template.Category != CardCategory.Expression) return "";
+
+            try
+            {
+                PlayerStats stats = GameFacade.GetPlayerStats();
+                int statLevel = stats.GetLevel(card.Template.BoundStat.Value);
+
+                // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
+                if (statLevel >= 2)
+                {
+                    int bonus = statLevel - 1;
+                    return $"+{bonus} momentum";
+                }
+            }
+            catch
+            {
+                // Fallback to no bonus display
+            }
+
+            return "";
         }
 
         /// <summary>

@@ -50,7 +50,6 @@ public class ObservationCard : ConversationCard
         Persistence = PersistenceType.Thought; // Observations persist through LISTEN
         SuccessType = SuccessEffectType.None; // Default, can be overridden
         FailureType = FailureEffectType.None;
-        ExhaustType = ExhaustEffectType.None;
         PersonalityTypes = new List<string>();
         LevelBonuses = new List<CardLevelBonus>();
         VerbPhrase = "";
@@ -119,7 +118,6 @@ public class ObservationCard : ConversationCard
             Persistence = card.Persistence,
             SuccessType = card.SuccessType,
             FailureType = card.FailureType,
-            ExhaustType = card.ExhaustType,
             CardType = CardType.Observation,
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,
@@ -145,7 +143,6 @@ public class ObservationCard : ConversationCard
             Persistence = card.Persistence,
             SuccessType = card.SuccessType,
             FailureType = card.FailureType,
-            ExhaustType = card.ExhaustType,
             CardType = CardType.Observation,
             DialogueFragment = card.DialogueFragment,
             VerbPhrase = card.VerbPhrase,

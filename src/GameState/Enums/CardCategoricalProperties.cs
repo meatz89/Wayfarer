@@ -121,23 +121,3 @@ public enum FailureEffectType
     Backfire
 }
 
-/// <summary>
-/// Effect when card is removed unplayed (exhausted/discarded)
-/// </summary>
-public enum ExhaustEffectType
-{
-    /// <summary>
-    /// No effect when exhausted
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// Restore focus when discarded (magnitude from difficulty)
-    /// </summary>
-    Focusing,
-
-    /// <summary>
-    /// Lose rapport when not played - the cost of silence (magnitude from difficulty)
-    /// </summary>
-    Regret
-}

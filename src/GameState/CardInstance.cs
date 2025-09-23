@@ -15,7 +15,6 @@ public class CardInstance
     public string Description => Template.Description;
     public SuccessEffectType SuccessType => Template.SuccessType;
     public FailureEffectType FailureType => Template.FailureType;
-    public ExhaustEffectType ExhaustType => Template.ExhaustType;
     public CardType CardType => Template.CardType;
     public ConnectionType TokenType => Template.TokenType;
     public int Focus => Template.Focus;

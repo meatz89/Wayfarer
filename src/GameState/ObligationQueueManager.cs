@@ -2701,7 +2701,6 @@ public class ObligationQueueManager
             Persistence = PersistenceType.Thought,  // Burdens persist
             SuccessType = SuccessEffectType.None,
             FailureType = FailureEffectType.None,
-            ExhaustType = ExhaustEffectType.None
         };
 
         // Add to the NPC's burden deck

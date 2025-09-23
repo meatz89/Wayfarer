@@ -142,7 +142,6 @@ public class ConversationDeckBuilder
                 Persistence = requestCard.Persistence,
                 SuccessType = requestCard.SuccessType,
                 FailureType = requestCard.FailureType,
-                ExhaustType = requestCard.ExhaustType,
                 DialogueFragment = requestCard.DialogueFragment,
                 VerbPhrase = requestCard.VerbPhrase,
                 PersonalityTypes = requestCard.PersonalityTypes,

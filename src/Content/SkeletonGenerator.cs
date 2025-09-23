@@ -180,7 +180,6 @@ public static class SkeletonGenerator
             Persistence = PersistenceType.Thought, // Skeleton cards persist
             SuccessType = SuccessEffectType.Strike, // Default to momentum gain
             FailureType = FailureEffectType.None,
-            ExhaustType = ExhaustEffectType.None,
             SkeletonSource = source,
             IsSkeleton = true,
 

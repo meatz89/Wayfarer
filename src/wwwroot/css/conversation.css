@@ -770,32 +770,6 @@ body {
     margin-top: 4px;
 }
 
-/* Exhaust Section for Impulse/Opening Cards - dark strip like mockup */
-.exhaust-section {
-    background: #3d3429;
-    color: #e8dcc4;
-    padding: 8px 12px;
-    font-size: 10px;
-    text-align: center;
-    margin-top: auto;
-    border-top: 1px solid #2c241a;
-}
-
-.exhaust-effect {
-    background: #3d3429;
-    color: #e8dcc4;
-    padding: 8px 12px;
-    font-size: 10px;
-    text-align: center;
-    border-top: 1px solid #2c241a;
-}
-
-.exhaust-label {
-    font-size: 9px;
-    text-transform: uppercase;
-    color: #8b7355;
-    margin-right: 6px;
-}
 
 /* === CARD ANIMATIONS === */
 
@@ -909,7 +883,6 @@ body {
     pointer-events: none;
 }
 
-/* Exhausting cards - removed immediately (no animation needed) */
 
 /* === ACTION SECTION === */
 
@@ -1077,19 +1050,6 @@ body {
     overflow: visible;
 }
 
-.card.impulse-warning::before {
-    content: '⚡ Will exhaust';
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #ff9800;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-focus: bold;
-}
 
 /* === MOMENTUM DISPLAY === */
 
@@ -1491,6 +1451,13 @@ body {
 .stat-badge.cunning {
     background: #6a5a8a;
     color: #faf4ea;
+}
+
+/* Stat bonus text within stat badges */
+.stat-bonus {
+    font-size: 9px;
+    color: #5a7a3a;
+    margin-left: 4px;
 }
 
 /* XP Gain Indicator for Card Names */

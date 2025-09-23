@@ -272,6 +272,10 @@
                                         <!-- Stat badge -->
                                         <div class="stat-badge @GetCardStatClass(convCard)">
                                             @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                            @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                            {
+                                                <span class="stat-bonus">@GetStatBonus(convCard)</span>
+                                            }
                                         </div>
                                         <div class="card-header">
                                             <div class="card-name">
@@ -343,6 +347,10 @@
                                         <!-- Stat badge -->
                                         <div class="stat-badge @GetCardStatClass(convCard)">
                                             @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                            @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                            {
+                                                <span class="stat-bonus">@GetStatBonus(convCard)</span>
+                                            }
                                         </div>
                                         <div class="card-header">
                                             <div class="card-name">
@@ -388,13 +396,6 @@
                                         }
                                     </div>
                                 </div>
-                                @* Exhaust strip inside card at bottom *@
-                                @if (HasExhaustEffect(convCard))
-                                {
-                                    <div class="exhaust-effect">
-                                        @GetExhaustEffectDescription(convCard)
-                                    </div>
-                                }
                         </div>
                         </div>
                     }

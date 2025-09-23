@@ -110,7 +110,6 @@ public class ObservationManager
                             Persistence = npcObservationCard.Persistence,
                             SuccessType = npcObservationCard.SuccessType,
                             FailureType = npcObservationCard.FailureType,
-                            ExhaustType = npcObservationCard.ExhaustType,
                             IsSkeleton = npcObservationCard.IsSkeleton,
                             SkeletonSource = npcObservationCard.SkeletonSource,
                             TokenType = npcObservationCard.TokenType,
@@ -311,7 +310,6 @@ public class ObservationManager
             TokenType = baseCard.TokenType,
             SuccessType = baseCard.SuccessType,
             FailureType = baseCard.FailureType,
-            ExhaustType = baseCard.ExhaustType,
             DialogueFragment = baseCard.DialogueFragment,
             VerbPhrase = baseCard.VerbPhrase,
             PersonalityTypes = baseCard.PersonalityTypes,
@@ -454,7 +452,6 @@ public class ObservationManager
             Persistence = PersistenceType.Thought, // Observations persist through LISTEN
             SuccessType = successType,
             FailureType = FailureEffectType.None,
-            ExhaustType = ExhaustEffectType.None,
             Difficulty = Difficulty.VeryEasy
         };
     }

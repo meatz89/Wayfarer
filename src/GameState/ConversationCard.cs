@@ -18,7 +18,6 @@ public class ConversationCard
     public PersistenceType Persistence { get; init; } = PersistenceType.Thought;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
-    public ExhaustEffectType ExhaustType { get; init; } = ExhaustEffectType.None;
 
     // Skeleton tracking - consistent with other entities
     public bool IsSkeleton { get; init; } = false;
@@ -222,7 +221,6 @@ public class ConversationCard
             Persistence = this.Persistence,
             SuccessType = this.SuccessType,
             FailureType = this.FailureType,
-            ExhaustType = this.ExhaustType,
             IsSkeleton = this.IsSkeleton,
             SkeletonSource = this.SkeletonSource,
             TokenType = this.TokenType,

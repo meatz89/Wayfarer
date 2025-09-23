@@ -983,11 +983,7 @@ public class ConversationFacade
     private List<CardInstance> ExecuteListenAction(ConversationSession session)
     {
         // First, exhaust all Opening cards in hand
-        if (!ExhaustOpeningCards(session))
-        {
-            // Exhaust effect ended conversation
-            return new List<CardInstance>();
-        }
+        ExhaustOpeningCards(session);
 
         // Refresh focus
         _focusManager.RefreshPool();
@@ -1214,7 +1210,7 @@ public class ConversationFacade
             FinalFlow = flowChange
         };
 
-        // Handle exhaust ending conversation
+        // Handle conversation ending
         if (!conversationContinues)
         {
             result.Success = false; // Override to mark conversation as failed
@@ -1413,7 +1409,6 @@ public class ConversationFacade
 
     /// <summary>
     /// Remove all impulse cards from hand (happens after every SPEAK)
-    /// Executes exhaust effects before removing cards
     /// </summary>
     private bool RemoveImpulseCardsFromHand(ConversationSession session)
     {
@@ -1422,16 +1417,6 @@ public class ConversationFacade
 
         foreach (CardInstance card in impulseCards)
         {
-            // Execute exhaust effect if it exists
-            if (card.ExhaustType != ExhaustEffectType.None)
-            {
-                if (!ExecuteExhaustEffect(card, session))
-                {
-                    // Exhaust effect ended conversation
-                    return false;
-                }
-            }
-
             // Remove from active cards and add to exhaust pile
             session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
         }
@@ -1451,16 +1436,6 @@ public class ConversationFacade
 
         foreach (CardInstance card in openingCards)
         {
-            // Execute exhaust effect if it exists
-            if (card.ExhaustType != ExhaustEffectType.None)
-            {
-                if (!ExecuteExhaustEffect(card, session))
-                {
-                    // Exhaust effect ended conversation
-                    return false;
-                }
-            }
-
             // Remove from active cards and add to exhaust pile
             session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
         }
@@ -1468,47 +1443,6 @@ public class ConversationFacade
         return true; // Conversation continues
     }
 
-    /// <summary>
-    /// PROJECTION PRINCIPLE: Execute exhaust effect using projection from resolver.
-    /// Exhaust effects are ALWAYS penalties (negative effects).
-    /// </summary>
-    private bool ExecuteExhaustEffect(CardInstance card, ConversationSession session)
-    {
-        if (card.ExhaustType == ExhaustEffectType.None)
-            return true; // No exhaust effect, conversation continues
-
-        // PROJECTION PRINCIPLE: Get projection from resolver
-        CardEffectResult projection = _effectResolver.ProcessExhaustEffect(card, session);
-
-        // Apply doubt penalty on exhaust
-        if (projection.DoubtChange > 0 && session.MomentumManager != null)
-        {
-            session.MomentumManager.AddDoubt(projection.DoubtChange, session.CurrentAtmosphere);
-        }
-
-        // Apply focus penalty (negative focus)
-        if (projection.FocusAdded < 0)
-        {
-            _focusManager.AddFocus(projection.FocusAdded); // Adding negative = removing
-        }
-
-        // Apply card removal penalty (Threading exhaust loses cards from hand)
-        if (projection.CardsToAdd?.Count > 0)
-        {
-            // For exhaust Threading, CardsToAdd represents cards to LOSE from hand
-            int cardsToLose = Math.Min(projection.CardsToAdd.Count, session.Deck.HandSize);
-            for (int i = 0; i < cardsToLose; i++)
-            {
-                if (session.Deck.HandCards.Any())
-                {
-                    CardInstance cardToRemove = session.Deck.HandCards.First();
-                    session.Deck.ExhaustFromHand(cardToRemove); // HIGHLANDER: Use deck method
-                }
-            }
-        }
-
-        return true; // Conversation continues
-    }
 
 
 
