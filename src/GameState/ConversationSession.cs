@@ -33,6 +33,9 @@ public class ConversationSession
     public int MaxFocus { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
+    // Doubt prevention system
+    public bool PreventNextDoubtIncrease { get; set; } = false;
+
     // Visible momentum system for deterministic gameplay
     // HiddenMomentum removed - now using visible CurrentMomentum
 

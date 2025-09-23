@@ -125,8 +125,9 @@ public class CategoricalEffectResolver
                 else if (card.Template.MomentumScaling == ScalingType.PreventDoubt)
                 {
                     // Special effect: prevent next doubt increase
-                    result.DoubtChange = 0; // No immediate change, handled by session
+                    result.DoubtChange = 0; // No immediate change
                     result.EffectDescription = "Prevent next doubt increase";
+                    // Note: session.PreventNextDoubtIncrease will be set by ConversationFacade when effect is applied
                 }
                 else
                 {

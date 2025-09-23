@@ -1116,6 +1116,12 @@ public class ConversationFacade
                 session.Deck.AddCardsToHand(effectResult.CardsToAdd);
             }
 
+            // Handle PreventDoubt effect (for Soothe cards with PreventDoubt scaling)
+            if (selectedCard.Template.MomentumScaling == ScalingType.PreventDoubt)
+            {
+                session.PreventNextDoubtIncrease = true;
+            }
+
             // Handle atmosphere change (for Atmospheric success effect) - simplified
             if (effectResult.AtmosphereTypeChange.HasValue)
             {

@@ -92,6 +92,13 @@ public class MomentumManager
     {
         if (amount <= 0) return;
 
+        // Check if doubt is prevented by card effect
+        if (_session != null && _session.PreventNextDoubtIncrease)
+        {
+            _session.PreventNextDoubtIncrease = false; // Reset flag after use
+            return; // Doubt increase prevented
+        }
+
         int modified = ModifyByAtmosphere(amount, atmosphere);
         currentDoubt = Math.Clamp(currentDoubt + modified, 0, MAX_DOUBT);
         SyncToSession();
