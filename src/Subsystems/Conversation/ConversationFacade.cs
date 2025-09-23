@@ -674,7 +674,7 @@ public class ConversationFacade
         int availableFocus = _focusManager.AvailableFocus;
         bool canAfford = _focusManager.CanAffordCard(cardFocus);
 
-        Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}");
+        // Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}"); // Removed excessive logging
 
         if (!canAfford)
             return false;

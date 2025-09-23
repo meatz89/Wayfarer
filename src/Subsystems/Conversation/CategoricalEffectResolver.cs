@@ -330,39 +330,8 @@ public class CategoricalEffectResolver
             return session.CurrentMomentum >= card.MomentumThreshold;
         }
 
-        // Regular conversation cards succeed based on deterministic rules
-        // For now, implement basic rules - can be expanded based on design needs
-
-        // Very easy cards always succeed
-        if (card.Difficulty == Difficulty.VeryEasy)
-            return true;
-
-        // Check if player has sufficient level in bound stat
-        if (card.Template.BoundStat.HasValue)
-        {
-            PlayerStats playerStats = gameWorld.GetPlayer().Stats;
-            int effectiveLevel = card.GetEffectiveLevel(playerStats);
-
-            // Level requirements based on difficulty
-            int requiredLevel = card.Difficulty switch
-            {
-                Difficulty.Easy => 1,
-                Difficulty.Medium => 2,
-                Difficulty.Hard => 3,
-                Difficulty.VeryHard => 4,
-                _ => 1
-            };
-
-            if (effectiveLevel < requiredLevel)
-                return false;
-        }
-
-        // Apply doubt penalty - high doubt can cause failure
-        int doubtPenalty = session.GetDoubtPenalty();
-        if (doubtPenalty >= 50) // 10+ doubt = 50%+ penalty = automatic failure
-            return false;
-
-        // Otherwise succeed
+        // Regular conversation cards ALWAYS succeed - no failure possible
+        // The design explicitly states cards have deterministic effects, not failure chances
         return true;
     }
 
