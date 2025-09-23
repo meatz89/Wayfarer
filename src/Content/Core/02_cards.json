@@ -517,9 +517,8 @@
       {
         "id": "deck_friendly_balanced",
         "cardIds": [
-          "insight_opening_1", "insight_thought_1", "rapport_thought_1",
-          "rapport_thought_2", "authority_thought_1", "commerce_thought_1",
-          "cunning_thought_1", "insight_thought_2", "rapport_impulse_1"
+          "soft_agreement_1", "soft_agreement_2", "careful_analysis_1", "show_understanding",
+          "mental_reset", "racing_mind_1", "patience", "clear_confusion_1", "establish_trust"
         ]
       },
       {
@@ -536,30 +535,43 @@
       {
         "id": "deck_trade_mercantile",
         "cardIds": [
-          "commerce_thought_1", "commerce_impulse_1", "cunning_thought_1",
-          "insight_thought_1", "insight_thought_2"
+          "careful_analysis_1", "careful_analysis_2", "build_pressure", "critical_moment",
+          "careful_words_1", "careful_words_2", "establish_trust", "mental_reset"
         ]
       },
       {
         "id": "deck_authority_power",
         "cardIds": [
-          "authority_thought_1", "authority_impulse_1", "cunning_thought_1",
-          "cunning_impulse_1", "commerce_thought_1"
+          "emotional_outburst_1", "emotional_outburst_2", "build_pressure", "force_understanding",
+          "burning_insight_1", "burning_insight_2", "all_or_nothing", "reset_stakes"
         ]
       },
       {
         "id": "deck_information_subtle",
         "cardIds": [
-          "insight_thought_1", "insight_thought_2", "cunning_thought_1",
-          "cunning_impulse_1", "insight_opening_1"
+          "careful_analysis_1", "careful_analysis_2", "show_understanding", "burning_insight_1",
+          "clear_confusion_1", "clear_confusion_2", "racing_mind_1", "racing_mind_2"
         ]
       },
       {
         "id": "deck_intimate_deep",
         "cardIds": [
-          "rapport_thought_1", "rapport_thought_2", "insight_thought_1",
-          "insight_thought_2", "authority_thought_1", "commerce_thought_1",
-          "cunning_thought_1", "rapport_impulse_1", "insight_opening_1"
+          "soft_agreement_1", "soft_agreement_2", "show_understanding", "deep_investment",
+          "establish_trust", "all_or_nothing", "patience", "mental_reset", "racing_mind_2"
+        ]
+      },
+      {
+        "id": "deck_seek_favor",
+        "cardIds": [
+          "soft_agreement_1", "show_understanding", "careful_words_1", "patience",
+          "establish_trust", "clear_confusion_1", "mental_reset", "racing_mind_1"
+        ]
+      },
+      {
+        "id": "deck_casual_exchange",
+        "cardIds": [
+          "soft_agreement_1", "careful_analysis_1", "show_understanding", "mental_reset",
+          "racing_mind_1", "patience", "careful_words_1", "clear_confusion_1"
         ]
       }
     ],

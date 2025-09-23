@@ -68,7 +68,9 @@ public class CategoricalEffectResolver
                 PlayerStats player = gameWorld.GetPlayer().Stats;
                 int momentumGain = card.Template.GetMomentumEffect(session, player);
                 result.MomentumChange = momentumGain;
-                result.EffectDescription = $"+{momentumGain} momentum";
+
+                // Generate descriptive text based on scaling formula and card mechanics
+                result.EffectDescription = GetStrikeEffectDescription(card, session, player, momentumGain);
                 break;
 
             case SuccessEffectType.Soothe:
@@ -527,6 +529,57 @@ public class CategoricalEffectResolver
             }
         }
         return cards;
+    }
+
+    /// <summary>
+    /// Generate descriptive text for Strike effects based on scaling formulas and mechanics
+    /// </summary>
+    private string GetStrikeEffectDescription(CardInstance card, ConversationSession session, PlayerStats player, int momentumGain)
+    {
+        var template = card.Template;
+
+        // Check for scaling formulas
+        if (template.MomentumScaling != ScalingType.None)
+        {
+            switch (template.MomentumScaling)
+            {
+                case ScalingType.CardsInHand:
+                    return $"Gain momentum = cards in hand ({session.Deck.HandSize} = {momentumGain})";
+
+                case ScalingType.CardsInHandDivided:
+                    return $"Gain momentum = cards in hand ÷ 2 ({session.Deck.HandSize} ÷ 2 = {momentumGain})";
+
+                case ScalingType.DoubtReduction:
+                    int doubtReduction = 10 - session.CurrentDoubt;
+                    return $"Gain momentum = (10 - current doubt) = {doubtReduction}";
+
+                case ScalingType.DoubtHalved:
+                    int doubtHalved = (10 - session.CurrentDoubt) / 2;
+                    return $"Gain momentum = (10 - doubt) ÷ 2 = {doubtHalved}";
+
+                case ScalingType.DoubleCurrent:
+                    return $"Gain momentum = current momentum × 2 ({session.CurrentMomentum} × 2 = {momentumGain})";
+
+                case ScalingType.PatienteDivided:
+                    int patience = session.GetAvailableFocus() / 3;
+                    return $"Gain momentum = focus ÷ 3 ({session.GetAvailableFocus()} ÷ 3 = {patience})";
+            }
+        }
+
+        // Check for stat bonuses on Expression cards
+        if (template.Category == CardCategory.Expression && template.BoundStat.HasValue)
+        {
+            int statLevel = player.GetLevel(template.BoundStat.Value);
+            if (statLevel >= 2)
+            {
+                int baseEffect = template.GetBaseMomentumFromProperties();
+                int statBonus = statLevel - 1;
+                return $"Gain {baseEffect} momentum (+{statBonus} from {template.BoundStat.Value} Lv{statLevel} = {momentumGain} total)";
+            }
+        }
+
+        // Default basic momentum gain
+        return $"Gain {momentumGain} momentum";
     }
 }
 
