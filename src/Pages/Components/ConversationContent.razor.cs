@@ -3073,6 +3073,12 @@ namespace Wayfarer.Pages.Components
                 classes.Add("selected");
             }
 
+            // Add category class for left border styling
+            if (card?.Template != null)
+            {
+                classes.Add(card.Template.Category.ToString().ToLower());
+            }
+
             return string.Join(" ", classes);
         }
 

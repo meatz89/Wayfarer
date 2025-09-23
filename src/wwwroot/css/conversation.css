@@ -482,7 +482,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .card-name {
@@ -505,15 +505,27 @@ body {
     line-height: 1;
 }
 
-/* Card content flex layout */
+/* Card content - clean vertical layout */
 .card-content {
     display: flex;
     flex-direction: column;
+    padding: 15px;
+    gap: 8px;
 }
 
-.card-body {
+/* Top row with category tags and stat badge */
+.card-top-row {
     display: flex;
-    flex: 1;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.card-tags {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 /* Card Progression Display (XP and Level) */
@@ -601,9 +613,9 @@ body {
     animation: xpGain 0.6s ease-out;
 }
 
+/* Remove old card-main padding since it's now handled by card-content */
 .card-main {
     flex: 1;
-    padding: 15px;
 }
 
 
@@ -627,14 +639,10 @@ body {
     color: #3a5a3a;
 }
 
-/* Persistence Tags - positioned top-right, left of success/failure divs */
+/* Persistence Tags - now in card-tags within top row */
 .persistence-tag-container {
-    position: absolute;
-    top: 8px;
-    right: calc(30% + 10px); /* Position left of the 30% width success/failure divs */
     display: flex;
     gap: 4px;
-    z-index: 5;
 }
 
 .persistence-tag {
@@ -686,16 +694,14 @@ body {
     line-height: 1.5;
     color: #5c4a3a;
     font-style: italic;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
-/* Effect Tags - positioned below card text like mockup */
+/* Effect Tags - inline with content flow */
 .effect-tags {
-    position: absolute;
-    bottom: 8px;
-    left: 12px;
     display: flex;
     gap: 4px;
+    margin-top: 6px;
 }
 
 .effect-tag {
@@ -708,65 +714,18 @@ body {
     border: 1px solid #d4c5a0;
 }
 
-/* Card outcomes - side by side success/failure */
-.card-outcomes {
-    display: flex;
-    width: 30%;
-    border-left: 1px solid #d4c5a0;
-}
-
-.outcome {
-    padding: 15px;
-    width: 140px;
-    text-align: center;
-    background: #f9f3e9;
-}
-
-.outcome.success {
-    border-right: 1px solid #d4c5a0;
-}
-
-.outcome-chance {
-    font-size: 20px;
-    font-weight: bold;
-    color: #5c4a3a;
-    margin-bottom: 4px;
-}
-
-.effect-details {
+/* Simple card effect display matching mockup */
+.card-effect {
     font-size: 11px;
-    color: #5a7a3a;
-    font-style: italic;
-    margin-bottom: 4px;
+    color: #2c241a;
+    line-height: 1.3;
+    margin-top: 6px;
 }
 
-.outcome.effect-calculation {
-    flex: 1;
-}
-
-.outcome.impulse-warning {
-    background: #fce8e4;
-    border: 1px solid #d4704a;
-    padding: 8px;
-    border-radius: 3px;
-}
-
-.outcome-label {
+.card-warning {
     font-size: 9px;
-    text-transform: uppercase;
-    color: #7a6250;
-    margin-bottom: 6px;
-}
-
-.outcome-effect {
-    font-size: 11px;
-    color: #5c4a3a;
-    font-weight: bold;
-}
-
-.outcome-modifiers {
-    font-size: 10px;
-    color: #7a6250;
+    color: #8b4726;
+    font-style: italic;
     margin-top: 4px;
 }
 
@@ -971,7 +930,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-width: 900px;
+    max-width: 600px; /* Narrower to match mockup vertical cards */
     margin: 0 auto;
     position: relative;
 }
@@ -1009,9 +968,48 @@ body {
     background: #faf0e6;
 }
 
-/* === SPECIAL CARD TYPES === */
+/* === CATEGORY TAGS AND CARD BORDERS === */
 
-/* Stat-based colored left borders from mockup */
+/* Category tags styling */
+.category-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.category-tag.category-expression {
+    background: #5a7a3a;
+    color: #faf4ea;
+}
+
+.category-tag.category-realization {
+    background: #5a7a8a;
+    color: #faf4ea;
+}
+
+.category-tag.category-regulation {
+    background: #d4a76a;
+    color: #2c241a;
+}
+
+/* Card category left borders matching mockup */
+.card.expression {
+    border-left: 5px solid #5a7a3a;
+}
+
+.card.realization {
+    border-left: 5px solid #5a7a8a;
+}
+
+.card.regulation {
+    border-left: 5px solid #d4a76a;
+}
+
+/* Legacy stat-based borders (still used for some cards) */
 .card.insight {
     border-left: 5px solid #5a7a8a;
 }
@@ -1425,11 +1423,16 @@ body {
     font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
-    margin-bottom: 6px;
+    white-space: nowrap;
 }
 
 .stat-badge.insight {
     background: #5a7a8a;
+    color: #faf4ea;
+}
+
+.stat-badge.rapport {
+    background: #7a8b5a;
     color: #faf4ea;
 }
 
@@ -1482,4 +1485,18 @@ body {
     font-weight: bold;
     font-size: 11px;
     text-transform: uppercase;
+}
+
+/* Card atmosphere scaling and effects */
+.card-scaling {
+    font-size: 10px;
+    color: #7a6250;
+    margin-top: 4px;
+}
+
+.atmosphere-change {
+    font-size: 10px;
+    color: #8b4726;
+    font-weight: bold;
+    margin-top: 4px;
 }

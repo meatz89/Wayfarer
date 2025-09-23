@@ -187,24 +187,21 @@
                     <div class="observation-card" @onclick="() => PlayObservationCard(obsCard)">
                         <div class="card-marker observation">KNOWLEDGE</div>
                         <div class="card-content">
-                            <div class="card-main">
-                                <div class="card-identity">
-                                    <div class="card-name">@obsCard.Id</div>
-                                    <div class="card-focus">0</div>
-                                </div>
-                                <div class="card-text">
-                                    "@obsCard.Description"
-                                </div>
+                            <!-- Card header: Name and Focus cost -->
+                            <div class="card-header">
+                                <div class="card-name">@obsCard.Id</div>
+                                <div class="card-focus">0</div>
                             </div>
-                            <div class="card-outcomes">
-                                <div class="outcome success">
-                                    <div class="outcome-label">Effect</div>
-                                    <div class="outcome-effect">@GetSuccessEffectDescription(obsCard)</div>
-                                </div>
-                                <div class="outcome consumed">
-                                    <div class="outcome-label">Consumed</div>
-                                    <div class="outcome-effect">Card removed after playing</div>
-                                </div>
+
+                            <!-- Card dialogue text -->
+                            <div class="card-text">
+                                "@obsCard.Description"
+                            </div>
+
+                            <!-- Effect description -->
+                            <div class="card-effect">
+                                <strong>Effect:</strong> @GetSuccessEffectDescription(obsCard)<br>
+                                <strong>Consumed:</strong> Card removed after playing
                             </div>
                         </div>
                     </div>
@@ -231,14 +228,15 @@
                         @* Animating card that's been played *@
                         <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)">
                             <div class="card-content">
-                                <div class="card-main">
-                                    <div class="card-header">
-                                        <div class="card-name">@GetProperCardName(convCard)</div>
-                                        <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                    </div>
-                                    <div class="card-text @GetNarrativeClass()">
-                                        "@GetProperCardDialogue(convCard)"
-                                    </div>
+                                <!-- Card header: Name and Focus cost -->
+                                <div class="card-header">
+                                    <div class="card-name">@GetProperCardName(convCard)</div>
+                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                </div>
+
+                                <!-- Card dialogue text -->
+                                <div class="card-text @GetNarrativeClass()">
+                                    "@GetProperCardDialogue(convCard)"
                                 </div>
                             </div>
                         </div>
@@ -252,64 +250,62 @@
                                 Requires @GetRequestMomentumThreshold(convCard)+ Momentum (Currently: @GetCurrentMomentum())
                             </div>
                             <div class="card-content">
-                                <div class="card-body">
-                                    <div class="card-main">
-                                        <div class="persistence-tag-container">
-                                            @if (convCard.Persistence == PersistenceType.Impulse)
-                                            {
-                                                <span class="persistence-tag impulse">Impulse</span>
-                                            }
-                                            @if (convCard.Persistence == PersistenceType.Opening)
-                                            {
-                                                <span class="persistence-tag opening">Opening</span>
-                                            }
-                                            @if (convCard.Persistence == PersistenceType.Thought)
-                                            {
-                                                <span class="persistence-tag thought">Thought</span>
-                                            }
-                                            <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
-                                        </div>
-                                        <!-- Stat badge -->
-                                        <div class="stat-badge @GetCardStatClass(convCard)">
-                                            @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
-                                            @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
-                                            {
-                                                <span class="stat-bonus">@GetStatBonus(convCard)</span>
-                                            }
-                                        </div>
-                                        <div class="card-header">
-                                            <div class="card-name">
-                                                @GetProperCardName(convCard)
-                                                <span class="xp-gain">+@GetXPGain() XP</span>
-                                            </div>
-                                            <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                        </div>
-                                        <div class="card-text @GetNarrativeClass()">
-                                            "@GetProperCardDialogue(convCard)"
-                                        </div>
-                                        <div class="effect-tags">
-                                            @foreach (var tag in GetCardEffectTags(convCard))
-                                            {
-                                                <span class="effect-tag">@tag</span>
-                                            }
-                                        </div>
-                                    </div>
-                                    @* Card Effect Display *@
-                                    <div class="card-outcomes">
-                                        <div class="outcome effect-calculation">
-                                            <div class="outcome-label">@GetCategoryDisplayName(convCard.Template.Category)</div>
-                                            <div class="effect-details">@GetMomentumCalculation(convCard)</div>
-                                            <div class="outcome-effect">@GetCardEffectDescription(convCard)</div>
-                                        </div>
+                                <!-- Top row: Category tag and Stat badge -->
+                                <div class="card-top-row">
+                                    <div class="card-tags">
                                         @if (convCard.Persistence == PersistenceType.Impulse)
                                         {
-                                            <div class="outcome impulse-warning">
-                                                <div class="outcome-label">If Unplayed</div>
-                                                <div class="outcome-effect">-1 card draw next LISTEN</div>
-                                            </div>
+                                            <span class="persistence-tag impulse">Impulse</span>
+                                        }
+                                        @if (convCard.Persistence == PersistenceType.Opening)
+                                        {
+                                            <span class="persistence-tag opening">Opening</span>
+                                        }
+                                        @if (convCard.Persistence == PersistenceType.Thought)
+                                        {
+                                            <span class="persistence-tag thought">Thought</span>
+                                        }
+                                        <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
+                                    </div>
+                                    <div class="stat-badge @GetCardStatClass(convCard)">
+                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                        @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                        {
+                                            <span class="stat-bonus">@GetStatBonus(convCard)</span>
                                         }
                                     </div>
                                 </div>
+
+                                <!-- Card header: Name and Focus cost -->
+                                <div class="card-header">
+                                    <div class="card-name">
+                                        @GetProperCardName(convCard)
+                                        <span class="xp-gain">+@GetXPGain() XP</span>
+                                    </div>
+                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                </div>
+
+                                <!-- Card dialogue text -->
+                                <div class="card-text @GetNarrativeClass()">
+                                    "@GetProperCardDialogue(convCard)"
+                                </div>
+
+                                <!-- Effect description -->
+                                <div class="card-effect">
+                                    <strong>@GetCategoryDisplayName(convCard.Template.Category):</strong> @GetCardEffectDescription(convCard)
+                                    @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
+                                    {
+                                        <br>@GetMomentumCalculation(convCard)
+                                    }
+                                </div>
+
+                                <!-- Impulse warning -->
+                                @if (convCard.Persistence == PersistenceType.Impulse)
+                                {
+                                    <div class="card-warning">
+                                        Impulse: If unplayed, −1 card draw
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
@@ -326,77 +322,75 @@
                              @onclick="() => ToggleCardSelection(convCard)">
 
                             <div class="card-content">
-                                <div class="card-body">
-                                    <div class="card-main">
-                                        <div class="persistence-tag-container">
-                                            @* Persistence tags *@
-                                            @if (convCard.Persistence == PersistenceType.Impulse)
-                                            {
-                                                <span class="persistence-tag impulse">Impulse</span>
-                                            }
-                                            @if (convCard.Persistence == PersistenceType.Opening)
-                                            {
-                                                <span class="persistence-tag opening">Opening</span>
-                                            }
-                                            @if (convCard.Persistence == PersistenceType.Thought)
-                                            {
-                                                <span class="persistence-tag thought">Thought</span>
-                                            }
-                                            <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
-                                        </div>
-                                        <!-- Stat badge -->
-                                        <div class="stat-badge @GetCardStatClass(convCard)">
-                                            @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
-                                            @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
-                                            {
-                                                <span class="stat-bonus">@GetStatBonus(convCard)</span>
-                                            }
-                                        </div>
-                                        <div class="card-header">
-                                            <div class="card-name">
-                                                @GetProperCardName(convCard)
-                                                <span class="xp-gain">+@GetXPGain() XP</span>
-                                            </div>
-                                            <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                        </div>
-                                        <div class="card-text @GetNarrativeClass()">
-                                            "@GetProperCardDialogue(convCard)"
-                                        </div>
-                                        <div class="effect-tags">
-                                            @foreach (var tag in GetCardEffectTags(convCard))
-                                            {
-                                                <span class="effect-tag">@tag</span>
-                                            }
-                                        </div>
-                                    @{
-                                        var atmosphereScaling = GetAtmosphereScaling(convCard);
-                                        if (!string.IsNullOrEmpty(atmosphereScaling))
-                                        {
-                                            <div class="card-scaling">@atmosphereScaling</div>
-                                        }
-                                    }
-                                    @if (HasAtmosphereEffect(convCard))
-                                    {
-                                        <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
-                                    }
-                                    </div>
-                                    @* Card Effect Display *@
-                                    <div class="card-outcomes">
-                                        <div class="outcome effect-calculation">
-                                            <div class="outcome-label">@GetCategoryDisplayName(convCard.Template.Category)</div>
-                                            <div class="effect-details">@GetMomentumCalculation(convCard)</div>
-                                            <div class="outcome-effect">@GetCardEffectDescription(convCard)</div>
-                                        </div>
+                                <!-- Top row: Category tag and Stat badge -->
+                                <div class="card-top-row">
+                                    <div class="card-tags">
                                         @if (convCard.Persistence == PersistenceType.Impulse)
                                         {
-                                            <div class="outcome impulse-warning">
-                                                <div class="outcome-label">If Unplayed</div>
-                                                <div class="outcome-effect">-1 card draw next LISTEN</div>
-                                            </div>
+                                            <span class="persistence-tag impulse">Impulse</span>
+                                        }
+                                        @if (convCard.Persistence == PersistenceType.Opening)
+                                        {
+                                            <span class="persistence-tag opening">Opening</span>
+                                        }
+                                        @if (convCard.Persistence == PersistenceType.Thought)
+                                        {
+                                            <span class="persistence-tag thought">Thought</span>
+                                        }
+                                        <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
+                                    </div>
+                                    <div class="stat-badge @GetCardStatClass(convCard)">
+                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
+                                        @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                        {
+                                            <span class="stat-bonus">@GetStatBonus(convCard)</span>
                                         }
                                     </div>
                                 </div>
-                        </div>
+
+                                <!-- Card header: Name and Focus cost -->
+                                <div class="card-header">
+                                    <div class="card-name">
+                                        @GetProperCardName(convCard)
+                                        <span class="xp-gain">+@GetXPGain() XP</span>
+                                    </div>
+                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                </div>
+
+                                <!-- Card dialogue text -->
+                                <div class="card-text @GetNarrativeClass()">
+                                    "@GetProperCardDialogue(convCard)"
+                                </div>
+
+                                <!-- Effect description -->
+                                <div class="card-effect">
+                                    <strong>@GetCategoryDisplayName(convCard.Template.Category):</strong> @GetCardEffectDescription(convCard)
+                                    @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
+                                    {
+                                        <br>@GetMomentumCalculation(convCard)
+                                    }
+                                </div>
+
+                                @{
+                                    var atmosphereScaling = GetAtmosphereScaling(convCard);
+                                    if (!string.IsNullOrEmpty(atmosphereScaling))
+                                    {
+                                        <div class="card-scaling">@atmosphereScaling</div>
+                                    }
+                                }
+                                @if (HasAtmosphereEffect(convCard))
+                                {
+                                    <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
+                                }
+
+                                <!-- Impulse warning -->
+                                @if (convCard.Persistence == PersistenceType.Impulse)
+                                {
+                                    <div class="card-warning">
+                                        Impulse: If unplayed, −1 card draw
+                                    </div>
+                                }
+                            </div>
                         </div>
                     }
                 }
