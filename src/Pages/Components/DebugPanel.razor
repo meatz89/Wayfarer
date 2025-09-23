@@ -57,6 +57,7 @@
                     <button class="debug-btn" @onclick="RevealAllPaths">Reveal All Paths</button>
                     <button class="debug-btn" @onclick="UnlockAllTokens">Max All Tokens</button>
                     <button class="debug-btn" @onclick="SkipTime">Skip 1 Hour</button>
+                    <button class="debug-btn" @onclick="TeleportToElena">Go to Elena</button>
                 </div>
             </div>
         </div>
@@ -117,5 +118,11 @@
     {
         // This would need to be implemented in TimeFacade
         MessageSystem.AddSystemMessage("Time skip not yet implemented", SystemMessageTypes.Warning);
+    }
+
+    private void TeleportToElena()
+    {
+        GameFacade.DebugTeleportToLocation("copper_kettle_tavern", "corner_table");
+        StateHasChanged();
     }
 }

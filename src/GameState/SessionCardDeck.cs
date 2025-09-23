@@ -25,7 +25,7 @@ public class SessionCardDeck
     private readonly Pile playedPile = new();    // Was ConversationSession.PlayedCards
 
     private readonly string npcId;
-    private readonly Random random = new Random();
+    // DETERMINISTIC SYSTEM: No random number generation needed
 
     public SessionCardDeck(string npcId)
     {
@@ -232,13 +232,13 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Check request pile and move cards to hand if rapport threshold met
+    /// Check request pile and move cards to hand if momentum threshold met
     /// Returns the list of cards that were moved
     /// </summary>
-    public List<CardInstance> CheckRequestThresholds(int currentRapport)
+    public List<CardInstance> CheckRequestThresholds(int currentMomentum)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.RapportThreshold <= currentRapport)
+            .Where(c => c.Context?.MomentumThreshold <= currentMomentum)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();
@@ -249,7 +249,7 @@ public class SessionCardDeck
 
             requestPile.Remove(card);
             handPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to hand (rapport {currentRapport})");
+            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to hand (momentum {currentMomentum})");
             movedCards.Add(card);
 
             int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
@@ -293,12 +293,7 @@ public class SessionCardDeck
         if (card.Context == null)
             card.Context = new CardContext();
 
-        // Only roll if not already rolled
-        if (card.Context.PreRolledValue == null)
-        {
-            card.Context.PreRolledValue = random.Next(1, 101);
-            Console.WriteLine($"[SessionCardDeck] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
-        }
+        // DETERMINISTIC SYSTEM: No pre-rolled values needed - removed dice logic
     }
 
     /// <summary>

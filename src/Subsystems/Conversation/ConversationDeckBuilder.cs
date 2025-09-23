@@ -10,7 +10,6 @@ public class ConversationDeckBuilder
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
-    private readonly Random _random = new Random();
 
     public ConversationDeckBuilder(GameWorld gameWorld, TokenMechanicsManager tokenManager)
     {
@@ -149,20 +148,20 @@ public class ConversationDeckBuilder
                 PersonalityTypes = requestCard.PersonalityTypes,
                 LevelBonuses = requestCard.LevelBonuses,
                 MinimumTokensRequired = requestCard.MinimumTokensRequired,
-                RapportThreshold = requestCard.RapportThreshold,
+                MomentumThreshold = requestCard.MomentumThreshold,
                 CardType = CardType.BurdenGoal // Mark as BurdenGoal
             };
 
             CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);
 
-            // Store context for rapport threshold and request tracking
+            // Store context for momentum threshold and request tracking
             instance.Context = new CardContext
             {
-                RapportThreshold = requestCard.RapportThreshold,
+                MomentumThreshold = requestCard.MomentumThreshold,
                 RequestId = request.Id
             };
 
-            // Request cards start as unplayable until rapport threshold is met
+            // Request cards start as unplayable until momentum threshold is met
             instance.IsPlayable = false;
 
             requestCards.Add(instance);

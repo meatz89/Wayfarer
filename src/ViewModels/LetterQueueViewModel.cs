@@ -46,7 +46,6 @@ public class LetterViewModel
     public int Size { get; init; } // Size (1-3 slots)
     public string SizeIcon { get; init; }
     public string SizeDisplay { get; init; } // Visual representation (e.g., "■■■")
-    public bool IsPatronDeliveryObligation { get; init; }
     public bool IsCollected { get; init; }
     public string PhysicalConstraints { get; init; }
     public string PhysicalIcon { get; init; }

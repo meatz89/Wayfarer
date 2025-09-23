@@ -267,7 +267,6 @@ public class NarrativeValidator : IContentValidator
             "GatherResources" => true,
             "Browse" => true,
             "Observe" => true,
-            "PatronFunds" => true,
             "TravelEncounter" => true,
             _ => false
         };

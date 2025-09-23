@@ -8,7 +8,7 @@ public class ConversationTurnResult
     public int? FlowChange { get; set; }
     public int? OldFlow { get; set; }
     public int? NewFlow { get; set; }
-    public int? PatienceRemaining { get; set; }
+    public int? DoubtLevel { get; set; }
     public List<CardInstance> DrawnCards { get; set; }
     public List<CardInstance> RemovedCards { get; set; }
     public List<CardInstance> PlayedCards { get; set; }

@@ -732,8 +732,8 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 return SuccessEffectType.None;
 
             string lowerEffect = effect.ToLower();
-            if (lowerEffect.Contains("rapport"))
-                return SuccessEffectType.Rapport;
+            if (lowerEffect.Contains("rapport") || lowerEffect.Contains("momentum"))
+                return SuccessEffectType.Strike;
             if (lowerEffect.Contains("thread"))
                 return SuccessEffectType.Threading;
             if (lowerEffect.Contains("focus"))

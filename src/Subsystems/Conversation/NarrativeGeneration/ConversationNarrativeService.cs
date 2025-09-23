@@ -192,16 +192,16 @@ public class ConversationNarrativeService
     /// <returns>Narrative conversation state</returns>
     private ConversationState BuildConversationState(ConversationSession session)
     {
-        int rapport = session.RapportManager?.CurrentRapport ?? 0;
-        TopicLayer currentLayer = DetermineTopicLayer(rapport);
+        int momentum = session.CurrentMomentum;
+        TopicLayer currentLayer = DetermineTopicLayer(momentum);
 
         return new ConversationState
         {
             Flow = session.FlowBattery, // Internal 0-24 scale from FlowBattery
-            Rapport = rapport,
+            Rapport = momentum, // Use momentum as rapport for narrative compatibility
             Atmosphere = session.CurrentAtmosphere,
             Focus = session.GetAvailableFocus(),
-            Patience = session.CurrentPatience,
+            Patience = session.MaxDoubt - session.CurrentDoubt, // Convert doubt to patience for narrative
             CurrentState = session.CurrentState,
             CurrentTopicLayer = currentLayer,
             HighestTopicLayerReached = currentLayer, // Will need session tracking for persistence
@@ -251,14 +251,14 @@ public class ConversationNarrativeService
     }
 
     /// <summary>
-    /// Determines the topic layer based on rapport level.
+    /// Determines the topic layer based on momentum level.
     /// </summary>
-    /// <param name="rapport">Current rapport value</param>
+    /// <param name="momentum">Current momentum value</param>
     /// <returns>Appropriate topic layer</returns>
-    private TopicLayer DetermineTopicLayer(int rapport)
+    private TopicLayer DetermineTopicLayer(int momentum)
     {
-        if (rapport <= 5) return TopicLayer.Deflection;
-        if (rapport <= 10) return TopicLayer.Gateway;
+        if (momentum <= 5) return TopicLayer.Deflection;
+        if (momentum <= 10) return TopicLayer.Gateway;
         return TopicLayer.Core;
     }
 

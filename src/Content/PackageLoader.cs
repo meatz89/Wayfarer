@@ -478,7 +478,10 @@ public class PackageLoader
                     Description = dto.Description,
                     DeckId = dto.DeckId,
                     Category = dto.Category,
-                    AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>()
+                    AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>(),
+                    DoubtPerListen = dto.DoubtPerListen ?? 0,
+                    MomentumErosion = dto.MomentumErosion ?? false,
+                    MaxDoubt = dto.MaxDoubt ?? 10
                 };
                 _gameWorld.ConversationTypes.AddOrUpdateConversationType(conversationType.Id, conversationType);
                 Console.WriteLine($"[PackageLoader] Loaded conversation type '{conversationType.Id}' using deck '{conversationType.DeckId}'");

@@ -25,7 +25,7 @@ public class StrangerRequestDTO
     public string ConversationTypeId { get; set; } // The conversation type to use
     public List<string> RequestCards { get; set; } = new(); // Not used - cards come from conversation type deck
     public List<string> PromiseCards { get; set; } = new(); // Not used - cards come from conversation type deck
-    public List<int> RapportThresholds { get; set; } = new();
+    public List<int> MomentumThresholds { get; set; } = new();
     public List<StrangerRewardDTO> Rewards { get; set; } = new();
 }
 

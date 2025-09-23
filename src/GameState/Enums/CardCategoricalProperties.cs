@@ -5,6 +5,30 @@ namespace Wayfarer.GameState.Enums;
 /// </summary>
 
 /// <summary>
+/// Conversation card categories that define strategic role and mechanics
+/// </summary>
+public enum CardCategory
+{
+    /// <summary>
+    /// Expression Cards: Generate momentum directly, represent statements that advance your position
+    /// Effect types: Strike, Promising
+    /// </summary>
+    Expression,
+
+    /// <summary>
+    /// Realization Cards: Consume momentum for powerful effects, represent breakthrough moments
+    /// Effect types: Advancing, DoubleMomentum
+    /// </summary>
+    Realization,
+
+    /// <summary>
+    /// Regulation Cards: Manage resources (focus, doubt, cards, flow), enable setup turns and recovery
+    /// Effect types: Soothe, Threading, Focusing, Atmospheric
+    /// </summary>
+    Regulation
+}
+
+/// <summary>
 /// Defines when a card can be played and how long it persists
 /// </summary>
 public enum PersistenceType
@@ -26,7 +50,7 @@ public enum PersistenceType
 }
 
 /// <summary>
-/// Type of effect when card play succeeds
+/// Type of effect when card play succeeds in deterministic momentum/doubt system
 /// </summary>
 public enum SuccessEffectType
 {
@@ -36,17 +60,27 @@ public enum SuccessEffectType
     None,
 
     /// <summary>
-    /// Changes rapport/connection (magnitude from difficulty)
+    /// Strike Effect: Gain momentum (uses scaling formulas)
     /// </summary>
-    Rapport,
+    Strike,
 
     /// <summary>
-    /// Draws additional cards (magnitude from difficulty)
+    /// Soothe Effect: Reduce doubt (uses scaling formulas)
+    /// </summary>
+    Soothe,
+
+    /// <summary>
+    /// Thread Effect: Draw cards (uses scaling formulas)
     /// </summary>
     Threading,
 
     /// <summary>
-    /// Sets conversation atmosphere (specific type from magnitude from difficulty)
+    /// Double current momentum (powerful realization effect)
+    /// </summary>
+    DoubleMomentum,
+
+    /// <summary>
+    /// Sets conversation atmosphere (specific type from magnitude)
     /// </summary>
     Atmospheric,
 
@@ -56,7 +90,7 @@ public enum SuccessEffectType
     Focusing,
 
     /// <summary>
-    /// Moves obligation to position 1 and provides rapport
+    /// Moves obligation to position 1 and provides momentum
     /// </summary>
     Promising,
 

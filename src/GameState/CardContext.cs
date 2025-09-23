@@ -5,14 +5,10 @@ public class CardContext
     public ExchangeData ExchangeData { get; set; }
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
-    public int RapportThreshold { get; set; } // For request/promise cards
+    public int MomentumThreshold { get; set; } // For request/promise cards
     public string RequestId { get; set; } // ID of the NPCRequest this card belongs to
 
-    // Pre-rolled dice value (1-100) determined when card enters hand
-    public int? PreRolledValue { get; set; }
-
-    // Modified success rate after personality rules are applied
-    public int? ModifiedSuccessRate { get; set; }
+    // DETERMINISTIC SYSTEM: No pre-rolled dice values or modified success rates needed
 
     // Additional context properties  
     public string ExchangeRequest { get; set; }

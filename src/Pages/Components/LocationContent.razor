@@ -253,7 +253,7 @@
                                  @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else if (!string.IsNullOrEmpty(option.RequestId)) await StartConversationWithRequest(npc.Id, option.RequestId); } }">
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
-                                    <span class="patience-calculation">@GetPatienceDisplay(npc, CurrentSpot!)</span>
+                                    <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
                                     @if (option.ConversationTypeId == "request" && HasLetterRequest(npc.Id))
                                     {
                                         <span> • Letter request available!</span>

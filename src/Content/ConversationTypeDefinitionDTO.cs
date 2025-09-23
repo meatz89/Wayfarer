@@ -11,4 +11,7 @@ public class ConversationTypeDefinitionDTO
     public string DeckId { get; set; }
     public string Category { get; set; }
     public List<string> AvailableTimeBlocks { get; set; } = new List<string>();
+    public int? DoubtPerListen { get; set; }
+    public bool? MomentumErosion { get; set; }
+    public int? MaxDoubt { get; set; }
 }

@@ -706,18 +706,18 @@ namespace Wayfarer.Pages.Components
 
         private ConversationState BuildConversationState(ConversationSession session)
         {
-            int rapport = session.RapportManager?.CurrentRapport ?? 0;
-            TopicLayer currentLayer = rapport <= 5 ? TopicLayer.Deflection :
-                                    rapport <= 10 ? TopicLayer.Gateway :
+            int momentum = session.MomentumManager?.CurrentMomentum ?? 0;
+            TopicLayer currentLayer = momentum <= 5 ? TopicLayer.Deflection :
+                                    momentum <= 10 ? TopicLayer.Gateway :
                                     TopicLayer.Core;
 
             return new ConversationState
             {
                 Flow = session.FlowBattery,
-                Rapport = rapport,
+                Rapport = momentum,
                 Atmosphere = session.CurrentAtmosphere,
                 Focus = session.GetAvailableFocus(),
-                Patience = session.CurrentPatience,
+                Patience = session.CurrentDoubt,
                 CurrentState = session.CurrentState,
                 CurrentTopicLayer = currentLayer,
                 HighestTopicLayerReached = currentLayer,
@@ -1314,7 +1314,7 @@ namespace Wayfarer.Pages.Components
             return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
-        protected int GetRequestRapportThreshold(CardInstance card)
+        protected int GetRequestMomentumThreshold(CardInstance card)
         {
             // Goal cards MUST have rapport threshold in context - no fallbacks
             if (card?.Context == null)
@@ -1322,25 +1322,25 @@ namespace Wayfarer.Pages.Components
                 throw new InvalidOperationException($"Goal card '{card?.Id}' has no context!");
             }
 
-            if (card.Context.RapportThreshold <= 0)
+            if (card.Context.MomentumThreshold <= 0)
             {
-                throw new InvalidOperationException($"Goal card '{card.Id}' has invalid rapport threshold: {card.Context.RapportThreshold}");
+                throw new InvalidOperationException($"Goal card '{card.Id}' has invalid momentum threshold: {card.Context.MomentumThreshold}");
             }
 
-            return card.Context.RapportThreshold;
+            return card.Context.MomentumThreshold;
         }
 
         private void CheckRequestPileThresholds()
         {
             try
             {
-                if (Session?.RapportManager == null)
+                if (Session?.MomentumManager == null)
                 {
                     Console.WriteLine("[CheckRequestPileThresholds] Session or components are null - skipping");
                     return;
                 }
 
-                int currentRapport = Session.RapportManager.CurrentRapport;
+                int currentMomentum = Session.MomentumManager.CurrentMomentum;
                 List<CardInstance> cardsToMove = new List<CardInstance>();
                 IReadOnlyList<CardInstance> requestCards = ConversationFacade.GetRequestCards();
 
@@ -1352,8 +1352,8 @@ namespace Wayfarer.Pages.Components
                         continue;
                     }
 
-                    int threshold = GetRequestRapportThreshold(card);
-                    if (currentRapport >= threshold)
+                    int threshold = GetRequestMomentumThreshold(card);
+                    if (currentMomentum >= threshold)
                     {
                         cardsToMove.Add(card);
                     }
@@ -1363,7 +1363,7 @@ namespace Wayfarer.Pages.Components
                 // This prevents card loss and maintains proper encapsulation
                 if (cardsToMove.Count > 0)
                 {
-                    Console.WriteLine($"[CheckRequestPileThresholds] Checking request thresholds with rapport {currentRapport}");
+                    Console.WriteLine($"[CheckRequestPileThresholds] Checking request thresholds with momentum {currentMomentum}");
 
                     // Let ConversationFacade handle the move properly
                     ConversationFacade.CheckAndMoveRequestCards();
@@ -1382,7 +1382,7 @@ namespace Wayfarer.Pages.Components
                         if (messageSystem != null)
                         {
                             string cardName = GetCardName(card);
-                            string message = $"{cardName} is now available (Rapport {currentRapport}/{GetRequestRapportThreshold(card)})";
+                            string message = $"{cardName} is now available (Momentum {currentMomentum}/{GetRequestMomentumThreshold(card)})";
                             messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
                         }
                     }
@@ -1395,9 +1395,15 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected int GetCurrentRapport()
+        protected int GetCurrentMomentum()
         {
-            return Session?.RapportManager?.CurrentRapport ?? 0;
+            return Session?.MomentumManager?.CurrentMomentum ?? 0;
+        }
+
+        protected string GetDoubtSlotClass(int slotNumber)
+        {
+            int currentDoubt = Session?.CurrentDoubt ?? 0;
+            return slotNumber <= currentDoubt ? "filled" : "empty";
         }
 
         protected string GetNpcStatusLine()
@@ -1545,13 +1551,13 @@ namespace Wayfarer.Pages.Components
 
         protected string GetRapportSourceDescription()
         {
-            if (Session?.RapportManager == null || CurrentTokens == null)
+            if (Session?.MomentumManager == null || CurrentTokens == null)
                 return "";
 
             int totalTokens = CurrentTokens.Values.Sum();
             int startingRapport = totalTokens * 3; // 3 rapport per token
-            int currentRapport = Session.RapportManager.CurrentRapport;
-            int gained = currentRapport - startingRapport;
+            int currentMomentum = Session.MomentumManager.CurrentMomentum;
+            int gained = currentMomentum - startingRapport;
 
             if (totalTokens == 0)
                 return "No starting rapport";
@@ -1796,31 +1802,45 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSuccessChance(CardInstance card)
         {
-            // Calculate success chance based on card type and state, including all bonuses
-            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
+            // DETERMINISTIC SYSTEM: Cards either succeed or fail based on clear rules
+            // Use the same logic as the backend to determine success/failure
+            if (Session == null || ConversationFacade == null)
+                return "Unknown";
 
-            // Add rapport modifier (each point = 1% success modifier)
-            int rapportBonus = Session?.RapportManager?.GetSuccessModifier() ?? 0;
-
-            // Add atmosphere modifier (Focused gives +20%)
-            int atmosphereBonus = ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
-
-            // Add level bonus (Level 2: +10%, Level 4: +20% total)
-            int levelBonus = GetLevelBonus(card);
-
-            // Add personality modifier (e.g., Mercantile +30% for highest focus)
-            int personalityBonus = GetPersonalityModifier(card);
-
-            // Calculate total, clamped to valid percentage range
-            int totalChance = Math.Max(0, Math.Min(100, baseChance + rapportBonus + atmosphereBonus + levelBonus + personalityBonus));
-
-            // For auto-success atmosphere, always show 100%
-            if (ConversationFacade?.GetAtmosphereManager()?.ShouldAutoSucceed() == true)
+            // Goal cards (Letters, Promises) succeed if momentum threshold is met
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             {
-                totalChance = 100;
+                return Session.CurrentMomentum >= card.MomentumThreshold ? "100" : "0";
             }
 
-            return totalChance.ToString();
+            // Very easy cards always succeed
+            if (card.Difficulty == Difficulty.VeryEasy)
+                return "100";
+
+            // Check if player has sufficient level in bound stat
+            if (card.Template.BoundStat.HasValue)
+            {
+                int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
+                int requiredLevel = card.Difficulty switch
+                {
+                    Difficulty.Easy => 1,
+                    Difficulty.Medium => 2,
+                    Difficulty.Hard => 3,
+                    Difficulty.VeryHard => 4,
+                    _ => 1
+                };
+
+                if (effectiveLevel < requiredLevel)
+                    return "0";
+            }
+
+            // Apply doubt penalty - high doubt can cause failure
+            int doubtPenalty = Session.GetDoubtPenalty();
+            if (doubtPenalty >= 50) // 10+ doubt = 50%+ penalty = automatic failure
+                return "0";
+
+            // Otherwise succeed
+            return "100";
         }
 
         protected string GetFailureChance(CardInstance card)
@@ -1832,35 +1852,51 @@ namespace Wayfarer.Pages.Components
 
         protected string GetSuccessChanceBreakdown(CardInstance card)
         {
-            // Show breakdown of success chance modifiers
-            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
-            int rapportBonus = Session?.RapportManager?.GetSuccessModifier() ?? 0;
-            int atmosphereBonus = ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
+            // DETERMINISTIC SYSTEM: Show clear reason for success/failure
+            if (Session == null || ConversationFacade == null)
+                return "Unknown status";
 
-            string breakdown = $"Base: {baseChance}%";
-
-            if (rapportBonus != 0)
+            // Goal cards (Letters, Promises) succeed if momentum threshold is met
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             {
-                string rapportSign = rapportBonus > 0 ? "+" : "";
-                breakdown += $"\nRapport: {rapportSign}{rapportBonus}%";
+                bool canSucceed = Session.CurrentMomentum >= card.MomentumThreshold;
+                return canSucceed ?
+                    $"Goal card: Momentum {Session.CurrentMomentum} ≥ {card.MomentumThreshold} required" :
+                    $"Goal card: Need {card.MomentumThreshold - Session.CurrentMomentum} more momentum";
             }
 
-            if (atmosphereBonus != 0)
+            // Very easy cards always succeed
+            if (card.Difficulty == Difficulty.VeryEasy)
+                return "Very Easy: Always succeeds";
+
+            // Check level requirements
+            if (card.Template.BoundStat.HasValue)
             {
-                breakdown += $"\nAtmosphere: +{atmosphereBonus}%";
+                int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
+                int requiredLevel = card.Difficulty switch
+                {
+                    Difficulty.Easy => 1,
+                    Difficulty.Medium => 2,
+                    Difficulty.Hard => 3,
+                    Difficulty.VeryHard => 4,
+                    _ => 1
+                };
+
+                if (effectiveLevel < requiredLevel)
+                    return $"{card.Template.BoundStat.Value}: Level {effectiveLevel} < {requiredLevel} required";
             }
 
-            if (ConversationFacade?.GetAtmosphereManager()?.ShouldAutoSucceed() == true)
-            {
-                breakdown += "\nInformed: Auto-success!";
-            }
+            // Check doubt penalty
+            int doubtPenalty = Session.GetDoubtPenalty();
+            if (doubtPenalty >= 50)
+                return $"Too much doubt: {Session.CurrentDoubt} doubt causes automatic failure";
 
-            return breakdown;
+            return "Meets all requirements: Will succeed";
         }
 
-        protected int GetRapportModifier()
+        protected int GetMomentumModifier()
         {
-            return Session?.RapportManager?.GetSuccessModifier() ?? 0;
+            return Session?.MomentumManager?.GetDoubtPenalty() ?? 0;
         }
 
         protected int GetAtmosphereModifier()
@@ -1999,7 +2035,7 @@ namespace Wayfarer.Pages.Components
                 return string.Format("Letter obtained! Check your queue. (Flow: {0})", Session.FlowBattery);
             }
 
-            if (Session.CurrentPatience <= 0)
+            if (Session.CurrentDoubt >= Session.MaxDoubt)
             {
                 return string.Format("{0}'s patience has been exhausted. They have no more time for you today.", NpcName);
             }
@@ -2363,11 +2399,11 @@ namespace Wayfarer.Pages.Components
             modifiers.Add($"{baseChance}% base");
 
             // Rapport modifier
-            int rapportBonus = GetRapportModifier();
-            if (rapportBonus != 0)
+            int momentumBonus = GetMomentumModifier();
+            if (momentumBonus != 0)
             {
-                string sign = rapportBonus > 0 ? "+" : "";
-                modifiers.Add($"{sign}{rapportBonus}% rapport");
+                string sign = momentumBonus > 0 ? "+" : "";
+                modifiers.Add($"{sign}{momentumBonus}% momentum");
             }
 
             // Level bonus
@@ -3256,7 +3292,10 @@ namespace Wayfarer.Pages.Components
 
             // Determine if the play was successful (need to get this from the result)
             // For now, we'll simulate - in reality, we need to get this from ConversationFacade result
-            bool wasSuccessful = new Random().Next(100) < 60; // Placeholder - get actual result
+            // DETERMINISTIC SYSTEM: This should get result from ExecuteSpeak() call above
+            // For now, use a simple deterministic approach based on card properties
+            bool wasSuccessful = playedCard.Difficulty == Difficulty.VeryEasy ||
+                                 (Session?.CurrentDoubt ?? 0) < 10; // Simple deterministic rule
 
             // Mark the played card with animation
             MarkCardAsPlayed(playedCard, wasSuccessful);
@@ -3371,11 +3410,11 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
 
-            int currentPatienceUsed = Session.CurrentPatience;
+            int currentDoubtLevel = Session.CurrentDoubt;
 
-            if (slot <= currentPatienceUsed)
+            if (slot <= currentDoubtLevel)
                 return "used";
-            else if (slot == currentPatienceUsed + 1)
+            else if (slot == currentDoubtLevel + 1)
                 return "current";
             else
                 return "";
@@ -3418,8 +3457,8 @@ namespace Wayfarer.Pages.Components
                 // Look for request/promise cards in the request pile
                 IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInPile = requestCards
                 .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
-                .Where(c => c.Template?.RapportThreshold > 0)
-                .GroupBy(c => c.Template.RapportThreshold)
+                .Where(c => c.Template?.MomentumThreshold > 0)
+                .GroupBy(c => c.Template.MomentumThreshold)
                 .OrderBy(g => g.Key);
 
                 foreach (IGrouping<int, CardInstance>? group in requestCardsInPile)
@@ -3487,13 +3526,13 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetGoalCardClass(int threshold)
         {
-            if (Session?.RapportManager == null) return "";
+            if (Session?.MomentumManager == null) return "";
 
-            int currentRapport = Session.RapportManager.CurrentRapport;
+            int currentMomentum = Session.MomentumManager.CurrentMomentum;
 
-            if (currentRapport >= threshold)
+            if (currentMomentum >= threshold)
                 return "achievable";
-            else if (currentRapport >= threshold - 2) // Close to achievable
+            else if (currentMomentum >= threshold - 2) // Close to achievable
                 return "active";
             else
                 return "";
@@ -3592,6 +3631,135 @@ namespace Wayfarer.Pages.Components
             }
 
             return 1;
+        }
+
+        /// <summary>
+        /// Returns display-friendly name for card category
+        /// </summary>
+        protected string GetCategoryDisplayName(CardCategory category)
+        {
+            return category switch
+            {
+                CardCategory.Expression => "Expression",
+                CardCategory.Realization => "Realization",
+                CardCategory.Regulation => "Regulation",
+                _ => "Unknown"
+            };
+        }
+
+        /// <summary>
+        /// Returns CSS class for card category styling
+        /// </summary>
+        protected string GetCategoryClass(ConversationCard card)
+        {
+            if (card == null) return "category-unknown";
+
+            return card.Category switch
+            {
+                CardCategory.Expression => "category-expression",
+                CardCategory.Realization => "category-realization",
+                CardCategory.Regulation => "category-regulation",
+                _ => "category-unknown"
+            };
+        }
+
+        /// <summary>
+        /// Get momentum calculation display for a card
+        /// </summary>
+        protected string GetMomentumCalculation(CardInstance card)
+        {
+            if (card?.Template == null) return "";
+
+            // Only show for Expression cards
+            if (card.Template.Category != CardCategory.Expression)
+            {
+                return "";
+            }
+
+            // Get the player stats for bonus calculation
+            PlayerStats playerStats = null;
+            if (GameFacade != null)
+            {
+                try
+                {
+                    playerStats = GameFacade.GetPlayerStats();
+                }
+                catch { }
+            }
+
+            int baseMomentum = card.Template.GetMomentumEffect(Session, playerStats);
+            return $"Gain {baseMomentum} momentum";
+        }
+
+        /// <summary>
+        /// Get card effect description for the new system
+        /// </summary>
+        protected string GetCardEffectDescription(CardInstance card)
+        {
+            if (card?.Template == null) return "";
+
+            return GetSuccessEffectDescription(card);
+        }
+
+        /// <summary>
+        /// Get preview text for LISTEN button
+        /// </summary>
+        protected string GetListenPreview()
+        {
+            if (Session == null) return "";
+
+            var preview = new List<string>();
+
+            // Show doubt increase
+            int baseDoubtIncrease = 3; // From desperate plea
+            int unspentFocusPenalty = Session.GetAvailableFocus();
+            int totalDoubt = Session.CurrentDoubt + baseDoubtIncrease + unspentFocusPenalty;
+
+            preview.Add($"Doubt → {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");
+
+            // Show momentum erosion (Devoted doubles losses)
+            int erosion = totalDoubt;
+            if (Context?.Npc?.PersonalityType == PersonalityType.DEVOTED)
+            {
+                erosion *= 2;
+                int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
+                preview.Add($"Momentum {Session.CurrentMomentum} → {newMomentum} (Devoted 2x!)");
+            }
+            else
+            {
+                int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
+                preview.Add($"Momentum {Session.CurrentMomentum} → {newMomentum}");
+            }
+
+            // Show draw with impulse penalties
+            int impulseCount = Session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
+            int drawCount = Session.GetDrawCount() - impulseCount;
+            if (impulseCount > 0)
+            {
+                preview.Add($"Draw {drawCount} cards ({Session.GetDrawCount()} - {impulseCount} Impulses)");
+            }
+            else
+            {
+                preview.Add($"Draw {Session.GetDrawCount()} cards");
+            }
+
+            return string.Join("<br/>", preview);
+        }
+
+        /// <summary>
+        /// Get preview text for SPEAK button
+        /// </summary>
+        protected string GetSpeakPreview()
+        {
+            if (Session == null) return "";
+
+            if (SelectedCard == null)
+            {
+                return $"Select a card to play ({Session.GetAvailableFocus()} focus available)";
+            }
+
+            int focusCost = SelectedCard.GetEffectiveFocus(Session.CurrentState);
+            return $"Play card (Cost: {focusCost} focus)";
         }
 
     }

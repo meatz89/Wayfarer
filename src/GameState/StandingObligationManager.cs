@@ -377,7 +377,7 @@ public class StandingObligationManager
     private bool IsSpecialConflict(StandingObligation existing, StandingObligation newObligation)
     {
         // Special cases where obligations conflict regardless of token type
-        // For example, patron-related obligations might conflict
+        // For example, conflicting obligations might interfere with each other
 
         return false; // No special conflicts for now
     }

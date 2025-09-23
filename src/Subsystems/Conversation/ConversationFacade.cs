@@ -11,6 +11,8 @@ public class ConversationFacade
     private readonly ExchangeHandler _exchangeHandler;
     private readonly FocusManager _focusManager;
     private readonly AtmosphereManager _atmosphereManager;
+    private readonly FlowManager _flowManager;
+    private readonly MomentumManager _momentumManager;
     private readonly CategoricalEffectResolver _effectResolver;
     private readonly ConversationNarrativeService _narrativeService;
     private readonly ConversationDeckBuilder _deckBuilder;
@@ -22,7 +24,6 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly DisplacementCalculator _displacementCalculator;
-    private readonly Random _random;
 
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
@@ -34,6 +35,8 @@ public class ConversationFacade
         ExchangeHandler exchangeHandler,
         FocusManager focusManager,
         AtmosphereManager atmosphereManager,
+        FlowManager flowManager,
+        MomentumManager momentumManager,
         CategoricalEffectResolver effectResolver,
         ConversationNarrativeService narrativeService,
         ConversationDeckBuilder deckBuilder,
@@ -48,6 +51,8 @@ public class ConversationFacade
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
         _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
         _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
+        _flowManager = flowManager ?? throw new ArgumentNullException(nameof(flowManager));
+        _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
@@ -57,7 +62,6 @@ public class ConversationFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
-        _random = new Random();
     }
 
     /// <summary>
@@ -89,9 +93,10 @@ public class ConversationFacade
         int initialFlow = npc.GetFlowBattery(); // -2 to +2
 
         // Initialize flow battery manager with persisted values
-        _flowBatteryManager = new FlowManager(initialState, initialFlow);
-        _flowBatteryManager.StateTransitioned += OnStateTransitioned;
-        _flowBatteryManager.ConversationEnded += OnConversationEnded;
+        _flowManager.InitializeForConversation(initialState, initialFlow);
+        _flowManager.StateTransitioned += OnStateTransitioned;
+        _flowManager.ConversationEnded += OnConversationEnded;
+        _flowBatteryManager = _flowManager;
 
         // Initialize focus manager
         _focusManager.SetBaseCapacity(initialState);
@@ -108,7 +113,9 @@ public class ConversationFacade
 
         // Get NPC token counts directly from TokenMechanicsManager
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
-        RapportManager rapportManager = new RapportManager(npcTokens);
+
+        // Initialize momentum manager for this conversation with token data
+        _momentumManager.InitializeForConversation(npcTokens);
 
         // Initialize NPC's daily patience if needed
         if (npc.MaxDailyPatience == 0)
@@ -116,8 +123,9 @@ public class ConversationFacade
             npc.InitializeDailyPatience();
         }
 
-        // Use NPC's current daily patience for the session
-        int availablePatience = npc.DailyPatience;
+        // Initialize momentum and doubt for the session
+        int initialMomentum = 0;
+        int initialDoubt = 0;
 
         // Get request text from the request
         string requestText = request.NpcRequestText;
@@ -134,17 +142,20 @@ public class ConversationFacade
             CurrentFocus = 0,
             MaxFocus = _focusManager.CurrentCapacity,
             CurrentAtmosphere = AtmosphereType.Neutral,
-            CurrentPatience = availablePatience, // Use NPC's daily patience
-            MaxPatience = npc.MaxDailyPatience,  // Max based on personality
+            CurrentMomentum = initialMomentum,
+            CurrentDoubt = initialDoubt,
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
             TokenManager = _tokenManager,
             FlowManager = _flowBatteryManager,
-            RapportManager = rapportManager,
+            MomentumManager = _momentumManager,
             PersonalityEnforcer = _personalityEnforcer,  // Add personality enforcer to session
             ObservationCards = observationCards ?? new List<CardInstance>(),
             RequestText = requestText // Set request text for Request conversations
         };
+
+        // Set up state synchronization between MomentumManager and ConversationSession
+        _momentumManager.SetSession(_currentSession);
 
         // THEN: Perform initial draw of regular cards
         // This is the initial conversation start, so we just draw cards without exhausting
@@ -229,11 +240,30 @@ public class ConversationFacade
         // Advance time by 1 segment per conversation round (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        // Deduct patience cost (unless Patient atmosphere)
-        if (!_atmosphereManager.ShouldWaivePatienceCost())
+        // Apply LISTEN mechanics based on conversation type
+        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(_currentSession.ConversationTypeId);
+        if (typeEntry?.Definition != null && _currentSession.MomentumManager != null)
         {
-            _currentSession.CurrentPatience--;
-            _currentSession.NPC.DailyPatience--; // Also deduct from NPC's daily pool
+            ConversationTypeDefinition conversationType = typeEntry.Definition;
+
+            // 1. Add doubt from conversation type (e.g., +3 for desperate_request)
+            if (conversationType.DoubtPerListen > 0)
+            {
+                _currentSession.MomentumManager.AddDoubt(conversationType.DoubtPerListen);
+            }
+
+            // 2. Apply momentum erosion (current doubt reduces momentum)
+            if (conversationType.MomentumErosion)
+            {
+                _currentSession.MomentumManager.ApplyMomentumErosion(_personalityEnforcer);
+            }
+
+            // 3. Apply focus penalties (unspent focus adds doubt)
+            int unspentFocus = _focusManager.AvailableFocus;
+            if (unspentFocus > 0)
+            {
+                _currentSession.MomentumManager.AddDoubt(unspentFocus);
+            }
         }
 
         // Execute LISTEN through deck operations
@@ -262,7 +292,7 @@ public class ConversationFacade
             NewState = _currentSession.CurrentState,
             NPCResponse = npcResponse,
             DrawnCards = drawnCards,
-            PatienceRemaining = _currentSession.CurrentPatience,
+            DoubtLevel = _currentSession.CurrentDoubt,
             Narrative = narrative  // Include the full narrative output
         };
     }
@@ -305,24 +335,14 @@ public class ConversationFacade
                     FlowChange = 0,
                     OldFlow = _currentSession.FlowBattery,
                     NewFlow = _currentSession.FlowBattery,
-                    PatienceRemaining = _currentSession.CurrentPatience,
+                    DoubtLevel = _currentSession.CurrentDoubt,
                     PersonalityViolation = violationMessage
                 };
             }
         }
 
-        // Apply personality success rate modifier before playing the card
-        if (_personalityEnforcer != null && selectedCard.Context != null)
-        {
-            // Get base success rate from effect resolver
-            int baseSuccessRate = _effectResolver.CalculateSuccessPercentage(selectedCard, _currentSession);
-
-            // Apply personality modifier (e.g., Mercantile +30% for highest focus)
-            int modifiedSuccessRate = _personalityEnforcer.ModifySuccessRate(selectedCard, baseSuccessRate);
-
-            // Store the modified rate for the card to use
-            selectedCard.Context.ModifiedSuccessRate = modifiedSuccessRate;
-        }
+        // Personality enforcement is now handled within the deterministic success check
+        // No need for percentage-based modifications
 
         // Play the card
         CardPlayResult playResult = PlayCard(_currentSession, selectedCard);
@@ -419,7 +439,7 @@ public class ConversationFacade
             FlowChange = flowChange,
             OldFlow = oldFlow,
             NewFlow = _currentSession.FlowBattery,
-            PatienceRemaining = _currentSession.CurrentPatience,
+            DoubtLevel = _currentSession.CurrentDoubt,
             CardPlayResult = playResult,
             Narrative = narrative  // Pass the full narrative output
         };
@@ -570,7 +590,7 @@ public class ConversationFacade
                     DisplayName = request.Name,
                     Description = request.Description,
                     TokenType = ConnectionType.Trust, // Default token type
-                    RapportThreshold = 0, // Will check individual card thresholds
+                    MomentumThreshold = 0, // Will check individual card thresholds
                     CardType = CardType.Promise
                 });
             }
@@ -593,7 +613,7 @@ public class ConversationFacade
                     DisplayName = "Deliver Letter",
                     Description = "Deliver a letter from your queue",
                     TokenType = ConnectionType.None,
-                    RapportThreshold = 0,
+                    MomentumThreshold = 0,
                     CardType = CardType.Letter
                 });
             }
@@ -663,12 +683,12 @@ public class ConversationFacade
         // Cards that have been moved to ActiveCards have already met their threshold
         if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
         {
-            // If card is in RequestPile, check rapport threshold
+            // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
             {
-                int rapportThreshold = card.Context?.RapportThreshold ?? 0;
-                int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
-                return currentRapport >= rapportThreshold;
+                int momentumThreshold = card.Context?.MomentumThreshold ?? 0;
+                int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
+                return currentMomentum >= momentumThreshold;
             }
             // If card is in ActiveCards (hand), it's already playable (threshold was met)
         }
@@ -765,8 +785,8 @@ public class ConversationFacade
     /// </summary>
     private bool ShouldEndConversation(ConversationSession session)
     {
-        // End if no patience left
-        if (session.CurrentPatience <= 0)
+        // End if doubt at maximum (10 pips filled)
+        if (session.CurrentDoubt >= session.MaxDoubt)
             return true;
 
         // Check with flow battery manager
@@ -791,10 +811,10 @@ public class ConversationFacade
         string reason = "Conversation completed";
 
         // Check ending conditions
-        if (session.CurrentPatience <= 0)
+        if (session.CurrentDoubt >= session.MaxDoubt)
         {
             success = false;
-            reason = "Patience exhausted";
+            reason = "Doubt overwhelmed conversation";
         }
         else if (session.CurrentState == ConnectionState.DISCONNECTED && session.FlowBattery <= -3)
         {
@@ -886,9 +906,9 @@ public class ConversationFacade
                                 deadlineInSegments <= 12 ? EmotionalFocus.MEDIUM :
                                 EmotionalFocus.LOW;
 
-        // Find recipient
+        // Find recipient (deterministic - first available NPC)
         List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
-        NPC recipient = otherNpcs.Any() ? otherNpcs[_random.Next(otherNpcs.Count)] : null;
+        NPC recipient = otherNpcs.FirstOrDefault();
 
         return new DeliveryObligation
         {
@@ -973,13 +993,17 @@ public class ConversationFacade
         _focusManager.RefreshPool();
 
         // Calculate draw count based on state and atmosphere
-        int drawCount = session.GetDrawCount();
+        int baseDrawCount = session.GetDrawCount();
+
+        // Apply impulse penalty: each unplayed Impulse card reduces draw by 1
+        int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
+        int finalDrawCount = Math.Max(1, baseDrawCount - impulseCount); // Minimum 1 card draw
 
         // HIGHLANDER: Draw directly to hand
-        session.Deck.DrawToHand(drawCount);
+        session.Deck.DrawToHand(finalDrawCount);
 
         // Get the drawn cards for return value
-        List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(drawCount).ToList();
+        List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(finalDrawCount).ToList();
 
         // Check if any goal cards should become playable based on rapport
         UpdateGoalCardPlayabilityAfterListen(session);
@@ -1036,40 +1060,19 @@ public class ConversationFacade
             };
         }
 
-        // Calculate success percentage - use modified rate if personality rules applied it
-        int successPercentage = selectedCard.Context?.ModifiedSuccessRate
-            ?? _effectResolver.CalculateSuccessPercentage(selectedCard, session);
+        // DETERMINISTIC: Check success based on clear rules (no randomness)
+        bool success = _effectResolver.CheckCardSuccess(selectedCard, session);
 
-        // Promise/request cards (GoalCard) ALWAYS succeed
-        bool success;
-        int roll;
-
-        if (selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.BurdenGoal)
+        // Mark request as completed if this is a BurdenGoal (request) card and it succeeds
+        if (success && selectedCard.CardType == CardType.BurdenGoal && selectedCard.Context?.RequestId != null)
         {
-            // Promise/request cards always succeed (100% success rate)
-            success = true;
-            roll = 100; // For display purposes
-            successPercentage = 100; // Override to show 100% in UI
-
-            // Mark request as completed if this is a BurdenGoal (request) card
-            if (selectedCard.CardType == CardType.BurdenGoal && selectedCard.Context?.RequestId != null)
+            // Find and complete the request
+            NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
+            if (request != null)
             {
-                // Find and complete the request
-                NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
-                if (request != null)
-                {
-                    request.Complete();
-                    // The conversation will end after this card is played
-                }
+                request.Complete();
+                // The conversation will end after this card is played
             }
-        }
-        else
-        {
-            // Use pre-rolled value if available, otherwise generate one (shouldn't happen normally)
-            roll = selectedCard.Context?.PreRolledValue ?? _random.Next(1, 101);
-
-            // Check success using the pre-rolled value with momentum system
-            success = _effectResolver.CheckSuccessWithPreRoll(roll, successPercentage, session);
         }
 
         // Spend focus (possibly 0 if free) - focus represents effort of speaking
@@ -1084,27 +1087,27 @@ public class ConversationFacade
 
         if (success)
         {
-            // Success always gives +1 to flow
-            flowChange = 1;
+            // Flow only changes from explicit "Advancing" effect type (no automatic changes)
+            flowChange = 0;
 
-            // Reset hidden momentum on success (bad luck protection resets)
-            session.HiddenMomentum = 0;
+            // Reset bad luck protection on success would go here if implemented
 
             // Process card's success effect
             // PROJECTION PRINCIPLE: Get projection from resolver and apply it
             effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
 
-            // Apply personality modifier to rapport change
-            int rapportChange = effectResult.RapportChange;
-            if (session.PersonalityEnforcer != null && rapportChange != 0)
+            // Apply momentum/doubt changes based on card effects
+            if (effectResult.MomentumChange > 0 && session.MomentumManager != null)
             {
-                rapportChange = session.PersonalityEnforcer.ModifyRapportChange(selectedCard, rapportChange);
+                session.MomentumManager.AddMomentum(effectResult.MomentumChange, session.CurrentAtmosphere);
             }
-
-            // Apply rapport changes to RapportManager
-            if (rapportChange != 0 && session.RapportManager != null)
+            if (effectResult.DoubtChange > 0 && session.MomentumManager != null)
             {
-                session.RapportManager.ApplyRapportChange(rapportChange, session.CurrentAtmosphere);
+                session.MomentumManager.AddDoubt(effectResult.DoubtChange, session.CurrentAtmosphere);
+            }
+            if (effectResult.DoubtChange < 0 && session.MomentumManager != null)
+            {
+                session.MomentumManager.ReduceDoubt(-effectResult.DoubtChange, session.CurrentAtmosphere);
             }
 
             // Apply focus restoration (for Focusing success effect)
@@ -1142,26 +1145,24 @@ public class ConversationFacade
         }
         else
         {
-            // Failure always gives -1 to flow
-            flowChange = -1;
+            // Flow only changes from explicit "Advancing" effect type (no automatic changes)
+            flowChange = 0;
 
-            // Increment hidden momentum for bad luck protection (invisible to player)
-            session.HiddenMomentum = Math.Min(session.HiddenMomentum + 1, 4); // Cap at 4 failures
+            // Bad luck protection tracking would go here if implemented
 
             // PROJECTION PRINCIPLE: Get projection from resolver
             effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
 
-            // Apply personality modifier to rapport change (for failure effects)
-            int failureRapportChange = effectResult.RapportChange;
-            if (session.PersonalityEnforcer != null && failureRapportChange != 0)
+            // Apply doubt on failure (standard failure adds 1 doubt)
+            if (session.MomentumManager != null)
             {
-                failureRapportChange = session.PersonalityEnforcer.ModifyRapportChange(selectedCard, failureRapportChange);
+                session.MomentumManager.AddDoubt(1, session.CurrentAtmosphere);
             }
 
-            // Apply rapport changes to RapportManager (if any failure effects modify rapport)
-            if (failureRapportChange != 0 && session.RapportManager != null)
+            // Apply other failure momentum/doubt changes if any
+            if (effectResult.MomentumChange < 0 && session.MomentumManager != null)
             {
-                session.RapportManager.ApplyRapportChange(failureRapportChange, session.CurrentAtmosphere);
+                session.MomentumManager.LoseMomentum(-effectResult.MomentumChange);
             }
 
             // Apply focus penalty (for ForceListen effect)
@@ -1206,8 +1207,8 @@ public class ConversationFacade
                     Card = selectedCard,
                     Success = success,
                     Flow = flowChange,
-                    Roll = roll,
-                    SuccessChance = successPercentage
+                    Roll = 0, // No dice rolls in deterministic system
+                    SuccessChance = success ? 100 : 0 // Deterministic: either succeeds or fails
                 }
             },
             FinalFlow = flowChange
@@ -1335,12 +1336,12 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Check if goal cards should become playable after LISTEN based on rapport threshold
+    /// Check if goal cards should become playable after LISTEN based on momentum threshold
     /// </summary>
     private void UpdateGoalCardPlayabilityAfterListen(ConversationSession session)
     {
-        // Get current rapport
-        int currentRapport = session.RapportManager?.CurrentRapport ?? 0;
+        // Get current momentum
+        int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
 
         // Check all goal cards in active hand
         foreach (CardInstance card in session.Deck.HandCards)
@@ -1349,10 +1350,10 @@ public class ConversationFacade
             if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
                 && !card.IsPlayable)
             {
-                // Check if rapport threshold is met
-                int rapportThreshold = card.Context?.RapportThreshold ?? 0;
+                // Check if momentum threshold is met
+                int momentumThreshold = card.Context?.MomentumThreshold ?? 0;
 
-                if (currentRapport >= rapportThreshold)
+                if (currentMomentum >= momentumThreshold)
                 {
                     // Make card playable
                     card.IsPlayable = true;
@@ -1393,7 +1394,7 @@ public class ConversationFacade
 
         foreach (CardInstance card in session.Deck.HandCards)
         {
-            // Skip request/promise cards - their playability is based on rapport, not focus
+            // Skip request/promise cards - their playability is based on momentum, not focus
             if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
             {
                 continue; // Don't modify request card playability here
@@ -1479,10 +1480,10 @@ public class ConversationFacade
         // PROJECTION PRINCIPLE: Get projection from resolver
         CardEffectResult projection = _effectResolver.ProcessExhaustEffect(card, session);
 
-        // Apply rapport penalty
-        if (projection.RapportChange < 0 && session.RapportManager != null)
+        // Apply doubt penalty on exhaust
+        if (projection.DoubtChange > 0 && session.MomentumManager != null)
         {
-            session.RapportManager.ApplyRapportChange(projection.RapportChange, session.CurrentAtmosphere);
+            session.MomentumManager.AddDoubt(projection.DoubtChange, session.CurrentAtmosphere);
         }
 
         // Apply focus penalty (negative focus)
@@ -1557,7 +1558,7 @@ public class ConversationFacade
                     };
 
                     _tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, _currentSession.NPC.ID);
-                    _currentSession.FlowBattery = Math.Min(_currentSession.FlowBattery + 1, 3); // Flow change
+                    // Flow no longer changes automatically - only from explicit "Advancing" cards
 
                     _messageSystem.AddSystemMessage(
                         $"Successfully delivered {deliveredObligation.SenderName}'s letter to {_currentSession.NPC.Name}!",
@@ -1576,14 +1577,14 @@ public class ConversationFacade
                 _messageSystem.AddSystemMessage(
                     $"{_currentSession.NPC.Name} disconnectedly hands you a letter for her family!",
                     SystemMessageTypes.Success);
-                _currentSession.FlowBattery = Math.Min(_currentSession.FlowBattery + 1, 3); // Flow change
+                // Flow no longer changes automatically - only from explicit "Advancing" cards
                 _currentSession.LetterGenerated = true;
             }
         }
     }
 
     /// <summary>
-    /// Check and move request cards to hand if rapport threshold is met
+    /// Check and move request cards to hand if momentum threshold is met
     /// This should only be called by UI components, never directly on Session
     /// </summary>
     public List<CardInstance> CheckAndMoveRequestCards()
@@ -1593,15 +1594,15 @@ public class ConversationFacade
             return new List<CardInstance>();
         }
 
-        int currentRapport = _currentSession.RapportManager?.CurrentRapport ?? 0;
-        List<CardInstance> movedCards = _currentSession.Deck.CheckRequestThresholds(currentRapport);
+        int currentMomentum = _currentSession.MomentumManager?.CurrentMomentum ?? 0;
+        List<CardInstance> movedCards = _currentSession.Deck.CheckRequestThresholds(currentMomentum);
 
         // Notify about moved cards
         foreach (CardInstance card in movedCards)
         {
             card.IsPlayable = true;
             _messageSystem.AddSystemMessage(
-                $"{card.Description} is now available (Rapport threshold met)",
+                $"{card.Description} is now available (Momentum threshold met)",
                 SystemMessageTypes.Success);
         }
 

@@ -585,7 +585,6 @@ public class ObligationQueueManager
                         SystemMessageTypes.Warning
                     );
                 }
-                // Patron privilege messaging removed - patron system deleted
             }
         }
         else if (actualPosition > basePosition)
@@ -659,7 +658,6 @@ public class ObligationQueueManager
     // Show narrative for debt-based leverage
     private void ShowDebtLeverageNarrative(DeliveryObligation letter, int position, int basePosition, int tokenBalance)
     {
-        // Patron system removed - all letters use normal debt narrative
         ShowNormalDebtNarrative(letter, position, basePosition, tokenBalance);
 
         if (position <= 3 && basePosition >= 5)
@@ -671,22 +669,6 @@ public class ObligationQueueManager
         }
     }
 
-    // Show narrative for patron letters with extreme debt
-    private void ShowPatronLeverageNarrative(DeliveryObligation letter, int position, int tokenBalance)
-    {
-        _messageSystem.AddSystemMessage(
-            $"🌟 A GOLD-SEALED LETTER ARRIVES FROM YOUR PATRON!",
-            SystemMessageTypes.Warning
-        );
-        _messageSystem.AddSystemMessage(
-            $"💸 Your MASSIVE DEBT ({Math.Abs(tokenBalance)} tokens) gives them ABSOLUTE LEVERAGE!",
-            SystemMessageTypes.Danger
-        );
-        _messageSystem.AddSystemMessage(
-            $"  • Commands priority position {position} - all other obligations must wait!",
-            SystemMessageTypes.Warning
-        );
-    }
 
     // Show narrative for normal debt leverage
     private void ShowNormalDebtNarrative(DeliveryObligation letter, int position, int basePosition, int tokenBalance)
@@ -798,7 +780,6 @@ public class ObligationQueueManager
         player.NPCLetterHistory.GetHistory(senderId).RecordExpiry(); // Use existing expiry tracking
     }
 
-    // Handle patron letters that jump to top positions
 
     // Remove letter from queue
     public bool RemoveLetterFromQueue(int position)

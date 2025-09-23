@@ -10,8 +10,9 @@ public class ConversationSession
     public string ConversationTypeId { get; set; }
     public ConnectionState CurrentState { get; set; }
     public ConnectionState InitialState { get; set; }
-    public int CurrentPatience { get; set; }
-    public int MaxPatience { get; set; }
+    public int CurrentMomentum { get; set; } = 0;
+    public int CurrentDoubt { get; set; } = 0;
+    public int MaxDoubt { get; set; } = 10;
     public int TurnNumber { get; set; }
     public bool LetterGenerated { get; set; }
     public bool RequestCardDrawn { get; set; }
@@ -22,7 +23,7 @@ public class ConversationSession
     public SessionCardDeck Deck { get; set; }
     public TokenMechanicsManager TokenManager { get; set; }
     public FlowManager FlowManager { get; set; }
-    public RapportManager RapportManager { get; set; }
+    public MomentumManager MomentumManager { get; set; }
     public PersonalityRuleEnforcer PersonalityEnforcer { get; set; }  // Enforces NPC personality rules
     public string RequestText { get; set; } // Text displayed when NPC presents a request
 
@@ -32,8 +33,8 @@ public class ConversationSession
     public int MaxFocus { get; set; } = 5; // Based on state
     public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
-    // Hidden momentum system - improves luck after failures
-    public int HiddenMomentum { get; set; } = 0; // Invisible bad luck protection
+    // Visible momentum system for deterministic gameplay
+    // HiddenMomentum removed - now using visible CurrentMomentum
 
     public List<CardInstance> ObservationCards { get; set; } = new();
 
@@ -52,6 +53,33 @@ public class ConversationSession
     // NO COMPATIBILITY PROPERTIES - update all references immediately!
     // Use Deck.HandCards for read-only access to hand cards
     // Use Deck.HandSize for hand count
+
+    // Momentum/Doubt helper methods
+    public int GetDoubtPenalty()
+    {
+        // Each doubt point reduces success rate by 5%
+        return CurrentDoubt * 5;
+    }
+
+    public bool CanReachMomentumThreshold(int threshold)
+    {
+        return CurrentMomentum >= threshold;
+    }
+
+    public int GetMomentumNeeded(int threshold)
+    {
+        return Math.Max(0, threshold - CurrentMomentum);
+    }
+
+    public void AddMomentum(int amount)
+    {
+        CurrentMomentum = Math.Max(0, CurrentMomentum + amount);
+    }
+
+    public void AddDoubt(int amount)
+    {
+        CurrentDoubt = Math.Clamp(CurrentDoubt + amount, 0, MaxDoubt);
+    }
 
     // New helper methods
     public int GetAvailableFocus()
@@ -105,13 +133,13 @@ public class ConversationSession
 
     public bool ShouldEnd()
     {
-        // End if patience exhausted or at disconnected with -3 flow
-        return CurrentPatience <= 0 || (CurrentState == ConnectionState.DISCONNECTED && FlowBattery <= -3);
+        // End if doubt at maximum or at disconnected with -3 flow
+        return CurrentDoubt >= MaxDoubt || (CurrentState == ConnectionState.DISCONNECTED && FlowBattery <= -3);
     }
 
     public ConversationOutcome CheckThresholds()
     {
-        if (CurrentPatience <= 0)
+        if (CurrentDoubt >= MaxDoubt)
         {
             return new ConversationOutcome
             {
@@ -119,7 +147,7 @@ public class ConversationSession
                 FinalFlow = FlowBattery,
                 FinalState = CurrentState,
                 TokensEarned = 0,
-                Reason = "Patience exhausted"
+                Reason = "Doubt overwhelmed conversation"
             };
         }
 
@@ -159,7 +187,7 @@ public class ConversationSession
     }
 
     public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
-        List<CardInstance> observationCards, string requestId, string conversationTypeId, PlayerResourceState playerResourceState, GameWorld gameWorld)
+        List<CardInstance> observationCards, string requestId, string conversationTypeId, PlayerResourceState playerResourceState, GameWorld gameWorld, MomentumManager momentumManager)
     {
         // Use properly typed parameters
         List<CardInstance> obsCards = observationCards ?? new List<CardInstance>();
@@ -195,11 +223,12 @@ public class ConversationSession
             CurrentState = initialState,
             InitialState = initialState,
             // FlowBattery initialized separately
-            CurrentPatience = 10,
-            MaxPatience = 10,
+            CurrentMomentum = 0,
+            CurrentDoubt = 0,
             TurnNumber = 0,
             Deck = sessionDeck, // HIGHLANDER: Deck manages ALL piles internally
             TokenManager = tokenManager,
+            MomentumManager = momentumManager,
             ObservationCards = obsCards,
             NPCObservationCards = npcObservationCards
         };

@@ -82,7 +82,6 @@ public class DeliveryObligation
 
     // Additional properties for future use but set defaults for POC
     public int QueuePosition { get; set; } = 0;
-    // Patron system removed - deleted all patron-related properties
 
     // Tracking
     public string SenderId { get; set; }

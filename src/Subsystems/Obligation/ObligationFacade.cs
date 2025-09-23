@@ -708,7 +708,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 Size = 1, // DeliveryObligation doesn't have Size property, default to 1
                 SizeIcon = GetSizeIcon(1),
                 SizeDisplay = GetSizeDisplay(1),
-                IsPatronDeliveryObligation = false, // This would need to be determined from obligation data
                 IsCollected = true, // Obligations in queue are collected
                 PhysicalConstraints = "", // DeliveryObligation doesn't have PhysicalConstraints
                 PhysicalIcon = GetPhysicalConstraintIcon(""),

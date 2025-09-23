@@ -1,4 +1,5 @@
 using Xunit;
+using Wayfarer.GameState.Enums;
 
 public class ConversationCardParserTest
 {
@@ -37,11 +38,7 @@ public class ConversationCardParserTest
             Type = "LetterRequest",
             Description = "Test letter request card",
             Focus = 1,
-            SuccessEffect = new CardEffectDTO
-            {
-                Type = "OfferLetter",
-                Value = "some_letter_id"
-            }
+            SuccessType = "Advancing"
         };
 
         // Act
@@ -52,7 +49,7 @@ public class ConversationCardParserTest
         Assert.Equal("test_letter", card.Id);
         Assert.Equal(0, card.Focus); // Goal cards have 0 focus
         Assert.Equal(Difficulty.VeryEasy, card.Difficulty); // Goal cards always succeed
-        Assert.Contains(CardProperty.Persistent, card.Properties);
+        Assert.Equal(SuccessEffectType.Advancing, card.SuccessType);
     }
 
     [Fact]
@@ -65,11 +62,7 @@ public class ConversationCardParserTest
             Type = "Goal",
             Description = "Test goal card with letter",
             Focus = 1,
-            SuccessEffect = new CardEffectDTO
-            {
-                Type = "OfferLetter",
-                Value = "letter_id"
-            }
+            SuccessType = "Advancing"
         };
 
         // Act
@@ -77,7 +70,7 @@ public class ConversationCardParserTest
 
         // Assert
         Assert.Equal(CardType.Letter, card.CardType);
-        Assert.Equal(CardEffectType.OfferLetter, card.SuccessEffect.Type);
+        Assert.Equal(SuccessEffectType.Advancing, card.SuccessType);
     }
 
     [Fact]
@@ -90,11 +83,7 @@ public class ConversationCardParserTest
             Type = "Goal",
             Description = "Test goal card without letter",
             Focus = 1,
-            SuccessEffect = new CardEffectDTO
-            {
-                Type = "AddRapport",
-                Value = "2"
-            }
+            SuccessType = "Promising"
         };
 
         // Act
@@ -102,7 +91,7 @@ public class ConversationCardParserTest
 
         // Assert
         Assert.Equal(CardType.Promise, card.CardType);
-        Assert.Equal(CardEffectType.AddRapport, card.SuccessEffect.Type);
+        Assert.Equal(SuccessEffectType.Promising, card.SuccessType);
     }
 
     [Fact]

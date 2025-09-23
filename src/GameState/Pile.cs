@@ -4,7 +4,7 @@ using System.Linq;
 public class Pile
 {
     private readonly List<CardInstance> cards = new();
-    private readonly Random random = new Random();
+    // DETERMINISTIC SYSTEM: No random number generation needed
 
     public IReadOnlyList<CardInstance> Cards => cards;
     public int Count => cards.Count;
@@ -13,15 +13,9 @@ public class Pile
     {
         if (card == null) return;
 
-        // Ensure card has a pre-rolled value
+        // DETERMINISTIC SYSTEM: No pre-rolled values needed
         if (card.Context == null)
             card.Context = new CardContext();
-
-        if (card.Context.PreRolledValue == null)
-        {
-            card.Context.PreRolledValue = random.Next(1, 101);
-            Console.WriteLine($"[Pile] Pre-rolled {card.Context.PreRolledValue} for card: {card.Id}");
-        }
 
         cards.Add(card);
     }
@@ -72,16 +66,8 @@ public class Pile
 
     public void Shuffle()
     {
-        // Fisher-Yates shuffle
-        int n = cards.Count;
-        while (n > 1)
-        {
-            n--;
-            int k = random.Next(n + 1);
-            CardInstance temp = cards[k];
-            cards[k] = cards[n];
-            cards[n] = temp;
-        }
+        // DETERMINISTIC SYSTEM: No shuffling - cards maintain their original order
+        // This ensures consistent, predictable card draw order
     }
 
     public bool Contains(CardInstance card)

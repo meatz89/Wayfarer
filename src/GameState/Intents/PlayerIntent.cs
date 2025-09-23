@@ -95,12 +95,6 @@ public class ExploreAreaIntent : PlayerIntent
 {
 }
 
-/// <summary>
-/// Intent to request funds from patron
-/// </summary>
-public class RequestPatronFundsIntent : PlayerIntent
-{
-}
 
 /// <summary>
 /// Intent to travel to another location via a route

@@ -15,7 +15,6 @@ public class GameConfiguration
     public LetterPaymentConfig LetterPayment { get; set; } = new();
     public RelationshipConfig Relationships { get; set; } = new();
     public TravelConfig Travel { get; set; } = new();
-    public PatronConfig Patron { get; set; } = new();
     public DebtConfig Debt { get; set; } = new();
 
     /// <summary>
@@ -43,8 +42,6 @@ public class GameConfiguration
                 ExtendCostTokens = 2,
                 PriorityCostTokens = 5,
                 DeadlinePenaltyTokens = 2,
-                PatronLetterMinPosition = 1,
-                PatronLetterMaxPosition = 3
             },
             TokenEconomy = new TokenEconomyConfig
             {
@@ -143,16 +140,6 @@ public class GameConfiguration
                     { "Mountain", 2.0f }
                 }
             },
-            Patron = new PatronConfig
-            {
-                MinDaysBetweenLetters = 5,
-                BaseChancePercent = 10,
-                ChanceIncreasePerDay = 15,
-                MaxChancePercent = 90,
-                FundRequestAmount = 30,
-                FundRequestCost = 1,
-                EquipmentRequestCost = 2
-            },
             Debt = new DebtConfig
             {
                 BorrowMoneyAmount = 20,
@@ -177,8 +164,6 @@ public class LetterQueueConfig
     public int ExtendCostTokens { get; set; }
     public int PriorityCostTokens { get; set; }
     public int DeadlinePenaltyTokens { get; set; }
-    public int PatronLetterMinPosition { get; set; }
-    public int PatronLetterMaxPosition { get; set; }
 }
 
 public class TokenEconomyConfig
@@ -286,18 +271,6 @@ public class TravelConfig
     public Dictionary<string, float> TerrainStaminaModifiers { get; set; } = new();
 }
 
-public class PatronConfig
-{
-    public int MinDaysBetweenLetters { get; set; }
-    public int BaseChancePercent { get; set; }
-    public int ChanceIncreasePerDay { get; set; }
-    public int MaxChancePercent { get; set; }
-    public int FundRequestAmount { get; set; }
-    public int FundRequestCost { get; set; }
-    public int EquipmentRequestCost { get; set; }
-    public int PatronLetterMinPosition { get; set; } = 1;
-    public int PatronLetterMaxPosition { get; set; } = 3;
-}
 
 public class DebtConfig
 {

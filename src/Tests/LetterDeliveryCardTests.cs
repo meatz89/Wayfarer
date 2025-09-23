@@ -82,6 +82,7 @@ public class LetterDeliveryCardTests
         
         // Act - Start conversation with Bertram (the recipient)
         var bertram = world.NPCs.First(n => n.ID == "bertram_innkeeper");
+        var momentumManager = new MomentumManager();
         var session = ConversationSession.StartConversation(
             bertram,
             queueManager,
@@ -90,7 +91,8 @@ public class LetterDeliveryCardTests
             "test_request_1", // requestId
             "friendly_chat", // conversationTypeId
             world.GetPlayerResourceState(),
-            world
+            world,
+            momentumManager
         );
         
         // Assert
@@ -157,6 +159,7 @@ public class LetterDeliveryCardTests
         
         // Act
         var bertram = world.NPCs.First(n => n.ID == "bertram_innkeeper");
+        var momentumManager = new MomentumManager();
         var session = ConversationSession.StartConversation(
             bertram,
             queueManager,
@@ -165,7 +168,8 @@ public class LetterDeliveryCardTests
             "test_request_2", // requestId
             "friendly_chat", // conversationTypeId
             world.GetPlayerResourceState(),
-            world
+            world,
+            momentumManager
         );
         
         // Assert
@@ -217,6 +221,7 @@ public class LetterDeliveryCardTests
         
         // Act - Start conversation with Bertram (NOT the recipient)
         var bertram = world.NPCs.First(n => n.ID == "bertram_innkeeper");
+        var momentumManager = new MomentumManager();
         var session = ConversationSession.StartConversation(
             bertram,
             queueManager,
@@ -225,7 +230,8 @@ public class LetterDeliveryCardTests
             "test_request_3", // requestId
             "friendly_chat", // conversationTypeId
             world.GetPlayerResourceState(),
-            world
+            world,
+            momentumManager
         );
         
         // Assert

@@ -343,11 +343,6 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                     "A chill runs down your spine as you accept. The underworld has long memories.",
                     "\"Excellent choice,\" whispers the contact. \"We'll be in touch... frequently.\""
                 }},
-                { "Noble Patronage", new[] {
-                    "The noble's seal on parchment makes it official. You now serve at their pleasure.",
-                    "\"Splendid!\" the patron exclaims. \"I expect great things from our arrangement.\"",
-                    "With a flourish of signatures, your fate is tied to noble whims."
-                }}
             };
 
             foreach (string key in acceptanceNarratives.Keys)
@@ -408,11 +403,6 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                     $"A shadowy messenger slips a letter into your queue. \"{letter.SenderName} requires your... immediate attention.\"",
                     $"You find a black-sealed letter among your papers. The {obligation.Name} demands payment.",
                     $"\"No exceptions,\" the hooded figure insists, adding {letter.SenderName}'s letter to your burden."
-                }},
-                { "Patron", new[] {
-                    $"Your patron's herald arrives with official correspondence. \"{letter.RecipientName} expects prompt delivery.\"",
-                    $"The monthly obligation from {obligation.Name} arrives right on schedule.",
-                    $"\"His Lordship insists,\" the servant says, handing you {letter.SenderName}'s sealed letter."
                 }},
                 { "Trade", new[] {
                     $"The guild enforcer visits. \"Guild business. {letter.RecipientName} needs this immediately.\"",

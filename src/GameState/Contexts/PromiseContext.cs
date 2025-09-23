@@ -15,7 +15,7 @@ public class PromiseContext : ConversationContextBase
     public string RecipientId { get; set; }
     public StakeType Stakes { get; set; }
     public EmotionalFocus EmotionalFocus { get; set; }
-    public int RapportThreshold { get; set; }
+    public int MomentumThreshold { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
     public int BaseSuccessRate { get; set; }
     public bool HasDeadline { get; set; }

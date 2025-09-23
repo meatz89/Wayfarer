@@ -72,8 +72,8 @@ public class PersonalityRuleEnforcer
 
         switch (_modifier.Type)
         {
-            case PersonalityModifierType.RapportLossMultiplier:
-                // Devoted: When rapport would decrease, decrease it twice
+            case PersonalityModifierType.MomentumLossDoubled:
+                // Devoted: When momentum would decrease, decrease it twice
                 if (baseRapportChange < 0)
                 {
                     int multiplier = _modifier.Parameters.ContainsKey("multiplier")
@@ -141,7 +141,7 @@ public class PersonalityRuleEnforcer
         return _modifier.Type switch
         {
             PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending focus order",
-            PersonalityModifierType.RapportLossMultiplier => "Devoted: Negative rapport effects are doubled",
+            PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled",
             PersonalityModifierType.HighestFocusBonus => "Mercantile: Your highest focus card gains +30% success",
             PersonalityModifierType.RepeatFocusPenalty => "Cunning: Playing same focus as previous costs -2 rapport",
             PersonalityModifierType.RapportChangeCap => "Steadfast: All rapport changes capped at ±2",
@@ -169,6 +169,25 @@ public class PersonalityRuleEnforcer
             return false;
 
         return _lastPlayedCard != null && card.Focus == _lastPlayedCard.Focus;
+    }
+
+    /// <summary>
+    /// Get momentum cost for LISTEN action based on personality rules
+    /// Most personalities have no additional cost, but some may modify it
+    /// </summary>
+    public int GetListenMomentumCost()
+    {
+        // For now, most personalities don't modify LISTEN cost
+        // Future implementations could add personality-specific LISTEN costs
+        return 0; // Default: no momentum cost for LISTEN
+    }
+
+    /// <summary>
+    /// Check if momentum losses should be doubled for Devoted personality
+    /// </summary>
+    public bool ShouldDoubleMomentumLoss()
+    {
+        return _modifier.Type == PersonalityModifierType.MomentumLossDoubled;
     }
 
     /// <summary>

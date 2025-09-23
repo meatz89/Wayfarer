@@ -38,9 +38,6 @@ public interface IGameRuleEngine
     PaymentRange GetPaymentRangeForCategory(LetterCategory category);
     int CalculateLateDeliveryPenalty(DeliveryObligation letter, int daysLate);
 
-    // Patron mechanics  
-    bool ShouldGeneratePatronLetter(int daysSinceLastLetter);
-    int DeterminePatronLetterPosition();
 }
 
 /// <summary>

@@ -15,10 +15,21 @@ public class FlowManager
     public event Action<ConnectionState, ConnectionState>? StateTransitioned;
     public event Action? ConversationEnded;
 
-    public FlowManager(ConnectionState initialState, int initialFlow = 0)
+    public FlowManager(ConnectionState initialState = ConnectionState.NEUTRAL, int initialFlow = 0)
     {
         currentState = initialState;
         currentFlow = initialFlow; // Can start at any persisted value (-2 to +2)
+    }
+
+    /// <summary>
+    /// Initialize flow manager for a new conversation
+    /// </summary>
+    /// <param name="initialState">Starting connection state</param>
+    /// <param name="initialFlow">Starting flow value</param>
+    public void InitializeForConversation(ConnectionState initialState, int initialFlow = 0)
+    {
+        currentState = initialState;
+        currentFlow = initialFlow;
     }
 
     /// <summary>

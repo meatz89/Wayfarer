@@ -42,11 +42,12 @@ public class NPCGoalCardDTO
     public string Difficulty { get; set; }
 
     /// <summary>
-    /// Rapport threshold required to make this card playable
+    /// Momentum threshold required to make this card playable
     /// </summary>
-    public int RapportThreshold { get; set; }
+    public int MomentumThreshold { get; set; }
 
     // Categorical properties - define behavior through context
+    public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
     public string Persistence { get; set; } // Usually "Thought" for goal cards
     public string SuccessType { get; set; } // Usually "Promising" or "Advancing"
     public string FailureType { get; set; } // Usually "None" for goal cards

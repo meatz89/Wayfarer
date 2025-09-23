@@ -56,19 +56,6 @@ public static class GameConstants
         public const int SERVICE_STARTUP_RETRY_DELAY_MS = 100;
     }
 
-    /// <summary>
-    /// Patron and debt related constants
-    /// </summary>
-    public static class Patron
-    {
-        public const int INITIAL_PATRON_DEBT = -20;
-        public const int PATRON_DEBT_THRESHOLD = -10;
-
-        // Debt leverage thresholds
-        public const int EXTREME_DEBT_THRESHOLD = -10;
-        public const int MODERATE_DEBT_THRESHOLD = -5;
-        public const int SMALL_DEBT_THRESHOLD = -2;
-    }
 
     /// <summary>
     /// DeliveryObligation queue position constants

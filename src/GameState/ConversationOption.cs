@@ -37,9 +37,9 @@ public class ConversationOption
     public ConnectionType TokenType { get; set; }
 
     /// <summary>
-    /// The rapport threshold required to play this goal card
+    /// The momentum threshold required to play this goal card
     /// </summary>
-    public int RapportThreshold { get; set; }
+    public int MomentumThreshold { get; set; }
 
     /// <summary>
     /// Whether this is a special type of card (Letter, Promise, etc.)

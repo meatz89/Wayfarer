@@ -695,7 +695,7 @@ namespace Wayfarer.Pages.Components
             return 0;
         }
 
-        protected string GetPatienceDisplay(NpcViewModel npc, LocationSpot spot)
+        protected string GetDoubtDisplay(NpcViewModel npc, LocationSpot spot)
         {
             // Get the actual NPC to access daily patience
             NPC actualNPC = GameFacade.GetNPCById(npc.Id);

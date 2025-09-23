@@ -30,8 +30,8 @@ public class PersonalityModifier
                 break;
 
             case PersonalityType.DEVOTED:
-                modifier.Type = PersonalityModifierType.RapportLossMultiplier;
-                modifier.Parameters["multiplier"] = 2; // Double negative rapport
+                modifier.Type = PersonalityModifierType.MomentumLossDoubled;
+                modifier.Parameters["multiplier"] = 2; // Double momentum losses
                 break;
 
             case PersonalityType.MERCANTILE:

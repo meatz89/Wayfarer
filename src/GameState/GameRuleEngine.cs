@@ -82,7 +82,7 @@ public class GameRuleEngine : IGameRuleEngine
     public bool CanSkipToPosition(DeliveryObligation letter, int targetPosition)
     {
         // Can't skip to an occupied position
-        // Patron system removed - all letters can be skipped based on position rules only
+        // All letters can be skipped based on position rules
         return targetPosition >= 1 &&
                targetPosition <= _config.LetterQueue.MaxQueueSize;
     }
@@ -226,28 +226,6 @@ public class GameRuleEngine : IGameRuleEngine
         return daysLate * _config.LetterPayment.LateDeliveryPenaltyPerDay;
     }
 
-    // Patron mechanics
-    public bool ShouldGeneratePatronLetter(int daysSinceLastLetter)
-    {
-        if (daysSinceLastLetter < _config.Patron.MinDaysBetweenLetters)
-            return false;
-
-        int chance = Math.Min(
-            _config.Patron.MaxChancePercent,
-            _config.Patron.BaseChancePercent +
-            (daysSinceLastLetter - _config.Patron.MinDaysBetweenLetters) * _config.Patron.ChanceIncreasePerDay
-        );
-
-        return new Random().Next(100) < chance;
-    }
-
-    public int DeterminePatronLetterPosition()
-    {
-        return new Random().Next(
-            _config.Patron.PatronLetterMinPosition,
-            _config.Patron.PatronLetterMaxPosition + 1
-        );
-    }
 
     // Helper method
     private NPC GetNPC(string npcId)

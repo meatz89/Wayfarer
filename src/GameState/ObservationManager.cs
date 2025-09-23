@@ -119,9 +119,9 @@ public class ObservationManager
                             MinimumTokensRequired = npcObservationCard.MinimumTokensRequired,
                             RequiredTokenType = npcObservationCard.RequiredTokenType,
                             PersonalityTypes = npcObservationCard.PersonalityTypes,
-                            RapportThreshold = npcObservationCard.RapportThreshold,
+                            MomentumThreshold = npcObservationCard.MomentumThreshold,
                             QueuePosition = npcObservationCard.QueuePosition,
-                            InstantRapport = npcObservationCard.InstantRapport,
+                            InstantMomentum = npcObservationCard.InstantMomentum,
                             RequestId = npcObservationCard.RequestId,
                             DialogueFragment = npcObservationCard.DialogueFragment,
                             VerbPhrase = npcObservationCard.VerbPhrase,
@@ -317,9 +317,9 @@ public class ObservationManager
             PersonalityTypes = baseCard.PersonalityTypes,
             LevelBonuses = baseCard.LevelBonuses,
             MinimumTokensRequired = baseCard.MinimumTokensRequired,
-            RapportThreshold = baseCard.RapportThreshold,
+            MomentumThreshold = baseCard.MomentumThreshold,
             QueuePosition = baseCard.QueuePosition,
-            InstantRapport = baseCard.InstantRapport,
+            InstantMomentum = baseCard.InstantMomentum,
             RequestId = baseCard.RequestId,
             IsSkeleton = baseCard.IsSkeleton,
             SkeletonSource = baseCard.SkeletonSource,
@@ -471,7 +471,7 @@ public class ObservationManager
         }
         else if (effectString == "UnlockExchange")
         {
-            return SuccessEffectType.Rapport; // Unlock exchange by adding rapport
+            return SuccessEffectType.Strike; // Unlock exchange by adding momentum
         }
 
         // Default to no effect

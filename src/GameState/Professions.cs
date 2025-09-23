@@ -10,7 +10,7 @@ public enum Professions
     Noble,
     Beggar,         // Street dwellers who survive on charity
     Dock_Boss,      // Manages dock workers and cargo operations
-    Agent,          // Representatives of powerful patrons
+    Agent,          // Representatives of powerful entities
     Harbor_Master,  // Controls shipping schedules and maritime trade
     Boarding_House_Keeper, // Provides lodging and cares for residents
     Ferryman,       // Transports people and goods across water

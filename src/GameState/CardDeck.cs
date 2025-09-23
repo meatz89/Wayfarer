@@ -38,7 +38,7 @@ public class CardDeck
         }
         if (!available.Any()) return null;
 
-        ConversationCard card = available[new Random().Next(available.Count)];
+        ConversationCard card = available[0]; // Deterministic: always take first available card
         drawnCardIds.Add(card.Id);
         return card;
     }

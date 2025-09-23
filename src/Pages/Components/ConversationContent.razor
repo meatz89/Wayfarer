@@ -39,14 +39,10 @@
 
             <!-- Win/Lose Conditions Bar -->
             <div class="conditions-bar">
-                <div class="patience-display">
-                    <span class="patience-label">Patience</span>
-                    <div class="patience-slots">
-                        @for (int i = 1; i <= Session.MaxPatience; i++)
-                        {
-                            <span class="patience-slot @GetPatienceSlotClass(i)"></span>
-                        }
-                    </div>
+
+                <div class="momentum-display">
+                    <span class="momentum-label">Momentum</span>
+                    <span class="momentum-counter">@(Session?.CurrentMomentum ?? 0)</span>
                 </div>
 
                 <!-- Flow State Container - Centered wrapper -->
@@ -73,9 +69,14 @@
                     </div>
                 </div>
 
-                <div class="rapport-display">
-                    <span class="rapport-label">Rapport</span>
-                    <span class="rapport-counter">@(Session?.RapportManager?.CurrentRapport ?? 0)</span>
+                <div class="doubt-display">
+                    <span class="doubt-label">Doubt</span>
+                    <div class="doubt-slots">
+                        @for (int i = 1; i <= Session.MaxDoubt; i++)
+                        {
+                            <span class="doubt-slot @GetDoubtSlotClass(i)"></span>
+                        }
+                    </div>
                 </div>
             </div>
 
@@ -123,12 +124,18 @@
                      disabled="@(IsGeneratingNarrative || IsProcessing)">
                     <div>LISTEN</div>
                     <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
+                    <div class="button-preview">
+                        @GetListenPreview()
+                    </div>
                 </div>
                 <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                      @onclick="ExecuteSpeak"
                      disabled="@(!CanSpeak() || IsGeneratingNarrative || IsProcessing)">
                     <div>SPEAK</div>
                     <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
+                    <div class="button-preview">
+                        @GetSpeakPreview()
+                    </div>
                 </div>
             </div>
         }
@@ -151,14 +158,15 @@
     <!-- Focus Display (Above Cards) -->
     <div class="focus-display-section">
         <div class="focus-content">
-            <span class="focus-label">Focus:</span>
+            <span class="focus-label">FOCUS AVAILABLE</span>
             <div class="focus-dots">
                 @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
                 {
                     <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
                 }
             </div>
-            <span class="focus-numbers">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
+            <span class="focus-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
+            <span class="focus-warning">Unspent → +1 doubt each</span>
         </div>
     </div>
 
@@ -190,13 +198,11 @@
                             </div>
                             <div class="card-outcomes">
                                 <div class="outcome success">
-                                    <div class="outcome-label">Success</div>
-                                    <div class="outcome-chance">100%</div>
+                                    <div class="outcome-label">Effect</div>
                                     <div class="outcome-effect">@GetSuccessEffectDescription(obsCard)</div>
                                 </div>
                                 <div class="outcome consumed">
                                     <div class="outcome-label">Consumed</div>
-                                    <div class="outcome-chance">Used</div>
                                     <div class="outcome-effect">Card removed after playing</div>
                                 </div>
                             </div>
@@ -242,8 +248,8 @@
                         @* Goal Card with rapport threshold - using same layout as regular cards but with distinct styling *@
                         <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="promise-threshold @(GetCurrentRapport() >= GetRequestRapportThreshold(convCard) ? "promise-active" : "")">
-                                Requires @GetRequestRapportThreshold(convCard)+ Rapport (Currently: @GetCurrentRapport())
+                            <div class="promise-threshold @(GetCurrentMomentum() >= GetRequestMomentumThreshold(convCard) ? "promise-active" : "")">
+                                Requires @GetRequestMomentumThreshold(convCard)+ Momentum (Currently: @GetCurrentMomentum())
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
@@ -261,6 +267,7 @@
                                             {
                                                 <span class="persistence-tag thought">Thought</span>
                                             }
+                                            <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
                                         </div>
                                         <!-- Stat badge -->
                                         <div class="stat-badge @GetCardStatClass(convCard)">
@@ -283,18 +290,20 @@
                                             }
                                         </div>
                                     </div>
-                                    @* Two-column Success/Failure layout *@
+                                    @* Card Effect Display *@
                                     <div class="card-outcomes">
-                                        <div class="outcome success">
-                                            <div class="outcome-label">Always Succeeds</div>
-                                            <div class="outcome-chance">100%</div>
-                                            <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                        <div class="outcome effect-calculation">
+                                            <div class="outcome-label">@GetCategoryDisplayName(convCard.Template.Category)</div>
+                                            <div class="effect-details">@GetMomentumCalculation(convCard)</div>
+                                            <div class="outcome-effect">@GetCardEffectDescription(convCard)</div>
                                         </div>
-                                        <div class="outcome">
-                                            <div class="outcome-label">Conversation</div>
-                                            <div class="outcome-chance">Ends</div>
-                                            <div class="outcome-effect">Complete</div>
-                                        </div>
+                                        @if (convCard.Persistence == PersistenceType.Impulse)
+                                        {
+                                            <div class="outcome impulse-warning">
+                                                <div class="outcome-label">If Unplayed</div>
+                                                <div class="outcome-effect">-1 card draw next LISTEN</div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -329,6 +338,7 @@
                                             {
                                                 <span class="persistence-tag thought">Thought</span>
                                             }
+                                            <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
                                         </div>
                                         <!-- Stat badge -->
                                         <div class="stat-badge @GetCardStatClass(convCard)">
@@ -362,22 +372,20 @@
                                         <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
                                     }
                                     </div>
-                                    @* Two-column Success/Failure layout *@
+                                    @* Card Effect Display *@
                                     <div class="card-outcomes">
-                                        <div class="outcome success">
-                                            <div class="outcome-label">Success</div>
-                                            <div class="outcome-chance">@GetSuccessChance(convCard)%</div>
-                                            @if (GetRapportModifier() != 0 || GetLevelBonus(convCard) != 0 || GetPersonalityModifier(convCard) != 0)
-                                            {
-                                                <div class="outcome-modifiers">@GetSuccessModifierBreakdown(convCard)</div>
-                                            }
-                                            <div class="outcome-effect">@GetSuccessEffectDescription(convCard)</div>
+                                        <div class="outcome effect-calculation">
+                                            <div class="outcome-label">@GetCategoryDisplayName(convCard.Template.Category)</div>
+                                            <div class="effect-details">@GetMomentumCalculation(convCard)</div>
+                                            <div class="outcome-effect">@GetCardEffectDescription(convCard)</div>
                                         </div>
-                                        <div class="outcome failure">
-                                            <div class="outcome-label">Failure</div>
-                                            <div class="outcome-chance">@GetFailureChance(convCard)%</div>
-                                            <div class="outcome-effect">@GetFailureEffectDescription(convCard)</div>
-                                        </div>
+                                        @if (convCard.Persistence == PersistenceType.Impulse)
+                                        {
+                                            <div class="outcome impulse-warning">
+                                                <div class="outcome-label">If Unplayed</div>
+                                                <div class="outcome-effect">-1 card draw next LISTEN</div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                                 @* Exhaust strip inside card at bottom *@

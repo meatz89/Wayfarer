@@ -12,6 +12,9 @@ public class ConversationTypeDefinition
     public string DeckId { get; set; }
     public string Category { get; set; }  // Links requests to conversation types
     public List<string> AvailableTimeBlocks { get; set; } = new();
+    public int DoubtPerListen { get; set; } = 0;
+    public bool MomentumErosion { get; set; } = false;
+    public int MaxDoubt { get; set; } = 10;
 }
 
 /// <summary>

@@ -104,12 +104,24 @@ public static class ConversationCardParser
         // Parse card type from DTO type field
         CardType cardType = ParseCardType(dto);
 
-        // Validate rapport threshold for goal cards
+        // Parse or determine card category
+        CardCategory category = CardCategory.Expression; // Default
+        if (!string.IsNullOrEmpty(dto.Category))
+        {
+            Enum.TryParse<CardCategory>(dto.Category, true, out category);
+        }
+        else
+        {
+            // Auto-determine category from success effect type
+            category = ConversationCard.DetermineCategoryFromEffect(successType);
+        }
+
+        // Validate momentum threshold for goal cards
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
         {
-            if (!dto.RapportThreshold.HasValue)
+            if (!dto.MomentumThreshold.HasValue)
             {
-                throw new InvalidOperationException($"Goal card '{dto.Id}' of type {cardType} MUST have a rapportThreshold defined in JSON!");
+                throw new InvalidOperationException($"Goal card '{dto.Id}' of type {cardType} MUST have a momentumThreshold defined in JSON!");
             }
         }
 
@@ -155,12 +167,32 @@ public static class ConversationCardParser
             failureType = FailureEffectType.ForceListen;
         }
 
+        // Parse momentum/doubt scaling properties
+        ScalingType momentumScaling = ScalingType.None;
+        if (!string.IsNullOrEmpty(dto.MomentumScaling))
+        {
+            if (!Enum.TryParse<ScalingType>(dto.MomentumScaling, out momentumScaling))
+            {
+                throw new InvalidOperationException($"Invalid MomentumScaling value '{dto.MomentumScaling}' for card '{dto.Id}'");
+            }
+        }
+
+        ScalingType doubtScaling = ScalingType.None;
+        if (!string.IsNullOrEmpty(dto.DoubtScaling))
+        {
+            if (!Enum.TryParse<ScalingType>(dto.DoubtScaling, out doubtScaling))
+            {
+                throw new InvalidOperationException($"Invalid DoubtScaling value '{dto.DoubtScaling}' for card '{dto.Id}'");
+            }
+        }
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {
             Id = customId ?? dto.Id,
             Description = dto.Description ?? "",
             CardType = cardType,
+            Category = category,
             TokenType = tokenType,
             Focus = dto.Focus,
             Difficulty = difficulty,
@@ -172,9 +204,11 @@ public static class ConversationCardParser
             DialogueFragment = dto.DialogueFragment,
             VerbPhrase = "",
             MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
-            RapportThreshold = dto.RapportThreshold ?? 0,
+            MomentumThreshold = dto.MomentumThreshold ?? 0,
             BoundStat = boundStat,
-            LevelBonuses = levelBonuses
+            LevelBonuses = levelBonuses,
+            MomentumScaling = momentumScaling,
+            DoubtScaling = doubtScaling
         };
     }
 
@@ -233,11 +267,24 @@ public static class ConversationCardParser
             Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
         }
 
+        // Parse or determine card category
+        CardCategory category = CardCategory.Expression; // Default
+        if (!string.IsNullOrEmpty(dto.Category))
+        {
+            Enum.TryParse<CardCategory>(dto.Category, true, out category);
+        }
+        else
+        {
+            // Auto-determine category from success effect type
+            category = ConversationCard.DetermineCategoryFromEffect(successType);
+        }
+
         return new ConversationCard
         {
             Id = dto.Id,
             Description = dto.Description,
             CardType = cardType,
+            Category = category,
             Focus = dto.Focus,
             DialogueFragment = dto.DialogueFragment,
             Difficulty = difficulty,
@@ -245,7 +292,7 @@ public static class ConversationCardParser
             SuccessType = successType,
             FailureType = failureType,
             ExhaustType = exhaustType,
-            RapportThreshold = dto.RapportThreshold,
+            MomentumThreshold = dto.MomentumThreshold,
             TokenType = tokenType,
             VerbPhrase = "",
             PersonalityTypes = new List<string>(),
@@ -309,14 +356,15 @@ public class ConversationCardDTO
     public string Type { get; set; }
     public string ConnectionType { get; set; }
     public int Focus { get; set; }
-    public int? RapportThreshold { get; set; } // For request cards
+    public int? MomentumThreshold { get; set; } // For request cards
     public string Description { get; set; }
     public string DialogueFragment { get; set; }
     public int? MinimumTokensRequired { get; set; }
 
     // Categorical properties - define behavior through context
+    public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
     public string Persistence { get; set; } // Thought/Impulse/Opening
-    public string SuccessType { get; set; } // Rapport/Threading/Atmospheric/Focusing/Promising/Advancing/None
+    public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
     public string FailureType { get; set; } // Backfire/None
     public string ExhaustType { get; set; } // Threading/Focusing/Regret/None
 
@@ -328,6 +376,10 @@ public class ConversationCardDTO
 
     // Player stats system - which stat this card is bound to
     public string BoundStat { get; set; } // insight/rapport/authority/commerce/cunning
+
+    // Momentum/Doubt scaling properties
+    public string MomentumScaling { get; set; } // "None", "CardsInHand", "DoubtReduction", etc.
+    public string DoubtScaling { get; set; } // "None", "DoubtHalved", "DoubtReduction"
 
     // Level bonuses (optional, uses default progression if not specified)
     public List<CardLevelBonusDTO> LevelBonuses { get; set; }

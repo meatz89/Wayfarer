@@ -60,12 +60,12 @@ public class NPCRequest
     public List<string> PromiseCardIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Rapport thresholds for tiered rewards (used by stranger conversations)
+    /// Momentum thresholds for tiered rewards (used by stranger conversations)
     /// </summary>
-    public List<int> RapportThresholds { get; set; } = new List<int>();
+    public List<int> MomentumThresholds { get; set; } = new List<int>();
 
     /// <summary>
-    /// Rewards for reaching rapport thresholds (used by stranger conversations)
+    /// Rewards for reaching momentum thresholds (used by stranger conversations)
     /// </summary>
     public List<RequestReward> Rewards { get; set; } = new List<RequestReward>();
 

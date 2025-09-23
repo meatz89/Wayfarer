@@ -8,7 +8,6 @@ public partial class DailyActivitiesManager
     private readonly ObligationQueueManager _letterQueueManager;
     private readonly StandingObligationManager _obligationManager;
     private readonly MessageSystem _messageSystem;
-    // PatronLetterService removed - patron system deleted
     private readonly TimeManager _timeManager;
 
     // Track daily events for display
@@ -23,14 +22,12 @@ public partial class DailyActivitiesManager
         StandingObligationManager obligationManager,
         MessageSystem messageSystem,
         TimeManager timeManager)
-    // PatronLetterService parameter removed - patron system deleted
     {
         _gameWorld = gameWorld;
         _letterQueueManager = letterQueueManager;
         _obligationManager = obligationManager;
         _messageSystem = messageSystem;
         _timeManager = timeManager;
-        // _patronLetterService removed - patron system deleted
     }
 
     // Get the last activity result
@@ -91,7 +88,6 @@ public partial class DailyActivitiesManager
         // 4. Advance obligation time
         _obligationManager.AdvanceDailyTime();
 
-        // Patron letter system removed - patron system deleted completely
 
         // 6. Generate regular daily letters
         int newLetterCount = _letterQueueManager.GenerateDailyLetters();
@@ -264,19 +260,6 @@ public partial class DailyActivitiesManager
         }
     }
 
-    private string GetPatronLetterNarrative(DeliveryObligation letter, int position)
-    {
-        string[] narratives = new string[]
-        {
-        $"A courier in midnight blue delivers a gold-sealed letter. Your patron's will disrupts everything - it seizes position {position}.",
-        $"The unmistakable focus of patronage arrives. Gold wax, no signature, position {position}. All other obligations must wait.",
-        $"Your mysterious benefactor speaks. The letter's gold seal gleams as it claims position {position} in your queue.",
-        $"Dawn brings a letter bearing the patron's seal. Without ceremony, it commands position {position}. Their needs supersede all else."
-        };
-
-        Random random = new Random();
-        return narratives[random.Next(narratives.Length)];
-    }
 }
 
 // Event types for daily activities
@@ -286,7 +269,6 @@ public enum DailyEventType
     ForcedLetterAdded,
     NewLettersAvailable,
     UrgentLetterWarning,
-    PatronLetterAdded
 }
 
 // Individual daily event
@@ -307,8 +289,7 @@ public class DailyActivityResult
     public int ForcedLetterCount { get; set; }
     public int NewLetterCount { get; set; }
     public int UrgentLetterCount { get; set; }
-    public int PatronLetterCount { get; set; }
 
     public bool HasEvents => ExpiredLetterCount > 0 || ForcedLetterCount > 0 ||
-                            NewLetterCount > 0 || UrgentLetterCount > 0 || PatronLetterCount > 0;
+                            NewLetterCount > 0 || UrgentLetterCount > 0;
 }

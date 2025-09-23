@@ -447,22 +447,3 @@
     color: #6366f1;
     font-weight: bold;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .card-list {
-        grid-template-columns: 1fr;
-    }
-
-    .conversation-types-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .exchange-details {
-        grid-template-columns: 1fr;
-    }
-
-    .card-outcomes {
-        grid-template-columns: 1fr;
-    }
-}

@@ -11,6 +11,9 @@ public class ConversationCard
     // Single source of truth for card type
     public CardType CardType { get; init; } = CardType.Conversation;
 
+    // Card category defines strategic role and mechanics
+    public CardCategory Category { get; init; } = CardCategory.Expression;
+
     // Categorical properties that define behavior through context
     public PersistenceType Persistence { get; init; } = PersistenceType.Thought;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
@@ -33,12 +36,12 @@ public class ConversationCard
     // Personality targeting - which NPCs can use this card
     public IReadOnlyList<string> PersonalityTypes { get; init; } = new List<string>();
 
-    // Rapport threshold for goal cards (Letter, Promise, BurdenGoal)
-    public int RapportThreshold { get; init; } = 0;
+    // Momentum threshold for goal cards (Letter, Promise, BurdenGoal)
+    public int MomentumThreshold { get; init; } = 0;
 
     // Promise card specific properties
     public int QueuePosition { get; init; } = 0; // Position to force in queue (usually 1)
-    public int InstantRapport { get; init; } = 0; // Rapport gained from burning tokens
+    public int InstantMomentum { get; init; } = 0; // Momentum gained from burning tokens
     public string RequestId { get; init; } // Links card to its parent NPCRequest
 
     // Display properties
@@ -51,7 +54,11 @@ public class ConversationCard
     // Player stats system - which stat this card is bound to for XP progression
     public PlayerStatType? BoundStat { get; init; }
 
-    // Get base success percentage from difficulty tier
+    // Momentum/Doubt effect scaling properties
+    public ScalingType MomentumScaling { get; init; } = ScalingType.None;
+    public ScalingType DoubtScaling { get; init; } = ScalingType.None;
+
+    // Get base success percentage from difficulty tier (for display only)
     public int GetBaseSuccessPercentage()
     {
         return Difficulty switch
@@ -63,6 +70,140 @@ public class ConversationCard
             Difficulty.VeryHard => 40,
             _ => 60
         };
+    }
+
+    // Calculate actual momentum effect based on success type, category, difficulty, and scaling formula
+    public int GetMomentumEffect(ConversationSession session, PlayerStats playerStats = null)
+    {
+        int baseEffect = GetBaseMomentumFromProperties();
+        if (baseEffect == 0) return 0;
+
+        // Apply scaling formula if specified
+        if (MomentumScaling != ScalingType.None)
+        {
+            baseEffect = MomentumScaling switch
+            {
+                ScalingType.CardsInHand => session.Deck.HandSize,
+                ScalingType.CardsInHandDivided => (int)Math.Ceiling((double)session.Deck.HandSize / 2),
+                ScalingType.DoubtReduction => 10 - session.CurrentDoubt,
+                ScalingType.DoubtHalved => (10 - session.CurrentDoubt) / 2,
+                ScalingType.DoubleCurrent => session.CurrentMomentum,
+                ScalingType.PatienteDivided => session.GetAvailableFocus() / 3,
+                _ => baseEffect
+            };
+        }
+
+        // Add stat bonus for Expression cards (Category determines if it's an Expression card)
+        if (Category == CardCategory.Expression && BoundStat.HasValue && playerStats != null)
+        {
+            int statLevel = playerStats.GetLevel(BoundStat.Value);
+
+            // According to desperate plea spec: Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
+            if (statLevel >= 2)
+            {
+                baseEffect += (statLevel - 1);
+            }
+        }
+
+        return baseEffect;
+    }
+
+    // Calculate actual doubt effect based on success type, category, difficulty, and scaling formula
+    public int GetDoubtEffect(ConversationSession session)
+    {
+        int baseEffect = GetBaseDoubtFromProperties();
+        if (baseEffect == 0) return 0;
+
+        // Apply scaling formula if specified
+        if (DoubtScaling != ScalingType.None)
+        {
+            return DoubtScaling switch
+            {
+                ScalingType.DoubtHalved => (10 - session.CurrentDoubt) / 2,
+                ScalingType.DoubtReduction => 10 - session.CurrentDoubt,
+                _ => baseEffect
+            };
+        }
+
+        return baseEffect;
+    }
+
+    // Calculate base momentum from success type and difficulty only
+    public int GetBaseMomentumFromProperties()
+    {
+        return SuccessType switch
+        {
+            SuccessEffectType.Strike => GetDifficultyMagnitude(),
+            SuccessEffectType.DoubleMomentum => 0, // Special case - doubles existing momentum
+            _ => 0
+        };
+    }
+
+    // Calculate base doubt from success type and difficulty only
+    private int GetBaseDoubtFromProperties()
+    {
+        return SuccessType switch
+        {
+            SuccessEffectType.Soothe => -GetDifficultyMagnitude(), // Negative = reduces doubt
+            _ => 0
+        };
+    }
+
+    // Get magnitude based on difficulty
+    private int GetDifficultyMagnitude()
+    {
+        return Difficulty switch
+        {
+            Difficulty.VeryEasy => 1,
+            Difficulty.Easy => 2,
+            Difficulty.Medium => 3,
+            Difficulty.Hard => 4,
+            Difficulty.VeryHard => 5,
+            _ => 2
+        };
+    }
+
+    /// <summary>
+    /// Determines card category based on success effect type
+    /// Uses the design mapping: Expression (Strike, Promising), Realization (Advancing, DoubleMomentum), Regulation (Soothe, Threading, Focusing, Atmospheric)
+    /// </summary>
+    public static CardCategory DetermineCategoryFromEffect(SuccessEffectType effectType)
+    {
+        return effectType switch
+        {
+            SuccessEffectType.Strike => CardCategory.Expression,
+            SuccessEffectType.Promising => CardCategory.Expression,
+            SuccessEffectType.Advancing => CardCategory.Realization,
+            SuccessEffectType.DoubleMomentum => CardCategory.Realization,
+            SuccessEffectType.Soothe => CardCategory.Regulation,
+            SuccessEffectType.Threading => CardCategory.Regulation,
+            SuccessEffectType.Focusing => CardCategory.Regulation,
+            SuccessEffectType.Atmospheric => CardCategory.Regulation,
+            _ => CardCategory.Expression // Default fallback
+        };
+    }
+
+    /// <summary>
+    /// Gets all effect types that belong to a specific category
+    /// </summary>
+    public static IReadOnlyList<SuccessEffectType> GetEffectTypesForCategory(CardCategory category)
+    {
+        return category switch
+        {
+            CardCategory.Expression => new[] { SuccessEffectType.Strike, SuccessEffectType.Promising },
+            CardCategory.Realization => new[] { SuccessEffectType.Advancing, SuccessEffectType.DoubleMomentum },
+            CardCategory.Regulation => new[] { SuccessEffectType.Soothe, SuccessEffectType.Threading, SuccessEffectType.Focusing, SuccessEffectType.Atmospheric },
+            _ => new[] { SuccessEffectType.Strike } // Default fallback
+        };
+    }
+
+    /// <summary>
+    /// Determines if this card matches its assigned category based on effect type
+    /// Used for validation and consistency checking
+    /// </summary>
+    public bool IsCategoryConsistent()
+    {
+        return DetermineCategoryFromEffect(SuccessType) == Category;
     }
 
     /// <summary>
@@ -77,6 +218,7 @@ public class ConversationCard
             Id = this.Id,
             Description = this.Description,
             CardType = this.CardType,
+            Category = this.Category,
             Persistence = this.Persistence,
             SuccessType = this.SuccessType,
             FailureType = this.FailureType,
@@ -89,14 +231,16 @@ public class ConversationCard
             MinimumTokensRequired = this.MinimumTokensRequired,
             RequiredTokenType = this.RequiredTokenType,
             PersonalityTypes = this.PersonalityTypes,
-            RapportThreshold = this.RapportThreshold,
+            MomentumThreshold = this.MomentumThreshold,
             QueuePosition = this.QueuePosition,
-            InstantRapport = this.InstantRapport,
+            InstantMomentum = this.InstantMomentum,
             RequestId = this.RequestId,
             DialogueFragment = this.DialogueFragment,
             VerbPhrase = this.VerbPhrase,
             LevelBonuses = this.LevelBonuses,
-            BoundStat = this.BoundStat
+            BoundStat = this.BoundStat,
+            MomentumScaling = this.MomentumScaling,
+            DoubtScaling = this.DoubtScaling
         };
     }
 }

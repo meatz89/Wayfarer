@@ -20,7 +20,7 @@ public class CardInstance
     public ConnectionType TokenType => Template.TokenType;
     public int Focus => Template.Focus;
     public Difficulty Difficulty => Template.Difficulty;
-    public int RapportThreshold => Template.RapportThreshold;
+    public int MomentumThreshold => Template.MomentumThreshold;
     public string RequestId => Template.RequestId;
     public int MinimumTokensRequired => Template.MinimumTokensRequired;
     public string DialogueFragment => Template.DialogueFragment;

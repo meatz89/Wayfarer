@@ -1027,6 +1027,30 @@ public class GameFacade
         }
     }
 
+    public void DebugTeleportToLocation(string locationId, string spotId)
+    {
+        var player = _gameWorld.GetPlayer();
+        var spot = _gameWorld.GetSpot(spotId);
+
+        if (spot == null)
+        {
+            _messageSystem.AddSystemMessage($"Spot '{spotId}' not found", SystemMessageTypes.Warning);
+            return;
+        }
+
+        var location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+        if (location == null)
+        {
+            _messageSystem.AddSystemMessage($"Location '{locationId}' not found", SystemMessageTypes.Warning);
+            return;
+        }
+
+        player.CurrentLocationSpot = new LocationSpot(spotId, spot.Name) { LocationId = locationId };
+        player.AddKnownLocation(locationId);
+
+        _messageSystem.AddSystemMessage($"Teleported to {location.Name} - {spot.Name}", SystemMessageTypes.Success);
+    }
+
     // ========== EXCHANGE ORCHESTRATION ==========
 
     /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 public enum ObligationEffect
 {
@@ -8,9 +9,6 @@ public enum ObligationEffect
     StatusPriority,         // Status letters enter at slot 3
     CommercePriority,       // Commerce letters enter at slot 5
     TrustPriority,          // Trust letters enter at slot 7
-    PatronJumpToTop,        // Patron letters jump to slots 1-3
-    PatronLettersPosition3, // Patron letters enter at position 3
-    PatronLettersPosition1, // Patron letters enter at position 1
 
     // Payment Bonuses
     CommerceBonus,         // Commerce letters +10 coins
@@ -23,7 +21,6 @@ public enum ObligationEffect
 
     // Forced DeliveryObligation Generation
     ShadowForced,          // Forced shadow letter every 3 days
-    PatronMonthly,         // Monthly patron resource package
 
     // Queue Action Restrictions
     NoStatusRefusal,       // Cannot refuse status letters
@@ -34,7 +31,6 @@ public enum ObligationEffect
     // Leverage Modifiers
     ShadowEqualsStatus,    // Shadow letters use Status base position (3)
     MerchantRespect,       // Commerce letters with 5+ tokens get additional +1 position
-    PatronAbsolute,        // Patron letters push everything down (no displacement limit)
     DebtSpiral,            // All negative token positions get additional -1
 
     // Dynamic Scaling Effects
@@ -43,13 +39,6 @@ public enum ObligationEffect
     DynamicDeadlineBonus       // Deadline bonus scales with token level
 }
 
-public enum ScalingType
-{
-    None,          // No scaling (static effect)
-    Linear,        // Linear scaling: effect = base + (tokens * scalingFactor)
-    Stepped,       // Stepped scaling: effect changes at specific thresholds
-    Threshold      // Threshold scaling: effect only applies above/below threshold
-}
 
 public class StandingObligation
 {
@@ -153,16 +142,6 @@ public class StandingObligation
             return Math.Min(7, defaultPosition); // Enter at slot 7 or higher
         }
 
-        if (HasEffect(ObligationEffect.PatronLettersPosition1))
-        {
-            return 1; // Force to position 1
-        }
-
-        if (HasEffect(ObligationEffect.PatronLettersPosition3))
-        {
-            return 3; // Force to position 3
-        }
-
 
         return defaultPosition;
     }
@@ -217,11 +196,6 @@ public class StandingObligation
             return DaysSinceLastForcedDeliveryObligation >= 3; // Every 3 days
         }
 
-        if (HasEffect(ObligationEffect.PatronMonthly))
-        {
-            return DaysSinceLastForcedDeliveryObligation >= 30; // Monthly
-        }
-
         return false;
     }
 
@@ -244,7 +218,7 @@ public class StandingObligation
         }
         else
         {
-            // Activates when tokens are below threshold (e.g., Patron's Heavy Hand at -3 or worse)
+            // Activates when tokens are below threshold (e.g., Heavy Hand at -3 or worse)
             return currentTokenCount <= ActivationThreshold.Value;
         }
     }
@@ -319,16 +293,12 @@ public class StandingObligation
             ObligationEffect.StatusPriority => "Status letters enter at slot 3",
             ObligationEffect.CommercePriority => "Commerce letters enter at slot 5",
             ObligationEffect.TrustPriority => "Trust letters enter at slot 7",
-            ObligationEffect.PatronJumpToTop => "Patron letters jump to top slots",
-            ObligationEffect.PatronLettersPosition3 => "Patron letters enter at position 3",
-            ObligationEffect.PatronLettersPosition1 => "Patron letters enter at position 1",
             ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
             ObligationEffect.CommerceBonusPlus3 => "Commerce letters pay +3 coins bonus",
             ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
             ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
             ObligationEffect.DeadlinePlus2Days => "Letters get +2 days to deadline",
             ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
-            ObligationEffect.PatronMonthly => "Monthly patron resource package",
             ObligationEffect.NoStatusRefusal => "Cannot refuse status letters",
             ObligationEffect.NoCommercePurge => "Cannot purge commerce letters",
             ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",

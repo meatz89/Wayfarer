@@ -21,6 +21,10 @@
             @* Card Header with Type and Cost *@
             <div class="card-header">
                 <div class="card-type-label">@CardType</div>
+                @if (!string.IsNullOrEmpty(CardCategory) && CardCategory != "flow")
+                {
+                    <div class="card-category-label">@CardCategory</div>
+                }
                 @if (AttentionCost > 0)
                 {
                     <div class="card-cost">@AttentionCost attention</div>
