@@ -15,18 +15,6 @@
             <span>@GetLocationContext()</span>
         </div>
 
-        <!-- Player Stats Display -->
-        <div class="stats-display">
-            @foreach (var stat in GetPlayerStats())
-            {
-                <div class="stat-item">
-                    <div class="stat-name">@stat.Name</div>
-                    <div class="stat-level">@stat.Level</div>
-                    <div class="stat-xp">@stat.CurrentXP/@stat.RequiredXP XP</div>
-                </div>
-            }
-        </div>
-
         <!-- NPC Bar -->
         <div class="npc-bar">
             <div class="npc-info">

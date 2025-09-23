@@ -987,9 +987,70 @@ namespace Wayfarer.Pages.Components
                 _ => "Unknown requirement"
             };
         }
+
+        /// <summary>
+        /// Returns list of player stats for display in conversation UI
+        /// </summary>
+        protected List<PlayerStatInfo> GetPlayerStats()
+        {
+            List<PlayerStatInfo> result = new List<PlayerStatInfo>();
+
+            if (GameFacade == null) return result;
+
+            try
+            {
+                PlayerStats stats = GameFacade.GetPlayerStats();
+
+                // Get all five core stats
+                foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
+                {
+                    result.Add(new PlayerStatInfo
+                    {
+                        Name = GetStatDisplayName(stat),
+                        Level = stats.GetLevel(stat),
+                        CurrentXP = stats.GetXP(stat),
+                        RequiredXP = stats.GetXPToNextLevel(stat)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Get display name for a stat type
+        /// </summary>
+        private string GetStatDisplayName(PlayerStatType stat)
+        {
+            return stat switch
+            {
+                PlayerStatType.Insight => "Insight",
+                PlayerStatType.Rapport => "Rapport",
+                PlayerStatType.Authority => "Authority",
+                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Cunning => "Cunning",
+                _ => stat.ToString()
+            };
+        }
     }
 
     // View Models
+
+    /// <summary>
+    /// Helper class for player stat display information
+    /// </summary>
+    public class PlayerStatInfo
+    {
+        public string Name { get; set; }
+        public int Level { get; set; }
+        public int CurrentXP { get; set; }
+        public int RequiredXP { get; set; }
+    }
+
     public class NpcViewModel
     {
         public string Id { get; set; }

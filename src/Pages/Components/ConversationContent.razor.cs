@@ -3237,66 +3237,6 @@ namespace Wayfarer.Pages.Components
         // ===== NEW UI UPDATE METHODS =====
 
         /// <summary>
-        /// Helper class for player stat display information
-        /// </summary>
-        public class PlayerStatInfo
-        {
-            public string Name { get; set; }
-            public int Level { get; set; }
-            public int CurrentXP { get; set; }
-            public int RequiredXP { get; set; }
-        }
-
-        /// <summary>
-        /// Returns list of player stats for display in conversation UI
-        /// </summary>
-        protected List<PlayerStatInfo> GetPlayerStats()
-        {
-            List<PlayerStatInfo> result = new List<PlayerStatInfo>();
-
-            if (GameFacade == null) return result;
-
-            try
-            {
-                PlayerStats stats = GameFacade.GetPlayerStats();
-
-                // Get all five core stats
-                foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
-                {
-                    result.Add(new PlayerStatInfo
-                    {
-                        Name = GetStatDisplayName(stat),
-                        Level = stats.GetLevel(stat),
-                        CurrentXP = stats.GetXP(stat),
-                        RequiredXP = stats.GetXPToNextLevel(stat)
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Get display name for a stat type
-        /// </summary>
-        private string GetStatDisplayName(PlayerStatType stat)
-        {
-            return stat switch
-            {
-                PlayerStatType.Insight => "Insight",
-                PlayerStatType.Rapport => "Rapport",
-                PlayerStatType.Authority => "Authority",
-                PlayerStatType.Commerce => "Commerce",
-                PlayerStatType.Cunning => "Cunning",
-                _ => stat.ToString()
-            };
-        }
-
-        /// <summary>
         /// Returns short personality rule text for the NPC bar badge
         /// </summary>
         protected string GetPersonalityRuleShort()
@@ -3504,6 +3444,22 @@ namespace Wayfarer.Pages.Components
             if (card?.Template?.BoundStat == null) return "";
 
             return GetStatDisplayName(card.Template.BoundStat.Value);
+        }
+
+        /// <summary>
+        /// Get display name for a stat type
+        /// </summary>
+        private string GetStatDisplayName(PlayerStatType stat)
+        {
+            return stat switch
+            {
+                PlayerStatType.Insight => "Insight",
+                PlayerStatType.Rapport => "Rapport",
+                PlayerStatType.Authority => "Authority",
+                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Cunning => "Cunning",
+                _ => stat.ToString()
+            };
         }
 
         /// <summary>

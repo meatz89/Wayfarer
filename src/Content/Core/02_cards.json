@@ -380,7 +380,7 @@
             "DEVOTED"
           ],
           "focus": 5,
-          "momentumThreshold": 5,
+          "momentumThreshold": 10,
           "connectionType": "Trust",
           "description": "Deliver my letter to Lord Blackwood",
           "difficulty": "Easy",
@@ -399,7 +399,7 @@
             "DEVOTED"
           ],
           "focus": 7,
-          "momentumThreshold": 10,
+          "momentumThreshold": 20,
           "connectionType": "Trust",
           "description": "Get me to safety before nightfall",
           "difficulty": "Medium",
@@ -468,7 +468,7 @@
         "connectionType": "Trust",
         "description": "Make Elena my priority",
         "difficulty": "Easy",
-        "momentumThreshold": 5,
+        "momentumThreshold": 10,
         "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
         "boundStat": "authority"
       },
@@ -589,7 +589,7 @@
       "description": "Someone in crisis needs help",
       "deckId": "deck_desperate_empathy",
       "category": "crisis",
-      "doubtPerListen": 3,
+      "doubtPerListen": 1,
       "momentumErosion": true,
       "maxDoubt": 10
     },
