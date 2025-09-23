@@ -9,8 +9,6 @@ public class ConversationFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly ExchangeHandler _exchangeHandler;
-    private readonly FocusManager _focusManager;
-    private readonly AtmosphereManager _atmosphereManager;
     private readonly FlowManager _flowManager;
     private readonly MomentumManager _momentumManager;
     private readonly CategoricalEffectResolver _effectResolver;
@@ -33,8 +31,6 @@ public class ConversationFacade
     public ConversationFacade(
         GameWorld gameWorld,
         ExchangeHandler exchangeHandler,
-        FocusManager focusManager,
-        AtmosphereManager atmosphereManager,
         FlowManager flowManager,
         MomentumManager momentumManager,
         CategoricalEffectResolver effectResolver,
@@ -49,8 +45,6 @@ public class ConversationFacade
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
-        _focusManager = focusManager ?? throw new ArgumentNullException(nameof(focusManager));
-        _atmosphereManager = atmosphereManager ?? throw new ArgumentNullException(nameof(atmosphereManager));
         _flowManager = flowManager ?? throw new ArgumentNullException(nameof(flowManager));
         _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -98,12 +92,7 @@ public class ConversationFacade
         _flowManager.ConversationEnded += OnConversationEnded;
         _flowBatteryManager = _flowManager;
 
-        // Initialize focus manager
-        _focusManager.SetBaseCapacity(initialState);
-        _focusManager.Reset();
-
-        // Reset atmosphere manager
-        _atmosphereManager.Reset();
+        // Focus management is now handled directly by ConversationSession
 
         // Initialize personality rule enforcer based on NPC's personality
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
@@ -140,7 +129,15 @@ public class ConversationFacade
             InitialState = initialState,
             FlowBattery = initialFlow, // Start with persisted flow (-2 to +2)
             CurrentFocus = 0,
-            MaxFocus = _focusManager.CurrentCapacity,
+            MaxFocus = initialState switch
+            {
+                ConnectionState.DISCONNECTED => 3,
+                ConnectionState.GUARDED => 4,
+                ConnectionState.NEUTRAL => 5,
+                ConnectionState.RECEPTIVE => 6,
+                ConnectionState.TRUSTING => 7,
+                _ => 5
+            },
             CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentMomentum = initialMomentum,
             CurrentDoubt = initialDoubt,
@@ -159,7 +156,7 @@ public class ConversationFacade
 
         // THEN: Perform initial draw of regular cards
         // This is the initial conversation start, so we just draw cards without exhausting
-        _focusManager.RefreshPool();
+        _currentSession.RefreshFocus();
         int drawCount = _currentSession.GetDrawCount();
         // HIGHLANDER: Draw directly to hand
         _currentSession.Deck.DrawToHand(drawCount);
@@ -168,8 +165,7 @@ public class ConversationFacade
         UpdateRequestCardPlayability(_currentSession);
 
         // Reset focus after initial draw (as per standard LISTEN)
-        _currentSession.CurrentFocus = _focusManager.CurrentSpentFocus;
-        _currentSession.MaxFocus = _focusManager.CurrentCapacity;
+        _currentSession.CurrentFocus = 0; // Start with no spent focus
 
         // Update card playability based on initial focus
         UpdateCardPlayabilityBasedOnFocus(_currentSession);
@@ -259,7 +255,7 @@ public class ConversationFacade
             }
 
             // 3. Apply focus penalties (unspent focus adds doubt)
-            int unspentFocus = _focusManager.AvailableFocus;
+            int unspentFocus = _currentSession.GetAvailableFocus();
             if (unspentFocus > 0)
             {
                 _currentSession.MomentumManager.AddDoubt(unspentFocus);
@@ -272,9 +268,7 @@ public class ConversationFacade
         // Notify personality enforcer that LISTEN occurred (resets turn state for Proud personality)
         _personalityEnforcer?.OnListen();
 
-        // Update session focus state
-        _currentSession.CurrentFocus = _focusManager.CurrentSpentFocus;
-        _currentSession.MaxFocus = _focusManager.CurrentCapacity;
+        // Focus state is already managed by the session
 
         // Update card playability based on current focus
         UpdateCardPlayabilityBasedOnFocus(_currentSession);
@@ -393,25 +387,30 @@ public class ConversationFacade
                 _currentSession.CurrentState = newState;
 
                 // Update focus capacity for new state
-                _focusManager.SetBaseCapacity(newState);
+                _currentSession.MaxFocus = newState switch
+                {
+                    ConnectionState.DISCONNECTED => 3,
+                    ConnectionState.GUARDED => 4,
+                    ConnectionState.NEUTRAL => 5,
+                    ConnectionState.RECEPTIVE => 6,
+                    ConnectionState.TRUSTING => 7,
+                    _ => 5
+                };
             }
         }
 
-        // Update session atmosphere
-        _currentSession.CurrentAtmosphere = _atmosphereManager.CurrentAtmosphere;
-        _currentSession.CurrentFocus = _focusManager.CurrentSpentFocus;
-        _currentSession.MaxFocus = _focusManager.CurrentCapacity;
+        // Update session atmosphere (simplified - no AtmosphereManager)
+        _currentSession.CurrentAtmosphere = AtmosphereType.Neutral;
 
         // Exhaust all focus on failed SPEAK - forces LISTEN as only option
         // Unless the card ignores failure LISTEN (level 5 mastery)
         if (!playResult.Success && !selectedCard.IgnoresFailureListen(player.Stats))
         {
             // Spend all remaining focus to force LISTEN
-            int remainingFocus = _focusManager.AvailableFocus;
+            int remainingFocus = _currentSession.GetAvailableFocus();
             if (remainingFocus > 0)
             {
-                _focusManager.SpendFocus(remainingFocus);
-                _currentSession.CurrentFocus = _focusManager.CurrentSpentFocus;
+                _currentSession.SpendFocus(remainingFocus);
             }
         }
 
@@ -671,8 +670,8 @@ public class ConversationFacade
 
         // Check focus availability - THIS IS CRITICAL FOR ALL CARDS
         int cardFocus = card.Focus;
-        int availableFocus = _focusManager.AvailableFocus;
-        bool canAfford = _focusManager.CanAffordCard(cardFocus);
+        int availableFocus = session.GetAvailableFocus();
+        bool canAfford = session.CanAffordCard(cardFocus);
 
         // Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}"); // Removed excessive logging
 
@@ -754,13 +753,7 @@ public class ConversationFacade
     }
 
 
-    /// <summary>
-    /// Get the atmosphere manager for accessing atmosphere state
-    /// </summary>
-    public AtmosphereManager GetAtmosphereManager()
-    {
-        return _atmosphereManager;
-    }
+    // AtmosphereManager has been deleted - atmosphere is simplified to always Neutral
 
     #region Private Methods - Absorbed from ConversationOrchestrator
 
@@ -986,7 +979,7 @@ public class ConversationFacade
         ExhaustOpeningCards(session);
 
         // Refresh focus
-        _focusManager.RefreshPool();
+        session.RefreshFocus();
 
         // Calculate draw count based on state and atmosphere
         int baseDrawCount = session.GetDrawCount();
@@ -1033,11 +1026,11 @@ public class ConversationFacade
             };
         }
 
-        // Check for free focus from observation effect
-        int focusCost = _atmosphereManager.IsNextSpeakFree() ? 0 : selectedCard.Focus;
+        // Focus cost is always the card's focus cost (no free effects from deleted AtmosphereManager)
+        int focusCost = selectedCard.Focus;
 
         // Validate focus availability
-        if (!_focusManager.CanAffordCard(focusCost))
+        if (!session.CanAffordCard(focusCost))
         {
             return new CardPlayResult
             {
@@ -1071,9 +1064,8 @@ public class ConversationFacade
             }
         }
 
-        // Spend focus (possibly 0 if free) - focus represents effort of speaking
-        _focusManager.SpendFocus(focusCost);
-        session.CurrentFocus = _focusManager.CurrentSpentFocus;
+        // Spend focus - focus represents effort of speaking
+        session.SpendFocus(focusCost);
 
         // Update card playability immediately after spending focus
         UpdateCardPlayabilityBasedOnFocus(session);
@@ -1109,7 +1101,7 @@ public class ConversationFacade
             // Apply focus restoration (for Focusing success effect)
             if (effectResult.FocusAdded > 0)
             {
-                _focusManager.AddFocus(effectResult.FocusAdded);
+                session.AddFocus(effectResult.FocusAdded);
             }
 
             // Apply flow battery change (for Advancing success effect)
@@ -1124,10 +1116,10 @@ public class ConversationFacade
                 session.Deck.AddCardsToHand(effectResult.CardsToAdd);
             }
 
-            // Handle atmosphere change (for Atmospheric success effect)
+            // Handle atmosphere change (for Atmospheric success effect) - simplified
             if (effectResult.AtmosphereTypeChange.HasValue)
             {
-                _atmosphereManager.SetAtmosphere(effectResult.AtmosphereTypeChange.Value);
+                session.CurrentAtmosphere = effectResult.AtmosphereTypeChange.Value;
             }
 
             // Handle Promise card queue manipulation (for Promising success effect)
@@ -1136,8 +1128,7 @@ public class ConversationFacade
                 HandlePromiseCardQueueManipulation(selectedCard, session);
             }
 
-            // Consume one-time atmosphere effects after successful card play
-            _atmosphereManager.OnCardSuccess();
+            // Atmosphere effects simplified - no longer tracked
         }
         else
         {
@@ -1164,11 +1155,11 @@ public class ConversationFacade
             // Apply focus penalty (for ForceListen effect)
             if (effectResult.FocusAdded < 0)
             {
-                _focusManager.AddFocus(effectResult.FocusAdded); // Adding negative = removing
+                session.AddFocus(effectResult.FocusAdded); // Adding negative = removing
             }
 
-            // Clear atmosphere on failure
-            _atmosphereManager.ClearAtmosphereOnFailure();
+            // Clear atmosphere on failure - simplified
+            session.CurrentAtmosphere = AtmosphereType.Neutral;
         }
 
         // HIGHLANDER: Use deck's PlayCard method which handles all transitions
@@ -1383,10 +1374,7 @@ public class ConversationFacade
     /// </summary>
     private void UpdateCardPlayabilityBasedOnFocus(ConversationSession session)
     {
-        int availableFocus = _focusManager.AvailableFocus;
-
-        // Check if next speak is free (from observation effect)
-        bool isNextSpeakFree = _atmosphereManager.IsNextSpeakFree();
+        int availableFocus = session.GetAvailableFocus();
 
         foreach (CardInstance card in session.Deck.HandCards)
         {
@@ -1396,11 +1384,11 @@ public class ConversationFacade
                 continue; // Don't modify request card playability here
             }
 
-            // Calculate effective focus cost for this card
-            int effectiveFocusCost = isNextSpeakFree ? 0 : card.Focus;
+            // Calculate effective focus cost for this card (no more free effects)
+            int effectiveFocusCost = card.Focus;
 
             // Check if we can afford this card
-            bool canAfford = _focusManager.CanAffordCard(effectiveFocusCost);
+            bool canAfford = session.CanAffordCard(effectiveFocusCost);
 
             // Update playability based on focus availability
             card.IsPlayable = canAfford;

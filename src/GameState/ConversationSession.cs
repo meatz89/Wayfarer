@@ -99,10 +99,7 @@ public class ConversationSession
             _ => 5
         };
 
-        // Prepared atmosphere adds +1 capacity
-        if (CurrentAtmosphere == AtmosphereType.Prepared)
-            baseCapacity += 1;
-
+        // Note: Atmosphere effects removed with AtmosphereManager deletion
         return baseCapacity;
     }
 
@@ -124,6 +121,44 @@ public class ConversationSession
     {
         CurrentFocus = 0;
         MaxFocus = GetEffectiveFocusCapacity();
+    }
+
+    // Focus management methods (migrated from deleted FocusManager)
+    public bool CanAffordCard(int cardFocus)
+    {
+        return GetAvailableFocus() >= cardFocus;
+    }
+
+    public bool SpendFocus(int amount)
+    {
+        if (amount > GetAvailableFocus())
+        {
+            return false;
+        }
+
+        CurrentFocus += amount;
+        return true;
+    }
+
+    public void AddFocus(int amount)
+    {
+        // Reduce spent focus (effectively adding to available pool)
+        CurrentFocus = Math.Max(0, CurrentFocus - amount);
+    }
+
+    public void DepleteFocus()
+    {
+        CurrentFocus = GetEffectiveFocusCapacity();
+    }
+
+    public string GetFocusStatus()
+    {
+        return $"{GetAvailableFocus()}/{GetEffectiveFocusCapacity()}";
+    }
+
+    public bool IsPoolDepleted()
+    {
+        return GetAvailableFocus() <= 0;
     }
 
     public bool IsHandOverflowing()

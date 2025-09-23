@@ -1898,7 +1898,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetAtmosphereModifier()
         {
-            return ConversationFacade?.GetAtmosphereManager()?.GetSuccessPercentageBonus() ?? 0;
+            // AtmosphereManager deleted - atmosphere simplified to always Neutral
+            return 0;
         }
 
         private string GetInitialDialogue()
@@ -2661,16 +2662,14 @@ namespace Wayfarer.Pages.Components
 
         protected bool HasTemporaryAtmosphereEffects()
         {
-            // Check if AtmosphereManager has temporary effects
-            // This would need to be exposed through ConversationFacade
-            return false; // For now, until we expose this through the facade
+            // AtmosphereManager deleted - no temporary effects
+            return false;
         }
 
         protected string GetTemporaryEffectsDescription()
         {
-            // Get temporary effects description from AtmosphereManager
-            // This would need to be exposed through ConversationFacade
-            return ""; // For now, until we expose this through the facade
+            // AtmosphereManager deleted - no temporary effects
+            return "";
         }
 
         // PACKET 7: Action Preview System Implementation

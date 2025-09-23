@@ -59,8 +59,6 @@ public static class ServiceConfiguration
 
 
         // ConversationSubsystem services
-        services.AddSingleton<AtmosphereManager>();
-        services.AddSingleton<FocusManager>();
         services.AddSingleton<FlowManager>();
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<CategoricalEffectResolver>();

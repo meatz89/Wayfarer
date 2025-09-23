@@ -21,19 +21,13 @@ using Wayfarer.GameState.Enums;
 public class CategoricalEffectResolver
 {
     private readonly TokenMechanicsManager tokenManager;
-    private readonly AtmosphereManager atmosphereManager;
-    private readonly FocusManager focusManager;
     private readonly GameWorld gameWorld;
 
     public CategoricalEffectResolver(
         TokenMechanicsManager tokenManager,
-        AtmosphereManager atmosphereManager,
-        FocusManager focusManager,
         GameWorld gameWorld)
     {
         this.tokenManager = tokenManager;
-        this.atmosphereManager = atmosphereManager;
-        this.focusManager = focusManager;
         this.gameWorld = gameWorld;
     }
 
