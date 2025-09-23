@@ -1,0 +1,577 @@
+{
+  "config": {
+    "configFile": "C:\\Git\\Wayfarer\\src\\playwright.config.js",
+    "rootDir": "C:/Git/Wayfarer/src/E2ETests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Git/Wayfarer/src/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Git/Wayfarer/src/E2ETests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "elena-conversation-cards.spec.js",
+      "file": "elena-conversation-cards.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Elena Conversation - Card Display and Effects",
+          "file": "elena-conversation-cards.spec.js",
+          "line": 52,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display all 19 unique cards from deck_desperate_empathy",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4978,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:17.528Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-0f8b6-from-deck-desperate-empathy-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-0f8b6-from-deck-desperate-empathy-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-0f8b6-from-deck-desperate-empathy-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-71c7c6ce29ae3fbcf945",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 166,
+              "column": 3
+            },
+            {
+              "title": "should display correct focus costs for all power tiers",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4651,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:23.232Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-b1627-s-costs-for-all-power-tiers-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-b1627-s-costs-for-all-power-tiers-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-b1627-s-costs-for-all-power-tiers-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-b2866839839c23a281a0",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 234,
+              "column": 3
+            },
+            {
+              "title": "should display effect descriptions correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4645,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:28.575Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-f84be-fect-descriptions-correctly-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-f84be-fect-descriptions-correctly-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-f84be-fect-descriptions-correctly-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-9f8d9021d6945be00c09",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 299,
+              "column": 3
+            },
+            {
+              "title": "should display momentum conversion effects correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4676,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:33.908Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-8db03-onversion-effects-correctly-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-8db03-onversion-effects-correctly-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-8db03-onversion-effects-correctly-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-d28b8594d605057be513",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 353,
+              "column": 3
+            },
+            {
+              "title": "should not display any \"card not found\" errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4653,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:39.261Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-1d26e-y-any-card-not-found-errors-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-1d26e-y-any-card-not-found-errors-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-1d26e-y-any-card-not-found-errors-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-beb9320d3fcb4e8483a5",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 435,
+              "column": 3
+            },
+            {
+              "title": "should display dialogue fragments correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4673,
+                      "error": {
+                        "message": "Error: Could not find Elena NPC",
+                        "stack": "Error: Could not find Elena NPC\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13",
+                        "location": {
+                          "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                          "column": 13,
+                          "line": 121
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 119 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39melenaFound) {\n \u001b[90m 120 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mscreenshot({ path\u001b[33m:\u001b[39m \u001b[32m'elena-not-found.png'\u001b[39m\u001b[33m,\u001b[39m fullPage\u001b[33m:\u001b[39m \u001b[36mtrue\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 121 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Could not find Elena NPC'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 122 |\u001b[39m     }\n \u001b[90m 123 |\u001b[39m\n \u001b[90m 124 |\u001b[39m     \u001b[90m// Look for conversation start options\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                            "column": 13,
+                            "line": 121
+                          },
+                          "message": "Error: Could not find Elena NPC\n\n  119 |     if (!elenaFound) {\n  120 |       await page.screenshot({ path: 'elena-not-found.png', fullPage: true });\n> 121 |       throw new Error('Could not find Elena NPC');\n      |             ^\n  122 |     }\n  123 |\n  124 |     // Look for conversation start options\n    at C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js:121:13"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Trying navigation: text=Tavern\n"
+                        },
+                        {
+                          "text": "Trying navigation: text=Market\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T16:08:44.598Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-43b5b-ialogue-fragments-correctly-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-43b5b-ialogue-fragments-correctly-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Git\\Wayfarer\\src\\test-results\\elena-conversation-cards-E-43b5b-ialogue-fragments-correctly-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Git\\Wayfarer\\src\\E2ETests\\elena-conversation-cards.spec.js",
+                        "column": 13,
+                        "line": 121
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "1bf3676f25bc525e4d91-22bccc49e0eea1ffcb3e",
+              "file": "elena-conversation-cards.spec.js",
+              "line": 468,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-23T16:08:17.069Z",
+    "duration": 32456.336,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}

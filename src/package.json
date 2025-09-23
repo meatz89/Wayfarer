@@ -4,12 +4,28 @@
   "description": "",
   "main": "test_card_name_removal.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx playwright test E2ETests/",
+    "test:elena": "npx playwright test E2ETests/elena-*.spec.js",
+    "test:elena:dynamics": "npx playwright test E2ETests/elena-conversation-dynamics.spec.js",
+    "test:elena:strategic": "npx playwright test E2ETests/elena-strategic-playthroughs.spec.js",
+    "test:elena:performance": "npx playwright test E2ETests/elena-edge-cases-performance.spec.js",
+    "test:headed": "npx playwright test E2ETests/ --headed",
+    "test:debug": "npx playwright test E2ETests/ --debug",
+    "test:ui": "npx playwright test E2ETests/ --ui",
+    "test:report": "npx playwright show-report",
+    "test:quality": "node ../run-quality-assessment.js",
+    "test:legacy:strategic": "npx playwright test ../tests/strategic-depth-assessment.spec.js",
+    "test:legacy:learning": "npx playwright test ../tests/learning-curve-validation.spec.js",
+    "test:legacy:engagement": "npx playwright test ../tests/engagement-testing.spec.js",
+    "test:legacy:ui": "npx playwright test ../tests/ui-ux-quality-assessment.spec.js",
+    "test:legacy:balance": "npx playwright test ../tests/balance-validation.spec.js",
+    "test:legacy:report": "npx playwright test ../tests/comprehensive-quality-report.spec.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "playwright": "^1.55.1"
   }
 }
