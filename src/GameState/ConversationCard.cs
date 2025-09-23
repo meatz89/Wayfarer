@@ -84,10 +84,18 @@ public class ConversationCard
             {
                 ScalingType.CardsInHand => session.Deck.HandSize,
                 ScalingType.CardsInHandDivided => (int)Math.Ceiling((double)session.Deck.HandSize / 2),
-                ScalingType.DoubtReduction => 10 - session.CurrentDoubt,
-                ScalingType.DoubtHalved => (10 - session.CurrentDoubt) / 2,
+                ScalingType.DoubtReduction => Math.Max(1, 8 - session.CurrentDoubt), // 8 instead of 10 for rebalanced economy
+                ScalingType.DoubtHalved => (8 - session.CurrentDoubt) / 2,
                 ScalingType.DoubleCurrent => session.CurrentMomentum,
                 ScalingType.PatienteDivided => session.GetAvailableFocus() / 3,
+                ScalingType.DoubtMultiplier => Math.Max(1, session.CurrentDoubt), // Desperation effects
+
+                // Resource conversion effects (these indicate momentum requirements, not generation)
+                ScalingType.SpendForDoubt => -2, // Spend 2 momentum to reduce doubt by 3
+                ScalingType.SpendForFlow => -3, // Spend 3 momentum to gain 1 flow
+                ScalingType.SpendForFlowMajor => -4, // Spend 4 momentum to gain 2 flow
+                ScalingType.CardDiscard => 1, // Gain 1 momentum per discarded card (handled specially)
+                ScalingType.PreventDoubt => 0, // Special effect, no momentum change
                 _ => baseEffect
             };
         }

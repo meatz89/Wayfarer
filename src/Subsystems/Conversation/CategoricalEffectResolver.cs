@@ -67,17 +67,80 @@ public class CategoricalEffectResolver
                 // Use card's momentum scaling formula with player stats for bonuses
                 PlayerStats player = gameWorld.GetPlayer().Stats;
                 int momentumGain = card.Template.GetMomentumEffect(session, player);
-                result.MomentumChange = momentumGain;
 
-                // Generate descriptive text based on scaling formula and card mechanics
-                result.EffectDescription = GetStrikeEffectDescription(card, session, player, momentumGain);
+                // Handle resource conversion cards (negative momentum = spend momentum for other effects)
+                if (momentumGain < 0 && card.Template.MomentumScaling != ScalingType.None)
+                {
+                    int momentumCost = Math.Abs(momentumGain);
+                    if (session.CurrentMomentum >= momentumCost)
+                    {
+                        result.MomentumChange = -momentumCost;
+
+                        // Apply conversion effect based on scaling type
+                        switch (card.Template.MomentumScaling)
+                        {
+                            case ScalingType.SpendForDoubt:
+                                result.DoubtChange = -3; // Reduce doubt by 3
+                                result.EffectDescription = $"Spend {momentumCost} momentum → -3 doubt";
+                                break;
+                            case ScalingType.SpendForFlow:
+                                result.FlowChange = 1; // Gain 1 flow
+                                result.EffectDescription = $"Spend {momentumCost} momentum → +1 flow";
+                                break;
+                            case ScalingType.SpendForFlowMajor:
+                                result.FlowChange = 2; // Gain 2 flow
+                                result.EffectDescription = $"Spend {momentumCost} momentum → +2 flow";
+                                break;
+                            default:
+                                result.EffectDescription = $"Spend {momentumCost} momentum";
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Not enough momentum to afford the conversion
+                        result.MomentumChange = 0;
+                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
+                    }
+                }
+                else
+                {
+                    // Regular momentum generation
+                    result.MomentumChange = momentumGain;
+                    result.EffectDescription = GetStrikeEffectDescription(card, session, player, momentumGain);
+                }
                 break;
 
             case SuccessEffectType.Soothe:
-                // Soothe = doubt reduction (regardless of card category)
-                int doubtReduction = magnitude;
-                result.DoubtChange = -doubtReduction;
-                result.EffectDescription = $"-{doubtReduction} doubt";
+                // Handle resource conversion for Soothe cards
+                if (card.Template.MomentumScaling == ScalingType.SpendForDoubt)
+                {
+                    int momentumCost = 2; // Fixed cost for clarity
+                    if (session.CurrentMomentum >= momentumCost)
+                    {
+                        result.MomentumChange = -momentumCost;
+                        result.DoubtChange = -3; // Reduce doubt by 3
+                        result.EffectDescription = $"Spend {momentumCost} momentum → -3 doubt";
+                    }
+                    else
+                    {
+                        result.MomentumChange = 0;
+                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
+                    }
+                }
+                else if (card.Template.MomentumScaling == ScalingType.PreventDoubt)
+                {
+                    // Special effect: prevent next doubt increase
+                    result.DoubtChange = 0; // No immediate change, handled by session
+                    result.EffectDescription = "Prevent next doubt increase";
+                }
+                else
+                {
+                    // Regular doubt reduction
+                    int doubtReduction = magnitude;
+                    result.DoubtChange = -doubtReduction;
+                    result.EffectDescription = $"-{doubtReduction} doubt";
+                }
                 break;
 
             case SuccessEffectType.Threading:
@@ -124,9 +187,43 @@ public class CategoricalEffectResolver
                 break;
 
             case SuccessEffectType.Advancing:
-                // Advancing = flow gain (regardless of card category)
-                result.FlowChange = magnitude;
-                result.EffectDescription = $"+{magnitude} flow";
+                // Handle resource conversion for Advancing cards
+                if (card.Template.MomentumScaling == ScalingType.SpendForFlow)
+                {
+                    int momentumCost = 3; // Fixed cost for clarity
+                    if (session.CurrentMomentum >= momentumCost)
+                    {
+                        result.MomentumChange = -momentumCost;
+                        result.FlowChange = 1; // Gain 1 flow
+                        result.EffectDescription = $"Spend {momentumCost} momentum → +1 flow";
+                    }
+                    else
+                    {
+                        result.MomentumChange = 0;
+                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
+                    }
+                }
+                else if (card.Template.MomentumScaling == ScalingType.SpendForFlowMajor)
+                {
+                    int momentumCost = 4; // Fixed cost for major flow gain
+                    if (session.CurrentMomentum >= momentumCost)
+                    {
+                        result.MomentumChange = -momentumCost;
+                        result.FlowChange = 2; // Gain 2 flow
+                        result.EffectDescription = $"Spend {momentumCost} momentum → +2 flow";
+                    }
+                    else
+                    {
+                        result.MomentumChange = 0;
+                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
+                    }
+                }
+                else
+                {
+                    // Regular flow gain
+                    result.FlowChange = magnitude;
+                    result.EffectDescription = $"+{magnitude} flow";
+                }
                 break;
 
             case SuccessEffectType.None:

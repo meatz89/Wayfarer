@@ -20,6 +20,14 @@ namespace Wayfarer.GameState.Enums
         DoubtReduction,        // = (10 - doubt)
         DoubtHalved,           // = (10 - doubt) / 2
         DoubleCurrent,         // Double current momentum
-        PatienteDivided        // = patience/3 (using focus as proxy)
+        PatienteDivided,       // = patience/3 (using focus as proxy)
+
+        // Resource conversion formulas
+        SpendForDoubt,         // Spend 2 momentum → -3 doubt
+        SpendForFlow,          // Spend 3 momentum → +1 flow
+        SpendForFlowMajor,     // Spend 4 momentum → +2 flow
+        DoubtMultiplier,       // = current doubt * 1 (desperation effects)
+        CardDiscard,           // Discard cards → gain 1 momentum per card
+        PreventDoubt           // Prevent next doubt increase
     }
 }
