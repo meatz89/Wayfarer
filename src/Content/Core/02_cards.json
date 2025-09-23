@@ -9,7 +9,7 @@
   "content": {
     "cards": [
       {
-        "id": "soft_agreement_1",
+        "id": "soft_agreement",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
@@ -22,51 +22,6 @@
         "difficulty": "Easy",
         "dialogueFragment": "Yes, I understand your position.",
         "boundStat": "rapport"
-      },
-      {
-        "id": "soft_agreement_2",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "Yes, I understand your position.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Yes, I understand your position.",
-        "boundStat": "rapport"
-      },
-      {
-        "id": "careful_analysis_1",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Let me think through this systematically.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me think through this systematically.",
-        "boundStat": "insight"
-      },
-      {
-        "id": "careful_analysis_2",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Let me think through this systematically.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me think through this systematically.",
-        "boundStat": "insight"
       },
       {
         "id": "show_understanding",
@@ -101,7 +56,7 @@
         "momentumScaling": "DoubtReduction"
       },
       {
-        "id": "emotional_outburst_1",
+        "id": "emotional_outburst",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
@@ -111,22 +66,7 @@
         "failureType": "None",
         "connectionType": "Trust",
         "description": "This is completely unacceptable!",
-        "difficulty": "Easy",
-        "dialogueFragment": "This is completely unacceptable!",
-        "boundStat": "rapport"
-      },
-      {
-        "id": "emotional_outburst_2",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "This is completely unacceptable!",
-        "difficulty": "Easy",
+        "difficulty": "Medium",
         "dialogueFragment": "This is completely unacceptable!",
         "boundStat": "rapport"
       },
@@ -135,7 +75,7 @@
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 2,
+        "focus": 4,
         "persistence": "Impulse",
         "successType": "Strike",
         "failureType": "None",
@@ -146,52 +86,7 @@
         "boundStat": "authority"
       },
       {
-        "id": "burning_insight_1",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "I suddenly understand what you need!",
-        "difficulty": "Easy",
-        "dialogueFragment": "I suddenly understand what you need!",
-        "boundStat": "insight"
-      },
-      {
-        "id": "burning_insight_2",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "I suddenly understand what you need!",
-        "difficulty": "Easy",
-        "dialogueFragment": "I suddenly understand what you need!",
-        "boundStat": "insight"
-      },
-      {
-        "id": "clear_confusion_1",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Let me address your concerns directly...",
-        "difficulty": "Medium",
-        "dialogueFragment": "Let me address your concerns directly...",
-        "boundStat": "insight"
-      },
-      {
-        "id": "clear_confusion_2",
+        "id": "clear_confusion",
         "type": "Conversation",
         "category": "Realization",
         "personalityTypes": ["ALL"],
@@ -221,66 +116,6 @@
         "boundStat": "rapport"
       },
       {
-        "id": "deep_investment",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Commerce",
-        "description": "I'm committed to understanding you fully.",
-        "difficulty": "Medium",
-        "dialogueFragment": "I'm committed to understanding you fully.",
-        "boundStat": "commerce"
-      },
-      {
-        "id": "all_or_nothing",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 3,
-        "persistence": "Impulse",
-        "successType": "DoubleMomentum",
-        "failureType": "None",
-        "connectionType": "Authority",
-        "description": "Let me be completely direct with you!",
-        "difficulty": "Hard",
-        "dialogueFragment": "Let me be completely direct with you!",
-        "boundStat": "authority"
-      },
-      {
-        "id": "reset_stakes",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Impulse",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Shadow",
-        "description": "Forget everything - just listen to me!",
-        "difficulty": "Medium",
-        "dialogueFragment": "Forget everything - just listen to me!",
-        "boundStat": "cunning"
-      },
-      {
-        "id": "force_understanding",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 4,
-        "persistence": "Impulse",
-        "successType": "Advancing",
-        "failureType": "None",
-        "connectionType": "Authority",
-        "description": "You WILL understand my sincerity!",
-        "difficulty": "VeryHard",
-        "dialogueFragment": "You WILL understand my sincerity!",
-        "boundStat": "authority"
-      },
-      {
         "id": "mental_reset",
         "type": "Conversation",
         "category": "Regulation",
@@ -296,67 +131,7 @@
         "boundStat": "insight"
       },
       {
-        "id": "careful_words_1",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Threading",
-        "failureType": "None",
-        "connectionType": "Shadow",
-        "description": "Let me focus on what matters most.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me focus on what matters most.",
-        "boundStat": "cunning"
-      },
-      {
-        "id": "careful_words_2",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Threading",
-        "failureType": "None",
-        "connectionType": "Shadow",
-        "description": "Let me focus on what matters most.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me focus on what matters most.",
-        "boundStat": "cunning"
-      },
-      {
-        "id": "patience",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Commerce",
-        "description": "Please, just give me time to explain.",
-        "difficulty": "Medium",
-        "dialogueFragment": "Please, just give me time to explain.",
-        "boundStat": "commerce"
-      },
-      {
-        "id": "racing_mind_1",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Impulse",
-        "successType": "Threading",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "So many things to consider!",
-        "difficulty": "Easy",
-        "dialogueFragment": "So many things to consider!",
-        "boundStat": "insight"
-      },
-      {
-        "id": "racing_mind_2",
+        "id": "racing_mind",
         "type": "Conversation",
         "category": "Regulation",
         "personalityTypes": ["ALL"],
@@ -515,64 +290,18 @@
     ],
     "cardDecks": [
       {
-        "id": "deck_friendly_balanced",
-        "cardIds": [
-          "soft_agreement_1", "soft_agreement_2", "careful_analysis_1", "show_understanding",
-          "mental_reset", "racing_mind_1", "patience", "clear_confusion_1", "establish_trust"
-        ]
-      },
-      {
         "id": "deck_desperate_empathy",
-        "cardIds": [
-          "soft_agreement_1", "soft_agreement_2", "careful_analysis_1", "careful_analysis_2",
-          "show_understanding", "build_pressure", "emotional_outburst_1", "emotional_outburst_2",
-          "critical_moment", "burning_insight_1", "burning_insight_2", "clear_confusion_1",
-          "clear_confusion_2", "establish_trust", "deep_investment", "all_or_nothing",
-          "reset_stakes", "force_understanding", "mental_reset", "careful_words_1",
-          "careful_words_2", "patience", "racing_mind_1", "racing_mind_2"
-        ]
-      },
-      {
-        "id": "deck_trade_mercantile",
-        "cardIds": [
-          "careful_analysis_1", "careful_analysis_2", "build_pressure", "critical_moment",
-          "careful_words_1", "careful_words_2", "establish_trust", "mental_reset"
-        ]
-      },
-      {
-        "id": "deck_authority_power",
-        "cardIds": [
-          "emotional_outburst_1", "emotional_outburst_2", "build_pressure", "force_understanding",
-          "burning_insight_1", "burning_insight_2", "all_or_nothing", "reset_stakes"
-        ]
-      },
-      {
-        "id": "deck_information_subtle",
-        "cardIds": [
-          "careful_analysis_1", "careful_analysis_2", "show_understanding", "burning_insight_1",
-          "clear_confusion_1", "clear_confusion_2", "racing_mind_1", "racing_mind_2"
-        ]
-      },
-      {
-        "id": "deck_intimate_deep",
-        "cardIds": [
-          "soft_agreement_1", "soft_agreement_2", "show_understanding", "deep_investment",
-          "establish_trust", "all_or_nothing", "patience", "mental_reset", "racing_mind_2"
-        ]
-      },
-      {
-        "id": "deck_seek_favor",
-        "cardIds": [
-          "soft_agreement_1", "show_understanding", "careful_words_1", "patience",
-          "establish_trust", "clear_confusion_1", "mental_reset", "racing_mind_1"
-        ]
-      },
-      {
-        "id": "deck_casual_exchange",
-        "cardIds": [
-          "soft_agreement_1", "careful_analysis_1", "show_understanding", "mental_reset",
-          "racing_mind_1", "patience", "careful_words_1", "clear_confusion_1"
-        ]
+        "cardCounts": {
+          "soft_agreement": 4,
+          "emotional_outburst": 3,
+          "show_understanding": 2,
+          "build_pressure": 2,
+          "critical_moment": 1,
+          "clear_confusion": 3,
+          "establish_trust": 2,
+          "mental_reset": 1,
+          "racing_mind": 2
+        }
       }
     ],
   "conversationTypes": [

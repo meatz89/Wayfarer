@@ -455,10 +455,20 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Loading {cardDeckDtos.Count} card decks...");
             foreach (CardDeckDTO dto in cardDeckDtos)
             {
+                // Convert cardCounts to cardIds list
+                List<string> cardIds = new List<string>();
+                foreach (var kvp in dto.CardCounts)
+                {
+                    for (int i = 0; i < kvp.Value; i++)
+                    {
+                        cardIds.Add(kvp.Key);
+                    }
+                }
+
                 CardDeckDefinition deck = new CardDeckDefinition
                 {
                     Id = dto.Id,
-                    CardIds = dto.CardIds ?? new List<string>()
+                    CardIds = cardIds
                 };
                 _gameWorld.CardDecks.AddOrUpdateDeck(deck.Id, deck);
                 Console.WriteLine($"[PackageLoader] Loaded card deck '{deck.Id}' with {deck.CardIds.Count} cards");

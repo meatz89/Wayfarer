@@ -2,10 +2,10 @@ using System.Collections.Generic;
 
 /// <summary>
 /// DTO for card deck definitions loaded from JSON
-/// Each deck is simply a list of card IDs
+/// Each deck contains card IDs with their counts
 /// </summary>
 public class CardDeckDTO
 {
     public string Id { get; set; }
-    public List<string> CardIds { get; set; } = new List<string>();
+    public Dictionary<string, int> CardCounts { get; set; } = new Dictionary<string, int>();
 }

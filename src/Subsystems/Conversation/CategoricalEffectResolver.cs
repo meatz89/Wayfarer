@@ -74,59 +74,23 @@ public class CategoricalEffectResolver
                 break;
 
             case SuccessEffectType.Soothe:
-                // Check if this is a Realization card that needs momentum consumption
-                if (card.Template.Category == CardCategory.Realization)
-                {
-                    var realizationEffect = GetRealizationEffect(card, session);
-                    result.MomentumChange = -realizationEffect.MomentumCost;
-                    result.DoubtChange = realizationEffect.DoubtReduction;
-                    result.FlowChange = realizationEffect.FlowGain;
-                    result.EffectDescription = realizationEffect.Description;
-                }
-                else if (card.Template.Category == CardCategory.Regulation)
-                {
-                    var regulationEffect = GetRegulationEffect(card, session);
-                    result.FocusAdded = regulationEffect.FocusGain;
-                    result.CardsToAdd = regulationEffect.CardsToAdd;
-                    result.PreventNextDoubtIncrease = regulationEffect.PreventDoubtIncrease;
-                    result.MomentumPerDiscard = regulationEffect.MomentumPerDiscard;
-                    result.MaxDiscards = regulationEffect.MaxDiscards;
-                    result.EffectDescription = regulationEffect.Description;
-                }
-                else
-                {
-                    // Regular doubt reduction without momentum cost
-                    int doubtReduction = card.Template.GetDoubtEffect(session);
-                    result.DoubtChange = -doubtReduction;
-                    result.EffectDescription = $"-{doubtReduction} doubt";
-                }
+                // Soothe = doubt reduction (regardless of card category)
+                int doubtReduction = magnitude;
+                result.DoubtChange = -doubtReduction;
+                result.EffectDescription = $"-{doubtReduction} doubt";
                 break;
 
             case SuccessEffectType.Threading:
-                // Check if this is a Regulation card with special effects
-                if (card.Template.Category == CardCategory.Regulation)
+                // Threading = card draw (regardless of card category)
+                for (int i = 0; i < magnitude; i++)
                 {
-                    var regulationEffect = GetRegulationEffect(card, session);
-                    result.FocusAdded = regulationEffect.FocusGain;
-                    result.CardsToAdd = regulationEffect.CardsToAdd;
-                    result.PreventNextDoubtIncrease = regulationEffect.PreventDoubtIncrease;
-                    result.MomentumPerDiscard = regulationEffect.MomentumPerDiscard;
-                    result.MaxDiscards = regulationEffect.MaxDiscards;
-                    result.EffectDescription = regulationEffect.Description;
-                }
-                else
-                {
-                    // Regular card draw
-                    for (int i = 0; i < magnitude; i++)
+                    CardInstance drawn = session.Deck.DrawCard();
+                    if (drawn != null)
                     {
-                        CardInstance drawn = session.Deck.DrawCard();
-                        if (drawn != null)
-                        {
-                            result.CardsToAdd.Add(drawn);
-                        }
+                        result.CardsToAdd.Add(drawn);
                     }
-                    result.EffectDescription = $"Draw {magnitude} cards";
                 }
+                result.EffectDescription = $"Draw {magnitude} cards";
                 break;
 
             case SuccessEffectType.Atmospheric:
@@ -140,22 +104,9 @@ public class CategoricalEffectResolver
                 break;
 
             case SuccessEffectType.Focusing:
-                // Check if this is a Regulation card with special effects
-                if (card.Template.Category == CardCategory.Regulation)
-                {
-                    var regulationEffect = GetRegulationEffect(card, session);
-                    result.FocusAdded = regulationEffect.FocusGain;
-                    result.CardsToAdd = regulationEffect.CardsToAdd;
-                    result.PreventNextDoubtIncrease = regulationEffect.PreventDoubtIncrease;
-                    result.MomentumPerDiscard = regulationEffect.MomentumPerDiscard;
-                    result.MaxDiscards = regulationEffect.MaxDiscards;
-                    result.EffectDescription = regulationEffect.Description;
-                }
-                else
-                {
-                    result.FocusAdded = magnitude;
-                    result.EffectDescription = $"+{magnitude} focus";
-                }
+                // Focusing = focus gain (regardless of card category)
+                result.FocusAdded = magnitude;
+                result.EffectDescription = $"+{magnitude} focus";
                 break;
 
             case SuccessEffectType.DoubleMomentum:
@@ -173,9 +124,8 @@ public class CategoricalEffectResolver
                 break;
 
             case SuccessEffectType.Advancing:
-                // Advances flow battery by magnitude (which may trigger connection state change)
-                // Flow battery changes are what actually drive connection state advancement
-                result.FlowChange = magnitude; // Add flow equal to magnitude
+                // Advancing = flow gain (regardless of card category)
+                result.FlowChange = magnitude;
                 result.EffectDescription = $"+{magnitude} flow";
                 break;
 
@@ -416,120 +366,6 @@ public class CategoricalEffectResolver
         return true;
     }
 
-    /// <summary>
-    /// Get Realization effect based on card ID and stats
-    /// </summary>
-    private RealizationEffect GetRealizationEffect(CardInstance card, ConversationSession session)
-    {
-        // Calculate base effect from difficulty and bound stat
-        int magnitude = GetMagnitude(card.Difficulty);
-        PlayerStats playerStats = gameWorld.GetPlayer().Stats;
-
-        if (card.Template.BoundStat.HasValue)
-        {
-            int statLevel = playerStats.GetLevel(card.Template.BoundStat.Value);
-            magnitude += Math.Max(0, statLevel - 1); // +0 at level 1, +1 at level 2, etc.
-        }
-
-        return card.Id switch
-        {
-            "clear_confusion_1" or "clear_confusion_2" => new RealizationEffect
-            {
-                MomentumCost = 3,
-                DoubtReduction = 2,
-                Description = "Spend 3 momentum → Reduce doubt by 2"
-            },
-            "establish_trust" => new RealizationEffect
-            {
-                MomentumCost = 2,
-                FlowGain = 1,
-                Description = "Spend 2 momentum → +1 flow"
-            },
-            "deep_investment" => new RealizationEffect
-            {
-                MomentumCost = 4,
-                Description = "Spend 4 momentum → Permanent +1 card on LISTEN"
-            },
-            "all_or_nothing" => new RealizationEffect
-            {
-                MomentumCost = 6,
-                MomentumGain = 12,
-                Description = "Spend 6 momentum → Gain 12 momentum"
-            },
-            "reset_stakes" => new RealizationEffect
-            {
-                MomentumCost = session.CurrentMomentum,
-                DoubtSetTo = 0,
-                Description = "Spend ALL momentum → Set doubt to 0"
-            },
-            "force_understanding" => new RealizationEffect
-            {
-                MomentumCost = 5,
-                FlowGain = 3,
-                Description = "Spend 5 momentum → +3 flow"
-            },
-            _ => new RealizationEffect { Description = "Unknown realization effect" }
-        };
-    }
-
-    /// <summary>
-    /// Get Regulation effect based on card ID and stats
-    /// </summary>
-    private RegulationEffect GetRegulationEffect(CardInstance card, ConversationSession session)
-    {
-        // Calculate base effect from difficulty and bound stat
-        int magnitude = GetMagnitude(card.Difficulty);
-        PlayerStats playerStats = gameWorld.GetPlayer().Stats;
-
-        if (card.Template.BoundStat.HasValue)
-        {
-            int statLevel = playerStats.GetLevel(card.Template.BoundStat.Value);
-            magnitude += Math.Max(0, statLevel - 1); // Stat bonus
-        }
-
-        return card.Id switch
-        {
-            "mental_reset" => new RegulationEffect
-            {
-                FocusGain = 2,
-                Description = "Gain +2 focus this turn only"
-            },
-            "careful_words_1" or "careful_words_2" => new RegulationEffect
-            {
-                MomentumPerDiscard = 1,
-                MaxDiscards = 2,
-                Description = "Discard up to 2 cards → Gain 1 momentum per card"
-            },
-            "patience" => new RegulationEffect
-            {
-                PreventDoubtIncrease = true,
-                Description = "Prevent next doubt increase"
-            },
-            "racing_mind_1" or "racing_mind_2" => new RegulationEffect
-            {
-                CardsToAdd = CreateDrawCards(session, 2),
-                Description = "Draw 2 cards immediately"
-            },
-            _ => new RegulationEffect { Description = "Unknown regulation effect" }
-        };
-    }
-
-    /// <summary>
-    /// Create cards to be drawn immediately
-    /// </summary>
-    private List<CardInstance> CreateDrawCards(ConversationSession session, int count)
-    {
-        var cards = new List<CardInstance>();
-        for (int i = 0; i < count; i++)
-        {
-            CardInstance drawn = session.Deck.DrawCard();
-            if (drawn != null)
-            {
-                cards.Add(drawn);
-            }
-        }
-        return cards;
-    }
 
     /// <summary>
     /// Generate descriptive text for Strike effects based on scaling formulas and mechanics
@@ -590,41 +426,13 @@ public class CardEffectResult
 {
     public CardInstance Card { get; set; }
     public int RapportChange { get; set; }
-    public int FlowChange { get; set; } // For Advancing effect type
-    public int MomentumChange { get; set; } // For momentum/doubt system
-    public int DoubtChange { get; set; } // For momentum/doubt system
+    public int FlowChange { get; set; }
+    public int MomentumChange { get; set; }
+    public int DoubtChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; }
     public int FocusAdded { get; set; }
     public AtmosphereType? AtmosphereTypeChange { get; set; }
     public bool EndsConversation { get; set; }
-    public bool PreventNextDoubtIncrease { get; set; }
-    public int MomentumPerDiscard { get; set; }
-    public int MaxDiscards { get; set; }
     public string EffectDescription { get; set; }
 }
 
-/// <summary>
-/// Effect data for Realization cards
-/// </summary>
-public class RealizationEffect
-{
-    public int MomentumCost { get; set; }
-    public int MomentumGain { get; set; }
-    public int DoubtReduction { get; set; }
-    public int DoubtSetTo { get; set; } = -1; // -1 means no change
-    public int FlowGain { get; set; }
-    public string Description { get; set; } = "";
-}
-
-/// <summary>
-/// Effect data for Regulation cards
-/// </summary>
-public class RegulationEffect
-{
-    public int FocusGain { get; set; }
-    public List<CardInstance> CardsToAdd { get; set; } = new();
-    public bool PreventDoubtIncrease { get; set; }
-    public int MomentumPerDiscard { get; set; }
-    public int MaxDiscards { get; set; }
-    public string Description { get; set; } = "";
-}
