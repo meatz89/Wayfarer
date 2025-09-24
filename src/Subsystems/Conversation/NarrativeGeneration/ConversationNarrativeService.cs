@@ -198,10 +198,9 @@ public class ConversationNarrativeService
         return new ConversationState
         {
             Flow = session.FlowBattery, // Internal 0-24 scale from FlowBattery
-            Rapport = momentum, // Use momentum as rapport for narrative compatibility
-            Atmosphere = session.CurrentAtmosphere,
+            Momentum = momentum, // Use momentum as rapport for narrative compatibility
             Focus = session.GetAvailableFocus(),
-            Patience = session.MaxDoubt - session.CurrentDoubt, // Convert doubt to patience for narrative
+            Doubt = session.MaxDoubt - session.CurrentDoubt, // Convert doubt to patience for narrative
             CurrentState = session.CurrentState,
             CurrentTopicLayer = currentLayer,
             HighestTopicLayerReached = currentLayer, // Will need session tracking for persistence

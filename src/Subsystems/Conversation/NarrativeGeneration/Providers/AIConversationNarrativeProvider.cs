@@ -121,7 +121,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         {
             Console.WriteLine("[AIProvider] No NPC dialogue - using fallback card narratives");
             // Return fallback narratives if no NPC dialogue
-            return GenerateFallbackCardNarratives(activeCards, state.Rapport);
+            return GenerateFallbackCardNarratives(activeCards, state.Momentum);
         }
 
         // Build prompt for card generation
@@ -160,7 +160,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 cardNarratives.Add(new CardNarrative
                 {
                     CardId = card.Id,
-                    NarrativeText = GenerateFallbackCardNarrative(card, state.Rapport),
+                    NarrativeText = GenerateFallbackCardNarrative(card, state.Momentum),
                     ProviderSource = NarrativeProviderType.JsonFallback
                 });
             }
@@ -561,7 +561,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
                 output.CardNarratives.Add(new CardNarrative
                 {
                     CardId = card.Id,
-                    NarrativeText = GenerateFallbackCardNarrative(card, state.Rapport),
+                    NarrativeText = GenerateFallbackCardNarrative(card, state.Momentum),
                     ProviderSource = NarrativeProviderType.JsonFallback
                 });
             }

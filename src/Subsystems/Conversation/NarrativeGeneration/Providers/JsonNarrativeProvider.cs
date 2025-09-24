@@ -156,7 +156,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     private string GenerateProgressionHint(ConversationState state, NPCData npcData, NarrativeTemplate template)
     {
         // Low rapport situations need trust building
-        if (state.Rapport < 0)
+        if (state.Momentum < 0)
         {
             return "Building trust through supportive responses may open new opportunities.";
         }
@@ -168,13 +168,13 @@ public class JsonNarrativeProvider : INarrativeProvider
         }
 
         // Medium rapport with good flow suggests progress is possible
-        if (state.Rapport >= 6 && state.Rapport <= 15 && state.Flow >= 10)
+        if (state.Momentum >= 6 && state.Momentum <= 15 && state.Flow >= 10)
         {
             return "There's growing trust here. Deeper topics might become accessible.";
         }
 
         // High rapport suggests the NPC might be ready for important requests
-        if (state.Rapport > 15)
+        if (state.Momentum > 15)
         {
             return "The conversation has reached a level of genuine trust and openness.";
         }
@@ -186,7 +186,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         }
 
         // Low patience suggests urgency
-        if (state.Patience < 5)
+        if (state.Doubt < 5)
         {
             return "Time is running short. Direct action may be necessary.";
         }
@@ -234,22 +234,22 @@ public class JsonNarrativeProvider : INarrativeProvider
         bool hasHighFocusCards = activeCards.Cards.Any(c => c.Focus >= 3);
 
         // Rapport-based dialogue depth
-        if (state.Rapport >= 16)
+        if (state.Momentum >= 16)
         {
             return "I trust you. Here's the truth.";
         }
 
-        if (state.Rapport >= 11 && state.Rapport <= 15 && hasHighFocusCards)
+        if (state.Momentum >= 11 && state.Momentum <= 15 && hasHighFocusCards)
         {
             return "You're pushing hard. Why?";
         }
 
-        if (state.Rapport >= 6 && state.Rapport <= 10 && activeCards.Cards.Any(c => c.NarrativeCategory == "risk"))
+        if (state.Momentum >= 6 && state.Momentum <= 10 && activeCards.Cards.Any(c => c.NarrativeCategory == "risk"))
         {
             return "This is difficult to discuss.";
         }
 
-        if (state.Rapport >= 0 && state.Rapport <= 5)
+        if (state.Momentum >= 0 && state.Momentum <= 5)
         {
             if (hasImpulse)
             {
@@ -274,8 +274,7 @@ public class JsonNarrativeProvider : INarrativeProvider
             };
         }
 
-        // Default based on atmosphere and personality
-        return GenerateAtmosphereBasedDialogue(state.Atmosphere, npcData.Personality);
+        return string.Empty;
     }
 
     /// <summary>
@@ -286,29 +285,6 @@ public class JsonNarrativeProvider : INarrativeProvider
         // Use a simple deterministic selection based on system time to avoid needing random seed management
         int index = System.DateTime.Now.Millisecond % options.Length;
         return options[index];
-    }
-
-    /// <summary>
-    /// Generates dialogue based on current atmosphere and NPC personality.
-    /// </summary>
-    private string GenerateAtmosphereBasedDialogue(AtmosphereType atmosphere, PersonalityType personality)
-    {
-        return atmosphere switch
-        {
-            AtmosphereType.Volatile => "Things are getting heated here.",
-            AtmosphereType.Patient => "Take your time. We have all day.",
-            AtmosphereType.Focused => "Let's get straight to the point.",
-            AtmosphereType.Prepared => "I've been thinking about what you said.",
-            AtmosphereType.Receptive => "Please, tell me more.",
-            _ => personality switch
-            {
-                PersonalityType.DEVOTED => "Family comes first in all things.",
-                PersonalityType.MERCANTILE => "Time is money, as they say.",
-                PersonalityType.PROUD => "I have my reputation to consider.",
-                PersonalityType.CUNNING => "There's more here than meets the eye.",
-                _ => "What brings you here today?"
-            }
-        };
     }
 
     /// <summary>
@@ -336,7 +312,6 @@ public class JsonNarrativeProvider : INarrativeProvider
         string baseNarrative = card.NarrativeCategory switch
         {
             "risk" => GenerateRiskCardNarrative(card.Focus),
-            "atmosphere" => GenerateAtmosphereCardNarrative(state.Atmosphere),
             "utility" => GenerateUtilityCardNarrative(card),
             "support" => "You offer understanding and support",
             "pressure" => "You press for more information",
@@ -422,7 +397,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         }
 
         // State-based hints
-        if (state.Patience < 3)
+        if (state.Doubt < 3)
         {
             return "Time is running out. Direct action may be necessary.";
         }
@@ -432,7 +407,7 @@ public class JsonNarrativeProvider : INarrativeProvider
             return "Consider gathering focus before attempting difficult conversations.";
         }
 
-        if (state.Rapport < 0)
+        if (state.Momentum < 0)
         {
             return "Building trust through supportive responses may open new opportunities.";
         }
@@ -442,7 +417,7 @@ public class JsonNarrativeProvider : INarrativeProvider
             return "The conversation feels distant. Finding common ground might help.";
         }
 
-        if (state.Rapport >= 15 && state.Flow >= 15)
+        if (state.Momentum >= 15 && state.Flow >= 15)
         {
             return "High trust and connection suggest deeper topics may be accessible.";
         }

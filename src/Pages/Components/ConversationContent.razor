@@ -329,18 +329,6 @@
                                     }
                                 </div>
 
-                                @{
-                                    var atmosphereScaling = GetAtmosphereScaling(convCard);
-                                    if (!string.IsNullOrEmpty(atmosphereScaling))
-                                    {
-                                        <div class="card-scaling">@atmosphereScaling</div>
-                                    }
-                                }
-                                @if (HasAtmosphereEffect(convCard))
-                                {
-                                    <div class="atmosphere-change">@GetAtmosphereEffectLabel(convCard)</div>
-                                }
-
                                 <!-- Impulse warning -->
                                 @if (convCard.Persistence == PersistenceType.Impulse)
                                 {

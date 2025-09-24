@@ -138,7 +138,6 @@ public class ConversationFacade
                 ConnectionState.TRUSTING => 7,
                 _ => 5
             },
-            CurrentAtmosphere = AtmosphereType.Neutral,
             CurrentMomentum = initialMomentum,
             CurrentDoubt = initialDoubt,
             TurnNumber = 0,
@@ -376,7 +375,7 @@ public class ConversationFacade
         if (_flowBatteryManager != null && flowChange != 0)
         {
             (bool stateChanged, ConnectionState resultState, bool shouldEnd) =
-                _flowBatteryManager.ApplyFlowChange(flowChange, _currentSession.CurrentAtmosphere);
+                _flowBatteryManager.ApplyFlowChange(flowChange);
 
             _currentSession.FlowBattery = _flowBatteryManager.CurrentFlow;
             conversationEnded = shouldEnd;
@@ -398,9 +397,6 @@ public class ConversationFacade
                 };
             }
         }
-
-        // Update session atmosphere (simplified - no AtmosphereManager)
-        _currentSession.CurrentAtmosphere = AtmosphereType.Neutral;
 
         // Exhaust all focus on failed SPEAK - forces LISTEN as only option
         // Unless the card ignores failure LISTEN (level 5 mastery)
@@ -1097,15 +1093,15 @@ public class ConversationFacade
             // Apply momentum/doubt changes based on card effects
             if (effectResult.MomentumChange > 0 && session.MomentumManager != null)
             {
-                session.MomentumManager.AddMomentum(effectResult.MomentumChange, session.CurrentAtmosphere);
+                session.MomentumManager.AddMomentum(effectResult.MomentumChange);
             }
             if (effectResult.DoubtChange > 0 && session.MomentumManager != null)
             {
-                session.MomentumManager.AddDoubt(effectResult.DoubtChange, session.CurrentAtmosphere);
+                session.MomentumManager.AddDoubt(effectResult.DoubtChange);
             }
             if (effectResult.DoubtChange < 0 && session.MomentumManager != null)
             {
-                session.MomentumManager.ReduceDoubt(-effectResult.DoubtChange, session.CurrentAtmosphere);
+                session.MomentumManager.ReduceDoubt(-effectResult.DoubtChange);
             }
 
             // Apply focus restoration (for Focusing success effect)
@@ -1132,12 +1128,6 @@ public class ConversationFacade
                 session.PreventNextDoubtIncrease = true;
             }
 
-            // Handle atmosphere change (for Atmospheric success effect) - simplified
-            if (effectResult.AtmosphereTypeChange.HasValue)
-            {
-                session.CurrentAtmosphere = effectResult.AtmosphereTypeChange.Value;
-            }
-
             // Handle Promise card queue manipulation (for Promising success effect)
             if (selectedCard.SuccessType == SuccessEffectType.Promising)
             {
@@ -1159,7 +1149,7 @@ public class ConversationFacade
             // Apply doubt on failure (standard failure adds 1 doubt)
             if (session.MomentumManager != null)
             {
-                session.MomentumManager.AddDoubt(1, session.CurrentAtmosphere);
+                session.MomentumManager.AddDoubt(1);
             }
 
             // Apply other failure momentum/doubt changes if any
@@ -1173,9 +1163,6 @@ public class ConversationFacade
             {
                 session.AddFocus(effectResult.FocusAdded); // Adding negative = removing
             }
-
-            // Clear atmosphere on failure - simplified
-            session.CurrentAtmosphere = AtmosphereType.Neutral;
         }
 
         // HIGHLANDER: Use deck's PlayCard method which handles all transitions

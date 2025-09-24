@@ -41,19 +41,16 @@ public class CategoricalEffectResolver
         CardEffectResult result = new CardEffectResult
         {
             Card = card,
-            RapportChange = 0,
             MomentumChange = 0,
             DoubtChange = 0,
             FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
-            AtmosphereTypeChange = null,
             EffectDescription = "",
             EndsConversation = false
         };
 
         int magnitude = GetMagnitude(card.Difficulty);
-        magnitude = ApplyAtmosphereModifiers(magnitude, card.SuccessType, session);
 
         switch (card.SuccessType)
         {
@@ -156,7 +153,6 @@ public class CategoricalEffectResolver
                 AtmosphereType? newAtmosphere = GetAtmosphereFromMagnitude(magnitude);
                 if (newAtmosphere.HasValue)
                 {
-                    result.AtmosphereTypeChange = newAtmosphere.Value;
                     result.EffectDescription = $"Set {newAtmosphere.Value} atmosphere";
                 }
                 break;
@@ -227,45 +223,6 @@ public class CategoricalEffectResolver
                 break;
         }
 
-        // Handle Synchronized atmosphere (effect happens twice)
-        if (session.CurrentAtmosphere == AtmosphereType.Synchronized && card.SuccessType != SuccessEffectType.None)
-        {
-            // Double the effect (except for Atmospheric which doesn't make sense to double)
-            if (card.SuccessType == SuccessEffectType.Strike)
-            {
-                result.MomentumChange *= 2;
-                result.EffectDescription += " (synchronized)";
-            }
-            else if (card.SuccessType == SuccessEffectType.Soothe)
-            {
-                result.DoubtChange *= 2; // Double the doubt reduction
-                result.EffectDescription += " (synchronized)";
-            }
-            else if (card.SuccessType == SuccessEffectType.Threading)
-            {
-                // Draw again
-                for (int i = 0; i < magnitude; i++)
-                {
-                    CardInstance drawn = session.Deck.DrawCard();
-                    if (drawn != null)
-                    {
-                        result.CardsToAdd.Add(drawn);
-                    }
-                }
-                result.EffectDescription += " (synchronized)";
-            }
-            else if (card.SuccessType == SuccessEffectType.Focusing)
-            {
-                result.FocusAdded *= 2;
-                result.EffectDescription += " (synchronized)";
-            }
-            else if (card.SuccessType == SuccessEffectType.Advancing)
-            {
-                result.FlowChange *= 2;
-                result.EffectDescription += " (synchronized)";
-            }
-        }
-
         return result;
     }
 
@@ -279,25 +236,22 @@ public class CategoricalEffectResolver
         CardEffectResult result = new CardEffectResult
         {
             Card = card,
-            RapportChange = 0,
             MomentumChange = 0,
             DoubtChange = 1, // Standard failure adds 1 doubt
             FlowChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
-            AtmosphereTypeChange = null,
             EffectDescription = "Failure: +1 doubt",
             EndsConversation = false
         };
 
         int magnitude = GetMagnitude(card.Difficulty);
-        magnitude = ApplyAtmosphereModifiers(magnitude, SuccessEffectType.Strike, session); // Use Strike for failure magnitude
 
         switch (card.FailureType)
         {
             case FailureEffectType.Backfire:
                 // Negative rapport based on magnitude
-                result.RapportChange = -magnitude;
+                result.MomentumChange = -magnitude;
                 result.EffectDescription = $"-{magnitude} rapport";
                 break;
 
@@ -322,9 +276,6 @@ public class CategoricalEffectResolver
                 break;
         }
 
-        // Failure always clears atmosphere to Neutral
-        result.AtmosphereTypeChange = AtmosphereType.Neutral;
-
         return result;
     }
 
@@ -343,39 +294,6 @@ public class CategoricalEffectResolver
             Difficulty.VeryHard => 4,
             _ => 1
         };
-    }
-
-    /// <summary>
-    /// Apply atmosphere modifiers to magnitude
-    /// </summary>
-    private int ApplyAtmosphereModifiers(int baseMagnitude, SuccessEffectType effectType, ConversationSession session)
-    {
-        int magnitude = baseMagnitude;
-
-        switch (session.CurrentAtmosphere)
-        {
-            case AtmosphereType.Volatile:
-                // Strike effects +1 (deterministic)
-                if (effectType == SuccessEffectType.Strike)
-                {
-                    magnitude += 1;
-                }
-                break;
-
-            case AtmosphereType.Focused:
-                // All success magnitudes +1
-                magnitude += 1;
-                break;
-
-            case AtmosphereType.Exposed:
-                // All magnitudes doubled
-                magnitude *= 2;
-                break;
-
-                // Synchronized handled separately in effect processing
-        }
-
-        return Math.Max(1, magnitude); // Never go below 1
     }
 
     /// <summary>
@@ -486,13 +404,11 @@ public class CategoricalEffectResolver
 public class CardEffectResult
 {
     public CardInstance Card { get; set; }
-    public int RapportChange { get; set; }
     public int FlowChange { get; set; }
     public int MomentumChange { get; set; }
     public int DoubtChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; }
     public int FocusAdded { get; set; }
-    public AtmosphereType? AtmosphereTypeChange { get; set; }
     public bool EndsConversation { get; set; }
     public string EffectDescription { get; set; }
 }

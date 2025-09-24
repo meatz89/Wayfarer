@@ -30,7 +30,7 @@ public class ConversationNarrativeGenerator
         string npcDialogue = GenerateNPCDialogue(constraints, npc, state);
 
         // Phase 4: Map each card to appropriate response narrative
-        List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Rapport);
+        List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Momentum);
 
         return new NarrativeOutput
         {
@@ -113,19 +113,16 @@ public class ConversationNarrativeGenerator
     /// <returns>NPC dialogue text</returns>
     public string GenerateNPCDialogue(NarrativeConstraints constraints, NPCData npc, ConversationState state)
     {
-        RapportStage rapportStage = GetRapportStage(state.Rapport);
-        TopicLayer topicLayer = GetTopicLayer(state.Rapport, npc.CurrentCrisis);
+        RapportStage rapportStage = GetRapportStage(state.Momentum);
+        TopicLayer topicLayer = GetTopicLayer(state.Momentum, npc.CurrentCrisis);
 
         // Build base statement appropriate for rapport level and topic
         string baseStatement = GenerateBaseStatement(npc, rapportStage, topicLayer);
 
-        // Add emotional coloring from atmosphere and flow
-        string emotionalModifier = GenerateEmotionalModifier(state.Atmosphere, state.Flow);
-
         // Add persistence hooks if needed
         string persistenceHook = GeneratePersistenceHook(constraints);
 
-        return CombineDialogueElements(baseStatement, emotionalModifier, persistenceHook, npc.Personality);
+        return CombineDialogueElements(baseStatement, persistenceHook, npc.Personality);
     }
 
     /// <summary>
@@ -250,18 +247,6 @@ public class ConversationNarrativeGenerator
         };
     }
 
-    private string GenerateEmotionalModifier(AtmosphereType atmosphere, int flow)
-    {
-        // Generate emotional coloring based on current atmosphere and flow
-        return atmosphere switch
-        {
-            AtmosphereType.Volatile => "with heightened emotion",
-            AtmosphereType.Patient => "thoughtfully and carefully",
-            AtmosphereType.Focused => "with clear directness",
-            _ => "naturally"
-        };
-    }
-
     private string GeneratePersistenceHook(NarrativeConstraints constraints)
     {
         if (constraints.MustIncludeUrgency && constraints.MustIncludeInvitation)
@@ -273,13 +258,10 @@ public class ConversationNarrativeGenerator
         return "";
     }
 
-    private string CombineDialogueElements(string baseStatement, string emotionalModifier,
-        string persistenceHook, PersonalityType personality)
+    private string CombineDialogueElements(string baseStatement, string persistenceHook, PersonalityType personality)
     {
         // Combine elements into coherent NPC dialogue
         string combined = baseStatement;
-        if (!string.IsNullOrEmpty(emotionalModifier))
-            combined += $" {emotionalModifier}";
         if (!string.IsNullOrEmpty(persistenceHook))
             combined += $", {persistenceHook}";
 
@@ -339,7 +321,7 @@ public class ConversationNarrativeGenerator
     private string GenerateProgressionHint(ConversationState state, NPCData npc, CardAnalysis analysis)
     {
         // Generate hint about conversation progression
-        if (state.Rapport >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
+        if (state.Momentum >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
             return "The conversation has reached a point where deeper trust might unlock new possibilities";
 
         if (analysis.HasImpulse)

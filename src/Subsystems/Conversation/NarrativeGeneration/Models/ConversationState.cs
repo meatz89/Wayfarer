@@ -16,13 +16,7 @@ public class ConversationState
     /// Current rapport level (-50 to +50).
     /// Affects success chances and narrative tone during conversation.
     /// </summary>
-    public int Rapport { get; set; }
-
-    /// <summary>
-    /// Current conversation atmosphere affecting all actions.
-    /// Examples: Neutral, Prepared, Focused, Volatile, etc.
-    /// </summary>
-    public AtmosphereType Atmosphere { get; set; }
+    public int Momentum { get; set; }
 
     /// <summary>
     /// Currently available focus points for this turn.
@@ -34,7 +28,7 @@ public class ConversationState
     /// Remaining patience before conversation must end.
     /// Affects narrative urgency and NPC behavior.
     /// </summary>
-    public int Patience { get; set; }
+    public int Doubt { get; set; }
 
     /// <summary>
     /// Current connection state based on flow value.

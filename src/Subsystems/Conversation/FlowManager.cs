@@ -47,10 +47,9 @@ public class FlowManager
     /// Apply a flow change and handle any state transitions.
     /// Returns (stateChanged, newState, conversationEnds)
     /// </summary>
-    public (bool stateChanged, ConnectionState newState, bool conversationEnds) ApplyFlowChange(int change, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public (bool stateChanged, ConnectionState newState, bool conversationEnds) ApplyFlowChange(int change)
     {
-        // Apply atmosphere modifiers
-        int modifiedChange = ModifyByAtmosphere(change, atmosphere);
+        int modifiedChange = change;
 
         // Apply the change
         int newFlow = currentFlow + modifiedChange;

@@ -372,11 +372,10 @@ public class PromptBuilder
         {
             // Mechanical values
             ["flow"] = state.Flow.ToString(),
-            ["rapport"] = state.Rapport.ToString(),
-            ["atmosphere"] = state.Atmosphere.ToString(),
+            ["rapport"] = state.Momentum.ToString(),
             ["connection_state"] = state.CurrentState.ToString(),
             ["focus_available"] = state.Focus.ToString(),
-            ["patience"] = state.Patience.ToString(),
+            ["patience"] = state.Doubt.ToString(),
             ["turn_count"] = state.TotalTurns.ToString(),
             ["topic_layer"] = state.CurrentTopicLayer.ToString(),
 

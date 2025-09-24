@@ -30,7 +30,7 @@ namespace Wayfarer.Pages.Components
     /// - Conversation state is ephemeral (OK to recreate on each render)
     /// - All game state mutations go through GameFacade (has idempotence)
     /// </summary>
-    public class ConversationContentBase : ComponentBase, IDisposable
+    public class ConversationContentBase : ComponentBase
     {
         [Parameter] public ConversationContextBase Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
@@ -60,24 +60,9 @@ namespace Wayfarer.Pages.Components
 
         // Static UI system - no animation, no state management
 
-        // Legacy animation system replaced with choreography system
-        protected HashSet<string> NewCardIds { get; set; } = new();
-        protected HashSet<string> ExhaustingCardIds { get; set; } = new();
+        // Static system - no animations
         // Track which request cards have already been moved from RequestPile to ActiveCards
         protected HashSet<string> MovedRequestCardIds { get; set; } = new();
-
-        protected int GetBaseSuccessPercentage(Difficulty difficulty)
-        {
-            return difficulty switch
-            {
-                Difficulty.VeryEasy => 85,
-                Difficulty.Easy => 70,
-                Difficulty.Medium => 60,
-                Difficulty.Hard => 50,
-                Difficulty.VeryHard => 40,
-                _ => 60
-            };
-        }
 
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -119,76 +104,6 @@ namespace Wayfarer.Pages.Components
             // Default to template/fallback
             return "json-fallback";
         }
-        // Letter generation is handled by ConversationManager based on connection state
-
-        // Removed dead dialogue/narrative caching - JSON files don't exist
-
-        // Get current token balances with this NPC
-        protected Dictionary<ConnectionType, int> CurrentTokens
-        {
-            get
-            {
-                if (Context?.NpcId != null && GameFacade != null)
-                {
-                    NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
-                    Dictionary<ConnectionType, int> result = new Dictionary<ConnectionType, int>();
-                    foreach (TokenBalance balance in tokenBalance.Balances)
-                    {
-                        result[balance.TokenType] = balance.Amount;
-                    }
-                    return result;
-                }
-                return new Dictionary<ConnectionType, int>();
-            }
-        }
-
-        protected override async Task OnInitializedAsync()
-        {
-            // Static UI initialization - no event handlers needed
-            await InitializeFromContext();
-        }
-
-        public void Dispose()
-        {
-            // Enhanced choreography cleanup handled automatically by dispose pattern
-        }
-
-        protected override async Task OnParametersSetAsync()
-        {
-            Console.WriteLine($"[ConversationContent.OnParametersSetAsync] Context parameter: '{Context?.NpcId}'");
-            if (Context != null && Session?.NPC?.ID != Context.NpcId)
-            {
-                await InitializeFromContext();
-            }
-        }
-
-        private async Task InitializeFromContext()
-        {
-            try
-            {
-                if (Context == null || !Context.IsValid)
-                {
-                    Console.WriteLine($"[ConversationContent.InitializeFromContext] Invalid context: {Context?.ErrorMessage}");
-                    await OnConversationEnd.InvokeAsync();
-                    return;
-                }
-
-                Console.WriteLine($"[ConversationContent.InitializeFromContext] Initializing with NpcId: '{Context.NpcId}'");
-
-                // Use the conversation session from the context
-                Session = Context.Session;
-                NpcName = Context.Npc?.Name ?? "Unknown";
-
-                // Generate initial narrative using AI if available
-                await GenerateInitialNarrative();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent] Failed to initialize from context: {ex.Message}");
-                await OnConversationEnd.InvokeAsync();
-            }
-        }
-
 
         protected async Task ExecuteListen()
         {
@@ -305,7 +220,7 @@ namespace Wayfarer.Pages.Components
                     Console.WriteLine("[ConversationContent.ExecuteListen] Skipping narrative generation - already applied initial narrative");
                 }
 
-                // Check request pile for newly available cards based on rapport
+                // Check request pile for newly available cards based on Momentum
                 CheckRequestPileThresholds();
 
                 // Static UI - cards appear instantly with final narrative text
@@ -407,7 +322,7 @@ namespace Wayfarer.Pages.Components
 
                 // Static UI - no shadow state needed
 
-                // Choreography system will handle the card exit animation
+                // Static system - card immediately removed
                 // REMOVED: StateHasChanged() - prevents DOM recreation during animation
 
                 // ExecuteSpeak expects a single card - this removes it from hand
@@ -475,7 +390,7 @@ namespace Wayfarer.Pages.Components
                 }
                 // REMOVED: StateHasChanged() - prevents DOM recreation during animation
 
-                // Choreography system handles card exit animations with success/failure results
+                // Static system - card immediately removed
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
 
                 // NO DELAY - game state is already updated, animation is just visual
@@ -743,59 +658,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private ConversationState BuildConversationState(ConversationSession session)
-        {
-            int momentum = session.MomentumManager?.CurrentMomentum ?? 0;
-            TopicLayer currentLayer = momentum <= 5 ? TopicLayer.Deflection :
-                                    momentum <= 10 ? TopicLayer.Gateway :
-                                    TopicLayer.Core;
-
-            return new ConversationState
-            {
-                Flow = session.FlowBattery,
-                Rapport = momentum,
-                Atmosphere = session.CurrentAtmosphere,
-                Focus = session.GetAvailableFocus(),
-                Patience = session.CurrentDoubt,
-                CurrentState = session.CurrentState,
-                CurrentTopicLayer = currentLayer,
-                HighestTopicLayerReached = currentLayer,
-                TotalTurns = session.TurnNumber,
-                ConversationHistory = new List<string>()
-            };
-        }
-
-        private NPCData BuildNPCData(NPC npc)
-        {
-            return new NPCData
-            {
-                NpcId = npc.ID,
-                Name = npc.Name,
-                Personality = npc.PersonalityType,
-                CurrentCrisis = npc.CurrentState == ConnectionState.DISCONNECTED ? "personal_troubles" : null,
-                CurrentTopic = "general"
-            };
-        }
-
-        private CardCollection BuildCardCollection(List<CardInstance> cards)
-        {
-            CardCollection collection = new CardCollection();
-            foreach (CardInstance card in cards)
-            {
-                CardInfo cardInfo = new CardInfo
-                {
-                    Id = card.Id,
-                    Focus = card.Focus,
-                    Difficulty = card.Difficulty,
-                    Effect = card.Description ?? "",
-                    Persistence = card.Persistence,
-                    NarrativeCategory = "standard"
-                };
-                collection.Cards.Add(cardInfo);
-            }
-            return collection;
-        }
-
         private void GenerateListenNarrative()
         {
             LastNarrative = "You listen attentively...";
@@ -911,125 +773,6 @@ namespace Wayfarer.Pages.Components
                 return "I'm not sure about this...";
         }
 
-        // Letter generation removed - handled by ConversationManager.TryGenerateLetter()
-        // This avoids duplicate logic and ensures letters are generated based on connection state
-        private void GenerateLetter()
-        {
-            // This method is no longer used
-            // Letter generation is handled by ConversationManager based on connection state
-        }
-
-        // Letter tier determination removed - handled by ConversationManager
-        private LetterTier DetermineLetterTier(int flow)
-        {
-            // No longer used - ConversationManager determines letter properties based on linear scaling
-            return LetterTier.Simple;
-        }
-
-        // Letter creation removed - handled by ConversationManager
-        private DeliveryObligation CreateLetterFromFlow(LetterTier tier)
-        {
-            // For now, hardcode a recipient since we don't have access to all NPCs
-            // In a real implementation, this would select from available NPCs
-            string recipientId = "merchant_thomas"; // Default recipient
-            string recipientName = "Thomas the Merchant";
-
-            // Determine letter parameters based on tier
-            LetterTierParameters tierParams = GetTierParameters(tier);
-
-            // Get the NPC from context
-            NPC? npc = Context?.Npc;
-            if (npc == null) return null;
-
-            // Determine token type from NPC's available types
-            ConnectionType tokenType = DetermineTokenType(npc);
-
-            return new DeliveryObligation
-            {
-                Id = Guid.NewGuid().ToString(),
-                SenderId = npc.ID,
-                SenderName = npc.Name,
-                RecipientId = recipientId,
-                RecipientName = recipientName,
-                TokenType = tokenType,
-                DeadlineInSegments = tierParams.DeadlineInSegments,
-                Payment = tierParams.PaymentInCoins,
-                Stakes = tierParams.Stakes,
-                EmotionalFocus = tierParams.EmotionalFocus,
-                Tier = ConvertToTierLevel(tier),
-                Description = GenerateLetterDescription(npc.Name, recipientName, tier),
-                GenerationReason = $"Generated from conversation with {npc.Name}"
-            };
-        }
-
-        private LetterTierParameters GetTierParameters(LetterTier tier)
-        {
-            // Deadlines converted to segments (1 day = 36 segments, etc.)
-            return tier switch
-            {
-                LetterTier.Simple => new LetterTierParameters(36, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 1 day, 5 coins
-                LetterTier.Important => new LetterTierParameters(18, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12 seg, 10 coins
-                LetterTier.Urgent => new LetterTierParameters(9, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6 seg, 15 coins
-                LetterTier.Critical => new LetterTierParameters(3, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2 seg, 20 coins
-                _ => new LetterTierParameters(36, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
-            };
-        }
-
-        private ConnectionType DetermineTokenType(NPC npc)
-        {
-            // Use NPC's primary letter token type, or default to Trust
-            if (npc.LetterTokenTypes != null && npc.LetterTokenTypes.Any())
-            {
-                return npc.LetterTokenTypes.First();
-            }
-            return ConnectionType.Trust;
-        }
-
-        private TierLevel ConvertToTierLevel(LetterTier tier)
-        {
-            return tier switch
-            {
-                LetterTier.Simple => TierLevel.T1,
-                LetterTier.Important => TierLevel.T2,
-                LetterTier.Urgent => TierLevel.T3,
-                LetterTier.Critical => TierLevel.T3, // Map Critical to T3 as there's no T4
-                _ => TierLevel.T1
-            };
-        }
-
-        private string GenerateLetterDescription(string senderName, string recipientName, LetterTier tier)
-        {
-            return tier switch
-            {
-                LetterTier.Simple => $"A routine message from {senderName} to {recipientName}",
-                LetterTier.Important => $"Important correspondence requiring timely delivery",
-                LetterTier.Urgent => $"Urgent matter that cannot wait",
-                LetterTier.Critical => $"CRITICAL: Lives may depend on this delivery",
-                _ => $"Letter from {senderName}"
-            };
-        }
-
-        private string GetTierDescription(LetterTier tier)
-        {
-            return tier switch
-            {
-                LetterTier.Simple => "simple",
-                LetterTier.Important => "important",
-                LetterTier.Urgent => "urgent",
-                LetterTier.Critical => "CRITICAL",
-                _ => "standard"
-            };
-        }
-
-        // Internal enum for letter tiers
-        private enum LetterTier
-        {
-            Simple,    // 5-9 flow
-            Important, // 10-14 flow
-            Urgent,    // 15-19 flow
-            Critical   // 20+ flow
-        }
-
         protected void ToggleCardSelection(CardInstance card)
         {
             // ONE CARD RULE: Only one card can be selected at a time for SPEAK action
@@ -1057,80 +800,9 @@ namespace Wayfarer.Pages.Components
             return GameFacade.CanPlayCard(card, Session);
         }
 
-        protected bool IsCardSelected(CardInstance card)
-        {
-            return SelectedCard == card;
-        }
-
-        protected string GetCardTypeLabel(CardInstance card)
-        {
-            if (card == null) return "Card";
-
-            // Show categorical properties as labels
-            List<string> labels = new List<string>();
-
-            // Add persistence type
-            labels.Add(card.Persistence.ToString());
-
-            // Add card type if special
-            if (card.CardType != CardType.Conversation)
-            {
-                labels.Add(card.CardType.ToString());
-            }
-
-            // Add effect types if present
-            if (card.SuccessType != SuccessEffectType.None)
-            {
-                labels.Add(card.SuccessType.ToString());
-            }
-
-            return string.Join(" <span class='icon-bullet'></span> ", labels);
-        }
-
         protected bool CanSpeak()
         {
             return SelectedCard != null && TotalSelectedFocus <= GetFocusLimit();
-        }
-
-        protected async Task EndConversation()
-        {
-            // End the conversation properly to calculate and award tokens
-            if (Session != null)
-            {
-                ConversationOutcome outcome = GameFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
-            }
-
-            Session = null;
-            await OnConversationEnd.InvokeAsync();
-        }
-
-        protected async Task ExitConversation()
-        {
-            // Allow player to manually exit conversation
-            Console.WriteLine("[ConversationContent] Player manually exiting conversation");
-
-            // End the conversation properly to calculate and award tokens
-            if (Session != null)
-            {
-                ConversationOutcome outcome = GameFacade.EndConversation();
-                Console.WriteLine($"[ConversationContent] Conversation ended with outcome: Flow={outcome.FinalFlow}, TokensEarned={outcome.TokensEarned}");
-            }
-
-            Session = null;
-            await OnConversationEnd.InvokeAsync();
-        }
-
-        // UI Helper Methods
-        protected string GetConversationModeTitle()
-        {
-            string conversationTypeId = Context?.ConversationTypeId ?? "friendly_chat";
-            return conversationTypeId switch
-            {
-                "resolution" => "Burden Resolution",
-                "friendly_chat" => "Friendly Conversation",
-                _ => "Conversation"
-            };
         }
 
         protected string GetStateClass()
@@ -1164,121 +836,6 @@ namespace Wayfarer.Pages.Components
             throw new InvalidOperationException($"Missing conversation rules for state: {Session.CurrentState}");
         }
 
-        protected string GetListenDetails()
-        {
-            if (Session == null) return "";
-
-            return Session.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "Draw 1 card",
-                ConnectionState.GUARDED => "Draw 2 cards",
-                ConnectionState.NEUTRAL => "Draw 2 cards",
-                ConnectionState.RECEPTIVE => "Draw 3 cards",
-                ConnectionState.TRUSTING => "Draw 3 cards",
-                _ => "Draw 2 cards"
-            };
-        }
-
-        protected string GetSpeakDetails()
-        {
-            if (SelectedCard != null)
-            {
-                int focus = SelectedCard.Focus;
-                return $"Play {GetCardName(SelectedCard)} (Focus: {focus})";
-            }
-            return $"Select a card (Focus limit: {GetFocusLimit()})";
-        }
-
-        protected string GetStateEffects()
-        {
-            if (Session == null) return "";
-
-            return Session.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "<span class='icon-bullet'></span> Draw 1 <span class='icon-bullet'></span> Focus limit 3 <span class='icon-bullet'></span> Ends at -3 flow",
-                ConnectionState.GUARDED => "<span class='icon-bullet'></span> Draw 2 <span class='icon-bullet'></span> Focus limit 4",
-                ConnectionState.NEUTRAL => "<span class='icon-bullet'></span> Draw 2 <span class='icon-bullet'></span> Focus limit 5",
-                ConnectionState.RECEPTIVE => "<span class='icon-bullet'></span> Draw 3 <span class='icon-bullet'></span> Focus limit 5",
-                ConnectionState.TRUSTING => "<span class='icon-bullet'></span> Draw 3 <span class='icon-bullet'></span> Focus limit 6",
-                _ => ""
-            };
-        }
-
-
-        protected string GetFlowLabel()
-        {
-            if (Session == null) return "None";
-            return Session.FlowBattery switch
-            {
-                3 => "Perfect Understanding",
-                2 => "Deep Connection",
-                1 => "Good Rapport",
-                0 => "Neutral",
-                -1 => "Uncertain",
-                -2 => "Guarded",
-                -3 => "Breaking Down",
-                _ => "Unknown"
-            };
-        }
-
-        protected int GetFlowProgress()
-        {
-            if (Session == null) return 50; // Center position for 0
-            // Map -3 to +3 to 0% to 100%
-            return (int)((Session.FlowBattery + 3) * 100 / 6.0);
-        }
-
-        protected string GetFlowDotTooltip(int dotPosition)
-        {
-            if (Session == null) return "";
-
-            int flow = Math.Clamp(Session.FlowBattery, -3, 3);
-
-            if (dotPosition == flow)
-                return "Current flow level";
-            else if (dotPosition == 0)
-                return "Neutral (battery reset point)";
-            else if (dotPosition == 3)
-                return "Positive transition threshold";
-            else if (dotPosition == -3)
-                return Session.CurrentState == ConnectionState.DISCONNECTED ?
-                    "DANGER: Conversation ends here!" :
-                    "Negative transition threshold";
-            else if (dotPosition > 0)
-                return $"Flow +{dotPosition}";
-            else
-                return $"Flow {dotPosition}";
-        }
-
-        protected string GetFlowDotClass(int dotPosition)
-        {
-            if (Session == null) return "";
-
-            List<string> classes = new List<string>();
-
-            // Clamp flow to valid range
-            int flow = Math.Clamp(Session.FlowBattery, -3, 3);
-
-            // Always add color class based on position
-            if (dotPosition < 0)
-                classes.Add("negative");
-            else if (dotPosition > 0)
-                classes.Add("positive");
-            else
-                classes.Add("neutral");
-
-            // Add current class if this is the current position
-            if (dotPosition == flow)
-                classes.Add("current");
-
-            // Add filled class for intermediate positions
-            if ((flow > 0 && dotPosition > 0 && dotPosition < flow) ||
-                (flow < 0 && dotPosition < 0 && dotPosition > flow))
-                classes.Add("filled");
-
-            return string.Join(" ", classes);
-        }
-
         protected string GetConnectionStateDisplay()
         {
             if (Session == null) return "Unknown";
@@ -1292,29 +849,6 @@ namespace Wayfarer.Pages.Components
                 ConnectionState.TRUSTING => "Connected",
                 _ => Session.CurrentState.ToString()
             };
-        }
-
-        protected string GetListenActionText()
-        {
-            if (Session == null) return "Draw cards";
-
-            string drawText = Session.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "Draw 1 card",
-                ConnectionState.GUARDED => "Draw 2 cards",
-                ConnectionState.NEUTRAL => "Draw 2 cards",
-                ConnectionState.RECEPTIVE => "Draw 3 cards",
-                ConnectionState.TRUSTING => "Draw 3 cards",
-                _ => "Draw cards"
-            };
-
-            // Add atmosphere modifier info
-            if (Session.CurrentAtmosphere == AtmosphereType.Receptive)
-                drawText += " (+1 from Receptive)";
-            else if (Session.CurrentAtmosphere == AtmosphereType.Pressured)
-                drawText += " (-1 from Pressured)";
-
-            return drawText + " & refresh focus";
         }
 
         protected string GetSpeakActionText()
@@ -1360,7 +894,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetRequestMomentumThreshold(CardInstance card)
         {
-            // Goal cards MUST have rapport threshold in context - no fallbacks
+            // Goal cards MUST have momentum threshold in context - no fallbacks
             if (card?.Context == null)
             {
                 throw new InvalidOperationException($"Goal card '{card?.Id}' has no context!");
@@ -1418,7 +952,7 @@ namespace Wayfarer.Pages.Components
                         // Track that this card has been moved
                         MovedRequestCardIds.Add(card.InstanceId);
 
-                        // Mark card as playable now that rapport threshold is met
+                        // Mark card as playable now that Momentum threshold is met
                         card.IsPlayable = true;
 
                         // Notify player
@@ -1469,66 +1003,6 @@ namespace Wayfarer.Pages.Components
             return string.Join(" <span class='icon-bullet'></span> ", status);
         }
 
-        protected string GetDeadlineWarning()
-        {
-            // Check if there are any urgent letters with deadlines
-            LetterQueueViewModel? letterQueue = GameFacade?.GetLetterQueue();
-            if (letterQueue?.QueueSlots == null) return null;
-
-            // Find the most urgent letter from queue slots
-            LetterViewModel mostUrgent = null;
-            int shortestDeadline = int.MaxValue;
-
-            foreach (QueueSlotViewModel slot in letterQueue.QueueSlots)
-            {
-                if (slot.IsOccupied && slot.DeliveryObligation != null && slot.DeliveryObligation.DeadlineInSegments_Display > 0)
-                {
-                    if (slot.DeliveryObligation.DeadlineInSegments_Display < shortestDeadline)
-                    {
-                        shortestDeadline = slot.DeliveryObligation.DeadlineInSegments_Display;
-                        mostUrgent = slot.DeliveryObligation;
-                    }
-                }
-            }
-
-            if (mostUrgent != null)
-            {
-                int segments = mostUrgent.DeadlineInSegments_Display;
-                if (segments > 0)
-                    return $"{mostUrgent.RecipientName}'s letter deadline: {segments} seg";
-                else
-                    return $"{mostUrgent.RecipientName}'s letter deadline soon!";
-            }
-
-            return null;
-        }
-
-        private string GetStateTransitionVerb(ConnectionState targetState)
-        {
-            // Simple hardcoded verbs since JSON files don't exist
-            return targetState switch
-            {
-                ConnectionState.DISCONNECTED => "stay urgent",
-                ConnectionState.GUARDED => "be careful",
-                ConnectionState.NEUTRAL => "calm down",
-                ConnectionState.RECEPTIVE => "open up",
-                ConnectionState.TRUSTING => "connect deeply",
-                _ => "change topics"
-            };
-        }
-
-        private string GetConnectionStateForCard(ConnectionState state)
-        {
-            return state switch
-            {
-                ConnectionState.DISCONNECTED => "disconnected",
-                ConnectionState.GUARDED => "guarded",
-                ConnectionState.NEUTRAL => "neutral",
-                ConnectionState.RECEPTIVE => "receptive",
-                ConnectionState.TRUSTING => "connected",
-                _ => state.ToString().ToLower()
-            };
-        }
 
         protected string GetProperCardDialogue(CardInstance card)
         {
@@ -1545,110 +1019,6 @@ namespace Wayfarer.Pages.Components
         }
 
 
-
-        protected string GetTransitionHint()
-        {
-            if (Session == null) return "";
-
-            if (Session.FlowBattery == 3)
-            {
-                return Session.CurrentState switch
-                {
-                    ConnectionState.DISCONNECTED => "Guarded!",
-                    ConnectionState.GUARDED => "Neutral!",
-                    ConnectionState.NEUTRAL => "Open!",
-                    ConnectionState.RECEPTIVE => "Connected!",
-                    ConnectionState.TRUSTING => "Stays Connected",
-                    _ => ""
-                };
-            }
-            else if (Session.FlowBattery == -3)
-            {
-                return Session.CurrentState switch
-                {
-                    ConnectionState.DISCONNECTED => "Ends!",
-                    ConnectionState.GUARDED => "Disconnected!",
-                    ConnectionState.NEUTRAL => "Guarded!",
-                    ConnectionState.RECEPTIVE => "Neutral!",
-                    ConnectionState.TRUSTING => "Open!",
-                    _ => ""
-                };
-            }
-
-            return "";
-        }
-
-        protected int GetTokenCount(ConnectionType tokenType)
-        {
-            return CurrentTokens.GetValueOrDefault(tokenType, 0);
-        }
-
-        protected string GetTokenBonus(ConnectionType tokenType)
-        {
-            int count = GetTokenCount(tokenType);
-            if (count > 0)
-            {
-                return $"(+{count * 5}%)";
-            }
-            return "";
-        }
-
-        protected string GetRapportSourceDescription()
-        {
-            if (Session?.MomentumManager == null || CurrentTokens == null)
-                return "";
-
-            int totalTokens = CurrentTokens.Values.Sum();
-            int startingRapport = totalTokens * 3; // 3 rapport per token
-            int currentMomentum = Session.MomentumManager.CurrentMomentum;
-            int gained = currentMomentum - startingRapport;
-
-            if (totalTokens == 0)
-                return "No starting rapport";
-            else if (gained == 0)
-                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3)";
-            else if (gained > 0)
-                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3), gained +{gained} through play";
-            else
-                return $"Started at {startingRapport} ({totalTokens} token{(totalTokens > 1 ? "s" : "")} × 3), lost {Math.Abs(gained)} through play";
-        }
-
-        protected string GetCardClass(CardInstance card)
-        {
-            // Build class list for card styling
-            List<string> classes = new List<string>();
-
-            // Primary property-based classes
-            if (card.CardType == CardType.Letter)
-                classes.Add("crisis");
-            else if (card.Context?.ExchangeData != null)
-                classes.Add("exchange");
-            else if (card.CardType == CardType.Observation)
-                classes.Add("observation");
-            else
-                classes.Add("flow");
-
-            // Add impulse indicator if applicable
-            if (card.Persistence == PersistenceType.Impulse)
-                classes.Add("impulse");
-
-            // Request cards get special styling (Impulse + Opening)
-            if (card.Persistence == PersistenceType.Impulse && card.Persistence == PersistenceType.Opening)
-                classes.Add("request");
-
-            return string.Join(" ", classes);
-        }
-
-        protected int CountImpulseCards()
-        {
-            return ConversationFacade.GetHandCards()?.Count(c => c.Persistence == PersistenceType.Impulse) ?? 0;
-        }
-
-        protected bool HasRequestCards()
-        {
-            return ConversationFacade.GetHandCards()?.Any(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) ?? false;
-        }
-
         protected string GetCardName(CardInstance card)
         {
             // Use the card's description as its name
@@ -1663,34 +1033,6 @@ namespace Wayfarer.Pages.Components
             if (card.Context?.NPCName != null)
                 return $"{card.Id} ({card.Context.NPCName})";
             return card.Id;
-        }
-
-        protected List<string> GetCardTags(CardInstance card)
-        {
-            List<string> tags = new List<string>();
-
-            // Add persistence type as tag
-            if (card.Persistence != null)
-                tags.Add(card.Persistence.ToString());
-
-            // Add card type for special cards
-            if (card.CardType == CardType.Promise)
-                tags.Add("Promise");
-            else if (card.CardType == CardType.Letter)
-                tags.Add("Letter");
-            else if (card.CardType == CardType.Letter)
-                tags.Add("Burden");
-
-            // Add success type if meaningful
-            if (card.SuccessType != SuccessEffectType.None)
-                tags.Add(card.SuccessType.ToString());
-
-            // Add failure type if meaningful
-            if (card.FailureType != FailureEffectType.None)
-                tags.Add(card.FailureType.ToString());
-
-
-            return tags;
         }
 
         /// <summary>
@@ -1711,17 +1053,11 @@ namespace Wayfarer.Pages.Components
             {
                 CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
-                // Build description from projection data
-                if (projection.AtmosphereTypeChange.HasValue)
+                if (projection.MomentumChange != 0)
                 {
-                    return $"Set atmosphere: {projection.AtmosphereTypeChange.Value}";
-                }
-
-                if (projection.RapportChange != 0)
-                {
-                    return projection.RapportChange > 0
-                        ? $"+{projection.RapportChange} rapport"
-                        : $"{projection.RapportChange} rapport";
+                    return projection.MomentumChange > 0
+                        ? $"+{projection.MomentumChange} Momentum"
+                        : $"{projection.MomentumChange} Momentum";
                 }
 
                 if (projection.CardsToAdd?.Count > 0)
@@ -1756,196 +1092,6 @@ namespace Wayfarer.Pages.Components
             return "No effect";
         }
 
-        /// <summary>
-        /// PROJECTION PRINCIPLE: ALWAYS use effect resolver to get projection of what WOULD happen.
-        /// This ensures UI accurately shows what effects will occur without modifying game state.
-        /// </summary>
-        protected string GetFailureEffect(CardInstance card)
-        {
-            // For exchange cards, no failure - it's a choice
-            if (card.Context?.ExchangeData != null)
-            {
-                if (card.Context?.ExchangeName == "Pass on this offer")
-                    return "Leave without trading";
-                return "Execute trade";
-            }
-
-            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL failure effects
-            if (card.FailureType != FailureEffectType.None)
-            {
-                CardEffectResult projection = EffectResolver.ProcessFailureEffect(card, Session);
-
-                // Build description from projection data
-                if (projection.RapportChange < 0)
-                {
-                    return $"{projection.RapportChange} rapport";
-                }
-
-                if (projection.FocusAdded < 0)
-                {
-                    return "Force LISTEN";
-                }
-            }
-
-            // Default failure effect is forcing LISTEN
-            return "Force LISTEN";
-        }
-
-        protected string GetTagClass(string tag)
-        {
-            // Apply special classes to certain tags
-            if (tag.Contains("FLOW", StringComparison.OrdinalIgnoreCase))
-                return "type-flow";
-            if (tag.Contains("STATE", StringComparison.OrdinalIgnoreCase))
-                return "type-state";
-            if (tag.Contains("BURDEN", StringComparison.OrdinalIgnoreCase))
-                return "type-burden";
-            if (tag.Contains("Persistent", StringComparison.OrdinalIgnoreCase))
-                return "persistence";
-            return "";
-        }
-
-        protected string GetCardText(CardInstance card)
-        {
-            // Load card dialogues if not loaded
-
-            // For decline cards, show simple message
-            if (card.Context?.IsDeclineCard == true)
-            {
-                return "Politely decline the offer and leave";
-            }
-
-            // For accept cards, we handle details in the exchange-details div
-            if (card.Context?.IsAcceptCard == true)
-            {
-                return "Accept the merchant's offer";
-            }
-
-            // For exchange cards, show the exchange details
-            if (card.Context?.ExchangeData != null)
-            {
-                if (card.Context?.ExchangeData?.Costs != null && card.Context?.ExchangeData?.Rewards != null)
-                {
-                    return $"{FormatResourceList(card.Context.ExchangeData.Costs)} <span class='icon-arrow-right'></span> {FormatResourceList(card.Context.ExchangeData.Rewards)}";
-                }
-            }
-
-            // Use the card's Description property if available
-            if (!string.IsNullOrEmpty(card.Description))
-                return card.Description;
-
-            // Get the narrative text for the card - use template ID
-            return card.Id?.Replace("_", " ") ?? "Unknown Card";
-        }
-
-
-
-
-        protected string GetSuccessChance(CardInstance card)
-        {
-            // DETERMINISTIC SYSTEM: Cards either succeed or fail based on clear rules
-            // Use the same logic as the backend to determine success/failure
-            if (Session == null || ConversationFacade == null)
-                return "Unknown";
-
-            // Goal cards (Letters, Promises) succeed if momentum threshold is met
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
-            {
-                return Session.CurrentMomentum >= card.MomentumThreshold ? "100" : "0";
-            }
-
-            // Very easy cards always succeed
-            if (card.Difficulty == Difficulty.VeryEasy)
-                return "100";
-
-            // Check if player has sufficient level in bound stat
-            if (card.ConversationCardTemplate.BoundStat.HasValue)
-            {
-                int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
-                int requiredLevel = card.Difficulty switch
-                {
-                    Difficulty.Easy => 1,
-                    Difficulty.Medium => 2,
-                    Difficulty.Hard => 3,
-                    Difficulty.VeryHard => 4,
-                    _ => 1
-                };
-
-                if (effectiveLevel < requiredLevel)
-                    return "0";
-            }
-
-            // Apply doubt penalty - high doubt can cause failure
-            int doubtPenalty = Session.GetDoubtPenalty();
-            if (doubtPenalty >= 50) // 10+ doubt = 50%+ penalty = automatic failure
-                return "0";
-
-            // Otherwise succeed
-            return "100";
-        }
-
-        protected string GetFailureChance(CardInstance card)
-        {
-            // Calculate failure chance (inverse of success)
-            int successChance = int.Parse(GetSuccessChance(card));
-            return (100 - successChance).ToString();
-        }
-
-        protected string GetSuccessChanceBreakdown(CardInstance card)
-        {
-            // DETERMINISTIC SYSTEM: Show clear reason for success/failure
-            if (Session == null || ConversationFacade == null)
-                return "Unknown status";
-
-            // Goal cards (Letters, Promises) succeed if momentum threshold is met
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
-            {
-                bool canSucceed = Session.CurrentMomentum >= card.MomentumThreshold;
-                return canSucceed ?
-                    $"Goal card: Momentum {Session.CurrentMomentum} ≥ {card.MomentumThreshold} required" :
-                    $"Goal card: Need {card.MomentumThreshold - Session.CurrentMomentum} more momentum";
-            }
-
-            // Very easy cards always succeed
-            if (card.Difficulty == Difficulty.VeryEasy)
-                return "Very Easy: Always succeeds";
-
-            // Check level requirements
-            if (card.ConversationCardTemplate.BoundStat.HasValue)
-            {
-                int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
-                int requiredLevel = card.Difficulty switch
-                {
-                    Difficulty.Easy => 1,
-                    Difficulty.Medium => 2,
-                    Difficulty.Hard => 3,
-                    Difficulty.VeryHard => 4,
-                    _ => 1
-                };
-
-                if (effectiveLevel < requiredLevel)
-                    return $"{card.ConversationCardTemplate.BoundStat.Value}: Level {effectiveLevel} < {requiredLevel} required";
-            }
-
-            // Check doubt penalty
-            int doubtPenalty = Session.GetDoubtPenalty();
-            if (doubtPenalty >= 50)
-                return $"Too much doubt: {Session.CurrentDoubt} doubt causes automatic failure";
-
-            return "Meets all requirements: Will succeed";
-        }
-
-        protected int GetMomentumModifier()
-        {
-            return Session?.MomentumManager?.GetDoubtPenalty() ?? 0;
-        }
-
-        protected int GetAtmosphereModifier()
-        {
-            // AtmosphereManager deleted - atmosphere simplified to always Neutral
-            return 0;
-        }
-
         private string GetInitialDialogue()
         {
             return Session?.CurrentState switch
@@ -1959,98 +1105,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected int GetExchangeSuccessRate(CardInstance card)
-        {
-            if (card?.Context?.ExchangeData == null) return 0;
-
-            ExchangeData exchange = card.Context.ExchangeData;
-            int baseRate = exchange.BaseSuccessRate;
-
-            // Add Commerce token bonus (+5% per token)
-            if (GameFacade != null && !string.IsNullOrEmpty(Context?.NpcId))
-            {
-                NPCTokenBalance tokenBalance = GameFacade.GetTokensWithNPC(Context.NpcId);
-                int commerceTokens = tokenBalance.GetBalance(ConnectionType.Commerce);
-                baseRate += commerceTokens * 5;
-            }
-
-            // Clamp between 5% and 95%
-            return Math.Clamp(baseRate, 5, 95);
-        }
-
-        protected string GetTokenBonusText(CardInstance card)
-        {
-            if (card == null || CurrentTokens == null)
-            {
-                Console.WriteLine($"[GetTokenBonusText] Card null: {card == null}, CurrentTokens null: {CurrentTokens == null}");
-                return "";
-            }
-
-            // Get the relevant token type from the card using its built-in method
-            ConnectionType tokenType = card.GetConnectionType();
-
-            // Get the token count
-            int tokenCount = CurrentTokens.GetValueOrDefault(tokenType, 0);
-            Console.WriteLine($"[GetTokenBonusText] Card: {card.Id}, TokenType: {tokenType}, Count: {tokenCount}");
-
-            if (tokenCount > 0)
-            {
-                // All cards (including requests) get +10% per token
-                int bonusPerToken = 10;
-                int bonus = tokenCount * bonusPerToken;
-                string result = $"(+{bonus}% from {tokenCount} {tokenType})";
-                Console.WriteLine($"[GetTokenBonusText] Returning: {result}");
-                return result;
-            }
-
-            return "";
-        }
-
-        protected string GetExchangeCostDisplay(CardInstance card)
-        {
-            // Use the consistent FormatResourceList method
-            if (card?.Context?.ExchangeData?.Costs != null && card.Context.ExchangeData.Costs.Any())
-            {
-                return FormatResourceList(card.Context.ExchangeData.Costs);
-            }
-
-            return "Free";
-        }
-
-        protected string GetExchangeRewardDisplay(CardInstance card)
-        {
-            // First check Context.ExchangeData
-            if (card?.Context?.ExchangeData != null)
-            {
-                List<string> rewardParts = new List<string>();
-
-                // Add standard resource rewards
-                if (card.Context.ExchangeData.Rewards != null && card.Context.ExchangeData.Rewards.Any())
-                {
-                    foreach (ResourceAmount reward in card.Context.ExchangeData.Rewards)
-                    {
-                        string resourceName = reward.Type switch
-                        {
-                            ResourceType.Coins => "coins",
-                            ResourceType.Health => "health",
-                            ResourceType.Hunger => "food",
-                            _ => reward.Type.ToString().ToLower()
-                        };
-                        rewardParts.Add($"{reward.Amount} {resourceName}");
-                    }
-                }
-
-                // Item rewards are handled through the Resource system
-
-                if (rewardParts.Any())
-                {
-                    return string.Join(", ", rewardParts);
-                }
-            }
-
-            return "Nothing";
-        }
-
         protected ConnectionType GetExchangeTokenType(CardInstance card)
         {
             // For merchants, exchanges typically use Commerce tokens
@@ -2058,14 +1112,6 @@ namespace Wayfarer.Pages.Components
             return ConnectionType.Commerce;
         }
 
-        protected string GetTokenBonusPercentage(CardInstance card)
-        {
-            ConnectionType tokenType = GetExchangeTokenType(card);
-            int tokenCount = GetTokenCount(tokenType);
-            int bonusPercentage = tokenCount * 5; // 5% per token
-
-            return bonusPercentage > 0 ? $"+{bonusPercentage}" : "+0";
-        }
 
         protected string GetConversationEndReason()
         {
@@ -2079,7 +1125,7 @@ namespace Wayfarer.Pages.Components
 
             if (Session.CurrentDoubt >= Session.MaxDoubt)
             {
-                return string.Format("{0}'s patience has been exhausted. They have no more time for you today.", NpcName);
+                return string.Format("{0}'s doubt has been exhausted. They have no more time for you today.", NpcName);
             }
 
             if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -3)
@@ -2171,37 +1217,6 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get decay state CSS class for observation cards
-        /// </summary>
-        protected string GetObservationDecayClass(CardInstance card)
-        {
-            if (card.CardType != CardType.Observation || card.Context?.ObservationDecayState == null)
-                return "";
-
-            if (Enum.TryParse<ObservationDecayState>(card.Context.ObservationDecayState, out ObservationDecayState decayState))
-            {
-                return decayState switch
-                {
-                    ObservationDecayState.Fresh => "observation-fresh",
-                    ObservationDecayState.Expired => "observation-expired",
-                    _ => ""
-                };
-            }
-            return "";
-        }
-
-        /// <summary>
-        /// Get decay state description for observation cards
-        /// </summary>
-        protected string GetObservationDecayDescription(CardInstance card)
-        {
-            if (card.CardType != CardType.Observation)
-                return "";
-
-            return card.Context?.ObservationDecayDescription ?? "";
-        }
-
-        /// <summary>
         /// Check if observation card is expired (should show as unplayable)
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
@@ -2250,116 +1265,11 @@ namespace Wayfarer.Pages.Components
             foreach (SpotPropertyType property in spot.SpotProperties)
             {
                 // Convert property enum to user-friendly description
-                string description = property switch
-                {
-                    SpotPropertyType.Private => "Private",
-                    SpotPropertyType.Discrete => "Discrete",
-                    SpotPropertyType.Public => "Public",
-                    SpotPropertyType.Exposed => "Exposed",
-                    SpotPropertyType.Quiet => "Quiet",
-                    SpotPropertyType.Loud => "Loud",
-                    SpotPropertyType.Warm => "Warm",
-                    SpotPropertyType.Shaded => "Shaded",
-                    SpotPropertyType.Crossroads => "Crossroads",
-                    SpotPropertyType.Isolated => "Isolated",
-                    SpotPropertyType.NobleFavored => "Noble-favored",
-                    SpotPropertyType.CommonerHaunt => "Commoner haunt",
-                    SpotPropertyType.MerchantHub => "Merchant hub",
-                    SpotPropertyType.SacredGround => "Sacred ground",
-                    SpotPropertyType.Commercial => "Commercial",
-                    _ => property.ToString()
-                };
-
-                // Add patience bonus if this property provides it
-                int patienceBonus = GetPropertyPatienceBonus(property);
-                if (patienceBonus != 0)
-                {
-                    description += $", {(patienceBonus > 0 ? "+" : "")}{patienceBonus} patience";
-                }
-
+                string description = property.ToString();
                 propertyDescriptions.Add(description);
             }
 
             return string.Join(", ", propertyDescriptions);
-        }
-
-        /// <summary>
-        /// Get patience bonus for a specific spot property
-        /// </summary>
-        private int GetPropertyPatienceBonus(SpotPropertyType property)
-        {
-            // Based on game design, certain properties affect conversation patience
-            return property switch
-            {
-                SpotPropertyType.Private => 1,      // Private locations give +1 patience
-                SpotPropertyType.Discrete => 1,     // Discrete locations help patience
-                SpotPropertyType.Exposed => -1,     // Exposed locations reduce patience
-                SpotPropertyType.Quiet => 1,        // Quiet locations help patience
-                SpotPropertyType.Loud => -1,        // Loud locations hurt patience
-                SpotPropertyType.Isolated => 1,     // Isolated spots help
-                _ => 0
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get persistence type for a card for display
-        /// </summary>
-        protected string GetCardPersistenceLabel(CardInstance card)
-        {
-            if (card == null) return "";
-            return card.Persistence switch
-            {
-                PersistenceType.Thought => "Thought",
-                PersistenceType.Impulse => "Impulse",
-                PersistenceType.Opening => "Opening",
-                _ => "Thought"
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get CSS class for persistence badge
-        /// </summary>
-        protected string GetPersistenceClass(PersistenceType persistence)
-        {
-            return persistence.ToString().ToLower();
-        }
-
-        /// <summary>
-        /// Get CSS class for persistence tag (enhanced from mockup)
-        /// </summary>
-        protected string GetPersistenceTagClass(PersistenceType persistence)
-        {
-            return persistence switch
-            {
-                PersistenceType.Impulse => "tag-impulse",
-                PersistenceType.Opening => "tag-opening",
-                PersistenceType.Thought => "tag-thought",
-                _ => "tag-" + persistence.ToString().ToLower()
-            };
-        }
-
-        /// <summary>
-        /// Get user-friendly difficulty label
-        /// </summary>
-        protected string GetDifficultyLabel(Difficulty difficulty)
-        {
-            return difficulty switch
-            {
-                Difficulty.VeryEasy => "Very Easy",
-                Difficulty.Easy => "Easy",
-                Difficulty.Medium => "Medium",
-                Difficulty.Hard => "Hard",
-                Difficulty.VeryHard => "Very Hard",
-                _ => difficulty.ToString()
-            };
-        }
-
-        /// <summary>
-        /// Get the personality rule description from the session's PersonalityEnforcer
-        /// </summary>
-        protected string GetPersonalityRuleDescription()
-        {
-            return Session?.PersonalityEnforcer?.GetRuleDescription() ?? "";
         }
 
         /// <summary>
@@ -2373,25 +1283,6 @@ namespace Wayfarer.Pages.Components
             return !isValid;  // Return true if play is illegal
         }
 
-        /// <summary>
-        /// Get level bonus for a card
-        /// </summary>
-        protected int GetLevelBonus(CardInstance card)
-        {
-            if (card == null) return 0;
-
-            // Get player stats for effective level calculation
-            PlayerStats playerStats = GameFacade.GetPlayerStats();
-            int effectiveLevel = card.GetEffectiveLevel(playerStats);
-
-            // Level 2 adds +10% success
-            // Level 4 adds another +10% success (cumulative)
-            int levelBonus = 0;
-            if (effectiveLevel >= 2) levelBonus += 10;
-            if (effectiveLevel >= 4) levelBonus += 10;
-
-            return levelBonus;
-        }
 
         /// <summary>
         /// Get personality modifier for a card
@@ -2430,54 +1321,6 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get complete success modifier breakdown
-        /// </summary>
-        protected string GetSuccessModifierBreakdown(CardInstance card)
-        {
-            List<string> modifiers = new List<string>();
-
-            // Base chance
-            int baseChance = GetBaseSuccessPercentage(card.Difficulty);
-            modifiers.Add($"{baseChance}% base");
-
-            // Rapport modifier
-            int momentumBonus = GetMomentumModifier();
-            if (momentumBonus != 0)
-            {
-                string sign = momentumBonus > 0 ? "+" : "";
-                modifiers.Add($"{sign}{momentumBonus}% momentum");
-            }
-
-            // Level bonus
-            int levelBonus = GetLevelBonus(card);
-            if (levelBonus > 0)
-            {
-                modifiers.Add($"+{levelBonus}% level");
-            }
-
-            // Personality modifier
-            int personalityMod = GetPersonalityModifier(card);
-            if (personalityMod > 0)
-            {
-                modifiers.Add($"+{personalityMod}% personality");
-            }
-
-            return string.Join(", ", modifiers);
-        }
-
-        /// <summary>
-        /// Check if card has atmosphere effect
-        /// </summary>
-        protected bool HasAtmosphereEffect(CardInstance card)
-        {
-            // For now, check if card changes atmosphere based on mockup patterns
-            // This would be enhanced with actual atmosphere effect data
-            return card.CardType == CardType.Observation ||
-                   GetProperCardName(card).Contains("Interrupt") ||
-                   GetProperCardName(card).Contains("Merchant Routes");
-        }
-
-        /// <summary>
         /// Get atmosphere effect label for card
         /// </summary>
         protected string GetAtmosphereEffectLabel(CardInstance card)
@@ -2493,66 +1336,6 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// PACKET 6: Get icon for persistence badge
-        /// </summary>
-        protected string GetPersistenceIcon(PersistenceType persistence)
-        {
-            return persistence switch
-            {
-                PersistenceType.Impulse => "<span class='icon-warning'></span>",
-                PersistenceType.Opening => "<span class='icon-clock'></span>",
-                PersistenceType.Thought => "<span class='icon-check'></span>",
-                _ => ""
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get label for persistence badge
-        /// </summary>
-        protected string GetPersistenceLabel(PersistenceType persistence)
-        {
-            return persistence switch
-            {
-                PersistenceType.Impulse => "Impulse",
-                PersistenceType.Opening => "Opening",
-                PersistenceType.Thought => "Thought",
-                _ => persistence.ToString()
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get tooltip for persistence badge
-        /// </summary>
-        protected string GetPersistenceTooltip(PersistenceType persistence)
-        {
-            return persistence switch
-            {
-                PersistenceType.Impulse => "Removed after SPEAK if unplayed",
-                PersistenceType.Opening => "Removed after LISTEN if unplayed",
-                PersistenceType.Thought => "Stays until played",
-                _ => ""
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get additional CSS classes based on card properties
-        /// </summary>
-        protected string GetCardPropertyClasses(CardInstance card)
-        {
-            List<string> classes = new List<string>();
-
-            if (card?.Persistence == PersistenceType.Impulse)
-                classes.Add("has-impulse");
-            if (card?.Persistence == PersistenceType.Opening)
-                classes.Add("has-opening");
-            if (card?.CardType == CardType.Letter)
-                classes.Add("has-burden");
-
-            return string.Join(" ", classes);
-        }
-
-
-        /// <summary>
         /// PACKET 6: Get enhanced success effect description
         /// </summary>
         /// <summary>
@@ -2563,190 +1346,7 @@ namespace Wayfarer.Pages.Components
             return GetSuccessEffect(card);
         }
 
-        /// <summary>
-        /// PROJECTION PRINCIPLE: Wrapper that delegates to projection-based GetFailureEffect
-        /// </summary>
-        protected string GetFailureEffectDescription(CardInstance card)
-        {
-            string effect = GetFailureEffect(card);
-            return string.IsNullOrEmpty(effect) || effect == "+0 flow" ?
-                "No effect" : effect;
-        }
-
-
-        /// <summary>
-        /// PACKET 6: Calculate magnitude from difficulty
-        /// </summary>
-        private int GetMagnitudeFromDifficulty(Difficulty difficulty)
-        {
-            return difficulty switch
-            {
-                Difficulty.VeryEasy => 1,
-                Difficulty.Easy => 1,
-                Difficulty.Medium => 2,
-                Difficulty.Hard => 3,
-                Difficulty.VeryHard => 4,
-                _ => 1
-            };
-        }
-
-        /// <summary>
-        /// PACKET 6: Get description for EndConversation effects
-        /// </summary>
-        private string GetEndConversationDescription(string reason)
-        {
-            // Use the provided reason string
-
-            if (!string.IsNullOrEmpty(reason))
-            {
-                return reason switch
-                {
-                    "success" => "End conversation (success)",
-                    "failure" => "End conversation (failure)",
-                    "abandoned" => "End conversation (abandoned)",
-                    "request_exhausted" => "Conversation fails",
-                    _ => "End conversation"
-                };
-            }
-
-            return "End conversation";
-        }
-
-        // New methods for atmosphere and focus display
-        protected string GetCurrentAtmosphereDisplay()
-        {
-            if (Session == null) return "Neutral";
-
-            return Session.CurrentAtmosphere switch
-            {
-                AtmosphereType.Neutral => "Neutral",
-                AtmosphereType.Prepared => "Prepared (+1 focus)",
-                AtmosphereType.Receptive => "Receptive (+1 card on LISTEN)",
-                AtmosphereType.Focused => "Focused (+20% success)",
-                AtmosphereType.Patient => "Patient (0 patience cost)",
-                AtmosphereType.Volatile => "Volatile (±1 flow changes)",
-                AtmosphereType.Informed => "Informed (next card auto-succeeds)",
-                AtmosphereType.Exposed => "Exposed (double flow changes)",
-                AtmosphereType.Synchronized => "Synchronized (effects happen twice)",
-                AtmosphereType.Pressured => "Pressured (-1 card on LISTEN)",
-                _ => Session.CurrentAtmosphere.ToString()
-            };
-        }
-
-        protected string GetFocusDisplay()
-        {
-            if (Session == null) return "0/5";
-            // Display available focus / max capacity (not spent focus)
-            return $"{Session.GetAvailableFocus()}/{Session.GetEffectiveFocusCapacity()}";
-        }
-
-        protected string GetFlowBatteryDisplay()
-        {
-            if (Session == null) return "0";
-            return Session.FlowBattery.ToString("+0;-#;0");
-        }
-
-        protected string GetAtmosphereEffectDescription()
-        {
-            if (Session == null) return "";
-
-            return Session.CurrentAtmosphere switch
-            {
-                AtmosphereType.Prepared => "Focus capacity increased by 1",
-                AtmosphereType.Receptive => "Draw 1 extra card on LISTEN",
-                AtmosphereType.Focused => "All cards get +20% success chance",
-                AtmosphereType.Patient => "LISTEN costs no patience",
-                AtmosphereType.Volatile => "Flow changes are amplified by ±1",
-                AtmosphereType.Informed => "Your next card will automatically succeed",
-                AtmosphereType.Exposed => "All flow changes are doubled",
-                AtmosphereType.Synchronized => "Card effects will happen twice",
-                AtmosphereType.Pressured => "Draw 1 fewer card on LISTEN",
-                _ => "(No special effects)"
-            };
-        }
-
-        protected string GetAtmosphereIcon()
-        {
-            if (Session == null) return "";
-
-            return Session.CurrentAtmosphere switch
-            {
-                AtmosphereType.Prepared => "<span class='icon-strength'></span>",
-                AtmosphereType.Receptive => "<span class='icon-listen'></span>",
-                AtmosphereType.Focused => "<span class='icon-target'></span>",
-                AtmosphereType.Patient => "<span class='icon-clock'></span>",
-                AtmosphereType.Volatile => "<span class='icon-energy'></span>",
-                AtmosphereType.Informed => "🧠",
-                AtmosphereType.Exposed => "👁",
-                AtmosphereType.Synchronized => "🔄",
-                AtmosphereType.Pressured => "😰",
-                _ => "◯"
-            };
-        }
-
-        protected string GetAtmosphereClass()
-        {
-            if (Session == null) return "";
-
-            return Session.CurrentAtmosphere switch
-            {
-                AtmosphereType.Neutral => "atmosphere-neutral",
-                AtmosphereType.Prepared => "atmosphere-prepared",
-                AtmosphereType.Receptive => "atmosphere-receptive",
-                AtmosphereType.Focused => "atmosphere-focused",
-                AtmosphereType.Patient => "atmosphere-patient",
-                AtmosphereType.Volatile => "atmosphere-volatile",
-                AtmosphereType.Informed => "atmosphere-informed",
-                AtmosphereType.Exposed => "atmosphere-exposed",
-                AtmosphereType.Synchronized => "atmosphere-synchronized",
-                AtmosphereType.Pressured => "atmosphere-pressured",
-                _ => ""
-            };
-        }
-
-        protected bool HasTemporaryAtmosphereEffects()
-        {
-            // AtmosphereManager deleted - no temporary effects
-            return false;
-        }
-
-        protected string GetTemporaryEffectsDescription()
-        {
-            // AtmosphereManager deleted - no temporary effects
-            return "";
-        }
-
         // PACKET 7: Action Preview System Implementation
-
-        /// <summary>
-        /// Show SPEAK action preview on hover
-        /// </summary>
-        protected void ShowSpeakPreviewHandler()
-        {
-            ShowSpeakPreview = true;
-            ShowListenPreview = false;
-            StateHasChanged();
-        }
-
-        /// <summary>
-        /// Show LISTEN action preview on hover
-        /// </summary>
-        protected void ShowListenPreviewHandler()
-        {
-            ShowListenPreview = true;
-            ShowSpeakPreview = false;
-            StateHasChanged();
-        }
-
-        /// <summary>
-        /// Hide all action previews
-        /// </summary>
-        protected void HidePreviewHandler()
-        {
-            ShowSpeakPreview = false;
-            ShowListenPreview = false;
-            StateHasChanged();
-        }
 
         /// <summary>
         /// Get cards that will exhaust on SPEAK action (Impulse cards)
@@ -2809,146 +1409,6 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Generate SPEAK preview content
-        /// </summary>
-        protected RenderFragment GetSpeakPreviewContent()
-        {
-            return builder =>
-        {
-            int sequence = 0;
-
-            // Selected card action
-            if (SelectedCard != null)
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "selected-action");
-                builder.AddContent(sequence++, $"Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Focus} focus)");
-                builder.CloseElement();
-            }
-
-            List<CardInstance> exhaustingCards = GetImpulseCards();
-            List<CardInstance> criticalExhausts = GetCriticalExhausts(exhaustingCards);
-
-            // Critical request warnings
-            if (criticalExhausts.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.OpenElement(sequence++, "span");
-                builder.AddAttribute(sequence++, "class", "icon-warning");
-                builder.CloseElement();
-                builder.AddContent(sequence++, " REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
-
-                foreach (CardInstance request in criticalExhausts)
-                {
-                    builder.OpenElement(sequence++, "div");
-                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(request)} <span class='icon-arrow-right'></span> CONVERSATION FAILS");
-                    builder.CloseElement();
-                }
-                builder.CloseElement();
-            }
-
-            // Regular impulse exhausts
-            List<CardInstance> regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
-            if (regularExhausts.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "exhaust-list");
-                builder.AddContent(sequence++, "Cards that will exhaust:");
-
-                foreach (CardInstance? card in regularExhausts)
-                {
-                    builder.OpenElement(sequence++, "div");
-                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(card)}");
-                    builder.CloseElement();
-                }
-                builder.CloseElement();
-            }
-
-            // No exhausts message
-            if (!exhaustingCards.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "no-exhausts");
-                builder.AddContent(sequence++, "No cards will exhaust");
-                builder.CloseElement();
-            }
-        };
-        }
-
-        /// <summary>
-        /// Generate LISTEN preview content
-        /// </summary>
-        protected RenderFragment GetListenPreviewContent()
-        {
-            return builder =>
-        {
-            int sequence = 0;
-
-            // Listen effects
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "listen-effects");
-
-            int cardsToDraw = GetCardDrawCount();
-            int maxFocus = GetMaxFocus();
-
-            builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> Draw {cardsToDraw} cards");
-            builder.OpenElement(sequence++, "br");
-            builder.CloseElement();
-            builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> Refresh focus to {maxFocus}");
-            builder.CloseElement();
-
-            List<CardInstance> exhaustingCards = GetOpeningCards();
-            List<CardInstance> criticalExhausts = GetCriticalExhausts(exhaustingCards);
-
-            // Critical request warnings
-            if (criticalExhausts.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.OpenElement(sequence++, "span");
-                builder.AddAttribute(sequence++, "class", "icon-warning");
-                builder.CloseElement();
-                builder.AddContent(sequence++, " REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
-
-                foreach (CardInstance request in criticalExhausts)
-                {
-                    builder.OpenElement(sequence++, "div");
-                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(request)} <span class='icon-arrow-right'></span> CONVERSATION FAILS");
-                    builder.CloseElement();
-                }
-                builder.CloseElement();
-            }
-
-            // Regular opening exhausts (though currently all requests are both Impulse + Opening)
-            List<CardInstance> regularExhausts = exhaustingCards.Except(criticalExhausts).ToList();
-            if (regularExhausts.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "exhaust-list");
-                builder.AddContent(sequence++, "Cards that will exhaust:");
-
-                foreach (CardInstance? card in regularExhausts)
-                {
-                    builder.OpenElement(sequence++, "div");
-                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(card)}");
-                    builder.CloseElement();
-                }
-                builder.CloseElement();
-            }
-
-            // No exhausts message
-            if (!exhaustingCards.Any())
-            {
-                builder.OpenElement(sequence++, "div");
-                builder.AddAttribute(sequence++, "class", "no-exhausts");
-                builder.AddContent(sequence++, "No cards will exhaust");
-                builder.CloseElement();
-            }
-        };
-        }
-
-        /// <summary>
         /// Get number of cards to draw on LISTEN
         /// </summary>
         protected int GetCardDrawCount()
@@ -2965,12 +1425,6 @@ namespace Wayfarer.Pages.Components
                 _ => 2
             };
 
-            // Apply atmosphere modifiers
-            if (Session.CurrentAtmosphere == AtmosphereType.Receptive)
-                baseDraw += 1;
-            else if (Session.CurrentAtmosphere == AtmosphereType.Pressured)
-                baseDraw = Math.Max(1, baseDraw - 1);
-
             return baseDraw;
         }
 
@@ -2983,94 +1437,6 @@ namespace Wayfarer.Pages.Components
             return Session.GetEffectiveFocusCapacity();
         }
 
-
-        /// <summary>
-        /// Get atmospheric scaling information for cards based on current atmosphere
-        /// </summary>
-        protected string GetAtmosphereScaling(CardInstance card)
-        {
-            if (Session?.CurrentAtmosphere == AtmosphereType.Volatile)
-            {
-                return "Flow effects ±1 from Volatile";
-            }
-            else if (Session?.CurrentAtmosphere == AtmosphereType.Focused)
-            {
-                return "Success rate +20% from Focused";
-            }
-            else if (Session?.CurrentAtmosphere == AtmosphereType.Exposed)
-            {
-                return "All effects doubled from Exposed";
-            }
-
-            return "";
-        }
-
-        /// <summary>
-        /// Get connection state transparency info
-        /// </summary>
-        protected string GetConnectionStateInfo()
-        {
-            if (Session == null) return "";
-
-            ConversationStateRules? stateRules = ConversationRules.States.GetValueOrDefault(Session.CurrentState);
-            if (stateRules == null) return "";
-
-            return $"Focus: {stateRules.MaxFocus}, Draw: {stateRules.CardsOnListen}";
-        }
-
-        /// <summary>
-        /// Get flow threshold preview
-        /// </summary>
-        protected string GetFlowThresholdPreview()
-        {
-            if (Session == null) return "";
-
-            if (Session.FlowBattery == 2)
-            {
-                string nextState = GetNextPositiveState(Session.CurrentState);
-                return $"At +3: {nextState} state";
-            }
-            else if (Session.FlowBattery == -2)
-            {
-                string nextState = GetNextNegativeState(Session.CurrentState);
-                if (Session.CurrentState == ConnectionState.DISCONNECTED)
-                {
-                    return "At -3: Conversation ends!";
-                }
-                return $"At -3: {nextState} state";
-            }
-
-            return "";
-        }
-
-        private string GetNextPositiveState(ConnectionState current)
-        {
-            return current switch
-            {
-                ConnectionState.DISCONNECTED => "Guarded",
-                ConnectionState.GUARDED => "Neutral",
-                ConnectionState.NEUTRAL => "Receptive",
-                ConnectionState.RECEPTIVE => "Connected",
-                ConnectionState.TRUSTING => "Connected",
-                _ => "Unknown"
-            };
-        }
-
-        private string GetNextNegativeState(ConnectionState current)
-        {
-            return current switch
-            {
-                ConnectionState.TRUSTING => "Receptive",
-                ConnectionState.RECEPTIVE => "Neutral",
-                ConnectionState.NEUTRAL => "Guarded",
-                ConnectionState.GUARDED => "Disconnected",
-                ConnectionState.DISCONNECTED => "Ends",
-                _ => "Unknown"
-            };
-        }
-
-        // === CARD ANIMATION METHODS ===
-
         /// <summary>
         /// Get CSS classes for a card based on its animation state
         /// </summary>
@@ -3080,20 +1446,6 @@ namespace Wayfarer.Pages.Components
 
             List<string> classes = new List<string> { "card" };
             string cardId = card.InstanceId ?? card.Id ?? "";
-
-            // Check if this is a new card (recently drawn)
-            if (NewCardIds.Contains(cardId))
-            {
-                classes.Add("card-new");
-            }
-
-            // Choreography system handles animation states via GetCardChoreographyClasses
-
-            // Check if card is being exhausted
-            if (ExhaustingCardIds.Contains(cardId))
-            {
-                classes.Add("card-exhausting");
-            }
 
             // Add warning for impulse cards
             if (card.Persistence == PersistenceType.Impulse)
@@ -3114,34 +1466,6 @@ namespace Wayfarer.Pages.Components
             }
 
             return string.Join(" ", classes);
-        }
-
-        // GetCardAnimationState removed - choreography system handles animation state
-
-        /// <summary>
-        /// Track newly drawn cards for slide-in animation
-        /// </summary>
-        protected void TrackNewlyDrawnCards(List<CardInstance> previousCards, List<CardInstance> currentCards)
-        {
-            // Clear old new card tracking
-            NewCardIds.Clear();
-
-            // Get IDs of previous cards
-            HashSet<string> previousIds = new HashSet<string>(previousCards.Select(c => c.InstanceId ?? c.Id ?? ""));
-
-            // Find and mark new cards
-            List<CardInstance> newCards = new List<CardInstance>();
-            foreach (CardInstance card in currentCards)
-            {
-                string cardId = card.InstanceId ?? card.Id ?? "";
-                if (!previousIds.Contains(cardId))
-                {
-                    NewCardIds.Add(cardId);
-                    newCards.Add(card);
-                }
-            }
-
-            // Choreography system handles card animations automatically
         }
 
         /// <summary>
@@ -3194,71 +1518,11 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Add a card to the animating cards list for post-play animation
-        /// </summary>
-        // Legacy animation methods removed - choreography system handles all card animations
-
-        /// <summary>
         /// Mark cards for exhaust animation - SIMPLIFIED: No longer needed
         /// </summary>
         protected void MarkCardsForExhaust(List<CardInstance> cardsToExhaust)
         {
             // Cards are removed immediately, no exhaust animation
-        }
-
-        /// <summary>
-        /// Update ExecuteListen to track newly drawn cards
-        /// </summary>
-        protected async Task ExecuteListenWithAnimations()
-        {
-            // Store current cards before listen
-            List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-
-            // Execute the normal listen action
-            await ExecuteListen();
-
-            // Track newly drawn cards
-            List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-            TrackNewlyDrawnCards(previousCards, currentCards);
-
-            // Mark impulse cards that will exhaust on next SPEAK
-            List<CardInstance> impulseCards = currentCards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
-            // These will be marked when SPEAK happens
-        }
-
-        /// <summary>
-        /// Update ExecuteSpeak to show success/failure and exhaust animations
-        /// </summary>
-        protected async Task ExecuteSpeakWithAnimations()
-        {
-            if (SelectedCard == null) return;
-
-            // Store the selected card info
-            CardInstance playedCard = SelectedCard;
-
-            // Execute the normal speak action (will be modified to track result)
-            await ExecuteSpeak();
-
-            // Determine if the play was successful (need to get this from the result)
-            // For now, we'll simulate - in reality, we need to get this from ConversationFacade result
-            // DETERMINISTIC SYSTEM: This should get result from ExecuteSpeak() call above
-            // For now, use a simple deterministic approach based on card properties
-            bool wasSuccessful = playedCard.Difficulty == Difficulty.VeryEasy ||
-                                 (Session?.CurrentDoubt ?? 0) < 10; // Simple deterministic rule
-
-            // Choreography system handles played card animations
-
-            // Get impulse cards to exhaust
-            List<CardInstance> impulseCards = ConversationFacade.GetHandCards()?
-                .Where(c => c.Persistence == PersistenceType.Impulse && c.InstanceId != playedCard.InstanceId)
-                .ToList() ?? new List<CardInstance>();
-
-            // SYNCHRONOUS PRINCIPLE: Exhaust impulse cards immediately
-            if (impulseCards.Any())
-            {
-                // NO DELAY - exhaust immediately, animation is visual only
-                MarkCardsForExhaust(impulseCards);
-            }
         }
 
         private string FormatResourceList(List<ResourceAmount> resources)
@@ -3282,32 +1546,15 @@ namespace Wayfarer.Pages.Components
             PersonalityType personality = Session.NPC.PersonalityType;
             return personality switch
             {
-                PersonalityType.DEVOTED => "Devoted: Rapport losses doubled",
+                PersonalityType.DEVOTED => "Devoted: Momentum losses doubled",
                 PersonalityType.MERCANTILE => "Mercantile: Highest focus +30% success",
                 PersonalityType.PROUD => "Proud: Cards must ascend in focus",
-                PersonalityType.CUNNING => "Cunning: Same focus as prev -2 rapport",
-                PersonalityType.STEADFAST => "Steadfast: Rapport changes capped ±2",
+                PersonalityType.CUNNING => "Cunning: Same focus as prev -2 Momentum",
+                PersonalityType.STEADFAST => "Steadfast: Momentum changes capped ±2",
                 _ => $"{personality}: Special rules apply"
             };
         }
-
-        /// <summary>
-        /// Returns CSS class for patience slots based on current usage
-        /// </summary>
-        protected string GetPatienceSlotClass(int slot)
-        {
-            if (Session == null) return "";
-
-            int currentDoubtLevel = Session.CurrentDoubt;
-
-            if (slot <= currentDoubtLevel)
-                return "used";
-            else if (slot == currentDoubtLevel + 1)
-                return "current";
-            else
-                return "";
-        }
-
+        
         /// <summary>
         /// Returns CSS classes for flow battery segments based on current flow value
         /// </summary>
@@ -3410,7 +1657,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Returns CSS class for goal cards based on current rapport vs threshold
+        /// Returns CSS class for goal cards based on current Momentum vs threshold
         /// </summary>
         protected string GetGoalCardClass(int threshold)
         {
@@ -3444,31 +1691,6 @@ namespace Wayfarer.Pages.Components
             if (card?.ConversationCardTemplate?.BoundStat == null) return "";
 
             return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
-        }
-
-        /// <summary>
-        /// Analyzes card effects and returns appropriate effect tags
-        /// </summary>
-        protected List<string> GetCardEffectTags(CardInstance card)
-        {
-            List<string> tags = new List<string>();
-
-            if (card?.ConversationCardTemplate == null) return tags;
-
-            // Success effect tags
-            if (card.SuccessType != SuccessEffectType.None)
-            {
-                tags.Add(card.SuccessType.ToString());
-            }
-
-            // Failure effect tags
-            if (card.FailureType != FailureEffectType.None)
-            {
-                tags.Add(card.FailureType.ToString());
-            }
-
-
-            return tags;
         }
 
         /// <summary>
@@ -3690,16 +1912,6 @@ namespace Wayfarer.Pages.Components
             int focusCost = SelectedCard.GetEffectiveFocus(Session.CurrentState);
             return $"Play card (Cost: {focusCost} focus)";
         }
-
-        #region UI Shadow State Event Handlers
-
-        /// <summary>
-        /// Enhanced: Handle enhanced choreography started event.
-        /// </summary>
-        // Static UI - no choreography event handlers needed
-
-
-        #endregion
 
     }
 }

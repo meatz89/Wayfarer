@@ -168,7 +168,7 @@ public class JsonNarrativeRepository
         score += 10; // Base score for flow match
 
         // Rapport range check
-        bool rapportMatch = state.Rapport >= conditions.RapportMin && state.Rapport <= conditions.RapportMax;
+        bool rapportMatch = state.Momentum >= conditions.RapportMin && state.Momentum <= conditions.RapportMax;
         if (!rapportMatch)
         {
             return -1; // No match if rapport is out of range

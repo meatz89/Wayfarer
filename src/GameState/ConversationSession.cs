@@ -31,7 +31,6 @@ public class ConversationSession
     public int FlowBattery { get; set; } = 0; // -3 to +3
     public int CurrentFocus { get; set; } = 0; // Current spent focus
     public int MaxFocus { get; set; } = 5; // Based on state
-    public AtmosphereType CurrentAtmosphere { get; set; } = AtmosphereType.Neutral;
 
     // Doubt prevention system
     public bool PreventNextDoubtIncrease { get; set; } = false;
@@ -110,12 +109,6 @@ public class ConversationSession
     {
         // Use configured draw counts from GameRules
         int baseCount = GameRules.StandardRuleset.GetListenDrawCount(CurrentState);
-
-        // AtmosphereType modifiers
-        if (CurrentAtmosphere == AtmosphereType.Receptive)
-            baseCount += 1;
-        else if (CurrentAtmosphere == AtmosphereType.Pressured)
-            baseCount = Math.Max(1, baseCount - 1);
 
         return baseCount;
     }
