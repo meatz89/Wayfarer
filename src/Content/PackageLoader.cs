@@ -1434,7 +1434,7 @@ public class PackageLoader
             Reward = dto.Reward ?? new Dictionary<string, int>(),
             TimeRequired = dto.TimeRequired,
             Availability = dto.Availability ?? new List<string>(),
-            Icon = dto.Icon ?? "💼",
+            Icon = dto.Icon ?? "[WORK]",
             Priority = dto.Priority,
             ActionType = dto.ActionType ?? ""
         };
@@ -1752,7 +1752,7 @@ public class PackageLoader
                 throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has {crossroadsSpots.Count} spots with Crossroads property: {spotsInfo}. Only one crossroads spot is allowed per location.");
             }
 
-            Console.WriteLine($"[PackageLoader] ✓ Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].SpotID}'");
+            Console.WriteLine($"[PackageLoader] Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].SpotID}'");
         }
 
         // Validate all route spots have crossroads property
@@ -1798,7 +1798,7 @@ public class PackageLoader
                 spot.SpotProperties.Add(SpotPropertyType.Crossroads);
             }
 
-            Console.WriteLine($"[PackageLoader] ✓ Route spot '{spotId}' has valid Crossroads property");
+            Console.WriteLine($"[PackageLoader] Route spot '{spotId}' has valid Crossroads property");
         }
 
         Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.locations.Count} locations and {routeSpotIds.Count} route spots.");

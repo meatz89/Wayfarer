@@ -2460,9 +2460,9 @@ namespace Wayfarer.Pages.Components
         {
             return persistence switch
             {
-                PersistenceType.Impulse => "⚡",
-                PersistenceType.Opening => "⏰",
-                PersistenceType.Thought => "✓",
+                PersistenceType.Impulse => "<span class='icon-warning'></span>",
+                PersistenceType.Opening => "<span class='icon-clock'></span>",
+                PersistenceType.Thought => "<span class='icon-check'></span>",
                 _ => ""
             };
         }
@@ -2783,7 +2783,7 @@ namespace Wayfarer.Pages.Components
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "selected-action");
-                builder.AddContent(sequence++, $"✓ Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Focus} focus)");
+                builder.AddContent(sequence++, $"Play: {GetProperCardName(SelectedCard)} (costs {SelectedCard.Focus} focus)");
                 builder.CloseElement();
             }
 
@@ -2795,7 +2795,10 @@ namespace Wayfarer.Pages.Components
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.AddContent(sequence++, "⚠️ REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                builder.OpenElement(sequence++, "span");
+                builder.AddAttribute(sequence++, "class", "icon-warning");
+                builder.CloseElement();
+                builder.AddContent(sequence++, " REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
 
                 foreach (CardInstance request in criticalExhausts)
                 {
@@ -2864,7 +2867,10 @@ namespace Wayfarer.Pages.Components
             {
                 builder.OpenElement(sequence++, "div");
                 builder.AddAttribute(sequence++, "class", "critical-warning");
-                builder.AddContent(sequence++, "⚠️ REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
+                builder.OpenElement(sequence++, "span");
+                builder.AddAttribute(sequence++, "class", "icon-warning");
+                builder.CloseElement();
+                builder.AddContent(sequence++, " REQUEST CARDS WILL EXHAUST - CONVERSATION WILL END!");
 
                 foreach (CardInstance request in criticalExhausts)
                 {

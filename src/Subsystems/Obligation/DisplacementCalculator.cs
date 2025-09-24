@@ -116,12 +116,12 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             result.DisplacementPlan = plan;
 
             _messageSystem.AddSystemMessage(
-                $"✅ Successfully moved {plan.ObligationToMove.SenderName}'s letter to position {plan.TargetPosition}!",
+                $"Successfully moved {plan.ObligationToMove.SenderName}'s letter to position {plan.TargetPosition}!",
                 SystemMessageTypes.Success
             );
 
             _messageSystem.AddSystemMessage(
-                $"⚠️ Total relationship cost: {plan.TotalTokenCost} tokens burned permanently",
+                $"Total relationship cost: {plan.TotalTokenCost} tokens burned permanently",
                 SystemMessageTypes.Warning
             );
 
@@ -189,7 +189,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             result.CanExecute = true;
 
             _messageSystem.AddSystemMessage(
-                $"✅ {newObligation.SenderName}'s letter locked into position {forcedPosition}",
+                $"{newObligation.SenderName}'s letter locked into position {forcedPosition}",
                 SystemMessageTypes.Success
             );
 
@@ -494,7 +494,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             else
             {
                 _messageSystem.AddSystemMessage(
-                    $"⚠️ No {displacedObligation.TokenType} tokens to burn with {displacedObligation.SenderName}",
+                    $"No {displacedObligation.TokenType} tokens to burn with {displacedObligation.SenderName}",
                     SystemMessageTypes.Warning
                 );
             }

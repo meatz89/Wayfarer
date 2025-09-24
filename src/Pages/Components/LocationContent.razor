@@ -109,7 +109,7 @@
                 {
                     <div class="investigation-section">
                         <div class="investigation-header">
-                            <span class="investigation-title">🔍 Investigation Approaches</span>
+                            <span class="investigation-title"><span class="icon-search"></span> Investigation Approaches</span>
                             <span class="investigation-info">Current: @GetFamiliarityDisplay()</span>
                         </div>
                         <div class="investigation-approaches">
@@ -136,7 +136,7 @@
                     int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
                     bool isMaxFamiliarity = currentFamiliarity >= CurrentLocation.MaxFamiliarity;
                     <div class="action-card investigation unavailable">
-                        <div class="action-name">🔍 Investigate</div>
+                        <div class="action-name"><span class="icon-search"></span> Investigate</div>
                         <div class="action-cost">
                             <span class="unavailable-reason">
                                 @if (isMaxFamiliarity)
@@ -160,7 +160,7 @@
                 {
                     <div class="work-section">
                         <div class="work-header">
-                            <span class="work-title">💼 Work Opportunities</span>
+                            <span class="work-title"><span class="icon-work"></span> Work Opportunities</span>
                             <span class="work-info">Consumes entire time block (4 segments)</span>
                         </div>
                         <div class="work-actions">
@@ -183,11 +183,11 @@
                                     }
                                     @if (work.HungerReduction.HasValue)
                                     {
-                                        <div class="work-benefit">🍞 Includes meal (-@work.HungerReduction hunger)</div>
+                                        <div class="work-benefit"><span class="icon-food"></span> Includes meal (-@work.HungerReduction hunger)</div>
                                     }
                                     @if (work.HealthRestore.HasValue)
                                     {
-                                        <div class="work-benefit">❤️ Restores @work.HealthRestore health</div>
+                                        <div class="work-benefit"><span class="icon-health"></span> Restores @work.HealthRestore health</div>
                                     }
                                 </div>
                             }
@@ -276,7 +276,7 @@
                         @if (DevMode?.ShowDeckViewer == true)
                         {
                             <div class="npc-action" @onclick="() => ViewNPCDeck(npc.Id)">
-                                <span class="action-type">🔍 View Deck (Dev)</span>
+                                <span class="action-type"><span class="icon-search"></span> View Deck (Dev)</span>
                                 <span class="action-details">Debug Tool</span>
                             </div>
                         }

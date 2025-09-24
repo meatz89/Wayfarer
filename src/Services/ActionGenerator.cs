@@ -291,7 +291,7 @@ public class ActionGenerator
             case "Guarded":
                 // Basic awareness is T1
                 actions.Add(CreateActionWithTierCheck(
-                    "⚠️", "Stay Alert", "Watch carefully", "FREE",
+                    "<span class='icon-warning'></span>", "Stay Alert", "Watch carefully", "FREE",
                     TierLevel.T1, playerTier, "alert"
                 ));
                 break;
@@ -336,7 +336,7 @@ public class ActionGenerator
             case "Hazardous":
                 // Basic safety is T1
                 actions.Add(CreateActionWithTierCheck(
-                    "⚠️", "Check Safety", "Avoid dangers", "FREE",
+                    "<span class='icon-warning'></span>", "Check Safety", "Avoid dangers", "FREE",
                     TierLevel.T1, playerTier, "safety_check"
                 ));
                 break;
@@ -366,7 +366,7 @@ public class ActionGenerator
     {
         string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "1 segment" : "1 segment";
         string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
-        return $"{baseTime} • {detail}";
+        return $"{baseTime} <span class='icon-bullet'></span> {detail}";
     }
 
     private string GetRestCost(Location location)

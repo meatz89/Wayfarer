@@ -421,7 +421,7 @@ namespace Wayfarer.Pages.Components
 
                         if (current >= required)
                         {
-                            requirements.Add($"{statName} {required}+ ✓");
+                            requirements.Add($"{statName} {required}+ <span class='icon-check'></span>");
                         }
                         else
                         {

@@ -133,7 +133,7 @@ public class ObligationQueueManager
         }
 
         _messageSystem.AddSystemMessage(
-            $"✅ Letter delivered to {obligation.RecipientName}!",
+            $"Letter delivered to {obligation.RecipientName}!",
             SystemMessageTypes.Success
         );
 
@@ -488,7 +488,7 @@ public class ObligationQueueManager
         if (targetPosition < 1 || targetPosition > _config.LetterQueue.MaxQueueSize)
         {
             _messageSystem.AddSystemMessage(
-                $"⚠️ Invalid queue position {targetPosition} calculated for obligation from {obligation.SenderName}. Using default position.",
+                $"Invalid queue position {targetPosition} calculated for obligation from {obligation.SenderName}. Using default position.",
                 SystemMessageTypes.Warning
             );
             targetPosition = Math.Max(1, Math.Min(_config.LetterQueue.MaxQueueSize, targetPosition));
@@ -699,7 +699,7 @@ public class ObligationQueueManager
     // Show narrative for normal letter entry
     private void ShowNormalEntryNarrative(DeliveryObligation letter, int position)
     {
-        string urgency = letter.DeadlineInSegments <= 72 ? " ⚠️" : "";
+        string urgency = letter.DeadlineInSegments <= 72 ? " [URGENT]" : "";
         _messageSystem.AddSystemMessage(
             $"📨 New letter from {letter.SenderName} enters queue at position {position}{urgency}",
             SystemMessageTypes.Info
@@ -818,7 +818,7 @@ public class ObligationQueueManager
             NPC recipient = _npcRepository.GetById(letter.RecipientId);
             string recipientName = recipient?.Name ?? "recipient";
             _messageSystem.AddSystemMessage(
-                $"⚠️ Cannot deliver! You must be at {recipientName}'s location.",
+                $"Cannot deliver! You must be at {recipientName}'s location.",
                 SystemMessageTypes.Warning
             );
             return false;
@@ -1023,7 +1023,7 @@ public class ObligationQueueManager
     private void ShowExpiryFailure(DeliveryObligation letter)
     {
         _messageSystem.AddSystemMessage(
-            $"⏰ TIME'S UP! {letter.SenderName}'s letter has expired!",
+            $"TIME'S UP! {letter.SenderName}'s letter has expired!",
             SystemMessageTypes.Danger
         );
     }
@@ -1080,7 +1080,7 @@ public class ObligationQueueManager
         if (history.ExpiredCount > 1)
         {
             _messageSystem.AddSystemMessage(
-                $"  ⚠️ This is the {GetOrdinal(history.ExpiredCount)} letter from {letter.SenderName} you've let expire.",
+                $"  This is the {GetOrdinal(history.ExpiredCount)} letter from {letter.SenderName} you've let expire.",
                 SystemMessageTypes.Danger
             );
         }
@@ -1237,7 +1237,7 @@ public class ObligationQueueManager
             if (history.SkippedCount >= 3)
             {
                 _messageSystem.AddSystemMessage(
-                    $"  ⚠️ {letter.SenderName} may stop offering you letters if this continues.",
+                    $"  {letter.SenderName} may stop offering you letters if this continues.",
                     SystemMessageTypes.Danger
                 );
             }
@@ -1333,7 +1333,7 @@ public class ObligationQueueManager
                 letter.QueuePosition = writePosition + 1; // Convert back to 1-based
 
                 // Provide narrative context for each letter moving
-                string urgency = letter.DeadlineInSegments <= 48 ? " ⚠️ URGENT!" : "";
+                string urgency = letter.DeadlineInSegments <= 48 ? " [URGENT!]" : "";
                 string deadlineText = letter.DeadlineInSegments <= 24 ? "expires today!" : $"{letter.DeadlineInSegments / 24} days left";
 
                 _messageSystem.AddSystemMessage(
@@ -1477,7 +1477,7 @@ public class ObligationQueueManager
     private void ShowSkipSuccessNarrative(DeliveryObligation letter, int tokenCost)
     {
         _messageSystem.AddSystemMessage(
-            $"✅ {letter.SenderName}'s letter jumps the queue to position 1!",
+            $"{letter.SenderName}'s letter jumps the queue to position 1!",
             SystemMessageTypes.Success
         );
 
@@ -1892,7 +1892,7 @@ public class ObligationQueueManager
 
         // Success narrative
         _messageSystem.AddSystemMessage(
-            $"✅ {letter.SenderName}'s letter rockets to position 1!",
+            $"{letter.SenderName}'s letter rockets to position 1!",
             SystemMessageTypes.Success
         );
 
@@ -1970,7 +1970,7 @@ public class ObligationQueueManager
 
         // Success narrative
         _messageSystem.AddSystemMessage(
-            $"✅ {letter.SenderName} grants a 2-day extension!",
+            $"{letter.SenderName} grants a 2-day extension!",
             SystemMessageTypes.Success
         );
 
@@ -2150,7 +2150,7 @@ public class ObligationQueueManager
         obligation.DeadlineInSegments += extensionMinutes;
 
         _messageSystem.AddSystemMessage(
-            $"⏰ Extended deadline for {obligation.SenderName}'s letter by 1 day",
+            $"Extended deadline for {obligation.SenderName}'s letter by 1 day",
             SystemMessageTypes.Success
         );
         return true;
@@ -2260,7 +2260,7 @@ public class ObligationQueueManager
         {
             RemoveObligationFromQueue(position);
             _messageSystem.AddSystemMessage(
-                $"⚠️ Purged {obligation.SenderName}'s letter - expect consequences",
+                $"Purged {obligation.SenderName}'s letter - expect consequences",
                 SystemMessageTypes.Warning
             );
             return true;
@@ -2380,12 +2380,12 @@ public class ObligationQueueManager
         PerformQueueDisplacement(plan);
 
         _messageSystem.AddSystemMessage(
-            $"✅ Successfully moved {obligation.SenderName}'s letter to position {plan.TargetPosition}!",
+            $"Successfully moved {obligation.SenderName}'s letter to position {plan.TargetPosition}!",
             SystemMessageTypes.Success
         );
 
         _messageSystem.AddSystemMessage(
-            $"⚠️ Total relationship cost: {plan.TotalTokenCost} tokens burned permanently",
+            $"Total relationship cost: {plan.TotalTokenCost} tokens burned permanently",
             SystemMessageTypes.Warning
         );
 
@@ -2575,7 +2575,7 @@ public class ObligationQueueManager
         newObligation.FinalQueuePosition = forcedPosition;
 
         _messageSystem.AddSystemMessage(
-            $"✅ {newObligation.SenderName}'s letter locked into position {forcedPosition}",
+            $"{newObligation.SenderName}'s letter locked into position {forcedPosition}",
             SystemMessageTypes.Success
         );
 
@@ -2671,7 +2671,7 @@ public class ObligationQueueManager
         {
             // No tokens to burn - relationship already terrible
             _messageSystem.AddSystemMessage(
-                $"⚠️ No tokens left to burn with {displacedObligation.SenderName} - relationship already ruined",
+                $"No tokens left to burn with {displacedObligation.SenderName} - relationship already ruined",
                 SystemMessageTypes.Warning
             );
         }

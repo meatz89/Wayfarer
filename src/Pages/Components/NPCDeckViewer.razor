@@ -44,7 +44,7 @@
                         }
                         else
                         {
-                            <span class="disabled-reason">✗ No exchange cards</span>
+                            <span class="disabled-reason"><span class="icon-close"></span> No exchange cards</span>
                         }
                     </div>
                     <div class="type-description">
@@ -73,7 +73,7 @@
                         <span class="attention-cost">2 attention</span>
                     </div>
                     <div class="enabling-condition">
-                        <span class="disabled-reason">✗ Requires 2+ burden cards (not implemented)</span>
+                        <span class="disabled-reason"><span class="icon-close"></span> Requires 2+ burden cards (not implemented)</span>
                     </div>
                     <div class="type-description">
                         Address past wrongs and repair relationships.
@@ -87,7 +87,7 @@
                         <span class="attention-cost">3 attention</span>
                     </div>
                     <div class="enabling-condition">
-                        <span class="disabled-reason">✗ Requires relationship level 3+ (not implemented)</span>
+                        <span class="disabled-reason"><span class="icon-close"></span> Requires relationship level 3+ (not implemented)</span>
                     </div>
                     <div class="type-description">
                         Extended intimate conversation with trusted friends.
@@ -102,7 +102,7 @@
                 <h3>One-Time Requests (@(TotalRequestCards) requests)</h3>
                 <div class="deck-purpose">
                     NPCs can have multiple thematic requests. Each request contains request cards (at different momentum thresholds) and promise cards.
-                    <span class="urgency-rule">⚠ Promise Cards: Force queue position 1 and burn tokens for instant momentum!</span>
+                    <span class="urgency-rule"><span class="icon-warning"></span> Promise Cards: Force queue position 1 and burn tokens for instant momentum!</span>
                 </div>
                 
                 @if (CurrentNPC.Requests != null && CurrentNPC.Requests.Any())
