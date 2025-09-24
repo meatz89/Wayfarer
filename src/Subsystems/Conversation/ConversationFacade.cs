@@ -715,11 +715,11 @@ public class ConversationFacade
         return newFocus <= _currentSession.GetEffectiveFocusCapacity();
     }
 
-    public object ExecuteExchange(object exchangeData)
+    public ExchangeExecutionResult ExecuteExchange(object exchangeData)
     {
         if (!IsConversationActive())
         {
-            return new { Success = false, Error = "No active conversation" };
+            return ExchangeExecutionResult.Failed("No active conversation");
         }
 
         try
@@ -737,12 +737,12 @@ public class ConversationFacade
                 _gameWorld.GetPlayer(),
                 _gameWorld.GetPlayerResourceState());
 
-            return new { Success = success };
+            return success ? ExchangeExecutionResult.Successful() : ExchangeExecutionResult.Failed("Exchange execution failed");
         }
         catch (Exception ex)
         {
             _messageSystem.AddSystemMessage($"Exchange failed: {ex.Message}", SystemMessageTypes.Warning);
-            return new { Success = false, Error = ex.Message };
+            return ExchangeExecutionResult.Failed(ex.Message);
         }
     }
 
@@ -902,14 +902,19 @@ public class ConversationFacade
         // Find recipient (deterministic - first available NPC)
         List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
         NPC recipient = otherNpcs.FirstOrDefault();
+        if (recipient == null)
+        {
+            Console.WriteLine($"ERROR: No suitable recipient found for letter from {session.NPC.Name} - only {_gameWorld.NPCs.Count} NPCs available");
+            throw new InvalidOperationException($"Cannot create letter - no other NPCs available as recipients (sender: {session.NPC.Name})");
+        }
 
         return new DeliveryObligation
         {
             Id = Guid.NewGuid().ToString(),
             SenderId = session.NPC.ID,
             SenderName = session.NPC.Name,
-            RecipientId = recipient?.ID ?? "unknown",
-            RecipientName = recipient?.Name ?? "Someone",
+            RecipientId = recipient.ID,
+            RecipientName = recipient.Name,
             TokenType = ConnectionType.Trust,
             Stakes = StakeType.SAFETY,
             DeadlineInSegments = deadlineInSegments,
@@ -927,7 +932,12 @@ public class ConversationFacade
     {
         // Find a suitable recipient (family member, friend, etc.)
         List<NPC> allNpcs = _gameWorld.GetAllNPCs();
-        NPC recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID) ?? allNpcs.FirstOrDefault();
+        NPC recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID);
+        if (recipient == null)
+        {
+            Console.WriteLine($"ERROR: No suitable recipient found for urgent letter from {npc.Name} - only {allNpcs.Count} NPCs available");
+            throw new InvalidOperationException($"Cannot create urgent letter - no other NPCs available as recipients (sender: {npc.Name})");
+        }
 
         return new DeliveryObligation
         {
@@ -935,8 +945,8 @@ public class ConversationFacade
             Title = $"Urgent Letter from {npc.Name}",
             SenderId = npc.ID,
             SenderName = npc.Name,
-            RecipientId = recipient?.ID ?? "unknown",
-            RecipientName = recipient?.Name ?? "Someone",
+            RecipientId = recipient.ID,
+            RecipientName = recipient.Name,
             TokenType = ConnectionType.Trust,
             Stakes = StakeType.SAFETY,
             DeadlineInSegments = 8, // 8 segments for urgent letters

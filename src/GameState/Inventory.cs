@@ -31,7 +31,12 @@ public class Inventory
 
     public string GetFirstItem()
     {
-        return _items.FirstOrDefault() ?? string.Empty;
+        if (!_items.Any())
+        {
+            Console.WriteLine("ERROR: GetFirstItem() called on empty inventory");
+            throw new InvalidOperationException("Attempted to get first item from empty inventory");
+        }
+        return _items[0];
     }
 
     public int GetCapacity()

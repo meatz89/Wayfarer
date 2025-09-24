@@ -19,22 +19,42 @@
 
     public Item GetItemById(string id)
     {
-        return _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == id);
+        if (_gameWorld.WorldState.Items == null)
+        {
+            Console.WriteLine($"ERROR: Items collection is null in GetItemById({id})");
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        }
+        return _gameWorld.WorldState.Items.FirstOrDefault(i => i.Id == id);
     }
 
     public Item GetItemByName(string name)
     {
-        return _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Name == name);
+        if (_gameWorld.WorldState.Items == null)
+        {
+            Console.WriteLine($"ERROR: Items collection is null in GetItemByName({name})");
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        }
+        return _gameWorld.WorldState.Items.FirstOrDefault(i => i.Name == name);
     }
 
     public List<Item> GetAllItems()
     {
-        return _gameWorld.WorldState.Items ?? new List<Item>();
+        if (_gameWorld.WorldState.Items == null)
+        {
+            Console.WriteLine("ERROR: Items collection is null in GetAllItems");
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        }
+        return _gameWorld.WorldState.Items;
     }
 
     public List<Item> GetItemsForLocation(string locationId, string spotId = null)
     {
-        List<Item> items = _gameWorld.WorldState.Items ?? new List<Item>();
+        if (_gameWorld.WorldState.Items == null)
+        {
+            Console.WriteLine($"ERROR: Items collection is null in GetItemsForLocation({locationId}, {spotId})");
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        }
+        List<Item> items = _gameWorld.WorldState.Items;
         if (spotId != null)
         {
             return items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();

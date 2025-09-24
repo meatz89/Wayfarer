@@ -11,7 +11,7 @@ public static class PlayerStatParser
     /// <summary>
     /// Parse player stats configuration from PlayerStatsConfigDTO
     /// </summary>
-    public static (List<PlayerStatDefinition> stats, StatProgression progression) ParseStatsPackage(PlayerStatsConfigDTO configDto)
+    public static PlayerStatsParseResult ParseStatsPackage(PlayerStatsConfigDTO configDto)
     {
         List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
 
@@ -31,13 +31,13 @@ public static class PlayerStatParser
             progression = ConvertDTOToProgression(configDto.Progression);
         }
 
-        return (stats, progression);
+        return new PlayerStatsParseResult(stats, progression);
     }
 
     /// <summary>
     /// Parse player stats configuration from a JSON package (legacy method)
     /// </summary>
-    public static (List<PlayerStatDefinition> stats, StatProgression progression) ParseStatsPackage(JsonElement root)
+    public static PlayerStatsParseResult ParseStatsPackage(JsonElement root)
     {
         List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
         StatProgression progression = null;
@@ -69,7 +69,7 @@ public static class PlayerStatParser
             }
         }
 
-        return (stats, progression);
+        return new PlayerStatsParseResult(stats, progression);
     }
 
     /// <summary>

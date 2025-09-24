@@ -896,7 +896,7 @@ namespace Wayfarer.Pages.Components
             string recipientName = "Thomas the Merchant";
 
             // Determine letter parameters based on tier
-            (int deadline, int payment, StakeType stakes, EmotionalFocus focus) = GetTierParameters(tier);
+            LetterTierParameters tierParams = GetTierParameters(tier);
 
             // Get the NPC from context
             NPC? npc = Context?.Npc;
@@ -913,26 +913,26 @@ namespace Wayfarer.Pages.Components
                 RecipientId = recipientId,
                 RecipientName = recipientName,
                 TokenType = tokenType,
-                DeadlineInSegments = deadline, // Deadline is already in segments
-                Payment = payment,
-                Stakes = stakes,
-                EmotionalFocus = focus,
+                DeadlineInSegments = tierParams.DeadlineInSegments,
+                Payment = tierParams.PaymentInCoins,
+                Stakes = tierParams.Stakes,
+                EmotionalFocus = tierParams.EmotionalFocus,
                 Tier = ConvertToTierLevel(tier),
                 Description = GenerateLetterDescription(npc.Name, recipientName, tier),
                 GenerationReason = $"Generated from conversation with {npc.Name}"
             };
         }
 
-        private (int deadline, int payment, StakeType stakes, EmotionalFocus focus) GetTierParameters(LetterTier tier)
+        private LetterTierParameters GetTierParameters(LetterTier tier)
         {
             // Deadlines converted to segments (1 day = 36 segments, etc.)
             return tier switch
             {
-                LetterTier.Simple => (36, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 1 day, 5 coins
-                LetterTier.Important => (18, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12 seg, 10 coins
-                LetterTier.Urgent => (9, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6 seg, 15 coins
-                LetterTier.Critical => (3, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2 seg, 20 coins
-                _ => (36, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
+                LetterTier.Simple => new LetterTierParameters(36, 5, StakeType.REPUTATION, EmotionalFocus.LOW),      // 1 day, 5 coins
+                LetterTier.Important => new LetterTierParameters(18, 10, StakeType.WEALTH, EmotionalFocus.MEDIUM),    // 12 seg, 10 coins
+                LetterTier.Urgent => new LetterTierParameters(9, 15, StakeType.STATUS, EmotionalFocus.HIGH),         // 6 seg, 15 coins
+                LetterTier.Critical => new LetterTierParameters(3, 20, StakeType.SAFETY, EmotionalFocus.CRITICAL),   // 2 seg, 20 coins
+                _ => new LetterTierParameters(36, 5, StakeType.REPUTATION, EmotionalFocus.LOW)
             };
         }
 
@@ -1109,7 +1109,11 @@ namespace Wayfarer.Pages.Components
 
         protected int GetFocusLimit()
         {
-            if (Session == null) return 3;
+            if (Session == null)
+            {
+                Console.WriteLine("ERROR: Session is null in GetFocusLimit");
+                throw new InvalidOperationException("Session not initialized - cannot get focus limit");
+            }
 
             // Use actual values from ConversationRules.States
             if (ConversationRules.States.TryGetValue(Session.CurrentState, out ConversationStateRules? rules))
@@ -1117,7 +1121,8 @@ namespace Wayfarer.Pages.Components
                 return rules.MaxFocus;
             }
 
-            return 3; // Default fallback
+            Console.WriteLine($"ERROR: No rules found for conversation state {Session.CurrentState} in GetFocusLimit");
+            throw new InvalidOperationException($"Missing conversation rules for state: {Session.CurrentState}");
         }
 
         protected string GetListenDetails()

@@ -331,13 +331,13 @@ public class PackageLoader
         Console.WriteLine("[PackageLoader] Loading player stats configuration...");
 
         // Parse the player stats configuration using PlayerStatParser
-        (List<PlayerStatDefinition> statDefinitions, StatProgression progression) = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
+        PlayerStatsParseResult parseResult = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
 
         // Store the configuration in GameWorld
-        _gameWorld.PlayerStatDefinitions = statDefinitions;
-        _gameWorld.StatProgression = progression;
+        _gameWorld.PlayerStatDefinitions = parseResult.StatDefinitions;
+        _gameWorld.StatProgression = parseResult.Progression;
 
-        Console.WriteLine($"[PackageLoader] Loaded {statDefinitions.Count} stat definitions and progression configuration");
+        Console.WriteLine($"[PackageLoader] Loaded {parseResult.StatDefinitions.Count} stat definitions and progression configuration");
     }
 
     private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)

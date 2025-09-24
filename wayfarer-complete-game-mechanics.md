@@ -46,11 +46,11 @@ Examples of clean separation:
 **BAD**: "High tokens unlock better cards AND improve success"  
 **GOOD**: Tokens unlock NPC signature cards. Card levels improve success. Two separate mechanics.
 
-**BAD**: "Hunger reduces patience AND work output AND travel speed"
+**BAD**: "Hunger reduces doubt AND work output AND travel speed"
 **GOOD**: Hunger reduces work output (coins = 5 - floor(hunger/25)). Hunger increases travel segments (+1 at 75+). Two separate formulas.
 
-**BAD**: "Atmosphere affects focus AND success"
-**GOOD**: Prepared atmosphere affects focus capacity. Focused atmosphere affects success. Each atmosphere has ONE effect.
+**BAD**: "Focus affects multiple unrelated things"
+**GOOD**: Focus has one clear purpose - determining how many cards can be played per SPEAK cycle.
 
 **BAD**: "Investigation gives familiarity AND cards"
 **GOOD**: Investigation gives familiarity. Observation gives cards (requires familiarity). Two separate actions.
@@ -59,61 +59,88 @@ Examples of clean separation:
 
 ### Core Concept
 
-Instead of players owning a personal conversation deck that levels up, each conversation TYPE has its own predefined deck. This ensures cards are always contextually appropriate - you won't have authority cards when comforting desperate Elena or rapport cards when confronting bandits. Cards feel like natural conversation options, not collectible battle cards.
+Instead of players owning a personal conversation deck that levels up, each conversation TYPE has its own predefined deck. This ensures cards are always contextually appropriate - you won't have authority cards when comforting desperate Elena or momentum cards when confronting bandits. Cards feel like natural conversation options, not collectible battle cards.
+
+### Strategic Card Architecture
+
+Each conversation deck is built around a 4-tier strategic framework:
+
+**Generators** (6 cards): Build momentum at different efficiency/power levels
+**Converters** (6 cards): Trade momentum for other resources (doubt reduction, flow, cards)
+**Investments** (4 cards): Scaling effects that reward different game states
+**Utility** (4 cards): Focus manipulation and support effects
+
+### Power Tier Structure
+
+**TIER 1 (1-2 Focus) - Efficient but Weak:**
+- High efficiency (1 momentum per focus)
+- Always affordable foundation cards
+- Enable consistent progress every turn
+
+**TIER 2 (3-4 Focus) - Standard Power:**
+- Balanced efficiency (0.75-1 momentum per focus)
+- Core strategic options requiring planning
+- Most conversation decisions happen here
+
+**TIER 3 (5-6 Focus) - High Impact:**
+- Lower efficiency but high absolute power
+- Require significant planning or focus manipulation
+- Game-changing potential with proper setup
 
 ### Standard Conversation Types
 
 **Friendly Chat**: Casual, balanced mix of all stats
 - Used for building relationships without pressure
-- Contains cards from all five stats equally
+- Contains cards from all four strategic categories
 - Lower difficulty cards predominate
 
-**Desperate Request**: Heavy Rapport/Insight, zero Authority
+**Desperate Request**: Heavy Momentum/Insight, zero Authority
 - For NPCs in crisis needing help
-- Empathetic and analytical approaches only
-- No commanding or controlling options
+- Empathetic generators and doubt-reducing converters
+- Scaling cards that reward emotional investment
 
-**Trade Negotiation**: Heavy Commerce/Insight, zero Rapport
+**Trade Negotiation**: Heavy Commerce/Insight, zero Momentum
 - Business discussions and deals
-- Analytical and transactional focus
-- No emotional connection cards
+- Momentum-efficient generators and flow converters
+- Utility cards for focus optimization
 
-**Authority Challenge**: Heavy Authority/Cunning, zero Rapport
+**Authority Challenge**: Heavy Authority/Cunning, zero Momentum
 - Confrontations and power struggles
-- Commanding and indirect approaches
-- No empathetic options
+- High-impact generators and flow investments
+- Risk-reward converters for power plays
 
 **Information Gathering**: Heavy Insight/Cunning
 - Extracting knowledge and secrets
-- Analytical and subtle methods
-- Mixed other stats for support
+- Card-draw converters and scaling investments
+- Focus manipulation for sustained questioning
 
 **Intimate Confession**: Emotional depth, all stats present
 - Deep personal conversations
-- Higher difficulty cards
-- Requires established relationships
+- Full strategic spectrum with scaling rewards
+- Requires established relationships for effectiveness
 
 ### Contextual Deck Usage
 
 The same NPC uses different conversation decks based on context:
-- Marcus at his shop: Trade Negotiation deck
-- Marcus at the tavern: Friendly Chat deck
-- Marcus when desperate: Desperate Request deck
+- Marcus at his shop: Trade Negotiation deck (momentum-efficient, flow-focused)
+- Marcus at the tavern: Friendly Chat deck (balanced strategic options)
+- Marcus when desperate: Desperate Request deck (doubt-reduction focused)
 
 Elena's progression:
-- First meeting: Desperate Request (she needs help)
-- After trust built: Intimate Confession (deeper connection)
-- At market: Friendly Chat (casual interaction)
+- First meeting: Desperate Request (doubt management critical)
+- After trust built: Intimate Confession (scaling investments available)
+- At market: Friendly Chat (casual momentum building)
 
 ### Verisimilitude Through Context
 
-This system prioritizes verisimilitude over mechanical flexibility. Conversations feel like real interactions where available responses match the context. You literally cannot play authority cards when someone needs emotional support because those cards aren't in that conversation type's deck.
+This system prioritizes verisimilitude over mechanical flexibility. Conversations feel like real interactions where available responses match the context and strategic situation. You literally cannot access high-authority generators when someone needs emotional support because those cards aren't in that conversation type's deck.
 
 Player expression comes through:
-- Stat development determining effectiveness with cards
-- Choosing which conversation types to engage with
-- Building relationships that unlock different conversation contexts
-- Strategic use of the cards available in each situation
+- Understanding the strategic framework of each conversation type
+- Managing focus resources across the power tier structure
+- Choosing between momentum generation and resource conversion
+- Leveraging scaling cards based on current game state
+- Building relationships that unlock different strategic contexts
 
 ## Three Core Game Loops
 
@@ -142,10 +169,12 @@ The mechanical depth comes from playing contextually appropriate cards against e
 - **Receptive**: 5 focus capacity, 4 cards drawn on LISTEN (6-9 tokens)
 - **Trusting**: 6 focus capacity, 5 cards drawn on LISTEN (10+ tokens)
 
-Tokens with an NPC determine your starting connection state for conversations. This represents the accumulated relationship capital affecting how open they are from the start.
+Tokens with an NPC determine your starting connection state for conversations. This represents the accumulated relationship capital affecting how open they are from the start. Better connection states provide more focus capacity and cards drawn on LISTEN.
 
 At -3 flow in Disconnected: Conversation ends immediately.
 At -3 flow in other states: State shifts left, flow resets to 0.
+
+Connection states also affect doubt accumulation rates, with better relationships providing some protection against doubt increases during failed interactions.
 
 #### NPC Deck Systems
 
@@ -181,12 +210,12 @@ These cards are specific to that NPC, not generic token type cards. Marcus doesn
 Each personality type applies one rule that fundamentally changes how conversations work:
 
 - **Proud**: Cards must be played in ascending focus order each turn (resets when you LISTEN)
-- **Devoted**: When rapport decreases, decrease by 1 additional point
+- **Devoted**: When doubt increases, increase by 1 additional point (catastrophizes failure)
 - **Mercantile**: Your highest focus card each turn gains +30% success
-- **Cunning**: Playing same focus as previous card costs -2 rapport
-- **Steadfast**: All rapport changes are capped at ±2 per card
+- **Cunning**: Playing same focus as previous card costs -2 momentum
+- **Steadfast**: All momentum changes are capped at ±2 per card
 
-These rules represent how different personalities respond to conversation. A Proud person needs escalating respect. A Devoted person catastrophizes failure. A Merchant rewards getting to the point.
+These rules represent how different personalities respond to conversation. A Proud person needs escalating respect. A Devoted person catastrophizes failure by accumulating extra doubt. A Merchant rewards getting to the point with success bonuses.
 
 #### Conversation Outputs
 - **Stat XP**: Each card play grants XP to its bound stat (1 XP base, multiplied by conversation difficulty)
@@ -203,7 +232,7 @@ These rules represent how different personalities respond to conversation. A Pro
 
 #### Design Questions Answered
 - **Why travel between locations?** Obligations scattered across the city
-- **Why revisit locations?** Building relationships for better starting rapport
+- **Why revisit locations?** Building relationships for better starting connection states
 - **Why manage time?** Deadlines create pressure and force prioritization
 
 #### Queue Mechanics
@@ -353,9 +382,9 @@ Certain paths require minimum stat levels:
 - "Complex Route" - Requires Insight 3+
 - Navigate through understanding patterns
 
-**Rapport Paths**:
-- "Local's Favor" - Requires Rapport 2+
-- "Safe House Route" - Requires Rapport 4+
+**Momentum Paths**:
+- "Local's Favor" - Requires Momentum 2+
+- "Safe House Route" - Requires Momentum 4+
 - Friends help you pass
 
 **Authority Paths**:
@@ -626,7 +655,7 @@ Every accepted obligation adds physical weight. "Deliver Elena's letter" adds 1 
 Strategic resources carried until needed. Bread weighs 1, removes 30 hunger when consumed. Medicine weighs 1, restores 20 health when used. Carrying these means accepting fewer obligations but having resources exactly when needed. The timing of consumption becomes critical.
 
 #### Tools
-Permanent equipment providing persistent benefits at weight cost. A crowbar weighs 2, enables "Forced Entry" path cards. A merchant ledger weighs 1, provides +1 starting Commerce rapport. A rope weighs 2, enables "Cliff Descent" paths. Tools never leave your satchel unless dropped, creating long-term capacity decisions.
+Permanent equipment providing persistent benefits at weight cost. A crowbar weighs 2, enables "Forced Entry" path cards. A merchant ledger weighs 1, provides +1 starting Commerce momentum. A rope weighs 2, enables "Cliff Descent" paths. Tools never leave your satchel unless dropped, creating long-term capacity decisions.
 
 #### Trade Goods
 Items with no immediate use but sellable at specific locations. Silk weighs 3, sells for 10 coins at Noble Quarter. Ore weighs 4, sells for 8 coins at Warehouse. Wine weighs 2, sells for 6 coins at Tavern. Finding these creates immediate decisions about profit versus capacity.
@@ -677,12 +706,32 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 
 ## Resource Flow Between Loops
 
+### Momentum Economy Integration
+
+**Momentum Generation Rebalancing**:
+- **Previous**: 2-4 momentum per card average created resource inflation
+- **New**: 1-3 momentum per card average requires strategic planning
+- **Goal Thresholds**: Basic 8, Enhanced 12, Premium 16 (reduced from 10/15/20)
+- **Impact**: Matches reduced generation while maintaining 5-8 turn conversations
+
+**Resource Conversion Introduction**:
+- Cards that spend momentum for doubt reduction, flow advancement, card draw
+- Creates spend vs save decisions every turn
+- Prevents pure momentum hoarding strategies
+- Enables multiple paths to goal achievement
+
+**Focus Constraint Management**:
+- Tier 1 cards (1-2 focus): Always affordable foundation
+- Tier 2 cards (3-4 focus): Require turn planning
+- Tier 3 cards (5-6 focus): Demand setup or focus manipulation
+- Creates meaningful resource allocation decisions
+
 ### Time Segment Economy Connections
 
 **Daily Allocation**: 24 segments (6 blocks × 4 segments each)
 
 Time segments enable:
-- **Conversations** (1 segment + patience depth): Access to letters and tokens
+- **Conversations** (1 segment + doubt depth): Access to letters and tokens
 - **Investigations** (1 segment): Build location familiarity
 - **Observations** (1 segment): Discover cards or items for NPCs
 - **Work** (4 segments/full block): Coins but time cost, scaled by hunger
@@ -716,7 +765,7 @@ Time advances through:
 - **Travel**: Path cards cost segments directly
 - **Investigation**: 1 segment per action
 - **Work**: Full block advancement (4 segments)
-- **Conversation**: 1 segment base + patience depth
+- **Conversation**: 1 segment base + doubt depth
 - **Observation**: 1 segment when available
 
 Deadlines create cascading decisions:
@@ -752,7 +801,7 @@ Deadlines create cascading decisions:
 - Request cards provide access permits
 - Successful deliveries reward observation cards or items
 - Built relationships unlock signature cards for easier future conversations
-- Atmosphere effects can overcome obstacles
+- Card effects can overcome obstacles
 
 **Queue management solves Conversation problems**:
 - Completing letters builds tokens for signature cards
@@ -811,22 +860,20 @@ Four types, each with distinct identity:
   - Pool persists across SPEAK actions
   - Refreshes to maximum on LISTEN
   - Each card costs its focus value
-  - Prepared atmosphere adds +1 to current capacity
+  - Certain cards can temporarily increase focus capacity
   - Can exceed maximum temporarily with Prepared
   - Health below 50 reduces capacity by 1
 - **Strategic Role**: Core resource management within conversations. Enables multi-turn planning knowing failure typically forces LISTEN.
 
-#### Rapport
-- **Range**: -50 to +50
-- **Starting Value**: 0 (no longer modified by tokens)
-- **Effect**: +2% success rate per point on all cards
-  - At -50: Guaranteed failure
-  - At 0: Base card percentages
-  - At +25: +50% to all cards
-  - At +50: Guaranteed success
-- **Changes**: Through card effects only
+#### Momentum
+- **Range**: 0 to 20+
+- **Starting Value**: 0 (built through conversation)
+- **Goal Thresholds**: Basic (8), Enhanced (12), Premium (16)
+- **Effect**: Used to unlock request goals and can be consumed for techniques
+- **Reduction**: Each LISTEN action, doubt reduces momentum by 1 point per doubt
+- **Consumption**: Cards can spend momentum for doubt reduction, flow advancement, card draw
 - **Resets**: After conversation ends
-- **Strategic Role**: Momentum system rewarding successful plays
+- **Strategic Role**: Core resource representing conversation progress toward goals
 
 #### Flow
 - **Range**: -3 to +3
@@ -842,33 +889,15 @@ Four types, each with distinct identity:
 - **State progression**: [Ends] ← Disconnected ← Guarded ← Neutral → Receptive → Trusting
 - **Strategic Role**: Progress tracker forcing consistent success
 
-#### Atmosphere
-**Standard Atmospheres** (~30% of cards change atmosphere):
-- **Neutral**: No effect (default, set after any failure)
-- **Other atmospheres**: TBD (specific effects to be determined)
 
-**Mechanics**:
-- Persistence: Remains until changed by another card or cleared by failure
-- Changes take effect immediately
-- Only ~30% of cards change atmosphere
-- Failure always clears to Neutral
-
-**Strategic Role**: Environmental modifier that shapes entire conversations. Setup cards create favorable conditions for critical plays.
-
-#### Patience
-- **Base Values by Personality**:
-  - Devoted: 15
-  - Steadfast: 13  
-  - Mercantile: 12
-  - Cunning: 12
-  - Proud: 10
-- **Modifiers**:
-  - Private spot: +1
-  - Public spot: -1
-  - Patient atmosphere: Actions cost 0
-- **Effect**: Maximum turns in conversation (LISTEN costs 1 turn)
-- **Patience as Time Depth**: Each patience spent represents 5 minutes of conversation depth beyond the base segment
-- **Strategic Role**: Time limit for each conversation. Forces efficient play since failure typically forces LISTEN which costs patience.
+#### Doubt
+- **Range**: 0 to 10+ (inverted player health)
+- **Starting Value**: 0 (increases through conversation)
+- **Increase**: +1 doubt when card plays fail
+- **Effect**: High doubt causes conversation failure/loss
+- **Momentum Reduction**: Each LISTEN action, doubt reduces momentum by 1 point per doubt
+- **Consumption**: Can be reduced through momentum-consuming cards
+- **Strategic Role**: Rising doubt creates urgency and makes momentum-consuming cards "essentially free" since doubt would reduce momentum anyway
 
 ## Time Segment System
 
@@ -898,7 +927,7 @@ Time replaces abstract attention with concrete segments representing actual dura
 - Choosing path cards during travel
 
 **One Segment Actions** represent meaningful time:
-- Standard conversations (base cost + patience depth)
+- Standard conversations (base cost + doubt depth)
 - Investigation at any spot
 - Observation when available
 - Each segment of travel based on path cards
@@ -912,14 +941,14 @@ When segments in a block are exhausted, time advances to the next block. Startin
 
 ### Conversation Time Integration
 
-Conversations cost 1 base segment plus patience becomes time depth. Each patience spent adds 5 minutes of conversation complexity. This maintains patience importance while simplifying tracking.
+Conversations cost 1 base segment plus doubt becomes time depth. Each point of doubt adds complexity to conversation resolution. This creates tension as doubt accumulates through failures.
 
-**Connection State Time Modifiers**:
-- Disconnected: Rushed conversation, patience counts double
-- Guarded: Normal patience cost
-- Neutral: Normal patience cost
-- Receptive: Comfortable flow, -20% patience cost
-- Trusting: Natural rhythm, patience counts half
+**Connection State Doubt Modifiers**:
+- Disconnected: Stressful conversation, doubt accumulates faster
+- Guarded: Normal doubt accumulation
+- Neutral: Normal doubt accumulation
+- Receptive: Comfortable flow, -20% doubt from failures
+- Trusting: Natural rhythm, doubt accumulates slower
 
 This creates mechanical differentiation where better relationships enable longer conversations for the same time investment.
 
@@ -938,7 +967,7 @@ Investigation has multiple approaches unlocked by player stats:
 - Effect: +1 additional familiarity
 - Reveals hidden connections
 
-**Local Inquiry** (Rapport 2+):
+**Local Inquiry** (Momentum 2+):
 - Cost: 1 segment
 - Effect: Normal familiarity + learn which NPCs want observations from this location
 - Builds social map of location
@@ -994,52 +1023,138 @@ Missing deadlines has permanent consequences:
 
 ### Core Design Principle
 
-The conversation system represents the primary gameplay loop. Players build and improve their conversation deck over time, representing their growing social repertoire. This deck is used in all conversations but each NPC modifies the experience through their personality rules and unlocked signature cards.
+The conversation system represents the primary gameplay loop using a momentum/doubt resource system. Instead of managing rapport and patience, players build **momentum** toward goal thresholds while managing **doubt** that accumulates from failures and reduces momentum during LISTEN actions.
 
-**Failure Effects Apply**: When a SPEAK action fails, the card's failure effect is applied. Cards without specific failure effects automatically apply ForceListen as a fallback, maintaining natural conversation rhythm where failure typically forces topic changes.
+### Core Resource Mechanics
 
-### Card Categorical Property System
+**Momentum System (Like Inverted Enemy Health)**:
+- Momentum represents progress toward conversation goals
+- Goal thresholds: Basic (8), Enhanced (12), Premium (16)
+- Reaching thresholds unlocks request goal cards that end conversation when chosen
+- Momentum can be consumed by cards for doubt reduction, flow advancement, card draw
+- Each LISTEN action reduces momentum by 1 per current doubt level
 
-Each card is defined by exactly five categorical properties that determine its behavior:
+**Doubt System (Like Inverted Player Health)**:
+- Doubt starts at 0 and increases by 1 when card plays fail
+- High doubt causes conversation failure/loss if it gets too high
+- Each LISTEN action, doubt reduces momentum (1 doubt = -1 momentum)
+- This makes momentum-consuming cards "essentially free" when doubt is high
+- Cards can spend momentum to reduce doubt, creating resource conversion decisions
+
+**Focus System**:
+- Focus determines how many cards can be played in one SPEAK cycle
+- Each card costs specific focus points based on its tier (1-6 focus)
+- Unused focus is lost on LISTEN - no banking or carrying over
+- Focus fully replenishes to connection state maximum on LISTEN
+
+**Flow System**:
+- Flow changes connection state when thresholds are reached (both directions)
+- Connection state determines cards drawn on LISTEN and focus capacity
+- +1 flow on successful card plays, -1 flow on failures
+- At ±3 flow: state changes and flow resets to 0
+
+**New Conversation Structure**:
+- NPC request chosen BEFORE conversation determines conversation type
+- Each conversation type has exactly ONE unique card deck (creates unique puzzle per type)
+- Card deck flows: draw pile → active pile (hand) → exhaust pile
+- When draw pile empties, shuffle exhaust pile back to draw pile for cycling
+
+**Card Persistence Types**:
+- **Thought cards**: Stable, remain in hand through LISTEN actions
+- **Impulse cards**: Want to be spoken, each unspoken impulse card on LISTEN reduces cards drawn by 1
+- Creates tension between playing impulse cards vs. holding for better timing
+
+**Card Success Effects** (Categorical mapping):
+- **Strike**: Generate momentum (maps to Expression card type)
+- **Threading**: Draw cards to hand (maps to Realization card type)
+- **Soothe**: Reduce doubt or spend momentum for doubt reduction (maps to Regulation card type)
+- **Focusing**: Restore or temporarily increase focus
+- **Advancing**: Advance flow through momentum conversion
+- **Scaling**: Variable effects based on current game state
+
+**Failure Effects Apply**: When a SPEAK action fails, doubt increases by +1 and the card's failure effect is applied. Cards without specific failure effects automatically apply ForceListen as a fallback, maintaining natural conversation rhythm where failure typically forces topic changes.
+
+### Strategic Card Framework
+
+Each card is defined by strategic role and resource relationships:
+
+#### Card Categories by Strategic Function
+
+**Generators**: Build momentum at varying efficiency levels
+- Tier 1: 1-2 focus, high efficiency (1 momentum per focus)
+- Tier 2: 3-4 focus, balanced efficiency (0.75-1 momentum per focus)
+- Tier 3: 5-6 focus, high impact but lower efficiency
+
+**Converters**: Transform momentum into other resources
+- Spend momentum for doubt reduction
+- Convert momentum to flow advancement
+- Trade momentum for additional card draws
+- Enable resource optimization strategies
+
+**Investments**: Scaling effects based on game state
+- Power scales with cards in hand
+- Effectiveness increases with doubt level
+- Rewards specific strategic situations
+- Long-term value over immediate power
+
+**Utility**: Focus manipulation and support effects
+- Temporary focus increases
+- Focus cost reduction
+- Hand management support
+- Enable tier 3 power plays
+
+#### Success Effect Types
+- **Strike**: Generate momentum (primary resource)
+- **Threading**: Draw cards to hand
+- **Soothe**: Reduce doubt directly or through momentum spending
+- **Focusing**: Restore or temporarily increase focus
+- **Advancing**: Advance flow through momentum conversion
+- **Scaling**: Variable effects based on game state
 
 #### Persistence (when the card can be played)
 - **Thought**: Remains in hand until played (survives LISTEN)
-- **Impulse**: Removed after any SPEAK if unplayed
-- **Opening**: Removed after LISTEN if unplayed
-
-#### Success (effect type on success)
-- **Rapport**: Changes connection strength determined by magnitude
-- **Threading**: Draw cards to hand determined by magnitude
-- **Atmospheric**: Sets specific atmosphere determined by magnitude
-- **Focusing**: Restore focus to current pool determined by magnitude
-- **Advancing**: Advance flow battery by x steps determined by magnitude
-- **Promising**: Move obligation to position x determined by magnitude and gain rapport
-- **None**: No effect on success
+- **Impulse**: Removed after LISTEN if unplayed
 
 #### Failure (effect type on failure)
-- **Backfire**: Negative rapport change
+- **Backfire**: Negative momentum change
 - **Reversal**: Move flow battery backward 1 step
 - **ForceListen**: Player must LISTEN on next turn after failure
 - **None**: No additional effect (automatically applies ForceListen as fallback)
 
 #### Exhaust (effect when discarded unplayed)
-- **Regret**: Negative rapport when discarded
+- **Regret**: Negative momentum when discarded
 - **Drain**: Lose focus when discarded
 - **Decay**: Move flow backward when discarded
 - **None**: No effect when discarded
 
 #### Stat Binding (which stat gains XP and provides bonuses)
-- Every card bound to exactly one stat: Insight, Rapport, Authority, Commerce, or Cunning
+- Every card bound to exactly one stat: Insight, Momentum, Authority, Commerce, or Cunning
 - Determines which stat gains XP when played
 - Determines which stat level provides card bonuses
 
-#### Magnitude Determination
-Effect magnitudes are determined by difficulty level, not hardcoded:
-- **Very Easy**: Magnitude 1
-- **Easy**: Magnitude 2
-- **Medium**: Magnitude 2
-- **Hard**: Magnitude 3
-- **Very Hard**: Magnitude 4
+#### Strategic Value Determination
+
+Card power is determined by strategic role and tier level:
+
+**Tier 1 Efficiency Standards**:
+- 1 focus cards: 1 momentum or equivalent value
+- 2 focus cards: 2 momentum or equivalent value
+- High efficiency, always affordable, foundation layer
+
+**Tier 2 Balance Standards**:
+- 3 focus cards: 2-3 momentum or conversion effects
+- 4 focus cards: 3-4 momentum or powerful conversions
+- Strategic planning required, core decision layer
+
+**Tier 3 Impact Standards**:
+- 5 focus cards: 4-5 momentum or major conversions
+- 6 focus cards: Variable scaling or game-changing effects
+- Setup required, decisive moment layer
+
+**Conversion Rate Standards**:
+- Momentum to doubt: ~1.5:1 ratio (2 momentum → 3 doubt reduction)
+- Momentum to flow: ~3:1 ratio (3 momentum → 1 flow advancement)
+- Momentum to cards: ~2:1 ratio (varies by utility value)
 
 ### Player Stats System
 
@@ -1052,8 +1167,8 @@ Players have five core stats representing different problem-solving methodologie
 - Unlocks systematic investigation approaches
 - Gates scholarly and complex travel paths
 
-**Rapport** - Emotional connection and empathy
-- Bound cards focus on understanding, support, and connection
+**Momentum** - Building conversation progress toward goals
+- Bound cards focus on advancing conversation objectives
 - Unlocks social investigation through locals
 - Gates community-based travel paths
 
@@ -1097,7 +1212,7 @@ Players have five core stats representing different problem-solving methodologie
 
 Players develop five core stats representing conversational methodologies:
 
-**Stat System**: Five stats (Insight, Rapport, Authority, Commerce, Cunning)
+**Stat System**: Five stats (Insight, Momentum, Authority, Commerce, Cunning)
 **Stat Growth**: XP gained by playing cards bound to that stat
 **Stat Enhancement**: Higher stat levels make all cards of that type more effective
 **No Deck Ownership**: Players don't collect cards - conversation types provide context-appropriate decks
@@ -1158,27 +1273,29 @@ When a player chooses a request conversation type, ALL cards from that Request b
 
 #### Request Pile
 - Request cards go here
-- Must be unlocked by reaching the card's rapport threshold
+- Must be unlocked by reaching the card's momentum threshold
 - All unlockable cards get moved to Active Pile on next Listen
 - Request cards in Active Pile are always playable with 100% success chance, ending the conversation when played
 
 ### LISTEN Action
 
 Complete sequence:
-1. **Check patience cost**
-   - Normal: Costs 1 patience
-   - Patient atmosphere: Costs 0 patience
-2. **Discard non-persistent cards** (~80% of hand lost)
-3. **Draw new cards** equal to connection state
-   - Disconnected/Guarded: 3 cards
-   - Neutral/Receptive: 4 cards
-   - Trusting: 5 cards
-   - If draw pile has fewer: Draw what's available
+1. **Apply doubt momentum reduction**
+   - Reduce momentum by 1 point per current doubt level
+   - This makes momentum-consuming cards "essentially free" when doubt is high
+2. **Handle card persistence**
+   - **Impulse cards**: Remove all unplayed impulse cards from hand
+   - **Thought cards**: Remain in hand (persistent through LISTEN)
+   - Each unspoken impulse card reduces cards drawn by 1
+3. **Draw new cards** equal to connection state minus impulse penalty
+   - Base draw: Disconnected/Guarded (3), Neutral/Receptive (4), Trusting (5)
+   - Reduced by number of impulse cards that went unspoken
    - If draw pile empty: Shuffle exhaust → new draw pile → continue
 4. **Refresh focus** to connection state maximum
-5. **Apply atmosphere modifiers**: (TBD based on atmosphere type)
-6. **Check request card activation**:
-   - Check ALL goal cards for rapport thresholds
+5. **Check request card activation**:
+   - Check ALL goal cards for momentum thresholds (Basic 8, Enhanced 12, Premium 16)
+   - Each card that meets its threshold becomes playable with 100% success
+6. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
    - Each card that meets its threshold becomes playable
 7. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
 
@@ -1190,18 +1307,16 @@ Complete sequence:
 3. **Check personality restrictions** (like Proud's ascending order)
 4. **Spend focus** equal to card cost from pool
 5. **Calculate success chance**:
-   - Base difficulty % + (2 × current rapport)
-   - Apply atmosphere modifiers if any
+   - Base difficulty % + (2 × current momentum)
    - Apply personality modifiers (like Mercantile's +30% to highest focus)
 6. **Resolve success/failure**:
    - Success: +1 flow, apply card effects
-   - Failure: -1 flow, apply failure effects (ForceListen applied if effect is None)
+   - Failure: +1 doubt, -1 flow, apply failure effects (ForceListen applied if effect is None)
 7. **Card goes to exhaust pile**
 8. **Apply card effects**:
-   - Rapport changes
-   - Atmosphere changes
+   - Momentum changes
    - Draw/focus effects
-9. **Apply personality effects** (like Devoted's double rapport loss)
+9. **Apply personality effects** (like Devoted's double momentum loss)
 10. **Check flow transitions**:
     - At ±3: State change, flow resets to 0
 11. **If Success**: Execute Card Success Effect. Can SPEAK again if focus remains
@@ -1216,7 +1331,7 @@ Promise cards are special conversation cards bundled with requests that manipula
 - **Success Effect**: Target obligation immediately moves to position 1
 - **Queue Impact**: All displaced obligations shift down
 - **Token Burning**: Automatically burn tokens with ALL displaced NPCs
-- **Rapport Bonus**: Gain +5 to +10 rapport immediately
+- **Momentum Bonus**: Gain +5 to +10 momentum immediately
 - **Narrative**: "I'll prioritize your request" - literally and mechanically
 
 **Strategic Use**:
@@ -1227,41 +1342,39 @@ Promise cards are special conversation cards bundled with requests that manipula
 
 ### Multi-Threshold Goal System
 
-Each Request bundles multiple goal cards with different rapport requirements:
+Each Request bundles multiple goal cards with different momentum requirements:
 
 #### Goal Ladder Example
-- **Basic Goal** (5 rapport): Standard delivery, 1 token reward
-- **Enhanced Goal** (10 rapport): Priority delivery, 2 tokens + observation
-- **Premium Goal** (15 rapport): Immediate action, 3 tokens + permit
+- **Basic Goal** (8 momentum): Standard delivery, 1 token reward
+- **Enhanced Goal** (12 momentum): Priority delivery, 2 tokens + observation
+- **Premium Goal** (16 momentum): Immediate action, 3 tokens + permit
 
 #### Strategic Decision Tree
 1. **Safe Exit**: Accept basic goal once achievable
-2. **Natural Building**: Risk patience for higher thresholds  
+2. **Natural Building**: Risk doubt accumulation for higher thresholds
 3. **Promise Sacrifice**: Burn relationships to guarantee premium
 
 #### Cascading Consequences
-- Accept basic = preserve queue relationships
-- Build naturally = risk patience exhaustion
-- Use promise = damage multiple relationships for one success
+- Accept basic = preserve queue relationships, avoid doubt accumulation
+- Build naturally = risk doubt accumulation that reduces momentum on LISTEN
+- Use promise = damage multiple relationships for one success, but guarantee goal achievement
 
-The tension: You're not asking "can I succeed?" but "how much will I sacrifice?"
+The tension: You're not asking "can I succeed?" but "how much doubt can I accumulate before momentum gets consumed by LISTEN actions?"
 
 ### Conversation End
 
 Triggers:
-- Patience exhausted
+- Doubt too high (conversation failure)
 - Flow at -3 in Disconnected state
 - Request card accepted/failed
 - Player chooses to leave
-- Final atmosphere failure
 
 Cleanup:
 - All piles cleared
 - NPC persistent decks unchanged (except consumed observations)
-- Rapport resets to 0
-- Atmosphere clears to Neutral
+- Momentum resets to 0
 - Connection state persists
-- Time cost: Base segment + (patience spent × 5 minutes depth)
+- Time cost: Base segment + (doubt accumulated × complexity factor)
 
 #### Card Persistence Types
 
@@ -1294,7 +1407,7 @@ Difficulty determines both base success rate and effect magnitude:
 - **Hard** (50% base): Magnitude 3 effects
 - **Very Hard** (40% base): Magnitude 4 effects
 
-All success rates modified by: +2% per rapport point
+All success rates modified by: +2% per momentum point
 
 ### Deck Cycling Example
 
@@ -1362,38 +1475,38 @@ Strangers are unnamed NPCs that provide resource generation and stat grinding op
 - Examples: Street vendors, pilgrims, workers
 - +10% success rate on all cards
 - 1 XP per card played
-- Lower rapport thresholds
+- Lower momentum thresholds
 
 **Level 2 Strangers**:
 - Examples: Traveling merchants, guards, clerks
 - Normal success rates
 - 2 XP per card played
-- Standard rapport thresholds
+- Standard momentum thresholds
 
 **Level 3 Strangers**:
 - Examples: Visiting nobles, foreign scholars
 - -10% success rate on all cards
 - 3 XP per card played
-- Higher rapport thresholds
+- Higher momentum thresholds
 
 #### Conversation Rewards
 
-**Friendly Chat** (5/10/15 rapport):
+**Friendly Chat** (8/12/16 momentum):
 - Basic: 2 coins
 - Enhanced: 4 coins + bread (weight 1)
 - Premium: 6 coins + medicine (weight 1)
 
-**Trade Negotiation** (5/10/15 rapport):
+**Trade Negotiation** (8/12/16 momentum):
 - Basic: Trade goods (weight 2, value 5 coins)
 - Enhanced: Trade goods (weight 2, value 8 coins)
 - Premium: Trade goods (weight 3, value 12 coins)
 
-**Information Gathering** (5/10/15 rapport):
+**Information Gathering** (8/12/16 momentum):
 - Basic: Reveals one face-down path
 - Enhanced: Reveals two paths + marks observation
 - Premium: Reveals all paths on entire route
 
-**Seek Favor** (8/12/20 rapport):
+**Seek Favor** (8/12/16 momentum):
 - Basic: 5 coins
 - Enhanced: Simple permit (weight 1)
 - Premium: 10 coins + valuable item
@@ -1416,39 +1529,49 @@ Strangers appear at specific spots during certain blocks:
 
 ## Conversation Card Distribution
 
-### Conversation Type Card Examples
+### Strategic Card Examples by Tier
 
-Each conversation type contains cards distributed across relevant stats:
+Each conversation type contains cards distributed across strategic categories:
 
-**Insight Cards** (4 cards) - Analytical and observational:
-- "Let me analyze" - Focus 1, Easy, Thought/Rapport/None/None
-- "Notice pattern" - Focus 2, Medium, Thought/Threading/None/None
-- "Consider evidence" - Focus 3, Medium, Thought/Rapport/None/None  
-- "Deep observation" - Focus 4, Hard, Thought/Focusing/None/None
+**TIER 1 - Efficient Foundation (1-2 Focus):**
+- "Gentle Agreement" - Focus 1, Strike, +1 momentum (Generator)
+- "Quick Insight" - Focus 1, Threading, Draw 1 card (Utility)
+- "Pause Reflect" - Focus 1, Soothe, -1 doubt (Converter)
+- "Build Momentum" - Focus 2, Strike, +2 momentum (Generator)
 
-**Rapport Cards** (4 cards) - Empathetic and supportive:
-- "I understand" - Focus 1, Easy, Thought/Rapport/None/None
-- "Let me help" - Focus 2, Medium, Thought/Rapport/None/None
-- "Share burden" - Focus 3, Medium, Thought/Rapport/Backfire/None
-- "Deep connection" - Focus 4, Hard, Thought/Rapport/None/None
+**TIER 2 - Strategic Core (3-4 Focus):**
+- "Passionate Plea" - Focus 3, Strike, +3 momentum (Generator)
+- "Clear Confusion" - Focus 3, Soothe, Spend 2 momentum → -3 doubt (Converter)
+- "Establish Trust" - Focus 3, Advancing, Spend 3 momentum → +1 flow (Converter)
+- "Racing Thoughts" - Focus 3, Threading, Draw 2 cards (Utility)
 
-**Authority Cards** (4 cards) - Commanding and dominant:
-- "Listen carefully" - Focus 1, Easy, Thought/Rapport/None/None
-- "Take charge" - Focus 2, Medium, Thought/Atmospheric-Focused/None/None
-- "Direct order" - Focus 3, Hard, Impulse/Rapport/Backfire/Regret
-- "Final word" - Focus 5, Very Hard, Impulse/Rapport/Disrupting/Regret
+**TIER 3 - High Impact (5-6 Focus):**
+- "Burning Conviction" - Focus 5, Strike, +5 momentum (Generator)
+- "Moment of Truth" - Focus 5, Advancing, Spend 4 momentum → +2 flow (Converter)
+- "Deep Understanding" - Focus 6, Strike, Momentum = cards in hand (Investment)
 
-**Commerce Cards** (4 cards) - Transactional and optimizing:
-- "Fair exchange" - Focus 1, Easy, Thought/Rapport/None/None
-- "Find the angle" - Focus 2, Medium, Thought/Threading/None/None
-- "Mutual benefit" - Focus 3, Medium, Thought/Rapport/None/None
-- "Close the deal" - Focus 4, Hard, Thought/Rapport/Backfire/None
+**SCALING/INVESTMENT CARDS:**
+- "Show Understanding" - Focus 3, Strike, Momentum based on cards in hand (Investment)
+- "Build Pressure" - Focus 4, Strike, Momentum based on current doubt (Investment)
+- "Mental Reset" - Focus 0, Focusing, +2 focus this turn only (Utility)
+- "Desperate Gambit" - Focus 2, Strike, Momentum scales with doubt level (Investment)
 
-**Cunning Cards** (4 cards) - Indirect and subtle:
-- "Subtle hint" - Focus 1, Easy, Thought/Rapport/None/None
-- "Misdirection" - Focus 2, Medium, Thought/Atmospheric-Patient/None/None
-- "Hidden meaning" - Focus 3, Medium, Thought/Rapport/None/None
-- "Perfect lie" - Focus 4, Hard, Impulse/Rapport/Disrupting/None
+### Resource Conversion Examples
+
+**Direct Converters** - Transform momentum immediately:
+- Clear Confusion: 2 momentum → 3 doubt reduction
+- Establish Trust: 3 momentum → 1 flow advancement
+- Moment of Truth: 4 momentum → 2 flow advancement
+
+**Investment Scaling** - Power varies by game state:
+- Show Understanding: More cards in hand = more momentum
+- Build Pressure: Higher doubt = more momentum generated
+- Desperate Gambit: Doubt becomes strength through desperation
+
+**Focus Manipulation** - Enable tier 3 plays:
+- Mental Reset: Temporary focus boost for big plays
+- Efficient cards preserve focus for powerful effects
+- Planning required for focus-intensive combinations
 
 ### Stat Progression System
 
@@ -1465,7 +1588,7 @@ All cards bound to a stat gain uniform benefits:
 - Level 5: Immune to ForceListen failure effect
 
 **Strategic Development**:
-Players naturally develop specialties through play patterns. High Rapport players find empathetic approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
+Players naturally develop specialties through play patterns. High Momentum players find goal-oriented approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
 
 ### Stat Development Through Play
 
@@ -1487,10 +1610,10 @@ Players naturally specialize through play patterns:
 Each NPC has 5 unique cards that mix into the conversation based on tokens:
 
 #### Example: Marcus's Commerce Cards
-- **1 token**: "Marcus's Rapport" - Focus 2, Hard, Thought/Rapport/None/None
+- **1 token**: "Marcus's Momentum" - Focus 2, Hard, Thought/Momentum/None/None
 - **3 tokens**: "Trade Knowledge" - Focus 3, Easy, Thought/Threading/None/None
-- **6 tokens**: "Commercial Bond" - Focus 1, Very Hard, Thought/Rapport/Backfire/None
-- **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Rapport/None/None (special: None failure effect without ForceListen fallback)
+- **6 tokens**: "Commercial Bond" - Focus 1, Very Hard, Thought/Momentum/Backfire/None
+- **10 tokens**: "Marcus's Favor" - Focus 4, Hard, Thought/Momentum/None/None (special: None failure effect without ForceListen fallback)
 - **15 tokens**: "Master Trader" - Focus 5, Medium, Thought/Atmospheric-Focused/None/None
 
 These cards represent the mechanical expression of each relationship, making every NPC conversation unique even with the same conversation type.
@@ -1499,10 +1622,10 @@ These cards represent the mechanical expression of each relationship, making eve
 
 **Personality Optimization**: Develop stats for specific NPC types
 - **Proud Focus**: Authority and Commerce work well with ascending requirements
-- **Devoted Safety**: Rapport minimizes negative effects from additional losses
+- **Devoted Safety**: Momentum minimizes negative effects from additional losses
 - **Mercantile Power**: Commerce naturally has high-focus cards for +30% bonus
 - **Cunning Variety**: Insight and Cunning provide diverse approaches
-- **Steadfast Consistency**: Rapport provides steady small gains within ±2 cap
+- **Steadfast Consistency**: Momentum provides steady small gains within ±2 cap
 
 **Token Strategy**: Which relationships to prioritize
 - Commerce tokens for Marcus improve starting state for trade conversations
@@ -1559,7 +1682,7 @@ Promise cards create a unique interaction between conversation and queue systems
 - Creates visible sacrifice (narrative emergence)
 
 **Cost-Benefit Analysis**:
-- Benefit: +5-10 rapport, reach premium goals
+- Benefit: +5-10 momentum, reach premium goals
 - Cost: Burn tokens equal to positions displaced
 - Risk: Damaged relationships harder to repair
 - Opportunity: Higher tier rewards often worth sacrifice
@@ -1614,14 +1737,24 @@ Coins → Food (reduces hunger) → Better work output next time
 Better output → More coins → Critical purchases
 ```
 
-### Cards → Success → Stronger Deck
+### Strategic Cards → Success → Better Conversations
 ```
 Successful card plays → XP for connected Stat
-Card levels up → Better success rate / gains keywords
+Stat levels up → All bound cards gain benefits (success rate, persistence, etc.)
 Request completion → Stat XP and progression
-Deck refinement → Remove weak cards
-Stronger deck → Handle harder NPCs
-Harder NPCs → Better rewards → More powerful cards
+Higher stats → Better performance with card categories
+Stronger strategic play → Handle complex personality rules
+Harder NPCs → Better rewards → Access to more powerful strategic contexts
+```
+
+### Momentum Management → Goal Achievement
+```
+Generate momentum → Build toward goal thresholds
+Convert momentum → Reduce doubt, advance flow, draw cards
+Manage focus → Enable tier 3 high-impact plays
+Strategic decisions → Generator vs converter vs investment cards
+Resource optimization → Multiple paths to success
+Completed goals → Token rewards and relationship advancement
 ```
 
 ### Tokens → Signature Cards → Easier Conversations
@@ -1654,14 +1787,51 @@ Trade goods → Profit but opportunity cost
 Every choice → Different paths available
 ```
 
-### Focus → Cards → Rapport → Flow
+## Economic Balance Points
+
+### Momentum Economy Rebalancing
+
+**Previous System Issues**:
+- 2-4 momentum per card average created resource inflation
+- Goals at 10/15/20 became trivial with high generation
+- No resource tension or strategic decisions
+- Focus generosity allowed playing entire hand most turns
+
+**New Strategic Framework**:
+- **Momentum Generation**: 1-3 momentum per card average
+- **Goal Thresholds**: Basic 8, Enhanced 12, Premium 16
+- **Resource Conversion**: Momentum spending for doubt, flow, cards
+- **Focus Constraints**: Tier system creates meaningful limitations
+
+### Strategic Decision Creation
+
+**Every Turn Forces Choices**:
+- Generator vs Converter vs Investment cards
+- Tier 1 efficiency vs Tier 3 power
+- Momentum banking vs immediate conversion
+- Focus allocation across power tiers
+
+**Multiple Victory Paths**:
+- Pure momentum accumulation (generator focus)
+- Doubt management (converter focus)
+- Flow advancement (investment focus)
+- Card advantage (utility focus)
+
+**Economic Pressure Points**:
+- Focus constraints prevent "play everything" strategies
+- Momentum conversion prevents pure hoarding
+- Goal thresholds require planning across multiple turns
+- Power tiers force resource allocation decisions
+
+### Focus → Strategic Choices → Progress
 ```
 Higher states → More focus capacity
-More capacity → Can play more cards before LISTEN
-Successful plays → Positive rapport momentum
-ForceListen effect → Topic change, lose cards
-Must rebuild → Draw new hand
-Better states → More cards drawn on LISTEN
+Focus allocation → Choose between tier 1/2/3 strategic options
+Successful plays → Momentum generation and goal progression
+Resource conversion → Momentum to doubt reduction, flow, cards
+ForceListen effect → Topic change, strategic reset
+Better connection states → More focus capacity and card draws
+Strategic mastery → Optimal focus usage patterns
 ```
 
 ## Work System
@@ -1718,7 +1888,7 @@ Exchanges are a **separate card system** from conversations. NPCs with exchange 
 - Cards show simple trades: Input → Output
 - Player sees all available exchange cards at once
 - Pick one card to execute the trade
-- No focus, rapport, or conversation mechanics involved
+- No focus, momentum, or conversation mechanics involved
 
 **Exchange Card Properties**:
 ```
@@ -1739,7 +1909,7 @@ Exchange Card Structure:
   3. Select one exchange card (if you can afford it)
   4. Pay cost, receive effect
   5. Exchange completes immediately
-- **No conversation mechanics** (no focus, rapport, flow, patience)
+- **No conversation mechanics** (no focus, momentum, flow, doubt)
 - **Pure resource trade**
 
 ### Common Exchange Types
@@ -1799,9 +1969,9 @@ Some exchanges only appear after playing specific observation cards:
 
 **Exchanges ARE NOT**:
 - Part of conversations
-- Subject to focus/rapport/flow
+- Subject to focus/momentum/flow
 - Affected by connection states
-- Using patience or atmosphere
+- Using doubt mechanics
 
 ### Strategic Role
 
@@ -1822,7 +1992,7 @@ Every system has escape valves preventing unwinnable states.
 ### Adding NPCs - Simple Framework
 
 New NPCs simply need:
-- **Personality type**: Determines patience, token preference, and conversation rule
+- **Personality type**: Determines doubt tolerance, token preference, and conversation rule
 - **Four persistent decks**:
   - Signature deck (5 unique cards at token thresholds)
   - Observation deck (receives location discoveries)
@@ -1855,7 +2025,7 @@ New player cards must follow:
 - **Difficulty tier**: Very Easy to Very Hard
 - **Persistence**: ~20% should be Persistent
 - **Rarity**: Common, Uncommon, or Rare
-- **Stat Binding**: Must specify which stat (Insight/Rapport/Authority/Commerce/Cunning)
+- **Stat Binding**: Must specify which stat (Insight/Momentum/Authority/Commerce/Cunning)
 
 ### Adding Items
 
@@ -1943,26 +2113,44 @@ Stories emerge from mechanical interaction, not scripting:
 
 ## Core Innovation Summary
 
-The core gameplay loop is **conversations as character progression**:
+The core gameplay loop is **conversations as strategic resource management**:
 
 ### Stats as Character Development
 
 Your stats represent your conversational competencies. Every successful approach reinforces that methodology. Higher stat levels make all cards of that type more reliable. This isn't abstract character growth - it's developing actual conversational skills through practice.
 
-### Conversations as Combat
+### Conversations as Strategic Puzzles
 
-The categorical property system means cards represent conversational approaches rather than specific outcomes. A Thought/Rapport/None/None card represents a calculated statement that could strengthen or destroy the relationship. The same card performs differently under various atmospheres and rapport levels, creating emergent complexity from simple rules.
+The four-tier strategic framework (Generators, Converters, Investments, Utility) means cards represent strategic approaches rather than simple effects. Each conversation becomes a resource management puzzle where you balance momentum generation, resource conversion, and focus allocation.
 
-Each conversation is a tactical puzzle where you play contextual cards against NPC personality rules:
-- **Proud NPCs** force ascending focus order - like enemies that punish repetition
-- **Devoted NPCs** double rapport losses - like glass cannon fights
-- **Mercantile NPCs** reward big plays - like bosses with weak points
-- **Cunning NPCs** punish patterns - like adaptive AI opponents
-- **Steadfast NPCs** cap rapport changes - like damage reduction enemies
+Each conversation is a tactical puzzle where you play strategic cards against NPC personality rules:
+- **Proud NPCs** force ascending focus order - rewards tier planning
+- **Devoted NPCs** double momentum losses - punishes failed conversions
+- **Mercantile NPCs** reward big plays - synergizes with tier 3 power
+- **Cunning NPCs** punish patterns - requires strategic variety
+- **Steadfast NPCs** cap momentum changes - favors consistent generators
 
-### Failure Creates Rhythm
+### Strategic Resource Framework
 
-When you fail a card play, the failure effect applies (typically ForceListen), forcing you to LISTEN and drawing new cards. This isn't punishment - it's conversation rhythm. Success maintains momentum with your current topics. Failure effects create topic changes. The mechanical flow mirrors actual dialogue.
+The power tier structure creates meaningful constraints:
+- **Tier 1 (1-2 focus)**: Efficient foundation, always affordable
+- **Tier 2 (3-4 focus)**: Strategic core, requires planning
+- **Tier 3 (5-6 focus)**: High impact, demands setup
+
+Resource conversion adds strategic depth:
+- **Momentum → Doubt reduction**: Spend momentum to reduce doubt accumulation
+- **Momentum → Flow advancement**: Convert momentum to progress connection state
+- **Momentum → Card draw**: Trade momentum for additional options
+- **Doubt mechanics**: High doubt makes momentum-consuming cards "essentially free" since LISTEN would consume momentum anyway
+- Creates constant decisions between accumulation, conversion, and managing doubt levels
+
+### Strategic Planning Creates Engagement
+
+The power tier system requires forward thinking. Tier 3 cards demand focus manipulation or multi-turn setup. Resource conversion creates immediate vs long-term tension. Focus constraints prevent autopilot play. Every turn requires evaluating multiple strategic paths based on current resources and game state.
+
+### Failure Creates Strategic Resets
+
+When you fail a card play, the failure effect applies (typically ForceListen), forcing you to LISTEN and drawing new cards. This isn't punishment - it's strategic reset. Success maintains your current strategic momentum. Failure effects force strategic adaptation. The mechanical flow mirrors both dialogue rhythm and tactical decision-making.
 
 ### Weight Creates Physical Reality
 
@@ -1976,23 +2164,45 @@ The 24-segment day organized into 6 blocks creates natural activity patterns. Mo
 
 NPC signature cards unlocked by tokens are like equipment in other RPGs. Marcus's commerce cards are your "merchant armor." Elena's trust cards are your "emotional weapons." Each relationship provides unique tools that fundamentally change how conversations play.
 
-### Clear Progression Path
+### Clear Strategic Progression Path
 
 The loop is crystal clear:
-1. **Have conversations** using context-appropriate cards
-2. **Complete requests** to gain XP and progress stats
-3. **Level up cards** to improve success rates
-4. **Unlock signature cards** through token relationships
-5. **Build stronger deck** to tackle harder NPCs
-6. **Face tougher personalities** with complex rules
+1. **Have conversations** using strategic card framework
+2. **Master resource management** across generators, converters, investments, utility
+3. **Complete requests** to gain XP and progress stats
+4. **Level up stats** to improve all bound cards uniformly
+5. **Unlock signature cards** through token relationships
+6. **Handle complex personalities** with advanced strategic thinking
+7. **Face tougher strategic challenges** with multi-tier planning
 
 This is "Fight enemies → Gain XP → Level up → Fight stronger enemies" expressed through social dynamics and stat progression rather than combat statistics.
 
-The stat system transforms character progression from card-specific mastery to developing problem-solving methodologies. Players literally become better conversationalists by practicing different approaches - analytical, empathetic, authoritative, mercantile, or cunning. These developed competencies then unlock investigation methods and travel paths, making conversation truly the engine for all progression. Stranger encounters provide the "grinding" layer expected from RPGs while maintaining focus on meaningful relationships with named NPCs.
+The strategic card framework transforms character progression from simple power increases to mastering resource management methodologies. Players literally become better strategic thinkers by practicing different approaches - momentum generation, resource conversion, strategic investment, and focus optimization. These developed competencies then unlock investigation methods and travel paths, making strategic conversation mastery the engine for all progression. Stranger encounters provide the "grinding" layer expected from RPGs while maintaining focus on meaningful strategic relationships with named NPCs.
 
 ## Critical Formulas Reference
 
-**Success Rate**: Base% + (2 × Current Rapport)
+**Success Rate**: Base% + (2 × Current Momentum)
+
+**Momentum Goal Thresholds**:
+- Basic Goal: 8 momentum
+- Enhanced Goal: 12 momentum
+- Premium Goal: 16 momentum
+
+**Doubt Mechanics**:
+- Doubt increases by +1 on card play failure
+- LISTEN reduces momentum by 1 per current doubt level
+- Cards can spend momentum to reduce doubt (typically 2:3 ratio)
+
+**Focus Capacity by Connection State**:
+- Disconnected: 3 focus
+- Guarded: 4 focus
+- Neutral: 5 focus
+- Receptive: 5 focus
+- Trusting: 6 focus
+
+**Cards Drawn on LISTEN**:
+- Base draw: Disconnected/Guarded (3), Neutral/Receptive (4), Trusting (5)
+- Reduced by 1 per unspoken impulse card from previous turn
 
 **Effect Magnitude by Difficulty**:
 - Very Easy: 1
@@ -2001,7 +2211,6 @@ The stat system transforms character progression from card-specific mastery to d
 - Hard: 3
 - Very Hard: 4
 
-**Atmosphere Effects**: TBD (to be determined based on atmosphere type)
 
 **Stat Level Thresholds**:
 - Level 1→2: 10 XP
@@ -2046,7 +2255,7 @@ Base XP × Conversation Difficulty Multiplier
 
 **Time per Day**: 24 segments (6 blocks × 4 segments)
 
-**Conversation Time**: 1 segment + (patience spent × 5 minutes depth)
+**Conversation Time**: 1 segment + (doubt accumulated × complexity factor)
 
 **Hunger Increase**: +20 per time block
 

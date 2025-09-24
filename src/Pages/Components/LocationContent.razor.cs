@@ -720,31 +720,20 @@ namespace Wayfarer.Pages.Components
         {
             // Get the actual NPC to access daily patience
             NPC actualNPC = GameFacade.GetNPCById(npc.Id);
-            if (actualNPC != null)
+            if (actualNPC == null)
             {
-                // Initialize patience if not yet set
-                if (actualNPC.MaxDailyPatience == 0)
-                {
-                    actualNPC.InitializeDailyPatience();
-                }
-
-                // Return current daily patience remaining
-                return actualNPC.DailyPatience;
+                Console.WriteLine($"ERROR: NPC not found in GetPatience({npc.Id})");
+                throw new InvalidOperationException($"NPC {npc.Id} not found - cannot calculate patience");
             }
 
-            // Fallback to old calculation if NPC not found
-            int basePatience = GetBasePatience(npc);
-
-            // Apply spot modifiers
-            if (spot?.Properties != null)
+            // Initialize patience if not yet set
+            if (actualNPC.MaxDailyPatience == 0)
             {
-                if (spot.Properties.Contains("Public"))
-                    basePatience -= 1;
-                else if (spot.Properties.Contains("Private"))
-                    basePatience += 1;
+                actualNPC.InitializeDailyPatience();
             }
 
-            return Math.Max(1, basePatience); // Minimum 1 patience
+            // Return current daily patience remaining
+            return actualNPC.DailyPatience;
         }
 
         protected string GetTimeOfDayTrait()
