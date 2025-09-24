@@ -2632,11 +2632,11 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentAtmosphere switch
             {
-                AtmosphereType.Prepared => "💪",
-                AtmosphereType.Receptive => "👂",
-                AtmosphereType.Focused => "🎯",
-                AtmosphereType.Patient => "⏳",
-                AtmosphereType.Volatile => "⚡",
+                AtmosphereType.Prepared => "<span class='icon-strength'></span>",
+                AtmosphereType.Receptive => "<span class='icon-listen'></span>",
+                AtmosphereType.Focused => "<span class='icon-target'></span>",
+                AtmosphereType.Patient => "<span class='icon-clock'></span>",
+                AtmosphereType.Volatile => "<span class='icon-energy'></span>",
                 AtmosphereType.Informed => "🧠",
                 AtmosphereType.Exposed => "👁",
                 AtmosphereType.Synchronized => "🔄",
