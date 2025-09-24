@@ -202,16 +202,19 @@
                 <div class="cards-title">Your Hand</div>
             </div>
             
-            <div class="card-grid">
+            <div class="card-grid slot-aware-container" style="@GetContainerCSSVariables()">
                 @foreach (var displayCard in GetAllDisplayCards())
                 {
                     var convCard = displayCard.Card;
 
-                    @* Display regular hand cards and animating played cards *@
-                    @if (displayCard.IsAnimating)
+                    @* Enhanced: Only render cards that should be visible during animation phases *@
+                    @if (displayCard.ShouldRender())
                     {
-                        @* Animating card that's been played *@
-                        <div class="card @displayCard.AnimationState @GetCardNarrativeClass(convCard)">
+                        @if (displayCard.IsAnimating || displayCard.IsGhost)
+                        {
+                            @* Enhanced: Slot-aware animating card with presentation model *@
+                            <div class="card slot-card @(displayCard.GetCSSClasses("animating")) @GetCardNarrativeClass(convCard)"
+                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();">
                             <div class="card-content">
                                 <!-- Card header: Name and Focus cost -->
                                 <div class="card-header">
@@ -226,11 +229,12 @@
                             </div>
                         </div>
                     }
-                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
-                    {
-                        @* Goal Card with rapport threshold - using same layout as regular cards but with distinct styling *@
-                        <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
-                             @onclick="() => ToggleCardSelection(convCard)">
+                        else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
+                        {
+                            @* Enhanced: Slot-aware goal card with presentation model *@
+                            <div class="card promise slot-card @(displayCard.GetCSSClasses("promise")) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
+                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();"
+                                 @onclick="() => ToggleCardSelection(convCard)">
                             <div class="promise-threshold @(GetCurrentMomentum() >= GetRequestMomentumThreshold(convCard) ? "promise-active" : "")">
                                 Requires @GetRequestMomentumThreshold(convCard)+ Momentum (Currently: @GetCurrentMomentum())
                             </div>
@@ -294,17 +298,12 @@
                             </div>
                         </div>
                     }
-                    else
-                    {
-                        @* Regular conversation card *@
-                        var animationState = GetCardAnimationState(convCard);
-                        var animationStyle = animationState != null && animationState.AnimationDelay > 0
-                            ? $"animation-delay: {animationState.AnimationDelay:F2}s;"
-                            : "";
-
-                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
-                             style="@animationStyle"
-                             @onclick="() => ToggleCardSelection(convCard)">
+                        else
+                        {
+                            @* Enhanced: Slot-aware regular conversation card with presentation model *@
+                            <div class="card slot-card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @(displayCard.GetCSSClasses("regular")) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
+                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();"
+                                 @onclick="() => ToggleCardSelection(convCard)">
 
                             <div class="card-content">
                                 <!-- Top row: Category tag and Stat badge -->
@@ -376,7 +375,8 @@
                                     </div>
                                 }
                             </div>
-                        </div>
+                            </div>
+                        }
                     }
                 }
             </div>

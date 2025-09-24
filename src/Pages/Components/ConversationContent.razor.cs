@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Wayfarer.Services.Conversation;
 
 
 namespace Wayfarer.Pages.Components
@@ -39,7 +40,6 @@ namespace Wayfarer.Pages.Components
         [Inject] protected ConversationFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected ConversationNarrativeService NarrativeService { get; set; }
-        [Inject] protected Wayfarer.Services.UIAnimationOrchestrator AnimationOrchestrator { get; set; }
 
         /// <summary>
         /// PROJECTION PRINCIPLE: The CategoricalEffectResolver is a pure projection function
@@ -59,15 +59,13 @@ namespace Wayfarer.Pages.Components
         protected bool ShowSpeakPreview { get; set; } = false;
         protected bool ShowListenPreview { get; set; } = false;
 
-        // Helper managers using composition
-        protected CardAnimationManager AnimationManager { get; set; } = new();
-        protected CardDisplayManager DisplayManager { get; set; } = new();
+        // Enhanced UI animation system
+        protected ConversationUIStateManager UIStateManager { get; set; } = new();
+        protected LayoutChoreographyEngine LayoutEngine { get; set; } = new();
 
-        // Delegated properties
-        protected Dictionary<string, CardAnimationState> CardStates => AnimationManager.CardStates;
+        // Legacy animation system replaced with choreography system
         protected HashSet<string> NewCardIds { get; set; } = new();
         protected HashSet<string> ExhaustingCardIds { get; set; } = new();
-        protected List<AnimatingCard> AnimatingCards => AnimationManager.AnimatingCards;
         // Track which request cards have already been moved from RequestPile to ActiveCards
         protected HashSet<string> MovedRequestCardIds { get; set; } = new();
 
@@ -98,8 +96,10 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// UI ANIMATION ORCHESTRATION: Block input during animation sequences for better UX.
         /// Game state changes happen immediately, but UI shows delayed visual feedback.
+        /// Checks enhanced choreography and shadow state for animation detection.
         /// </summary>
-        protected bool IsAnimating => AnimationOrchestrator.IsAnimating;
+        protected bool IsAnimating => LayoutEngine?.GetActiveExecution()?.IsActive == true ||
+                                      UIStateManager.IsAnimating();
 
         /// <summary>
         /// Legacy processing flag - still used for backend calls, but will be replaced by animation orchestration
@@ -153,19 +153,16 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
-            // Subscribe to animation state changes for UI updates
-            AnimationOrchestrator.OnAnimationStateChanged += () => InvokeAsync(StateHasChanged);
+            // Subscribe to enhanced choreography events
+            LayoutEngine.OnChoreographyStarted += HandleEnhancedChoreographyStarted;
+            LayoutEngine.OnChoreographyCompleted += HandleEnhancedChoreographyCompleted;
 
             await InitializeFromContext();
         }
 
         public void Dispose()
         {
-            // Unsubscribe from animation state changes
-            if (AnimationOrchestrator != null)
-            {
-                AnimationOrchestrator.OnAnimationStateChanged -= () => InvokeAsync(StateHasChanged);
-            }
+            // Enhanced choreography cleanup handled automatically by dispose pattern
         }
 
         protected override async Task OnParametersSetAsync()
@@ -208,7 +205,16 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteListen()
         {
             // UI ANIMATION ORCHESTRATION: Block during animations for better UX
-            if (Session == null || IsAnimating || IsProcessing) return;
+            if (Session == null || IsProcessing) return;
+
+            // EDGE CASE: Animation Interruption - Force sync if trying to act during animation
+            if (IsAnimating)
+            {
+                Console.WriteLine("[ExecuteListen] Animation interruption detected - forcing sync");
+                UIStateManager.ForceSync();
+                LayoutEngine?.ForceCompleteAll();
+                // Continue with action after sync
+            }
 
             // If initial narrative is still generating, wait for it instead of triggering new generation
             if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
@@ -234,7 +240,7 @@ namespace Wayfarer.Pages.Components
             SelectedCard = null;
 
             // SYNCHRONOUS PRINCIPLE: Clean up old animation states periodically
-            AnimationManager.CleanupOldAnimations();
+            // Legacy animation cleanup removed - choreography system handles cleanup
 
             // Store current cards before listen for animation tracking
             List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
@@ -259,7 +265,29 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
-                ConversationTurnResult listenResult = await GameFacade.ExecuteListen();
+                // UI SHADOW STATE: Capture baseline before game action executes
+                UIStateManager.CaptureBaseline(ConversationFacade.GetHandCards());
+
+                ConversationTurnResult listenResult = null;
+
+                try
+                {
+                    listenResult = await GameFacade.ExecuteListen();
+
+                    // EDGE CASE: Check for failed action results
+                    if (listenResult == null)
+                    {
+                        Console.WriteLine("[ExecuteListen] Action failed - rolling back shadow state");
+                        UIStateManager.RollbackToRealState();
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ExecuteListen] Exception during action - rolling back shadow state: {ex.Message}");
+                    UIStateManager.RollbackToRealState();
+                    throw; // Re-throw to maintain error visibility
+                }
 
                 // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
                 IsProcessing = false;
@@ -300,11 +328,13 @@ namespace Wayfarer.Pages.Components
 
                 if (drawnCards.Any())
                 {
-                    // Start animation sequence for drawing cards
-                    _ = AnimationOrchestrator.StartListenSequence(drawnCards.Count);
-
-                    // Simple fade-in for new cards
-                    AnimationManager.MarkNewCards(drawnCards, NewCardIds, () => InvokeAsync(StateHasChanged));
+                    Console.WriteLine($"[ExecuteListen] Starting enhanced LISTEN choreography for {drawnCards.Count} new cards");
+                    // Start enhanced choreographed LISTEN sequence - handles slot-aware card animations
+                    _ = LayoutEngine.ExecuteListenChoreographyAsync(previousCards, drawnCards);
+                }
+                else
+                {
+                    Console.WriteLine("[ExecuteListen] No new cards drawn - no choreography needed");
                 }
 
                 // Notify about cards drawn
@@ -347,7 +377,16 @@ namespace Wayfarer.Pages.Components
         protected async Task ExecuteSpeak()
         {
             // UI ANIMATION ORCHESTRATION: Block during animations for better UX
-            if (IsGeneratingNarrative || IsAnimating || IsProcessing || Session == null || SelectedCard == null) return;
+            if (IsGeneratingNarrative || IsProcessing || Session == null || SelectedCard == null) return;
+
+            // EDGE CASE: Animation Interruption - Force sync if trying to act during animation
+            if (IsAnimating)
+            {
+                Console.WriteLine("[ExecuteSpeak] Animation interruption detected - forcing sync");
+                UIStateManager.ForceSync();
+                LayoutEngine?.ForceCompleteAll();
+                // Continue with action after sync
+            }
 
             try
             {
@@ -355,7 +394,7 @@ namespace Wayfarer.Pages.Components
                 IsProcessing = true;
 
                 // Clean up old animation states periodically
-                AnimationManager.CleanupOldAnimations();
+                // Legacy animation cleanup removed - choreography system handles cleanup
 
                 // Store cards before speak to track what gets removed
                 List<CardInstance> cardsBeforeSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
@@ -391,14 +430,35 @@ namespace Wayfarer.Pages.Components
                 CardInstance playedCard = SelectedCard;
                 int cardPosition = GetCardPosition(playedCard);
 
-                // Immediately add card to animating cards with "processing" state
-                // This keeps the card visible while backend processes
-                AddAnimatingCard(playedCard, false, cardPosition); // Start with "failure" style as processing
-                StateHasChanged(); // Update UI to show the card in processing state
+                // UI SHADOW STATE: Capture baseline before game action executes
+                UIStateManager.CaptureBaseline(ConversationFacade.GetHandCards());
+
+                // Choreography system will handle the card exit animation
+                StateHasChanged(); // Update UI
 
                 // ExecuteSpeak expects a single card - this removes it from hand
-                ConversationTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
-                CardPlayResult result = turnResult?.CardPlayResult;
+                ConversationTurnResult turnResult = null;
+                CardPlayResult result = null;
+
+                try
+                {
+                    turnResult = await GameFacade.PlayConversationCard(SelectedCard);
+                    result = turnResult?.CardPlayResult;
+
+                    // EDGE CASE: Check for failed action results
+                    if (result == null || (result.Results?.All(r => !r.Success) ?? true))
+                    {
+                        Console.WriteLine("[ExecuteSpeak] Action failed - rolling back shadow state");
+                        UIStateManager.RollbackToRealState();
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ExecuteSpeak] Exception during action - rolling back shadow state: {ex.Message}");
+                    UIStateManager.RollbackToRealState();
+                    throw; // Re-throw to maintain error visibility
+                }
 
                 // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
                 IsProcessing = false;
@@ -443,14 +503,9 @@ namespace Wayfarer.Pages.Components
                 }
                 StateHasChanged(); // Show the narrative text
 
-                // Update the card animation to show actual success/failure result
-                // The card was already added to AnimatingCards before the backend call
+                // Choreography system handles card exit animations with success/failure results
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
-
-                // SYNCHRONOUS PRINCIPLE: Show result animation immediately, no delays
-                AnimatingCards.RemoveAll(c => c.Card.InstanceId == playedCard.InstanceId);
-                AddAnimatingCard(playedCard, wasSuccessful, cardPosition);
-                StateHasChanged(); // Update the card animation to show result
+                StateHasChanged(); // Trigger UI update
 
                 // NO DELAY - game state is already updated, animation is just visual
 
@@ -516,15 +571,9 @@ namespace Wayfarer.Pages.Components
                     .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
                     .ToList();
 
-                // Start SPEAK animation sequence - this will coordinate the card exit and any new card effects
-                bool hasDrawEffect = drawnCards.Any();
-                _ = AnimationOrchestrator.StartSpeakSequence(hasDrawEffect, drawnCards.Count);
-
-                if (drawnCards.Any())
-                {
-                    // Simple fade-in for new cards
-                    AnimationManager.MarkNewCards(drawnCards, NewCardIds, () => InvokeAsync(StateHasChanged));
-                }
+                Console.WriteLine($"[ExecuteSpeak] Starting enhanced SPEAK choreography - played: {playedCard?.ConversationCardTemplate?.Id}, new cards: {drawnCards.Count}");
+                // Start enhanced choreographed SPEAK sequence - coordinates slot-aware card animations
+                _ = LayoutEngine.ExecuteSpeakChoreographyAsync(cardsBeforeSpeak, playedCard, drawnCards);
 
                 SelectedCard = null;
 
@@ -3073,22 +3122,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("card-new");
             }
 
-            // Check if card has an animation state
-            if (CardStates.TryGetValue(cardId, out CardAnimationState? state))
-            {
-                switch (state.State)
-                {
-                    case "played-success":
-                        classes.Add("card-played-success");
-                        break;
-                    case "played-failure":
-                        classes.Add("card-played-failure");
-                        break;
-                    case "exhausting":
-                        classes.Add("card-exhausting");
-                        break;
-                }
-            }
+            // Choreography system handles animation states via GetCardChoreographyClasses
 
             // Check if card is being exhausted
             if (ExhaustingCardIds.Contains(cardId))
@@ -3117,21 +3151,7 @@ namespace Wayfarer.Pages.Components
             return string.Join(" ", classes);
         }
 
-        /// <summary>
-        /// Get the animation state for a specific card
-        /// </summary>
-        protected CardAnimationState GetCardAnimationState(CardInstance card)
-        {
-            if (card == null) return null;
-            string cardId = card.InstanceId ?? card.Id ?? "";
-
-            if (CardStates.TryGetValue(cardId, out CardAnimationState state))
-            {
-                return state;
-            }
-
-            return null;
-        }
+        // GetCardAnimationState removed - choreography system handles animation state
 
         /// <summary>
         /// Track newly drawn cards for slide-in animation
@@ -3156,20 +3176,50 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Use animation manager to track new cards
-            if (newCards.Any())
-            {
-                AnimationManager.MarkNewCards(newCards, NewCardIds, () => InvokeAsync(StateHasChanged));
-            }
+            // Choreography system handles card animations automatically
         }
 
         /// <summary>
-        /// Get all cards to display (hand cards and animating played cards)
+        /// Get all display cards for rendering with enhanced slot-aware presentation models.
+        /// During animations, returns presentation models with animation coordination.
         /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
-            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            return DisplayManager.GetAllDisplayCards(handCards, AnimatingCards);
+            // Enhanced: Check if choreography is active and get presentation models accordingly
+            var activeExecution = LayoutEngine?.GetActiveExecution();
+            if (activeExecution?.IsActive == true && activeExecution.SlotTransition != null)
+            {
+                // During choreography: return animated presentation models
+                return LayoutEngine.GetPresentationModels(activeExecution.SlotTransition, UIStateManager);
+            }
+
+            // Normal state: return static presentation models from UI shadow state
+            return UIStateManager.GetDisplayCards(ConversationFacade);
+        }
+
+        /// <summary>
+        /// Get CSS variables for the slot-aware card container.
+        /// Provides layout and animation coordination properties.
+        /// </summary>
+        protected string GetContainerCSSVariables()
+        {
+            var activeExecution = LayoutEngine?.GetActiveExecution();
+            if (activeExecution?.IsActive == true)
+            {
+                var totalDuration = activeExecution.TotalDuration;
+                var progress = activeExecution.GetProgress();
+
+                var variables = new List<string>();
+                variables.Add($"--choreography-duration: {totalDuration}ms");
+                variables.Add($"--choreography-progress: {progress:F2}");
+                variables.Add($"--slot-spacing: {CardSlotManager.SLOT_SPACING}px");
+                variables.Add("--container-state: animating");
+
+                return string.Join("; ", variables);
+            }
+
+            // Static container variables
+            return $"--slot-spacing: {CardSlotManager.SLOT_SPACING}px; --container-state: static;";
         }
 
         /// <summary>
@@ -3177,25 +3227,25 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardPosition(CardInstance card)
         {
+            if (card == null) return -1;
+
             IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            return DisplayManager.GetCardPosition(card, handCards);
+            if (handCards == null) return -1;
+
+            for (int i = 0; i < handCards.Count; i++)
+            {
+                if (handCards[i].InstanceId == card.InstanceId)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         /// <summary>
         /// Add a card to the animating cards list for post-play animation
         /// </summary>
-        protected void AddAnimatingCard(CardInstance card, bool success, int originalPosition = -1)
-        {
-            AnimationManager.AddAnimatingCard(card, success, originalPosition, () => InvokeAsync(StateHasChanged));
-        }
-
-        /// <summary>
-        /// Mark a card as successfully played
-        /// </summary>
-        protected void MarkCardAsPlayed(CardInstance card, bool success)
-        {
-            AnimationManager.MarkCardAsPlayed(card, success, () => InvokeAsync(StateHasChanged));
-        }
+        // Legacy animation methods removed - choreography system handles all card animations
 
         /// <summary>
         /// Mark cards for exhaust animation - SIMPLIFIED: No longer needed
@@ -3245,8 +3295,7 @@ namespace Wayfarer.Pages.Components
             bool wasSuccessful = playedCard.Difficulty == Difficulty.VeryEasy ||
                                  (Session?.CurrentDoubt ?? 0) < 10; // Simple deterministic rule
 
-            // Mark the played card with animation
-            MarkCardAsPlayed(playedCard, wasSuccessful);
+            // Choreography system handles played card animations
 
             // Get impulse cards to exhaust
             List<CardInstance> impulseCards = ConversationFacade.GetHandCards()?
@@ -3690,6 +3739,31 @@ namespace Wayfarer.Pages.Components
             int focusCost = SelectedCard.GetEffectiveFocus(Session.CurrentState);
             return $"Play card (Cost: {focusCost} focus)";
         }
+
+        #region UI Shadow State Event Handlers
+
+        /// <summary>
+        /// Enhanced: Handle enhanced choreography started event.
+        /// </summary>
+        private void HandleEnhancedChoreographyStarted(ChoreographyExecution execution)
+        {
+            Console.WriteLine($"[ConversationContent] Enhanced choreography started: {execution.Type} ({execution.TotalDuration}ms)");
+            UIStateManager.OnAnimationStarted();
+            InvokeAsync(StateHasChanged);
+        }
+
+        /// <summary>
+        /// Enhanced: Handle enhanced choreography completed event.
+        /// </summary>
+        private void HandleEnhancedChoreographyCompleted(ChoreographyExecution execution)
+        {
+            Console.WriteLine($"[ConversationContent] Enhanced choreography completed: {execution.Type}");
+            UIStateManager.OnAnimationCompleted();
+            InvokeAsync(StateHasChanged);
+        }
+
+
+        #endregion
 
     }
 }

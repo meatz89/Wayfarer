@@ -58,7 +58,12 @@
       "Bash(find:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6300\" timeout 10 dotnet run)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6310\" dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" dotnet run --no-build)",
+      "Bash(move \"src\\Services\\Conversation\\CardDisplayManager.cs\" \"src\\Services\\Conversation\\ConversationUIStateManager.cs\")",
+      "Read(//c//**)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 30 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 10 dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 15 dotnet run --no-build)"
     ],
     "deny": [],
     "ask": []
