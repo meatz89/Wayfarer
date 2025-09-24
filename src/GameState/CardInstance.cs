@@ -1,6 +1,6 @@
 
 using System.Collections.Generic;
-using Wayfarer.GameState.Enums;
+
 
 // Card instance - runtime representation of a card
 public class CardInstance

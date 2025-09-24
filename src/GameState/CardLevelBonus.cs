@@ -1,5 +1,3 @@
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Defines bonuses that cards gain when reaching specific levels
 /// </summary>

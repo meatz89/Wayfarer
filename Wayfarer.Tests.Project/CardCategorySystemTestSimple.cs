@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Wayfarer.GameState.Enums;
+
 
 namespace Wayfarer.Tests
 {
@@ -42,7 +42,7 @@ namespace Wayfarer.Tests
         public void ConversationCard_IsCategoryConsistent_WhenMatched_ReturnsTrue()
         {
             // Arrange
-            var card = new ConversationCard
+            ConversationCard card = new ConversationCard
             {
                 Id = "test_card",
                 Description = "Test Card",

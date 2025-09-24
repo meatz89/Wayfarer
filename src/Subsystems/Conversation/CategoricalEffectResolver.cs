@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState.Enums;
+
 
 /// <summary>
 /// PROJECTION PRINCIPLE: This resolver is a pure projection function that returns
@@ -433,7 +433,7 @@ public class CategoricalEffectResolver
     /// </summary>
     private string GetStrikeEffectDescription(CardInstance card, ConversationSession session, PlayerStats player, int momentumGain)
     {
-        var template = card.ConversationCardTemplate;
+        ConversationCard template = card.ConversationCardTemplate;
 
         // Check for scaling formulas
         if (template.MomentumScaling != ScalingType.None)

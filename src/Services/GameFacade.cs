@@ -1029,8 +1029,8 @@ public class GameFacade
 
     public void DebugTeleportToLocation(string locationId, string spotId)
     {
-        var player = _gameWorld.GetPlayer();
-        var spot = _gameWorld.GetSpot(spotId);
+        Player player = _gameWorld.GetPlayer();
+        LocationSpot spot = _gameWorld.GetSpot(spotId);
 
         if (spot == null)
         {
@@ -1038,7 +1038,7 @@ public class GameFacade
             return;
         }
 
-        var location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+        Location? location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
         {
             _messageSystem.AddSystemMessage($"Location '{locationId}' not found", SystemMessageTypes.Warning);

@@ -1,0 +1,22 @@
+@namespace Wayfarer.Pages.Components
+
+<div class="game-tooltip-container" @onmouseenter="ShowTooltip" @onmouseleave="HideTooltip">
+    @ChildContent
+
+    @if (IsVisible && !string.IsNullOrEmpty(Content))
+    {
+        <div class="game-tooltip @GetPositionClass()" style="@GetPositionStyle()">
+            <div class="tooltip-content">
+                @if (ContentFragment != null)
+                {
+                    @ContentFragment
+                }
+                else
+                {
+                    @((MarkupString)Content)
+                }
+            </div>
+            <div class="tooltip-arrow"></div>
+        </div>
+    }
+</div>

@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Wayfarer.GameState.Enums;
+
 
 namespace Wayfarer.Tests
 {
@@ -12,7 +12,7 @@ namespace Wayfarer.Tests
         public void ConversationCardParser_ParsesCardWithAutoDetectedCategory()
         {
             // Arrange
-            var dto = new ConversationCardDTO
+            ConversationCardDTO dto = new ConversationCardDTO
             {
                 Id = "test_strike_card",
                 Description = "Test Strike Card",
@@ -32,7 +32,7 @@ namespace Wayfarer.Tests
         public void ConversationCardParser_ParsesCardWithExplicitCategory()
         {
             // Arrange
-            var dto = new ConversationCardDTO
+            ConversationCardDTO dto = new ConversationCardDTO
             {
                 Id = "test_regulation_card",
                 Description = "Test Regulation Card",

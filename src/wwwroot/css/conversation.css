@@ -878,28 +878,6 @@ body {
     transform: translateY(-2px);
 }
 
-.action-button:hover .button-preview {
-    display: block;
-}
-
-.button-preview {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2c241a;
-    color: #e8dcc4;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 10px;
-    white-space: pre-line;
-    margin-bottom: 5px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    min-width: 150px;
-    text-align: left;
-}
-
 .action-details {
     font-size: 11px;
     margin-top: 4px;

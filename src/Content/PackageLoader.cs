@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Helper class for exchange card lookups
@@ -457,7 +456,7 @@ public class PackageLoader
             {
                 // Convert cardCounts to cardIds list
                 List<string> cardIds = new List<string>();
-                foreach (var kvp in dto.CardCounts)
+                foreach (KeyValuePair<string, int> kvp in dto.CardCounts)
                 {
                     for (int i = 0; i < kvp.Value; i++)
                     {

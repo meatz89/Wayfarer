@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Wayfarer.GameState.Enums;
+
 
 namespace Wayfarer.Pages.Components
 {
@@ -3606,7 +3606,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null) return "";
 
-            var preview = new List<string>();
+            List<string> preview = new List<string>();
 
             // Show doubt increase
             int baseDoubtIncrease = 3; // From desperate plea

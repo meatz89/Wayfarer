@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.GameState.Actions;
-using Wayfarer.GameState.Enums;
+
 using Wayfarer.Subsystems.NarrativeSubsystem;
 
 namespace Wayfarer.Subsystems.LocationSubsystem

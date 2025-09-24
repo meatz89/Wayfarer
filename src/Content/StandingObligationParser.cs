@@ -1,6 +1,6 @@
 using System;
 using System.Text.Json;
-using Wayfarer.GameState.Enums;
+
 
 /// <summary>
 /// Parser for deserializing standing obligation data from JSON.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.GameState.Enums;
+
 
 /// <summary>
 /// Tracks an observation that has been taken with its details for display

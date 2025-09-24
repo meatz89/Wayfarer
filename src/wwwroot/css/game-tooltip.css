@@ -1,0 +1,265 @@
+/* Game Tooltip Component Styles */
+.game-tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.game-tooltip {
+    position: absolute;
+    z-index: 9999;
+    opacity: 0;
+    animation: tooltip-fade-in 0.2s ease-out forwards;
+    pointer-events: none;
+    max-width: 300px;
+    min-width: 180px;
+}
+
+@keyframes tooltip-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tooltip-content {
+    background: linear-gradient(135deg, #2c241a 0%, #3d3429 100%);
+    color: #e8dcc4;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(232, 220, 196, 0.1);
+    border: 1px solid #a68b6f;
+    backdrop-filter: blur(4px);
+    position: relative;
+}
+
+.tooltip-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232, 220, 196, 0.2), transparent);
+}
+
+/* Positioning Classes */
+.tooltip-top {
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip-bottom {
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip-left {
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tooltip-right {
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Arrow Styles */
+.tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.tooltip-top .tooltip-arrow {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #2c241a;
+}
+
+.tooltip-top .tooltip-arrow::before {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    left: -6px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #a68b6f;
+}
+
+.tooltip-bottom .tooltip-arrow {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #2c241a;
+}
+
+.tooltip-bottom .tooltip-arrow::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: -6px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #a68b6f;
+}
+
+.tooltip-left .tooltip-arrow {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #2c241a;
+}
+
+.tooltip-left .tooltip-arrow::before {
+    content: '';
+    position: absolute;
+    right: 1px;
+    top: -6px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #a68b6f;
+}
+
+.tooltip-right .tooltip-arrow {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #2c241a;
+}
+
+.tooltip-right .tooltip-arrow::before {
+    content: '';
+    position: absolute;
+    left: 1px;
+    top: -6px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #a68b6f;
+}
+
+/* Content Styling */
+.tooltip-content .tooltip-section {
+    margin-bottom: 8px;
+}
+
+.tooltip-content .tooltip-section:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-content .tooltip-value {
+    color: #f4e8d0;
+    font-weight: 600;
+}
+
+.tooltip-content .tooltip-positive {
+    color: #7fb069;
+}
+
+.tooltip-content .tooltip-negative {
+    color: #d4704a;
+}
+
+.tooltip-content .tooltip-warning {
+    color: #e6b85c;
+    font-weight: 600;
+}
+
+.tooltip-content .tooltip-label {
+    color: #b3a690;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Special styles for action buttons */
+.action-tooltip .tooltip-content {
+    min-width: 250px;
+    padding: 16px 20px;
+    font-size: 12px;
+}
+
+.action-tooltip .selected-action {
+    color: #7fb069;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: rgba(127, 176, 105, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #7fb069;
+}
+
+.action-tooltip .listen-effects {
+    color: #e8dcc4;
+    margin-bottom: 8px;
+}
+
+.action-tooltip .critical-warning {
+    color: #d4704a;
+    font-weight: 700;
+    background: rgba(212, 112, 74, 0.1);
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-left: 3px solid #d4704a;
+    margin: 8px 0;
+}
+
+.action-tooltip .exhaust-list {
+    color: #e6b85c;
+    margin: 6px 0;
+}
+
+.action-tooltip .exhaust-list div {
+    margin: 2px 0;
+    font-size: 11px;
+}
+
+.action-tooltip .no-exhausts {
+    color: #b3a690;
+    font-style: italic;
+    margin-top: 6px;
+}
+
+.action-tooltip .tooltip-arrow-change {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-tooltip {
+        max-width: 250px;
+        min-width: 150px;
+    }
+
+    .tooltip-content {
+        padding: 10px 14px;
+        font-size: 10px;
+    }
+
+    .action-tooltip .tooltip-content {
+        min-width: 180px;
+        padding: 12px 16px;
+    }
+}

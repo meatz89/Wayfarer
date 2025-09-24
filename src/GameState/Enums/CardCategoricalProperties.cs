@@ -1,9 +1,3 @@
-namespace Wayfarer.GameState.Enums;
-
-/// <summary>
-/// Categorical properties that define card behavior through context rather than hardcoded values
-/// </summary>
-
 /// <summary>
 /// Conversation card categories that define strategic role and mechanics
 /// </summary>

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Wayfarer.GameState.Enums;
+
 
 /// <summary>
 /// Wrapper for active cards available to the player.

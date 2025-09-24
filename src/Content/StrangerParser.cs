@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Parser for stranger NPC content from JSON packages
