@@ -17,7 +17,7 @@ namespace Wayfarer
         /// Master flag to enable/disable all animations.
         /// Set to false to focus on fixing mechanical bugs.
         /// </summary>
-        public static bool AnimationsEnabled = false;
+        public static bool AnimationsEnabled = true;
 
         private readonly List<AnimatingCard> animatingCards = new();
         private readonly Dictionary<string, CardAnimationState> cardStates = new();
@@ -82,12 +82,13 @@ namespace Wayfarer
 
 
         /// <summary>
-        /// Mark new cards with a simple fade-in animation.
+        /// Mark new cards with staggered fade-in animations.
         /// </summary>
         public void MarkNewCards(List<CardInstance> newCards, HashSet<string> newCardIds, Action stateChangedCallback)
         {
-            foreach (CardInstance card in newCards)
+            for (int i = 0; i < newCards.Count; i++)
             {
+                CardInstance card = newCards[i];
                 string cardId = card.InstanceId ?? card.Id ?? "";
                 newCardIds.Add(cardId);
 
@@ -95,7 +96,9 @@ namespace Wayfarer
                 {
                     CardId = cardId,
                     State = "new",
-                    StateChangedAt = DateTime.Now
+                    StateChangedAt = DateTime.Now,
+                    AnimationDelay = i * 0.15, // 150ms stagger between cards
+                    SequenceIndex = i
                 };
             }
 

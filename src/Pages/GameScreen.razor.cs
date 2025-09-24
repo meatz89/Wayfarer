@@ -1,33 +1,3 @@
-public enum ScreenMode
-{
-    Location,
-    Conversation,
-    Exchange,
-    ObligationQueue,
-    Travel,
-    DeckViewer // Dev mode screen for viewing NPC decks
-}
-
-public class ScreenContext
-{
-    public ScreenMode Mode { get; set; }
-    public ScreenStateData StateData { get; set; } = new();
-    public DateTime EnteredAt { get; set; }
-}
-
-/// <summary>
-/// Strongly typed state data for screen transitions
-/// </summary>
-public class ScreenStateData
-{
-    public string NpcId { get; set; }
-    public string LocationId { get; set; }
-    public string TravelDestination { get; set; }
-    public string RequestId { get; set; }
-    public string SelectedCardId { get; set; }
-    public int? SelectedObligationIndex { get; set; }
-}
-
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
 /// 
@@ -44,7 +14,6 @@ public class ScreenStateData
 /// - User actions (button clicks, navigation) only occur after interactive phase
 /// 
 /// IMPLEMENTATION REQUIREMENTS:
-/// - Resource/time refresh operations are read-only (safe for double execution)
 /// - Navigation state managed through GameFacade (singleton, persists across renders)
 /// - ConversationContext created atomically before navigation (after interactive)
 /// - All state mutations go through GameFacade which has idempotence protection
@@ -591,4 +560,34 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         return 0;
     }
+}
+
+public enum ScreenMode
+{
+    Location,
+    Conversation,
+    Exchange,
+    ObligationQueue,
+    Travel,
+    DeckViewer // Dev mode screen for viewing NPC decks
+}
+
+public class ScreenContext
+{
+    public ScreenMode Mode { get; set; }
+    public ScreenStateData StateData { get; set; } = new();
+    public DateTime EnteredAt { get; set; }
+}
+
+/// <summary>
+/// Strongly typed state data for screen transitions
+/// </summary>
+public class ScreenStateData
+{
+    public string NpcId { get; set; }
+    public string LocationId { get; set; }
+    public string TravelDestination { get; set; }
+    public string RequestId { get; set; }
+    public string SelectedCardId { get; set; }
+    public int? SelectedObligationIndex { get; set; }
 }

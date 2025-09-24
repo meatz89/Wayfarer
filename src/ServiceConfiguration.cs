@@ -195,6 +195,9 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 
+        // UI Animation Orchestrator for managing animation sequences and input blocking
+        services.AddSingleton<Wayfarer.Services.UIAnimationOrchestrator>();
+
         return services;
     }
 

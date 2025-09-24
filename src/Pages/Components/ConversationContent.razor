@@ -107,19 +107,19 @@
         {
             <div class="action-choices">
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetListenPreview()">
-                    <div class="action-button @(IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
+                    <div class="action-button @(IsGeneratingNarrative || IsAnimating || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteListen"
-                         disabled="@(IsGeneratingNarrative || IsProcessing)">
+                         disabled="@(IsGeneratingNarrative || IsAnimating || IsProcessing)">
                         <div>LISTEN</div>
-                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
+                        <div class="action-details">@(IsAnimating ? "Animating..." : IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
                     </div>
                 </GameTooltip>
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetSpeakPreview()">
-                    <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
+                    <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsAnimating || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
-                         disabled="@(!CanSpeak() || IsGeneratingNarrative || IsProcessing)">
+                         disabled="@(!CanSpeak() || IsGeneratingNarrative || IsAnimating || IsProcessing)">
                         <div>SPEAK</div>
-                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
+                        <div class="action-details">@(IsAnimating ? "Animating..." : IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
                     </div>
                 </GameTooltip>
             </div>

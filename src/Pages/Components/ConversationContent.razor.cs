@@ -30,7 +30,7 @@ namespace Wayfarer.Pages.Components
     /// - Conversation state is ephemeral (OK to recreate on each render)
     /// - All game state mutations go through GameFacade (has idempotence)
     /// </summary>
-    public class ConversationContentBase : ComponentBase
+    public class ConversationContentBase : ComponentBase, IDisposable
     {
         [Parameter] public ConversationContextBase Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
@@ -39,6 +39,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected ConversationFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected ConversationNarrativeService NarrativeService { get; set; }
+        [Inject] protected Wayfarer.Services.UIAnimationOrchestrator AnimationOrchestrator { get; set; }
 
         /// <summary>
         /// PROJECTION PRINCIPLE: The CategoricalEffectResolver is a pure projection function
@@ -95,8 +96,13 @@ namespace Wayfarer.Pages.Components
         private Task<NarrativeOutput> _initialNarrativeTask = null;
 
         /// <summary>
-        /// SYNCHRONOUS GAMEPLAY: Track if backend is processing to prevent clicks during actual backend calls.
-        /// This is different from animations - we only block during ACTUAL backend processing, not visual feedback.
+        /// UI ANIMATION ORCHESTRATION: Block input during animation sequences for better UX.
+        /// Game state changes happen immediately, but UI shows delayed visual feedback.
+        /// </summary>
+        protected bool IsAnimating => AnimationOrchestrator.IsAnimating;
+
+        /// <summary>
+        /// Legacy processing flag - still used for backend calls, but will be replaced by animation orchestration
         /// </summary>
         protected bool IsProcessing { get; set; } = false;
 
@@ -147,7 +153,19 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
+            // Subscribe to animation state changes for UI updates
+            AnimationOrchestrator.OnAnimationStateChanged += () => InvokeAsync(StateHasChanged);
+
             await InitializeFromContext();
+        }
+
+        public void Dispose()
+        {
+            // Unsubscribe from animation state changes
+            if (AnimationOrchestrator != null)
+            {
+                AnimationOrchestrator.OnAnimationStateChanged -= () => InvokeAsync(StateHasChanged);
+            }
         }
 
         protected override async Task OnParametersSetAsync()
@@ -189,8 +207,8 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteListen()
         {
-            // SYNCHRONOUS PRINCIPLE: Block during backend processing only, not animations
-            if (Session == null || IsProcessing) return;
+            // UI ANIMATION ORCHESTRATION: Block during animations for better UX
+            if (Session == null || IsAnimating || IsProcessing) return;
 
             // If initial narrative is still generating, wait for it instead of triggering new generation
             if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
@@ -282,6 +300,9 @@ namespace Wayfarer.Pages.Components
 
                 if (drawnCards.Any())
                 {
+                    // Start animation sequence for drawing cards
+                    _ = AnimationOrchestrator.StartListenSequence(drawnCards.Count);
+
                     // Simple fade-in for new cards
                     AnimationManager.MarkNewCards(drawnCards, NewCardIds, () => InvokeAsync(StateHasChanged));
                 }
@@ -325,8 +346,8 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteSpeak()
         {
-            // SYNCHRONOUS PRINCIPLE: Block during backend processing only, not animations
-            if (IsGeneratingNarrative || IsProcessing || Session == null || SelectedCard == null) return;
+            // UI ANIMATION ORCHESTRATION: Block during animations for better UX
+            if (IsGeneratingNarrative || IsAnimating || IsProcessing || Session == null || SelectedCard == null) return;
 
             try
             {
@@ -494,6 +515,10 @@ namespace Wayfarer.Pages.Components
                 List<CardInstance> drawnCards = currentCardsAfterSpeak
                     .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
                     .ToList();
+
+                // Start SPEAK animation sequence - this will coordinate the card exit and any new card effects
+                bool hasDrawEffect = drawnCards.Any();
+                _ = AnimationOrchestrator.StartSpeakSequence(hasDrawEffect, drawnCards.Count);
 
                 if (drawnCards.Any())
                 {

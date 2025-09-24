@@ -117,6 +117,19 @@
     animation-fill-mode: both;
 }
 
+/* Staggered animation delays for multiple cards */
+.card-new:nth-child(1) { animation-delay: 0.0s; }
+.card-new:nth-child(2) { animation-delay: 0.15s; }
+.card-new:nth-child(3) { animation-delay: 0.30s; }
+.card-new:nth-child(4) { animation-delay: 0.45s; }
+.card-new:nth-child(5) { animation-delay: 0.60s; }
+.card-new:nth-child(6) { animation-delay: 0.75s; }
+
+/* Alternative: Use CSS custom properties for dynamic delays (set by JavaScript) */
+.card-new.staggered {
+    animation-delay: var(--stagger-delay, 0s);
+}
+
 /* Successfully played card - longer, clearer animation */
 .card-played-success {
     animation: card-success-flash 1.25s ease-out, card-play-out 0.25s ease-out 1.25s;
