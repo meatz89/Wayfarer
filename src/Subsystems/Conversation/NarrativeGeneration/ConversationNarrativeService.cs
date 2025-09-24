@@ -381,10 +381,9 @@ public class ConversationNarrativeService
             return "risk_moderate";
 
         // Card persistence-based categories
-        if (card.Persistence == PersistenceType.Opening)
-            return "probe";
         if (card.Persistence == PersistenceType.Impulse)
             return "pressure";
+        // DELETED: Opening persistence check - legacy type
 
         // Token type indicates support/connection building
         if (card.TokenType == ConnectionType.Trust)

@@ -393,7 +393,7 @@ public class PromptBuilder
 
             // Boolean flags
             ["has_impulse"] = (analysis?.HasImpulse ?? false).ToString().ToLower(),
-            ["has_opening"] = (analysis?.HasOpening ?? false).ToString().ToLower(),
+            // DELETED: has_opening - legacy persistence type
             ["has_observation"] = "false", // Could be determined from card analysis
 
             // Template-specific placeholders
@@ -470,10 +470,8 @@ public class PromptBuilder
     /// </summary>
     private string BuildOpeningRequirement(CardAnalysis analysis)
     {
-        if (analysis?.HasOpening == true)
-        {
-            return "5. Invite elaboration that Opening cards can explore";
-        }
+        // DELETED: HasOpening check - legacy persistence type
+        // Opening cards no longer exist in new design
         return "";
     }
 

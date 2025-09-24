@@ -10,11 +10,7 @@ public class CardAnalysis
     /// </summary>
     public bool HasImpulse { get; set; }
 
-    /// <summary>
-    /// True if any cards have Opening persistence (need inviting response).
-    /// NPC dialogue must include inviting elements encouraging elaboration.
-    /// </summary>
-    public bool HasOpening { get; set; }
+    // DELETED: HasOpening - legacy persistence type
 
     /// <summary>
     /// Pattern of focus costs across all cards.
@@ -35,11 +31,7 @@ public class CardAnalysis
     /// </summary>
     public bool RequiresUrgency { get; set; }
 
-    /// <summary>
-    /// True if cards require inviting NPC response.
-    /// Typically when Opening cards are present or utility cards dominate.
-    /// </summary>
-    public bool RequiresInvitation { get; set; }
+    // DELETED: RequiresInvitation - based on legacy Opening cards
 
     /// <summary>
     /// List of card IDs that are categorized as risk cards.

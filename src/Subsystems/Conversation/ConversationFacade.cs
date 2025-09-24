@@ -981,8 +981,7 @@ public class ConversationFacade
     /// </summary>
     private List<CardInstance> ExecuteListenAction(ConversationSession session)
     {
-        // First, exhaust all Opening cards in hand
-        ExhaustOpeningCards(session);
+        // DELETED: Legacy Opening card logic - only Thought and Impulse exist now
 
         // Refresh focus
         session.RefreshFocus();
@@ -990,15 +989,18 @@ public class ConversationFacade
         // Calculate draw count based on state and atmosphere
         int baseDrawCount = session.GetDrawCount();
 
-        // Apply impulse penalty: each unplayed Impulse card reduces draw by 1
+        // CORRECT: Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
         int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
-        int finalDrawCount = Math.Max(1, baseDrawCount - impulseCount); // Minimum 1 card draw
+        if (impulseCount > 0 && session.MomentumManager != null)
+        {
+            session.MomentumManager.AddDoubt(impulseCount);
+        }
 
-        // HIGHLANDER: Draw directly to hand
-        session.Deck.DrawToHand(finalDrawCount);
+        // Draw normal count - no draw penalty for Impulse cards
+        session.Deck.DrawToHand(baseDrawCount);
 
         // Get the drawn cards for return value
-        List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(finalDrawCount).ToList();
+        List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(baseDrawCount).ToList();
 
         // Check if any goal cards should become playable based on rapport
         UpdateGoalCardPlayabilityAfterListen(session);
@@ -1185,8 +1187,7 @@ public class ConversationFacade
             }
         }
 
-        // Remove impulse cards from hand after SPEAK, executing exhaust effects
-        bool conversationContinues = RemoveImpulseCardsFromHand(session);
+        // CORRECT: Impulse cards persist - they don't get removed after SPEAK
 
         CardPlayResult result = new CardPlayResult
         {
@@ -1204,11 +1205,7 @@ public class ConversationFacade
             FinalFlow = flowChange
         };
 
-        // Handle conversation ending
-        if (!conversationContinues)
-        {
-            result.Success = false; // Override to mark conversation as failed
-        }
+        // CORRECT: No conversation ending from Impulse card removal
 
         return result;
     }
@@ -1398,41 +1395,11 @@ public class ConversationFacade
         }
     }
 
-    /// <summary>
-    /// Remove all impulse cards from hand (happens after every SPEAK)
-    /// </summary>
-    private bool RemoveImpulseCardsFromHand(ConversationSession session)
-    {
-        // Get all impulse cards
-        List<CardInstance> impulseCards = session.Deck.HandCards.Where(c => c.Persistence == PersistenceType.Impulse).ToList();
+    // DELETED: RemoveImpulseCardsFromHand - WRONG IMPLEMENTATION
+    // CORRECT: Impulse cards persist and only add +1 doubt on LISTEN
 
-        foreach (CardInstance card in impulseCards)
-        {
-            // Remove from active cards and add to exhaust pile
-            session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
-        }
-
-        return true; // Conversation continues
-    }
-
-    /// <summary>
-    /// Exhaust all opening cards in hand (happens on LISTEN)
-    /// </summary>
-    private bool ExhaustOpeningCards(ConversationSession session)
-    {
-        // Get all opening cards
-        List<CardInstance> openingCards = session.Deck.HandCards
-            .Where(c => c.Persistence == PersistenceType.Opening)
-            .ToList();
-
-        foreach (CardInstance card in openingCards)
-        {
-            // Remove from active cards and add to exhaust pile
-            session.Deck.ExhaustFromHand(card); // HIGHLANDER: Use deck method
-        }
-
-        return true; // Conversation continues
-    }
+    // DELETED: ExhaustOpeningCards - Legacy persistence type
+    // CORRECT: Only Thought and Impulse persistence exist now
 
 
 

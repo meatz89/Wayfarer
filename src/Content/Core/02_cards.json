@@ -277,7 +277,7 @@
         "category": "Expression",
         "personalityTypes": ["ALL"],
         "focus": 2,
-        "persistence": "Impulse",
+        "persistence": "Thought",
         "successType": "Strike",
         "failureType": "None",
         "connectionType": "Trust",

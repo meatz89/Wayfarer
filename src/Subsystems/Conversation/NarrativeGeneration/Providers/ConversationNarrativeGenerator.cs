@@ -51,8 +51,8 @@ public class ConversationNarrativeGenerator
     {
         CardAnalysis analysis = new CardAnalysis
         {
-            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Impulse),
-            HasOpening = cards.Cards.Any(c => c.Persistence == PersistenceType.Opening)
+            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Impulse)
+            // DELETED: HasOpening - legacy persistence type
         };
 
         // Categorize each card
@@ -79,9 +79,9 @@ public class ConversationNarrativeGenerator
         analysis.FocusPattern = DetermineFocusPattern(cards);
         analysis.DominantCategory = DetermineDominantCategory(cards);
 
-        // Set urgency and invitation requirements
+        // Set urgency requirements
         analysis.RequiresUrgency = analysis.HasImpulse || analysis.RiskCards.Any();
-        analysis.RequiresInvitation = analysis.HasOpening || analysis.DominantCategory == "probe";
+        // DELETED: RequiresInvitation - based on legacy Opening cards
 
         return analysis;
     }
@@ -97,7 +97,7 @@ public class ConversationNarrativeGenerator
         return new NarrativeConstraints
         {
             MustIncludeUrgency = analysis.RequiresUrgency,
-            MustIncludeInvitation = analysis.RequiresInvitation,
+            // DELETED: MustIncludeInvitation - based on legacy Opening cards
             IntensityLevel = GetIntensityFromFocusPattern(analysis.FocusPattern),
             NarrativeStyle = analysis.DominantCategory
         };
@@ -327,8 +327,7 @@ public class ConversationNarrativeGenerator
         if (analysis.HasImpulse)
             return "Some opportunities require immediate action";
 
-        if (analysis.HasOpening)
-            return "There are opportunities to learn more about the situation";
+        // DELETED: HasOpening check - legacy persistence type
 
         return null;
     }

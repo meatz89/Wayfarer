@@ -24,23 +24,21 @@ public enum CardCategory
 
 /// <summary>
 /// Defines when a card can be played and how long it persists
+/// NEW DESIGN: Only TWO persistence types exist
 /// </summary>
 public enum PersistenceType
 {
     /// <summary>
-    /// Remains in hand until expressed - survives LISTEN actions
+    /// Persists on LISTEN - no penalty
     /// </summary>
     Thought,
 
     /// <summary>
-    /// Must be played immediately - removed after any SPEAK if unplayed
+    /// Persists on LISTEN but adds +1 doubt per card
     /// </summary>
-    Impulse,
+    Impulse
 
-    /// <summary>
-    /// Time-limited opportunity - removed after LISTEN if unplayed
-    /// </summary>
-    Opening
+    // DELETED: Opening (legacy persistence type)
 }
 
 /// <summary>
