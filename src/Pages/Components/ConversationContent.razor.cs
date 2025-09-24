@@ -1045,7 +1045,7 @@ namespace Wayfarer.Pages.Components
                 labels.Add(card.SuccessType.ToString());
             }
 
-            return string.Join(" • ", labels);
+            return string.Join(" <span class='icon-bullet'></span> ", labels);
         }
 
         protected bool CanSpeak()
@@ -1156,11 +1156,11 @@ namespace Wayfarer.Pages.Components
 
             return Session.CurrentState switch
             {
-                ConnectionState.DISCONNECTED => "• Draw 1 • Focus limit 3 • Ends at -3 flow",
-                ConnectionState.GUARDED => "• Draw 2 • Focus limit 4",
-                ConnectionState.NEUTRAL => "• Draw 2 • Focus limit 5",
-                ConnectionState.RECEPTIVE => "• Draw 3 • Focus limit 5",
-                ConnectionState.TRUSTING => "• Draw 3 • Focus limit 6",
+                ConnectionState.DISCONNECTED => "<span class='icon-bullet'></span> Draw 1 <span class='icon-bullet'></span> Focus limit 3 <span class='icon-bullet'></span> Ends at -3 flow",
+                ConnectionState.GUARDED => "<span class='icon-bullet'></span> Draw 2 <span class='icon-bullet'></span> Focus limit 4",
+                ConnectionState.NEUTRAL => "<span class='icon-bullet'></span> Draw 2 <span class='icon-bullet'></span> Focus limit 5",
+                ConnectionState.RECEPTIVE => "<span class='icon-bullet'></span> Draw 3 <span class='icon-bullet'></span> Focus limit 5",
+                ConnectionState.TRUSTING => "<span class='icon-bullet'></span> Draw 3 <span class='icon-bullet'></span> Focus limit 6",
                 _ => ""
             };
         }
@@ -1427,7 +1427,7 @@ namespace Wayfarer.Pages.Components
             if (!string.IsNullOrEmpty(currentLocation?.Name))
                 status.Add(currentLocation.Name);
 
-            return string.Join(" • ", status);
+            return string.Join(" <span class='icon-bullet'></span> ", status);
         }
 
         protected string GetDeadlineWarning()
@@ -1787,7 +1787,7 @@ namespace Wayfarer.Pages.Components
             {
                 if (card.Context?.ExchangeData?.Costs != null && card.Context?.ExchangeData?.Rewards != null)
                 {
-                    return $"{FormatResourceList(card.Context.ExchangeData.Costs)} → {FormatResourceList(card.Context.ExchangeData.Rewards)}";
+                    return $"{FormatResourceList(card.Context.ExchangeData.Costs)} <span class='icon-arrow-right'></span> {FormatResourceList(card.Context.ExchangeData.Rewards)}";
                 }
             }
 
@@ -2190,11 +2190,11 @@ namespace Wayfarer.Pages.Components
 
             if (!string.IsNullOrEmpty(spotTraits))
             {
-                return $"{locationName} → {spotName} ({spotTraits})";
+                return $"{locationName} <span class='icon-arrow-right'></span> {spotName} ({spotTraits})";
             }
             else
             {
-                return $"{locationName} → {spotName}";
+                return $"{locationName} <span class='icon-arrow-right'></span> {spotName}";
             }
         }
 
@@ -2800,7 +2800,7 @@ namespace Wayfarer.Pages.Components
                 foreach (CardInstance request in criticalExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(request)} → CONVERSATION FAILS");
+                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(request)} <span class='icon-arrow-right'></span> CONVERSATION FAILS");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -2817,7 +2817,7 @@ namespace Wayfarer.Pages.Components
                 foreach (CardInstance? card in regularExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
+                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(card)}");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -2850,10 +2850,10 @@ namespace Wayfarer.Pages.Components
             int cardsToDraw = GetCardDrawCount();
             int maxFocus = GetMaxFocus();
 
-            builder.AddContent(sequence++, $"• Draw {cardsToDraw} cards");
+            builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> Draw {cardsToDraw} cards");
             builder.OpenElement(sequence++, "br");
             builder.CloseElement();
-            builder.AddContent(sequence++, $"• Refresh focus to {maxFocus}");
+            builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> Refresh focus to {maxFocus}");
             builder.CloseElement();
 
             List<CardInstance> exhaustingCards = GetOpeningCards();
@@ -2869,7 +2869,7 @@ namespace Wayfarer.Pages.Components
                 foreach (CardInstance request in criticalExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(request)} → CONVERSATION FAILS");
+                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(request)} <span class='icon-arrow-right'></span> CONVERSATION FAILS");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -2886,7 +2886,7 @@ namespace Wayfarer.Pages.Components
                 foreach (CardInstance? card in regularExhausts)
                 {
                     builder.OpenElement(sequence++, "div");
-                    builder.AddContent(sequence++, $"• {GetProperCardName(card)}");
+                    builder.AddMarkupContent(sequence++, $"<span class='icon-bullet'></span> {GetProperCardName(card)}");
                     builder.CloseElement();
                 }
                 builder.CloseElement();
@@ -3613,7 +3613,7 @@ namespace Wayfarer.Pages.Components
             int unspentFocusPenalty = Session.GetAvailableFocus();
             int totalDoubt = Session.CurrentDoubt + baseDoubtIncrease + unspentFocusPenalty;
 
-            preview.Add($"Doubt → {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");
+            preview.Add($"Doubt <span class='icon-arrow-right'></span> {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");;
 
             // Show momentum erosion (Devoted doubles losses)
             int erosion = totalDoubt;
@@ -3621,12 +3621,12 @@ namespace Wayfarer.Pages.Components
             {
                 erosion *= 2;
                 int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
-                preview.Add($"Momentum {Session.CurrentMomentum} → {newMomentum} (Devoted 2x!)");
+                preview.Add($"Momentum {Session.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum} (Devoted 2x!)");
             }
             else
             {
                 int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
-                preview.Add($"Momentum {Session.CurrentMomentum} → {newMomentum}");
+                preview.Add($"Momentum {Session.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum}");
             }
 
             // Show draw with impulse penalties
