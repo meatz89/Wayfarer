@@ -107,19 +107,19 @@
         {
             <div class="action-choices">
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetListenPreview()">
-                    <div class="action-button @(IsGeneratingNarrative || IsAnimating || IsProcessing ? "disabled" : "")"
+                    <div class="action-button @(IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteListen"
-                         disabled="@(IsGeneratingNarrative || IsAnimating || IsProcessing)">
+                         disabled="@(IsGeneratingNarrative || IsProcessing)">
                         <div>LISTEN</div>
-                        <div class="action-details">@(IsAnimating ? "Animating..." : IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
+                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
                     </div>
                 </GameTooltip>
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetSpeakPreview()">
-                    <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsAnimating || IsProcessing ? "disabled" : "")"
+                    <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
-                         disabled="@(!CanSpeak() || IsGeneratingNarrative || IsAnimating || IsProcessing)">
+                         disabled="@(!CanSpeak() || IsGeneratingNarrative || IsProcessing)">
                         <div>SPEAK</div>
-                        <div class="action-details">@(IsAnimating ? "Animating..." : IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
+                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
                     </div>
                 </GameTooltip>
             </div>
@@ -207,34 +207,10 @@
                 {
                     var convCard = displayCard.Card;
 
-                    @* Enhanced: Only render cards that should be visible during animation phases *@
-                    @if (displayCard.ShouldRender())
+                    @if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
                     {
-                        @if (displayCard.IsAnimating || displayCard.IsGhost)
-                        {
-                            @* Enhanced: Slot-aware animating card with presentation model *@
-                            <div class="card slot-card @(displayCard.GetCSSClasses("animating")) @GetCardNarrativeClass(convCard)"
-                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();">
-                            <div class="card-content">
-                                <!-- Card header: Name and Focus cost -->
-                                <div class="card-header">
-                                    <div class="card-name">@GetProperCardName(convCard)</div>
-                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
-                                </div>
-
-                                <!-- Card dialogue text -->
-                                <div class="card-text @GetNarrativeClass()">
-                                    "@GetProperCardDialogue(convCard)"
-                                </div>
-                            </div>
-                        </div>
-                    }
-                        else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
-                        {
-                            @* Enhanced: Slot-aware goal card with presentation model *@
-                            <div class="card promise slot-card @(displayCard.GetCSSClasses("promise")) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
-                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();"
-                                 @onclick="() => ToggleCardSelection(convCard)">
+                        <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
+                             @onclick="() => ToggleCardSelection(convCard)">
                             <div class="promise-threshold @(GetCurrentMomentum() >= GetRequestMomentumThreshold(convCard) ? "promise-active" : "")">
                                 Requires @GetRequestMomentumThreshold(convCard)+ Momentum (Currently: @GetCurrentMomentum())
                             </div>
@@ -299,11 +275,9 @@
                         </div>
                     }
                         else
-                        {
-                            @* Enhanced: Slot-aware regular conversation card with presentation model *@
-                            <div class="card slot-card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @(displayCard.GetCSSClasses("regular")) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
-                                 style="@displayCard.GetCSSVariables(); z-index: @displayCard.GetDisplayPriority();"
-                                 @onclick="() => ToggleCardSelection(convCard)">
+                    {
+                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
+                             @onclick="() => ToggleCardSelection(convCard)">
 
                             <div class="card-content">
                                 <!-- Top row: Category tag and Stat badge -->
@@ -375,8 +349,7 @@
                                     </div>
                                 }
                             </div>
-                            </div>
-                        }
+                        </div>
                     }
                 }
             </div>

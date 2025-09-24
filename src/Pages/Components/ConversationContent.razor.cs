@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Wayfarer.Services.Conversation;
 
 
 namespace Wayfarer.Pages.Components
@@ -59,9 +58,7 @@ namespace Wayfarer.Pages.Components
         protected bool ShowSpeakPreview { get; set; } = false;
         protected bool ShowListenPreview { get; set; } = false;
 
-        // Enhanced UI animation system
-        protected ConversationUIStateManager UIStateManager { get; set; } = new();
-        protected LayoutChoreographyEngine LayoutEngine { get; set; } = new();
+        // Static UI system - no animation, no state management
 
         // Legacy animation system replaced with choreography system
         protected HashSet<string> NewCardIds { get; set; } = new();
@@ -93,13 +90,7 @@ namespace Wayfarer.Pages.Components
         protected NarrativeOutput CurrentNarrativeOutput { get; set; }
         private Task<NarrativeOutput> _initialNarrativeTask = null;
 
-        /// <summary>
-        /// UI ANIMATION ORCHESTRATION: Block input during animation sequences for better UX.
-        /// Game state changes happen immediately, but UI shows delayed visual feedback.
-        /// Checks enhanced choreography and shadow state for animation detection.
-        /// </summary>
-        protected bool IsAnimating => LayoutEngine?.GetActiveExecution()?.IsActive == true ||
-                                      UIStateManager.IsAnimating();
+        // Static UI - no animation blocking needed
 
         /// <summary>
         /// Legacy processing flag - still used for backend calls, but will be replaced by animation orchestration
@@ -153,10 +144,7 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
-            // Subscribe to enhanced choreography events
-            LayoutEngine.OnChoreographyStarted += HandleEnhancedChoreographyStarted;
-            LayoutEngine.OnChoreographyCompleted += HandleEnhancedChoreographyCompleted;
-
+            // Static UI initialization - no event handlers needed
             await InitializeFromContext();
         }
 
@@ -207,14 +195,7 @@ namespace Wayfarer.Pages.Components
             // UI ANIMATION ORCHESTRATION: Block during animations for better UX
             if (Session == null || IsProcessing) return;
 
-            // EDGE CASE: Animation Interruption - Force sync if trying to act during animation
-            if (IsAnimating)
-            {
-                Console.WriteLine("[ExecuteListen] Animation interruption detected - forcing sync");
-                UIStateManager.ForceSync();
-                LayoutEngine?.ForceCompleteAll();
-                // Continue with action after sync
-            }
+            // Static UI - no animation interruption handling needed
 
             // If initial narrative is still generating, wait for it instead of triggering new generation
             if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
@@ -227,7 +208,7 @@ namespace Wayfarer.Pages.Components
                     Console.WriteLine($"[ConversationContent.ExecuteListen] Using initial narrative. Card narratives: {initialNarrative.CardNarratives?.Count ?? 0}");
                     // Apply the narratives that were generated initially
                     ApplyNarrativeOutput(initialNarrative);
-                    StateHasChanged();
+                    // REMOVED: StateHasChanged() - prevents card DOM recreation
                 }
 
                 // Clear the task so we don't reuse it again
@@ -265,8 +246,7 @@ namespace Wayfarer.Pages.Components
                     messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
                 }
 
-                // UI SHADOW STATE: Capture baseline before game action executes
-                UIStateManager.CaptureBaseline(ConversationFacade.GetHandCards());
+                // Static UI - no shadow state needed
 
                 ConversationTurnResult listenResult = null;
 
@@ -277,34 +257,45 @@ namespace Wayfarer.Pages.Components
                     // EDGE CASE: Check for failed action results
                     if (listenResult == null)
                     {
-                        Console.WriteLine("[ExecuteListen] Action failed - rolling back shadow state");
-                        UIStateManager.RollbackToRealState();
+                        Console.WriteLine("[ExecuteListen] Action failed");
                         return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ExecuteListen] Exception during action - rolling back shadow state: {ex.Message}");
-                    UIStateManager.RollbackToRealState();
+                    Console.WriteLine($"[ExecuteListen] Exception during action: {ex.Message}");
                     throw; // Re-throw to maintain error visibility
                 }
 
                 // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
                 IsProcessing = false;
 
-                // Only generate new narrative if we didn't already use the initial one
+                // Track cards after action
+                List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+                List<CardInstance> drawnCards = currentCards
+                    .Where(c => !previousCards.Any(pc => pc.InstanceId == c.InstanceId))
+                    .ToList();
+
+                // CRITICAL: Wait for ALL narrative generation to complete BEFORE allowing cards to render
                 if (_initialNarrativeTask == null)
                 {
                     // Use AI-generated narrative from the result
                     if (listenResult?.Narrative != null &&
                         !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
                     {
-                        Console.WriteLine("[ConversationContent.ExecuteListen] Applying new narrative from listen result");
+                        Console.WriteLine("[ConversationContent.ExecuteListen] Applying narrative from listen result and waiting for card narratives");
                         // Apply the complete narrative output including card narratives
                         ApplyNarrativeOutput(listenResult.Narrative);
+
+                        // AWAIT card narrative generation to complete before adding cards to DOM
+                        if (drawnCards.Any())
+                        {
+                            await GenerateCardNarrativesAsync(listenResult.Narrative.NPCDialogue);
+                        }
                     }
                     else
                     {
+                        Console.WriteLine("[ConversationContent.ExecuteListen] Using fallback narrative generation");
                         // Fallback to simple generated narrative when AI unavailable
                         GenerateListenNarrative();
                     }
@@ -317,24 +308,15 @@ namespace Wayfarer.Pages.Components
                 // Check request pile for newly available cards based on rapport
                 CheckRequestPileThresholds();
 
-                // Track cards after action
-                List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-
-                // SIMPLIFIED: Cards are already removed from hand, no exhaust animation needed
-                // Just mark new cards for simple fade-in
-                List<CardInstance> drawnCards = currentCards
-                    .Where(c => !previousCards.Any(pc => pc.InstanceId == c.InstanceId))
-                    .ToList();
-
+                // Static UI - cards appear instantly with final narrative text
                 if (drawnCards.Any())
                 {
-                    Console.WriteLine($"[ExecuteListen] Starting enhanced LISTEN choreography for {drawnCards.Count} new cards");
-                    // Start enhanced choreographed LISTEN sequence - handles slot-aware card animations
-                    _ = LayoutEngine.ExecuteListenChoreographyAsync(previousCards, drawnCards);
+                    Console.WriteLine($"[ExecuteListen] Adding {drawnCards.Count} new cards to display (narrative complete)");
+                    // Cards will appear instantly when GetAllDisplayCards() is called
                 }
                 else
                 {
-                    Console.WriteLine("[ExecuteListen] No new cards drawn - no choreography needed");
+                    Console.WriteLine("[ExecuteListen] No new cards drawn");
                 }
 
                 // Notify about cards drawn
@@ -379,14 +361,7 @@ namespace Wayfarer.Pages.Components
             // UI ANIMATION ORCHESTRATION: Block during animations for better UX
             if (IsGeneratingNarrative || IsProcessing || Session == null || SelectedCard == null) return;
 
-            // EDGE CASE: Animation Interruption - Force sync if trying to act during animation
-            if (IsAnimating)
-            {
-                Console.WriteLine("[ExecuteSpeak] Animation interruption detected - forcing sync");
-                UIStateManager.ForceSync();
-                LayoutEngine?.ForceCompleteAll();
-                // Continue with action after sync
-            }
+            // Static UI - no animation interruption handling needed
 
             try
             {
@@ -430,11 +405,10 @@ namespace Wayfarer.Pages.Components
                 CardInstance playedCard = SelectedCard;
                 int cardPosition = GetCardPosition(playedCard);
 
-                // UI SHADOW STATE: Capture baseline before game action executes
-                UIStateManager.CaptureBaseline(ConversationFacade.GetHandCards());
+                // Static UI - no shadow state needed
 
                 // Choreography system will handle the card exit animation
-                StateHasChanged(); // Update UI
+                // REMOVED: StateHasChanged() - prevents DOM recreation during animation
 
                 // ExecuteSpeak expects a single card - this removes it from hand
                 ConversationTurnResult turnResult = null;
@@ -448,15 +422,13 @@ namespace Wayfarer.Pages.Components
                     // EDGE CASE: Check for failed action results
                     if (result == null || (result.Results?.All(r => !r.Success) ?? true))
                     {
-                        Console.WriteLine("[ExecuteSpeak] Action failed - rolling back shadow state");
-                        UIStateManager.RollbackToRealState();
+                        Console.WriteLine("[ExecuteSpeak] Action failed");
                         return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ExecuteSpeak] Exception during action - rolling back shadow state: {ex.Message}");
-                    UIStateManager.RollbackToRealState();
+                    Console.WriteLine($"[ExecuteSpeak] Exception during action: {ex.Message}");
                     throw; // Re-throw to maintain error visibility
                 }
 
@@ -501,11 +473,10 @@ namespace Wayfarer.Pages.Components
                     // Fallback to simple generated narrative when AI unavailable
                     ProcessSpeakResult(result);
                 }
-                StateHasChanged(); // Show the narrative text
+                // REMOVED: StateHasChanged() - prevents DOM recreation during animation
 
                 // Choreography system handles card exit animations with success/failure results
                 bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
-                StateHasChanged(); // Trigger UI update
 
                 // NO DELAY - game state is already updated, animation is just visual
 
@@ -571,9 +542,8 @@ namespace Wayfarer.Pages.Components
                     .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
                     .ToList();
 
-                Console.WriteLine($"[ExecuteSpeak] Starting enhanced SPEAK choreography - played: {playedCard?.ConversationCardTemplate?.Id}, new cards: {drawnCards.Count}");
-                // Start enhanced choreographed SPEAK sequence - coordinates slot-aware card animations
-                _ = LayoutEngine.ExecuteSpeakChoreographyAsync(cardsBeforeSpeak, playedCard, drawnCards);
+                Console.WriteLine($"[ExecuteSpeak] Card played: {playedCard?.ConversationCardTemplate?.Id}, new cards: {drawnCards.Count}");
+                // Static UI - played cards disappear instantly, new cards appear instantly
 
                 SelectedCard = null;
 
@@ -663,7 +633,7 @@ namespace Wayfarer.Pages.Components
                     if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
                         ApplyNarrativeOutput(narrative);
-                        StateHasChanged(); // Update UI with AI narrative
+                        // REMOVED: StateHasChanged() - prevents card DOM recreation
                         return narrative;
                     }
                 }
@@ -675,7 +645,7 @@ namespace Wayfarer.Pages.Components
             finally
             {
                 IsGeneratingNarrative = false;
-                StateHasChanged(); // Ensure loading state is cleared
+                // REMOVED: StateHasChanged() - prevents card DOM recreation
             }
 
             return null;
@@ -719,11 +689,7 @@ namespace Wayfarer.Pages.Components
             else
             {
                 Console.WriteLine("[ConversationContent.ApplyNarrativeOutput] No card narratives in output");
-                // Trigger second phase to generate card narratives based on NPC dialogue
-                if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
-                {
-                    _ = GenerateCardNarrativesAsync(narrative.NPCDialogue);
-                }
+                // NOTE: Card narrative generation now handled synchronously in ExecuteListen
             }
         }
 
@@ -764,8 +730,7 @@ namespace Wayfarer.Pages.Components
                         }
                     }
 
-                    // Update UI to show the new card narratives
-                    StateHasChanged();
+                    // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
                 }
                 else
                 {
@@ -3185,41 +3150,27 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
-            // Enhanced: Check if choreography is active and get presentation models accordingly
-            var activeExecution = LayoutEngine?.GetActiveExecution();
-            if (activeExecution?.IsActive == true && activeExecution.SlotTransition != null)
+            // Static UI: Return simple list of current hand cards
+            var handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            var displayCards = new List<CardDisplayInfo>();
+
+            foreach (var card in handCards)
             {
-                // During choreography: return animated presentation models
-                return LayoutEngine.GetPresentationModels(activeExecution.SlotTransition, UIStateManager);
+                displayCards.Add(new CardDisplayInfo(card));
             }
 
-            // Normal state: return static presentation models from UI shadow state
-            return UIStateManager.GetDisplayCards(ConversationFacade);
+            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards");
+            return displayCards;
         }
 
         /// <summary>
-        /// Get CSS variables for the slot-aware card container.
-        /// Provides layout and animation coordination properties.
+        /// Get CSS variables for the static card container.
+        /// Static display only - no animations, no slot coordination.
         /// </summary>
         protected string GetContainerCSSVariables()
         {
-            var activeExecution = LayoutEngine?.GetActiveExecution();
-            if (activeExecution?.IsActive == true)
-            {
-                var totalDuration = activeExecution.TotalDuration;
-                var progress = activeExecution.GetProgress();
-
-                var variables = new List<string>();
-                variables.Add($"--choreography-duration: {totalDuration}ms");
-                variables.Add($"--choreography-progress: {progress:F2}");
-                variables.Add($"--slot-spacing: {CardSlotManager.SLOT_SPACING}px");
-                variables.Add("--container-state: animating");
-
-                return string.Join("; ", variables);
-            }
-
-            // Static container variables
-            return $"--slot-spacing: {CardSlotManager.SLOT_SPACING}px; --container-state: static;";
+            // Static container variables only
+            return "--container-state: static;";
         }
 
         /// <summary>
@@ -3745,22 +3696,7 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Enhanced: Handle enhanced choreography started event.
         /// </summary>
-        private void HandleEnhancedChoreographyStarted(ChoreographyExecution execution)
-        {
-            Console.WriteLine($"[ConversationContent] Enhanced choreography started: {execution.Type} ({execution.TotalDuration}ms)");
-            UIStateManager.OnAnimationStarted();
-            InvokeAsync(StateHasChanged);
-        }
-
-        /// <summary>
-        /// Enhanced: Handle enhanced choreography completed event.
-        /// </summary>
-        private void HandleEnhancedChoreographyCompleted(ChoreographyExecution execution)
-        {
-            Console.WriteLine($"[ConversationContent] Enhanced choreography completed: {execution.Type}");
-            UIStateManager.OnAnimationCompleted();
-            InvokeAsync(StateHasChanged);
-        }
+        // Static UI - no choreography event handlers needed
 
 
         #endregion

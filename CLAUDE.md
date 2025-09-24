@@ -274,7 +274,7 @@ This architecture ensures:
 - After each change, run the tests to check for broken functionality. Never commit while tests are failing
 - **ALWAYS write unit tests confirming errors before fixing them** - This ensures the bug is properly understood and the fix is validated
 - You must run all tests and execute the game and do quick smoke tests before every commit
-- **BUILD COMMANDS** - Always use `cd /mnt/c/git/wayfarer/src && dotnet build` to build the project. The pipe operator can cause issues with dotnet build output parsing. To check for errors: build first, then check the output.
+- **BUILD COMMANDS** - Always use `cd "C:\Git\Wayfarer\src" && dotnet build` to build the project. The pipe operator can cause issues with dotnet build output parsing. To check for errors: build first, then check the output.
 - **Never keep legacy code for compatibility** - Delete it immediately and fix all callers
 - **NEVER use suffixes like "New", "Revised", "V2", etc.** - Replace old implementations completely and use the correct final name immediately. Delete old code, don't leave it behind.
 - **NO deprecated methods or backwards compatibility** - When changing a method signature, update ALL callers immediately. Never leave old versions around.

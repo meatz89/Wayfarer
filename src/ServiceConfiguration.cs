@@ -195,7 +195,6 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 
-        // Enhanced UI Animation System uses LayoutChoreographyEngine directly in components
 
         return services;
     }
