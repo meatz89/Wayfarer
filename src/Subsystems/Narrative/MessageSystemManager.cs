@@ -128,10 +128,10 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             // Add contextual prefixes or styling based on message type
             return type switch
             {
-                SystemMessageTypes.Danger => $"⚠️ {message}",
-                SystemMessageTypes.Warning => $"⚡ {message}",
-                SystemMessageTypes.Success => $"✓ {message}",
-                SystemMessageTypes.Tutorial => $"💡 {message}",
+                SystemMessageTypes.Danger => $"[WARNING] {message}",
+                SystemMessageTypes.Warning => $"[NOTICE] {message}",
+                SystemMessageTypes.Success => $"[SUCCESS] {message}",
+                SystemMessageTypes.Tutorial => $"[HINT] {message}",
                 _ => message
             };
         }

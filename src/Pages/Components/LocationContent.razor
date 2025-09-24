@@ -30,7 +30,7 @@
             {
                 if (i > 0)
                 {
-                    <span class="queue-arrow">→</span>
+                    <span class="queue-arrow"><span class="icon-arrow-right"></span></span>
                 }
                 
                 @if (i < obligationsList.Count)
@@ -38,7 +38,7 @@
                     var obligation = obligationsList[i];
                     <div class="obligation-item @(i == 0 ? "position-1" : "")">
                         <span class="queue-position">@(i + 1)</span>
-                        @obligation.SenderName → @obligation.RecipientName 
+                        @obligation.SenderName <span class="icon-arrow-right"></span> @obligation.RecipientName 
                         <span class="deadline">(@GetDeadlineText(obligation.DeadlineInSegments))</span>
                     </div>
                 }
@@ -59,7 +59,7 @@
             @if (!string.IsNullOrEmpty(CurrentLocation?.Name))
             {
                 <span>Lower Wards</span>
-                <span>→</span>
+                <span class="icon-arrow-right"></span>
                 <span>@CurrentLocation.Name</span>
             }
         </div>
@@ -119,7 +119,7 @@
                                 <div class="approach-btn @(canAfford ? "" : "approach-locked")"
                                      @onclick="async () => await InvestigateWithApproach(approach)">
                                     <div class="approach-name">@GetApproachDisplayName(approach)</div>
-                                    <div class="approach-cost">1 attention • 1 segment</div>
+                                    <div class="approach-cost">1 attention <span class="icon-bullet"></span> 1 segment</div>
                                     <div class="approach-description">@GetApproachDescription(approach)</div>
                                     @if (!canAfford)
                                     {
@@ -268,7 +268,7 @@
                                     <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
                                     @if (option.ConversationTypeId == "request" && HasLetterRequest(npc.Id))
                                     {
-                                        <span> • Letter request available!</span>
+                                        <span> <span class="icon-bullet"></span> Letter request available!</span>
                                     }
                                 </span>
                             </div>
@@ -346,7 +346,7 @@
                                             <span class="npc-state">(@GetNPCStateDisplay(npc))</span>
                                             @if (HasUrgentLetter(npc.ID))
                                             {
-                                                <span class="urgent-marker" title="Urgent letter in queue!">⚠️</span>
+                                                <span class="urgent-marker" title="Urgent letter in queue!"><span class="icon-warning urgent"></span></span>
                                             }
                                         </span>
                                         @if (npc != npcsAtSpot.Last())

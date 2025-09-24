@@ -7,7 +7,7 @@
         {
             <div class="message @GetMessageClass(message.Type)">
                 <span class="message-text">@message.Message</span>
-                <button class="message-close" @onclick="() => DismissMessage(message)">×</button>
+                <button class="message-close" @onclick="() => DismissMessage(message)"><span class="icon-close"></span></button>
             </div>
         }
     }

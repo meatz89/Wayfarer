@@ -19,7 +19,7 @@
         <!-- Exchange Mode Banner -->
         <div class="exchange-mode">
             <div class="mode-title">Quick Exchange</div>
-            <div class="mode-description">0 Attention • No patience • Always succeeds</div>
+            <div class="mode-description">0 Attention <span class="icon-bullet"></span> No patience <span class="icon-bullet"></span> Always succeeds</div>
         </div>
 
         <!-- NPC Header (if NPC exchange) -->
@@ -57,11 +57,11 @@
                 <div class="action-button @(!CanExecuteTrade() ? "disabled" : "")" 
                      @onclick="ExecuteTrade" 
                      disabled="@(!CanExecuteTrade())">
-                    <div>💰 TRADE</div>
+                    <div><span class="icon-coin"></span> TRADE</div>
                     <div class="action-details">@GetTradeActionDetails()</div>
                 </div>
                 <div class="action-button exit-button" @onclick="ExitExchange">
-                    <div>🚶 LEAVE</div>
+                    <div>LEAVE</div>
                     <div class="action-details">End exchange</div>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                                         @GetCostDisplay(exchange)
                                     </div>
                                 </div>
-                                <div class="trade-arrow">→</div>
+                                <div class="trade-arrow"><span class="icon-arrow-right"></span></div>
                                 <div class="trade-reward">
                                     <div class="trade-label">You Receive</div>
                                     <div class="trade-value reward-value">

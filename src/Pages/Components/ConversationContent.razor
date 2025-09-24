@@ -44,7 +44,7 @@
 
                         <div class="current-state">
                             <div class="state-name">@GetConnectionStateDisplay()</div>
-                            <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) • Draw: @(Session?.GetDrawCount() ?? 3)</div>
+                            <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) <span class="icon-bullet"></span> Draw: @(Session?.GetDrawCount() ?? 3)</div>
                         </div>
 
                         <div class="flow-positive">
@@ -151,7 +151,7 @@
                 }
             </div>
             <span class="focus-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
-            <span class="focus-warning">Unspent → +1 doubt each</span>
+            <span class="focus-warning">Unspent <span class="icon-arrow-right"></span> +1 doubt each</span>
         </div>
     </div>
 

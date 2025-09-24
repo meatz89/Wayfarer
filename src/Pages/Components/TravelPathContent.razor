@@ -6,7 +6,7 @@
     <!-- Route Header (Enhanced from mockup) -->
     <div class="route-header">
         <div class="route-info">
-            <div class="route-name">@GetOriginLocationName() → @GetDestinationName()</div>
+            <div class="route-name">@GetOriginLocationName() <span class="icon-arrow-right"></span> @GetDestinationName()</div>
             <div class="route-properties">
                 <div class="route-property">
                     <span class="property-label">Transport</span>
@@ -65,7 +65,7 @@
                     <span class="segment-dot @GetSegmentDotClass(dot.State)"></span>
                     @if (i < segmentDots.Count - 1)
                     {
-                        <span>→</span>
+                        <span class="icon-arrow-right"></span>
                     }
                 }
             }
@@ -199,12 +199,12 @@
                                             
                                             @if (card.CoinReward > 0)
                                             {
-                                                <div class="path-coins reward">💰 +@card.CoinReward coins</div>
+                                                <div class="path-coins reward"><span class="icon-coin"></span> +@card.CoinReward coins</div>
                                             }
                                             
                                             @if (card.StaminaRestore > 0)
                                             {
-                                                <div class="path-stamina-restore">💪 Restore @card.StaminaRestore stamina</div>
+                                                <div class="path-stamina-restore"><span class="icon-attention"></span> Restore @card.StaminaRestore stamina</div>
                                             }
                                             
                                             
@@ -232,7 +232,7 @@
                                             
                                             @if (card.RevealsPaths != null && card.RevealsPaths.Any())
                                             {
-                                                <div class="path-reveals">🗺️ Reveals @card.RevealsPaths.Count path@(card.RevealsPaths.Count > 1 ? "s" : "")</div>
+                                                <div class="path-reveals"><span class="icon-map"></span> Reveals @card.RevealsPaths.Count path@(card.RevealsPaths.Count > 1 ? "s" : "")</div>
                                             }
                                             
                                             @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
@@ -240,7 +240,7 @@
                                                 var rewardParsed = ParseReward(card.OneTimeReward);
                                                 var alreadyClaimed = IsOneTimeRewardClaimed(card);
                                                 <div class="path-reward">
-                                                    💎 @rewardParsed
+                                                    <span class="icon-star"></span> @rewardParsed
                                                     @if (alreadyClaimed)
                                                     {
                                                         <span class="path-already-claimed">(already claimed)</span>
@@ -250,7 +250,7 @@
                                             
                                             @if (card.ForceReturn)
                                             {
-                                                <div class="path-force-return">⚠️ DEAD END - Must return</div>
+                                                <div class="path-force-return"><span class="icon-warning"></span> DEAD END - Must return</div>
                                             }
                                         </div>
                                     }

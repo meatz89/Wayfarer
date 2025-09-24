@@ -9,7 +9,7 @@
 
 <div class="deck-viewer">
     <div class="deck-viewer-header">
-        <button class="back-button" @onclick="GoBack">← Back to Location</button>
+        <button class="back-button" @onclick="GoBack"><span class="icon-arrow-left"></span> Back to Location</button>
         <h2>NPC Deck Viewer - Development Mode</h2>
         @if (CurrentNPC != null)
         {
@@ -40,7 +40,7 @@
                     <div class="enabling-condition">
                         @if (HasExchangeCards)
                         {
-                            <span class="enabled-by">✓ Exchange Deck (@(CurrentNPC.ExchangeDeck?.Count ?? 0) cards)</span>
+                            <span class="enabled-by"><span class="icon-check"></span> Exchange Deck (@(CurrentNPC.ExchangeDeck?.Count ?? 0) cards)</span>
                         }
                         else
                         {
@@ -59,7 +59,7 @@
                         <span class="attention-cost">2 attention</span>
                     </div>
                     <div class="enabling-condition">
-                        <span class="enabled-by">✓ Always available</span>
+                        <span class="enabled-by"><span class="icon-check"></span> Always available</span>
                     </div>
                     <div class="type-description">
                         Standard conversation with full mechanics.

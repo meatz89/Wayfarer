@@ -23,28 +23,28 @@
     <div class="resources-bar">
         <div class="resource-group">
             <div class="resource @(Health < 30 ? "low" : "") @(Health < 15 ? "critical" : "")">
-                <div class="resource-icon">❤️</div>
+                <div class="resource-icon"><span class="icon-health"></span></div>
                 <div class="resource-info">
                     <div class="resource-label">Health</div>
                     <div class="resource-value">@Health</div>
                 </div>
             </div>
             <div class="resource @(Hunger > 60 ? "low" : "") @(Hunger > 80 ? "critical" : "")">
-                <div class="resource-icon">🍞</div>
+                <div class="resource-icon"><span class="icon-hunger"></span></div>
                 <div class="resource-info">
                     <div class="resource-label">Hunger</div>
                     <div class="resource-value">@Hunger</div>
                 </div>
             </div>
             <div class="resource">
-                <div class="resource-icon">⚡</div>
+                <div class="resource-icon"><span class="icon-attention"></span></div>
                 <div class="resource-info">
                     <div class="resource-label">Stamina</div>
                     <div class="resource-value">@GetStaminaDisplay()</div>
                 </div>
             </div>
             <div class="resource @(Coins < 5 ? "low" : "") @(Coins < 2 ? "critical" : "")">
-                <div class="resource-icon">💰</div>
+                <div class="resource-icon"><span class="icon-coin"></span></div>
                 <div class="resource-info">
                     <div class="resource-label">Coins</div>
                     <div class="resource-value">@Coins</div>
