@@ -556,7 +556,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             ConversationCard burdenCard = new ConversationCard
             {
                 Id = $"burden_displacement_{npcId}_{Guid.NewGuid()}",
-                CardType = CardType.BurdenGoal,  // Burden cards use BurdenGoal type
+                CardType = CardType.Letter,  // Burden cards use BurdenGoal type
                 Description = $"The memory of a broken promise lingers",
                 TokenType = tokenType,
                 Persistence = PersistenceType.Thought,  // Burdens persist

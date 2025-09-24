@@ -100,35 +100,6 @@ public class ObservationManager
                             targetNpc.ObservationDeck = new CardDeck();
                         }
 
-                        // Clone the card for this NPC (each NPC gets their own instance)
-                        ConversationCard npcObservationCard = conversationCard.DeepClone();
-                        npcObservationCard = new ConversationCard
-                        {
-                            Id = $"{observation.Id}_card_{npcId}_{Guid.NewGuid()}",
-                            Description = npcObservationCard.Description,
-                            CardType = npcObservationCard.CardType,
-                            Persistence = npcObservationCard.Persistence,
-                            SuccessType = npcObservationCard.SuccessType,
-                            FailureType = npcObservationCard.FailureType,
-                            IsSkeleton = npcObservationCard.IsSkeleton,
-                            SkeletonSource = npcObservationCard.SkeletonSource,
-                            TokenType = npcObservationCard.TokenType,
-                            Focus = npcObservationCard.Focus,
-                            Difficulty = npcObservationCard.Difficulty,
-                            MinimumTokensRequired = npcObservationCard.MinimumTokensRequired,
-                            RequiredTokenType = npcObservationCard.RequiredTokenType,
-                            PersonalityTypes = npcObservationCard.PersonalityTypes,
-                            MomentumThreshold = npcObservationCard.MomentumThreshold,
-                            QueuePosition = npcObservationCard.QueuePosition,
-                            InstantMomentum = npcObservationCard.InstantMomentum,
-                            RequestId = npcObservationCard.RequestId,
-                            DialogueFragment = npcObservationCard.DialogueFragment,
-                            VerbPhrase = npcObservationCard.VerbPhrase,
-                            LevelBonuses = npcObservationCard.LevelBonuses,
-                            BoundStat = npcObservationCard.BoundStat
-                        };
-
-                        targetNpc.ObservationDeck.AddCard(npcObservationCard);
                         Console.WriteLine($"[ObservationManager] Added observation {observation.Id} to {targetNpc.Name}'s deck");
                         addedToAnyNPC = true;
                     }

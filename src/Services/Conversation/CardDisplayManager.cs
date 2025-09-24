@@ -95,8 +95,8 @@ namespace Wayfarer
         /// </summary>
         private List<CardDisplayInfo> SortCardsWithPromiseFirst(List<CardDisplayInfo> cards)
         {
-            List<CardDisplayInfo> promiseCards = cards.Where(dc => dc.Card.CardType == CardType.Letter || dc.Card.CardType == CardType.Promise || dc.Card.CardType == CardType.BurdenGoal).ToList();
-            List<CardDisplayInfo> regularCards = cards.Where(dc => !(dc.Card.CardType == CardType.Letter || dc.Card.CardType == CardType.Promise || dc.Card.CardType == CardType.BurdenGoal)).ToList();
+            List<CardDisplayInfo> promiseCards = cards.Where(dc => dc.Card.CardType == CardType.Letter || dc.Card.CardType == CardType.Promise || dc.Card.CardType == CardType.Letter).ToList();
+            List<CardDisplayInfo> regularCards = cards.Where(dc => !(dc.Card.CardType == CardType.Letter || dc.Card.CardType == CardType.Promise || dc.Card.CardType == CardType.Letter)).ToList();
 
             List<CardDisplayInfo> sorted = new List<CardDisplayInfo>();
             sorted.AddRange(promiseCards);

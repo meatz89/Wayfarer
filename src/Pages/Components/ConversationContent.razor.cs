@@ -434,7 +434,7 @@ namespace Wayfarer.Pages.Components
                 // NO DELAY - game state is already updated, animation is just visual
 
                 // Check if this was a promise/goal card that succeeded
-                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise || playedCard.CardType == CardType.BurdenGoal;
+                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise || playedCard.CardType == CardType.Letter;
                 if (isPromiseCard && wasSuccessful)
                 {
                     // Promise card succeeded - conversation ends in victory!
@@ -1302,7 +1302,7 @@ namespace Wayfarer.Pages.Components
             if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
                 return card.Context.ExchangeName;
 
-            if (card.CardType == CardType.BurdenGoal)
+            if (card.CardType == CardType.Letter)
                 return "Address Past Failure";
 
             if (card.CardType == CardType.Observation)
@@ -1575,7 +1575,7 @@ namespace Wayfarer.Pages.Components
             List<string> classes = new List<string>();
 
             // Primary property-based classes
-            if (card.CardType == CardType.BurdenGoal)
+            if (card.CardType == CardType.Letter)
                 classes.Add("crisis");
             else if (card.Context?.ExchangeData != null)
                 classes.Add("exchange");
@@ -1634,7 +1634,7 @@ namespace Wayfarer.Pages.Components
                 tags.Add("Promise");
             else if (card.CardType == CardType.Letter)
                 tags.Add("Letter");
-            else if (card.CardType == CardType.BurdenGoal)
+            else if (card.CardType == CardType.Letter)
                 tags.Add("Burden");
 
             // Add success type if meaningful
@@ -1805,7 +1805,7 @@ namespace Wayfarer.Pages.Components
                 return "Unknown";
 
             // Goal cards (Letters, Promises) succeed if momentum threshold is met
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             {
                 return Session.CurrentMomentum >= card.MomentumThreshold ? "100" : "0";
             }
@@ -1815,7 +1815,7 @@ namespace Wayfarer.Pages.Components
                 return "100";
 
             // Check if player has sufficient level in bound stat
-            if (card.Template.BoundStat.HasValue)
+            if (card.ConversationCardTemplate.BoundStat.HasValue)
             {
                 int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
                 int requiredLevel = card.Difficulty switch
@@ -1854,7 +1854,7 @@ namespace Wayfarer.Pages.Components
                 return "Unknown status";
 
             // Goal cards (Letters, Promises) succeed if momentum threshold is met
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             {
                 bool canSucceed = Session.CurrentMomentum >= card.MomentumThreshold;
                 return canSucceed ?
@@ -1867,7 +1867,7 @@ namespace Wayfarer.Pages.Components
                 return "Very Easy: Always succeeds";
 
             // Check level requirements
-            if (card.Template.BoundStat.HasValue)
+            if (card.ConversationCardTemplate.BoundStat.HasValue)
             {
                 int effectiveLevel = card.GetEffectiveLevel(GameFacade.GetPlayerStats());
                 int requiredLevel = card.Difficulty switch
@@ -1880,7 +1880,7 @@ namespace Wayfarer.Pages.Components
                 };
 
                 if (effectiveLevel < requiredLevel)
-                    return $"{card.Template.BoundStat.Value}: Level {effectiveLevel} < {requiredLevel} required";
+                    return $"{card.ConversationCardTemplate.BoundStat.Value}: Level {effectiveLevel} < {requiredLevel} required";
             }
 
             // Check doubt penalty
@@ -2501,7 +2501,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("has-impulse");
             if (card?.Persistence == PersistenceType.Opening)
                 classes.Add("has-opening");
-            if (card?.CardType == CardType.BurdenGoal)
+            if (card?.CardType == CardType.Letter)
                 classes.Add("has-burden");
 
             return string.Join(" ", classes);
@@ -3073,9 +3073,9 @@ namespace Wayfarer.Pages.Components
             }
 
             // Add category class for left border styling
-            if (card?.Template != null)
+            if (card?.ConversationCardTemplate != null)
             {
-                classes.Add(card.Template.Category.ToString().ToLower());
+                classes.Add(card.ConversationCardTemplate.Category.ToString().ToLower());
             }
 
             return string.Join(" ", classes);
@@ -3308,9 +3308,9 @@ namespace Wayfarer.Pages.Components
             {
                 // Look for request/promise cards in the request pile
                 IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInPile = requestCards
-                .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal)
-                .Where(c => c.Template?.MomentumThreshold > 0)
-                .GroupBy(c => c.Template.MomentumThreshold)
+                .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.Letter)
+                .Where(c => c.ConversationCardTemplate?.MomentumThreshold > 0)
+                .GroupBy(c => c.ConversationCardTemplate.MomentumThreshold)
                 .OrderBy(g => g.Key);
 
                 foreach (IGrouping<int, CardInstance>? group in requestCardsInPile)
@@ -3333,7 +3333,7 @@ namespace Wayfarer.Pages.Components
                         <= 5 => "Basic Delivery",
                         <= 10 => "Priority Delivery",
                         <= 15 => "Immediate Action",
-                        _ => firstCard.Template?.Description ?? "Special Request"
+                        _ => firstCard.ConversationCardTemplate?.Description ?? "Special Request"
                     };
 
                     goals.Add(new RequestGoal
@@ -3395,9 +3395,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardStatClass(CardInstance card)
         {
-            if (card?.Template?.BoundStat == null) return "";
+            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
 
-            return card.Template.BoundStat.Value.ToString().ToLower();
+            return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
         }
 
         /// <summary>
@@ -3405,9 +3405,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardStatColorClass(CardInstance card)
         {
-            if (card?.Template?.BoundStat == null) return "";
+            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
 
-            return card.Template.BoundStat.Value.ToString().ToLower();
+            return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
         }
 
         /// <summary>
@@ -3417,7 +3417,7 @@ namespace Wayfarer.Pages.Components
         {
             List<string> tags = new List<string>();
 
-            if (card?.Template == null) return tags;
+            if (card?.ConversationCardTemplate == null) return tags;
 
             // Success effect tags
             if (card.SuccessType != SuccessEffectType.None)
@@ -3440,9 +3440,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardStatName(CardInstance card)
         {
-            if (card?.Template?.BoundStat == null) return "";
+            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
 
-            return GetStatDisplayName(card.Template.BoundStat.Value);
+            return GetStatDisplayName(card.ConversationCardTemplate.BoundStat.Value);
         }
 
         /// <summary>
@@ -3466,12 +3466,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardLevel(CardInstance card)
         {
-            if (card?.Template?.BoundStat == null || GameFacade == null) return 1;
+            if (card?.ConversationCardTemplate?.BoundStat == null || GameFacade == null) return 1;
 
             try
             {
                 PlayerStats stats = GameFacade.GetPlayerStats();
-                return stats.GetLevel(card.Template.BoundStat.Value);
+                return stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
             }
             catch
             {
@@ -3484,15 +3484,15 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetStatBonus(CardInstance card)
         {
-            if (card?.Template?.BoundStat == null || GameFacade == null) return "";
+            if (card?.ConversationCardTemplate?.BoundStat == null || GameFacade == null) return "";
 
             // Only Expression cards get momentum bonuses
-            if (card.Template.Category != CardCategory.Expression) return "";
+            if (card.ConversationCardTemplate.Category != CardCategory.Expression) return "";
 
             try
             {
                 PlayerStats stats = GameFacade.GetPlayerStats();
-                int statLevel = stats.GetLevel(card.Template.BoundStat.Value);
+                int statLevel = stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
 
                 // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
                 if (statLevel >= 2)
@@ -3561,10 +3561,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetMomentumCalculation(CardInstance card)
         {
-            if (card?.Template == null) return "";
+            if (card?.ConversationCardTemplate == null) return "";
 
             // Only show for Expression cards
-            if (card.Template.Category != CardCategory.Expression)
+            if (card.ConversationCardTemplate.Category != CardCategory.Expression)
             {
                 return "";
             }
@@ -3580,7 +3580,7 @@ namespace Wayfarer.Pages.Components
                 catch { }
             }
 
-            int baseMomentum = card.Template.GetMomentumEffect(Session, playerStats);
+            int baseMomentum = card.ConversationCardTemplate.GetMomentumEffect(Session, playerStats);
             return $"Gain {baseMomentum} momentum";
         }
 
@@ -3589,7 +3589,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardEffectDescription(CardInstance card)
         {
-            if (card?.Template == null) return "";
+            if (card?.ConversationCardTemplate == null) return "";
 
             return GetSuccessEffectDescription(card);
         }

@@ -60,10 +60,10 @@ public class CategoricalEffectResolver
             case SuccessEffectType.Strike:
                 // Use card's momentum scaling formula with player stats for bonuses
                 PlayerStats player = gameWorld.GetPlayer().Stats;
-                int momentumGain = card.Template.GetMomentumEffect(session, player);
+                int momentumGain = card.ConversationCardTemplate.GetMomentumEffect(session, player);
 
                 // Handle resource conversion cards (negative momentum = spend momentum for other effects)
-                if (momentumGain < 0 && card.Template.MomentumScaling != ScalingType.None)
+                if (momentumGain < 0 && card.ConversationCardTemplate.MomentumScaling != ScalingType.None)
                 {
                     int momentumCost = Math.Abs(momentumGain);
                     if (session.CurrentMomentum >= momentumCost)
@@ -71,7 +71,7 @@ public class CategoricalEffectResolver
                         result.MomentumChange = -momentumCost;
 
                         // Apply conversion effect based on scaling type
-                        switch (card.Template.MomentumScaling)
+                        switch (card.ConversationCardTemplate.MomentumScaling)
                         {
                             case ScalingType.SpendForDoubt:
                                 result.DoubtChange = -3; // Reduce doubt by 3
@@ -107,7 +107,7 @@ public class CategoricalEffectResolver
 
             case SuccessEffectType.Soothe:
                 // Handle resource conversion for Soothe cards
-                if (card.Template.MomentumScaling == ScalingType.SpendForDoubt)
+                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForDoubt)
                 {
                     int momentumCost = 2; // Fixed cost for clarity
                     if (session.CurrentMomentum >= momentumCost)
@@ -122,7 +122,7 @@ public class CategoricalEffectResolver
                         result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
                     }
                 }
-                else if (card.Template.MomentumScaling == ScalingType.PreventDoubt)
+                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.PreventDoubt)
                 {
                     // Special effect: prevent next doubt increase
                     result.DoubtChange = 0; // No immediate change
@@ -183,7 +183,7 @@ public class CategoricalEffectResolver
 
             case SuccessEffectType.Advancing:
                 // Handle resource conversion for Advancing cards
-                if (card.Template.MomentumScaling == ScalingType.SpendForFlow)
+                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForFlow)
                 {
                     int momentumCost = 3; // Fixed cost for clarity
                     if (session.CurrentMomentum >= momentumCost)
@@ -198,7 +198,7 @@ public class CategoricalEffectResolver
                         result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
                     }
                 }
-                else if (card.Template.MomentumScaling == ScalingType.SpendForFlowMajor)
+                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForFlowMajor)
                 {
                     int momentumCost = 4; // Fixed cost for major flow gain
                     if (session.CurrentMomentum >= momentumCost)
@@ -417,7 +417,7 @@ public class CategoricalEffectResolver
     public bool CheckCardSuccess(CardInstance card, ConversationSession session)
     {
         // Goal cards (Letters, Promises) always succeed if momentum threshold is met
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
         {
             return session.CurrentMomentum >= card.MomentumThreshold;
         }
@@ -433,7 +433,7 @@ public class CategoricalEffectResolver
     /// </summary>
     private string GetStrikeEffectDescription(CardInstance card, ConversationSession session, PlayerStats player, int momentumGain)
     {
-        var template = card.Template;
+        var template = card.ConversationCardTemplate;
 
         // Check for scaling formulas
         if (template.MomentumScaling != ScalingType.None)

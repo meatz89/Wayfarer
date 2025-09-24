@@ -67,7 +67,7 @@ public class SessionCardDeck
         foreach (CardInstance instance in instances)
         {
             // Preserve context
-            CardInstance sessionInstance = new CardInstance(instance.Template, instance.SourceContext)
+            CardInstance sessionInstance = new CardInstance(instance.ConversationCardTemplate, instance.SourceContext)
             {
                 InstanceId = instance.InstanceId,
                 Context = instance.Context,

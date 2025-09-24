@@ -343,7 +343,7 @@ public class ConversationFacade
 
         // Grant XP to player stat based on card's bound stat
         Player player = _gameWorld.GetPlayer();
-        if (selectedCard.Template.BoundStat.HasValue)
+        if (selectedCard.ConversationCardTemplate.BoundStat.HasValue)
         {
             // Calculate XP amount based on conversation difficulty/level
             int xpAmount = 1; // Base XP
@@ -360,7 +360,7 @@ public class ConversationFacade
             }
 
             // Grant XP to the bound stat regardless of success/failure (practice makes perfect)
-            player.Stats.AddXP(selectedCard.Template.BoundStat.Value, xpAmount);
+            player.Stats.AddXP(selectedCard.ConversationCardTemplate.BoundStat.Value, xpAmount);
         }
 
         // Record that this card was played for personality tracking
@@ -680,7 +680,7 @@ public class ConversationFacade
 
         // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -822,7 +822,7 @@ public class ConversationFacade
         bool requestAchieved = session.Deck.PlayedHistoryCards.Any(c =>
             c.CardType == CardType.Letter ||
             c.CardType == CardType.Promise ||
-            c.CardType == CardType.BurdenGoal);
+            c.CardType == CardType.Letter);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1007,7 +1007,7 @@ public class ConversationFacade
     {
         // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
         if (!selectedCard.IsPlayable &&
-            !(selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.BurdenGoal))
+            !(selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.Letter))
         {
             return new CardPlayResult
             {
@@ -1053,7 +1053,7 @@ public class ConversationFacade
         bool success = _effectResolver.CheckCardSuccess(selectedCard, session);
 
         // Mark request as completed if this is a BurdenGoal (request) card and it succeeds
-        if (success && selectedCard.CardType == CardType.BurdenGoal && selectedCard.Context?.RequestId != null)
+        if (success && selectedCard.CardType == CardType.Letter && selectedCard.Context?.RequestId != null)
         {
             // Find and complete the request
             NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
@@ -1117,7 +1117,7 @@ public class ConversationFacade
             }
 
             // Handle PreventDoubt effect (for Soothe cards with PreventDoubt scaling)
-            if (selectedCard.Template.MomentumScaling == ScalingType.PreventDoubt)
+            if (selectedCard.ConversationCardTemplate.MomentumScaling == ScalingType.PreventDoubt)
             {
                 session.PreventNextDoubtIncrease = true;
             }
@@ -1340,7 +1340,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
-            if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+            if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1366,7 +1366,7 @@ public class ConversationFacade
     {
         // This is called at conversation start - just check for goal card presence
         bool hasRequestCard = session.Deck.HandCards
-            .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.BurdenGoal);
+            .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.Letter);
 
         if (hasRequestCard)
         {
@@ -1385,7 +1385,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not focus
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             {
                 continue; // Don't modify request card playability here
             }

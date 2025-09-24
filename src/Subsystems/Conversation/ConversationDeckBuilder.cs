@@ -131,7 +131,6 @@ public class ConversationDeckBuilder
             }
             ConversationCard requestCard = cardEntry.Card;
 
-            // Create BurdenGoal type card for requests
             ConversationCard burdenGoalTemplate = new ConversationCard
             {
                 Id = requestCard.Id,
@@ -148,7 +147,7 @@ public class ConversationDeckBuilder
                 LevelBonuses = requestCard.LevelBonuses,
                 MinimumTokensRequired = requestCard.MinimumTokensRequired,
                 MomentumThreshold = requestCard.MomentumThreshold,
-                CardType = CardType.BurdenGoal // Mark as BurdenGoal
+                CardType = CardType.Letter
             };
 
             CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);

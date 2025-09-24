@@ -8,22 +8,22 @@ public class CardInstance
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
 
     // Template reference - single source of truth for card properties
-    public ConversationCard Template { get; init; }
+    public ConversationCard ConversationCardTemplate { get; init; }
 
     // Delegating properties for API compatibility
-    public string Id => Template.Id;
-    public string Description => Template.Description;
-    public SuccessEffectType SuccessType => Template.SuccessType;
-    public FailureEffectType FailureType => Template.FailureType;
-    public CardType CardType => Template.CardType;
-    public ConnectionType TokenType => Template.TokenType;
-    public int Focus => Template.Focus;
-    public Difficulty Difficulty => Template.Difficulty;
-    public int MomentumThreshold => Template.MomentumThreshold;
-    public string RequestId => Template.RequestId;
-    public int MinimumTokensRequired => Template.MinimumTokensRequired;
-    public string DialogueFragment => Template.DialogueFragment;
-    public string VerbPhrase => Template.VerbPhrase;
+    public string Id => ConversationCardTemplate.Id;
+    public string Description => ConversationCardTemplate.Description;
+    public SuccessEffectType SuccessType => ConversationCardTemplate.SuccessType;
+    public FailureEffectType FailureType => ConversationCardTemplate.FailureType;
+    public CardType CardType => ConversationCardTemplate.CardType;
+    public ConnectionType TokenType => ConversationCardTemplate.TokenType;
+    public int Focus => ConversationCardTemplate.Focus;
+    public Difficulty Difficulty => ConversationCardTemplate.Difficulty;
+    public int MomentumThreshold => ConversationCardTemplate.MomentumThreshold;
+    public string RequestId => ConversationCardTemplate.RequestId;
+    public int MinimumTokensRequired => ConversationCardTemplate.MinimumTokensRequired;
+    public string DialogueFragment => ConversationCardTemplate.DialogueFragment;
+    public string VerbPhrase => ConversationCardTemplate.VerbPhrase;
 
     // Categorical properties that define behavior through context
     /// <summary>
@@ -32,10 +32,10 @@ public class CardInstance
     /// </summary>
     public PersistenceType GetPersistence(PlayerStats playerStats)
     {
-        PersistenceType basePersistence = Template.Persistence;
+        PersistenceType basePersistence = ConversationCardTemplate.Persistence;
 
         // Check if bound stat has persistence bonus (level 3+)
-        if (Template.BoundStat.HasValue && playerStats.HasPersistenceBonus(Template.BoundStat.Value))
+        if (ConversationCardTemplate.BoundStat.HasValue && playerStats.HasPersistenceBonus(ConversationCardTemplate.BoundStat.Value))
         {
             // Cards gain Thought persistence if they don't already have it
             if (basePersistence != PersistenceType.Thought)
@@ -51,7 +51,7 @@ public class CardInstance
     /// Get base persistence without stat bonuses - used for CSS class generation
     /// For stat-aware persistence, use GetPersistence(PlayerStats)
     /// </summary>
-    public PersistenceType Persistence => Template.Persistence;
+    public PersistenceType Persistence => ConversationCardTemplate.Persistence;
 
     // Runtime context
     public string SourceContext { get; init; }
@@ -66,9 +66,9 @@ public class CardInstance
     /// </summary>
     public int GetEffectiveLevel(PlayerStats playerStats)
     {
-        if (Template.BoundStat.HasValue)
+        if (ConversationCardTemplate.BoundStat.HasValue)
         {
-            return playerStats.GetLevel(Template.BoundStat.Value);
+            return playerStats.GetLevel(ConversationCardTemplate.BoundStat.Value);
         }
         return 1; // Default level if no bound stat
     }
@@ -78,9 +78,9 @@ public class CardInstance
     /// </summary>
     public bool IgnoresFailureListen(PlayerStats playerStats)
     {
-        if (Template.BoundStat.HasValue)
+        if (ConversationCardTemplate.BoundStat.HasValue)
         {
-            return playerStats.IgnoresFailureListen(Template.BoundStat.Value);
+            return playerStats.IgnoresFailureListen(ConversationCardTemplate.BoundStat.Value);
         }
         return false;
     }
@@ -106,7 +106,7 @@ public class CardInstance
         }
 
         // Add special classes for request cards
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
         {
             classes.Add("card-request");
             if (!IsPlayable)
@@ -123,7 +123,7 @@ public class CardInstance
     public ConnectionState? SuccessState => null;
     public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
-    public bool CanDeliverLetter => CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal;
+    public bool CanDeliverLetter => CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter;
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
     // Exchange detection - exchanges are now separate ExchangeCard entities, not ConversationCards
@@ -138,7 +138,7 @@ public class CardInstance
     public int CalculateSuccessChance(PlayerStats playerStats)
     {
         // Request/Promise cards always succeed (100%)
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
             return 100;
 
         return GetBaseSuccessPercentage(playerStats);
@@ -147,7 +147,7 @@ public class CardInstance
     public int CalculateSuccessChance(PlayerStats playerStats, ConnectionState state)
     {
         // Request/Promise cards always succeed (100%)
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.BurdenGoal)
+        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
             return 100;
 
         return GetBaseSuccessPercentage(playerStats);
@@ -162,12 +162,12 @@ public class CardInstance
     /// </summary>
     public int GetBaseSuccessPercentage(PlayerStats playerStats)
     {
-        int baseChance = Template.GetBaseSuccessPercentage();
+        int baseChance = ConversationCardTemplate.GetBaseSuccessPercentage();
 
         // Add stat bonus instead of card level bonus
-        if (Template.BoundStat.HasValue)
+        if (ConversationCardTemplate.BoundStat.HasValue)
         {
-            int statBonus = playerStats.GetSuccessBonus(Template.BoundStat.Value);
+            int statBonus = playerStats.GetSuccessBonus(ConversationCardTemplate.BoundStat.Value);
             return baseChance + statBonus;
         }
 
@@ -179,7 +179,7 @@ public class CardInstance
 
     public CardInstance(ConversationCard template, string sourceContext = null)
     {
-        Template = template;
+        ConversationCardTemplate = template;
         SourceContext = sourceContext;
     }
 

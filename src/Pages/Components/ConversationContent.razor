@@ -229,7 +229,7 @@
                             </div>
                         </div>
                     }
-                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.BurdenGoal)
+                    else if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
                     {
                         @* Goal Card with rapport threshold - using same layout as regular cards but with distinct styling *@
                         <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
@@ -253,7 +253,7 @@
                                         {
                                             <span class="persistence-tag thought">Thought</span>
                                         }
-                                        <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
+                                        <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
                                         @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
@@ -280,7 +280,7 @@
 
                                 <!-- Effect description -->
                                 <div class="card-effect">
-                                    <strong>@GetCategoryDisplayName(convCard.Template.Category):</strong> @GetCardEffectDescription(convCard)
+                                    <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
                                     @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
                                     {
                                         <br>@GetMomentumCalculation(convCard)
@@ -325,7 +325,7 @@
                                         {
                                             <span class="persistence-tag thought">Thought</span>
                                         }
-                                        <span class="category-tag @GetCategoryClass(convCard.Template)">@GetCategoryDisplayName(convCard.Template.Category)</span>
+                                        <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
                                         @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
@@ -352,7 +352,7 @@
 
                                 <!-- Effect description -->
                                 <div class="card-effect">
-                                    <strong>@GetCategoryDisplayName(convCard.Template.Category):</strong> @GetCardEffectDescription(convCard)
+                                    <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
                                     @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
                                     {
                                         <br>@GetMomentumCalculation(convCard)

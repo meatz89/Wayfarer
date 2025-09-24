@@ -111,7 +111,7 @@ public static class ConversationCardParser
         }
 
         // Validate momentum threshold for goal cards
-        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.BurdenGoal)
+        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.Letter)
         {
             if (!dto.MomentumThreshold.HasValue)
             {
@@ -216,7 +216,7 @@ public static class ConversationCardParser
         {
             "letter" => CardType.Letter,
             "promise" => CardType.Promise,
-            "burdengoal" => CardType.BurdenGoal,
+            "burdengoal" => CardType.Letter,
             _ => CardType.Promise // Default for goal cards
         };
 
@@ -298,7 +298,7 @@ public static class ConversationCardParser
         {
             "letter" => CardType.Letter,
             "promise" => CardType.Promise,
-            "burdengoal" => CardType.BurdenGoal,
+            "burdengoal" => CardType.Letter,
             "observation" => CardType.Observation,
             "normal" => CardType.Conversation,
             _ => CardType.Conversation // Default to conversation

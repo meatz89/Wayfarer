@@ -256,9 +256,9 @@
         // Determine category based on card type
         if (card.CardType == CardType.Observation)
             return "observation";
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             return "promise";
-        if (card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter)
             return "burden";
         
         return "flow"; // Default
@@ -277,9 +277,9 @@
         // Determine category display text based on card type
         if (card.CardType == CardType.Observation)
             return "OBSERVATION";
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             return "PROMISE";
-        if (card.CardType == CardType.BurdenGoal)
+        if (card.CardType == CardType.Letter)
             return "BURDEN";
 
         return "FLOW"; // Default
