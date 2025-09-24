@@ -29,15 +29,6 @@ public class Inventory
         _items.Clear();
     }
 
-    public string GetFirstItem()
-    {
-        if (!_items.Any())
-        {
-            Console.WriteLine("ERROR: GetFirstItem() called on empty inventory");
-            throw new InvalidOperationException("Attempted to get first item from empty inventory");
-        }
-        return _items[0];
-    }
 
     public int GetCapacity()
     {
@@ -124,10 +115,6 @@ public class Inventory
         return _items.Remove(item);
     }
 
-    public bool TryAddItem(string item)
-    {
-        return AddItem(item);
-    }
 
     public bool HasItem(string item)
     {
@@ -203,13 +190,6 @@ public class Inventory
         return baseWeight;
     }
 
-    /// <summary>
-    /// Get available weight capacity
-    /// </summary>
-    public int GetAvailableWeight(ItemRepository itemRepository, TravelMethods? currentTransport = null)
-    {
-        return GetMaxWeight(currentTransport) - GetUsedWeight(itemRepository);
-    }
 
     /// <summary>
     /// Add item with weight checking

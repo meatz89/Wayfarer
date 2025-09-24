@@ -24,13 +24,54 @@ public static class ExchangeParser
             NpcId = npcId ?? string.Empty,
 
             // Default to trade type
-            ExchangeType = DetermineExchangeType(dto),
+            ExchangeType = dto.GiveCurrency == "coins" ? ExchangeType.Purchase : ExchangeType.Trade,
 
             // Parse cost structure
-            Cost = ParseCostStructure(dto),
+            Cost = new ExchangeCostStructure
+            {
+                Resources = dto.GiveAmount > 0 ? new List<ResourceAmount>
+                {
+                    new ResourceAmount
+                    {
+                        Type = dto.GiveCurrency?.ToLower() switch
+                        {
+                            "coins" or "coin" => ResourceType.Coins,
+                            "food" => ResourceType.Hunger,
+                            "health" => ResourceType.Health,
+                            "trust" => ResourceType.TrustToken,
+                            "commerce" => ResourceType.CommerceToken,
+                            "status" => ResourceType.StatusToken,
+                            "shadow" => ResourceType.ShadowToken,
+                            _ => ResourceType.Coins
+                        },
+                        Amount = dto.GiveAmount
+                    }
+                } : new List<ResourceAmount>(),
+                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null
+            },
 
             // Parse reward structure
-            Reward = ParseRewardStructure(dto),
+            Reward = new ExchangeRewardStructure
+            {
+                Resources = dto.ReceiveAmount > 0 ? new List<ResourceAmount>
+                {
+                    new ResourceAmount
+                    {
+                        Type = dto.ReceiveCurrency?.ToLower() switch
+                        {
+                            "coins" or "coin" => ResourceType.Coins,
+                            "food" => ResourceType.Hunger,
+                            "health" => ResourceType.Health,
+                            "trust" => ResourceType.TrustToken,
+                            "commerce" => ResourceType.CommerceToken,
+                            "status" => ResourceType.StatusToken,
+                            "shadow" => ResourceType.ShadowToken,
+                            _ => ResourceType.Coins
+                        },
+                        Amount = dto.ReceiveAmount
+                    }
+                } : new List<ResourceAmount>()
+            },
 
             // Default properties
             SingleUse = false,
@@ -41,16 +82,6 @@ public static class ExchangeParser
         return card;
     }
 
-    /// <summary>
-    /// Parse multiple exchange DTOs
-    /// </summary>
-    public static List<ExchangeCard> ParseExchanges(List<ExchangeDTO> dtos, string npcId = null)
-    {
-        if (dtos == null || dtos.Count == 0)
-            return new List<ExchangeCard>();
-
-        return dtos.Select(dto => ParseExchange(dto, npcId)).ToList();
-    }
 
     /// <summary>
     /// Generate a description from the exchange DTO
@@ -60,94 +91,9 @@ public static class ExchangeParser
         return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency}";
     }
 
-    /// <summary>
-    /// Determine the exchange type based on DTO properties
-    /// </summary>
-    private static ExchangeType DetermineExchangeType(ExchangeDTO dto)
-    {
-        // Simple heuristics for exchange type
-        if (dto.GiveCurrency == "coins")
-            return ExchangeType.Purchase;
 
-        // Default to trade
-        return ExchangeType.Trade;
-    }
 
-    /// <summary>
-    /// Parse the cost structure from DTO
-    /// </summary>
-    private static ExchangeCostStructure ParseCostStructure(ExchangeDTO dto)
-    {
-        ExchangeCostStructure cost = new ExchangeCostStructure();
 
-        // Convert give currency to resource type
-        ResourceType? resourceType = ParseResourceType(dto.GiveCurrency);
-        if (resourceType != null && dto.GiveAmount > 0)
-        {
-            cost.Resources.Add(new ResourceAmount
-            {
-                Type = resourceType.Value,
-                Amount = dto.GiveAmount
-            });
-        }
-
-        // Add token gates if present
-        if (dto.TokenGate != null && dto.TokenGate.Count > 0)
-        {
-            cost.TokenRequirements = new Dictionary<ConnectionType, int>();
-            foreach (KeyValuePair<string, int> kvp in dto.TokenGate)
-            {
-                if (Enum.TryParse<ConnectionType>(kvp.Key, true, out ConnectionType tokenType))
-                {
-                    cost.TokenRequirements[tokenType] = kvp.Value;
-                }
-            }
-        }
-
-        return cost;
-    }
-
-    /// <summary>
-    /// Parse the reward structure from DTO
-    /// </summary>
-    private static ExchangeRewardStructure ParseRewardStructure(ExchangeDTO dto)
-    {
-        ExchangeRewardStructure reward = new ExchangeRewardStructure();
-
-        // Convert receive currency to resource type
-        ResourceType? resourceType = ParseResourceType(dto.ReceiveCurrency);
-        if (resourceType != null && dto.ReceiveAmount > 0)
-        {
-            reward.Resources.Add(new ResourceAmount
-            {
-                Type = resourceType.Value,
-                Amount = dto.ReceiveAmount
-            });
-        }
-
-        return reward;
-    }
-
-    /// <summary>
-    /// Parse resource type from string
-    /// </summary>
-    private static ResourceType? ParseResourceType(string currency)
-    {
-        if (string.IsNullOrEmpty(currency))
-            return null;
-
-        return currency.ToLower() switch
-        {
-            "coins" or "coin" => ResourceType.Coins,
-            "food" => ResourceType.Hunger,  // Hunger maps to Hunger resource
-            "health" => ResourceType.Health,
-            "trust" => ResourceType.TrustToken,
-            "commerce" => ResourceType.CommerceToken,
-            "status" => ResourceType.StatusToken,
-            "shadow" => ResourceType.ShadowToken,
-            _ => null
-        };
-    }
 
     /// <summary>
     /// Create exchange cards for an NPC based on their personality type

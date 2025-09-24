@@ -13,13 +13,6 @@ public class RouteDiscoveryRepository
         _gameWorld = gameWorld;
     }
 
-    /// <summary>
-    /// Get all route discoveries
-    /// </summary>
-    public List<RouteDiscovery> GetAllRouteDiscoveries()
-    {
-        return _gameWorld.WorldState.RouteDiscoveries;
-    }
 
     /// <summary>
     /// Get discoveries for a specific route
@@ -40,14 +33,6 @@ public class RouteDiscoveryRepository
             .ToList();
     }
 
-    /// <summary>
-    /// Check if a specific NPC knows about a route
-    /// </summary>
-    public bool DoesNPCKnowRoute(string npcId, string routeId)
-    {
-        RouteDiscovery? discovery = GetDiscoveryForRoute(routeId);
-        return discovery != null && discovery.KnownByNPCs.Contains(npcId);
-    }
 
     /// <summary>
     /// Get the discovery context for a specific NPC and route

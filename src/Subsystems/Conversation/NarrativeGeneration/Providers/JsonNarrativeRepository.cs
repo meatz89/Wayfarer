@@ -20,45 +20,6 @@ public class JsonNarrativeRepository
         this.contentDirectory = contentDirectory;
     }
 
-    /// <summary>
-    /// Loads narrative templates from the JSON file.
-    /// Must be called before using FindBestMatch or GetCardNarrative.
-    /// </summary>
-    public void LoadNarratives()
-    {
-        string filePath = Path.Combine(contentDirectory.Path, "Narratives", "conversation_narratives.json");
-
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException($"Narrative file not found at: {filePath}");
-        }
-
-        string jsonContent = File.ReadAllText(filePath);
-        JsonDocument document = JsonDocument.Parse(jsonContent);
-        JsonElement root = document.RootElement;
-
-        // Load narrative templates
-        if (root.TryGetProperty("narrativeTemplates", out JsonElement templatesElement))
-        {
-            foreach (JsonElement templateElement in templatesElement.EnumerateArray())
-            {
-                NarrativeTemplate template = ParseNarrativeTemplate(templateElement);
-                templates.Add(template);
-            }
-        }
-
-        // Load default responses
-        if (root.TryGetProperty("defaultResponses", out JsonElement defaultElement) &&
-            defaultElement.TryGetProperty("cardCategories", out JsonElement categoriesElement))
-        {
-            foreach (JsonProperty category in categoriesElement.EnumerateObject())
-            {
-                defaultCardResponses[category.Name] = category.Value.GetString();
-            }
-        }
-
-        isLoaded = true;
-    }
 
     /// <summary>
     /// Finds the best matching narrative template for the current conversation state.
@@ -68,7 +29,38 @@ public class JsonNarrativeRepository
     {
         if (!isLoaded)
         {
-            LoadNarratives();
+            string filePath = Path.Combine(contentDirectory.Path, "Narratives", "conversation_narratives.json");
+
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Narrative file not found at: {filePath}");
+            }
+
+            string jsonContent = File.ReadAllText(filePath);
+            JsonDocument document = JsonDocument.Parse(jsonContent);
+            JsonElement root = document.RootElement;
+
+            // Load narrative templates
+            if (root.TryGetProperty("narrativeTemplates", out JsonElement templatesElement))
+            {
+                foreach (JsonElement templateElement in templatesElement.EnumerateArray())
+                {
+                    NarrativeTemplate template = ParseNarrativeTemplate(templateElement);
+                    templates.Add(template);
+                }
+            }
+
+            // Load default responses
+            if (root.TryGetProperty("defaultResponses", out JsonElement defaultElement) &&
+                defaultElement.TryGetProperty("cardCategories", out JsonElement categoriesElement))
+            {
+                foreach (JsonProperty category in categoriesElement.EnumerateObject())
+                {
+                    defaultCardResponses[category.Name] = category.Value.GetString();
+                }
+            }
+
+            isLoaded = true;
         }
 
         // First, try to find exact NPC matches

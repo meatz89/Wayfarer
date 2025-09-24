@@ -210,23 +210,6 @@ public class TokenUnlockEntry
 public static class ListBasedHelperExtensions
 {
     // Resource entry helpers
-    public static int GetResourceAmount(this List<ResourceEntry> resources, string resourceType)
-    {
-        return resources.FirstOrDefault(r => r.ResourceType == resourceType)?.Amount ?? 0;
-    }
-
-    public static void SetResourceAmount(this List<ResourceEntry> resources, string resourceType, int amount)
-    {
-        ResourceEntry? existing = resources.FirstOrDefault(r => r.ResourceType == resourceType);
-        if (existing != null)
-        {
-            existing.Amount = amount;
-        }
-        else
-        {
-            resources.Add(new ResourceEntry { ResourceType = resourceType, Amount = amount });
-        }
-    }
 
     // NPC token helpers
     public static NPCTokenEntry GetNPCTokenEntry(this List<NPCTokenEntry> tokens, string npcId)
@@ -265,37 +248,8 @@ public static class ListBasedHelperExtensions
         };
     }
 
-    public static void AddOrUpdateTokens(this List<NPCTokenEntry> tokens, string npcId, Dictionary<ConnectionType, int> tokenCounts)
-    {
-        NPCTokenEntry entry = tokens.GetNPCTokenEntry(npcId);
-        if (tokenCounts.ContainsKey(ConnectionType.Trust))
-            entry.Trust = tokenCounts[ConnectionType.Trust];
-        if (tokenCounts.ContainsKey(ConnectionType.Commerce))
-            entry.Commerce = tokenCounts[ConnectionType.Commerce];
-        if (tokenCounts.ContainsKey(ConnectionType.Status))
-            entry.Status = tokenCounts[ConnectionType.Status];
-        if (tokenCounts.ContainsKey(ConnectionType.Shadow))
-            entry.Shadow = tokenCounts[ConnectionType.Shadow];
-    }
 
     // Card deck helpers
-    public static int GetCardCount(this List<CardDeckEntry> deck, string cardId)
-    {
-        return deck.FirstOrDefault(c => c.CardId == cardId)?.Count ?? 0;
-    }
-
-    public static void SetCardCount(this List<CardDeckEntry> deck, string cardId, int count)
-    {
-        CardDeckEntry? existing = deck.FirstOrDefault(c => c.CardId == cardId);
-        if (existing != null)
-        {
-            existing.Count = count;
-        }
-        else
-        {
-            deck.Add(new CardDeckEntry { CardId = cardId, Count = count });
-        }
-    }
 
     // Familiarity helpers
     public static int GetFamiliarity(this List<FamiliarityEntry> familiarityList, string entityId)
@@ -362,14 +316,6 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    public static void RemoveSkeleton(this List<SkeletonRegistryEntry> registry, string key)
-    {
-        SkeletonRegistryEntry entry = registry.FirstOrDefault(r => r.SkeletonKey == key);
-        if (entry != null)
-        {
-            registry.Remove(entry);
-        }
-    }
 
     // Event deck position helpers
     public static int GetPosition(this List<EventDeckPositionEntry> positions, string deckId)
@@ -437,6 +383,7 @@ public static class ListBasedHelperExtensions
         }
     }
 
+
     // PathCollectionEntry helpers
     public static PathCardCollectionDTO GetCollection(this List<PathCollectionEntry> collections, string collectionId)
     {
@@ -456,24 +403,13 @@ public static class ListBasedHelperExtensions
         }
     }
 
+
     // TravelEventEntry helpers
     public static TravelEventDTO GetEvent(this List<TravelEventEntry> events, string eventId)
     {
         return events.FindById(eventId)?.TravelEvent;
     }
 
-    public static void AddOrUpdateEvent(this List<TravelEventEntry> events, string eventId, TravelEventDTO travelEvent)
-    {
-        TravelEventEntry existing = events.FindById(eventId);
-        if (existing != null)
-        {
-            existing.TravelEvent = travelEvent;
-        }
-        else
-        {
-            events.Add(new TravelEventEntry { EventId = eventId, TravelEvent = travelEvent });
-        }
-    }
 
     // CardDefinitionEntry helpers
     public static ConversationCard GetCard(this List<CardDefinitionEntry> cards, string cardId)
@@ -493,6 +429,7 @@ public static class ListBasedHelperExtensions
             cards.Add(new CardDefinitionEntry { CardId = cardId, Card = card });
         }
     }
+
 
     // ConversationTypeEntry helpers
     public static ConversationTypeDefinition GetConversationType(this List<ConversationTypeEntry> types, string typeId)
@@ -541,6 +478,7 @@ public static class ListBasedHelperExtensions
     {
         return history.Select(h => h.History);
     }
+
 
     // CardDeckDefinitionEntry helpers
     public static CardDeckDefinition GetDeck(this List<CardDeckDefinitionEntry> decks, string deckId)

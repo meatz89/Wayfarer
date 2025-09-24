@@ -15,18 +15,10 @@ public interface IRouteRepository
     /// </summary>
     bool IsRouteBlocked(string routeId);
 
-    /// <summary>
-    /// Get current weather condition
-    /// </summary>
-    WeatherCondition GetCurrentWeather();
 
     /// <summary>
     /// Get available routes considering current conditions
     /// </summary>
     IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player);
 
-    /// <summary>
-    /// Check if player has required equipment for a route
-    /// </summary>
-    bool PlayerHasRequiredEquipment(RouteOption route, Player player);
 }

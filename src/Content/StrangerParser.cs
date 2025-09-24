@@ -8,32 +8,6 @@ using System.Text.Json;
 /// </summary>
 public static class StrangerParser
 {
-    /// <summary>
-    /// Parse strangers from a JSON package and convert to NPC objects
-    /// </summary>
-    public static List<NPC> ParseStrangers(JsonElement root)
-    {
-        List<NPC> strangers = new List<NPC>();
-
-        // Parse content section
-        if (root.TryGetProperty("content", out JsonElement content))
-        {
-            // Parse strangers array
-            if (content.TryGetProperty("strangers", out JsonElement strangersElement))
-            {
-                foreach (JsonElement strangerElement in strangersElement.EnumerateArray())
-                {
-                    StrangerNPCDTO? strangerDto = JsonSerializer.Deserialize<StrangerNPCDTO>(strangerElement.GetRawText());
-                    if (strangerDto != null)
-                    {
-                        strangers.Add(ConvertDTOToNPC(strangerDto));
-                    }
-                }
-            }
-        }
-
-        return strangers;
-    }
 
     /// <summary>
     /// Convert StrangerNPCDTO to NPC domain model with IsStranger flag

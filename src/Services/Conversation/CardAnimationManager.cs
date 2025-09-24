@@ -57,55 +57,9 @@ namespace Wayfarer
         }
 
 
-        /// <summary>
-        /// Mark a card as played with success/failure animation.
-        /// </summary>
-        public void MarkCardAsPlayed(CardInstance card, bool success, Action stateChangedCallback)
-        {
-            if (card == null) return;
-
-            string cardId = card.InstanceId ?? card.Id ?? "";
-            cardStates[cardId] = new CardAnimationState
-            {
-                CardId = cardId,
-                State = success ? "played-success" : "played-failure",
-                StateChangedAt = DateTime.Now,
-                AnimationDelay = 0, // Played card animates immediately
-                AnimationDirection = "up" // Exit upward after flash
-            };
-
-            // SYNCHRONOUS PRINCIPLE: No delays! State cleared on next action.
-            // CSS animation runs independently of game logic.
-            stateChangedCallback?.Invoke();
-        }
 
 
 
-        /// <summary>
-        /// Mark new cards with staggered fade-in animations.
-        /// </summary>
-        public void MarkNewCards(List<CardInstance> newCards, HashSet<string> newCardIds, Action stateChangedCallback)
-        {
-            for (int i = 0; i < newCards.Count; i++)
-            {
-                CardInstance card = newCards[i];
-                string cardId = card.InstanceId ?? card.Id ?? "";
-                newCardIds.Add(cardId);
-
-                cardStates[cardId] = new CardAnimationState
-                {
-                    CardId = cardId,
-                    State = "new",
-                    StateChangedAt = DateTime.Now,
-                    AnimationDelay = i * 0.15, // 150ms stagger between cards
-                    SequenceIndex = i
-                };
-            }
-
-            // SYNCHRONOUS PRINCIPLE: No delays! Cards immediately playable.
-            // CSS animation provides visual feedback for new cards.
-            stateChangedCallback?.Invoke();
-        }
 
 
         /// <summary>
@@ -118,27 +72,5 @@ namespace Wayfarer
             cardStates.Clear();
         }
 
-        /// <summary>
-        /// Clean up old animation states.
-        /// Simplified: Only track played card animations (1.5s duration).
-        /// </summary>
-        public void CleanupOldAnimations()
-        {
-            DateTime now = DateTime.Now;
-
-            // Clean up played card animations after 1.6 seconds
-            animatingCards.RemoveAll(ac => (now - ac.AddedAt).TotalSeconds > 1.6);
-
-            // Remove old card states
-            List<string> oldStates = cardStates
-                .Where(kvp => (now - kvp.Value.StateChangedAt).TotalSeconds > 1.6)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            foreach (string cardId in oldStates)
-            {
-                cardStates.Remove(cardId);
-            }
-        }
     }
 }

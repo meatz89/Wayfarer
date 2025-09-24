@@ -7,38 +7,6 @@ using System.Linq;
 /// </summary>
 public static class ConversationCardParser
 {
-    /// <summary>
-    /// Get all cards for an NPC's personality from provided card data
-    /// </summary>
-    public static List<ConversationCard> GetCardsForNPC(NPC npc,
-        Dictionary<string, ConversationCardDTO> cardTemplates,
-        Dictionary<PersonalityType, PersonalityCardMapping> personalityMappings)
-    {
-        List<ConversationCard> cards = new List<ConversationCard>();
-
-        // Add universal cards - all conversation cards that aren't special types
-        IEnumerable<ConversationCardDTO> universalCards = cardTemplates.Values
-            .Where(c => c.Type == null || c.Type.ToLower() == "normal" || c.Type.ToLower() == "conversation");
-
-        foreach (ConversationCardDTO cardDto in universalCards)
-        {
-            cards.Add(ConvertDTOToCard(cardDto, npc));
-        }
-
-        // Add personality-specific cards
-        if (personalityMappings.TryGetValue(npc.PersonalityType, out PersonalityCardMapping mapping))
-        {
-            foreach (string cardId in mapping.Cards)
-            {
-                if (cardTemplates.TryGetValue(cardId, out ConversationCardDTO cardDto))
-                {
-                    cards.Add(ConvertDTOToCard(cardDto, npc));
-                }
-            }
-        }
-
-        return cards;
-    }
 
     /// <summary>
     /// Get request card for conversation type from provided card data
@@ -95,7 +63,15 @@ public static class ConversationCardParser
         }
 
         // Parse card type from DTO type field
-        CardType cardType = ParseCardType(dto);
+        CardType cardType = string.IsNullOrEmpty(dto.Type) ? CardType.Conversation : dto.Type.ToLower() switch
+        {
+            "letter" => CardType.Letter,
+            "promise" => CardType.Promise,
+            "burdengoal" => CardType.Letter,
+            "observation" => CardType.Observation,
+            "normal" => CardType.Conversation,
+            _ => CardType.Conversation
+        };
 
         // Parse or determine card category
         CardCategory category = CardCategory.Expression; // Default
@@ -205,120 +181,9 @@ public static class ConversationCardParser
     }
 
 
-    /// <summary>
-    /// Convert NPCGoalCardDTO to ConversationCard
-    /// </summary>
-    public static ConversationCard ConvertGoalCardDTO(NPCGoalCardDTO dto)
-    {
-        // Determine card type based on the goal type
-        CardType cardType = dto.Type?.ToLower() switch
-        {
-            "letter" => CardType.Letter,
-            "promise" => CardType.Promise,
-            "burdengoal" => CardType.Letter,
-            _ => CardType.Promise // Default for goal cards
-        };
-
-        // Parse categorical properties
-        PersistenceType persistence = PersistenceType.Thought; // Goal cards are always Thoughts
-        if (!string.IsNullOrEmpty(dto.Persistence))
-        {
-            Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
-        }
-
-        SuccessEffectType successType = cardType == CardType.Letter ?
-            SuccessEffectType.Advancing : SuccessEffectType.Promising;
-        if (!string.IsNullOrEmpty(dto.SuccessType))
-        {
-            Enum.TryParse<SuccessEffectType>(dto.SuccessType, true, out successType);
-        }
-
-        FailureEffectType failureType = FailureEffectType.None;
-        if (!string.IsNullOrEmpty(dto.FailureType))
-        {
-            Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
-        }
-
-        // Parse difficulty if specified, otherwise use default
-        Difficulty difficulty = Difficulty.VeryEasy; // Goal cards typically always succeed
-        if (!string.IsNullOrEmpty(dto.Difficulty))
-        {
-            Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
-        }
-
-        // Parse token type
-        ConnectionType tokenType = ConnectionType.Trust; // Default
-        if (!string.IsNullOrEmpty(dto.ConnectionType))
-        {
-            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
-        }
-
-        // Parse or determine card category
-        CardCategory category = CardCategory.Expression; // Default
-        if (!string.IsNullOrEmpty(dto.Category))
-        {
-            Enum.TryParse<CardCategory>(dto.Category, true, out category);
-        }
-        else
-        {
-            // Auto-determine category from success effect type
-            category = ConversationCard.DetermineCategoryFromEffect(successType);
-        }
-
-        return new ConversationCard
-        {
-            Id = dto.Id,
-            Description = dto.Description,
-            CardType = cardType,
-            Category = category,
-            Focus = dto.Focus,
-            DialogueFragment = dto.DialogueFragment,
-            Difficulty = difficulty,
-            Persistence = persistence,
-            SuccessType = successType,
-            FailureType = failureType,
-            MomentumThreshold = dto.MomentumThreshold,
-            TokenType = tokenType,
-            VerbPhrase = "",
-            PersonalityTypes = new List<string>(),
-            LevelBonuses = new List<CardLevelBonus>()
-        };
-    }
-
-    /// <summary>
-    /// Parse card type from DTO type field
-    /// </summary>
-    private static CardType ParseCardType(ConversationCardDTO dto)
-    {
-        if (string.IsNullOrEmpty(dto.Type))
-            return CardType.Conversation;
-
-        return dto.Type.ToLower() switch
-        {
-            "letter" => CardType.Letter,
-            "promise" => CardType.Promise,
-            "burdengoal" => CardType.Letter,
-            "observation" => CardType.Observation,
-            "normal" => CardType.Conversation,
-            _ => CardType.Conversation // Default to conversation
-        };
-    }
 
 
-    /// <summary>
-    /// Parse resource type from string
-    /// </summary>
-    private static ResourceType? ParseResourceType(string name)
-    {
-        return name.ToLower() switch
-        {
-            "coins" => ResourceType.Coins,
-            "health" => ResourceType.Health,
-            "food" => ResourceType.Hunger,
-            "hunger" => ResourceType.Hunger,
-            _ => null
-        };
-    }
+
 
 }
 

@@ -48,15 +48,5 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             Console.WriteLine($"[CoinManager] Added {amount} coins from {source}. Total: {GetCurrentCoins(player)}");
         }
 
-        public string FormatCoins(int coins)
-        {
-            if (coins >= 100)
-            {
-                int gold = coins / 100;
-                int silver = coins % 100;
-                return $"{gold}g {silver}s";
-            }
-            return $"{coins}s";
-        }
     }
 }

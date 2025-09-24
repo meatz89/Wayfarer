@@ -17,49 +17,6 @@ public static class ConversationRules
         return ConnectionState.NEUTRAL;
     }
 
-    public static ConnectionState TransitionState(ConnectionState current, int flowChange)
-    {
-        // Linear progression: DISCONNECTED ← GUARDED ← NEUTRAL → OPEN → CONNECTED
-        if (flowChange >= 3)
-        {
-            return current switch
-            {
-                ConnectionState.DISCONNECTED => ConnectionState.GUARDED,
-                ConnectionState.GUARDED => ConnectionState.NEUTRAL,
-                ConnectionState.NEUTRAL => ConnectionState.RECEPTIVE,
-                ConnectionState.RECEPTIVE => ConnectionState.TRUSTING,
-                ConnectionState.TRUSTING => ConnectionState.TRUSTING, // Stay at max
-                _ => ConnectionState.NEUTRAL
-            };
-        }
-        else if (flowChange <= -3)
-        {
-            return current switch
-            {
-                ConnectionState.TRUSTING => ConnectionState.RECEPTIVE,
-                ConnectionState.RECEPTIVE => ConnectionState.NEUTRAL,
-                ConnectionState.NEUTRAL => ConnectionState.GUARDED,
-                ConnectionState.GUARDED => ConnectionState.DISCONNECTED,
-                ConnectionState.DISCONNECTED => ConnectionState.DISCONNECTED, // Stay - ends conversation
-                _ => ConnectionState.NEUTRAL
-            };
-        }
 
-        return current; // No transition
-    }
 
-    public static string GetStateEffects(ConnectionState state)
-    {
-        return States.ContainsKey(state) ? States[state].Description : "Unknown state";
-    }
-
-    public static Dictionary<ConnectionState, string> GetAllStateEffects()
-    {
-        Dictionary<ConnectionState, string> dict = new Dictionary<ConnectionState, string>();
-        foreach (KeyValuePair<ConnectionState, ConversationStateRules> kvp in States)
-        {
-            dict[kvp.Key] = kvp.Value.Description;
-        }
-        return dict;
-    }
 }

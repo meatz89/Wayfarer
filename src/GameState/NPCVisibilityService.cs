@@ -10,21 +10,7 @@ public class NPCVisibilityService
 {
     private readonly List<INPCVisibilityRule> _visibilityRules = new List<INPCVisibilityRule>();
 
-    /// <summary>
-    /// Register a visibility rule provider
-    /// </summary>
-    public void RegisterVisibilityRule(INPCVisibilityRule rule)
-    {
-        _visibilityRules.Add(rule);
-    }
 
-    /// <summary>
-    /// Unregister a visibility rule provider
-    /// </summary>
-    public void UnregisterVisibilityRule(INPCVisibilityRule rule)
-    {
-        _visibilityRules.Remove(rule);
-    }
 
     /// <summary>
     /// Check if an NPC should be visible based on all registered rules

@@ -74,53 +74,6 @@ public static class LetterTemplateParser
 
         return template;
     }
-    public static LetterTemplate ParseLetterTemplate(string json)
-    {
-        JsonDocumentOptions options = new JsonDocumentOptions
-        {
-            AllowTrailingCommas = true
-        };
-
-        using JsonDocument doc = JsonDocument.Parse(json, options);
-        JsonElement root = doc.RootElement;
-
-        LetterTemplate template = new LetterTemplate
-        {
-            Id = GetStringProperty(root, "id", ""),
-            Description = GetStringProperty(root, "description", ""),
-            MinDeadlineInSegments = GetIntProperty(root, "minDeadlineInSegments", 4), // 4 segments default
-            MaxDeadlineInSegments = GetIntProperty(root, "maxDeadlineInSegments", 8), // 8 segments default
-            MinPayment = GetIntProperty(root, "minPayment", 3),
-            MaxPayment = GetIntProperty(root, "maxPayment", 5)
-        };
-
-        // Parse token type
-        string tokenTypeStr = GetStringProperty(root, "tokenType", "");
-        template.TokenType = ParseConnectionType(tokenTypeStr);
-
-        // Parse optional arrays
-        template.PossibleSenders = GetStringArray(root, "possibleSenders").ToArray();
-        template.PossibleRecipients = GetStringArray(root, "possibleRecipients").ToArray();
-
-        // Parse special letter properties
-        string specialTypeStr = GetStringProperty(root, "specialType", "None");
-        template.SpecialType = ParseSpecialType(specialTypeStr);
-        template.SpecialTargetId = GetStringProperty(root, "specialTargetId", "");
-
-        // Parse human context and consequences
-        template.ConsequenceIfLate = GetStringProperty(root, "consequenceIfLate", "");
-        template.ConsequenceIfDelivered = GetStringProperty(root, "consequenceIfDelivered", "");
-
-        // Parse emotional focus
-        string emotionalFocusStr = GetStringProperty(root, "emotionalFocus", "MEDIUM");
-        template.EmotionalFocus = ParseEmotionalFocus(emotionalFocusStr);
-
-        // Parse stakes
-        string stakesStr = GetStringProperty(root, "stakes", "REPUTATION");
-        template.Stakes = ParseStakeType(stakesStr);
-
-        return template;
-    }
 
     private static ConnectionType ParseConnectionType(string connectionTypeStr)
     {
@@ -169,47 +122,4 @@ public static class LetterTemplateParser
         };
     }
 
-    private static string GetStringProperty(JsonElement element, string propertyName, string defaultValue)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            string value = property.GetString() ?? defaultValue;
-            return !string.IsNullOrWhiteSpace(value) ? value : defaultValue;
-        }
-        return defaultValue;
-    }
-
-    private static int GetIntProperty(JsonElement element, string propertyName, int defaultValue)
-    {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.Number)
-        {
-            return property.GetInt32();
-        }
-        return defaultValue;
-    }
-
-    private static List<string> GetStringArray(JsonElement element, string propertyName)
-    {
-        List<string> results = new List<string>();
-
-        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-            arrayElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in arrayElement.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                {
-                    string value = item.GetString() ?? string.Empty;
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        results.Add(value);
-                    }
-                }
-            }
-        }
-
-        return results;
-    }
 }

@@ -19,7 +19,21 @@ public static class PlayerStatParser
         {
             foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
             {
-                stats.Add(ConvertDTOToStatDefinition(statDto));
+                // Parse stat type from ID
+                if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
+                {
+                    throw new ArgumentException($"Invalid player stat ID: {statDto.Id}");
+                }
+
+                stats.Add(new PlayerStatDefinition
+                {
+                    StatType = statType,
+                    Name = statDto.Name ?? "",
+                    Description = statDto.Description ?? "",
+                    ConversationBenefit = statDto.ConversationBenefit ?? "",
+                    InvestigationUnlock = statDto.InvestigationUnlock ?? "",
+                    TravelUnlock = statDto.TravelUnlock ?? ""
+                });
             }
         }
 
@@ -27,7 +41,44 @@ public static class PlayerStatParser
         StatProgression progression = null;
         if (configDto.Progression != null)
         {
-            progression = ConvertDTOToProgression(configDto.Progression);
+            progression = new StatProgression();
+
+            // Set XP thresholds
+            if (configDto.Progression.XpThresholds != null)
+            {
+                progression.XpThresholds = new List<int>(configDto.Progression.XpThresholds);
+            }
+
+            // Parse level bonuses
+            if (configDto.Progression.LevelBonuses != null)
+            {
+                progression.LevelBonuses = new List<StatLevelBonus>();
+                foreach (StatLevelBonusDTO bonusDto in configDto.Progression.LevelBonuses)
+                {
+                    StatLevelBonus bonus = new StatLevelBonus
+                    {
+                        Level = bonusDto.Level,
+                        SuccessBonus = bonusDto.SuccessBonus,
+                        Description = bonusDto.Description ?? ""
+                    };
+
+                    // Parse special effects
+                    if (!string.IsNullOrEmpty(bonusDto.Effect))
+                    {
+                        switch (bonusDto.Effect.ToLower())
+                        {
+                            case "gains_thought_persistence":
+                                bonus.GainsThoughtPersistence = true;
+                                break;
+                            case "ignores_failure_listen":
+                                bonus.IgnoresFailureListen = true;
+                                break;
+                        }
+                    }
+
+                    progression.LevelBonuses.Add(bonus);
+                }
+            }
         }
 
         return new PlayerStatsParseResult(stats, progression);
@@ -52,7 +103,21 @@ public static class PlayerStatParser
                     PlayerStatDefinitionDTO? statDto = JsonSerializer.Deserialize<PlayerStatDefinitionDTO>(statElement.GetRawText());
                     if (statDto != null)
                     {
-                        stats.Add(ConvertDTOToStatDefinition(statDto));
+                        // Parse stat type from ID
+                        if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
+                        {
+                            throw new ArgumentException($"Invalid player stat ID: {statDto.Id}");
+                        }
+
+                        stats.Add(new PlayerStatDefinition
+                        {
+                            StatType = statType,
+                            Name = statDto.Name ?? "",
+                            Description = statDto.Description ?? "",
+                            ConversationBenefit = statDto.ConversationBenefit ?? "",
+                            InvestigationUnlock = statDto.InvestigationUnlock ?? "",
+                            TravelUnlock = statDto.TravelUnlock ?? ""
+                        });
                     }
                 }
             }
@@ -63,7 +128,44 @@ public static class PlayerStatParser
                 StatProgressionDTO? progressionDto = JsonSerializer.Deserialize<StatProgressionDTO>(progressionElement.GetRawText());
                 if (progressionDto != null)
                 {
-                    progression = ConvertDTOToProgression(progressionDto);
+                    progression = new StatProgression();
+
+                    // Set XP thresholds
+                    if (progressionDto.XpThresholds != null)
+                    {
+                        progression.XpThresholds = new List<int>(progressionDto.XpThresholds);
+                    }
+
+                    // Parse level bonuses
+                    if (progressionDto.LevelBonuses != null)
+                    {
+                        progression.LevelBonuses = new List<StatLevelBonus>();
+                        foreach (StatLevelBonusDTO bonusDto in progressionDto.LevelBonuses)
+                        {
+                            StatLevelBonus bonus = new StatLevelBonus
+                            {
+                                Level = bonusDto.Level,
+                                SuccessBonus = bonusDto.SuccessBonus,
+                                Description = bonusDto.Description ?? ""
+                            };
+
+                            // Parse special effects
+                            if (!string.IsNullOrEmpty(bonusDto.Effect))
+                            {
+                                switch (bonusDto.Effect.ToLower())
+                                {
+                                    case "gains_thought_persistence":
+                                        bonus.GainsThoughtPersistence = true;
+                                        break;
+                                    case "ignores_failure_listen":
+                                        bonus.IgnoresFailureListen = true;
+                                        break;
+                                }
+                            }
+
+                            progression.LevelBonuses.Add(bonus);
+                        }
+                    }
                 }
             }
         }
@@ -71,74 +173,7 @@ public static class PlayerStatParser
         return new PlayerStatsParseResult(stats, progression);
     }
 
-    /// <summary>
-    /// Convert PlayerStatDefinitionDTO to PlayerStatDefinition domain model
-    /// </summary>
-    private static PlayerStatDefinition ConvertDTOToStatDefinition(PlayerStatDefinitionDTO dto)
-    {
-        // Parse stat type from ID
-        if (!Enum.TryParse<PlayerStatType>(dto.Id, true, out PlayerStatType statType))
-        {
-            throw new ArgumentException($"Invalid player stat ID: {dto.Id}");
-        }
 
-        return new PlayerStatDefinition
-        {
-            StatType = statType,
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            ConversationBenefit = dto.ConversationBenefit ?? "",
-            InvestigationUnlock = dto.InvestigationUnlock ?? "",
-            TravelUnlock = dto.TravelUnlock ?? ""
-        };
-    }
-
-    /// <summary>
-    /// Convert StatProgressionDTO to StatProgression domain model
-    /// </summary>
-    private static StatProgression ConvertDTOToProgression(StatProgressionDTO dto)
-    {
-        StatProgression progression = new StatProgression();
-
-        // Set XP thresholds
-        if (dto.XpThresholds != null)
-        {
-            progression.XpThresholds = new List<int>(dto.XpThresholds);
-        }
-
-        // Parse level bonuses
-        if (dto.LevelBonuses != null)
-        {
-            progression.LevelBonuses = new List<StatLevelBonus>();
-            foreach (StatLevelBonusDTO bonusDto in dto.LevelBonuses)
-            {
-                StatLevelBonus bonus = new StatLevelBonus
-                {
-                    Level = bonusDto.Level,
-                    SuccessBonus = bonusDto.SuccessBonus,
-                    Description = bonusDto.Description ?? ""
-                };
-
-                // Parse special effects
-                if (!string.IsNullOrEmpty(bonusDto.Effect))
-                {
-                    switch (bonusDto.Effect.ToLower())
-                    {
-                        case "gains_thought_persistence":
-                            bonus.GainsThoughtPersistence = true;
-                            break;
-                        case "ignores_failure_listen":
-                            bonus.IgnoresFailureListen = true;
-                            break;
-                    }
-                }
-
-                progression.LevelBonuses.Add(bonus);
-            }
-        }
-
-        return progression;
-    }
 }
 
 /// <summary>

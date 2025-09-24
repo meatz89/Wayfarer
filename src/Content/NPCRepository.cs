@@ -261,40 +261,8 @@ public class NPCRepository
 
     #region Write Methods
 
-    public void AddNPC(NPC npc)
-    {
-        if (GetAllNPCs().Any(n => n.ID == npc.ID))
-        {
-            throw new InvalidOperationException($"NPC with ID '{npc.ID}' already exists.");
-        }
 
-        _gameWorld.WorldState.AddCharacter(npc);
-    }
 
-    public void AddNPCs(IEnumerable<NPC> npcs)
-    {
-        foreach (NPC npc in npcs)
-        {
-            AddNPC(npc);
-        }
-    }
-
-    public bool RemoveNPC(string id)
-    {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
-        if (npcs == null)
-        {
-            return false;
-        }
-
-        NPC npc = npcs.FirstOrDefault(n => n.ID == id);
-        if (npc != null)
-        {
-            return npcs.Remove(npc);
-        }
-
-        return false;
-    }
 
     public void UpdateNPC(NPC npc)
     {
@@ -314,14 +282,6 @@ public class NPCRepository
         npcs[index] = npc;
     }
 
-    public void ClearAllNPCs()
-    {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
-        if (npcs != null)
-        {
-            npcs.Clear();
-        }
-    }
 
     #endregion
 

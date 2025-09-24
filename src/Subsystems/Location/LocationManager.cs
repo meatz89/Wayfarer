@@ -48,18 +48,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return location;
         }
 
-        /// <summary>
-        /// Get a location by its name.
-        /// </summary>
-        public Location GetLocationByName(string locationName)
-        {
-            if (string.IsNullOrEmpty(locationName)) return null;
-
-            Location location = _gameWorld.WorldState.locations.FirstOrDefault(l =>
-                l.Name.Equals(locationName, StringComparison.OrdinalIgnoreCase));
-
-            return location;
-        }
 
         /// <summary>
         /// Get all locations in the world.
@@ -91,17 +79,6 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             return _gameWorld.GetSpot(spotId);
         }
 
-        /// <summary>
-        /// Get locations connected to the specified location.
-        /// </summary>
-        public List<Location> GetConnectedLocations(string currentLocationId)
-        {
-            if (string.IsNullOrEmpty(currentLocationId)) return new List<Location>();
-
-            return _gameWorld.WorldState.locations
-                .Where(l => l.ConnectedLocationIds?.Contains(currentLocationId) == true)
-                .ToList();
-        }
 
         /// <summary>
         /// Add a new location to the world.

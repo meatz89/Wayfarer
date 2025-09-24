@@ -16,11 +16,6 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.WorldState.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
-    // Get current weather (weather affects route availability)
-    public WeatherCondition GetCurrentWeather()
-    {
-        return _gameWorld.WorldState.CurrentWeather;
-    }
 
     // Get routes from a specific location (by checking all spots in that location)
     public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
@@ -102,17 +97,4 @@ public class RouteRepository : IRouteRepository
         return availableRoutes;
     }
 
-    // Check if player has required equipment for a route
-    public bool PlayerHasRequiredEquipment(RouteOption route, Player player)
-    {
-        // This checks terrain category requirements
-        // Already implemented in RouteOption.CheckRouteAccess
-        RouteAccessResult result = route.CheckRouteAccess(
-            _itemRepository,
-            player,
-            GetCurrentWeather()
-        );
-
-        return result.IsAllowed;
-    }
 }

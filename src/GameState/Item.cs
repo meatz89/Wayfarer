@@ -110,10 +110,6 @@ public class Item
     }
 
 
-    public bool IsSizeCategory(SizeCategory sizeCategory)
-    {
-        return Size == sizeCategory;
-    }
 
     public bool IsAvailable { get; internal set; }
 
@@ -145,51 +141,7 @@ public class Item
         return GetWeight();
     }
 
-    /// <summary>
-    /// Check if this item is considered heavy for transport restrictions
-    /// </summary>
-    public bool IsHeavyForTransport()
-    {
-        return Size == SizeCategory.Large || Size == SizeCategory.Massive;
-    }
 
-    /// <summary>
-    /// Check if this item has any token generation effects
-    /// </summary>
-    public bool HasTokenEffects()
-    {
-        return (TokenGenerationModifiers != null && TokenGenerationModifiers.Any()) ||
-               (EnablesTokenGeneration != null && EnablesTokenGeneration.Any());
-    }
 
-    /// <summary>
-    /// Get a description of this item's token effects for UI display
-    /// </summary>
-    public string GetTokenEffectsDescription()
-    {
-        List<string> effects = new List<string>();
-
-        if (EnablesTokenGeneration != null && EnablesTokenGeneration.Any())
-        {
-            foreach (ConnectionType tokenType in EnablesTokenGeneration)
-            {
-                effects.Add($"Enables {tokenType} token generation");
-            }
-        }
-
-        if (TokenGenerationModifiers != null && TokenGenerationModifiers.Any())
-        {
-            foreach (KeyValuePair<ConnectionType, float> modifier in TokenGenerationModifiers)
-            {
-                if (modifier.Value > 1.0f)
-                {
-                    int percentBonus = (int)((modifier.Value - 1.0f) * 100);
-                    effects.Add($"+{percentBonus}% {modifier.Key} tokens");
-                }
-            }
-        }
-
-        return effects.Any() ? string.Join(", ", effects) : "";
-    }
 
 }

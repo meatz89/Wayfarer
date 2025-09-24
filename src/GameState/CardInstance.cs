@@ -60,18 +60,6 @@ public class CardInstance
     // Track if card is currently playable (for request cards)
     public bool IsPlayable { get; set; } = true;
 
-    /// <summary>
-    /// Get effective level for this card based on player stats
-    /// Cards derive their level from the bound stat level, not individual card XP
-    /// </summary>
-    public int GetEffectiveLevel(PlayerStats playerStats)
-    {
-        if (ConversationCardTemplate.BoundStat.HasValue)
-        {
-            return playerStats.GetLevel(ConversationCardTemplate.BoundStat.Value);
-        }
-        return 1; // Default level if no bound stat
-    }
 
     /// <summary>
     /// Check if card ignores forced LISTEN on failure based on player stat level
@@ -135,27 +123,6 @@ public class CardInstance
         return Focus;
     }
 
-    public int CalculateSuccessChance(PlayerStats playerStats)
-    {
-        // Request/Promise cards always succeed (100%)
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
-            return 100;
-
-        return GetBaseSuccessPercentage(playerStats);
-    }
-
-    public int CalculateSuccessChance(PlayerStats playerStats, ConnectionState state)
-    {
-        // Request/Promise cards always succeed (100%)
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
-            return 100;
-
-        return GetBaseSuccessPercentage(playerStats);
-    }
-    public ConnectionType GetConnectionType()
-    {
-        return TokenType;
-    }
 
     /// <summary>
     /// Get base success percentage applying player stat bonuses

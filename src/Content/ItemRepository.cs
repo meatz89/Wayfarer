@@ -27,15 +27,6 @@
         return _gameWorld.WorldState.Items.FirstOrDefault(i => i.Id == id);
     }
 
-    public Item GetItemByName(string name)
-    {
-        if (_gameWorld.WorldState.Items == null)
-        {
-            Console.WriteLine($"ERROR: Items collection is null in GetItemByName({name})");
-            throw new InvalidOperationException("Items collection not initialized - data loading failed");
-        }
-        return _gameWorld.WorldState.Items.FirstOrDefault(i => i.Name == name);
-    }
 
     public List<Item> GetAllItems()
     {
@@ -47,48 +38,27 @@
         return _gameWorld.WorldState.Items;
     }
 
-    public List<Item> GetItemsForLocation(string locationId, string spotId = null)
-    {
-        if (_gameWorld.WorldState.Items == null)
-        {
-            Console.WriteLine($"ERROR: Items collection is null in GetItemsForLocation({locationId}, {spotId})");
-            throw new InvalidOperationException("Items collection not initialized - data loading failed");
-        }
-        List<Item> items = _gameWorld.WorldState.Items;
-        if (spotId != null)
-        {
-            return items.Where(i => i.LocationId == locationId && i.SpotId == spotId).ToList();
-        }
-        else
-        {
-            return items.Where(i => i.LocationId == locationId).ToList();
-        }
-    }
 
     #endregion
 
     #region Write Methods
 
-    public void AddItem(Item item)
+
+    public void AddItems(IEnumerable<Item> items)
     {
         if (_gameWorld.WorldState.Items == null)
         {
             _gameWorld.WorldState.Items = new List<Item>();
         }
 
-        if (_gameWorld.WorldState.Items.Any(i => i.Id == item.Id))
-        {
-            throw new InvalidOperationException($"Item with ID '{item.Id}' already exists.");
-        }
-
-        _gameWorld.WorldState.Items.Add(item);
-    }
-
-    public void AddItems(IEnumerable<Item> items)
-    {
         foreach (Item item in items)
         {
-            AddItem(item);
+            if (_gameWorld.WorldState.Items.Any(i => i.Id == item.Id))
+            {
+                throw new InvalidOperationException($"Item with ID '{item.Id}' already exists.");
+            }
+
+            _gameWorld.WorldState.Items.Add(item);
         }
     }
 
@@ -108,34 +78,7 @@
         return false;
     }
 
-    public void UpdateItem(Item item)
-    {
-        if (_gameWorld.WorldState.Items == null)
-        {
-            throw new InvalidOperationException("No items collection exists.");
-        }
 
-        Item existingItem = _gameWorld.WorldState.Items.FirstOrDefault(i => i.Id == item.Id);
-        if (existingItem == null)
-        {
-            throw new InvalidOperationException($"Item with ID '{item.Id}' not found.");
-        }
-
-        int index = _gameWorld.WorldState.Items.IndexOf(existingItem);
-        _gameWorld.WorldState.Items[index] = item;
-    }
-
-    public void ClearAllItems()
-    {
-        if (_gameWorld.WorldState.Items == null)
-        {
-            _gameWorld.WorldState.Items = new List<Item>();
-        }
-        else
-        {
-            _gameWorld.WorldState.Items.Clear();
-        }
-    }
 
     #endregion
 }

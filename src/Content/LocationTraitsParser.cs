@@ -15,10 +15,20 @@ public static class LocationTraitsParser
             return traits;
 
         // Parse environmental properties for current time based on TimeBlocks
-        List<string> properties = GetPropertiesForTime(location, currentTime);
+        List<string> properties = currentTime switch
+        {
+            TimeBlocks.Dawn => location.MorningProperties ?? new List<string>(),
+            TimeBlocks.Morning => location.MorningProperties ?? new List<string>(),
+            TimeBlocks.Midday => location.AfternoonProperties ?? new List<string>(),
+            TimeBlocks.Afternoon => location.EveningProperties ?? new List<string>(),
+            TimeBlocks.Evening => location.NightProperties ?? new List<string>(),
+            TimeBlocks.Night => location.NightProperties ?? new List<string>(),
+            _ => location.AfternoonProperties ?? new List<string>()
+        };
+
         foreach (string prop in properties)
         {
-            string trait = MapEnvironmentalPropertyToTrait(prop);
+            string trait = prop.ToString(); // Direct conversion
             if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
             {
                 traits.Add(trait);
@@ -30,7 +40,19 @@ public static class LocationTraitsParser
         {
             foreach (string tag in location.DomainTags)
             {
-                string trait = MapDomainTagToTrait(tag);
+                string trait = tag?.ToUpper() switch
+                {
+                    "COMMERCE" => "Commerce Hub",
+                    "SOCIAL" => "Social Gathering",
+                    "PUBLIC" => "Public Square",
+                    "NOBLE" => "Noble District",
+                    "WEALTH" => "Affluent Area",
+                    "EXCLUSIVE" => "Exclusive Access",
+                    "HOME" => "Home Base",
+                    "REST" => "Rest Area",
+                    "PRIVATE" => "Private Space",
+                    _ => ""
+                };
                 if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
                 {
                     traits.Add(trait);
@@ -39,7 +61,7 @@ public static class LocationTraitsParser
         }
 
         // Add location-type specific traits
-        string locationTypeTrait = GetLocationTypeTrait(location);
+        string locationTypeTrait = !string.IsNullOrEmpty(location.LocationTypeString) ? location.LocationTypeString : "";
         if (!string.IsNullOrEmpty(locationTypeTrait) && !traits.Contains(locationTypeTrait))
         {
             traits.Add(locationTypeTrait);
@@ -49,48 +71,7 @@ public static class LocationTraitsParser
         return traits.Take(4).ToList();
     }
 
-    private static List<string> GetPropertiesForTime(Location location, TimeBlocks time)
-    {
-        return time switch
-        {
-            TimeBlocks.Dawn => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Morning => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Midday => location.AfternoonProperties ?? new List<string>(),
-            TimeBlocks.Afternoon => location.EveningProperties ?? new List<string>(),
-            TimeBlocks.Evening => location.NightProperties ?? new List<string>(),
-            TimeBlocks.Night => location.NightProperties ?? new List<string>(),
-            _ => location.AfternoonProperties ?? new List<string>()
-        };
-    }
 
-    private static string MapEnvironmentalPropertyToTrait(string prop)
-    {
-        return prop.ToString();
-    }
 
-    private static string MapDomainTagToTrait(string tag)
-    {
-        return tag?.ToUpper() switch
-        {
-            "COMMERCE" => "Commerce Hub",
-            "SOCIAL" => "Social Gathering",
-            "PUBLIC" => "Public Square",
-            "NOBLE" => "Noble District",
-            "WEALTH" => "Affluent Area",
-            "EXCLUSIVE" => "Exclusive Access",
-            "HOME" => "Home Base",
-            "REST" => "Rest Area",
-            "PRIVATE" => "Private Space",
-            _ => ""
-        };
-    }
 
-    private static string GetLocationTypeTrait(Location location)
-    {
-        // Use mechanical property instead of hardcoded checks
-        if (!string.IsNullOrEmpty(location.LocationTypeString))
-            return location.LocationTypeString;
-
-        return "";
-    }
 }

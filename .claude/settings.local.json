@@ -64,7 +64,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 30 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 10 dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 15 dotnet run --no-build)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6400\" timeout 30 dotnet run --no-build)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "ask": []

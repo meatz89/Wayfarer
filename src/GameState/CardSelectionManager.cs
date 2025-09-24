@@ -18,28 +18,5 @@ public class CardSelectionManager
             _selectedCards.Add(card);
     }
 
-    public string GetSelectionDescription()
-    {
-        if (!_selectedCards.Any())
-            return "No cards selected";
 
-        int totalFocus = 0;
-        foreach (CardInstance c in _selectedCards)
-        {
-            totalFocus += c.Focus; // No state modifiers in new system
-        }
-
-        List<string> cardNames = new List<string>();
-        foreach (CardInstance c in _selectedCards)
-        {
-            cardNames.Add(c.Description);
-        }
-
-        return $"Playing {string.Join(", ", cardNames)} (focus: {totalFocus})";
-    }
-
-    public HashSet<CardInstance> GetSelectedCards()
-    {
-        return new HashSet<CardInstance>(_selectedCards);
-    }
 }

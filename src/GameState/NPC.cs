@@ -130,12 +130,6 @@ public class NPC
         }
     }
 
-    // Check if NPC has any promise cards in their one-time requests  
-    public bool HasPromiseCards()
-    {
-        if (Requests == null) return false;
-        return Requests.Any(r => r.IsAvailable() && r.PromiseCardIds.Any());
-    }
 
     // Check if NPC has burden history (cards in burden deck)
     public bool HasBurdenHistory()
@@ -199,11 +193,6 @@ public class NPC
         return ProvidedServices.Contains(requestedService);
     }
 
-    internal bool IsAvailableAtLocation(string? spotID)
-    {
-        // NPCs are available at their assigned location
-        return !string.IsNullOrEmpty(spotID) && Location == spotID;
-    }
 
 
 
@@ -393,12 +382,5 @@ public class NPC
         }
     }
 
-    /// <summary>
-    /// Get XP multiplier based on NPC level
-    /// </summary>
-    public int GetXPMultiplier()
-    {
-        return Level;
-    }
 
 }

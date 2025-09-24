@@ -18,10 +18,6 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             return player.Hunger;
         }
 
-        public int GetMaxHunger()
-        {
-            return MAX_HUNGER;
-        }
 
         public bool IsStarving(Player player)
         {

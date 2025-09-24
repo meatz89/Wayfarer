@@ -69,9 +69,5 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             Console.WriteLine($"[HealthManager] Player healed {actualHealing} from {source}. Health: {player.Health}/{MAX_HEALTH}");
         }
 
-        public void SetHealth(Player player, int health)
-        {
-            player.Health = Math.Max(MIN_HEALTH, Math.Min(MAX_HEALTH, health));
-        }
     }
 }
