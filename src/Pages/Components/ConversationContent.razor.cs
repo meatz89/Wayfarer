@@ -105,6 +105,33 @@ namespace Wayfarer.Pages.Components
             return "json-fallback";
         }
 
+        protected override async Task OnParametersSetAsync()
+        {
+            if (Context != null)
+            {
+                await InitializeFromContext();
+                await base.OnParametersSetAsync();
+            }
+        }
+
+        private async Task InitializeFromContext()
+        {
+            if (Context?.Session != null)
+            {
+                Session = Context.Session;
+                NpcName = Context.Npc?.Name ?? "Unknown";
+
+                // Initialize conversation narrative
+                await GenerateInitialNarrative();
+
+                Console.WriteLine($"[ConversationContent] Initialized with Session for NPC: {NpcName}");
+            }
+            else
+            {
+                Console.WriteLine("[ConversationContent] ERROR: Context or Session is null");
+            }
+        }
+
         protected async Task ExecuteListen()
         {
             // UI ANIMATION ORCHESTRATION: Block during animations for better UX
