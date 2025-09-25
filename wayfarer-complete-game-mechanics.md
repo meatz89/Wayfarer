@@ -1024,199 +1024,270 @@ Missing deadlines has permanent consequences:
 
 ### Core Design Principle
 
-The conversation system represents the primary gameplay loop using a momentum/doubt resource system. Instead of managing rapport and patience, players build **momentum** toward goal thresholds while managing **doubt** that accumulates from failures and reduces momentum during LISTEN actions.
+The conversation system represents the primary gameplay loop using a depth-based card progression inspired by Steamworld Quest. Players progress through **stat-gated card depths** while managing five distinct resources. Each conversation type provides a fixed deck appropriate to the context, but player stats determine which depths of cards are accessible, creating meaningful long-term progression without breaking verisimilitude.
 
-### Core Resource Mechanics
+### The Five Core Resources
 
-**Momentum System (Like Inverted Enemy Health)**:
-- Momentum represents progress toward conversation goals
+Each resource has exactly ONE mechanical identity with no overlap:
+
+**Initiative** - Conversational Action Economy:
+- Determines how many cards can be played before the NPC responds
+- Starts at Connection State value (3-6 based on relationship)
+- Does NOT fully refresh - must be built through cards
+- Some cards generate Initiative, others spend it
+- Creates builder/spender dynamic inspired by Steamworld Quest
+
+**Momentum** - Progress Toward Goals:
+- Victory track toward conversation objectives
 - Goal thresholds: Basic (8), Enhanced (12), Premium (16)
-- Reaching thresholds unlocks request goal cards that end conversation when chosen
-- Momentum can be consumed by cards for doubt reduction, flow advancement, card draw
-- Each LISTEN action reduces momentum by 1 per current doubt level
+- Can be consumed by cards for powerful effects
+- Subject to "doubt tax" - each point of Doubt reduces momentum gains by 20%
+- Represents how close you are to achieving conversation objectives
 
-**Doubt System (Like Inverted Player Health)**:
-- Doubt starts at 0 and increases by 1 when card plays fail
-- High doubt causes conversation failure/loss if it gets too high
-- Each LISTEN action, doubt reduces momentum (1 doubt = -1 momentum)
-- This makes momentum-consuming cards "essentially free" when doubt is high
-- Cards can spend momentum to reduce doubt, creating resource conversion decisions
+**Doubt** - Rising NPC Skepticism:
+- Timer that ends conversation at 10 points
+- Increases by +1 when card plays fail
+- Creates momentum tax (-20% gains per Doubt point)
+- Can be reduced through cards or momentum spending
+- Represents NPC's growing distrust of the conversation
 
-**Focus System**:
-- Focus determines how many cards can be played in one SPEAK cycle
-- Each card costs specific focus points based on its tier (1-6 focus)
-- Unused focus is lost on LISTEN - no banking or carrying over
-- Focus fully replenishes to connection state maximum on LISTEN
+**Cadence** - Conversation Balance (-5 to +10):
+- Tracks who dominates the conversation
+- +1 per card played (you talking), -3 per LISTEN (giving them space)
+- High Cadence (6+): +1 Doubt per point above 5 on LISTEN
+- Negative Cadence (-3+): +1 card draw on LISTEN
+- Creates natural conversation rhythm and rewards strategic listening
 
-**Flow System**:
-- Flow changes connection state when thresholds are reached (both directions)
-- Connection state determines cards drawn on LISTEN and focus capacity
-- +1 flow on successful card plays, -1 flow on failures
-- At ±3 flow: state changes and flow resets to 0
+**Connection State** - Relationship Baseline (Static):
+- Determined by token count before conversation starts
+- Sets starting Initiative (3-6) and base card draw (3-5)
+- Does not change during conversation
+- Represents existing comfort level between characters
 
-**New Conversation Structure**:
+### Stat-Gated Depth System
+
+**Card Depth Architecture**:
+Each conversation type deck contains cards organized by depth (1-10):
+- **Depth 1-3**: Foundation cards (simple, always accessible to all players)
+- **Depth 4-6**: Sophisticated cards (require stat progression)
+- **Depth 7-10**: Master cards (complex, powerful, endgame content)
+
+**Depth Access Mechanics**:
+Your stat level determines maximum accessible depth for that stat's cards:
+- **Rapport Level 3**: Can access Rapport cards up to Depth 3
+- **Commerce Level 5**: Can access Commerce cards up to Depth 5
+- **Authority Level 2**: Can access Authority cards up to Depth 2
+
+**Progressive Deck Composition**:
+- Novice players (stats 1-2): Small decks with simple cards only
+- Experienced players (stats 5-7): Large decks mixing builders and powerful spenders
+- Master players (stats 8+): Full access to conversation-defining depth 10 cards
+
+**Conversation Structure**:
 - NPC request chosen BEFORE conversation determines conversation type
-- Each conversation type has exactly ONE unique card deck (creates unique puzzle per type)
-- Card deck flows: draw pile → active pile (hand) → exhaust pile
-- When draw pile empties, shuffle exhaust pile back to draw pile for cycling
+- Each conversation type has exactly ONE unique card deck organized by depth
+- Your stats filter which depths are included in your personal deck for this conversation
+- Creates meaningful progression while maintaining contextual appropriateness
 
-**Card Persistence Types**:
-- **Thought cards**: Stable, remain in hand through LISTEN actions
-- **Impulse cards**: Want to be spoken, each unspoken impulse card on LISTEN reduces cards drawn by 1
-- Creates tension between playing impulse cards vs. holding for better timing
+**Card Pile System**:
+- **Deck** → **Mind** (hand) → **Spoken** (conversation memory)
+- Most cards stay in Spoken pile permanently (you can't unsay things)
+- No automatic reshuffling maintains conversation verisimilitude
 
-**Card Success Effects** (Categorical mapping):
-- **Strike**: Generate momentum (maps to Expression card type)
-- **Threading**: Draw cards to hand (maps to Realization card type)
-- **Soothe**: Reduce doubt or spend momentum for doubt reduction (maps to Regulation card type)
-- **Focusing**: Restore or temporarily increase focus
-- **Advancing**: Advance flow through momentum conversion
-- **Scaling**: Variable effects based on current game state
+### Builder/Spender Card Architecture
 
-**Failure Effects Apply**: When a SPEAK action fails, doubt increases by +1 and the card's failure effect is applied. Cards without specific failure effects automatically apply ForceListen as a fallback, maintaining natural conversation rhythm where failure typically forces topic changes.
+Cards create a Steamworld Quest-inspired dynamic where powerful cards require setup:
 
-### Strategic Card Framework
+#### The Three Strategic Tiers
 
-Each card is defined by strategic role and resource relationships:
+**Foundation Cards (Depth 1-3)** - Builders:
+- Cost: 0-2 Initiative
+- Effect: Often generate +1 to +2 Initiative
+- Purpose: Enable powerful plays while making progress
+- Example: "Active Listening" (Rapport) - 0 Initiative, +2 Initiative, +1 Cadence
 
-#### Card Categories by Strategic Function
+**Standard Cards (Depth 4-6)** - Balanced:
+- Cost: 3-5 Initiative
+- Effect: Solid resource effects without Initiative generation
+- Purpose: Efficient tactical options requiring some setup
+- Example: "Thoughtful Response" (Insight) - 4 Initiative, +3 Momentum, +1 Cadence
 
-**Generators**: Build momentum at varying efficiency levels
-- Tier 1: 1-2 focus, high efficiency (1 momentum per focus)
-- Tier 2: 3-4 focus, balanced efficiency (0.75-1 momentum per focus)
-- Tier 3: 5-6 focus, high impact but lower efficiency
+**Decisive Cards (Depth 7-10)** - Spenders:
+- Cost: 6-12 Initiative (often exceeding base capacity)
+- Effect: Powerful conversation-defining effects
+- Purpose: Win conditions requiring significant setup
+- Example: "Perfect Understanding" (Rapport) - 8 Initiative, Double current Momentum
 
-**Converters**: Transform momentum into other resources
-- Spend momentum for doubt reduction
-- Convert momentum to flow advancement
-- Trade momentum for additional card draws
-- Enable resource optimization strategies
+#### The Five Stats as Card Identities
 
-**Investments**: Scaling effects based on game state
-- Power scales with cards in hand
-- Effectiveness increases with doubt level
-- Rewards specific strategic situations
-- Long-term value over immediate power
+**Insight** - Information and Analysis:
+- Effects: Draw cards, reveal information, pattern recognition
+- Scaling: Based on cards played or conversation length
+- 0-Initiative: "Quick Question" (0 cost, Draw 1, +1 Doubt, +1 Cadence)
 
-**Utility**: Focus manipulation and support effects
-- Temporary focus increases
-- Focus cost reduction
-- Hand management support
-- Enable tier 3 power plays
+**Rapport** - Support and Trust Building:
+- Effects: Generate Initiative, reduce Doubt, build connection
+- Scaling: Based on current Momentum or positive game states
+- 0-Initiative: "Active Listening" (0 cost, +2 Initiative, +1 Cadence)
 
-#### Success Effect Types
-- **Strike**: Generate momentum (primary resource)
-- **Threading**: Draw cards to hand
-- **Soothe**: Reduce doubt directly or through momentum spending
-- **Focusing**: Restore or temporarily increase focus
-- **Advancing**: Advance flow through momentum conversion
-- **Scaling**: Variable effects based on game state
+**Commerce** - Resource Exchange:
+- Effects: Convert between resources at favorable rates
+- Scaling: Efficient ratios and multi-resource effects
+- 0-Initiative: "Quick Trade" (0 cost, Convert 2 Momentum → 2 Initiative, +1 Cadence)
 
-#### Persistence (when the card can be played)
-- **Thought**: Remains in hand until played (survives LISTEN)
-- **Impulse**: Removed after LISTEN if unplayed
+**Authority** - Power and Impact:
+- Effects: High Initiative costs for powerful single effects
+- Scaling: Based on Flow or conversation intensity
+- 0-Initiative: "Direct Statement" (0 cost, +2 Momentum, +2 Doubt, +1 Cadence)
 
-#### Failure (effect type on failure)
-- **Backfire**: Negative momentum change
-- **Reversal**: Move flow battery backward 1 step
-- **ForceListen**: Player must LISTEN on next turn after failure
-- **None**: No additional effect (automatically applies ForceListen as fallback)
+**Cunning** - Timing and Conditionals:
+- Effects: Exploit specific game states, cost reductions
+- Scaling: Based on Doubt, Cadence, or negative conditions
+- 0-Initiative: "Deflection" (0 cost, -1 Doubt, -1 Momentum, +1 Cadence)
 
-#### Exhaust (effect when discarded unplayed)
-- **Regret**: Negative momentum when discarded
-- **Drain**: Lose focus when discarded
-- **Decay**: Move flow backward when discarded
-- **None**: No effect when discarded
+#### Scaling Using Visible State Only
 
-#### Stat Binding (which stat gains XP and provides bonuses)
-- Every card bound to exactly one stat: Insight, Rapport, Authority, Commerce, or Cunning
+All card effects scale with visible game state:
+- **Cadence Scaling**: "Passionate Plea" (+X Momentum where X = current Cadence)
+- **Spoken Cards**: "Building Argument" (+1 Momentum per 5 cards in Spoken)
+- **Doubt Scaling**: "Desperate Gambit" (+X Momentum where X = current Doubt)
+- **Hand Size**: "Overwhelming Options" (+X Initiative where X = cards in hand ÷ 2)
+- **Momentum Scaling**: "Press Advantage" (costs -1 Initiative per 5 Momentum)
+
+No hidden state tracking - all conditions visible to players.
+
+#### Card Persistence Types
+
+**Standard**: Goes to Spoken pile when played (most cards)
+**Echo**: Returns to hand after playing (represents recurring themes)
+- Example: "Persistent Argument" - Returns if conversation momentum increased
+**Persistent**: Stays in hand until forcibly discarded
+- Example: "Core Belief" - Remains available until directly challenged
+**Banish**: Removes itself from conversation entirely
+- Example: "Final Ultimatum" - One-use only, removed after playing
+
+#### Alternative Cost Mechanics
+
+Some powerful cards offer multiple payment options:
+- **Momentum Alternative**: "8 Initiative OR 4 Initiative + spend 3 Momentum"
+- **Cadence Discount**: "7 Initiative OR 4 Initiative if Cadence ≥ 5"
+- **Doubt Emergency**: "6 Initiative OR 3 Initiative if Doubt ≥ 7"
+- **State-Based**: "10 Initiative OR 6 Initiative + 2 cards from Spoken"
+
+These create multiple strategic paths to enable powerful cards.
+
+#### Stat Binding and Progression
+
+Every card bound to exactly one stat (Insight, Rapport, Authority, Commerce, Cunning):
 - Determines which stat gains XP when played
-- Determines which stat level provides card bonuses
+- Your stat level determines maximum accessible depth for those cards
+- Higher stats make all bound cards more reliable through success bonuses
+- Creates natural build specialization through depth access
 
-#### Strategic Value Determination
+#### Power Scaling by Depth
 
-Card power is determined by strategic role and tier level:
+**Depth 1-2**: Simple, reliable effects
+- "Agreement" - 1 Initiative, +1 Momentum
+- "Quick Nod" - 0 Initiative, +1 Initiative
 
-**Tier 1 Efficiency Standards**:
-- 1 focus cards: 1 momentum or equivalent value
-- 2 focus cards: 2 momentum or equivalent value
-- High efficiency, always affordable, foundation layer
+**Depth 4-5**: Multi-resource effects
+- "Thoughtful Negotiation" - 4 Initiative, +2 Momentum, +1 Initiative
+- "Strategic Pause" - 3 Initiative, +2 Momentum if Cadence ≤ 2
 
-**Tier 2 Balance Standards**:
-- 3 focus cards: 2-3 momentum or conversion effects
-- 4 focus cards: 3-4 momentum or powerful conversions
-- Strategic planning required, core decision layer
+**Depth 7-8**: Complex, powerful effects
+- "Emotional Breakthrough" - 6 Initiative (or 3 + spend 2 Flow), +4 Momentum, -3 Doubt
+- "Master's Insight" - 8 Initiative, +X Momentum where X = Spoken cards ÷ 3
 
-**Tier 3 Impact Standards**:
-- 5 focus cards: 4-5 momentum or major conversions
-- 6 focus cards: Variable scaling or game-changing effects
-- Setup required, decisive moment layer
-
-**Conversion Rate Standards**:
-- Momentum to doubt: ~1.5:1 ratio (2 momentum → 3 doubt reduction)
-- Momentum to flow: ~3:1 ratio (3 momentum → 1 flow advancement)
-- Momentum to cards: ~2:1 ratio (varies by utility value)
+**Depth 9-10**: Conversation-defining effects
+- "Perfect Understanding" - 10 Initiative, Double current Momentum, remove all Doubt
+- "Ultimate Authority" - 12 Initiative OR 6 Initiative + 2 Cadence, Set Momentum to 20
 
 ### Player Stats System
 
-Players have five core stats representing different problem-solving methodologies developed through conversation:
+Stats determine your conversational competencies and unlock deeper card options through the depth access system:
 
-#### The Five Stats
+#### The Five Stats and Their Card Depth Access
 
 **Insight** - Analytical thinking and observation
-- Bound cards focus on analysis, patterns, and understanding
-- Unlocks systematic investigation approaches
-- Gates scholarly and complex travel paths
+- **Card Identity**: Information gathering, pattern recognition, drawing cards
+- **Depth Access**: Your Insight level = maximum depth for Insight cards you can access
+- **Example Progression**: Level 1 (basic questions) → Level 5 (complex analysis) → Level 8 (master deduction)
+- **World Effects**: Unlocks systematic investigation approaches, gates scholarly travel paths
 
 **Rapport** - Empathetic connection and supportive communication
-- Bound cards focus on emotional understanding and supportive responses
-- Unlocks social investigation through locals
-- Gates community-based travel paths
+- **Card Identity**: Initiative generation, doubt reduction, trust building
+- **Depth Access**: Your Rapport level = maximum depth for Rapport cards you can access
+- **Example Progression**: Level 1 (simple agreement) → Level 5 (emotional breakthrough) → Level 8 (perfect understanding)
+- **World Effects**: Unlocks social investigation through locals, gates community-based travel paths
 
 **Authority** - Leadership and commanding presence
-- Bound cards focus on direction, control, and decisiveness
-- Unlocks demanding access to restricted areas
-- Gates noble and official travel paths
+- **Card Identity**: High-cost powerful effects, direct impact, flow manipulation
+- **Depth Access**: Your Authority level = maximum depth for Authority cards you can access
+- **Example Progression**: Level 1 (mild assertion) → Level 5 (commanding presence) → Level 8 (ultimate authority)
+- **World Effects**: Unlocks demanding access to restricted areas, gates noble and official travel paths
 
 **Commerce** - Negotiation and trade thinking
-- Bound cards focus on deals, exchanges, and mutual benefit
-- Unlocks purchasing information directly
-- Gates merchant caravan paths
+- **Card Identity**: Resource conversion, efficient exchanges, multi-resource effects
+- **Depth Access**: Your Commerce level = maximum depth for Commerce cards you can access
+- **Example Progression**: Level 1 (simple trade) → Level 5 (complex negotiation) → Level 8 (master dealmaker)
+- **World Effects**: Unlocks purchasing information directly, gates merchant caravan paths
 
 **Cunning** - Subtlety and indirect approach
-- Bound cards focus on misdirection, implication, and hidden meanings
-- Unlocks covert investigation without alerting NPCs
-- Gates shadow and secret paths
+- **Card Identity**: State-based effects, cost reductions, exploiting conditions
+- **Depth Access**: Your Cunning level = maximum depth for Cunning cards you can access
+- **Example Progression**: Level 1 (simple deflection) → Level 5 (perfect timing) → Level 8 (master manipulation)
+- **World Effects**: Unlocks covert investigation without alerting NPCs, gates shadow and secret paths
 
-#### Progression Mechanics
+#### Depth-Based Progression System
 
-**Starting Level**: All stats begin at 1
+**Mechanical Progression**:
+- **Stats 1-2**: Access depths 1-2 (foundation cards only)
+- **Stats 3-4**: Access depths 1-4 (foundation + developing cards)
+- **Stats 5-6**: Access depths 1-6 (foundation + sophisticated cards)
+- **Stats 7-8**: Access depths 1-8 (foundation + sophisticated + powerful cards)
+- **Stats 9-10**: Access depths 1-10 (complete mastery, all conversation options)
+
 **XP Requirements**:
 - Level 1→2: 10 XP
 - Level 2→3: 25 XP
 - Level 3→4: 50 XP
 - Level 4→5: 100 XP
+- Level 5→6: 175 XP
+- Level 6→7: 275 XP
+- Level 7→8: 400 XP
 
-**Stat Level Effects on Bound Cards**:
-- Level 1: Base card values
-- Level 2: +10% success rate, unlock basic stat approaches
-- Level 3: All cards gain Persistent keyword, unlock advanced paths
-- Level 4: +20% success rate (total), unlock powerful investigation
-- Level 5: Cards ignore ForceListen failure effect (other failure effects still apply), master reputation
+**Stat Level Effects**:
+- **All Levels**: Bound cards get +10% success rate per stat level
+- **Level 3+**: Unlock advanced investigation approaches and travel paths
+- **Level 5+**: Bound cards gain immunity to ForceListen failure effect
+- **Level 7+**: Access to conversation-defining master cards
 
 **XP Sources**:
-- Playing any card: Base XP to bound stat
-- Conversation difficulty multiplier (1x/2x/3x)
-- Success or failure both grant XP
+- Playing any card: 1 XP to bound stat × conversation difficulty (1x/2x/3x)
+- Success or failure both grant XP (practice makes perfect)
+- Master conversations (difficulty 3) provide optimal XP for challenging progression
 
-### Player Stats Architecture
+#### Build Specialization Through Depth Access
 
-Players develop five core stats representing conversational methodologies:
+**Natural Specialization**:
+Players develop distinct conversational styles based on their highest stats:
+- **Insight Focus**: Masters of information gathering and analysis
+- **Rapport Master**: Excels at trust building and emotional connection
+- **Authority Build**: Dominates through direct power and commanding presence
+- **Commerce Specialist**: Expert at resource management and efficient exchanges
+- **Cunning Expert**: Exploits timing and conditions for maximum advantage
 
-**Stat System**: Five stats (Insight, Rapport, Authority, Commerce, Cunning)
-**Stat Growth**: XP gained by playing cards bound to that stat
-**Stat Enhancement**: Higher stat levels make all cards of that type more effective
-**No Deck Ownership**: Players don't collect cards - conversation types provide context-appropriate decks
+**Cross-Stat Synergies**:
+Advanced players develop multiple stats for versatile approaches:
+- **Insight + Commerce**: Analytical negotiator
+- **Rapport + Authority**: Inspiring leader
+- **Cunning + Insight**: Master manipulator with perfect information
+- **Authority + Commerce**: Corporate power broker
+
+**Progression Strategy**:
+- Early game: Focus one stat to access deeper cards quickly
+- Mid game: Develop 2-3 stats for tactical flexibility
+- Late game: Master specialization while maintaining broad competency
 
 ### NPC Architecture
 
@@ -1281,59 +1352,112 @@ When a player chooses a request conversation type, ALL cards from that Request b
 ### LISTEN Action
 
 Complete sequence:
-1. **Apply doubt momentum reduction**
-   - Reduce momentum by 1 point per current doubt level
-   - This makes momentum-consuming cards "essentially free" when doubt is high
-2. **Handle card persistence**
-   - **Impulse cards**: Remove all unplayed impulse cards from hand
-   - **Thought cards**: Remain in hand (persistent through LISTEN)
-   - Each unspoken impulse card reduces cards drawn by 1
-3. **Draw new cards** equal to connection state minus impulse penalty
-   - Base draw: Disconnected/Guarded (3), Neutral/Receptive (4), Trusting (5)
-   - Reduced by number of impulse cards that went unspoken
-   - If draw pile empty: Shuffle exhaust → new draw pile → continue
-4. **Refresh focus** to connection state maximum
-5. **Check request card activation**:
-   - Check ALL goal cards for momentum thresholds (Basic 8, Enhanced 12, Premium 16)
-   - Each card that meets its threshold becomes playable with 100% success
-6. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
-   - Each card that meets its threshold becomes playable
-7. **Reset turn-based personality effects** (like Proud's ascending focus requirement)
+1. **Apply Cadence Effects**
+   - If Cadence ≥ 6: +1 Doubt per point above 5 (NPC frustrated by domination)
+   - If Cadence ≤ -3: Mark for +1 card draw (NPC appreciates being heard)
+   - Cadence decreases by 3 (giving them conversational space)
+
+2. **Apply Doubt Tax on Momentum**
+   - Reduce momentum by 20% per current Doubt point
+   - Example: At 3 Doubt, momentum gains reduced by 60%
+   - Makes momentum-consuming cards strategically valuable at high Doubt
+
+3. **Handle Card Persistence**
+   - **Standard cards**: Remain in Spoken pile (conversation memory)
+   - **Echo cards**: Return to hand if conditions met
+   - **Persistent cards**: Stay in hand until forcibly removed
+   - **Banished cards**: Removed from conversation entirely
+
+4. **Calculate Card Draw**
+   - Base: 3 cards
+   - Connection State modifier: +0 to +2 (Disconnected to Trusting)
+   - Cadence bonus: +1 if marked from negative Cadence
+   - If Deck empty: No reshuffling (conversation history preserved)
+
+5. **Refresh Initiative**
+   - Initiative refreshes to Connection State base (3-6)
+   - Does NOT accumulate - starts fresh each LISTEN
+
+6. **Check Goal Card Activation**
+   - Check momentum thresholds (Basic 8, Enhanced 12, Premium 16)
+   - Activated goals become playable with 100% success
+   - Goal selection immediately ends conversation
+
+7. **Reset Turn-Based Effects**
+   - Personality restrictions reset (like Proud's ascending order)
+   - Temporary effects expire
 
 ### SPEAK Action
 
 Complete sequence:
-1. **Check focus available** (must have enough for card cost)
-2. **Choose one card** from hand
-3. **Check personality restrictions** (like Proud's ascending order)
-4. **Spend focus** equal to card cost from pool
-5. **Calculate success chance**:
-   - Base difficulty % + (2 × current momentum)
-   - Apply personality modifiers (like Mercantile's +30% to highest focus)
-6. **Resolve success/failure**:
-   - Success: +1 flow, apply card effects
-   - Failure: +1 doubt, -1 flow, apply failure effects (ForceListen applied if effect is None)
-7. **Card goes to exhaust pile**
-8. **Apply card effects**:
-   - Momentum changes
-   - Draw/focus effects
-9. **Apply personality effects** (like Devoted's double momentum loss)
-10. **Check flow transitions**:
-    - At ±3: State change, flow resets to 0
-11. **If Success**: Execute Card Success Effect. Can SPEAK again if focus remains
-12. **If Failure**: Execute Card Failure Effect (ForceListen applied automatically if effect is None)
+1. **Check Initiative Available**
+   - Must have enough Initiative for card's Initiative cost
+   - Alternative costs may apply (momentum spending, state conditions)
+
+2. **Choose One Card** from hand
+   - Consider Initiative cost and alternative payment options
+   - Check if card is playable under current conditions
+
+3. **Check Personality Restrictions**
+   - **Proud**: Cards must be played in ascending Initiative order within turn
+   - **Mercantile**: Highest Initiative card each turn gets +30% success
+   - **Cunning**: Playing same Initiative as previous card costs -2 momentum
+   - **Devoted**: Doubt increases by +1 additional on failure
+   - **Steadfast**: All momentum changes capped at ±2
+
+4. **Pay Card Cost**
+   - Spend Initiative equal to card cost
+   - Or pay alternative cost (momentum, state conditions)
+   - Some cards generate Initiative as part of their effect
+
+5. **Increase Cadence**
+   - +1 Cadence (you're speaking)
+   - Tracks conversation balance for later LISTEN effects
+
+6. **Calculate Success Chance**
+   - Base card difficulty % + (2% × current momentum)
+   - Apply personality modifiers
+   - Apply stat level bonus (+10% per stat level)
+   - Apply doubt tax (reduced momentum affects success)
+
+7. **Resolve Success/Failure**
+   - **Success**: Apply card effects, may continue speaking
+   - **Failure**: +1 Doubt, apply failure effects (typically ForceListen)
+
+8. **Card to Appropriate Pile**
+   - **Standard**: Goes to Spoken pile permanently
+   - **Echo**: Returns to hand if conditions met
+   - **Persistent**: Stays in hand
+   - **Banish**: Removed entirely
+
+9. **Apply Card Effects**
+   - Momentum changes (reduced by doubt tax)
+   - Initiative generation/spending
+   - Resource conversions
+   - Scaling effects based on visible state
+
+10. **Check Conversation End Conditions**
+    - Doubt ≥ 10: Conversation failure
+    - Goal card played: Conversation success
+    - Special end conditions triggered
+
+11. **Continue or Force LISTEN**
+    - If Initiative remains: Can play another card
+    - If ForceListen effect: Must LISTEN next
+    - If no Initiative: Can choose to LISTEN or wait
 
 ### Promise Cards - Queue Manipulation
 
 Promise cards are special conversation cards bundled with requests that manipulate the obligation queue mid-conversation:
 
 **Mechanics**:
-- Play like any other conversation card (costs focus, has difficulty)
+- Play like any other conversation card (costs Initiative, has difficulty)
 - **Success Effect**: Target obligation immediately moves to position 1
 - **Queue Impact**: All displaced obligations shift down
 - **Token Burning**: Automatically burn tokens with ALL displaced NPCs
 - **Momentum Bonus**: Gain +5 to +10 momentum immediately
 - **Narrative**: "I'll prioritize your request" - literally and mechanically
+- **High Cost**: Usually cost 5-8 Initiative (require significant setup)
 
 **Strategic Use**:
 - Enables reaching higher goal thresholds otherwise impossible
@@ -2182,59 +2306,64 @@ The strategic card framework transforms character progression from simple power 
 
 ## Critical Formulas Reference
 
-**Success Rate**: Base% + (2 × Current Momentum)
+### New Conversation System Formulas
+
+**Initiative Capacity by Connection State**:
+- Disconnected: 3 Initiative
+- Guarded: 4 Initiative
+- Neutral: 5 Initiative
+- Receptive: 5 Initiative
+- Trusting: 6 Initiative
+
+**Card Success Rate**: Base% + (2% × Current Momentum) + (10% × Bound Stat Level)
+
+**Doubt Tax on Momentum**: Momentum gains reduced by 20% per Doubt point
+- Example: At 3 Doubt, momentum gains reduced by 60%
+
+**Cadence System (-5 to +10)**:
+- +1 per card played (you talking)
+- -3 per LISTEN action (giving them space)
+- Cadence ≥ 6: +1 Doubt per point above 5 on LISTEN
+- Cadence ≤ -3: +1 card draw on LISTEN
+
+**Cards Drawn on LISTEN**:
+- Base: 3 cards
+- Connection State: +0 to +2 (Disconnected to Trusting)
+- Cadence bonus: +1 if negative Cadence achieved previous turn
+
+**Stat-Gated Depth Access**:
+- Your stat level = maximum depth accessible for that stat's cards
+- Example: Commerce Level 4 = Commerce cards depth 1-4 accessible
+
+**Extended Stat Level Thresholds**:
+- Level 1→2: 10 XP
+- Level 2→3: 25 XP
+- Level 3→4: 50 XP
+- Level 4→5: 100 XP
+- Level 5→6: 175 XP
+- Level 6→7: 275 XP
+- Level 7→8: 400 XP
+
+**Stat Success Bonuses**:
+- +10% success rate per stat level (cumulative)
+- Level 3+: Unlock advanced world approaches
+- Level 5+: Immune to ForceListen failure effect
+- Level 7+: Access to master conversation cards (depth 7-8)
+
+**Card Initiative Costs by Depth**:
+- Depth 1-3: 0-2 Initiative (Foundation/Builder cards)
+- Depth 4-6: 3-5 Initiative (Standard/Balanced cards)
+- Depth 7-10: 6-12 Initiative (Decisive/Spender cards)
 
 **Momentum Goal Thresholds**:
 - Basic Goal: 8 momentum
 - Enhanced Goal: 12 momentum
 - Premium Goal: 16 momentum
 
-**Doubt Mechanics**:
-- Doubt increases by +1 on card play failure
-- LISTEN reduces momentum by 1 per current doubt level
-- Cards can spend momentum to reduce doubt (typically 2:3 ratio)
-
-**Focus Capacity by Connection State**:
-- Disconnected: 3 focus
-- Guarded: 4 focus
-- Neutral: 5 focus
-- Receptive: 5 focus
-- Trusting: 6 focus
-
-**Cards Drawn on LISTEN**:
-- Base draw: Disconnected/Guarded (3), Neutral/Receptive (4), Trusting (5)
-- Reduced by 1 per unspoken impulse card from previous turn
-
-**Effect Magnitude by Difficulty**:
-- Very Easy: 1
-- Easy: 2
-- Medium: 2
-- Hard: 3
-- Very Hard: 4
-
-**Stat Level Thresholds**:
-- Level 1→2: 10 XP
-- Level 2→3: 25 XP
-- Level 3→4: 50 XP
-- Level 4→5: 100 XP
-
-**Stat Success Modifiers**:
-- Stat Level 2: +10% success on all bound cards
-- Stat Level 3: All bound cards gain Persistent keyword
-- Stat Level 4: +20% success on all bound cards
-- Stat Level 5: Bound cards are immune to ForceListen failure effect
-
-**Stat XP Gain Formula**:
-Base XP × Conversation Difficulty Multiplier
-- Base: 1 XP per card played
-- Level 1 conversation: ×1
-- Level 2 conversation: ×2
-- Level 3 conversation: ×3
-
-**Conversation Difficulty Modifiers**:
-- Level 1: +10% success rate all cards
-- Level 2: Normal success rates
-- Level 3: -10% success rate all cards
+**Conversation Difficulty Effects**:
+- Level 1: +10% success rate, 1× XP multiplier
+- Level 2: Normal success rates, 2× XP multiplier
+- Level 3: -10% success rate, 3× XP multiplier
 
 **Work Output**: 5 - floor(Hunger/25) coins
 
@@ -2261,21 +2390,18 @@ Base XP × Conversation Difficulty Multiplier
 
 **Starvation**: At 100 hunger, lose 5 health per block
 
-**Flow State Change**: At ±3, shift state and reset to 0
+**Personality Rule Effects**:
+- **Proud**: Cards must be played in ascending Initiative order each turn
+- **Devoted**: Doubt increases by +1 additional on failure (double doubt)
+- **Mercantile**: Highest Initiative card each turn gets +30% success bonus
+- **Cunning**: Playing same Initiative as previous card costs -2 momentum
+- **Steadfast**: All momentum changes capped at ±2 per card
 
-**Focus Capacity**:
-- Disconnected: 3
-- Guarded: 4
-- Neutral: 5
-- Receptive: 5
-- Trusting: 6
-
-**Card Draws on LISTEN**:
-- Disconnected: 3
-- Guarded: 3
-- Neutral: 4
-- Receptive: 4
-- Trusting: 5
+**Alternative Card Costs**:
+Many high-depth cards offer multiple payment options:
+- "8 Initiative OR 4 Initiative + spend 3 Momentum"
+- "7 Initiative OR 4 Initiative if Cadence ≥ 5"
+- "6 Initiative OR 3 Initiative if Doubt ≥ 7"
 
 **Item Weights**:
 - Letters: 1
