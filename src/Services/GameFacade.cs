@@ -86,6 +86,142 @@ public class GameFacade
         return _gameWorld.GetPlayer().Stats;
     }
 
+    // ========== STAT-GATED DEPTH FILTERING ==========
+
+    /// <summary>
+    /// Get accessible cards for a conversation type based on player stats
+    /// Your stat level determines maximum depth accessible for that stat's cards
+    /// </summary>
+    public List<ConversationCard> GetAccessibleCards(string conversationTypeId)
+    {
+        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(conversationTypeId);
+        if (typeEntry == null)
+        {
+            return new List<ConversationCard>();
+        }
+
+        // Get all cards for this conversation type through the deck system
+        List<ConversationCard> allCards = GetCardsForConversationType(typeEntry.Definition);
+        PlayerStats playerStats = GetPlayerStats();
+
+        // Filter cards based on stat-gated depth access
+        List<ConversationCard> accessibleCards = allCards.Where(card =>
+            CanAccessCardDepth(playerStats, card)
+        ).ToList();
+
+        return accessibleCards;
+    }
+
+    /// <summary>
+    /// Check if player can access a card based on their stat levels and the card's depth
+    /// </summary>
+    private bool CanAccessCardDepth(PlayerStats playerStats, ConversationCard card)
+    {
+        // Get card depth (for now, estimate from existing properties)
+        int cardDepth = EstimateCardDepth(card);
+
+        // Get required stat for this card
+        PlayerStatType? boundStat = card.BoundStat;
+        if (!boundStat.HasValue)
+        {
+            return true; // Unbound cards are always accessible
+        }
+
+        // Check if player's stat level meets the depth requirement
+        int playerStatLevel = playerStats.GetLevel(boundStat.Value);
+        return playerStatLevel >= cardDepth;
+    }
+
+    /// <summary>
+    /// Get cards for a conversation type using the deck system (following ConversationDeckBuilder pattern)
+    /// </summary>
+    private List<ConversationCard> GetCardsForConversationType(ConversationTypeDefinition definition)
+    {
+        // Use the deck ID to get cards from GameWorld (following ConversationDeckBuilder pattern)
+        if (string.IsNullOrEmpty(definition.DeckId))
+        {
+            return new List<ConversationCard>();
+        }
+
+        // Get card deck definition
+        CardDeckDefinitionEntry? deckEntry = _gameWorld.CardDecks.FindById(definition.DeckId);
+        if (deckEntry == null)
+        {
+            return new List<ConversationCard>();
+        }
+
+        CardDeckDefinition cardDeck = deckEntry.Definition;
+        List<ConversationCard> cards = new List<ConversationCard>();
+
+        // Get card definitions for each card ID in the deck
+        foreach (string cardId in cardDeck.CardIds)
+        {
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(cardId);
+            if (cardEntry != null)
+            {
+                cards.Add(cardEntry.Card);
+            }
+        }
+
+        return cards;
+    }
+
+    /// <summary>
+    /// Estimate card depth from existing properties (temporary until card migration)
+    /// </summary>
+    private int EstimateCardDepth(ConversationCard card)
+    {
+        // Use Focus cost as rough depth estimate for now
+        // Depth 1-3: Focus 0-2 (Foundation)
+        // Depth 4-6: Focus 3-5 (Standard)
+        // Depth 7-10: Focus 6+ (Decisive)
+
+        int focusCost = card.Focus;
+
+        if (focusCost <= 2) return Math.Max(1, focusCost + 1); // Depth 1-3
+        if (focusCost <= 5) return focusCost + 1; // Depth 4-6
+        return Math.Min(10, focusCost + 2); // Depth 7-10, capped at 10
+    }
+
+    /// <summary>
+    /// Build conversation deck for player based on accessible cards
+    /// </summary>
+    public List<ConversationCard> BuildDeckForPlayer(string conversationTypeId)
+    {
+        List<ConversationCard> accessibleCards = GetAccessibleCards(conversationTypeId);
+        PlayerStats playerStats = GetPlayerStats();
+
+        // Log depth analysis for debugging
+        var depthAnalysis = accessibleCards.GroupBy(c => EstimateCardDepth(c))
+            .Select(g => new { Depth = g.Key, Count = g.Count() })
+            .OrderBy(x => x.Depth);
+
+        Console.WriteLine($"[GameFacade] Player deck composition for {conversationTypeId}:");
+        foreach (var analysis in depthAnalysis)
+        {
+            Console.WriteLine($"  Depth {analysis.Depth}: {analysis.Count} cards");
+        }
+
+        return accessibleCards;
+    }
+
+    /// <summary>
+    /// Get maximum accessible depth by stat for debugging
+    /// </summary>
+    public Dictionary<PlayerStatType, int> GetMaxAccessibleDepths()
+    {
+        PlayerStats playerStats = GetPlayerStats();
+
+        return new Dictionary<PlayerStatType, int>
+        {
+            { PlayerStatType.Insight, playerStats.GetLevel(PlayerStatType.Insight) },
+            { PlayerStatType.Rapport, playerStats.GetLevel(PlayerStatType.Rapport) },
+            { PlayerStatType.Authority, playerStats.GetLevel(PlayerStatType.Authority) },
+            { PlayerStatType.Commerce, playerStats.GetLevel(PlayerStatType.Commerce) },
+            { PlayerStatType.Cunning, playerStats.GetLevel(PlayerStatType.Cunning) }
+        };
+    }
+
     public List<NPC> GetAvailableStrangers(string locationId)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();

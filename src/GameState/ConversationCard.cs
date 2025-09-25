@@ -15,7 +15,7 @@ public class ConversationCard
     public CardCategory Category { get; init; } = CardCategory.Expression;
 
     // Categorical properties that define behavior through context
-    public PersistenceType Persistence { get; init; } = PersistenceType.Thought;
+    public PersistenceType Persistence { get; init; } = PersistenceType.Standard;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
 
@@ -23,9 +23,15 @@ public class ConversationCard
     public bool IsSkeleton { get; init; } = false;
     public string SkeletonSource { get; init; } // What created this skeleton
 
-    // Core mechanics
+    // New 4-Resource System Properties
+    public CardDepth Depth { get; init; } = CardDepth.Depth1;
+    public int InitiativeCost { get; init; } = 0;
+    public List<AlternativeCost> AlternativeCosts { get; init; } = new();
+    public ScalingFormula ScalingEffect { get; init; }
+
+    // Legacy system properties (maintained for migration compatibility)
     public ConnectionType TokenType { get; init; }
-    public int Focus { get; init; }
+    public int Focus { get; init; } = 0; // DEPRECATED: Use InitiativeCost instead
     public Difficulty Difficulty { get; init; }
 
     // Token requirements for gated exchanges
@@ -71,33 +77,90 @@ public class ConversationCard
         };
     }
 
+    // Get effective Initiative cost considering alternative costs
+    public int GetEffectiveInitiativeCost(ConversationSession session = null)
+    {
+        // Check for available alternative costs
+        if (session != null && AlternativeCosts.Any())
+        {
+            foreach (var altCost in AlternativeCosts)
+            {
+                if (EvaluateAlternativeCostCondition(altCost.Condition, session))
+                {
+                    return altCost.ReducedInitiativeCost;
+                }
+            }
+        }
+
+        return InitiativeCost;
+    }
+
+    // Check if alternative cost condition is met
+    private bool EvaluateAlternativeCostCondition(string condition, ConversationSession session)
+    {
+        if (string.IsNullOrEmpty(condition)) return false;
+
+        // Simple condition evaluation for common patterns
+        if (condition.Contains("Cadence >= "))
+        {
+            if (int.TryParse(condition.Split(">=\\u0020")[1], out int threshold))
+                return session.Cadence >= threshold;
+        }
+        else if (condition.Contains("Doubt >= "))
+        {
+            if (int.TryParse(condition.Split(">=\\u0020")[1], out int threshold))
+                return session.CurrentDoubt >= threshold;
+        }
+        // Add more condition types as needed
+
+        return false;
+    }
+
     // Calculate actual momentum effect based on success type, category, difficulty, and scaling formula
     public int GetMomentumEffect(ConversationSession session, PlayerStats playerStats = null)
     {
         int baseEffect = GetBaseMomentumFromProperties();
         if (baseEffect == 0) return 0;
 
-        // Apply scaling formula if specified
-        if (MomentumScaling != ScalingType.None)
+        // Apply new scaling formula if specified
+        if (ScalingEffect != null)
+        {
+            baseEffect = ApplyScalingFormula(baseEffect, session);
+        }
+        // Apply 4-resource system scaling
+        else if (MomentumScaling != ScalingType.None)
         {
             baseEffect = MomentumScaling switch
             {
-                ScalingType.CardsInHand => session.Deck.HandSize,
-                ScalingType.CardsInHandDivided => (int)Math.Ceiling((double)session.Deck.HandSize / 2),
-                ScalingType.DoubtReduction => Math.Max(1, 8 - session.CurrentDoubt), // 8 instead of 10 for rebalanced economy
-                ScalingType.DoubtHalved => (8 - session.CurrentDoubt) / 2,
-                ScalingType.DoubleCurrent => session.CurrentMomentum,
-                ScalingType.PatienteDivided => session.GetAvailableFocus() / 3,
-                ScalingType.DoubtMultiplier => Math.Max(1, session.CurrentDoubt), // Desperation effects
+                // Resource-based scaling (Initiative, Cadence, Momentum, Doubt)
+                ScalingType.CurrentInitiative => session.CurrentInitiative,
+                ScalingType.CurrentCadence => session.Cadence,
+                ScalingType.CurrentMomentum => session.CurrentMomentum,
+                ScalingType.CurrentDoubt => session.CurrentDoubt,
+                ScalingType.DoubleMomentum => session.CurrentMomentum * 2,
 
-                // Resource conversion effects (these indicate momentum requirements, not generation)
-                ScalingType.SpendForDoubt => -2, // Spend 2 momentum to reduce doubt by 3
-                ScalingType.SpendForFlow => -3, // Spend 3 momentum to gain 1 flow
-                ScalingType.SpendForFlowMajor => -4, // Spend 4 momentum to gain 2 flow
-                ScalingType.CardDiscard => 1, // Gain 1 momentum per discarded card (handled specially)
-                ScalingType.PreventDoubt => 0, // Special effect, no momentum change
+                // Pile-based scaling (Mind, Spoken, Deck)
+                ScalingType.CardsInMind => session.Deck.HandSize,
+                ScalingType.CardsInSpoken => session.Deck.SpokenPileCount,
+                ScalingType.CardsInDeck => session.Deck.RemainingDeckCards,
+
+                // Resource conversion effects (momentum spending)
+                ScalingType.SpendMomentumForDoubt => -2, // Spend 2 momentum to reduce doubt
+                ScalingType.SpendMomentumForInitiative => -3, // Spend 3 momentum to gain initiative
+
+                // Conditional scaling
+                ScalingType.DoubtMultiplier => Math.Max(1, session.CurrentDoubt), // Desperation effects
+                ScalingType.CadenceBonus => Math.Max(0, session.Cadence), // Positive cadence bonus
+                ScalingType.InitiativeThreshold => session.CurrentInitiative >= 5 ? baseEffect * 2 : baseEffect,
+
                 _ => baseEffect
             };
+        }
+
+        // Apply doubt tax on momentum gains
+        if (baseEffect > 0)
+        {
+            baseEffect = session.GetEffectiveMomentumGain(baseEffect);
         }
 
         // Add stat bonus for Expression cards (Category determines if it's an Expression card)
@@ -115,6 +178,22 @@ public class ConversationCard
         return baseEffect;
     }
 
+    // Apply new scaling formula system using 4-resource + visible piles
+    private int ApplyScalingFormula(int baseEffect, ConversationSession session)
+    {
+        return ScalingEffect.ScalingType switch
+        {
+            "Initiative" => baseEffect + (int)(session.CurrentInitiative * ScalingEffect.Multiplier),
+            "Cadence" => baseEffect + (int)(session.Cadence * ScalingEffect.Multiplier),
+            "Momentum" => baseEffect + (int)(session.CurrentMomentum * ScalingEffect.Multiplier),
+            "Doubt" => baseEffect + (int)(session.CurrentDoubt * ScalingEffect.Multiplier),
+            "SpokenCards" => baseEffect + (int)(session.Deck.SpokenPileCount * ScalingEffect.Multiplier),
+            "MindCards" => baseEffect + (int)(session.Deck.HandSize * ScalingEffect.Multiplier),
+            "DeckCards" => baseEffect + (int)(session.Deck.RemainingDeckCards * ScalingEffect.Multiplier),
+            _ => baseEffect
+        };
+    }
+
     // Calculate actual doubt effect based on success type, category, difficulty, and scaling formula
     public int GetDoubtEffect(ConversationSession session)
     {
@@ -126,8 +205,7 @@ public class ConversationCard
         {
             return DoubtScaling switch
             {
-                ScalingType.DoubtHalved => (10 - session.CurrentDoubt) / 2,
-                ScalingType.DoubtReduction => 10 - session.CurrentDoubt,
+                ScalingType.CurrentDoubt => 10 - session.CurrentDoubt,
                 _ => baseEffect
             };
         }
@@ -172,7 +250,7 @@ public class ConversationCard
 
     /// <summary>
     /// Determines card category based on success effect type
-    /// Uses the design mapping: Expression (Strike, Promising), Realization (Advancing, DoubleMomentum), Regulation (Soothe, Threading, Focusing, Atmospheric)
+    /// Uses the refined mapping: Expression (Strike, Promising), Realization (DoubleMomentum), Regulation (Soothe, Threading)
     /// </summary>
     public static CardCategory DetermineCategoryFromEffect(SuccessEffectType effectType)
     {
@@ -180,12 +258,9 @@ public class ConversationCard
         {
             SuccessEffectType.Strike => CardCategory.Expression,
             SuccessEffectType.Promising => CardCategory.Expression,
-            SuccessEffectType.Advancing => CardCategory.Realization,
             SuccessEffectType.DoubleMomentum => CardCategory.Realization,
             SuccessEffectType.Soothe => CardCategory.Regulation,
             SuccessEffectType.Threading => CardCategory.Regulation,
-            SuccessEffectType.Focusing => CardCategory.Regulation,
-            SuccessEffectType.Atmospheric => CardCategory.Regulation,
             _ => CardCategory.Expression // Default fallback
         };
     }
@@ -198,8 +273,8 @@ public class ConversationCard
         return category switch
         {
             CardCategory.Expression => new[] { SuccessEffectType.Strike, SuccessEffectType.Promising },
-            CardCategory.Realization => new[] { SuccessEffectType.Advancing, SuccessEffectType.DoubleMomentum },
-            CardCategory.Regulation => new[] { SuccessEffectType.Soothe, SuccessEffectType.Threading, SuccessEffectType.Focusing, SuccessEffectType.Atmospheric },
+            CardCategory.Realization => new[] { SuccessEffectType.DoubleMomentum },
+            CardCategory.Regulation => new[] { SuccessEffectType.Soothe, SuccessEffectType.Threading },
             _ => new[] { SuccessEffectType.Strike } // Default fallback
         };
     }
@@ -211,5 +286,27 @@ public class ConversationCard
     public bool IsCategoryConsistent()
     {
         return DetermineCategoryFromEffect(SuccessType) == Category;
+    }
+
+    /// <summary>
+    /// Get the strategic tier based on depth (Foundation, Standard, Decisive)
+    /// </summary>
+    public string GetStrategicTier()
+    {
+        return (int)Depth switch
+        {
+            <= 3 => "Foundation",
+            <= 6 => "Standard",
+            _ => "Decisive"
+        };
+    }
+
+    /// <summary>
+    /// Check if this card can be accessed by a player with given stat levels
+    /// </summary>
+    public bool CanAccessWithStats(PlayerStats playerStats)
+    {
+        if (!BoundStat.HasValue || playerStats == null) return true;
+        return playerStats.GetLevel(BoundStat.Value) >= (int)Depth;
     }
 }

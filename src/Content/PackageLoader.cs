@@ -1387,7 +1387,7 @@ public class PackageLoader
             TokenType = ConnectionType.Trust,
             Difficulty = Difficulty.Medium,
             CardType = CardType.Observation,
-            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            Persistence = PersistenceType.Standard, // Observations persist through LISTEN
             SuccessType = SuccessEffectType.None,
             FailureType = FailureEffectType.None,
             PersonalityTypes = new List<string>(),

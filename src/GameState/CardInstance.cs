@@ -38,9 +38,9 @@ public class CardInstance
         if (ConversationCardTemplate.BoundStat.HasValue && playerStats.HasPersistenceBonus(ConversationCardTemplate.BoundStat.Value))
         {
             // Cards gain Thought persistence if they don't already have it
-            if (basePersistence != PersistenceType.Thought)
+            if (basePersistence != PersistenceType.Standard)
             {
-                return PersistenceType.Thought;
+                return PersistenceType.Standard;
             }
         }
 

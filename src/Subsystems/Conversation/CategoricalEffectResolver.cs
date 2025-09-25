@@ -43,7 +43,7 @@ public class CategoricalEffectResolver
             Card = card,
             MomentumChange = 0,
             DoubtChange = 0,
-            FlowChange = 0,
+            InitiativeChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             EffectDescription = "",
@@ -70,17 +70,13 @@ public class CategoricalEffectResolver
                         // Apply conversion effect based on scaling type
                         switch (card.ConversationCardTemplate.MomentumScaling)
                         {
-                            case ScalingType.SpendForDoubt:
+                            case ScalingType.SpendMomentumForDoubt:
                                 result.DoubtChange = -3; // Reduce doubt by 3
                                 result.EffectDescription = $"Spend {momentumCost} momentum → -3 doubt";
                                 break;
-                            case ScalingType.SpendForFlow:
-                                result.FlowChange = 1; // Gain 1 flow
-                                result.EffectDescription = $"Spend {momentumCost} momentum → +1 flow";
-                                break;
-                            case ScalingType.SpendForFlowMajor:
-                                result.FlowChange = 2; // Gain 2 flow
-                                result.EffectDescription = $"Spend {momentumCost} momentum → +2 flow";
+                            case ScalingType.SpendMomentumForInitiative:
+                                result.InitiativeChange = 2; // Gain 2 initiative
+                                result.EffectDescription = $"Spend {momentumCost} momentum → +2 initiative";
                                 break;
                             default:
                                 result.EffectDescription = $"Spend {momentumCost} momentum";
@@ -104,7 +100,7 @@ public class CategoricalEffectResolver
 
             case SuccessEffectType.Soothe:
                 // Handle resource conversion for Soothe cards
-                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForDoubt)
+                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
                 {
                     int momentumCost = 2; // Fixed cost for clarity
                     if (session.CurrentMomentum >= momentumCost)
@@ -119,7 +115,7 @@ public class CategoricalEffectResolver
                         result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
                     }
                 }
-                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.PreventDoubt)
+                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
                 {
                     // Special effect: prevent next doubt increase
                     result.DoubtChange = 0; // No immediate change
@@ -148,20 +144,7 @@ public class CategoricalEffectResolver
                 result.EffectDescription = $"Draw {magnitude} cards";
                 break;
 
-            case SuccessEffectType.Atmospheric:
-                // Use magnitude to determine atmosphere tier
-                AtmosphereType? newAtmosphere = GetAtmosphereFromMagnitude(magnitude);
-                if (newAtmosphere.HasValue)
-                {
-                    result.EffectDescription = $"Set {newAtmosphere.Value} atmosphere";
-                }
-                break;
-
-            case SuccessEffectType.Focusing:
-                // Focusing = focus gain (regardless of card category)
-                result.FocusAdded = magnitude;
-                result.EffectDescription = $"+{magnitude} focus";
-                break;
+            // Deprecated effect types removed in refined system
 
             case SuccessEffectType.DoubleMomentum:
                 // Double current momentum (powerful realization effect)
@@ -177,45 +160,7 @@ public class CategoricalEffectResolver
                 // Queue manipulation handled by ConversationFacade
                 break;
 
-            case SuccessEffectType.Advancing:
-                // Handle resource conversion for Advancing cards
-                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForFlow)
-                {
-                    int momentumCost = 3; // Fixed cost for clarity
-                    if (session.CurrentMomentum >= momentumCost)
-                    {
-                        result.MomentumChange = -momentumCost;
-                        result.FlowChange = 1; // Gain 1 flow
-                        result.EffectDescription = $"Spend {momentumCost} momentum → +1 flow";
-                    }
-                    else
-                    {
-                        result.MomentumChange = 0;
-                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
-                    }
-                }
-                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendForFlowMajor)
-                {
-                    int momentumCost = 4; // Fixed cost for major flow gain
-                    if (session.CurrentMomentum >= momentumCost)
-                    {
-                        result.MomentumChange = -momentumCost;
-                        result.FlowChange = 2; // Gain 2 flow
-                        result.EffectDescription = $"Spend {momentumCost} momentum → +2 flow";
-                    }
-                    else
-                    {
-                        result.MomentumChange = 0;
-                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
-                    }
-                }
-                else
-                {
-                    // Regular flow gain
-                    result.FlowChange = magnitude;
-                    result.EffectDescription = $"+{magnitude} flow";
-                }
-                break;
+            // Advancing effect removed in refined system (used deprecated Flow)
 
             case SuccessEffectType.None:
             default:
@@ -238,7 +183,7 @@ public class CategoricalEffectResolver
             Card = card,
             MomentumChange = 0,
             DoubtChange = 1, // Standard failure adds 1 doubt
-            FlowChange = 0,
+            InitiativeChange = 0,
             CardsToAdd = new List<CardInstance>(),
             FocusAdded = 0,
             EffectDescription = "Failure: +1 doubt",
@@ -358,26 +303,18 @@ public class CategoricalEffectResolver
         {
             switch (template.MomentumScaling)
             {
-                case ScalingType.CardsInHand:
+                case ScalingType.CardsInMind:
                     return $"Gain momentum = cards in hand ({session.Deck.HandSize} = {momentumGain})";
 
-                case ScalingType.CardsInHandDivided:
-                    return $"Gain momentum = cards in hand ÷ 2 ({session.Deck.HandSize} ÷ 2 = {momentumGain})";
-
-                case ScalingType.DoubtReduction:
+                case ScalingType.CurrentDoubt:
                     int doubtReduction = 10 - session.CurrentDoubt;
                     return $"Gain momentum = (10 - current doubt) = {doubtReduction}";
 
-                case ScalingType.DoubtHalved:
-                    int doubtHalved = (10 - session.CurrentDoubt) / 2;
-                    return $"Gain momentum = (10 - doubt) ÷ 2 = {doubtHalved}";
-
-                case ScalingType.DoubleCurrent:
+                case ScalingType.DoubleMomentum:
                     return $"Gain momentum = current momentum × 2 ({session.CurrentMomentum} × 2 = {momentumGain})";
 
-                case ScalingType.PatienteDivided:
-                    int patience = session.GetAvailableFocus() / 3;
-                    return $"Gain momentum = focus ÷ 3 ({session.GetAvailableFocus()} ÷ 3 = {patience})";
+                case ScalingType.CurrentInitiative:
+                    return $"Gain momentum = current initiative ÷ 3 ({session.CurrentInitiative} ÷ 3 = {momentumGain})";
             }
         }
 
@@ -404,11 +341,12 @@ public class CategoricalEffectResolver
 public class CardEffectResult
 {
     public CardInstance Card { get; set; }
-    public int FlowChange { get; set; }
+    public int InitiativeChange { get; set; } // Replaces FlowChange in 4-resource system
+    public int CadenceChange { get; set; } = 0; // New for 4-resource system
     public int MomentumChange { get; set; }
     public int DoubtChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; }
-    public int FocusAdded { get; set; }
+    public int FocusAdded { get; set; } // Legacy compatibility - maps to InitiativeChange
     public bool EndsConversation { get; set; }
     public string EffectDescription { get; set; }
 }

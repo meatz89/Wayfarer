@@ -9,7 +9,6 @@ public class ConversationFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly ExchangeHandler _exchangeHandler;
-    private readonly FlowManager _flowManager;
     private readonly MomentumManager _momentumManager;
     private readonly CategoricalEffectResolver _effectResolver;
     private readonly ConversationNarrativeService _narrativeService;
@@ -25,13 +24,11 @@ public class ConversationFacade
 
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
-    private FlowManager _flowBatteryManager;
     private PersonalityRuleEnforcer _personalityEnforcer;
 
     public ConversationFacade(
         GameWorld gameWorld,
         ExchangeHandler exchangeHandler,
-        FlowManager flowManager,
         MomentumManager momentumManager,
         CategoricalEffectResolver effectResolver,
         ConversationNarrativeService narrativeService,
@@ -45,7 +42,6 @@ public class ConversationFacade
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
-        _flowManager = flowManager ?? throw new ArgumentNullException(nameof(flowManager));
         _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
@@ -82,26 +78,19 @@ public class ConversationFacade
             throw new ArgumentException($"Request {requestId} not found for NPC {npc.Name}");
         }
 
-        // Extract connection state and flow from single value
+        // Get connection state from NPC for session initialization
         ConnectionState initialState = npc.GetConnectionState();
-        int initialFlow = npc.GetFlowBattery(); // -2 to +2
-
-        // Initialize flow battery manager with persisted values
-        _flowManager.InitializeForConversation(initialState, initialFlow);
-        _flowManager.StateTransitioned += OnStateTransitioned;
-        _flowManager.ConversationEnded += OnConversationEnded;
-        _flowBatteryManager = _flowManager;
 
         // Focus management is now handled directly by ConversationSession
 
         // Initialize personality rule enforcer based on NPC's personality
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
 
+        // Get NPC token counts for session initialization
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+
         // Create session deck and get request cards from the request
         (SessionCardDeck deck, List<CardInstance> requestCards) = _deckBuilder.CreateConversationDeck(npc, requestId, observationCards);
-
-        // Get NPC token counts directly from TokenMechanicsManager
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
         // Initialize momentum manager for this conversation with token data
         _momentumManager.InitializeForConversation(npcTokens);
@@ -127,23 +116,13 @@ public class ConversationFacade
             ConversationTypeId = request.ConversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
-            FlowBattery = initialFlow, // Start with persisted flow (-2 to +2)
-            CurrentFocus = 0,
-            MaxFocus = initialState switch
-            {
-                ConnectionState.DISCONNECTED => 3,
-                ConnectionState.GUARDED => 4,
-                ConnectionState.NEUTRAL => 5,
-                ConnectionState.RECEPTIVE => 6,
-                ConnectionState.TRUSTING => 7,
-                _ => 5
-            },
+            CurrentInitiative = 0, // Starts at 0 in 4-resource system
+            Cadence = 0, // Starts at 0
             CurrentMomentum = initialMomentum,
             CurrentDoubt = initialDoubt,
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
             TokenManager = _tokenManager,
-            FlowManager = _flowBatteryManager,
             MomentumManager = _momentumManager,
             PersonalityEnforcer = _personalityEnforcer,  // Add personality enforcer to session
             ObservationCards = observationCards ?? new List<CardInstance>(),
@@ -164,9 +143,9 @@ public class ConversationFacade
         UpdateRequestCardPlayability(_currentSession);
 
         // Reset focus after initial draw (as per standard LISTEN)
-        _currentSession.CurrentFocus = 0; // Start with no spent focus
+        _currentSession.CurrentInitiative = 0; // Initiative starts at 0 in 4-resource system
 
-        // Update card playability based on initial focus
+        // Update card playability based on initial initiative
         UpdateCardPlayabilityBasedOnFocus(_currentSession);
 
         return _currentSession;
@@ -193,9 +172,8 @@ public class ConversationFacade
             _ => 10
         };
 
-        // FlowBattery is -2 to +2, convert to 0-4 range
-        int flowPosition = Math.Clamp(_currentSession.FlowBattery + 2, 0, 4);
-        _currentSession.NPC.RelationshipFlow = stateBase + flowPosition;
+        // Set relationship flow based on connection state only
+        _currentSession.NPC.RelationshipFlow = stateBase;
 
         // Token rewards are now handled via individual card thresholds, not a global rapport goal
 
@@ -221,7 +199,8 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Execute LISTEN action in current conversation
+    /// Execute LISTEN action - Complete 4-Resource System Implementation
+    /// Sequence: Apply Cadence Effects → Handle Card Persistence → Fixed Card Draw → Refresh Initiative → Check Goal Cards
     /// </summary>
     public async Task<ConversationTurnResult> ExecuteListen()
     {
@@ -235,42 +214,34 @@ public class ConversationFacade
         // Advance time by 1 segment per conversation round (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        // Apply LISTEN mechanics based on conversation type
-        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(_currentSession.ConversationTypeId);
-        if (typeEntry?.Definition != null && _currentSession.MomentumManager != null)
-        {
-            ConversationTypeDefinition conversationType = typeEntry.Definition;
+        // ========== 4-RESOURCE SYSTEM LISTEN SEQUENCE ==========
 
-            // 1. Add doubt from conversation type (e.g., +3 for desperate_request)
-            if (conversationType.DoubtPerListen > 0)
-            {
-                _currentSession.MomentumManager.AddDoubt(conversationType.DoubtPerListen);
-            }
+        // 1. Apply Cadence Effects
+        ProcessCadenceEffectsOnListen(_currentSession);
 
-            // 2. Apply momentum erosion (current doubt reduces momentum)
-            if (conversationType.MomentumErosion)
-            {
-                _currentSession.MomentumManager.ApplyMomentumErosion(_personalityEnforcer);
-            }
+        // 2. Apply Doubt Tax on Momentum (handled automatically via GetEffectiveMomentumGain)
+        // Doubt reduces momentum gains by 20% per doubt point - applied when momentum is added
 
-            // 3. Apply focus penalties (unspent focus adds doubt)
-            int unspentFocus = _currentSession.GetAvailableFocus();
-            if (unspentFocus > 0)
-            {
-                _currentSession.MomentumManager.AddDoubt(unspentFocus);
-            }
-        }
+        // 3. Handle Card Persistence
+        ProcessCardPersistence(_currentSession);
 
-        // Execute LISTEN through deck operations
-        List<CardInstance> drawnCards = ExecuteListenAction(_currentSession);
+        // 4. Calculate Fixed Card Draw (4 + Cadence bonus)
+        int cardsToDraw = _currentSession.GetDrawCount();
 
-        // Notify personality enforcer that LISTEN occurred (resets turn state for Proud personality)
-        _personalityEnforcer?.OnListen();
+        // 5. NO Initiative refresh (must be earned through cards like Steamworld Quest)
+        // Initiative stays at current value - only Foundation cards can build it
 
-        // Focus state is already managed by the session
+        // 6. Check Goal Card Activation
+        CheckGoalCardActivation(_currentSession);
 
-        // Update card playability based on current focus
-        UpdateCardPlayabilityBasedOnFocus(_currentSession);
+        // 7. Reset Turn-Based Effects
+        _personalityEnforcer?.OnListen(); // Resets Proud personality turn state
+
+        // Draw cards from deck
+        List<CardInstance> drawnCards = ExecuteNewListenCardDraw(_currentSession, cardsToDraw);
+
+        // Update card playability based on Initiative system
+        UpdateCardPlayabilityForInitiative(_currentSession);
 
         // Generate narrative using the narrative service
         NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
@@ -282,16 +253,17 @@ public class ConversationFacade
         return new ConversationTurnResult
         {
             Success = true,
-            NewState = _currentSession.CurrentState,
+            NewState = _currentSession.CurrentState, // Connection State doesn't change during conversation
             NPCResponse = npcResponse,
             DrawnCards = drawnCards,
             DoubtLevel = _currentSession.CurrentDoubt,
-            Narrative = narrative  // Include the full narrative output
+            Narrative = narrative
         };
     }
 
     /// <summary>
-    /// Execute SPEAK action with a single selected card (ONE CARD RULE)
+    /// Execute SPEAK action - Complete 4-Resource System Implementation
+    /// Sequence: Validate Initiative Cost → Check Personality Rules → Pay Cost → Apply Cadence → Calculate Success → Apply Results
     /// </summary>
     public async Task<ConversationTurnResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
     {
@@ -310,112 +282,81 @@ public class ConversationFacade
         // Advance time by 1 segment per conversation round (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        // SPEAK costs focus (focus), not patience
-        // Patience is only deducted for LISTEN actions
+        // ========== 4-RESOURCE SYSTEM SPEAK SEQUENCE ==========
 
-        // Validate play against personality rules
+        // 1. Check Initiative Available
+        int initiativeCost = GetCardInitiativeCost(selectedCard);
+        if (!_currentSession.CanAffordCardInitiative(initiativeCost))
+        {
+            // Not enough Initiative - cannot play card
+            return new ConversationTurnResult
+            {
+                Success = false,
+                NewState = _currentSession.CurrentState,
+                NPCResponse = "You don't have enough Initiative to play that card. Use Foundation cards to build Initiative.",
+                DoubtLevel = _currentSession.CurrentDoubt,
+                PersonalityViolation = "Insufficient Initiative"
+            };
+        }
+
+        // 2. Check Personality Restrictions (updated for Initiative system)
         if (_personalityEnforcer != null)
         {
             string violationMessage;
-            if (!_personalityEnforcer.ValidatePlay(selectedCard, out violationMessage))
+            if (!ValidateInitiativePersonalityRules(selectedCard, out violationMessage))
             {
-                // Return early with failed result if personality rule violated
                 return new ConversationTurnResult
                 {
                     Success = false,
                     NewState = _currentSession.CurrentState,
                     NPCResponse = violationMessage,
-                    FlowChange = 0,
-                    OldFlow = _currentSession.FlowBattery,
-                    NewFlow = _currentSession.FlowBattery,
                     DoubtLevel = _currentSession.CurrentDoubt,
                     PersonalityViolation = violationMessage
                 };
             }
         }
 
-        // Personality enforcement is now handled within the deterministic success check
-        // No need for percentage-based modifications
+        // 3. Pay Card Cost (Initiative)
+        if (!_currentSession.SpendInitiative(initiativeCost))
+        {
+            // This should never happen due to check above, but safety check
+            return new ConversationTurnResult
+            {
+                Success = false,
+                NewState = _currentSession.CurrentState,
+                NPCResponse = "Failed to spend Initiative for card play.",
+                DoubtLevel = _currentSession.CurrentDoubt
+            };
+        }
 
-        // Play the card
-        CardPlayResult playResult = PlayCard(_currentSession, selectedCard);
+        // 4. Apply Cadence Change (-1 per card played)
+        _currentSession.ApplyCadenceFromSpeak();
 
-        // Grant XP to player stat based on card's bound stat
+        // 5. Calculate Success with new 4-resource system
+        bool success = CalculateInitiativeCardSuccess(selectedCard, _currentSession);
+
+        // 6. Process Card Results
+        CardPlayResult playResult = ProcessInitiativeCardPlay(selectedCard, success, _currentSession);
+
+        // 7. Grant XP to player stat (unchanged)
         Player player = _gameWorld.GetPlayer();
         if (selectedCard.ConversationCardTemplate.BoundStat.HasValue)
         {
-            // Calculate XP amount based on conversation difficulty/level
-            int xpAmount = 1; // Base XP
-
-            // Conversations give 1x/2x/3x XP based on difficulty level
-            if (_currentSession.IsStrangerConversation && _currentSession.StrangerLevel.HasValue)
-            {
-                xpAmount = _currentSession.StrangerLevel.Value; // Stranger level 1-3 = 1-3x XP
-            }
-            else if (_currentSession.NPC != null)
-            {
-                // Regular NPC conversation difficulty (1-3 for XP multiplier)
-                xpAmount = _currentSession.NPC.ConversationDifficulty;
-            }
-
-            // Grant XP to the bound stat regardless of success/failure (practice makes perfect)
+            int xpAmount = CalculateXPAmount(_currentSession);
             player.Stats.AddXP(selectedCard.ConversationCardTemplate.BoundStat.Value, xpAmount);
         }
 
-        // Record that this card was played for personality tracking
+        // 8. Record card played for personality tracking
         _personalityEnforcer?.OnCardPlayed(selectedCard);
 
-        int oldFlow = _currentSession.FlowBattery;
-        int flowChange = playResult.FinalFlow;
+        // 9. Handle Card Persistence (Standard/Echo/Persistent/Banish)
+        ProcessCardAfterPlay(selectedCard, success, _currentSession);
 
-        // Apply flow change through battery manager
-        bool conversationEnded = false;
-        ConnectionState newState = _currentSession.CurrentState;
+        // 10. Update card playability based on new Initiative level
+        UpdateCardPlayabilityForInitiative(_currentSession);
 
-        if (_flowBatteryManager != null && flowChange != 0)
-        {
-            (bool stateChanged, ConnectionState resultState, bool shouldEnd) =
-                _flowBatteryManager.ApplyFlowChange(flowChange);
-
-            _currentSession.FlowBattery = _flowBatteryManager.CurrentFlow;
-            conversationEnded = shouldEnd;
-
-            if (stateChanged)
-            {
-                newState = resultState;
-                _currentSession.CurrentState = newState;
-
-                // Update focus capacity for new state
-                _currentSession.MaxFocus = newState switch
-                {
-                    ConnectionState.DISCONNECTED => 3,
-                    ConnectionState.GUARDED => 4,
-                    ConnectionState.NEUTRAL => 5,
-                    ConnectionState.RECEPTIVE => 6,
-                    ConnectionState.TRUSTING => 7,
-                    _ => 5
-                };
-            }
-        }
-
-        // Exhaust all focus on failed SPEAK - forces LISTEN as only option
-        // Unless the card ignores failure LISTEN (level 5 mastery)
-        if (!playResult.Success && !selectedCard.IgnoresFailureListen(player.Stats))
-        {
-            // Spend all remaining focus to force LISTEN
-            int remainingFocus = _currentSession.GetAvailableFocus();
-            if (remainingFocus > 0)
-            {
-                _currentSession.SpendFocus(remainingFocus);
-            }
-        }
-
-        // Update card playability based on current focus
-        UpdateCardPlayabilityBasedOnFocus(_currentSession);
-
-        // Handle special card effects
-        HashSet<CardInstance> singleCardSet = new HashSet<CardInstance> { selectedCard };
-        HandleSpecialCardEffects(singleCardSet, new ConversationTurnResult { Success = playResult.Success });
+        // 11. Handle special card effects (exchanges, letters, etc.)
+        HandleSpecialCardEffects(new HashSet<CardInstance> { selectedCard }, new ConversationTurnResult { Success = success });
 
         // Generate NPC response through narrative service
         List<CardInstance> activeCards = _currentSession.Deck.HandCards.ToList();
@@ -424,42 +365,23 @@ public class ConversationFacade
             _currentSession.NPC,
             activeCards);
 
-        string npcResponse = narrative.NPCDialogue;
-
         ConversationTurnResult result = new ConversationTurnResult
         {
-            Success = playResult.Success,
-            NewState = newState,
-            NPCResponse = npcResponse,
-            FlowChange = flowChange,
-            OldFlow = oldFlow,
-            NewFlow = _currentSession.FlowBattery,
+            Success = success,
+            NewState = _currentSession.CurrentState, // Connection State doesn't change
+            NPCResponse = narrative.NPCDialogue,
+            FlowChange = 0, // No flow in new system
+            OldFlow = 0, // No flow in new system
+            NewFlow = 0, // No flow in new system
             DoubtLevel = _currentSession.CurrentDoubt,
             CardPlayResult = playResult,
-            Narrative = narrative  // Pass the full narrative output
+            Narrative = narrative
         };
 
-        // Mark conversation as ended if needed
-        if (conversationEnded || !playResult.Success)
-        {
-            result.Success = conversationEnded ? false : result.Success;
-        }
-
         // Add turn to history
-        if (_currentSession != null && result != null)
-        {
-            ConversationTurn turn = new ConversationTurn
-            {
-                ActionType = ActionType.Speak,
-                Narrative = result.Narrative,
-                Result = result,
-                TurnNumber = _currentSession.TurnNumber,
-                CardPlayed = selectedCard
-            };
-            _currentSession.TurnHistory.Add(turn);
-        }
+        AddTurnToHistory(ActionType.Speak, selectedCard, result);
 
-        // Check if conversation should end
+        // Check if conversation should end (doubt at maximum)
         if (ShouldEndConversation(_currentSession))
         {
             EndConversation();
@@ -704,11 +626,11 @@ public class ConversationFacade
         if (currentSelection.Contains(card))
             return true; // Can deselect
 
-        // Check focus limit
-        int currentFocus = currentSelection.Sum(c => c.Focus);
-        int newFocus = currentFocus + card.Focus;
+        // Check initiative cost against available initiative
+        int currentInitiativeCost = currentSelection.Sum(c => c.Focus);
+        int totalInitiativeCost = currentInitiativeCost + card.Focus;
 
-        return newFocus <= _currentSession.GetEffectiveFocusCapacity();
+        return totalInitiativeCost <= _currentSession.GetCurrentInitiative();
     }
 
     public ExchangeExecutionResult ExecuteExchange(object exchangeData)
@@ -751,6 +673,250 @@ public class ConversationFacade
 
     // AtmosphereManager has been deleted - atmosphere is simplified to always Neutral
 
+    #region 4-Resource System Helper Methods
+
+    /// <summary>
+    /// Process Cadence effects on LISTEN action
+    /// High Cadence (6+): +1 Doubt per point above 5
+    /// Apply +3 Cadence (giving NPC space to speak)
+    /// </summary>
+    private void ProcessCadenceEffectsOnListen(ConversationSession session)
+    {
+        // Apply doubt penalty for high Cadence (player dominating conversation)
+        if (session.ShouldApplyCadenceDoubtPenalty())
+        {
+            int doubtPenalty = session.GetCadenceDoubtPenalty();
+            session.AddDoubt(doubtPenalty);
+        }
+
+        // Apply Cadence change (+3 for giving NPC space)
+        session.ApplyCadenceFromListen();
+    }
+
+    /// <summary>
+    /// Handle card persistence after playing
+    /// Standard: Goes to Spoken pile
+    /// Echo: Returns to hand if conditions met
+    /// Persistent: Stays in hand
+    /// Banish: Removed entirely
+    /// </summary>
+    private void ProcessCardPersistence(ConversationSession session)
+    {
+        // Handle cards that need persistence processing
+        // This is handled by the deck system based on card persistence types
+        session.Deck.ProcessCardPersistence();
+    }
+
+    /// <summary>
+    /// Check if goal cards should become active based on momentum thresholds
+    /// Basic: 8, Enhanced: 12, Premium: 16
+    /// </summary>
+    private void CheckGoalCardActivation(ConversationSession session)
+    {
+        int currentMomentum = session.CurrentMomentum;
+
+        // Move request cards that meet momentum threshold from request pile to hand
+        List<CardInstance> activatedCards = session.Deck.CheckRequestThresholds(currentMomentum);
+
+        foreach (CardInstance card in activatedCards)
+        {
+            _messageSystem.AddSystemMessage(
+                $"{card.Description} is now available (Momentum threshold met)",
+                SystemMessageTypes.Success);
+        }
+    }
+
+    /// <summary>
+    /// Execute card draw with fixed system (4 + Cadence bonus)
+    /// </summary>
+    private List<CardInstance> ExecuteNewListenCardDraw(ConversationSession session, int cardsToDraw)
+    {
+        session.Deck.DrawToHand(cardsToDraw);
+
+        // Return the newly drawn cards (last N cards in hand)
+        return session.Deck.HandCards.TakeLast(cardsToDraw).ToList();
+    }
+
+    /// <summary>
+    /// Update card playability based on Initiative system (not Focus)
+    /// </summary>
+    private void UpdateCardPlayabilityForInitiative(ConversationSession session)
+    {
+        int currentInitiative = session.CurrentInitiative;
+
+        foreach (CardInstance card in session.Deck.HandCards)
+        {
+            // Skip request cards - their playability is based on momentum thresholds
+            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+            {
+                continue;
+            }
+
+            // Check if player can afford this card's Initiative cost
+            int initiativeCost = GetCardInitiativeCost(card);
+            card.IsPlayable = currentInitiative >= initiativeCost;
+        }
+    }
+
+    /// <summary>
+    /// Get Initiative cost for a card (replaces Focus cost)
+    /// </summary>
+    private int GetCardInitiativeCost(CardInstance card)
+    {
+        // For now, use the existing Focus cost as Initiative cost
+        // This will be replaced when card templates are migrated
+        return card.Focus;
+    }
+
+    /// <summary>
+    /// Validate personality rules for Initiative system
+    /// Proud: Ascending Initiative order (not Focus)
+    /// Mercantile: Highest Initiative card gets +30% success
+    /// </summary>
+    private bool ValidateInitiativePersonalityRules(CardInstance selectedCard, out string violationMessage)
+    {
+        violationMessage = string.Empty;
+
+        if (_personalityEnforcer == null)
+            return true;
+
+        // Use existing personality enforcer but it will need updating for Initiative
+        return _personalityEnforcer.ValidatePlay(selectedCard, out violationMessage);
+    }
+
+    /// <summary>
+    /// Calculate card success with Initiative system
+    /// Base% + (2% × Current Momentum) + (10% × Bound Stat Level)
+    /// </summary>
+    private bool CalculateInitiativeCardSuccess(CardInstance selectedCard, ConversationSession session)
+    {
+        // Use existing deterministic success calculation for now
+        // This handles momentum and stat bonuses correctly
+        return _effectResolver.CheckCardSuccess(selectedCard, session);
+    }
+
+    /// <summary>
+    /// Process card play results with Initiative system
+    /// </summary>
+    private CardPlayResult ProcessInitiativeCardPlay(CardInstance selectedCard, bool success, ConversationSession session)
+    {
+        CardEffectResult effectResult = null;
+
+        if (success)
+        {
+            // Process success effects with doubt tax applied to momentum
+            effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
+
+            // Apply momentum with doubt tax
+            if (effectResult.MomentumChange > 0)
+            {
+                int effectiveMomentum = session.GetEffectiveMomentumGain(effectResult.MomentumChange);
+                session.CurrentMomentum += effectiveMomentum;
+            }
+
+            // Apply doubt changes
+            if (effectResult.DoubtChange > 0)
+            {
+                session.AddDoubt(effectResult.DoubtChange);
+            }
+            else if (effectResult.DoubtChange < 0)
+            {
+                session.ReduceDoubt(-effectResult.DoubtChange);
+            }
+
+            // Apply Initiative generation (for Foundation cards)
+            if (effectResult.FocusAdded > 0) // Repurpose focus as Initiative
+            {
+                session.AddInitiative(effectResult.FocusAdded);
+            }
+
+            // Handle other card effects (drawing cards, etc.)
+            if (effectResult.CardsToAdd.Any())
+            {
+                session.Deck.AddCardsToMind(effectResult.CardsToAdd);
+            }
+        }
+        else
+        {
+            // Process failure effects
+            effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
+
+            // Standard failure: +1 Doubt
+            session.AddDoubt(1);
+
+            // Apply other failure effects
+            if (effectResult.MomentumChange < 0)
+            {
+                int momentumLoss = -effectResult.MomentumChange;
+                session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - momentumLoss);
+            }
+        }
+
+        // Create play result
+        return new CardPlayResult
+        {
+            Results = new List<SingleCardResult>
+            {
+                new SingleCardResult
+                {
+                    Card = selectedCard,
+                    Success = success,
+                    Flow = 0, // No flow in new system
+                    Roll = 0, // Deterministic system
+                    SuccessChance = success ? 100 : 0
+                }
+            },
+            FinalFlow = 0 // No flow in new system
+        };
+    }
+
+    /// <summary>
+    /// Process card after playing based on persistence type
+    /// </summary>
+    private void ProcessCardAfterPlay(CardInstance selectedCard, bool success, ConversationSession session)
+    {
+        // Handle card based on its persistence type
+        session.Deck.PlayCard(selectedCard);
+    }
+
+    /// <summary>
+    /// Calculate XP amount based on conversation difficulty
+    /// </summary>
+    private int CalculateXPAmount(ConversationSession session)
+    {
+        if (session.IsStrangerConversation && session.StrangerLevel.HasValue)
+        {
+            return session.StrangerLevel.Value; // 1-3x XP
+        }
+        else if (session.NPC != null)
+        {
+            return session.NPC.ConversationDifficulty; // 1-3x XP
+        }
+
+        return 1; // Base XP
+    }
+
+    /// <summary>
+    /// Add turn to conversation history
+    /// </summary>
+    private void AddTurnToHistory(ActionType actionType, CardInstance cardPlayed, ConversationTurnResult result)
+    {
+        if (_currentSession != null)
+        {
+            ConversationTurn turn = new ConversationTurn
+            {
+                ActionType = actionType,
+                Narrative = result.Narrative,
+                Result = result,
+                TurnNumber = _currentSession.TurnNumber,
+                CardPlayed = cardPlayed
+            };
+            _currentSession.TurnHistory.Add(turn);
+        }
+    }
+
+    #endregion
+
     #region Private Methods - Absorbed from ConversationOrchestrator
 
     /// <summary>
@@ -779,9 +945,8 @@ public class ConversationFacade
             return true;
 
         // Check with flow battery manager
-        if (_flowBatteryManager != null &&
-            _flowBatteryManager.CurrentState == ConnectionState.DISCONNECTED &&
-            _flowBatteryManager.CurrentFlow <= -3)
+        if (session.CurrentState == ConnectionState.DISCONNECTED &&
+            session.CurrentDoubt >= session.MaxDoubt)
             return true;
 
         // End if deck is empty and no active cards
@@ -805,17 +970,17 @@ public class ConversationFacade
             success = false;
             reason = "Doubt overwhelmed conversation";
         }
-        else if (session.CurrentState == ConnectionState.DISCONNECTED && session.FlowBattery <= -3)
+        else if (session.CurrentState == ConnectionState.DISCONNECTED && session.CurrentDoubt >= session.MaxDoubt)
         {
             success = false;
             reason = "Relationship damaged beyond repair";
         }
 
         // Calculate token rewards based on final state
-        int tokensEarned = CalculateTokenReward(session.CurrentState, session.FlowBattery);
+        int tokensEarned = CalculateTokenReward(session.CurrentState, session.CurrentMomentum);
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
-        bool requestAchieved = session.Deck.PlayedHistoryCards.Any(c =>
+        bool requestAchieved = session.Deck.SpokenCards.Any(c =>
             c.CardType == CardType.Letter ||
             c.CardType == CardType.Promise ||
             c.CardType == CardType.Letter);
@@ -827,7 +992,7 @@ public class ConversationFacade
         return new ConversationOutcome
         {
             Success = success,
-            FinalFlow = session.FlowBattery,
+            FinalFlow = 0, // FlowBattery removed in 4-resource system
             FinalState = session.CurrentState,
             TokensEarned = tokensEarned,
             RequestAchieved = requestAchieved,
@@ -836,9 +1001,9 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Calculate token reward based on final state and flow
+    /// Calculate token reward based on final state and momentum
     /// </summary>
-    private int CalculateTokenReward(ConnectionState finalState, int finalFlow)
+    private int CalculateTokenReward(ConnectionState finalState, int finalMomentum)
     {
         // Base reward by state
         int baseReward = finalState switch
@@ -851,10 +1016,10 @@ public class ConversationFacade
             _ => 0
         };
 
-        // Bonus for positive flow
-        if (finalFlow > 0)
+        // Bonus for high momentum achievement
+        if (finalMomentum >= 12) // Enhanced goal threshold
             baseReward += 1;
-        else if (finalFlow < 0)
+        else if (finalMomentum < 4) // Very low momentum penalty
             baseReward -= 1;
 
         return Math.Max(0, baseReward);
@@ -870,7 +1035,7 @@ public class ConversationFacade
 
         // Generate letters from positive connections
         return session.CurrentState == ConnectionState.TRUSTING ||
-               (session.CurrentState == ConnectionState.RECEPTIVE && session.FlowBattery > 1);
+               (session.CurrentState == ConnectionState.RECEPTIVE && session.CurrentMomentum > 5);
     }
 
     /// <summary>
@@ -879,12 +1044,13 @@ public class ConversationFacade
     private DeliveryObligation CreateLetterObligation(ConversationSession session)
     {
         int stateValue = (int)session.CurrentState; // Use state as base value
-        int flowBonus = Math.Max(0, session.FlowBattery);
+        int momentumBonus = Math.Max(0, session.CurrentMomentum / 5); // Convert momentum to bonus
+        int cadenceBonus = Math.Max(0, -session.Cadence / 2); // Negative cadence (good listening) provides bonus
 
         // Calculate deadline and payment based on relationship quality (segment-based)
         int baseSegments = 12; // ~12 segments base (3/4 of day)
-        int deadlineInSegments = Math.Max(2, baseSegments - (stateValue * 2) - (flowBonus * 1));
-        int payment = 5 + stateValue + flowBonus;
+        int deadlineInSegments = Math.Max(2, baseSegments - (stateValue * 2) - (cadenceBonus * 1));
+        int payment = 5 + stateValue + cadenceBonus;
 
         // Determine tier and focus
         TierLevel tier = stateValue >= 4 ? TierLevel.T3 :
@@ -917,7 +1083,7 @@ public class ConversationFacade
             Payment = payment,
             Tier = tier,
             EmotionalFocus = focus,
-            Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Flow: {session.FlowBattery})"
+            Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Momentum: {session.CurrentMomentum})"
         };
     }
 
@@ -989,7 +1155,7 @@ public class ConversationFacade
         int baseDrawCount = session.GetDrawCount();
 
         // Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
-        int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
+        int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Standard);
         if (impulseCount > 0 && session.MomentumManager != null)
         {
             session.MomentumManager.AddDoubt(impulseCount);
@@ -1109,20 +1275,20 @@ public class ConversationFacade
                 session.AddFocus(effectResult.FocusAdded);
             }
 
-            // Apply flow battery change (for Advancing success effect)
-            if (effectResult.FlowChange != 0)
+            // Apply initiative change (for Initiative-granting success effects)
+            if (effectResult.InitiativeChange != 0)
             {
-                flowChange += effectResult.FlowChange; // Add to the base flow change
+                session.AddInitiative(effectResult.InitiativeChange);
             }
 
             // Add drawn cards to active cards (for Threading success effect)
             if (effectResult.CardsToAdd.Any())
             {
-                session.Deck.AddCardsToHand(effectResult.CardsToAdd);
+                session.Deck.AddCardsToMind(effectResult.CardsToAdd);
             }
 
-            // Handle PreventDoubt effect (for Soothe cards with PreventDoubt scaling)
-            if (selectedCard.ConversationCardTemplate.MomentumScaling == ScalingType.PreventDoubt)
+            // Handle doubt reduction effect (for Soothe cards with doubt reduction scaling)
+            if (selectedCard.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
             {
                 session.PreventNextDoubtIncrease = true;
             }
@@ -1525,7 +1691,7 @@ public class ConversationFacade
         if (_currentSession?.Deck == null)
             return new List<CardInstance>();
 
-        return _currentSession.Deck.PlayedHistoryCards;
+        return _currentSession.Deck.SpokenCards;
     }
 
     /// <summary>
@@ -1536,7 +1702,7 @@ public class ConversationFacade
         if (_currentSession?.Deck == null || card == null)
             return false;
 
-        return _currentSession.Deck.IsCardInHand(card);
+        return _currentSession.Deck.IsCardInMind(card);
     }
 
     /// <summary>
@@ -1581,8 +1747,8 @@ public class ConversationFacade
             return (0, 0, 0, 0);
 
         return (
-            _currentSession.Deck.RemainingDrawCards,
-            _currentSession.Deck.DiscardPileCount,
+            _currentSession.Deck.RemainingDeckCards,
+            _currentSession.Deck.SpokenPileCount,
             _currentSession.Deck.HandSize,
             _currentSession.Deck.RequestPileSize
         );
@@ -1634,7 +1800,7 @@ public class ConversationFacade
         }
 
         // Show draw with impulse penalties
-        int impulseCount = _currentSession.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
+        int impulseCount = _currentSession.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Standard);
         int drawCount = _currentSession.GetDrawCount() - impulseCount;
         if (impulseCount > 0)
         {

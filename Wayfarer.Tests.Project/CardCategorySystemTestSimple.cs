@@ -19,10 +19,10 @@ namespace Wayfarer.Tests
         }
 
         [Test]
-        public void DetermineCategoryFromEffect_Advancing_ReturnsRealization()
+        public void DetermineCategoryFromEffect_DoubleMomentum_ReturnsRealization()
         {
             // Act
-            CardCategory result = ConversationCard.DetermineCategoryFromEffect(SuccessEffectType.Advancing);
+            CardCategory result = ConversationCard.DetermineCategoryFromEffect(SuccessEffectType.DoubleMomentum);
 
             // Assert
             Assert.That(result, Is.EqualTo(CardCategory.Realization));

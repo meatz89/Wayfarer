@@ -50,9 +50,9 @@ namespace Wayfarer.Pages.Components
 
         protected ConversationSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
-        protected int TotalSelectedFocus => SelectedCard?.Focus ?? 0;
-        protected bool IsConversationExhausted { get; set; } = false;
-        protected string ExhaustionReason { get; set; } = "";
+        protected int TotalSelectedInitiative => GetCardInitiativeCost(SelectedCard);
+        protected bool IsConversationEnded { get; set; } = false;
+        protected string EndReason { get; set; } = "";
 
         // Action preview state
         protected bool ShowSpeakPreview { get; set; } = false;
@@ -183,8 +183,8 @@ namespace Wayfarer.Pages.Components
                 // Check conversation end state
                 if (Session.ShouldEnd())
                 {
-                    IsConversationExhausted = true;
-                    ExhaustionReason = "Conversation ended";
+                    IsConversationEnded = true;
+                    EndReason = "Conversation ended";
                 }
             }
             finally
@@ -233,8 +233,8 @@ namespace Wayfarer.Pages.Components
 
                 if (isPromiseCard && wasSuccessful)
                 {
-                    IsConversationExhausted = true;
-                    ExhaustionReason = $"Success! {GetSuccessEffectDescription(playedCard)}";
+                    IsConversationEnded = true;
+                    EndReason = $"Success! {GetSuccessEffectDescription(playedCard)}";
                     LastNarrative = "Your words have the desired effect. The conversation concludes successfully.";
                     StateHasChanged();
                     return;
@@ -251,8 +251,8 @@ namespace Wayfarer.Pages.Components
                 // Check conversation end state
                 if (Session.ShouldEnd())
                 {
-                    IsConversationExhausted = true;
-                    ExhaustionReason = "Conversation ended";
+                    IsConversationEnded = true;
+                    EndReason = "Conversation ended";
                 }
             }
             finally
@@ -612,11 +612,11 @@ namespace Wayfarer.Pages.Components
                         : $"{projection.FocusAdded} focus";
                 }
 
-                if (projection.FlowChange != 0)
+                if (projection.InitiativeChange != 0)
                 {
-                    return projection.FlowChange > 0
-                        ? $"+{projection.FlowChange} flow"
-                        : $"{projection.FlowChange} flow";
+                    return projection.InitiativeChange > 0
+                        ? $"+{projection.InitiativeChange} initiative"
+                        : $"{projection.InitiativeChange} initiative";
                 }
 
                 if (!string.IsNullOrEmpty(projection.EffectDescription))
@@ -728,9 +728,8 @@ namespace Wayfarer.Pages.Components
             IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
             if (handCards == null) return new List<CardInstance>();
 
-            return handCards
-                .Where(c => c.Persistence == PersistenceType.Impulse && c != SelectedCard) // Don't include the played card
-                .ToList();
+            // Legacy Impulse cards removed in 4-resource system
+            return new List<CardInstance>();
         }
 
         /// <summary>
@@ -795,11 +794,7 @@ namespace Wayfarer.Pages.Components
             List<string> classes = new List<string> { "card" };
             string cardId = card.InstanceId ?? card.Id ?? "";
 
-            // Add warning for impulse cards
-            if (card.Persistence == PersistenceType.Impulse)
-            {
-                classes.Add("card-impulse-warning");
-            }
+            // Legacy impulse warning removed in 4-resource system
 
             // Add selected state
             if (SelectedCard?.InstanceId == cardId)
@@ -967,6 +962,177 @@ namespace Wayfarer.Pages.Components
             if (card?.ConversationCardTemplate == null) return "";
 
             return GetSuccessEffectDescription(card);
+        }
+
+        // ===== NEW 4-RESOURCE SYSTEM METHODS =====
+
+        /// <summary>
+        /// Get current Initiative from session (starts at 0, built through cards)
+        /// </summary>
+        protected int GetCurrentInitiative()
+        {
+            return Session?.CurrentInitiative ?? 0;
+        }
+
+        /// <summary>
+        /// Get current Cadence (-10 to +10 range)
+        /// </summary>
+        protected int GetCurrentCadence()
+        {
+            return Session?.Cadence ?? 0;
+        }
+
+        /// <summary>
+        /// Get current Momentum for goal tracking
+        /// </summary>
+        protected int GetCurrentMomentum()
+        {
+            return Session?.CurrentMomentum ?? 0;
+        }
+
+        /// <summary>
+        /// Calculate Cadence meter position as percentage (0-100%)
+        /// </summary>
+        protected double GetCadencePosition()
+        {
+            int cadence = GetCurrentCadence();
+            // Convert from -10 to +10 range to 0-100% position
+            return ((cadence + 10) / 20.0) * 100;
+        }
+
+        /// <summary>
+        /// Get Initiative cost for a card (replaces Focus cost)
+        /// </summary>
+        protected int GetCardInitiativeCost(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate == null) return 0;
+
+            // TODO: Get from card template when initiative cost is added
+            // For now, use legacy focus cost as placeholder
+            return card.GetEffectiveFocus(Session?.CurrentState ?? ConnectionState.NEUTRAL);
+        }
+
+        /// <summary>
+        /// Get CSS class for card depth (Foundation/Standard/Decisive)
+        /// </summary>
+        protected string GetCardDepthClass(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate == null) return "depth-foundation";
+
+            // TODO: Get from card template when depth is added
+            // For now, determine based on Initiative cost
+            int initiativeCost = GetCardInitiativeCost(card);
+            return initiativeCost switch
+            {
+                0 or 1 or 2 => "depth-foundation",
+                3 or 4 or 5 => "depth-standard",
+                _ => "depth-decisive"
+            };
+        }
+
+        /// <summary>
+        /// Get display name for card depth tier
+        /// </summary>
+        protected string GetDepthDisplayName(CardInstance card)
+        {
+            string depthClass = GetCardDepthClass(card);
+            return depthClass switch
+            {
+                "depth-foundation" => "Foundation",
+                "depth-standard" => "Standard",
+                "depth-decisive" => "Decisive",
+                _ => "Unknown"
+            };
+        }
+
+        /// <summary>
+        /// Check if card has alternative costs available
+        /// </summary>
+        protected bool HasAlternativeCosts(CardInstance card)
+        {
+            // TODO: Implement when alternative costs are added to card templates
+            // For now, simulate some cards having alternatives based on Initiative cost
+            return GetCardInitiativeCost(card) >= 6; // High-cost cards might have alternatives
+        }
+
+        /// <summary>
+        /// Get available alternative costs for a card
+        /// </summary>
+        protected List<AlternativeCost> GetAvailableAlternativeCosts(CardInstance card)
+        {
+            if (!HasAlternativeCosts(card)) return new List<AlternativeCost>();
+
+            // TODO: Get from card template when alternative costs are implemented
+            // For now, create mock alternative costs
+            var alternatives = new List<AlternativeCost>();
+            int baseCost = GetCardInitiativeCost(card);
+
+            if (baseCost >= 6)
+            {
+                alternatives.Add(new AlternativeCost
+                {
+                    Condition = "High Cadence",
+                    ReducedInitiativeCost = baseCost - 2,
+                    MomentumCost = 0,
+                    Description = $"{baseCost - 2} Initiative if Cadence ≥ 5"
+                });
+            }
+
+            if (baseCost >= 8)
+            {
+                alternatives.Add(new AlternativeCost
+                {
+                    Condition = "High Doubt",
+                    ReducedInitiativeCost = baseCost / 2,
+                    MomentumCost = 3,
+                    Description = $"{baseCost / 2} Initiative + 3 Momentum if Doubt ≥ 7"
+                });
+            }
+
+            return alternatives;
+        }
+
+        /// <summary>
+        /// Check if player can afford alternative cost
+        /// </summary>
+        protected bool CanAffordAlternativeCost(CardInstance card, AlternativeCost altCost)
+        {
+            // Check Initiative requirement
+            if (GetCurrentInitiative() < altCost.ReducedInitiativeCost)
+                return false;
+
+            // Check Momentum requirement
+            if (GetCurrentMomentum() < altCost.MomentumCost)
+                return false;
+
+            // Check condition requirements
+            return altCost.Condition switch
+            {
+                "High Cadence" => GetCurrentCadence() >= 5,
+                "High Doubt" => (Session?.CurrentDoubt ?? 0) >= 7,
+                _ => true
+            };
+        }
+
+        /// <summary>
+        /// Get description text for alternative cost
+        /// </summary>
+        protected string GetAlternativeCostDescription(AlternativeCost altCost)
+        {
+            return altCost.Description ?? $"{altCost.ReducedInitiativeCost} Initiative";
+        }
+
+        /// <summary>
+        /// Play card with alternative cost
+        /// </summary>
+        protected async Task PlayCardWithAltCost(CardInstance card, AlternativeCost altCost)
+        {
+            if (!CanAffordAlternativeCost(card, altCost)) return;
+
+            // TODO: Implement alternative cost payment in ConversationFacade
+            // For now, treat as regular card play
+            SelectedCard = card;
+            await ExecuteSpeak();
         }
     }
 }

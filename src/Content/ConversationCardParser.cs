@@ -44,7 +44,7 @@ public static class ConversationCardParser
         }
 
         // Parse categorical properties
-        PersistenceType persistence = PersistenceType.Thought;
+        PersistenceType persistence = PersistenceType.Standard;
         if (!string.IsNullOrEmpty(dto.Persistence))
         {
             Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);

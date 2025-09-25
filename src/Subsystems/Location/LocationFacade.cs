@@ -734,12 +734,12 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             string lowerEffect = effect.ToLower();
             if (lowerEffect.Contains("rapport") || lowerEffect.Contains("momentum"))
                 return SuccessEffectType.Strike;
-            if (lowerEffect.Contains("thread"))
+            if (lowerEffect.Contains("thread") || lowerEffect.Contains("draw"))
                 return SuccessEffectType.Threading;
-            if (lowerEffect.Contains("focus"))
-                return SuccessEffectType.Focusing;
-            if (lowerEffect.Contains("advance"))
-                return SuccessEffectType.Advancing;
+            if (lowerEffect.Contains("soothe") || lowerEffect.Contains("doubt"))
+                return SuccessEffectType.Soothe;
+            if (lowerEffect.Contains("double"))
+                return SuccessEffectType.DoubleMomentum;
 
             return SuccessEffectType.None;
         }

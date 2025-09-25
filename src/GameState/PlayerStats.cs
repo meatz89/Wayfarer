@@ -11,7 +11,7 @@ public class StatProgress
     public int XP { get; set; } = 0;
 
     /// <summary>
-    /// Get XP required to reach the next level
+    /// Get XP required to reach the next level (extended to level 8)
     /// </summary>
     public int GetXPToNextLevel()
     {
@@ -21,7 +21,10 @@ public class StatProgress
             2 => 25,
             3 => 50,
             4 => 100,
-            _ => int.MaxValue // Level 5 is max
+            5 => 175,
+            6 => 275,
+            7 => 400,
+            _ => int.MaxValue // Level 8 is max
         };
     }
 
@@ -30,7 +33,7 @@ public class StatProgress
     /// </summary>
     public int GetProgressPercent()
     {
-        if (Level >= 5) return 100;
+        if (Level >= 8) return 100; // Extended to level 8
 
         int toNext = GetXPToNextLevel();
         return (int)((float)XP / toNext * 100);
@@ -108,27 +111,35 @@ public class PlayerStats
         StatProgress progress = _stats[stat];
         progress.XP += amount;
 
-        // Check for level ups (max level 5)
-        while (progress.Level < 5 && progress.XP >= progress.GetXPToNextLevel())
+        // Check for level ups (max level 8)
+        while (progress.Level < 8 && progress.XP >= progress.GetXPToNextLevel())
         {
             progress.XP -= progress.GetXPToNextLevel();
             progress.Level++;
         }
 
-        // Cap XP at level 5
-        if (progress.Level >= 5)
+        // Cap XP at level 8
+        if (progress.Level >= 8)
         {
             progress.XP = 0;
         }
     }
 
     /// <summary>
-    /// Get success rate bonus for a stat based on level
-    /// Level 1: +0%, Level 2: +5%, Level 3: +10%, Level 4: +15%, Level 5: +20%
+    /// Get success rate bonus for a stat based on level (updated for new system)
+    /// Level 1: +0%, Level 2: +10%, Level 3: +20%, Level 4: +30%, Level 5: +40%, etc.
     /// </summary>
     public int GetSuccessBonus(PlayerStatType stat)
     {
-        return (_stats[stat].Level - 1) * 5;
+        return (_stats[stat].Level - 1) * 10; // 10% per level as per implementation plan
+    }
+
+    /// <summary>
+    /// Get success bonus as decimal (for calculations)
+    /// </summary>
+    public decimal GetSuccessBonusDecimal(PlayerStatType stat)
+    {
+        return GetLevel(stat) * 0.10m; // 10% per level
     }
 
     /// <summary>
@@ -141,12 +152,44 @@ public class PlayerStats
     }
 
     /// <summary>
-    /// Check if stat has mastery effect (level 5)
+    /// Check if stat has mastery effect (level 5+)
     /// Cards bound to this stat never force LISTEN on failure
     /// </summary>
     public bool IgnoresFailureListen(PlayerStatType stat)
     {
         return _stats[stat].Level >= 5;
+    }
+
+    /// <summary>
+    /// Get maximum accessible card depth for a stat
+    /// </summary>
+    public int GetMaxAccessibleDepth(PlayerStatType stat)
+    {
+        return GetLevel(stat); // Your stat level = maximum depth accessible
+    }
+
+    /// <summary>
+    /// Check if player can access cards of specific depth for a stat
+    /// </summary>
+    public bool CanAccessCardDepth(PlayerStatType stat, CardDepth depth)
+    {
+        return GetLevel(stat) >= (int)depth;
+    }
+
+    /// <summary>
+    /// Get all accessible depths for a stat (for UI display)
+    /// </summary>
+    public List<CardDepth> GetAccessibleDepths(PlayerStatType stat)
+    {
+        int maxDepth = GetMaxAccessibleDepth(stat);
+        List<CardDepth> depths = new();
+
+        for (int i = 1; i <= Math.Min(maxDepth, 10); i++)
+        {
+            depths.Add((CardDepth)i);
+        }
+
+        return depths;
     }
 
     /// <summary>
@@ -199,7 +242,7 @@ public class PlayerStats
         foreach (StatProgress stat in _stats.Values)
         {
             total += stat.XP;
-            // Add XP spent on previous levels
+            // Add XP spent on previous levels (extended to level 8)
             for (int level = 1; level < stat.Level; level++)
             {
                 total += level switch
@@ -208,6 +251,9 @@ public class PlayerStats
                     2 => 25,
                     3 => 50,
                     4 => 100,
+                    5 => 175,
+                    6 => 275,
+                    7 => 400,
                     _ => 0
                 };
             }
@@ -244,7 +290,7 @@ public class PlayerStats
             return primaryCandidates[0].Key;
         }
 
-        // Break ties by total XP in that stat
+        // Break ties by total XP in that stat (extended to level 8)
         return primaryCandidates.OrderByDescending(kvp =>
         {
             StatProgress stat = kvp.Value;
@@ -257,6 +303,9 @@ public class PlayerStats
                     2 => 25,
                     3 => 50,
                     4 => 100,
+                    5 => 175,
+                    6 => 275,
+                    7 => 400,
                     _ => 0
                 };
             }

@@ -8,6 +8,7 @@ public class ConversationSession
     public NPC NPC { get; set; }
     public string RequestId { get; set; }
     public string ConversationTypeId { get; set; }
+    // Connection State preserved but only for determining starting resources
     public ConnectionState CurrentState { get; set; }
     public ConnectionState InitialState { get; set; }
     public int CurrentMomentum { get; set; } = 0;
@@ -22,17 +23,16 @@ public class ConversationSession
     // DO NOT create separate piles - they violate HIGHLANDER
     public SessionCardDeck Deck { get; set; }
     public TokenMechanicsManager TokenManager { get; set; }
-    public FlowManager FlowManager { get; set; }
     public MomentumManager MomentumManager { get; set; }
     public PersonalityRuleEnforcer PersonalityEnforcer { get; set; }  // Enforces NPC personality rules
     public string RequestText { get; set; } // Text displayed when NPC presents a request
 
-    // New focus and atmosphere system
-    public int FlowBattery { get; set; } = 0; // -3 to +3
-    public int CurrentFocus { get; set; } = 0; // Current spent focus
-    public int MaxFocus { get; set; } = 5; // Based on state
+    // New 4-Resource System (Initiative, Cadence, Momentum, Doubt)
+    public int CurrentInitiative { get; set; } = 0; // Starts at 0, built through cards (Steamworld Quest style)
+    public int Cadence { get; set; } = 0; // Range -10 to +10, conversation balance tracking
 
-    // Doubt prevention system
+
+    // Doubt system continues to exist but now has tax effect
     public bool PreventNextDoubtIncrease { get; set; } = false;
 
     // Visible momentum system for deterministic gameplay
@@ -55,12 +55,13 @@ public class ConversationSession
     // Use Deck.HandCards for read-only access to hand cards
     // Use Deck.HandSize for hand count
 
-    // Momentum/Doubt helper methods
-    public int GetDoubtPenalty()
+    // NEW: Doubt tax calculation for momentum (20% reduction per doubt point)
+    public int GetEffectiveMomentumGain(int baseMomentum)
     {
-        // Each doubt point reduces success rate by 5%
-        return CurrentDoubt * 5;
+        decimal reduction = CurrentDoubt * 0.20m;
+        return (int)(baseMomentum * (1 - reduction));
     }
+
 
     public bool CanReachMomentumThreshold(int threshold)
     {
@@ -82,79 +83,83 @@ public class ConversationSession
         CurrentDoubt = Math.Clamp(CurrentDoubt + amount, 0, MaxDoubt);
     }
 
-    // New helper methods
-    public int GetAvailableFocus()
-    {
-        return Math.Max(0, GetEffectiveFocusCapacity() - CurrentFocus);
-    }
+    // NEW: Cadence effects (corrected mechanics from implementation plan)
+    public bool ShouldApplyCadenceDoubtPenalty() => Cadence >= 6;
+    public int GetCadenceDoubtPenalty() => Math.Max(0, Cadence - 5);
+    public bool ShouldApplyCadenceBonusDraw() => Cadence <= -3;
 
-    public int GetEffectiveFocusCapacity()
-    {
-        int baseCapacity = CurrentState switch
-        {
-            ConnectionState.DISCONNECTED => 3,
-            ConnectionState.GUARDED => 4,
-            ConnectionState.NEUTRAL => 5,
-            ConnectionState.RECEPTIVE => 5,
-            ConnectionState.TRUSTING => 6,
-            _ => 5
-        };
 
-        // Note: Atmosphere effects removed with AtmosphereManager deletion
-        return baseCapacity;
-    }
 
+    // NEW: Fixed card draw system (no Connection State modifier)
     public int GetDrawCount()
     {
-        // Use configured draw counts from GameRules
-        int baseCount = GameRules.StandardRuleset.GetListenDrawCount(CurrentState);
-
-        return baseCount;
+        int baseDraw = 4; // Fixed base draw
+        int cadenceBonus = ShouldApplyCadenceBonusDraw() ? 1 : 0;
+        return baseDraw + cadenceBonus;
     }
+
+    // NEW: Initiative system methods (replacing Focus methods)
+    public int GetCurrentInitiative() => CurrentInitiative;
+    public int GetAvailableFocus() => CurrentInitiative; // Legacy compatibility - returns Initiative
+
+    public bool CanAffordCard(int initiativeCost) => CurrentInitiative >= initiativeCost;
+    public void SpendFocus(int initiativeCost) => CurrentInitiative = Math.Max(0, CurrentInitiative - initiativeCost);
+
+    public void AddFocus(int initiative) => CurrentInitiative += initiative;
 
     public void RefreshFocus()
     {
-        CurrentFocus = 0;
-        MaxFocus = GetEffectiveFocusCapacity();
+        // In 4-resource system, Initiative doesn't refresh automatically - must be built through cards
+        // This method maintained for compatibility but does nothing
     }
 
-    // Focus management methods (migrated from deleted FocusManager)
-    public bool CanAffordCard(int cardFocus)
+
+    // NEW: Initiative does NOT refresh automatically (must be earned like Steamworld Quest)
+    public void ResetInitiative()
     {
-        return GetAvailableFocus() >= cardFocus;
+        CurrentInitiative = 0; // Always resets to 0, not based on connection state
     }
 
-    public bool SpendFocus(int amount)
+    // NEW: Cadence management methods
+    public void ApplyCadenceFromSpeak()
     {
-        if (amount > GetAvailableFocus())
+        Cadence -= 1; // Player speaking decreases cadence
+    }
+
+    public void ApplyCadenceFromListen()
+    {
+        Cadence += 3; // Listening increases cadence (giving NPC space)
+    }
+
+    // NEW: Doubt reduction method
+    public void ReduceDoubt(int amount)
+    {
+        CurrentDoubt = Math.Max(0, CurrentDoubt - amount);
+    }
+
+
+    // NEW: Initiative management methods
+    public bool CanAffordCardInitiative(int initiativeCost)
+    {
+        return CurrentInitiative >= initiativeCost;
+    }
+
+    public bool SpendInitiative(int amount)
+    {
+        if (amount > CurrentInitiative)
         {
             return false;
         }
 
-        CurrentFocus += amount;
+        CurrentInitiative -= amount;
         return true;
     }
 
-    public void AddFocus(int amount)
+    public void AddInitiative(int amount)
     {
-        // Reduce spent focus (effectively adding to available pool)
-        CurrentFocus = Math.Max(0, CurrentFocus - amount);
+        CurrentInitiative += amount; // Can accumulate without limit
     }
 
-    public void DepleteFocus()
-    {
-        CurrentFocus = GetEffectiveFocusCapacity();
-    }
-
-    public string GetFocusStatus()
-    {
-        return $"{GetAvailableFocus()}/{GetEffectiveFocusCapacity()}";
-    }
-
-    public bool IsPoolDepleted()
-    {
-        return GetAvailableFocus() <= 0;
-    }
 
     public bool IsHandOverflowing()
     {
@@ -163,8 +168,8 @@ public class ConversationSession
 
     public bool ShouldEnd()
     {
-        // End if doubt at maximum or at disconnected with -3 flow
-        return CurrentDoubt >= MaxDoubt || (CurrentState == ConnectionState.DISCONNECTED && FlowBattery <= -3);
+        // End if doubt at maximum
+        return CurrentDoubt >= MaxDoubt;
     }
 
     public ConversationOutcome CheckThresholds()
@@ -174,7 +179,7 @@ public class ConversationSession
             return new ConversationOutcome
             {
                 Success = false,
-                FinalFlow = FlowBattery,
+                FinalFlow = 0,
                 FinalState = CurrentState,
                 TokensEarned = 0,
                 Reason = "Doubt overwhelmed conversation"
@@ -185,7 +190,7 @@ public class ConversationSession
         return new ConversationOutcome
         {
             Success = true,
-            FinalFlow = FlowBattery,
+            FinalFlow = 0, // FlowBattery deprecated
             FinalState = CurrentState,
             TokensEarned = CalculateTokenReward(),
             Reason = "Conversation ended"
@@ -194,11 +199,9 @@ public class ConversationSession
 
     private int CalculateTokenReward()
     {
-        // FlowBattery is already -3 to +3
-        if (FlowBattery >= 3) return 3;
-        if (FlowBattery >= 2) return 2;
-        if (FlowBattery >= 1) return 1;
-        return 0;
+        // Token rewards now based on momentum achievement or conversation success
+        // This will be handled by ConversationFacade logic
+        return 1; // Base reward for successful conversation
     }
 
     public void ExecuteListen(TokenMechanicsManager tokenManager, ObligationQueueManager queueManager, GameWorld gameWorld)
@@ -252,7 +255,7 @@ public class ConversationSession
             ConversationTypeId = conversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
-            // FlowBattery initialized separately
+            // Resources initialized to defaults
             CurrentMomentum = 0,
             CurrentDoubt = 0,
             TurnNumber = 0,

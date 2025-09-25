@@ -16,30 +16,41 @@ public enum CardCategory
     Realization,
 
     /// <summary>
-    /// Regulation Cards: Manage resources (focus, doubt, cards, flow), enable setup turns and recovery
-    /// Effect types: Soothe, Threading, Focusing, Atmospheric
+    /// Regulation Cards: Manage resources (initiative, doubt, cards), enable setup turns and recovery
+    /// Effect types: Soothe, Threading
     /// </summary>
     Regulation
 }
 
 /// <summary>
-/// Defines when a card can be played and how long it persists
+/// Card Depth determines stat requirements and strategic tier (1-10 system)
+/// </summary>
+public enum CardDepth
+{
+    Depth1 = 1, Depth2 = 2, Depth3 = 3, // Foundation Cards (0-2 Initiative)
+    Depth4 = 4, Depth5 = 5, Depth6 = 6, // Standard Cards (3-5 Initiative)
+    Depth7 = 7, Depth8 = 8, Depth9 = 9, Depth10 = 10 // Decisive Cards (6-12 Initiative)
+}
+
+/// <summary>
+/// Defines card persistence behavior in the refined conversation system
+/// ONLY 2 types exist: Standard and Banish
 /// </summary>
 public enum PersistenceType
 {
     /// <summary>
-    /// Persists on LISTEN - no penalty
+    /// Goes to Spoken pile when played, reshuffles when deck empty (most cards)
     /// </summary>
-    Thought,
+    Standard,
 
     /// <summary>
-    /// Persists on LISTEN but adds +1 doubt per card
+    /// Goes to Spoken pile when played, NEVER reshuffles
     /// </summary>
-    Impulse
+    Banish
 }
 
 /// <summary>
-/// Type of effect when card play succeeds in deterministic momentum/doubt system
+/// Type of effect when card play succeeds in the new 4-resource system
 /// </summary>
 public enum SuccessEffectType
 {
@@ -69,24 +80,10 @@ public enum SuccessEffectType
     DoubleMomentum,
 
     /// <summary>
-    /// Sets conversation atmosphere (specific type from magnitude)
-    /// </summary>
-    Atmospheric,
-
-    /// <summary>
-    /// Restores focus points (magnitude from difficulty)
-    /// </summary>
-    Focusing,
-
-    /// <summary>
     /// Moves obligation to position 1 and provides momentum
     /// </summary>
     Promising,
 
-    /// <summary>
-    /// Advances flow battery by magnitude from difficulty
-    /// </summary>
-    Advancing
 }
 
 /// <summary>
@@ -108,5 +105,27 @@ public enum FailureEffectType
     /// Negative rapport change (magnitude from difficulty)
     /// </summary>
     Backfire
+}
+
+/// <summary>
+/// Alternative cost structure for high-depth cards
+/// </summary>
+public class AlternativeCost
+{
+    public string Condition { get; set; } // "Cadence >= 5", "Doubt >= 7", etc.
+    public int ReducedInitiativeCost { get; set; }
+    public int MomentumCost { get; set; }
+    public string Description { get; set; }
+}
+
+/// <summary>
+/// Scaling formula for card effects based on visible game state
+/// </summary>
+public class ScalingFormula
+{
+    public string ScalingType { get; set; } // "Cadence", "Doubt", "SpokeCards", "Momentum"
+    public int BaseEffect { get; set; }
+    public decimal Multiplier { get; set; }
+    public string Formula { get; set; } // Human-readable formula description
 }
 

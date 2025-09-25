@@ -24,38 +24,45 @@
             <div class="personality-badge">@(Session?.PersonalityEnforcer?.GetRuleDescription() ?? "")</div>
         </div>
 
-            <!-- Win/Lose Conditions Bar -->
-            <div class="conditions-bar">
-
-                <div class="momentum-display">
-                    <span class="momentum-label">Momentum</span>
-                    <span class="momentum-counter">@(Session?.CurrentMomentum ?? 0)</span>
+            <!-- Resource Display Bar - 4-Resource System -->
+            <div class="resource-bar">
+                <!-- Initiative Display -->
+                <div class="initiative-display">
+                    <span class="initiative-label">Initiative</span>
+                    <div class="initiative-counter">
+                        <span class="initiative-value">@GetCurrentInitiative()</span>
+                    </div>
+                    <span class="initiative-info">Earn with Foundation cards</span>
                 </div>
 
-                <!-- Flow State Container - Centered wrapper -->
-                <div class="flow-state-wrapper">
-                    <div class="flow-container">
-                        <div class="flow-negative">
-                            @for (int i = -1; i >= -3; i--)
-                            {
-                                <span class="flow-segment @((Session?.FlowBattery <= i) ? "active" : "inactive")"></span>
-                            }
+                <!-- Cadence Meter -->
+                <div class="cadence-display">
+                    <span class="cadence-label">Conversation Balance</span>
+                    <div class="cadence-meter">
+                        <div class="cadence-track">
+                            <div class="cadence-indicator" style="left: @GetCadencePosition()%"></div>
+                            <div class="cadence-center-line"></div>
                         </div>
-
-                        <div class="current-state">
-                            <div class="state-name">@GetConnectionStateDisplay()</div>
-                            <div class="state-rules">Focus: @(Session?.GetEffectiveFocusCapacity() ?? 3) <span class="icon-bullet"></span> Draw: @(Session?.GetDrawCount() ?? 3)</div>
-                        </div>
-
-                        <div class="flow-positive">
-                            @for (int i = 1; i <= 3; i++)
-                            {
-                                <span class="flow-segment @((Session?.FlowBattery >= i) ? "active" : "inactive")"></span>
-                            }
+                        <div class="cadence-labels">
+                            <span class="cadence-min">-10</span>
+                            <span class="cadence-value">@GetCurrentCadence()</span>
+                            <span class="cadence-max">+10</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Momentum Display -->
+                <div class="momentum-display">
+                    <span class="momentum-label">Momentum</span>
+                    <span class="momentum-counter">@(Session?.CurrentMomentum ?? 0)</span>
+                    <div class="momentum-goals">
+                        <span class="goal-threshold @(GetCurrentMomentum() >= 8 ? "achieved" : "")">8</span>
+                        <span class="goal-threshold @(GetCurrentMomentum() >= 12 ? "achieved" : "")">12</span>
+                        <span class="goal-threshold @(GetCurrentMomentum() >= 16 ? "achieved" : "")">16</span>
+                    </div>
+                </div>
+
+                <!-- Doubt Display -->
                 <div class="doubt-display">
                     <span class="doubt-label">Doubt</span>
                     <div class="doubt-slots">
@@ -86,7 +93,7 @@
 
     <!-- Action Choice (from mockup) -->
     <div class="action-section">
-        @if (!IsConversationExhausted)
+        @if (!IsConversationEnded)
         {
             <div class="action-choices">
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@(ConversationFacade?.GetListenActionPreview() ?? "")">
@@ -109,11 +116,11 @@
         }
         else
         {
-            <div class="conversation-exhausted">
-                <div class="exhaustion-message">
-                    <p>@ExhaustionReason</p>
+            <div class="conversation-ended">
+                <div class="end-message">
+                    <p>@EndReason</p>
                 </div>
-                <div class="exhaustion-actions">
+                <div class="end-actions">
                     <div class="action-button primary" @onclick="ManuallyEndConversation">
                         <div>END CONVERSATION</div>
                         <div class="action-details">Return to location</div>
@@ -123,18 +130,14 @@
         }
     </div>
 
-    <!-- Focus Display (Above Cards) -->
-    <div class="focus-display-section">
-        <div class="focus-content">
-            <span class="focus-label">FOCUS AVAILABLE</span>
-            <div class="focus-dots">
-                @for (int i = 1; i <= (Session?.GetEffectiveFocusCapacity() ?? 3); i++)
-                {
-                    <span class="focus-dot @(i <= (Session?.GetAvailableFocus() ?? 0) ? "available" : "spent")"></span>
-                }
+    <!-- Initiative Display (Above Cards) -->
+    <div class="initiative-display-section">
+        <div class="initiative-content">
+            <span class="initiative-label">INITIATIVE AVAILABLE</span>
+            <div class="initiative-counter-large">
+                <span class="initiative-value-large">@GetCurrentInitiative()</span>
             </div>
-            <span class="focus-value">@(Session?.GetAvailableFocus() ?? 0)/@(Session?.GetEffectiveFocusCapacity() ?? 3)</span>
-            <span class="focus-warning">Unspent <span class="icon-arrow-right"></span> +1 doubt each</span>
+            <span class="initiative-info">Build with Foundation cards • Spend on Standard/Decisive cards</span>
         </div>
     </div>
 
@@ -158,7 +161,7 @@
                             <!-- Card header: Name and Focus cost -->
                             <div class="card-header">
                                 <div class="card-name">@obsCard.Id</div>
-                                <div class="card-focus">0</div>
+                                <div class="card-initiative">0</div>
                             </div>
 
                             <!-- Card dialogue text -->
@@ -192,8 +195,9 @@
 
                     @if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
                     {
-                        <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
+                        <div class="card promise @GetCardDepthClass(convCard) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
+                            <div class="card-depth-marker">@GetDepthDisplayName(convCard)</div>
                             <div class="promise-threshold @((Session?.MomentumManager?.CurrentMomentum ?? 0) >= (convCard?.Context?.MomentumThreshold ?? 0) ? "promise-active" : "")">
                                 Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.MomentumManager?.CurrentMomentum ?? 0))
                             </div>
@@ -201,14 +205,7 @@
                                 <!-- Top row: Category tag and Stat badge -->
                                 <div class="card-top-row">
                                     <div class="card-tags">
-                                        @if (convCard.Persistence == PersistenceType.Impulse)
-                                        {
-                                            <span class="persistence-tag impulse">Impulse</span>
-                                        }
-                                        @if (convCard.Persistence == PersistenceType.Thought)
-                                        {
-                                            <span class="persistence-tag thought">Thought</span>
-                                        }
+                                        @* Legacy persistence types removed in 4-resource system *@
                                         <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
@@ -225,7 +222,7 @@
                                     <div class="card-name">
                                         @GetProperCardName(convCard)
                                     </div>
-                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                    <div class="card-initiative">@GetCardInitiativeCost(convCard)</div>
                                 </div>
 
                                 <!-- Card dialogue text -->
@@ -238,33 +235,36 @@
                                     <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
                                 </div>
 
-                                <!-- Impulse warning -->
-                                @if (convCard.Persistence == PersistenceType.Impulse)
+                                <!-- Alternative costs -->
+                                @if (HasAlternativeCosts(convCard))
                                 {
-                                    <div class="card-warning">
-                                        Impulse: If unplayed, −1 card draw
+                                    <div class="alternative-costs">
+                                        <div class="alt-cost-header">Alternative Costs:</div>
+                                        @foreach (var altCost in GetAvailableAlternativeCosts(convCard))
+                                        {
+                                            <div class="alt-cost-option @(CanAffordAlternativeCost(convCard, altCost) ? "" : "disabled")"
+                                                 @onclick="() => PlayCardWithAltCost(convCard, altCost)">
+                                                @GetAlternativeCostDescription(altCost)
+                                            </div>
+                                        }
                                     </div>
                                 }
+
+                                <!-- Impulse warning -->
                             </div>
                         </div>
                     }
                         else
                     {
-                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <div class="card @GetCardDepthClass(convCard) @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
+                            <div class="card-depth-marker">@GetDepthDisplayName(convCard)</div>
 
                             <div class="card-content">
                                 <!-- Top row: Category tag and Stat badge -->
                                 <div class="card-top-row">
                                     <div class="card-tags">
-                                        @if (convCard.Persistence == PersistenceType.Impulse)
-                                        {
-                                            <span class="persistence-tag impulse">Impulse</span>
-                                        }
-                                        @if (convCard.Persistence == PersistenceType.Thought)
-                                        {
-                                            <span class="persistence-tag thought">Thought</span>
-                                        }
+                                        @* Legacy persistence types removed in 4-resource system *@
                                         <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
@@ -281,7 +281,7 @@
                                     <div class="card-name">
                                         @GetProperCardName(convCard)
                                     </div>
-                                    <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
+                                    <div class="card-initiative">@GetCardInitiativeCost(convCard)</div>
                                 </div>
 
                                 <!-- Card dialogue text -->
@@ -294,13 +294,22 @@
                                     <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
                                 </div>
 
-                                <!-- Impulse warning -->
-                                @if (convCard.Persistence == PersistenceType.Impulse)
+                                <!-- Alternative costs -->
+                                @if (HasAlternativeCosts(convCard))
                                 {
-                                    <div class="card-warning">
-                                        Impulse: If unplayed, −1 card draw
+                                    <div class="alternative-costs">
+                                        <div class="alt-cost-header">Alternative Costs:</div>
+                                        @foreach (var altCost in GetAvailableAlternativeCosts(convCard))
+                                        {
+                                            <div class="alt-cost-option @(CanAffordAlternativeCost(convCard, altCost) ? "" : "disabled")"
+                                                 @onclick="() => PlayCardWithAltCost(convCard, altCost)">
+                                                @GetAlternativeCostDescription(altCost)
+                                            </div>
+                                        }
                                     </div>
                                 }
+
+                                <!-- Impulse warning -->
                             </div>
                         </div>
                     }

@@ -9,298 +9,447 @@
   "content": {
     "cards": [
       {
+        "id": "rapport_active_listening",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Standard",
+        "connectionType": "Trust",
+        "description": "A soft nod of understanding, generating Initiative for deeper conversation.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Yes, I can see your perspective.",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "insight_quick_question",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Standard",
+        "connectionType": "Insight",
+        "description": "A quick question that opens possibilities while building Initiative.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Wait, I'm starting to understand...",
+        "boundStat": "insight",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "DrawCards": 1,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "commerce_quick_trade",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Standard",
+        "connectionType": "Commerce",
+        "description": "Efficient resource exchange to build conversational momentum.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Let me offer you something in exchange...",
+        "boundStat": "commerce",
+        "effects": {
+          "success": {
+            "Momentum": 1,
+            "Initiative": 1,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "authority_direct_statement",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Standard",
+        "connectionType": "Authority",
+        "description": "A direct statement that commands attention but increases tension.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Here's what needs to happen...",
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "Momentum": 2,
+            "Doubt": 1,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "cunning_deflection",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Standard",
+        "connectionType": "Cunning",
+        "description": "Skillfully redirect while reducing tension.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Perhaps we should consider another angle...",
+        "boundStat": "cunning",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "Doubt": -1,
+            "Cadence": 1
+          }
+        }
+      },
+      {
         "id": "gentle_agreement",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 1,
+        "depth": 2,
+        "persistence": "Standard",
         "connectionType": "Trust",
-        "description": "A soft nod of understanding.",
+        "description": "Build on their point with gentle agreement.",
         "difficulty": "Easy",
-        "dialogueFragment": "Yes, I can see your perspective.",
-        "boundStat": "rapport"
+        "dialogueFragment": "I agree, and let me add...",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": 1,
+            "Cadence": 1
+          }
+        }
       },
       {
-        "id": "quick_insight",
+        "id": "thoughtful_pause",
         "type": "Conversation",
         "category": "Regulation",
         "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Threading",
-        "failureType": "None",
+        "initiativeCost": 1,
+        "depth": 2,
+        "persistence": "Standard",
         "connectionType": "Insight",
-        "description": "A flash of understanding opens new possibilities.",
+        "description": "Take a moment to center and reduce tension.",
         "difficulty": "Easy",
-        "dialogueFragment": "Wait, I'm starting to understand...",
-        "boundStat": "insight"
-      },
-      {
-        "id": "pause_reflect",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 1,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Take a moment to center yourself.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me take a step back here...",
-        "boundStat": "insight"
+        "dialogueFragment": "Let me think about this carefully...",
+        "boundStat": "insight",
+        "effects": {
+          "success": {
+            "Doubt": -1,
+            "Cadence": 1
+          }
+        }
       },
       {
         "id": "build_rapport",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 2,
+        "depth": 3,
+        "persistence": "Standard",
         "connectionType": "Trust",
-        "description": "Establish a genuine connection.",
+        "description": "Establish genuine connection through empathy.",
         "difficulty": "Easy",
         "dialogueFragment": "I want you to know I'm truly listening.",
-        "boundStat": "rapport"
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": 2,
+            "Cadence": 1
+          }
+        }
       },
       {
         "id": "passionate_plea",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 3,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 3,
+        "depth": 4,
+        "persistence": "Standard",
         "connectionType": "Trust",
-        "description": "Speak with heartfelt conviction.",
+        "description": "Speak with heartfelt conviction to drive momentum.",
         "difficulty": "Medium",
         "dialogueFragment": "Please, you have to understand how important this is!",
-        "boundStat": "rapport"
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": 3,
+            "Cadence": 1
+          }
+        }
       },
       {
-        "id": "clear_confusion",
+        "id": "clear_thinking",
         "type": "Conversation",
-        "category": "Realization",
+        "category": "Regulation",
         "personalityTypes": ["ALL"],
-        "focus": 3,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
+        "initiativeCost": 3,
+        "depth": 4,
+        "persistence": "Standard",
         "connectionType": "Insight",
-        "description": "Clarify misunderstandings directly.",
+        "description": "Trade momentum to clarify misunderstandings and reduce doubt.",
         "difficulty": "Medium",
         "dialogueFragment": "Let me address your concerns directly...",
         "boundStat": "insight",
-        "momentumScaling": "SpendForDoubt"
-      },
-      {
-        "id": "establish_trust",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 3,
-        "persistence": "Thought",
-        "successType": "Advancing",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "Invest in the relationship's future.",
-        "difficulty": "Medium",
-        "dialogueFragment": "Let me prove I'm truly here for you.",
-        "boundStat": "rapport",
-        "momentumScaling": "SpendForFlow"
+        "effects": {
+          "success": {
+            "Momentum": 2,
+            "Cadence": 1
+          }
+        },
+        "alternativeCosts": [{
+          "description": "Spend 2 Momentum to reduce 3 Doubt instead",
+          "condition": "always",
+          "reducedInitiativeCost": 3,
+          "momentumCost": 2,
+          "alternativeEffects": {
+            "success": {
+              "Doubt": -3,
+              "Cadence": 1
+            }
+          }
+        }]
       },
       {
         "id": "racing_thoughts",
         "type": "Conversation",
         "category": "Regulation",
         "personalityTypes": ["ALL"],
-        "focus": 3,
+        "initiativeCost": 3,
+        "depth": 4,
         "persistence": "Impulse",
-        "successType": "Threading",
-        "failureType": "None",
         "connectionType": "Insight",
-        "description": "Multiple ideas flood your mind.",
+        "description": "Multiple ideas flood your mind, drawing more options.",
         "difficulty": "Medium",
         "dialogueFragment": "So many things to consider!",
-        "boundStat": "insight"
-      },
-      {
-        "id": "burning_conviction",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 5,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Authority",
-        "description": "Pour your entire being into this moment.",
-        "difficulty": "VeryHard",
-        "dialogueFragment": "Everything I am tells me this is right!",
-        "boundStat": "authority"
-      },
-      {
-        "id": "moment_of_truth",
-        "type": "Conversation",
-        "category": "Realization",
-        "personalityTypes": ["ALL"],
-        "focus": 5,
-        "persistence": "Thought",
-        "successType": "Advancing",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "Make a profound connection breakthrough.",
-        "difficulty": "VeryHard",
-        "dialogueFragment": "This is the moment that changes everything.",
-        "boundStat": "rapport",
-        "momentumScaling": "SpendForFlowMajor"
-      },
-      {
-        "id": "deep_understanding",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 6,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Everything clicks into perfect clarity.",
-        "difficulty": "VeryHard",
-        "dialogueFragment": "Now I see the complete picture...",
         "boundStat": "insight",
-        "momentumScaling": "CardsInHand"
+        "effects": {
+          "success": {
+            "DrawCards": 2,
+            "Cadence": 1
+          }
+        }
       },
       {
-        "id": "show_understanding",
+        "id": "authoritative_presence",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 3,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "The more I listen, the more I understand.",
-        "difficulty": "Medium",
-        "dialogueFragment": "I can see all the pieces of your situation now.",
-        "boundStat": "rapport",
-        "momentumScaling": "CardsInHandDivided"
-      },
-      {
-        "id": "build_pressure",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 4,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 4,
+        "depth": 5,
+        "persistence": "Standard",
         "connectionType": "Authority",
-        "description": "Act before doubt undermines everything.",
-        "difficulty": "Hard",
-        "dialogueFragment": "We need to resolve this NOW before it's too late!",
-        "boundStat": "authority",
-        "momentumScaling": "DoubtReduction"
-      },
-      {
-        "id": "mental_reset",
-        "type": "Conversation",
-        "category": "Regulation",
-        "personalityTypes": ["ALL"],
-        "focus": 0,
-        "persistence": "Thought",
-        "successType": "Focusing",
-        "failureType": "None",
-        "connectionType": "Insight",
-        "description": "Clear your mind and refocus.",
-        "difficulty": "Easy",
-        "dialogueFragment": "Let me gather my thoughts...",
-        "boundStat": "insight"
-      },
-      {
-        "id": "desperate_gambit",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Impulse",
-        "successType": "Strike",
-        "failureType": "None",
-        "connectionType": "Trust",
-        "description": "Channel desperation into determination.",
-        "difficulty": "Medium",
-        "dialogueFragment": "I'm willing to risk everything for this!",
-        "boundStat": "rapport",
-        "momentumScaling": "DoubtMultiplier"
-      },
-      {
-        "id": "authoritative_demand",
-        "type": "Conversation",
-        "category": "Expression",
-        "personalityTypes": ["ALL"],
-        "focus": 4,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "Backfire",
-        "connectionType": "Authority",
-        "description": "Command attention through sheer presence.",
+        "description": "Command attention through sheer presence and determination.",
         "difficulty": "Hard",
         "dialogueFragment": "Listen to me - this cannot wait!",
-        "boundStat": "authority"
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Momentum": 4,
+            "Doubt": 1,
+            "Cadence": 1
+          }
+        }
       },
       {
         "id": "careful_words",
         "type": "Conversation",
         "category": "Regulation",
         "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 2,
+        "depth": 3,
+        "persistence": "Standard",
         "connectionType": "Cunning",
-        "description": "Choose your words with precision.",
+        "description": "Choose words with precision to maximize impact.",
         "difficulty": "Medium",
         "dialogueFragment": "Let me focus on what matters most.",
         "boundStat": "cunning",
-        "momentumScaling": "CardDiscard"
+        "effects": {
+          "success": {
+            "Momentum": 2,
+            "Cadence": 1
+          }
+        }
       },
       {
         "id": "emotional_appeal",
         "type": "Conversation",
         "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 2,
-        "persistence": "Thought",
-        "successType": "Strike",
-        "failureType": "None",
+        "initiativeCost": 2,
+        "depth": 3,
+        "persistence": "Standard",
         "connectionType": "Trust",
-        "description": "Reach for their heart.",
+        "description": "Reach for their heart with genuine emotion.",
         "difficulty": "Medium",
         "dialogueFragment": "Please, I'm asking you as a friend.",
-        "boundStat": "rapport"
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": 2,
+            "Cadence": 1
+          }
+        }
       },
       {
-        "id": "strategic_pause",
+        "id": "burning_conviction",
         "type": "Conversation",
-        "category": "Regulation",
+        "category": "Expression",
         "personalityTypes": ["ALL"],
-        "focus": 4,
-        "persistence": "Thought",
-        "successType": "Soothe",
-        "failureType": "None",
-        "connectionType": "Cunning",
-        "description": "Sometimes silence speaks loudest.",
+        "initiativeCost": 8,
+        "depth": 7,
+        "persistence": "Standard",
+        "connectionType": "Authority",
+        "description": "Pour your entire being into this decisive moment.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "Everything I am tells me this is right!",
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Momentum": 6,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "perfect_understanding",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 10,
+        "depth": 10,
+        "persistence": "Standard",
+        "connectionType": "Trust",
+        "description": "Achieve perfect understanding and eliminate all doubt.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "Now I see everything clearly - we're completely aligned.",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "MomentumMultiplier": 2.0,
+            "Doubt": -999,
+            "Cadence": 1
+          }
+        }
+      },
+      {
+        "id": "master_insight",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 9,
+        "depth": 9,
+        "persistence": "Standard",
+        "connectionType": "Insight",
+        "description": "Everything clicks into perfect clarity, scaling with your understanding.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "Now I see the complete picture...",
+        "boundStat": "insight",
+        "effects": {
+          "success": {
+            "Momentum": "3 + SpokeCards/3",
+            "DrawCards": 2,
+            "Cadence": 1
+          }
+        },
+        "scalingEffect": {
+          "scalingType": "SpokeCards",
+          "formula": "Momentum increases based on cards already played this conversation"
+        }
+      },
+      {
+        "id": "desperate_gambit",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 4,
+        "depth": 5,
+        "persistence": "Standard",
+        "connectionType": "Trust",
+        "description": "Channel desperation into determination - more effective under pressure.",
         "difficulty": "Hard",
-        "dialogueFragment": "[You pause, letting the weight of the moment settle]",
+        "dialogueFragment": "I'm willing to risk everything for this!",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": "2 + Doubt",
+            "Cadence": 1
+          }
+        },
+        "scalingEffect": {
+          "scalingType": "Doubt",
+          "formula": "Gains momentum equal to current Doubt level"
+        }
+      },
+      {
+        "id": "perfect_timing",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 7,
+        "depth": 8,
+        "persistence": "Standard",
+        "connectionType": "Cunning",
+        "description": "Strike at the perfect moment with devastating effect.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "And that's exactly why this is the perfect moment to act.",
         "boundStat": "cunning",
-        "momentumScaling": "PreventDoubt"
+        "effects": {
+          "success": {
+            "Momentum": 5,
+            "Doubt": -2,
+            "Cadence": 1
+          }
+        },
+        "alternativeCosts": [{
+          "description": "Cost reduced if Cadence is negative (good listening)",
+          "condition": "Cadence < 0",
+          "reducedInitiativeCost": 4,
+          "momentumCost": 0
+        }]
+      },
+      {
+        "id": "ultimate_authority",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 12,
+        "depth": 10,
+        "persistence": "Standard",
+        "connectionType": "Authority",
+        "description": "Command absolute attention and set momentum to maximum.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "This is how it's going to be, and I will make it happen.",
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Momentum": 20,
+            "Doubt": 2,
+            "Cadence": 1
+          }
+        },
+        "alternativeCosts": [{
+          "description": "Spend high Cadence for reduced cost",
+          "condition": "Cadence >= 6",
+          "reducedInitiativeCost": 6,
+          "momentumCost": 0,
+          "cadenceCost": 2
+        }]
       }
     ],
     "npcRequestCards": {
@@ -311,7 +460,7 @@
           "personalityTypes": [
             "DEVOTED"
           ],
-          "focus": 5,
+          "initiativeCost": 0,
           "momentumThreshold": 8,
           "connectionType": "Trust",
           "description": "Deliver my letter to Lord Blackwood",
@@ -330,7 +479,7 @@
           "personalityTypes": [
             "DEVOTED"
           ],
-          "focus": 7,
+          "initiativeCost": 0,
           "momentumThreshold": 12,
           "connectionType": "Trust",
           "description": "Get me to safety before nightfall",
@@ -351,7 +500,7 @@
           "personalityTypes": [
             "MERCANTILE"
           ],
-          "focus": 4,
+          "initiativeCost": 0,
           "connectionType": "Commerce",
           "description": "Discuss trade opportunities",
           "difficulty": "Easy",
@@ -370,7 +519,7 @@
           "personalityTypes": [
             "MERCANTILE"
           ],
-          "focus": 6,
+          "initiativeCost": 0,
           "connectionType": "Commerce",
           "description": "Partner in a business venture",
           "difficulty": "Medium",
@@ -393,7 +542,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "focus": 3,
+        "initiativeCost": 5,
         "persistence": "Thought",
         "successType": "Promising",
         "failureType": "Backfire",
@@ -411,7 +560,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "focus": 2,
+        "initiativeCost": 4,
         "persistence": "Impulse",
         "successType": "Promising",
         "failureType": "Backfire",
@@ -430,7 +579,7 @@
         "personalityTypes": [
           "MERCANTILE"
         ],
-        "focus": 0,
+        "initiativeCost": 0,
         "connectionType": "Commerce",
         "description": "Trade 10 coins for 1 food",
         "difficulty": "Easy",
@@ -477,7 +626,8 @@
       "name": "Friendly Chat",
       "description": "Casual conversation to build rapport",
       "deckId": "deck_friendly_balanced",
-      "category": "social"
+      "category": "social",
+      "goalThresholds": {"basic": 8, "enhanced": 12, "premium": 16}
     },
     {
       "id": "desperate_request",
@@ -485,8 +635,7 @@
       "description": "Someone in crisis needs help",
       "deckId": "deck_desperate_empathy",
       "category": "crisis",
-      "doubtPerListen": 1,
-      "momentumErosion": true,
+      "goalThresholds": {"basic": 8, "enhanced": 12, "premium": 16},
       "maxDoubt": 10
     },
     {
@@ -494,42 +643,16 @@
       "name": "Trade Negotiation",
       "description": "Business and commerce discussions",
       "deckId": "deck_trade_mercantile",
-      "category": "commerce"
+      "category": "commerce",
+      "goalThresholds": {"basic": 8, "enhanced": 12, "premium": 16}
     },
     {
       "id": "authority_challenge",
       "name": "Authority Challenge",
       "description": "Confrontations and power struggles",
       "deckId": "deck_authority_power",
-      "category": "confrontation"
-    },
-    {
-      "id": "information_gathering",
-      "name": "Information Gathering",
-      "description": "Extracting knowledge and secrets",
-      "deckId": "deck_information_subtle",
-      "category": "investigation"
-    },
-    {
-      "id": "intimate_confession",
-      "name": "Intimate Confession",
-      "description": "Deep personal conversations",
-      "deckId": "deck_intimate_deep",
-      "category": "emotional"
-    },
-    {
-      "id": "seek_favor",
-      "name": "Seek Favor",
-      "description": "Request help or special treatment",
-      "deckId": "deck_seek_favor",
-      "category": "request"
-    },
-    {
-      "id": "casual_exchange",
-      "name": "Casual Exchange",
-      "description": "Light vendor interactions and small talk",
-      "deckId": "deck_casual_exchange",
-      "category": "social"
+      "category": "confrontation",
+      "goalThresholds": {"basic": 8, "enhanced": 12, "premium": 16}
     }
     ]
   }

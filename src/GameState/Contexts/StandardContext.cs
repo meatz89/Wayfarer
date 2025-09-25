@@ -11,20 +11,15 @@ public class StandardContext : ConversationContextBase
     public string CustomText { get; set; }
     public List<ConnectionState> ValidStates { get; set; }
     public bool GrantsToken { get; set; }
-    public int FlowThreshold { get; set; }
-    public int CurrentFlow { get; set; }
-    public int FlowBattery { get; set; }
-    public AtmosphereType CurrentAtmosphere { get; set; }
-    public int HiddenMomentum { get; set; }
+    public int MomentumThreshold { get; set; }
 
     public StandardContext()
     {
         ConversationTypeId = "friendly_chat";
         ValidStates = new List<ConnectionState>();
-        FlowThreshold = 100; // Default flow threshold for successful conversations
+        MomentumThreshold = 8; // Basic goal threshold for successful conversations
         TokenReward = 1; // Default token reward
         GrantsToken = true;
-        CurrentAtmosphere = AtmosphereType.Neutral;
     }
 
 
@@ -45,25 +40,24 @@ public class StandardContext : ConversationContextBase
     }
 
 
-    public bool IsFlowThresholdReached()
+    public bool IsMomentumThresholdReached(int currentMomentum)
     {
-        return CurrentFlow >= FlowThreshold;
+        return currentMomentum >= MomentumThreshold;
     }
 
-
-    public double GetFlowProgress()
+    public double GetMomentumProgress(int currentMomentum)
     {
-        if (FlowThreshold <= 0) return 0.0;
-        return Math.Min(1.0, (double)CurrentFlow / FlowThreshold);
+        if (MomentumThreshold <= 0) return 0.0;
+        return Math.Min(1.0, (double)currentMomentum / MomentumThreshold);
     }
 
-    public string GetProgressDescription()
+    public string GetProgressDescription(int currentMomentum)
     {
-        return $"Flow: {CurrentFlow}/{FlowThreshold} ({GetFlowProgress():P0})";
+        return $"Momentum: {currentMomentum}/{MomentumThreshold} ({GetMomentumProgress(currentMomentum):P0})";
     }
 
-    public bool ShouldGrantToken()
+    public bool ShouldGrantToken(int currentMomentum)
     {
-        return GrantsToken && IsFlowThresholdReached();
+        return GrantsToken && IsMomentumThresholdReached(currentMomentum);
     }
 }

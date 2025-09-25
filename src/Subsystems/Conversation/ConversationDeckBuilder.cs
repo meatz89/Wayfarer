@@ -83,7 +83,7 @@ public class ConversationDeckBuilder
         }
 
         // Shuffle the deck after all cards have been added
-        deck.ShuffleDrawPile();
+        deck.ShuffleDeckPile();
 
         // Return deck with empty request cards (they're in the deck's request pile)
         return (deck, new List<CardInstance>());

@@ -8,21 +8,19 @@ using System.Linq;
 /// Uses Pile abstraction consistently - NEVER expose List<CardInstance> directly.
 /// NO compatibility layers, NO legacy code, NO fallbacks.
 ///
-/// This class manages:
-/// - Draw pile (cards to draw from)
-/// - Discard pile (cards that were used, will reshuffle)
-/// - Hand pile (cards currently available to play)
-/// - Request pile (cards waiting for rapport threshold)
-/// - Played pile (history of cards played this conversation)
+/// This class manages the correct pile system:
+/// - Deck (cards to draw from)
+/// - Mind (hand - cards currently available to play)
+/// - Spoken (conversation memory - where played cards go)
+/// - Request pile (cards waiting for momentum threshold)
 /// </summary>
 public class SessionCardDeck
 {
-    // HIGHLANDER: ALL card piles use Pile abstraction - NO List<CardInstance>!
-    private readonly Pile drawPile = new();
-    private readonly Pile discardPile = new();
-    private readonly Pile handPile = new();      // Was ConversationSession.ActiveCards
-    private readonly Pile requestPile = new();   // Was ConversationSession.RequestPile
-    private readonly Pile playedPile = new();    // Was ConversationSession.PlayedCards
+    // CORRECT PILE SYSTEM: Deck → Mind → Spoken
+    private readonly Pile deckPile = new();      // Cards to draw from
+    private readonly Pile spokenPile = new();    // Conversation memory (replaces discardPile)
+    private readonly Pile mindPile = new();      // Hand (replaces handPile)
+    private readonly Pile requestPile = new();   // Cards waiting for momentum threshold
 
     private readonly string npcId;
     // DETERMINISTIC SYSTEM: No random number generation needed
@@ -33,15 +31,15 @@ public class SessionCardDeck
     }
 
     // ENCAPSULATED: Read-only access to pile contents through Pile's IReadOnlyList property
-    public IReadOnlyList<CardInstance> HandCards => handPile.Cards;
+    public IReadOnlyList<CardInstance> HandCards => mindPile.Cards;
     public IReadOnlyList<CardInstance> RequestCards => requestPile.Cards;
-    public IReadOnlyList<CardInstance> PlayedHistoryCards => playedPile.Cards;
+    public IReadOnlyList<CardInstance> SpokenCards => spokenPile.Cards;
 
     // Read-only properties for deck state
-    public int RemainingDrawCards => drawPile.Count;
-    public int DiscardPileCount => discardPile.Count;
-    public int TotalDeckCards => drawPile.Count + discardPile.Count;
-    public int HandSize => handPile.Count;
+    public int RemainingDeckCards => deckPile.Count;
+    public int SpokenPileCount => spokenPile.Count;
+    public int TotalDeckCards => deckPile.Count + spokenPile.Count;
+    public int HandSize => mindPile.Count;
     public int RequestPileSize => requestPile.Count;
 
     /// <summary>
@@ -53,7 +51,7 @@ public class SessionCardDeck
         foreach (ConversationCard template in templates)
         {
             CardInstance cardInstance = new CardInstance(template);
-            deck.drawPile.Add(cardInstance);
+            deck.deckPile.Add(cardInstance);
         }
         return deck;
     }
@@ -73,18 +71,18 @@ public class SessionCardDeck
                 Context = instance.Context,
                 IsPlayable = instance.IsPlayable
             };
-            deck.drawPile.Add(sessionInstance);
+            deck.deckPile.Add(sessionInstance);
         }
         return deck;
     }
 
     /// <summary>
-    /// Add a card directly to the draw pile
+    /// Add a card directly to the deck pile
     /// </summary>
     public void AddCard(CardInstance card)
     {
         if (card != null)
-            drawPile.Add(card);
+            deckPile.Add(card);
     }
 
     /// <summary>
@@ -101,16 +99,16 @@ public class SessionCardDeck
     /// </summary>
     public CardInstance DrawCard()
     {
-        // Reshuffle if needed
-        if (drawPile.Count == 0 && discardPile.Count > 0)
+        // Reshuffle if needed - ONLY Standard cards reshuffle
+        if (deckPile.Count == 0 && spokenPile.Count > 0)
         {
-            ReshuffleDiscardPile();
+            ReshuffleSpokenPile();
         }
 
-        if (drawPile.Count == 0)
+        if (deckPile.Count == 0)
             return null;
 
-        CardInstance card = drawPile.DrawTop();
+        CardInstance card = deckPile.DrawTop();
         AssignPreRoll(card);
         return card;
     }
@@ -124,24 +122,24 @@ public class SessionCardDeck
 
         for (int i = 0; i < count; i++)
         {
-            // Reshuffle if needed
-            if (drawPile.Count == 0 && discardPile.Count > 0)
+            // Reshuffle if needed - ONLY Standard cards reshuffle
+            if (deckPile.Count == 0 && spokenPile.Count > 0)
             {
-                ReshuffleDiscardPile();
+                ReshuffleSpokenPile();
             }
 
             // If still no cards after reshuffling, we're out of cards entirely
-            if (drawPile.Count == 0)
+            if (deckPile.Count == 0)
             {
-                Console.WriteLine($"[SessionCardDeck] WARNING: Requested {count} cards but only {cardsDrawn} available (draw pile and discard both empty)");
+                Console.WriteLine($"[SessionCardDeck] WARNING: Requested {count} cards but only {cardsDrawn} available (deck pile and reshuffleable spoken cards empty)");
                 break;
             }
 
-            CardInstance card = drawPile.DrawTop();
+            CardInstance card = deckPile.DrawTop();
             if (card != null)
             {
                 AssignPreRoll(card);
-                handPile.Add(card);
+                mindPile.Add(card);
                 cardsDrawn++;
             }
         }
@@ -158,8 +156,9 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Play a card - removes from hand, adds to discard pile
-    /// CRITICAL: This method MUST ensure cards go to discard pile for reshuffling
+    /// Play a card - ALL cards persist on SPEAK and LISTEN
+    /// Cards go to Spoken pile (conversation memory)
+    /// Standard cards can reshuffle, Banish cards cannot
     /// </summary>
     public void PlayCard(CardInstance card)
     {
@@ -169,70 +168,70 @@ public class SessionCardDeck
             return;
         }
 
-        Console.WriteLine($"[SessionCardDeck] Playing card {card.Id} from hand");
+        Console.WriteLine($"[SessionCardDeck] Playing card {card.Id} from mind to spoken pile");
 
-        // Track total cards before operation (excluding playedPile which is never used)
-        int totalCardsBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Before play - Hand: {handPile.Count}, Draw: {drawPile.Count}, Discard: {discardPile.Count}, Request: {requestPile.Count}, Total: {totalCardsBefore}");
+        // Track total cards before operation
+        int totalCardsBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Before play - Mind: {mindPile.Count}, Deck: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsBefore}");
 
-        // Check if card exists in hand before removing
-        if (!handPile.Contains(card))
+        // Check if card exists in mind (hand) before removing
+        if (!mindPile.Contains(card))
         {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.Id} not found in hand!");
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.Id} not found in mind!");
             return;
         }
 
-        handPile.Remove(card);
+        mindPile.Remove(card);
 
-        // Card goes to discard pile for reshuffling
-        discardPile.Add(card);
+        // ALL cards go to Spoken pile (conversation memory)
+        spokenPile.Add(card);
 
-        Console.WriteLine($"[SessionCardDeck] Card {card.Id} moved to discard. Discard count: {discardPile.Count}");
+        Console.WriteLine($"[SessionCardDeck] Card {card.Id} moved to spoken pile. Spoken count: {spokenPile.Count}");
 
-        // Validate total card count remains constant (excluding unused playedPile)
-        int totalCardsAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] After play - Hand: {handPile.Count}, Draw: {drawPile.Count}, Discard: {discardPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
+        // Validate total card count remains constant
+        int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] After play - Mind: {mindPile.Count}, Deck: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
 
         if (totalCardsBefore != totalCardsAfter)
         {
             Console.WriteLine($"[SessionCardDeck] CRITICAL ERROR: Card count mismatch! Lost {totalCardsBefore - totalCardsAfter} cards!");
-            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.Id} (Type: {card.CardType}, Persistence: {card.Persistence})");
+            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.Id} (Persistence: {card?.ConversationCardTemplate?.Persistence})");
         }
     }
 
     /// <summary>
-    /// Discard a card without playing it (e.g., exhausted cards)
+    /// Move a card to spoken pile without playing it (for special effects)
     /// </summary>
-    public void DiscardCard(CardInstance card)
+    public void MoveToSpoken(CardInstance card)
     {
-        if (card != null && !discardPile.Contains(card))
+        if (card != null && !spokenPile.Contains(card))
         {
-            discardPile.Add(card);
+            spokenPile.Add(card);
         }
     }
 
     /// <summary>
-    /// Remove a card from hand and discard it (for exhaust effects)
+    /// Remove a card from mind and move to spoken pile
     /// </summary>
-    public void ExhaustFromHand(CardInstance card)
+    public void MoveFromMindToSpoken(CardInstance card)
     {
         if (card == null) return;
 
-        int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Exhausting card {card.Id} from hand");
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Moving card {card.Id} from mind to spoken pile");
 
-        handPile.Remove(card);
-        discardPile.Add(card);
+        mindPile.Remove(card);
+        spokenPile.Add(card);
 
-        int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore != totalAfter)
         {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during exhaust! {card.Id} disappeared");
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during move to spoken! {card.Id} disappeared");
         }
     }
 
     /// <summary>
-    /// Check request pile and move cards to hand if momentum threshold met
+    /// Check request pile and move cards to mind if momentum threshold met
     /// Returns the list of cards that were moved
     /// </summary>
     public List<CardInstance> CheckRequestThresholds(int currentMomentum)
@@ -245,14 +244,14 @@ public class SessionCardDeck
 
         foreach (CardInstance? card in toMove)
         {
-            int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+            int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             requestPile.Remove(card);
-            handPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to hand (momentum {currentMomentum})");
+            mindPile.Add(card);
+            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to mind (momentum {currentMomentum})");
             movedCards.Add(card);
 
-            int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+            int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
             if (totalBefore != totalAfter)
             {
                 Console.WriteLine($"[SessionCardDeck] ERROR: Card count changed during request move! Expected {totalBefore}, got {totalAfter}");
@@ -263,24 +262,34 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Shuffle the draw pile
+    /// Shuffle the deck pile
     /// </summary>
-    public void ShuffleDrawPile()
+    public void ShuffleDeckPile()
     {
-        drawPile.Shuffle();
+        deckPile.Shuffle();
     }
 
     /// <summary>
-    /// Reshuffle discard pile back into draw pile
+    /// Reshuffle ONLY Standard cards from spoken pile back into deck pile
+    /// Banish cards stay in spoken pile permanently
     /// </summary>
-    private void ReshuffleDiscardPile()
+    private void ReshuffleSpokenPile()
     {
-        Console.WriteLine($"[SessionCardDeck] Reshuffling {discardPile.Count} cards from discard into draw");
+        List<CardInstance> standardCards = spokenPile.Cards
+            .Where(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Standard)
+            .ToList();
 
-        // Move all discard to draw using Pile methods
-        List<CardInstance> allDiscards = discardPile.DrawAll();
-        drawPile.AddRange(allDiscards);
-        drawPile.Shuffle();
+        Console.WriteLine($"[SessionCardDeck] Reshuffling {standardCards.Count} Standard cards from spoken into deck (leaving {spokenPile.Count - standardCards.Count} Banish cards in spoken)");
+
+        // Remove ONLY Standard cards from spoken pile
+        foreach (CardInstance card in standardCards)
+        {
+            spokenPile.Remove(card);
+        }
+
+        // Move Standard cards to deck pile
+        deckPile.AddRange(standardCards);
+        deckPile.Shuffle();
     }
 
     /// <summary>
@@ -297,11 +306,14 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Check if cards are available (in draw or can reshuffle from discard)
+    /// Check if cards are available (in deck or can reshuffle Standard cards from spoken)
     /// </summary>
     public bool HasCardsAvailable()
     {
-        return drawPile.Count > 0 || discardPile.Count > 0;
+        bool hasInDeck = deckPile.Count > 0;
+        bool hasReshufflableInSpoken = spokenPile.Cards.Any(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Standard);
+
+        return hasInDeck || hasReshufflableInSpoken;
     }
 
     /// <summary>
@@ -309,34 +321,32 @@ public class SessionCardDeck
     /// </summary>
     public void Clear()
     {
-        drawPile.Clear();
-        discardPile.Clear();
-        handPile.Clear();
+        deckPile.Clear();
+        spokenPile.Clear();
+        mindPile.Clear();
         requestPile.Clear();
-        playedPile.Clear();
     }
 
     /// <summary>
-    /// Reset for a new conversation (moves all cards back to draw pile)
+    /// Reset for a new conversation (moves all cards back to deck pile)
     /// </summary>
     public void ResetForNewConversation()
     {
-        // Move all cards from all piles back to draw
-        drawPile.AddRange(discardPile.DrawAll());
-        drawPile.AddRange(handPile.DrawAll());
-        drawPile.AddRange(requestPile.DrawAll());
-        drawPile.AddRange(playedPile.DrawAll());
+        // Move all cards from all piles back to deck
+        deckPile.AddRange(spokenPile.DrawAll());
+        deckPile.AddRange(mindPile.DrawAll());
+        deckPile.AddRange(requestPile.DrawAll());
 
         // Shuffle for fresh start
-        drawPile.Shuffle();
+        deckPile.Shuffle();
     }
 
     /// <summary>
-    /// Check if a card is in the hand
+    /// Check if a card is in the mind (hand)
     /// </summary>
-    public bool IsCardInHand(CardInstance card)
+    public bool IsCardInMind(CardInstance card)
     {
-        return handPile.Contains(card);
+        return mindPile.Contains(card);
     }
 
     /// <summary>
@@ -348,46 +358,64 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Add a card directly to hand (use carefully - prefer DrawToHand)
+    /// Add a card directly to mind (use carefully - prefer DrawToHand)
     /// </summary>
-    public void AddCardToHand(CardInstance card)
+    public void AddCardToMind(CardInstance card)
     {
         if (card != null)
         {
-            int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
-            handPile.Add(card);
-            int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+            int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
+            mindPile.Add(card);
+            int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             if (totalBefore + 1 != totalAfter)
             {
-                Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding to hand! Expected {totalBefore + 1}, got {totalAfter}");
+                Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding to mind! Expected {totalBefore + 1}, got {totalAfter}");
             }
         }
     }
 
     /// <summary>
-    /// Add multiple cards directly to hand (for Threading effect)
+    /// Add multiple cards directly to mind (for Threading effect)
     /// </summary>
-    public void AddCardsToHand(List<CardInstance> cards)
+    public void AddCardsToMind(List<CardInstance> cards)
     {
         if (cards == null || cards.Count == 0) return;
 
-        int totalBefore = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Adding {cards.Count} cards to hand");
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
+        Console.WriteLine($"[SessionCardDeck] Adding {cards.Count} cards to mind");
 
         foreach (CardInstance card in cards)
         {
             if (card != null)
             {
-                handPile.Add(card);
+                mindPile.Add(card);
             }
         }
 
-        int totalAfter = handPile.Count + drawPile.Count + discardPile.Count + requestPile.Count;
+        int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore + cards.Count != totalAfter)
         {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding cards to hand! Expected {totalBefore + cards.Count}, got {totalAfter}");
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding cards to mind! Expected {totalBefore + cards.Count}, got {totalAfter}");
         }
+    }
+
+    /// <summary>
+    /// Process card persistence - ALL cards persist in refined system
+    /// Standard and Banish cards both stay in Spoken pile after playing
+    /// NO cards are lost during LISTEN actions
+    /// </summary>
+    public void ProcessCardPersistence()
+    {
+        // In the refined system, ALL cards persist on SPEAK and LISTEN
+        // Cards only go to Spoken pile when explicitly played
+        // No cards are removed during LISTEN actions
+        // The difference between Standard and Banish is only in reshuffling behavior
+
+        Console.WriteLine($"[SessionCardDeck] Processing persistence - ALL cards persist in refined system");
+        Console.WriteLine($"[SessionCardDeck] Current state - Mind: {mindPile.Count}, Spoken: {spokenPile.Count}, Deck: {deckPile.Count}");
+
+        // Nothing to process - all cards stay where they are during LISTEN
     }
 
     // NO DIRECT PILE ACCESS - ALL OPERATIONS GO THROUGH METHODS!

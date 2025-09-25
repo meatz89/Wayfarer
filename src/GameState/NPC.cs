@@ -72,7 +72,6 @@ public class NPC
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
     public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
-    public int CurrentFlow => GetFlowBattery(); // Returns -2 to +2 for display as -3 to +3
 
     // Daily Patience Economy
     public int DailyPatience { get; set; } // Current remaining patience for the day
@@ -266,14 +265,6 @@ public class NPC
         };
     }
 
-    /// <summary>
-    /// Get flow battery (-2 to +2, displayed as -3 to +3) from single value
-    /// </summary>
-    public int GetFlowBattery()
-    {
-        int position = RelationshipFlow % 5;
-        return position - 2; // Maps 0->-2, 1->-1, 2->0, 3->+1, 4->+2
-    }
 
     /// <summary>
     /// Apply daily decay - move flow toward global neutral value 12

@@ -148,66 +148,77 @@ body {
     color: #8b4726;
 }
 
-/* Flow Display */
-.flow-display {
+/* Cadence Meter - Horizontal Balance Meter */
+.cadence-display {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
+    padding: 10px 0;
 }
 
-.flow-label {
+.cadence-label {
     font-size: 11px;
     color: #7a6250;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
-.flow-bar {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-}
-
-.flow-segment {
-    width: 16px;
-    height: 28px;
-    border: 2px solid #5c4a3a;
+.cadence-meter {
+    position: relative;
+    width: 200px;
+    height: 20px;
     background: #2c241a;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    border: 1px solid #5c4a3a;
+    overflow: hidden;
 }
 
-.flow-segment.active {
-    background: #d4a76a;
-    border-color: #8b7355;
-    box-shadow: 0 0 6px rgba(212, 167, 106, 0.4);
+.cadence-track {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(to right, #d4704a 0%, #d4704a 25%, #d4a76a 45%, #d4a76a 55%, #7a8b5a 75%, #7a8b5a 100%);
 }
 
-.flow-segment.inactive {
-    background: #3d3429;
-    border-color: #5c4a3a;
-    opacity: 0.6;
+.cadence-indicator {
+    position: absolute;
+    top: -2px;
+    width: 6px;
+    height: 24px;
+    background: #faf4ea;
+    border: 2px solid #2c241a;
+    border-radius: 3px;
+    transition: left 0.3s ease;
+    z-index: 10;
 }
 
-.flow-value {
-    font-size: 16px;
+.cadence-value {
+    font-size: 14px;
     font-weight: bold;
     color: #5c4a3a;
+    min-width: 30px;
+    text-align: center;
 }
 
-.flow-hint {
-    font-size: 10px;
-    color: #8b4726;
+.cadence-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-size: 9px;
+    color: #7a6250;
+    width: 200px;
+}
+
+.cadence-hint {
+    font-size: 9px;
+    color: #8b7355;
+    font-style: italic;
     margin-left: 10px;
 }
 
-.flow-warning {
-    font-size: 11px;
-    color: #d4704a;
-    font-weight: bold;
-    margin-left: 10px;
-}
-
-/* Focus Display Above Cards */
-.focus-display-section {
+/* Initiative Display Section - Large Display Above Cards */
+.initiative-display-section {
     background: #3d3429;
     padding: 12px 25px;
     border-bottom: 1px solid #d4c5a0;
@@ -218,89 +229,43 @@ body {
     gap: 8px;
 }
 
-.focus-content {
+.initiative-content {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
 }
 
-/* Focus Bar - dark background with golden elements like mockup */
-.focus-bar {
-    background: #3d3429;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-.focus-label {
+.initiative-label {
     font-size: 11px;
     color: #e8dcc4;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.focus-dots {
+.initiative-counter-large {
     display: flex;
-    gap: 5px;
     align-items: center;
     justify-content: center;
-}
-
-.focus-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid #8b7355;
     background: #2c241a;
+    border: 2px solid #8b7355;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
 }
 
-.focus-dot.available {
-    background: #d4a76a;
-    border-color: #d4a76a;
-}
-
-.focus-numbers {
-    font-size: 13px;
-    color: #d4a76a;
+.initiative-value-large {
+    font-size: 24px;
     font-weight: bold;
-}
-
-.focus-note {
-    font-size: 10px;
-    color: #8b7355;
+    color: #d4a76a;
     text-align: center;
 }
 
-.focus-dot.spent {
-    background: #3d3429;
-}
-
-.focus-numbers {
-    font-size: 18px;
-    font-weight: bold;
-    color: #d4a76a;
-}
-
-.focus-value {
-    font-size: 16px;
-    font-weight: bold;
-    color: #d4a76a;
-}
-
-.focus-warning {
+.initiative-info {
     font-size: 10px;
-    color: #d4704a;
-    font-style: italic;
-}
-
-.focus-note {
-    font-size: 11px;
     color: #8b7355;
+    text-align: center;
     font-style: italic;
-    margin-left: auto;
 }
 
 /* === ATMOSPHERE AND RAPPORT BAR === */
@@ -491,7 +456,7 @@ body {
     color: #5c4a3a;
 }
 
-.card-focus {
+.card-initiative {
     width: 24px;
     height: 24px;
     background: #5c4a3a;
@@ -528,11 +493,11 @@ body {
     flex-wrap: wrap;
 }
 
-/* Card Progression Display (XP and Level) */
+/* Card Progression Display (XP and Level) - adjusted for depth marker */
 .card-progression {
     position: absolute;
     top: 5px;
-    right: 5px;
+    right: 50px; /* Moved left to accommodate depth marker */
     display: flex;
     gap: 10px;
     font-size: 11px;
@@ -570,6 +535,66 @@ body {
     border-color: #d4704a !important;
     background: linear-gradient(to bottom, #faf4ea, #fce8e4);
     position: relative;
+}
+
+/* Alternative Cost Styling */
+.alternative-costs {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    border-top: 1px solid #c4a684;
+}
+
+.alt-cost-header {
+    font-size: 9px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.alt-cost-option {
+    cursor: pointer;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #c4a684;
+    border-radius: 3px;
+    font-size: 11px;
+    margin: 3px 0;
+    transition: all 0.2s;
+    color: #5c4a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alt-cost-option:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #8b7355;
+    transform: translateX(2px);
+}
+
+.alt-cost-option.available {
+    border-color: #7a8b5a;
+    background: rgba(122, 139, 90, 0.1);
+}
+
+.alt-cost-option.available:hover {
+    background: rgba(122, 139, 90, 0.2);
+    border-color: #5a7a3a;
+}
+
+.alt-cost-description {
+    flex: 1;
+    font-weight: 500;
+}
+
+.alt-cost-requirements {
+    font-size: 9px;
+    color: #7a6250;
+    font-style: italic;
 }
 
 .card.illegal-play::before {
@@ -974,7 +999,49 @@ body {
     color: #2c241a;
 }
 
-/* Card category left borders matching mockup */
+/* Card Depth Visual Hierarchy */
+.card.depth-foundation {
+    border-left: 5px solid #4CAF50; /* Green for Foundation */
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.05) 0%, transparent 10%);
+}
+
+.card.depth-standard {
+    border-left: 5px solid #2196F3; /* Blue for Standard */
+    background: linear-gradient(to right, rgba(33, 150, 243, 0.05) 0%, transparent 10%);
+}
+
+.card.depth-decisive {
+    border-left: 5px solid #FF9800; /* Orange for Decisive */
+    background: linear-gradient(to right, rgba(255, 152, 0, 0.05) 0%, transparent 10%);
+}
+
+.card-depth-marker {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 10px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 5px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card.depth-foundation .card-depth-marker {
+    background: rgba(76, 175, 80, 0.8);
+}
+
+.card.depth-standard .card-depth-marker {
+    background: rgba(33, 150, 243, 0.8);
+}
+
+.card.depth-decisive .card-depth-marker {
+    background: rgba(255, 152, 0, 0.8);
+}
+
+/* Card category left borders matching mockup - legacy support */
 .card.expression {
     border-left: 5px solid #5a7a3a;
 }
@@ -1219,14 +1286,161 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Win/Lose Conditions Bar */
-.conditions-bar {
+/* === 4-RESOURCE SYSTEM DISPLAY === */
+
+/* Resource Display Bar - replaces conditions-bar */
+.resource-bar {
     background: #f9f3e9;
     padding: 12px 20px;
     border-bottom: 1px solid #c4a684;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
+}
+
+/* Initiative Display */
+.initiative-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.initiative-label {
+    font-size: 10px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.initiative-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2c241a;
+    border: 2px solid #8b7355;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+.initiative-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #d4a76a;
+    text-align: center;
+}
+
+.initiative-info {
+    font-size: 9px;
+    color: #7a6250;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Cadence Display */
+.cadence-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    max-width: 250px;
+}
+
+.cadence-label {
+    font-size: 10px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cadence-meter {
+    position: relative;
+    width: 200px;
+    height: 20px;
+    background: #2c241a;
+    border-radius: 10px;
+    border: 1px solid #5c4a3a;
+    overflow: hidden;
+}
+
+.cadence-track {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(to right, #d4704a 0%, #d4704a 25%, #d4a76a 45%, #d4a76a 55%, #7a8b5a 75%, #7a8b5a 100%);
+}
+
+.cadence-indicator {
+    position: absolute;
+    top: -2px;
+    width: 6px;
+    height: 24px;
+    background: #faf4ea;
+    border: 2px solid #2c241a;
+    border-radius: 3px;
+    transition: left 0.3s ease;
+    z-index: 10;
+}
+
+.cadence-center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateX(-50%);
+}
+
+.cadence-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 200px;
+    margin-top: 4px;
+}
+
+.cadence-min, .cadence-max {
+    font-size: 9px;
+    color: #7a6250;
+}
+
+.cadence-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Momentum Goals Display */
+.momentum-goals {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    justify-content: center;
+}
+
+.goal-threshold {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid #8b7355;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #8b7355;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.goal-threshold.achieved {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border-color: #5a7a3a;
+    box-shadow: 0 0 6px rgba(122, 139, 90, 0.4);
 }
 
 /* Doubt Slots */
@@ -1276,38 +1490,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Flow State Bar */
-.flow-state-bar {
-    background: #2c241a;
-    padding: 10px 15px;
-    border-bottom: 2px solid #5c4a3a;
-}
-
-/* Flow State Wrapper - Centers the flow visualization */
-.flow-state-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-}
-
-.flow-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.flow-negative {
-    display: flex;
-    gap: 4px;
-    flex-direction: row-reverse;
-}
-
-.flow-positive {
-    display: flex;
-    gap: 4px;
-}
+/* Removed Flow State Bar - replaced by Cadence system */
 
 .current-state {
     background: #e8dcc4;
@@ -1477,4 +1660,118 @@ body {
     color: #8b4726;
     font-weight: bold;
     margin-top: 4px;
+}
+
+/* ==========================================
+   4-RESOURCE SYSTEM HELPERS
+   ========================================== */
+
+/* Initiative Helper Styles */
+.initiative-zero {
+    opacity: 0.6;
+}
+
+.initiative-available {
+    animation: pulse 2s infinite;
+}
+
+/* Cadence Helper Functions for JavaScript */
+.cadence-balanced {
+    border-color: #d4a76a;
+}
+
+.cadence-talking-too-much {
+    border-color: #d4704a;
+}
+
+.cadence-listening-well {
+    border-color: #7a8b5a;
+}
+
+/* Depth Level Indicators */
+.depth-badge {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    font-size: 8px;
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.depth-badge.foundation {
+    background: rgba(76, 175, 80, 0.8);
+    color: white;
+}
+
+.depth-badge.standard {
+    background: rgba(33, 150, 243, 0.8);
+    color: white;
+}
+
+.depth-badge.decisive {
+    background: rgba(255, 152, 0, 0.8);
+    color: white;
+}
+
+/* Responsive Design for Resource System */
+@media (max-width: 768px) {
+    .cadence-meter {
+        width: 150px;
+    }
+
+    .initiative-counter {
+        width: 50px;
+        height: 50px;
+    }
+
+    .initiative-value {
+        font-size: 20px;
+    }
+
+    .resource-group {
+        gap: 15px;
+    }
+
+    .alternative-costs {
+        padding: 6px;
+    }
+
+    .alt-cost-option {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+    .cadence-indicator,
+    .cadence-mini-indicator,
+    .initiative-available,
+    .card-success-flash,
+    .card-failure-flash {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .card.depth-foundation {
+        border-left-width: 8px;
+    }
+
+    .card.depth-standard {
+        border-left-width: 8px;
+    }
+
+    .card.depth-decisive {
+        border-left-width: 8px;
+    }
+
+    .cadence-indicator {
+        border: 3px solid black;
+    }
 }

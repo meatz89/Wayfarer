@@ -294,7 +294,7 @@ public class ObservationManager
             SkeletonSource = baseCard.SkeletonSource,
             RequiredTokenType = baseCard.RequiredTokenType,
             // Override for observation cards
-            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            Persistence = PersistenceType.Standard, // Observations persist through LISTEN
             CardType = CardType.Observation
         };
 
@@ -420,7 +420,7 @@ public class ObservationManager
             DialogueFragment = cardReward.Description,
             Focus = 0, // Observations cost 0 focus according to Work Packet 3
             CardType = CardType.Observation,
-            Persistence = PersistenceType.Thought, // Observations persist through LISTEN
+            Persistence = PersistenceType.Standard, // Observations persist through LISTEN
             SuccessType = successType,
             FailureType = FailureEffectType.None,
             Difficulty = Difficulty.VeryEasy
@@ -435,7 +435,7 @@ public class ObservationManager
         // Simple effect parsing for now - can be expanded based on needs
         if (effectString == "AdvanceToNeutralState")
         {
-            return SuccessEffectType.Atmospheric; // Will set atmosphere based on magnitude
+            return SuccessEffectType.None; // Will set atmosphere based on magnitude
         }
         else if (effectString == "UnlockExchange")
         {

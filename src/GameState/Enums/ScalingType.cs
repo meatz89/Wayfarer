@@ -1,7 +1,6 @@
 /// <summary>
-/// Scaling types for deterministic card effect calculations
-/// Based on the conversation-screen.html UI mockup formulas
-/// Also used for standing obligations
+/// Scaling types for deterministic card effect calculations using only 4-resource system
+/// All scaling effects must use ONLY: Initiative, Cadence, Momentum, Doubt + visible piles
 /// </summary>
 public enum ScalingType
 {
@@ -12,19 +11,24 @@ public enum ScalingType
     Stepped,       // Stepped scaling: effect changes at specific thresholds
     Threshold,     // Threshold scaling: effect only applies above/below threshold
 
-    // Conversation card scaling formulas
-    CardsInHand,           // = cards in hand (5)
-    CardsInHandDivided,    // = cards in hand ÷ 2 (rounded up)
-    DoubtReduction,        // = (10 - doubt)
-    DoubtHalved,           // = (10 - doubt) / 2
-    DoubleCurrent,         // Double current momentum
-    PatienteDivided,       // = patience/3 (using focus as proxy)
+    // Visible resource scaling (Initiative, Cadence, Momentum, Doubt)
+    CurrentInitiative,     // = current initiative
+    CurrentCadence,        // = current cadence value
+    CurrentMomentum,       // = current momentum
+    CurrentDoubt,          // = current doubt
+    DoubleMomentum,        // Double current momentum
 
-    // Resource conversion formulas
-    SpendForDoubt,         // Spend 2 momentum → -3 doubt
-    SpendForFlow,          // Spend 3 momentum → +1 flow
-    SpendForFlowMajor,     // Spend 4 momentum → +2 flow
-    DoubtMultiplier,       // = current doubt * 1 (desperation effects)
-    CardDiscard,           // Discard cards → gain 1 momentum per card
-    PreventDoubt           // Prevent next doubt increase
+    // Visible pile scaling (Mind, Spoken, Deck)
+    CardsInMind,           // = cards in mind (hand)
+    CardsInSpoken,         // = cards in spoken pile
+    CardsInDeck,           // = cards remaining in deck
+
+    // Resource conversion (Momentum spending)
+    SpendMomentumForDoubt, // Spend momentum → reduce doubt
+    SpendMomentumForInitiative, // Spend momentum → gain initiative
+
+    // Conditional scaling based on visible state
+    DoubtMultiplier,       // Effect scales with current doubt level
+    CadenceBonus,          // Effect scales with cadence (positive/negative)
+    InitiativeThreshold    // Effect only applies above/below initiative threshold
 }

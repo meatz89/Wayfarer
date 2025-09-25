@@ -265,8 +265,8 @@
     
     private string GetPersistenceText(CardInstance card)
     {
-        if (card.Persistence == PersistenceType.Impulse) return "Impulse";
-        if (card.Persistence == PersistenceType.Thought) return "Thought";
+        if (card.Persistence == PersistenceType.Standard) return "Standard";
+        if (card.Persistence == PersistenceType.Banish) return "Banish";
         return "";
     }
     

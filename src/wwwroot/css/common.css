@@ -142,7 +142,7 @@ body {
     color: #d4a76a;
 }
 
-/* Resource States */
+/* Resource States - 4-resource system */
 .resource.low .resource-value {
     color: #d4704a;
 }
@@ -150,6 +150,24 @@ body {
 .resource.critical .resource-value {
     color: #ff4444;
     animation: blink 1s infinite;
+}
+
+.resource.doubt.high .resource-value {
+    color: #ff4444;
+    animation: blink 1s infinite;
+}
+
+.resource.cadence.negative .resource-value {
+    color: #d4704a;
+}
+
+.resource.cadence.positive .resource-value {
+    color: #7a8b5a;
+}
+
+.resource.initiative.zero .resource-value {
+    color: #8b7355;
+    opacity: 0.7;
 }
 
 /* ==========================================
@@ -197,6 +215,27 @@ body {
 @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* Cadence meter mini version for resource bar */
+.resource.cadence .cadence-mini-meter {
+    width: 40px;
+    height: 6px;
+    background: linear-gradient(to right, #d4704a 0%, #d4a76a 50%, #7a8b5a 100%);
+    border-radius: 3px;
+    border: 1px solid #5c4a3a;
+    position: relative;
+    margin-left: 4px;
+}
+
+.resource.cadence .cadence-mini-indicator {
+    position: absolute;
+    top: -1px;
+    width: 2px;
+    height: 8px;
+    background: white;
+    border-radius: 1px;
+    transition: left 0.3s ease;
 }
 
 /* ==========================================

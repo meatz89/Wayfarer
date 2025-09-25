@@ -197,7 +197,7 @@ public class ConversationNarrativeService
 
         return new ConversationState
         {
-            Flow = session.FlowBattery, // Internal 0-24 scale from FlowBattery
+            Flow = session.Cadence, // Cadence system (-10 to +10)
             Momentum = momentum, // Use momentum as rapport for narrative compatibility
             Focus = session.GetAvailableFocus(),
             Doubt = session.MaxDoubt - session.CurrentDoubt, // Convert doubt to patience for narrative
@@ -369,7 +369,7 @@ public class ConversationNarrativeService
     private string DetermineNarrativeCategory(CardInstance card)
     {
         // Check for atmosphere effects (indicates risk/pressure cards)
-        if (card.SuccessType == SuccessEffectType.Atmospheric)
+        if (card.SuccessType == SuccessEffectType.None)
         {
             return "atmosphere_change";
         }
@@ -381,7 +381,7 @@ public class ConversationNarrativeService
             return "risk_moderate";
 
         // Card persistence-based categories
-        if (card.Persistence == PersistenceType.Impulse)
+        if (card.Persistence == PersistenceType.Standard)
             return "pressure";
 
         // Token type indicates support/connection building
