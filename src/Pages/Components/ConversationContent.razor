@@ -21,7 +21,7 @@
                 <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
 
-            <div class="personality-badge">@GetPersonalityRuleShort()</div>
+            <div class="personality-badge">@(Session?.PersonalityEnforcer?.GetRuleDescription() ?? "")</div>
         </div>
 
             <!-- Win/Lose Conditions Bar -->
@@ -38,7 +38,7 @@
                         <div class="flow-negative">
                             @for (int i = -1; i >= -3; i--)
                             {
-                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                                <span class="flow-segment @((Session?.FlowBattery <= i) ? "active" : "inactive")"></span>
                             }
                         </div>
 
@@ -50,7 +50,7 @@
                         <div class="flow-positive">
                             @for (int i = 1; i <= 3; i++)
                             {
-                                <span class="flow-segment @GetFlowSegmentClass(i)"></span>
+                                <span class="flow-segment @((Session?.FlowBattery >= i) ? "active" : "inactive")"></span>
                             }
                         </div>
                     </div>
@@ -67,23 +67,6 @@
                 </div>
             </div>
 
-    <!-- Goal Thresholds Display -->
-    @if (GetRequestGoals().Any())
-    {
-        <div class="goals-section">
-            <div class="goals-header">Request Goals - @GetRequestName()</div>
-            <div class="goals-container">
-                @foreach (var goal in GetRequestGoals())
-                {
-                    <div class="goal-card @GetGoalCardClass(goal.Threshold)">
-                        <div class="goal-threshold">@goal.Threshold</div>
-                        <div class="goal-name">@goal.Name</div>
-                        <div class="goal-reward">@goal.Reward</div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
 
     <!-- CENTRAL: Narrative Section (from mockup) -->
     <div class="narrative-section">
@@ -106,7 +89,7 @@
         @if (!IsConversationExhausted)
         {
             <div class="action-choices">
-                <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetListenPreview()">
+                <GameTooltip Position="top" CssClass="action-tooltip" Content="@(ConversationFacade?.GetListenActionPreview() ?? "")">
                     <div class="action-button @(IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteListen"
                          disabled="@(IsGeneratingNarrative || IsProcessing)">
@@ -114,12 +97,12 @@
                         <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
                     </div>
                 </GameTooltip>
-                <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetSpeakPreview()">
+                <GameTooltip Position="top" CssClass="action-tooltip" Content="@(ConversationFacade?.GetSpeakActionPreview(SelectedCard) ?? "")">
                     <div class="action-button @(SelectedCard == null || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
                          disabled="@(SelectedCard == null || IsGeneratingNarrative || IsProcessing)">
                         <div>SPEAK</div>
-                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
+                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : (ConversationFacade?.GetSpeakActionText(SelectedCard) ?? ""))</div>
                     </div>
                 </GameTooltip>
             </div>
@@ -229,10 +212,10 @@
                                         <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
-                                        @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                        @GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat ?? PlayerStatType.Rapport))
+                                        @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
                                         {
-                                            <span class="stat-bonus">@GetStatBonus(convCard)</span>
+                                            <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
                                         }
                                     </div>
                                 </div>
@@ -241,7 +224,6 @@
                                 <div class="card-header">
                                     <div class="card-name">
                                         @GetProperCardName(convCard)
-                                        <span class="xp-gain">+@GetXPGain() XP</span>
                                     </div>
                                     <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                 </div>
@@ -254,10 +236,6 @@
                                 <!-- Effect description -->
                                 <div class="card-effect">
                                     <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
-                                    @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
-                                    {
-                                        <br>@GetMomentumCalculation(convCard)
-                                    }
                                 </div>
 
                                 <!-- Impulse warning -->
@@ -290,10 +268,10 @@
                                         <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
                                     </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @GetCardStatName(convCard) Lv @GetCardLevel(convCard)
-                                        @if (!string.IsNullOrEmpty(GetStatBonus(convCard)))
+                                        @GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat ?? PlayerStatType.Rapport))
+                                        @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
                                         {
-                                            <span class="stat-bonus">@GetStatBonus(convCard)</span>
+                                            <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
                                         }
                                     </div>
                                 </div>
@@ -302,7 +280,6 @@
                                 <div class="card-header">
                                     <div class="card-name">
                                         @GetProperCardName(convCard)
-                                        <span class="xp-gain">+@GetXPGain() XP</span>
                                     </div>
                                     <div class="card-focus">@convCard.GetEffectiveFocus(Context.Session.CurrentState)</div>
                                 </div>
@@ -315,10 +292,6 @@
                                 <!-- Effect description -->
                                 <div class="card-effect">
                                     <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
-                                    @if (!string.IsNullOrEmpty(GetMomentumCalculation(convCard)))
-                                    {
-                                        <br>@GetMomentumCalculation(convCard)
-                                    }
                                 </div>
 
                                 <!-- Impulse warning -->

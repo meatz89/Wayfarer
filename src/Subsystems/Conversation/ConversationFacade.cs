@@ -1601,5 +1601,127 @@ public class ConversationFacade
 
     #endregion
 
+    #region Preview Methods for UI
+
+    /// <summary>
+    /// Get preview text for LISTEN action showing effects of doubt increase, momentum erosion, and card draw
+    /// </summary>
+    public string GetListenActionPreview()
+    {
+        if (_currentSession == null) return "";
+
+        List<string> preview = new List<string>();
+
+        // Show doubt increase
+        int baseDoubtIncrease = 3; // From desperate plea
+        int unspentFocusPenalty = _currentSession.GetAvailableFocus();
+        int totalDoubt = _currentSession.CurrentDoubt + baseDoubtIncrease + unspentFocusPenalty;
+
+        preview.Add($"Doubt <span class='icon-arrow-right'></span> {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");
+
+        // Show momentum erosion (Devoted doubles losses)
+        int erosion = totalDoubt;
+        if (_currentSession.NPC?.PersonalityType == PersonalityType.DEVOTED)
+        {
+            erosion *= 2;
+            int newMomentum = Math.Max(0, _currentSession.CurrentMomentum - erosion);
+            preview.Add($"Momentum {_currentSession.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum} (Devoted 2x!)");
+        }
+        else
+        {
+            int newMomentum = Math.Max(0, _currentSession.CurrentMomentum - erosion);
+            preview.Add($"Momentum {_currentSession.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum}");
+        }
+
+        // Show draw with impulse penalties
+        int impulseCount = _currentSession.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
+        int drawCount = _currentSession.GetDrawCount() - impulseCount;
+        if (impulseCount > 0)
+        {
+            preview.Add($"Draw {drawCount} cards ({_currentSession.GetDrawCount()} - {impulseCount} Impulses)");
+        }
+        else
+        {
+            preview.Add($"Draw {_currentSession.GetDrawCount()} cards");
+        }
+
+        return string.Join("<br/>", preview);
+    }
+
+    /// <summary>
+    /// Get preview text for SPEAK action based on selected card
+    /// </summary>
+    public string GetSpeakActionPreview(CardInstance selectedCard)
+    {
+        if (_currentSession == null) return "";
+
+        if (selectedCard == null)
+        {
+            return $"Select a card to play ({_currentSession.GetAvailableFocus()} focus available)";
+        }
+
+        int focusCost = selectedCard.GetEffectiveFocus(_currentSession.CurrentState);
+        return $"Play card (Cost: {focusCost} focus)";
+    }
+
+    /// <summary>
+    /// Get action text for SPEAK button details based on selected card
+    /// </summary>
+    public string GetSpeakActionText(CardInstance selectedCard)
+    {
+        if (_currentSession == null) return "";
+
+        if (selectedCard != null)
+        {
+            int focus = selectedCard.Focus;
+            int remainingAfter = _currentSession.GetAvailableFocus() - focus;
+            string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
+            return $"Play Card ({focus} focus)";
+        }
+
+        int availableFocus = _currentSession.GetAvailableFocus();
+        if (availableFocus == 0)
+            return "No focus remaining - must LISTEN to refresh";
+        else if (availableFocus == 1)
+            return "Select a card to play (1 focus remaining)";
+        else
+            return $"Select a card to play ({availableFocus} focus available)";
+    }
+
+    /// <summary>
+    /// Get stat bonus text for cards based on player stats
+    /// </summary>
+    public string GetCardStatBonus(CardInstance card)
+    {
+        if (card?.ConversationCardTemplate?.BoundStat == null || _gameWorld == null) return "";
+
+        // Only Expression cards get momentum bonuses
+        if (card.ConversationCardTemplate.Category != CardCategory.Expression) return "";
+
+        try
+        {
+            Player player = _gameWorld.GetPlayer();
+            if (player?.Stats == null) return "";
+
+            PlayerStats stats = player.Stats;
+            int statLevel = stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
+
+            // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
+            if (statLevel >= 2)
+            {
+                int bonus = statLevel - 1;
+                return $"+{bonus} momentum";
+            }
+        }
+        catch
+        {
+            // Fallback to no bonus display
+        }
+
+        return "";
+    }
+
+    #endregion
+
     #endregion
 }

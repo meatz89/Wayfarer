@@ -513,24 +513,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetSpeakActionText()
-        {
-            if (SelectedCard != null)
-            {
-                int focus = SelectedCard.Focus;
-                int remainingAfter = (Session?.GetAvailableFocus() ?? 0) - focus;
-                string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
-                return $"Play Card ({focus} focus)";
-            }
-
-            int availableFocus = Session?.GetAvailableFocus() ?? 0;
-            if (availableFocus == 0)
-                return "No focus remaining - must LISTEN to refresh";
-            else if (availableFocus == 1)
-                return "Select a card to play (1 focus remaining)";
-            else
-                return $"Select a card to play ({availableFocus} focus available)";
-        }
 
         protected string GetProperCardName(CardInstance card)
         {
@@ -684,12 +666,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected ConnectionType GetExchangeTokenType(CardInstance card)
-        {
-            // For merchants, exchanges typically use Commerce tokens
-            // Could be expanded based on card context or NPC type
-            return ConnectionType.Commerce;
-        }
 
 
 
@@ -759,33 +735,6 @@ namespace Wayfarer.Pages.Components
             return string.Join(", ", propertyDescriptions);
         }
 
-        /// <summary>
-        /// Check if a card play would violate personality rules
-        /// </summary>
-
-
-        /// <summary>
-        /// Get personality modifier for a card
-        /// </summary>
-
-        /// <summary>
-        /// Get atmosphere effect label for card
-        /// </summary>
-        protected string GetAtmosphereEffectLabel(CardInstance card)
-        {
-            string cardName = GetProperCardName(card);
-            if (cardName.Contains("Interrupt"))
-                return "Receptive";
-            if (cardName.Contains("Merchant Routes"))
-                return "Informed";
-            if (card.CardType == CardType.Observation)
-                return "Focused";
-            return "";
-        }
-
-        /// <summary>
-        /// PACKET 6: Get enhanced success effect description
-        /// </summary>
         /// <summary>
         /// PROJECTION PRINCIPLE: Wrapper that delegates to projection-based GetSuccessEffect
         /// </summary>
@@ -860,14 +809,6 @@ namespace Wayfarer.Pages.Components
         /// Get number of cards to draw on LISTEN
         /// </summary>
 
-        /// <summary>
-        /// Get max focus capacity
-        /// </summary>
-        protected int GetMaxFocus()
-        {
-            if (Session == null) return 5;
-            return Session.GetEffectiveFocusCapacity();
-        }
 
         /// <summary>
         /// Get CSS classes for a card based on its animation state
@@ -967,143 +908,9 @@ namespace Wayfarer.Pages.Components
 
         // ===== NEW UI UPDATE METHODS =====
 
-        /// <summary>
-        /// Returns short personality rule text for the NPC bar badge
-        /// </summary>
-        protected string GetPersonalityRuleShort()
-        {
-            if (Session?.NPC == null) return "";
-
-            // Get the actual mechanical rules from the personality type
-            PersonalityType personality = Session.NPC.PersonalityType;
-            return personality switch
-            {
-                PersonalityType.DEVOTED => "Devoted: Momentum losses doubled",
-                PersonalityType.MERCANTILE => "Mercantile: Highest focus +30% success",
-                PersonalityType.PROUD => "Proud: Cards must ascend in focus",
-                PersonalityType.CUNNING => "Cunning: Same focus as prev -2 Momentum",
-                PersonalityType.STEADFAST => "Steadfast: Momentum changes capped ±2",
-                _ => $"{personality}: Special rules apply"
-            };
-        }
         
-        /// <summary>
-        /// Returns CSS classes for flow battery segments based on current flow value
-        /// </summary>
-        protected string GetFlowSegmentClass(int segment)
-        {
-            if (Session == null) return "";
 
-            int currentFlow = Session.FlowBattery;
 
-            // Negative segments (-3 to -1)
-            if (segment < 0)
-            {
-                return currentFlow <= segment ? "active" : "inactive";
-            }
-            // Positive segments (1 to 3)
-            else if (segment > 0)
-            {
-                return currentFlow >= segment ? "active" : "inactive";
-            }
-
-            return "";
-        }
-
-        /// <summary>
-        /// Returns list of request goals/thresholds for the current conversation
-        /// </summary>
-        protected List<RequestGoal> GetRequestGoals()
-        {
-            List<RequestGoal> goals = new List<RequestGoal>();
-
-            // Get request cards from the REQUEST PILE, not hand cards
-            IReadOnlyList<CardInstance> requestCards = ConversationFacade.GetRequestCards();
-            if (requestCards != null)
-            {
-                // Look for request/promise cards in the request pile
-                IOrderedEnumerable<IGrouping<int, CardInstance>> requestCardsInPile = requestCards
-                .Where(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.Letter)
-                .Where(c => c.ConversationCardTemplate?.MomentumThreshold > 0)
-                .GroupBy(c => c.ConversationCardTemplate.MomentumThreshold)
-                .OrderBy(g => g.Key);
-
-                foreach (IGrouping<int, CardInstance>? group in requestCardsInPile)
-                {
-                    int threshold = group.Key;
-                    CardInstance firstCard = group.First();
-
-                    // Determine reward based on threshold
-                    string reward = threshold switch
-                    {
-                        <= 5 => "1 Trust token",
-                        <= 10 => "2 Trust tokens",
-                        <= 15 => "3 Trust tokens + Observation",
-                        _ => "Special reward"
-                    };
-
-                    // Use descriptive name based on threshold
-                    string goalName = threshold switch
-                    {
-                        <= 5 => "Basic Delivery",
-                        <= 10 => "Priority Delivery",
-                        <= 15 => "Immediate Action",
-                        _ => firstCard.ConversationCardTemplate?.Description ?? "Special Request"
-                    };
-
-                    goals.Add(new RequestGoal
-                    {
-                        Threshold = threshold,
-                        Name = goalName,
-                        Reward = reward
-                    });
-                }
-            }
-
-            // NO FALLBACKS - if no request cards, show no goals
-            return goals;
-        }
-
-        /// <summary>
-        /// Helper class for request goal information
-        /// </summary>
-        public class RequestGoal
-        {
-            public int Threshold { get; set; }
-            public string Name { get; set; }
-            public string Reward { get; set; }
-        }
-
-        /// <summary>
-        /// Returns the name of the current request/letter being worked on
-        /// </summary>
-        protected string GetRequestName()
-        {
-            // Try to get the current letter or conversation context
-            if (Session?.NPC != null)
-            {
-                return $"Conversation with {Session.NPC.Name}";
-            }
-
-            return "Current Request";
-        }
-
-        /// <summary>
-        /// Returns CSS class for goal cards based on current Momentum vs threshold
-        /// </summary>
-        protected string GetGoalCardClass(int threshold)
-        {
-            if (Session?.MomentumManager == null) return "";
-
-            int currentMomentum = Session.MomentumManager.CurrentMomentum;
-
-            if (currentMomentum >= threshold)
-                return "achievable";
-            else if (currentMomentum >= threshold - 2) // Close to achievable
-                return "active";
-            else
-                return "";
-        }
 
         /// <summary>
         /// Returns CSS class name for card stat badges (lowercase stat name)
@@ -1151,70 +958,8 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        /// <summary>
-        /// Returns the effective level of a card based on player's stat level
-        /// </summary>
-        protected int GetCardLevel(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate?.BoundStat == null || GameFacade == null) return 1;
 
-            try
-            {
-                PlayerStats stats = GameFacade.GetPlayerStats();
-                return stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
-            }
-            catch
-            {
-                return 1;
-            }
-        }
 
-        /// <summary>
-        /// Returns the stat bonus text for Expression cards (e.g., "+2 momentum")
-        /// </summary>
-        protected string GetStatBonus(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate?.BoundStat == null || GameFacade == null) return "";
-
-            // Only Expression cards get momentum bonuses
-            if (card.ConversationCardTemplate.Category != CardCategory.Expression) return "";
-
-            try
-            {
-                PlayerStats stats = GameFacade.GetPlayerStats();
-                int statLevel = stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
-
-                // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
-                if (statLevel >= 2)
-                {
-                    int bonus = statLevel - 1;
-                    return $"+{bonus} momentum";
-                }
-            }
-            catch
-            {
-                // Fallback to no bonus display
-            }
-
-            return "";
-        }
-
-        /// <summary>
-        /// Returns XP gain for playing cards in this conversation based on conversation level
-        /// </summary>
-        protected int GetXPGain()
-        {
-            // XP is based on conversation difficulty/level
-            // For now, return a base value - this should be enhanced based on actual conversation level
-            if (Session?.NPC != null)
-            {
-                // If it's a stranger conversation, use stranger level
-                // Otherwise use base conversation XP
-                return 1; // Level 1 conversations give 1 XP, Level 2 give 2 XP, Level 3 give 3 XP
-            }
-
-            return 1;
-        }
 
         /// <summary>
         /// Returns display-friendly name for card category
@@ -1246,33 +991,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        /// <summary>
-        /// Get momentum calculation display for a card
-        /// </summary>
-        protected string GetMomentumCalculation(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate == null) return "";
-
-            // Only show for Expression cards
-            if (card.ConversationCardTemplate.Category != CardCategory.Expression)
-            {
-                return "";
-            }
-
-            // Get the player stats for bonus calculation
-            PlayerStats playerStats = null;
-            if (GameFacade != null)
-            {
-                try
-                {
-                    playerStats = GameFacade.GetPlayerStats();
-                }
-                catch { }
-            }
-
-            int baseMomentum = card.ConversationCardTemplate.GetMomentumEffect(Session, playerStats);
-            return $"Gain {baseMomentum} momentum";
-        }
 
         /// <summary>
         /// Get card effect description for the new system
@@ -1284,66 +1002,7 @@ namespace Wayfarer.Pages.Components
             return GetSuccessEffectDescription(card);
         }
 
-        /// <summary>
-        /// Get preview text for LISTEN button
-        /// </summary>
-        protected string GetListenPreview()
-        {
-            if (Session == null) return "";
 
-            List<string> preview = new List<string>();
-
-            // Show doubt increase
-            int baseDoubtIncrease = 3; // From desperate plea
-            int unspentFocusPenalty = Session.GetAvailableFocus();
-            int totalDoubt = Session.CurrentDoubt + baseDoubtIncrease + unspentFocusPenalty;
-
-            preview.Add($"Doubt <span class='icon-arrow-right'></span> {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");;
-
-            // Show momentum erosion (Devoted doubles losses)
-            int erosion = totalDoubt;
-            if (Context?.Npc?.PersonalityType == PersonalityType.DEVOTED)
-            {
-                erosion *= 2;
-                int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
-                preview.Add($"Momentum {Session.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum} (Devoted 2x!)");
-            }
-            else
-            {
-                int newMomentum = Math.Max(0, Session.CurrentMomentum - erosion);
-                preview.Add($"Momentum {Session.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum}");
-            }
-
-            // Show draw with impulse penalties
-            int impulseCount = Session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
-            int drawCount = Session.GetDrawCount() - impulseCount;
-            if (impulseCount > 0)
-            {
-                preview.Add($"Draw {drawCount} cards ({Session.GetDrawCount()} - {impulseCount} Impulses)");
-            }
-            else
-            {
-                preview.Add($"Draw {Session.GetDrawCount()} cards");
-            }
-
-            return string.Join("<br/>", preview);
-        }
-
-        /// <summary>
-        /// Get preview text for SPEAK button
-        /// </summary>
-        protected string GetSpeakPreview()
-        {
-            if (Session == null) return "";
-
-            if (SelectedCard == null)
-            {
-                return $"Select a card to play ({Session.GetAvailableFocus()} focus available)";
-            }
-
-            int focusCost = SelectedCard.GetEffectiveFocus(Session.CurrentState);
-            return $"Play card (Cost: {focusCost} focus)";
-        }
 
     }
 }
