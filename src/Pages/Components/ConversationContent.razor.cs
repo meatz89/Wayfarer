@@ -134,164 +134,61 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteListen()
         {
-            // UI ANIMATION ORCHESTRATION: Block during animations for better UX
+            // UI state management only - no game logic
             if (Session == null || IsProcessing) return;
-
-            // Static UI - no animation interruption handling needed
-
-            // If initial narrative is still generating, wait for it instead of triggering new generation
-            if (_initialNarrativeTask != null && !_initialNarrativeTask.IsCompleted)
-            {
-                Console.WriteLine("[ConversationContent.ExecuteListen] Waiting for initial narrative to complete...");
-                NarrativeOutput initialNarrative = await _initialNarrativeTask;
-
-                if (initialNarrative != null)
-                {
-                    Console.WriteLine($"[ConversationContent.ExecuteListen] Using initial narrative. Card narratives: {initialNarrative.CardNarratives?.Count ?? 0}");
-                    // Apply the narratives that were generated initially
-                    ApplyNarrativeOutput(initialNarrative);
-                    // REMOVED: StateHasChanged() - prevents card DOM recreation
-                }
-
-                // Clear the task so we don't reuse it again
-                _initialNarrativeTask = null;
-            }
-
-            // Return early if AI is still generating (shouldn't happen after await above)
             if (IsGeneratingNarrative) return;
 
             SelectedCard = null;
 
-            // SYNCHRONOUS PRINCIPLE: Clean up old animation states periodically
-
-            // Store current cards before listen for animation tracking
-            List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-
             try
             {
-                // SYNCHRONOUS PRINCIPLE: Set processing flag during backend call only
                 IsProcessing = true;
                 StateHasChanged(); // Update UI to disable buttons
 
-                // Validate conversation is still active before executing
-                if (!GameFacade.IsConversationActive())
+                // Delegate to facade - all game logic handled there
+                ConversationTurnResult listenResult = await GameFacade.ExecuteListen();
+
+                if (listenResult == null)
                 {
-                    Console.WriteLine("[ExecuteListen] Warning: Conversation is not active");
+                    Console.WriteLine("[ExecuteListen] Action failed");
                     return;
                 }
 
-                // Add notification for listening
-                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
-                if (messageSystem != null)
+                // Apply narrative if received
+                if (listenResult.Narrative != null)
                 {
-                    messageSystem.AddSystemMessage("You listen carefully...", SystemMessageTypes.Info);
-                }
+                    ApplyNarrativeOutput(listenResult.Narrative);
 
-                // Static UI - no shadow state needed
-
-                ConversationTurnResult listenResult = null;
-
-                try
-                {
-                    listenResult = await GameFacade.ExecuteListen();
-
-                    // EDGE CASE: Check for failed action results
-                    if (listenResult == null)
+                    // Generate card narratives if needed
+                    if (!string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
                     {
-                        Console.WriteLine("[ExecuteListen] Action failed");
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ExecuteListen] Exception during action: {ex.Message}");
-                    throw; // Re-throw to maintain error visibility
-                }
-
-                // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
-                IsProcessing = false;
-
-                // Track cards after action
-                List<CardInstance> currentCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-                List<CardInstance> drawnCards = currentCards
-                    .Where(c => !previousCards.Any(pc => pc.InstanceId == c.InstanceId))
-                    .ToList();
-
-                // CRITICAL: Wait for ALL narrative generation to complete BEFORE allowing cards to render
-                if (_initialNarrativeTask == null)
-                {
-                    // Use AI-generated narrative from the result
-                    if (listenResult?.Narrative != null &&
-                        !string.IsNullOrWhiteSpace(listenResult.Narrative.NPCDialogue))
-                    {
-                        Console.WriteLine("[ConversationContent.ExecuteListen] Applying narrative from listen result and waiting for card narratives");
-                        // Apply the complete narrative output including card narratives
-                        ApplyNarrativeOutput(listenResult.Narrative);
-
-                        // AWAIT card narrative generation to complete before adding cards to DOM
-                        if (drawnCards.Any())
-                        {
-                            await GenerateCardNarrativesAsync(listenResult.Narrative.NPCDialogue);
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("[ConversationContent.ExecuteListen] Using fallback narrative generation");
-                        // Fallback to simple generated narrative when AI unavailable
-                        GenerateListenNarrative();
+                        await GenerateCardNarrativesAsync(listenResult.Narrative.NPCDialogue);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("[ConversationContent.ExecuteListen] Skipping narrative generation - already applied initial narrative");
+                    // Fallback narrative
+                    GenerateListenNarrative();
                 }
 
-                // Check request pile for newly available cards based on Momentum
-                CheckRequestPileThresholds();
+                // Check for request cards becoming available
+                ConversationFacade.CheckAndMoveRequestCards();
 
-                // Static UI - cards appear instantly with final narrative text
-                if (drawnCards.Any())
-                {
-                    Console.WriteLine($"[ExecuteListen] Adding {drawnCards.Count} new cards to display (narrative complete)");
-                    // Cards will appear instantly when GetAllDisplayCards() is called
-                }
-                else
-                {
-                    Console.WriteLine("[ExecuteListen] No new cards drawn");
-                }
-
-                // Notify about cards drawn
-                IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-                if (messageSystem != null && handCards.Any())
-                {
-                    messageSystem.AddSystemMessage(string.Format("Drew {0} cards", handCards.Count), SystemMessageTypes.Success);
-                }
-
-                // Refresh resources after listen action
+                // Refresh resource display
                 if (GameScreen != null)
                 {
                     await GameScreen.RefreshResourceDisplay();
                 }
 
+                // Check conversation end state
                 if (Session.ShouldEnd())
                 {
-                    // Don't auto-exit! Set exhaustion state instead
                     IsConversationExhausted = true;
-                    ExhaustionReason = GetConversationEndReason();
-
-                    // Add notification about conversation ending
-                    if (messageSystem != null)
-                    {
-                        messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
-                    }
-
-                    // Don't invoke end - let player click button
-                    // await OnConversationEnd.InvokeAsync();
+                    ExhaustionReason = "Conversation ended";
                 }
             }
             finally
             {
-                // SYNCHRONOUS PRINCIPLE: Always clear processing flag
                 IsProcessing = false;
                 StateHasChanged();
             }
@@ -299,240 +196,72 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteSpeak()
         {
-            // UI ANIMATION ORCHESTRATION: Block during animations for better UX
+            // UI state management only - no game logic
             if (IsGeneratingNarrative || IsProcessing || Session == null || SelectedCard == null) return;
 
-            // Static UI - no animation interruption handling needed
+            CardInstance playedCard = SelectedCard;
 
             try
             {
-                // SYNCHRONOUS PRINCIPLE: Set processing flag during backend call only
                 IsProcessing = true;
-
-                // Clean up old animation states periodically
-    
-                // Store cards before speak to track what gets removed
-                List<CardInstance> cardsBeforeSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-
                 StateHasChanged(); // Update UI to disable buttons
 
-                // Add notification for speaking
-                MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
+                // Delegate to facade - all game logic handled there
+                ConversationTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
 
-                // Check if this is an exchange card (identified by exchange data in context)
-                if (SelectedCard.Context?.ExchangeData != null && messageSystem != null)
+                if (turnResult?.CardPlayResult == null)
                 {
-                    // For exchanges, show what's being traded
-                    if (SelectedCard.Context?.ExchangeData?.Costs != null && SelectedCard.Context?.ExchangeData?.Rewards != null)
-                    {
-                        if (SelectedCard.Context.ExchangeName == "Pass on this offer")
-                        {
-                            messageSystem.AddSystemMessage("Declining the exchange...", SystemMessageTypes.Info);
-                        }
-                        else
-                        {
-                            messageSystem.AddSystemMessage(string.Format("Trading: {0} for {1}", FormatResourceList(SelectedCard.Context.ExchangeData.Costs), FormatResourceList(SelectedCard.Context.ExchangeData.Rewards)), SystemMessageTypes.Info);
-                        }
-                    }
-                }
-                else if (messageSystem != null)
-                {
-                    // ONE-CARD RULE: Always exactly one card
-                    messageSystem.AddSystemMessage(string.Format("Playing {0}...", GetCardName(SelectedCard)), SystemMessageTypes.Info);
+                    Console.WriteLine("[ExecuteSpeak] Action failed");
+                    return;
                 }
 
-                // Store the played card and its position BEFORE playing it
-                CardInstance playedCard = SelectedCard;
-                int cardPosition = GetCardPosition(playedCard);
-
-                // Static UI - no shadow state needed
-
-                // Static system - card immediately removed
-                // REMOVED: StateHasChanged() - prevents DOM recreation during animation
-
-                // ExecuteSpeak expects a single card - this removes it from hand
-                ConversationTurnResult turnResult = null;
-                CardPlayResult result = null;
-
-                try
+                // Apply narrative if received
+                if (turnResult.Narrative != null)
                 {
-                    turnResult = await GameFacade.PlayConversationCard(SelectedCard);
-                    result = turnResult?.CardPlayResult;
-
-                    // EDGE CASE: Check for failed action results
-                    if (result == null || (result.Results?.All(r => !r.Success) ?? true))
-                    {
-                        Console.WriteLine("[ExecuteSpeak] Action failed");
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ExecuteSpeak] Exception during action: {ex.Message}");
-                    throw; // Re-throw to maintain error visibility
-                }
-
-                // SYNCHRONOUS PRINCIPLE: Backend call complete, clear processing flag
-                IsProcessing = false;
-
-                // Use AI-generated narrative from turn result
-                if (turnResult?.Narrative != null)
-                {
-                    // First check for card-specific narrative
-                    if (turnResult.Narrative.CardNarratives != null)
-                    {
-                        CardNarrative cardNarrative = turnResult.Narrative.CardNarratives.FirstOrDefault(cn => cn.CardId == playedCard.Id);
-                        if (cardNarrative != null && !string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                        {
-                            LastNarrative = cardNarrative.NarrativeText;
-                        }
-                    }
-                    // Then check for general narrative text
-                    else if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NarrativeText))
-                    {
-                        LastNarrative = turnResult.Narrative.NarrativeText;
-                    }
-                    // Finally fall back to simple generated narrative
-                    else
-                    {
-                        ProcessSpeakResult(result);
-                    }
-
-                    // Use AI NPC dialogue if available
-                    if (!string.IsNullOrWhiteSpace(turnResult.Narrative.NPCDialogue))
-                    {
-                        LastDialogue = turnResult.Narrative.NPCDialogue;
-                    }
-                    else if (result?.NewState != null)
-                    {
-                        LastDialogue = GetStateTransitionDialogue(result.NewState.Value);
-                    }
+                    ApplyNarrativeOutput(turnResult.Narrative);
                 }
                 else
                 {
-                    // Fallback to simple generated narrative when AI unavailable
-                    ProcessSpeakResult(result);
+                    // Fallback narrative
+                    // Simple fallback narrative
+                    LastNarrative = "Your words have an effect.";
                 }
-                // REMOVED: StateHasChanged() - prevents DOM recreation during animation
 
-                // Static system - card immediately removed
-                bool wasSuccessful = result?.Results?.FirstOrDefault()?.Success ?? false;
+                // Check for conversation end (promise card success, etc.)
+                bool wasSuccessful = turnResult.CardPlayResult.Results?.FirstOrDefault()?.Success ?? false;
+                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise;
 
-                // NO DELAY - game state is already updated, animation is just visual
-
-                // Check if this was a promise/goal card that succeeded
-                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise || playedCard.CardType == CardType.Letter;
                 if (isPromiseCard && wasSuccessful)
                 {
-                    // Promise card succeeded - conversation ends in victory!
-                    // The actual effect (letter delivery, obligation creation, etc.) is handled by the card's SuccessEffect
                     IsConversationExhausted = true;
-
-                    // Get the success effect description from the card
-                    string effectDescription = GetSuccessEffectDescription(playedCard);
-                    ExhaustionReason = $"Success! {effectDescription}";
-
-                    // Check if the success effect type is Advancing (ends conversation)
-                    if (playedCard.SuccessType == SuccessEffectType.Advancing)
-                    {
-                        LastNarrative = "The conversation advances significantly. Your connection deepens.";
-                    }
-                    else
-                    {
-                        LastNarrative = "Your words have the desired effect. The conversation concludes successfully.";
-                    }
-
-                    // Add success notification
-                    if (messageSystem != null)
-                    {
-                        messageSystem.AddSystemMessage($"Conversation won! {effectDescription}", SystemMessageTypes.Success);
-                    }
-
+                    ExhaustionReason = $"Success! {GetSuccessEffectDescription(playedCard)}";
+                    LastNarrative = "Your words have the desired effect. The conversation concludes successfully.";
                     StateHasChanged();
                     return;
                 }
 
-                // Add detailed notification for result
-                // NOTE: Exchange handling is done in ConversationManager.HandleSpecialCardEffectsAsync
-                // Letter delivery is also handled there - no need to duplicate logic here
-                if (messageSystem != null && result != null)
-                {
-                    if (result.Results?.Any() == true)
-                    {
-                        int successes = result.Results.Count(r => r.Success);
-                        int failures = result.Results.Count(r => !r.Success);
-
-                        if (successes > 0)
-                        {
-                            messageSystem.AddSystemMessage(string.Format("{0} card(s) succeeded! +{1} flow", successes, result.FinalFlow), SystemMessageTypes.Success);
-                        }
-                        if (failures > 0)
-                        {
-                            messageSystem.AddSystemMessage(string.Format("{0} card(s) failed", failures), SystemMessageTypes.Warning);
-                        }
-                    }
-                }
-
-                // Track cards after action
-                List<CardInstance> currentCardsAfterSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-
-                // SIMPLIFIED: Played card animation handled above, other cards removed immediately
-                // Check for new cards drawn (if Threading success effect or other draw effects)
-                List<CardInstance> drawnCards = currentCardsAfterSpeak
-                    .Where(c => !cardsBeforeSpeak.Any(bc => bc.InstanceId == c.InstanceId))
-                    .ToList();
-
-                Console.WriteLine($"[ExecuteSpeak] Card played: {playedCard?.ConversationCardTemplate?.Id}, new cards: {drawnCards.Count}");
-                // Static UI - played cards disappear instantly, new cards appear instantly
-
                 SelectedCard = null;
 
-                // Refresh resources after exchange/card play
+                // Refresh resource display
                 if (GameScreen != null)
                 {
                     await GameScreen.RefreshResourceDisplay();
                 }
 
+                // Check conversation end state
                 if (Session.ShouldEnd())
                 {
-                    // Don't auto-exit! Set exhaustion state instead
                     IsConversationExhausted = true;
-                    ExhaustionReason = GetConversationEndReason();
-
-                    // Add notification about conversation ending
-                    if (messageSystem != null)
-                    {
-                        messageSystem.AddSystemMessage(ExhaustionReason, SystemMessageTypes.Info);
-                    }
-
-                    // Don't invoke end - let player click button
-                    // await OnConversationEnd.InvokeAsync();
+                    ExhaustionReason = "Conversation ended";
                 }
             }
             finally
             {
-                // SYNCHRONOUS PRINCIPLE: Always clear processing flag
                 IsProcessing = false;
                 StateHasChanged();
             }
         }
 
-        private void ProcessSpeakResult(CardPlayResult result)
-        {
-            if (result != null)
-            {
-                // Generate narrative based on the result
-                GenerateSpeakNarrative(result);
-
-                // Process letter negotiations first (new system)
-                if (result.LetterNegotiations?.Any() == true)
-                {
-                    ProcessLetterNegotiations(result.LetterNegotiations);
-                }
-                // Letter generation is handled by ConversationManager based on connection state
-                // Special cards that force letter generation are handled in ConversationManager.HandleSpecialCardEffectsAsync()
-            }
-        }
 
         private async Task GenerateInitialNarrative()
         {
@@ -698,77 +427,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        private void GenerateSpeakNarrative(CardPlayResult result)
-        {
-            // Generate fallback narrative based on success/failure
-            if (result.Results != null && result.Results.Any())
-            {
-                // Fallback to generic narrative if no player narrative provided
-                int successCount = result.Results.Count(r => r.Success);
-                int totalCards = result.Results.Count;
-
-                // Get roll and threshold info for more specific narrative
-                SingleCardResult firstResult = result.Results.First();
-                int roll = firstResult.Roll;
-                int threshold = firstResult.SuccessChance;
-                int margin = Math.Abs(roll - threshold);
-
-                if (successCount == totalCards)
-                {
-                    // Vary success narrative based on margin
-                    if (margin > 30)
-                        LastNarrative = "Your words resonate perfectly!";
-                    else if (margin > 15)
-                        LastNarrative = "They nod in understanding.";
-                    else
-                        LastNarrative = "Your words find their mark.";
-                }
-                else if (successCount > 0)
-                {
-                    LastNarrative = "Some of your words find their mark...";
-                }
-                else
-                {
-                    // Vary failure narrative based on margin
-                    if (margin > 30)
-                        LastNarrative = "Your words fall completely flat...";
-                    else if (margin > 15)
-                        LastNarrative = "They seem unconvinced...";
-                    else
-                        LastNarrative = "Your approach doesn't quite land.";
-                }
-
-                // Add flow info more subtly
-                if (result.FinalFlow > 0)
-                {
-                    LastNarrative += " (Flow +1)";
-                }
-                else if (result.FinalFlow < 0)
-                {
-                    LastNarrative += " (Flow -1)";
-                }
-            }
-            else
-            {
-                LastNarrative = "You speak your mind...";
-            }
-
-            // Show card's dialogue fragment if available  
-            if (SelectedCard != null && !string.IsNullOrEmpty(SelectedCard.DialogueFragment))
-            {
-                // Display the card's dialogue fragment as player dialogue
-                LastDialogue = SelectedCard.DialogueFragment;
-            }
-            // Otherwise update dialogue based on new state if changed
-            else if (result.NewState.HasValue)
-            {
-                LastDialogue = GetStateTransitionDialogue(result.NewState.Value);
-            }
-            else
-            {
-                LastDialogue = GetResponseDialogue();
-            }
-        }
 
         private string GetStateTransitionDialogue(ConnectionState newState)
         {
@@ -825,10 +483,6 @@ namespace Wayfarer.Pages.Components
             return GameFacade.CanPlayCard(card, Session);
         }
 
-        protected bool CanSpeak()
-        {
-            return SelectedCard != null && TotalSelectedFocus <= GetFocusLimit();
-        }
 
         protected string GetStateClass()
         {
@@ -843,23 +497,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected int GetFocusLimit()
-        {
-            if (Session == null)
-            {
-                Console.WriteLine("ERROR: Session is null in GetFocusLimit");
-                throw new InvalidOperationException("Session not initialized - cannot get focus limit");
-            }
-
-            // Use actual values from ConversationRules.States
-            if (ConversationRules.States.TryGetValue(Session.CurrentState, out ConversationStateRules? rules))
-            {
-                return rules.MaxFocus;
-            }
-
-            Console.WriteLine($"ERROR: No rules found for conversation state {Session.CurrentState} in GetFocusLimit");
-            throw new InvalidOperationException($"Missing conversation rules for state: {Session.CurrentState}");
-        }
 
         protected string GetConnectionStateDisplay()
         {
@@ -917,91 +554,8 @@ namespace Wayfarer.Pages.Components
             return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
 
-        protected int GetRequestMomentumThreshold(CardInstance card)
-        {
-            // Goal cards MUST have momentum threshold in context - no fallbacks
-            if (card?.Context == null)
-            {
-                throw new InvalidOperationException($"Goal card '{card?.Id}' has no context!");
-            }
 
-            if (card.Context.MomentumThreshold <= 0)
-            {
-                throw new InvalidOperationException($"Goal card '{card.Id}' has invalid momentum threshold: {card.Context.MomentumThreshold}");
-            }
 
-            return card.Context.MomentumThreshold;
-        }
-
-        private void CheckRequestPileThresholds()
-        {
-            try
-            {
-                if (Session?.MomentumManager == null)
-                {
-                    Console.WriteLine("[CheckRequestPileThresholds] Session or components are null - skipping");
-                    return;
-                }
-
-                int currentMomentum = Session.MomentumManager.CurrentMomentum;
-                List<CardInstance> cardsToMove = new List<CardInstance>();
-                IReadOnlyList<CardInstance> requestCards = ConversationFacade.GetRequestCards();
-
-                foreach (CardInstance card in requestCards)
-                {
-                    // Skip cards that have already been moved
-                    if (MovedRequestCardIds.Contains(card.InstanceId))
-                    {
-                        continue;
-                    }
-
-                    int threshold = GetRequestMomentumThreshold(card);
-                    if (currentMomentum >= threshold)
-                    {
-                        cardsToMove.Add(card);
-                    }
-                }
-
-                // Use SessionCardDeck's proper method instead of direct manipulation
-                // This prevents card loss and maintains proper encapsulation
-                if (cardsToMove.Count > 0)
-                {
-                    Console.WriteLine($"[CheckRequestPileThresholds] Checking request thresholds with momentum {currentMomentum}");
-
-                    // Let ConversationFacade handle the move properly
-                    ConversationFacade.CheckAndMoveRequestCards();
-
-                    // Track and notify for moved cards
-                    foreach (CardInstance card in cardsToMove)
-                    {
-                        // Track that this card has been moved
-                        MovedRequestCardIds.Add(card.InstanceId);
-
-                        // Mark card as playable now that Momentum threshold is met
-                        card.IsPlayable = true;
-
-                        // Notify player
-                        MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
-                        if (messageSystem != null)
-                        {
-                            string cardName = GetCardName(card);
-                            string message = $"{cardName} is now available (Momentum {currentMomentum}/{GetRequestMomentumThreshold(card)})";
-                            messageSystem.AddSystemMessage(message, SystemMessageTypes.Success);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[CheckRequestPileThresholds] Error: {ex.Message}");
-                // Don't rethrow - just log and continue
-            }
-        }
-
-        protected int GetCurrentMomentum()
-        {
-            return Session?.MomentumManager?.CurrentMomentum ?? 0;
-        }
 
         protected string GetDoubtSlotClass(int slotNumber)
         {
@@ -1138,42 +692,6 @@ namespace Wayfarer.Pages.Components
         }
 
 
-        protected string GetConversationEndReason()
-        {
-            if (Session == null) return "Conversation ended";
-
-            // Check various end conditions in priority order
-            if (Session.LetterGenerated)
-            {
-                return string.Format("Letter obtained! Check your queue. (Flow: {0})", Session.FlowBattery);
-            }
-
-            if (Session.CurrentDoubt >= Session.MaxDoubt)
-            {
-                return string.Format("{0}'s doubt has been exhausted. They have no more time for you today.", NpcName);
-            }
-
-            if (Session.CurrentState == ConnectionState.DISCONNECTED && Session.FlowBattery <= -3)
-            {
-                return string.Format("{0} is too distressed to continue. The conversation has broken down.", NpcName);
-            }
-
-
-            if (!ConversationFacade.GetHandCards().Any() && Session.Deck.RemainingDrawCards == 0)
-            {
-                return "No more cards available - conversation ended";
-            }
-
-            // Default reason based on flow level
-            if (Session.FlowBattery >= 2)
-            {
-                return string.Format("Conversation ended naturally (Flow: {0})", Session.FlowBattery);
-            }
-            else
-            {
-                return "Conversation ended";
-            }
-        }
 
         protected async Task ManuallyEndConversation()
         {
@@ -1184,62 +702,6 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Process letter negotiations and add resulting obligations to the player's queue
         /// </summary>
-        private void ProcessLetterNegotiations(List<LetterNegotiationResult> negotiations)
-        {
-            MessageSystem? messageSystem = GameFacade?.GetMessageSystem();
-
-            foreach (LetterNegotiationResult negotiation in negotiations)
-            {
-                if (negotiation.CreatedObligation != null)
-                {
-                    // Add the obligation to the player's queue through the GameFacade
-                    GameFacade.AddLetterWithObligationEffects(negotiation.CreatedObligation);
-
-                    // For now, assume successful queue position
-                    int queuePosition = 1;
-                    if (queuePosition > 0)
-                    {
-                        // Generate appropriate message based on negotiation success
-                        string negotiationOutcome = negotiation.NegotiationSuccess ? "Successfully negotiated" : "Failed to negotiate";
-                        int deadlineSegments = negotiation.FinalTerms.DeadlineSegments;
-
-                        string urgencySuffix = "";
-                        if (deadlineSegments <= 4)
-                            urgencySuffix = " - CRITICAL!";
-                        else if (deadlineSegments <= 12)
-                            urgencySuffix = " - URGENT";
-
-                        string msgTemplate = "{0} letter: '{1}' - {2}seg deadline, {3} coins";
-
-                        string message = string.Format(msgTemplate, negotiationOutcome,
-                            negotiation.SourcePromiseCard.Description ?? negotiation.SourcePromiseCard.Id,
-                            deadlineSegments.ToString(),
-                            negotiation.FinalTerms.Payment) + urgencySuffix;
-
-                        messageSystem?.AddSystemMessage(
-                            message,
-                            deadlineSegments <= 4 ? SystemMessageTypes.Danger : SystemMessageTypes.Success
-                        );
-
-                        // Mark the letter as generated in the session
-                        Session.LetterGenerated = true;
-
-                        Console.WriteLine($"[ProcessLetterNegotiations] Added letter obligation '{negotiation.CreatedObligation.Id}' to queue position {queuePosition}");
-                    }
-                    else
-                    {
-                        messageSystem?.AddSystemMessage(
-                            "Could not accept letter - queue may be full",
-                            SystemMessageTypes.Warning
-                        );
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"[ProcessLetterNegotiations] WARNING: No obligation created for negotiation {negotiation.PromiseCardId}");
-                }
-            }
-        }
 
         /// <summary>
         /// Check if observation card is expired (should show as unplayable)
@@ -1300,50 +762,11 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Check if a card play would violate personality rules
         /// </summary>
-        protected bool IsIllegalPlay(CardInstance card)
-        {
-            if (Session?.PersonalityEnforcer == null || card == null) return false;
-
-            bool isValid = Session.PersonalityEnforcer.ValidatePlay(card, out string violationMessage);
-            return !isValid;  // Return true if play is illegal
-        }
 
 
         /// <summary>
         /// Get personality modifier for a card
         /// </summary>
-        protected int GetPersonalityModifier(CardInstance card)
-        {
-            if (Session?.PersonalityEnforcer == null || card == null) return 0;
-
-            // For Mercantile personality: Only the card with the HIGHEST focus in hand gets +30%
-            if (Session.NPC?.PersonalityType == PersonalityType.MERCANTILE)
-            {
-                // Find the maximum focus among all available cards in hand
-                int maxFocusInHand = 0;
-                IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-                if (handCards != null)
-                {
-                    foreach (CardInstance c in handCards)
-                    {
-                        int focusCost = c.GetEffectiveFocus(Session.CurrentState);
-                        if (focusCost > maxFocusInHand)
-                        {
-                            maxFocusInHand = focusCost;
-                        }
-                    }
-                }
-
-                // Only apply bonus if this card has the maximum focus
-                int cardFocus = card.GetEffectiveFocus(Session.CurrentState);
-                if (cardFocus == maxFocusInHand && maxFocusInHand > 0)
-                {
-                    return 30;  // Mercantile gives +30% to highest focus card only
-                }
-            }
-
-            return 0;
-        }
 
         /// <summary>
         /// Get atmosphere effect label for card
@@ -1436,22 +859,6 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Get number of cards to draw on LISTEN
         /// </summary>
-        protected int GetCardDrawCount()
-        {
-            if (Session == null) return 2;
-
-            int baseDraw = Session.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => 1,
-                ConnectionState.GUARDED => 2,
-                ConnectionState.NEUTRAL => 2,
-                ConnectionState.RECEPTIVE => 3,
-                ConnectionState.TRUSTING => 3,
-                _ => 2
-            };
-
-            return baseDraw;
-        }
 
         /// <summary>
         /// Get max focus capacity

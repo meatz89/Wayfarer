@@ -115,9 +115,9 @@
                     </div>
                 </GameTooltip>
                 <GameTooltip Position="top" CssClass="action-tooltip" Content="@GetSpeakPreview()">
-                    <div class="action-button @(!CanSpeak() || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
+                    <div class="action-button @(SelectedCard == null || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
-                         disabled="@(!CanSpeak() || IsGeneratingNarrative || IsProcessing)">
+                         disabled="@(SelectedCard == null || IsGeneratingNarrative || IsProcessing)">
                         <div>SPEAK</div>
                         <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : GetSpeakActionText())</div>
                     </div>
@@ -211,8 +211,8 @@
                     {
                         <div class="card promise @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="promise-threshold @(GetCurrentMomentum() >= GetRequestMomentumThreshold(convCard) ? "promise-active" : "")">
-                                Requires @GetRequestMomentumThreshold(convCard)+ Momentum (Currently: @GetCurrentMomentum())
+                            <div class="promise-threshold @((Session?.MomentumManager?.CurrentMomentum ?? 0) >= (convCard?.Context?.MomentumThreshold ?? 0) ? "promise-active" : "")">
+                                Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.MomentumManager?.CurrentMomentum ?? 0))
                             </div>
                             <div class="card-content">
                                 <!-- Top row: Category tag and Stat badge -->
@@ -272,7 +272,7 @@
                     }
                         else
                     {
-                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(IsIllegalPlay(convCard) ? "illegal-play" : "")"
+                        <div class="card @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
 
                             <div class="card-content">
