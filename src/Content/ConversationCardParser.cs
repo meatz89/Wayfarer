@@ -43,6 +43,15 @@ public static class ConversationCardParser
             Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
         }
 
+        // Parse 4-resource system properties
+        CardDepth depth = CardDepth.Depth1;
+        if (dto.Depth.HasValue)
+        {
+            depth = (CardDepth)dto.Depth.Value;
+        }
+
+        int initiativeCost = dto.InitiativeCost ?? dto.Focus; // Use InitiativeCost or fall back to Focus
+
         // Parse categorical properties
         PersistenceType persistence = PersistenceType.Standard;
         if (!string.IsNullOrEmpty(dto.Persistence))
@@ -50,9 +59,11 @@ public static class ConversationCardParser
             Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
         }
 
-        SuccessEffectType successType = SuccessEffectType.None;
-        if (!string.IsNullOrEmpty(dto.SuccessType))
+        // Parse effects from new structure and determine success type
+        SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
+        if (successType == SuccessEffectType.None && !string.IsNullOrEmpty(dto.SuccessType))
         {
+            // Fall back to legacy SuccessType if new effects don't specify
             Enum.TryParse<SuccessEffectType>(dto.SuccessType, true, out successType);
         }
 
@@ -155,6 +166,43 @@ public static class ConversationCardParser
             }
         }
 
+        // Parse alternative costs
+        List<AlternativeCost> alternativeCosts = new List<AlternativeCost>();
+        if (dto.AlternativeCosts != null && dto.AlternativeCosts.Any())
+        {
+            foreach (var altCostDto in dto.AlternativeCosts)
+            {
+                alternativeCosts.Add(new AlternativeCost
+                {
+                    Condition = altCostDto.Condition ?? "always",
+                    ReducedInitiativeCost = altCostDto.ReducedInitiativeCost,
+                    MomentumCost = altCostDto.MomentumCost,
+                    Description = altCostDto.Description ?? ""
+                });
+            }
+        }
+
+        // Parse scaling formula
+        ScalingFormula scalingFormula = null;
+        if (dto.ScalingEffect != null)
+        {
+            scalingFormula = new ScalingFormula
+            {
+                ScalingType = dto.ScalingEffect.ScalingType ?? "None",
+                BaseEffect = dto.ScalingEffect.BaseEffect,
+                Multiplier = dto.ScalingEffect.Multiplier,
+                Formula = dto.ScalingEffect.Formula ?? ""
+            };
+        }
+
+        // Parse effects from new structure
+        int? effectInitiative = dto.Effects?.Success?.Initiative;
+        int? effectMomentum = dto.Effects?.Success?.Momentum;
+        int? effectDoubt = dto.Effects?.Success?.Doubt;
+        int? effectCadence = dto.Effects?.Success?.Cadence;
+        int? effectDrawCards = dto.Effects?.Success?.DrawCards;
+        decimal? effectMomentumMultiplier = dto.Effects?.Success?.MomentumMultiplier;
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {
@@ -163,7 +211,18 @@ public static class ConversationCardParser
             CardType = cardType,
             Category = category,
             TokenType = tokenType,
-            Focus = dto.Focus,
+            Focus = dto.Focus, // Legacy compatibility
+            Depth = depth,
+            InitiativeCost = initiativeCost,
+            AlternativeCosts = alternativeCosts,
+            ScalingEffect = scalingFormula,
+            // New 4-resource effects
+            EffectInitiative = effectInitiative,
+            EffectMomentum = effectMomentum,
+            EffectDoubt = effectDoubt,
+            EffectCadence = effectCadence,
+            EffectDrawCards = effectDrawCards,
+            EffectMomentumMultiplier = effectMomentumMultiplier,
             Difficulty = difficulty,
             Persistence = persistence,
             SuccessType = successType,
@@ -178,6 +237,40 @@ public static class ConversationCardParser
             MomentumScaling = momentumScaling,
             DoubtScaling = doubtScaling
         };
+    }
+
+    /// <summary>
+    /// Determine success type from new effects structure
+    /// </summary>
+    private static SuccessEffectType DetermineSuccessTypeFromEffects(CardEffectsDTO effects)
+    {
+        if (effects?.Success == null) return SuccessEffectType.None;
+
+        // Check for momentum effects (Strike)
+        if (effects.Success.Momentum.HasValue && effects.Success.Momentum.Value > 0)
+        {
+            return SuccessEffectType.Strike;
+        }
+
+        // Check for momentum multiplier (DoubleMomentum)
+        if (effects.Success.MomentumMultiplier.HasValue && effects.Success.MomentumMultiplier.Value > 1)
+        {
+            return SuccessEffectType.DoubleMomentum;
+        }
+
+        // Check for doubt reduction (Soothe)
+        if (effects.Success.Doubt.HasValue && effects.Success.Doubt.Value < 0)
+        {
+            return SuccessEffectType.Soothe;
+        }
+
+        // Check for card drawing (Threading)
+        if (effects.Success.DrawCards.HasValue && effects.Success.DrawCards.Value > 0)
+        {
+            return SuccessEffectType.Threading;
+        }
+
+        return SuccessEffectType.None;
     }
 
 
@@ -230,6 +323,13 @@ public class ConversationCardDTO
     public string MomentumScaling { get; set; } // "None", "CardsInHand", "DoubtReduction", etc.
     public string DoubtScaling { get; set; } // "None", "DoubtHalved", "DoubtReduction"
 
+    // 4-Resource System Properties
+    public int? Depth { get; set; } // 1-10 depth system
+    public int? InitiativeCost { get; set; } // Replaces Focus
+    public CardEffectsDTO Effects { get; set; } // New effects structure
+    public List<AlternativeCostDTO> AlternativeCosts { get; set; }
+    public ScalingEffectDTO ScalingEffect { get; set; }
+
     // Level bonuses (optional, uses default progression if not specified)
     public List<CardLevelBonusDTO> LevelBonuses { get; set; }
 }
@@ -253,4 +353,47 @@ public class PersonalityCardMapping
 {
     public List<string> Cards { get; set; }
     public string StateBias { get; set; }
+}
+
+/// <summary>
+/// DTO for card effects in 4-resource system
+/// </summary>
+public class CardEffectsDTO
+{
+    public CardSuccessEffectsDTO Success { get; set; }
+}
+
+/// <summary>
+/// DTO for success effects in 4-resource system
+/// </summary>
+public class CardSuccessEffectsDTO
+{
+    public int? Initiative { get; set; }
+    public int? Momentum { get; set; }
+    public int? Doubt { get; set; }
+    public int? Cadence { get; set; }
+    public int? DrawCards { get; set; }
+    public decimal? MomentumMultiplier { get; set; }
+}
+
+/// <summary>
+/// DTO for alternative costs in 4-resource system
+/// </summary>
+public class AlternativeCostDTO
+{
+    public string Condition { get; set; }
+    public int ReducedInitiativeCost { get; set; }
+    public int MomentumCost { get; set; }
+    public string Description { get; set; }
+}
+
+/// <summary>
+/// DTO for scaling effects in 4-resource system
+/// </summary>
+public class ScalingEffectDTO
+{
+    public string ScalingType { get; set; }
+    public int BaseEffect { get; set; }
+    public decimal Multiplier { get; set; }
+    public string Formula { get; set; }
 }

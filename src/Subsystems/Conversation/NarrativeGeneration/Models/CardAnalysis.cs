@@ -12,10 +12,10 @@ public class CardAnalysis
 
 
     /// <summary>
-    /// Pattern of focus costs across all cards.
+    /// Pattern of Initiative costs across all cards.
     /// Determines the intensity level required in NPC dialogue.
     /// </summary>
-    public FocusPattern FocusPattern { get; set; }
+    public InitiativePattern InitiativePattern { get; set; }
 
     /// <summary>
     /// Most common narrative category among the cards.
@@ -51,26 +51,26 @@ public class CardAnalysis
 }
 
 /// <summary>
-/// Pattern of focus costs across active cards.
+/// Pattern of Initiative costs across active cards.
 /// Used to determine narrative intensity requirements.
 /// </summary>
-public enum FocusPattern
+public enum InitiativePattern
 {
     /// <summary>
-    /// All cards have low focus costs (1-2).
+    /// All cards are Foundation tier (0-2 Initiative).
     /// NPC should be verbose with many response angles.
     /// </summary>
-    AllLow,
+    AllFoundation,
 
     /// <summary>
-    /// Cards have mixed focus costs.
+    /// Cards have mixed Initiative costs.
     /// NPC should present layered statements with multiple engagement levels.
     /// </summary>
     Mixed,
 
     /// <summary>
-    /// All cards have high focus costs (3+).
+    /// All cards are Standard/Decisive tier (3+ Initiative).
     /// NPC should say something provocative warranting strong response.
     /// </summary>
-    AllHigh
+    AllHighTier
 }

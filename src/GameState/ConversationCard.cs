@@ -29,6 +29,14 @@ public class ConversationCard
     public List<AlternativeCost> AlternativeCosts { get; init; } = new();
     public ScalingFormula ScalingEffect { get; init; }
 
+    // Parsed effects from JSON
+    public int? EffectInitiative { get; init; } // Initiative gained/lost
+    public int? EffectMomentum { get; init; } // Momentum gained/lost
+    public int? EffectDoubt { get; init; } // Doubt gained/lost (negative = reduction)
+    public int? EffectCadence { get; init; } // Cadence change
+    public int? EffectDrawCards { get; init; } // Cards to draw
+    public decimal? EffectMomentumMultiplier { get; init; } // Momentum multiplier
+
     // Legacy system properties (maintained for migration compatibility)
     public ConnectionType TokenType { get; init; }
     public int Focus { get; init; } = 0; // DEPRECATED: Use InitiativeCost instead

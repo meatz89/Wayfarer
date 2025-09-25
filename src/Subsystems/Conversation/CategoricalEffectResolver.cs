@@ -55,93 +55,22 @@ public class CategoricalEffectResolver
         switch (card.SuccessType)
         {
             case SuccessEffectType.Strike:
-                // Use card's momentum scaling formula with player stats for bonuses
-                PlayerStats player = gameWorld.GetPlayer().Stats;
-                int momentumGain = card.ConversationCardTemplate.GetMomentumEffect(session, player);
-
-                // Handle resource conversion cards (negative momentum = spend momentum for other effects)
-                if (momentumGain < 0 && card.ConversationCardTemplate.MomentumScaling != ScalingType.None)
-                {
-                    int momentumCost = Math.Abs(momentumGain);
-                    if (session.CurrentMomentum >= momentumCost)
-                    {
-                        result.MomentumChange = -momentumCost;
-
-                        // Apply conversion effect based on scaling type
-                        switch (card.ConversationCardTemplate.MomentumScaling)
-                        {
-                            case ScalingType.SpendMomentumForDoubt:
-                                result.DoubtChange = -3; // Reduce doubt by 3
-                                result.EffectDescription = $"Spend {momentumCost} momentum → -3 doubt";
-                                break;
-                            case ScalingType.SpendMomentumForInitiative:
-                                result.InitiativeChange = 2; // Gain 2 initiative
-                                result.EffectDescription = $"Spend {momentumCost} momentum → +2 initiative";
-                                break;
-                            default:
-                                result.EffectDescription = $"Spend {momentumCost} momentum";
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        // Not enough momentum to afford the conversion
-                        result.MomentumChange = 0;
-                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
-                    }
-                }
-                else
-                {
-                    // Regular momentum generation
-                    result.MomentumChange = momentumGain;
-                    result.EffectDescription = GetStrikeEffectDescription(card, session, player, momentumGain);
-                }
+                // Build comprehensive effect description from all 4-resource effects
+                result = BuildComprehensiveEffectResult(card, session);
                 break;
 
             case SuccessEffectType.Soothe:
-                // Handle resource conversion for Soothe cards
-                if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
-                {
-                    int momentumCost = 2; // Fixed cost for clarity
-                    if (session.CurrentMomentum >= momentumCost)
-                    {
-                        result.MomentumChange = -momentumCost;
-                        result.DoubtChange = -3; // Reduce doubt by 3
-                        result.EffectDescription = $"Spend {momentumCost} momentum → -3 doubt";
-                    }
-                    else
-                    {
-                        result.MomentumChange = 0;
-                        result.EffectDescription = $"Need {momentumCost} momentum (have {session.CurrentMomentum})";
-                    }
-                }
-                else if (card.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
-                {
-                    // Special effect: prevent next doubt increase
-                    result.DoubtChange = 0; // No immediate change
-                    result.EffectDescription = "Prevent next doubt increase";
-                    // Note: session.PreventNextDoubtIncrease will be set by ConversationFacade when effect is applied
-                }
-                else
-                {
-                    // Regular doubt reduction
-                    int doubtReduction = magnitude;
-                    result.DoubtChange = -doubtReduction;
-                    result.EffectDescription = $"-{doubtReduction} doubt";
-                }
+                // Calculate doubt reduction from card's direct effects
+                int doubtChange = GetEffectiveDoubtChange(card, session);
+                result.DoubtChange = doubtChange;
+                result.EffectDescription = doubtChange < 0 ? $"{doubtChange} Doubt" : $"+{doubtChange} Doubt";
                 break;
 
             case SuccessEffectType.Threading:
-                // Threading = card draw (regardless of card category)
-                for (int i = 0; i < magnitude; i++)
-                {
-                    CardInstance drawn = session.Deck.DrawCard();
-                    if (drawn != null)
-                    {
-                        result.CardsToAdd.Add(drawn);
-                    }
-                }
-                result.EffectDescription = $"Draw {magnitude} cards";
+                // Calculate card draw from card's direct effects
+                int cardsToDraw = GetEffectiveCardDraw(card, session);
+                result.EffectDescription = cardsToDraw > 0 ? $"Draw {cardsToDraw} card{(cardsToDraw == 1 ? "" : "s")}" : "No cards drawn";
+                // Note: Don't actually draw cards in projection - that's for execution
                 break;
 
             // Deprecated effect types removed in refined system
@@ -332,6 +261,170 @@ public class CategoricalEffectResolver
 
         // Default basic momentum gain
         return $"Gain {momentumGain} momentum";
+    }
+
+    /// <summary>
+    /// Get effective momentum gain from card, checking new effects structure first
+    /// </summary>
+    private int GetEffectiveMomentumGain(CardInstance card, ConversationSession session)
+    {
+        // Try to get from card's stored effect data first (from JSON parsing)
+        if (TryGetStoredEffect(card, "Momentum", out int storedMomentum))
+        {
+            return storedMomentum;
+        }
+
+        // Fall back to legacy calculation
+        PlayerStats player = gameWorld.GetPlayer().Stats;
+        return card.ConversationCardTemplate.GetMomentumEffect(session, player);
+    }
+
+    /// <summary>
+    /// Get effective doubt change from card, checking new effects structure first
+    /// </summary>
+    private int GetEffectiveDoubtChange(CardInstance card, ConversationSession session)
+    {
+        // Try to get from card's stored effect data first
+        if (TryGetStoredEffect(card, "Doubt", out int storedDoubt))
+        {
+            return storedDoubt;
+        }
+
+        // Fall back to legacy calculation
+        return card.ConversationCardTemplate.GetDoubtEffect(session);
+    }
+
+    /// <summary>
+    /// Get effective card draw from card, checking new effects structure first
+    /// </summary>
+    private int GetEffectiveCardDraw(CardInstance card, ConversationSession session)
+    {
+        // Try to get from card's stored effect data first
+        if (TryGetStoredEffect(card, "DrawCards", out int storedDraw))
+        {
+            return storedDraw;
+        }
+
+        // Fall back to legacy - Threading gives magnitude-based draw
+        return GetMagnitude(card.Difficulty);
+    }
+
+    /// <summary>
+    /// Get effective initiative change from card, checking new effects structure first
+    /// </summary>
+    private int GetEffectiveInitiativeChange(CardInstance card, ConversationSession session)
+    {
+        // Try to get from card's stored effect data first
+        if (TryGetStoredEffect(card, "Initiative", out int storedInitiative))
+        {
+            return storedInitiative;
+        }
+
+        // No legacy initiative system - return 0
+        return 0;
+    }
+
+    /// <summary>
+    /// Try to get stored effect value from card's parsed effects from JSON
+    /// </summary>
+    private bool TryGetStoredEffect(CardInstance card, string effectName, out int effectValue)
+    {
+        effectValue = 0;
+
+        if (card?.ConversationCardTemplate == null) return false;
+
+        var template = card.ConversationCardTemplate;
+
+        return effectName switch
+        {
+            "Momentum" => TryGetNullableInt(template.EffectMomentum, out effectValue),
+            "Initiative" => TryGetNullableInt(template.EffectInitiative, out effectValue),
+            "Doubt" => TryGetNullableInt(template.EffectDoubt, out effectValue),
+            "Cadence" => TryGetNullableInt(template.EffectCadence, out effectValue),
+            "DrawCards" => TryGetNullableInt(template.EffectDrawCards, out effectValue),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Helper to extract int value from nullable
+    /// </summary>
+    private bool TryGetNullableInt(int? nullableValue, out int value)
+    {
+        if (nullableValue.HasValue)
+        {
+            value = nullableValue.Value;
+            return true;
+        }
+        value = 0;
+        return false;
+    }
+
+    /// <summary>
+    /// Build comprehensive effect result from all available 4-resource effects
+    /// </summary>
+    private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, ConversationSession session)
+    {
+        var result = new CardEffectResult
+        {
+            Card = card,
+            MomentumChange = 0,
+            DoubtChange = 0,
+            InitiativeChange = 0,
+            CardsToAdd = new List<CardInstance>(),
+            FocusAdded = 0,
+            EffectDescription = "",
+            EndsConversation = false
+        };
+
+        var effects = new List<string>();
+
+        // Check each effect type and accumulate
+        if (TryGetStoredEffect(card, "Initiative", out int initiative) && initiative != 0)
+        {
+            result.InitiativeChange = initiative;
+            effects.Add(initiative > 0 ? $"+{initiative} Initiative" : $"{initiative} Initiative");
+        }
+
+        if (TryGetStoredEffect(card, "Momentum", out int momentum) && momentum != 0)
+        {
+            result.MomentumChange = momentum;
+            effects.Add(momentum > 0 ? $"+{momentum} Momentum" : $"{momentum} Momentum");
+        }
+
+        if (TryGetStoredEffect(card, "Doubt", out int doubt) && doubt != 0)
+        {
+            result.DoubtChange = doubt;
+            effects.Add(doubt > 0 ? $"+{doubt} Doubt" : $"{-doubt} Doubt");
+        }
+
+        if (TryGetStoredEffect(card, "Cadence", out int cadence) && cadence != 0)
+        {
+            result.CadenceChange = cadence;
+            effects.Add(cadence > 0 ? $"+{cadence} Cadence" : $"{cadence} Cadence");
+        }
+
+        if (TryGetStoredEffect(card, "DrawCards", out int drawCards) && drawCards > 0)
+        {
+            effects.Add($"Draw {drawCards} card{(drawCards == 1 ? "" : "s")}");
+        }
+
+        // Handle momentum multiplier
+        if (card.ConversationCardTemplate?.EffectMomentumMultiplier.HasValue == true)
+        {
+            decimal multiplier = card.ConversationCardTemplate.EffectMomentumMultiplier.Value;
+            if (multiplier > 1)
+            {
+                result.MomentumChange = (int)(session.CurrentMomentum * multiplier) - session.CurrentMomentum;
+                effects.Clear(); // Clear other effects for multiplier
+                effects.Add($"Double Momentum ({session.CurrentMomentum} → {session.CurrentMomentum * (int)multiplier})");
+            }
+        }
+
+        // Build final description
+        result.EffectDescription = effects.Any() ? string.Join(", ", effects) : "No effect";
+
+        return result;
     }
 }
 

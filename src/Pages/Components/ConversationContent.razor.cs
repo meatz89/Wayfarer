@@ -592,11 +592,25 @@ namespace Wayfarer.Pages.Components
             {
                 CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
+                // First check for comprehensive effect description (4-resource system)
+                if (!string.IsNullOrEmpty(projection.EffectDescription) && projection.EffectDescription != "No effect")
+                {
+                    return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
+                }
+
+                // Legacy fallback checks for individual effects
                 if (projection.MomentumChange != 0)
                 {
                     return projection.MomentumChange > 0
                         ? $"+{projection.MomentumChange} Momentum"
                         : $"{projection.MomentumChange} Momentum";
+                }
+
+                if (projection.InitiativeChange != 0)
+                {
+                    return projection.InitiativeChange > 0
+                        ? $"+{projection.InitiativeChange} Initiative"
+                        : $"{projection.InitiativeChange} Initiative";
                 }
 
                 if (projection.CardsToAdd?.Count > 0)
@@ -610,20 +624,6 @@ namespace Wayfarer.Pages.Components
                     return projection.FocusAdded > 0
                         ? $"+{projection.FocusAdded} focus"
                         : $"{projection.FocusAdded} focus";
-                }
-
-                if (projection.InitiativeChange != 0)
-                {
-                    return projection.InitiativeChange > 0
-                        ? $"+{projection.InitiativeChange} initiative"
-                        : $"{projection.InitiativeChange} initiative";
-                }
-
-                if (!string.IsNullOrEmpty(projection.EffectDescription))
-                {
-                    // Use the special effect description from projection
-                    // This handles Promising and other special types
-                    return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
                 }
             }
 
@@ -1007,9 +1007,14 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.ConversationCardTemplate == null) return 0;
 
-            // TODO: Get from card template when initiative cost is added
-            // For now, use legacy focus cost as placeholder
-            return card.GetEffectiveFocus(Session?.CurrentState ?? ConnectionState.NEUTRAL);
+            // In 4-resource system, use InitiativeCost from template, fallback to legacy Focus for compatibility
+            if (card.ConversationCardTemplate.InitiativeCost > 0)
+            {
+                return card.ConversationCardTemplate.InitiativeCost;
+            }
+
+            // Legacy fallback: use Focus property until all cards migrated
+            return card.Focus;
         }
 
         /// <summary>

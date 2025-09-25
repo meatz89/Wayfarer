@@ -586,10 +586,10 @@ public class ConversationFacade
         if (!card.IsPlayable)
             return false;
 
-        // Check focus availability - THIS IS CRITICAL FOR ALL CARDS
-        int cardFocus = card.Focus;
-        int availableFocus = session.GetAvailableFocus();
-        bool canAfford = session.CanAffordCard(cardFocus);
+        // Check Initiative availability - THIS IS CRITICAL FOR ALL CARDS
+        int cardInitiative = GetCardInitiativeCost(card);
+        int availableInitiative = session.GetCurrentInitiative();
+        bool canAfford = session.CanAffordCard(cardInitiative);
 
         // Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}"); // Removed excessive logging
 
@@ -627,8 +627,8 @@ public class ConversationFacade
             return true; // Can deselect
 
         // Check initiative cost against available initiative
-        int currentInitiativeCost = currentSelection.Sum(c => c.Focus);
-        int totalInitiativeCost = currentInitiativeCost + card.Focus;
+        int currentInitiativeCost = currentSelection.Sum(c => GetCardInitiativeCost(c));
+        int totalInitiativeCost = currentInitiativeCost + GetCardInitiativeCost(card);
 
         return totalInitiativeCost <= _currentSession.GetCurrentInitiative();
     }
@@ -1197,11 +1197,11 @@ public class ConversationFacade
             };
         }
 
-        // Focus cost is always the card's focus cost (no free effects from deleted AtmosphereManager)
-        int focusCost = selectedCard.Focus;
+        // Initiative cost is determined by the card's Initiative requirement
+        int initiativeCost = GetCardInitiativeCost(selectedCard);
 
-        // Validate focus availability
-        if (!session.CanAffordCard(focusCost))
+        // Validate Initiative availability
+        if (!session.CanAffordCard(initiativeCost))
         {
             return new CardPlayResult
             {
@@ -1235,11 +1235,11 @@ public class ConversationFacade
             }
         }
 
-        // Spend focus - focus represents effort of speaking
-        session.SpendFocus(focusCost);
+        // Spend Initiative - Initiative represents built-up conversational energy
+        session.SpendFocus(initiativeCost); // Using legacy method for compatibility
 
-        // Update card playability immediately after spending focus
-        UpdateCardPlayabilityBasedOnFocus(session);
+        // Update card playability immediately after spending Initiative
+        UpdateCardPlayabilityBasedOnInitiative(session);
 
         CardEffectResult effectResult = null;
         int flowChange = 0;
@@ -1530,28 +1530,28 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Update all cards' playability based on current focus availability
-    /// Cards that cost more focus than available are marked Unplayable
+    /// Update all cards' playability based on current Initiative availability
+    /// Cards that cost more Initiative than available are marked Unplayable
     /// </summary>
-    private void UpdateCardPlayabilityBasedOnFocus(ConversationSession session)
+    private void UpdateCardPlayabilityBasedOnInitiative(ConversationSession session)
     {
-        int availableFocus = session.GetAvailableFocus();
+        int availableInitiative = session.GetCurrentInitiative();
 
         foreach (CardInstance card in session.Deck.HandCards)
         {
-            // Skip request/promise cards - their playability is based on momentum, not focus
+            // Skip request/promise cards - their playability is based on momentum, not Initiative
             if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
             {
                 continue; // Don't modify request card playability here
             }
 
-            // Calculate effective focus cost for this card (no more free effects)
-            int effectiveFocusCost = card.Focus;
+            // Calculate effective Initiative cost for this card
+            int effectiveInitiativeCost = GetCardInitiativeCost(card);
 
             // Check if we can afford this card
-            bool canAfford = session.CanAffordCard(effectiveFocusCost);
+            bool canAfford = session.CanAffordCard(effectiveInitiativeCost);
 
-            // Update playability based on focus availability
+            // Update playability based on Initiative availability
             card.IsPlayable = canAfford;
         }
     }
@@ -1778,38 +1778,33 @@ public class ConversationFacade
 
         List<string> preview = new List<string>();
 
-        // Show doubt increase
-        int baseDoubtIncrease = 3; // From desperate plea
-        int unspentFocusPenalty = _currentSession.GetAvailableFocus();
-        int totalDoubt = _currentSession.CurrentDoubt + baseDoubtIncrease + unspentFocusPenalty;
+        // Show Cadence effects
+        int currentCadence = _currentSession.Cadence;
+        int newCadence = currentCadence + 3; // LISTEN gives +3 Cadence
+        preview.Add($"Cadence: {currentCadence} → {Math.Clamp(newCadence, -10, 10)} (+3 for listening)");
 
-        preview.Add($"Doubt <span class='icon-arrow-right'></span> {totalDoubt} (+{baseDoubtIncrease} base{(unspentFocusPenalty > 0 ? $" +{unspentFocusPenalty} unspent" : "")})");
-
-        // Show momentum erosion (Devoted doubles losses)
-        int erosion = totalDoubt;
-        if (_currentSession.NPC?.PersonalityType == PersonalityType.DEVOTED)
+        // Show high cadence doubt penalty if applicable
+        if (newCadence >= 6)
         {
-            erosion *= 2;
-            int newMomentum = Math.Max(0, _currentSession.CurrentMomentum - erosion);
-            preview.Add($"Momentum {_currentSession.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum} (Devoted 2x!)");
+            int doubtPenalty = Math.Max(0, newCadence - 5);
+            int newDoubt = Math.Min(_currentSession.MaxDoubt, _currentSession.CurrentDoubt + doubtPenalty);
+            preview.Add($"Doubt: {_currentSession.CurrentDoubt} → {newDoubt} (high cadence penalty)");
+        }
+
+        // Show card draw (fixed 4 + cadence bonus)
+        int drawCount = _currentSession.GetDrawCount();
+        bool hasCadenceBonus = newCadence <= -3;
+        if (hasCadenceBonus)
+        {
+            preview.Add($"Draw {drawCount} cards (4 base + 1 cadence bonus)");
         }
         else
         {
-            int newMomentum = Math.Max(0, _currentSession.CurrentMomentum - erosion);
-            preview.Add($"Momentum {_currentSession.CurrentMomentum} <span class='icon-arrow-right'></span> {newMomentum}");
+            preview.Add($"Draw {drawCount} cards (4 base)");
         }
 
-        // Show draw with impulse penalties
-        int impulseCount = _currentSession.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Standard);
-        int drawCount = _currentSession.GetDrawCount() - impulseCount;
-        if (impulseCount > 0)
-        {
-            preview.Add($"Draw {drawCount} cards ({_currentSession.GetDrawCount()} - {impulseCount} Impulses)");
-        }
-        else
-        {
-            preview.Add($"Draw {_currentSession.GetDrawCount()} cards");
-        }
+        // Show Initiative status (no refresh in 4-resource system)
+        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (no refresh - must build through cards)");
 
         return string.Join("<br/>", preview);
     }
@@ -1823,11 +1818,18 @@ public class ConversationFacade
 
         if (selectedCard == null)
         {
-            return $"Select a card to play ({_currentSession.GetAvailableFocus()} focus available)";
+            return $"Select a card to play ({_currentSession.CurrentInitiative} Initiative available)";
         }
 
-        int focusCost = selectedCard.GetEffectiveFocus(_currentSession.CurrentState);
-        return $"Play card (Cost: {focusCost} focus)";
+        int initiativeCost = GetCardInitiativeCost(selectedCard);
+        int newInitiative = Math.Max(0, _currentSession.CurrentInitiative - initiativeCost);
+        int newCadence = Math.Clamp(_currentSession.Cadence - 1, -10, 10); // SPEAK gives -1 Cadence
+
+        List<string> preview = new List<string>();
+        preview.Add($"Initiative: {_currentSession.CurrentInitiative} → {newInitiative} (-{initiativeCost})");
+        preview.Add($"Cadence: {_currentSession.Cadence} → {newCadence} (-1 for speaking)");
+
+        return string.Join("<br/>", preview);
     }
 
     /// <summary>
@@ -1839,19 +1841,19 @@ public class ConversationFacade
 
         if (selectedCard != null)
         {
-            int focus = selectedCard.Focus;
-            int remainingAfter = _currentSession.GetAvailableFocus() - focus;
-            string continueHint = remainingAfter > 0 ? $" (Can SPEAK {remainingAfter} more)" : " (Must LISTEN after)";
-            return $"Play Card ({focus} focus)";
+            int initiativeCost = GetCardInitiativeCost(selectedCard);
+            int remainingAfter = _currentSession.CurrentInitiative - initiativeCost;
+            string continueHint = remainingAfter > 0 ? $" (Can continue with {remainingAfter} Initiative)" : " (Must use Foundation cards to build Initiative)";
+            return $"Play Card ({initiativeCost} Initiative){continueHint}";
         }
 
-        int availableFocus = _currentSession.GetAvailableFocus();
-        if (availableFocus == 0)
-            return "No focus remaining - must LISTEN to refresh";
-        else if (availableFocus == 1)
-            return "Select a card to play (1 focus remaining)";
+        int availableInitiative = _currentSession.CurrentInitiative;
+        if (availableInitiative == 0)
+            return "No Initiative - use Foundation cards to build Initiative";
+        else if (availableInitiative == 1)
+            return "Select a card to play (1 Initiative available)";
         else
-            return $"Select a card to play ({availableFocus} focus available)";
+            return $"Select a card to play ({availableInitiative} Initiative available)";
     }
 
     /// <summary>

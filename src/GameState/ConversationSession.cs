@@ -100,18 +100,19 @@ public class ConversationSession
 
     // NEW: Initiative system methods (replacing Focus methods)
     public int GetCurrentInitiative() => CurrentInitiative;
+
+    // LEGACY COMPATIBILITY WARNING: These methods are deprecated - use Initiative methods instead
     public int GetAvailableFocus() => CurrentInitiative; // Legacy compatibility - returns Initiative
-
-    public bool CanAffordCard(int initiativeCost) => CurrentInitiative >= initiativeCost;
     public void SpendFocus(int initiativeCost) => CurrentInitiative = Math.Max(0, CurrentInitiative - initiativeCost);
-
     public void AddFocus(int initiative) => CurrentInitiative += initiative;
-
     public void RefreshFocus()
     {
         // In 4-resource system, Initiative doesn't refresh automatically - must be built through cards
         // This method maintained for compatibility but does nothing
     }
+
+    // PROPER 4-RESOURCE SYSTEM METHODS
+    public bool CanAffordCard(int initiativeCost) => CurrentInitiative >= initiativeCost;
 
 
     // NEW: Initiative does NOT refresh automatically (must be earned like Steamworld Quest)
