@@ -9,19 +9,20 @@
 6. [Resource Economy](#resource-economy)
 7. [Time Segment System](#time-segment-system)
 8. [Conversation System](#conversation-system)
-9. [Conversation Card Distribution](#conversation-card-distribution)
-10. [Queue Management System](#queue-management-system)
-11. [Strategic Resource Management](#strategic-resource-management)
-12. [Economic Balance Points](#economic-balance-points)
-13. [Resource Conversion Chains](#resource-conversion-chains)
-14. [Work System](#work-system)
-15. [Exchange System](#exchange-system)
-16. [No Soft-Lock Architecture](#no-soft-lock-architecture)
-17. [Content Scalability](#content-scalability)
-18. [The Holistic Experience](#the-holistic-experience)
-19. [Content Loading System](#content-loading-system)
-20. [Core Innovation Summary](#core-innovation-summary)
-21. [Design Verification](#design-verification-checklist)
+9. [Player Stats System](#player-stats-system)
+10. [Conversation Card Distribution](#conversation-card-distribution)
+11. [Queue Management System](#queue-management-system)
+12. [Strategic Resource Management](#strategic-resource-management)
+13. [Economic Balance Points](#economic-balance-points)
+14. [Resource Conversion Chains](#resource-conversion-chains)
+15. [Work System](#work-system)
+16. [Exchange System](#exchange-system)
+17. [No Soft-Lock Architecture](#no-soft-lock-architecture)
+18. [Content Scalability](#content-scalability)
+19. [The Holistic Experience](#the-holistic-experience)
+20. [Content Loading System](#content-loading-system)
+21. [Core Innovation Summary](#core-innovation-summary)
+22. [Design Verification](#design-verification-checklist)
 
 ## Core Design Philosophy
 
@@ -94,17 +95,17 @@ Each conversation deck is built around a 4-tier strategic framework:
 - Contains cards from all four strategic categories
 - Lower difficulty cards predominate
 
-**Desperate Request**: Heavy Momentum/Insight, zero Authority
+**Desperate Request**: Heavy Rapport/Insight, zero Authority
 - For NPCs in crisis needing help
 - Empathetic generators and doubt-reducing converters
 - Scaling cards that reward emotional investment
 
-**Trade Negotiation**: Heavy Commerce/Insight, zero Momentum
+**Trade Negotiation**: Heavy Commerce/Insight, zero Rapport
 - Business discussions and deals
 - Momentum-efficient generators and flow converters
 - Utility cards for focus optimization
 
-**Authority Challenge**: Heavy Authority/Cunning, zero Momentum
+**Authority Challenge**: Heavy Authority/Cunning, zero Rapport
 - Confrontations and power struggles
 - High-impact generators and flow investments
 - Risk-reward converters for power plays
@@ -382,9 +383,9 @@ Certain paths require minimum stat levels:
 - "Complex Route" - Requires Insight 3+
 - Navigate through understanding patterns
 
-**Momentum Paths**:
-- "Local's Favor" - Requires Momentum 2+
-- "Safe House Route" - Requires Momentum 4+
+**Rapport Paths**:
+- "Local's Favor" - Requires Rapport 2+
+- "Safe House Route" - Requires Rapport 4+
 - Friends help you pass
 
 **Authority Paths**:
@@ -967,7 +968,7 @@ Investigation has multiple approaches unlocked by player stats:
 - Effect: +1 additional familiarity
 - Reveals hidden connections
 
-**Local Inquiry** (Momentum 2+):
+**Local Inquiry** (Rapport 2+):
 - Cost: 1 segment
 - Effect: Normal familiarity + learn which NPCs want observations from this location
 - Builds social map of location
@@ -1128,7 +1129,7 @@ Each card is defined by strategic role and resource relationships:
 - **None**: No effect when discarded
 
 #### Stat Binding (which stat gains XP and provides bonuses)
-- Every card bound to exactly one stat: Insight, Momentum, Authority, Commerce, or Cunning
+- Every card bound to exactly one stat: Insight, Rapport, Authority, Commerce, or Cunning
 - Determines which stat gains XP when played
 - Determines which stat level provides card bonuses
 
@@ -1167,8 +1168,8 @@ Players have five core stats representing different problem-solving methodologie
 - Unlocks systematic investigation approaches
 - Gates scholarly and complex travel paths
 
-**Momentum** - Building conversation progress toward goals
-- Bound cards focus on advancing conversation objectives
+**Rapport** - Empathetic connection and supportive communication
+- Bound cards focus on emotional understanding and supportive responses
 - Unlocks social investigation through locals
 - Gates community-based travel paths
 
@@ -1212,7 +1213,7 @@ Players have five core stats representing different problem-solving methodologie
 
 Players develop five core stats representing conversational methodologies:
 
-**Stat System**: Five stats (Insight, Momentum, Authority, Commerce, Cunning)
+**Stat System**: Five stats (Insight, Rapport, Authority, Commerce, Cunning)
 **Stat Growth**: XP gained by playing cards bound to that stat
 **Stat Enhancement**: Higher stat levels make all cards of that type more effective
 **No Deck Ownership**: Players don't collect cards - conversation types provide context-appropriate decks
@@ -1588,7 +1589,7 @@ All cards bound to a stat gain uniform benefits:
 - Level 5: Immune to ForceListen failure effect
 
 **Strategic Development**:
-Players naturally develop specialties through play patterns. High Momentum players find goal-oriented approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
+Players naturally develop specialties through play patterns. High Rapport players find empathetic approaches more reliable. High Cunning players excel at indirect communication. Balanced builds remain viable but less specialized.
 
 ### Stat Development Through Play
 
@@ -1622,10 +1623,10 @@ These cards represent the mechanical expression of each relationship, making eve
 
 **Personality Optimization**: Develop stats for specific NPC types
 - **Proud Focus**: Authority and Commerce work well with ascending requirements
-- **Devoted Safety**: Momentum minimizes negative effects from additional losses
+- **Devoted Safety**: Rapport minimizes negative effects from additional doubt losses
 - **Mercantile Power**: Commerce naturally has high-focus cards for +30% bonus
 - **Cunning Variety**: Insight and Cunning provide diverse approaches
-- **Steadfast Consistency**: Momentum provides steady small gains within ±2 cap
+- **Steadfast Consistency**: Rapport cards provide steady momentum gains within ±2 cap
 
 **Token Strategy**: Which relationships to prioritize
 - Commerce tokens for Marcus improve starting state for trade conversations
@@ -2025,7 +2026,7 @@ New player cards must follow:
 - **Difficulty tier**: Very Easy to Very Hard
 - **Persistence**: ~20% should be Persistent
 - **Rarity**: Common, Uncommon, or Rare
-- **Stat Binding**: Must specify which stat (Insight/Momentum/Authority/Commerce/Cunning)
+- **Stat Binding**: Must specify which stat (Insight/Rapport/Authority/Commerce/Cunning)
 
 ### Adding Items
 
@@ -2210,7 +2211,6 @@ The strategic card framework transforms character progression from simple power 
 - Medium: 2
 - Hard: 3
 - Very Hard: 4
-
 
 **Stat Level Thresholds**:
 - Level 1→2: 10 XP

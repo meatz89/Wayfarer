@@ -2,6 +2,11 @@
 
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 **⚠️ MANDATORY: READ OUR EXISTING JSON CONTENT FILES AND CSS FILES ⚠️**
+**🚨 MANDATORY: READ ENTIRE DOCUMENTS BEFORE MAKING ANY CHANGES 🚨**
+**BEFORE making ANY changes to documentation files, you MUST READ THE ENTIRE FILE FIRST to understand the complete structure, existing sections, and overall organization. Making changes without understanding the full document context is UNACCEPTABLE.**
+
+**🚨 ALWAYS READ COMPLETE FILES - NO PARTIAL READS 🚨**
+**When using the Read tool on ANY file, NEVER use limit or offset parameters unless the file is genuinely too large to read at once. ALWAYS read the complete file from start to finish. Reading only portions leads to missing critical information and making incorrect assumptions about file structure and content. This is a MANDATORY principle - there are NO exceptions.**
 
 **🧪 TESTING PRINCIPLE: ALWAYS USE PLAYWRIGHT FOR E2E TESTS 🧪**
 **Test the actual UI experience that players will see, not backend endpoints.**
