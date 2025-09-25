@@ -262,7 +262,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-
         private async Task GenerateInitialNarrative()
         {
             // Set fallback immediately for instant display
@@ -427,7 +426,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-
         private string GetStateTransitionDialogue(ConnectionState newState)
         {
 
@@ -441,19 +439,6 @@ namespace Wayfarer.Pages.Components
                 ConnectionState.TRUSTING => "I feel like you really understand me.",
                 _ => "Hmm..."
             };
-        }
-
-        private string GetResponseDialogue()
-        {
-            // Generate response based on current flow level (-3 to +3)
-            if (Session.FlowBattery >= 2)
-                return "This conversation has been wonderful!";
-            else if (Session.FlowBattery >= 0)
-                return "I appreciate you taking the time to talk.";
-            else if (Session.FlowBattery >= -2)
-                return "I see what you mean...";
-            else
-                return "I'm not sure about this...";
         }
 
         protected void ToggleCardSelection(CardInstance card)
@@ -483,7 +468,6 @@ namespace Wayfarer.Pages.Components
             return GameFacade.CanPlayCard(card, Session);
         }
 
-
         protected string GetStateClass()
         {
             return Session?.CurrentState switch
@@ -496,7 +480,6 @@ namespace Wayfarer.Pages.Components
                 _ => ""
             };
         }
-
 
         protected string GetConnectionStateDisplay()
         {
@@ -512,7 +495,6 @@ namespace Wayfarer.Pages.Components
                 _ => Session.CurrentState.ToString()
             };
         }
-
 
         protected string GetProperCardName(CardInstance card)
         {
@@ -535,9 +517,6 @@ namespace Wayfarer.Pages.Components
             // Default to template ID with formatting
             return card.Id?.Replace("_", " ") ?? "Unknown Card";
         }
-
-
-
 
         protected string GetDoubtSlotClass(int slotNumber)
         {
@@ -563,7 +542,6 @@ namespace Wayfarer.Pages.Components
 
             return string.Join(" <span class='icon-bullet'></span> ", status);
         }
-
 
         protected string GetProperCardDialogue(CardInstance card)
         {
@@ -665,9 +643,6 @@ namespace Wayfarer.Pages.Components
                 _ => "Hello, what brings you here?"
             };
         }
-
-
-
 
         protected async Task ManuallyEndConversation()
         {
@@ -908,10 +883,6 @@ namespace Wayfarer.Pages.Components
 
         // ===== NEW UI UPDATE METHODS =====
 
-        
-
-
-
         /// <summary>
         /// Returns CSS class name for card stat badges (lowercase stat name)
         /// </summary>
@@ -958,9 +929,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-
-
-
         /// <summary>
         /// Returns display-friendly name for card category
         /// </summary>
@@ -991,7 +959,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-
         /// <summary>
         /// Get card effect description for the new system
         /// </summary>
@@ -1001,8 +968,5 @@ namespace Wayfarer.Pages.Components
 
             return GetSuccessEffectDescription(card);
         }
-
-
-
     }
 }
