@@ -43,7 +43,6 @@ public class ConversationSession
     // NPC-specific observation cards (from NPC's ObservationDeck)
     public List<CardInstance> NPCObservationCards { get; set; } = new();
 
-    // DELETED: RequestPile - now in Deck.RequestCards
 
     // Conversation turn history
     public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();

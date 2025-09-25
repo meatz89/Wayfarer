@@ -192,7 +192,7 @@ namespace Wayfarer.Pages.Components
             CanTravel = spot?.SpotProperties?.Contains(SpotPropertyType.Crossroads) ?? false;
             Console.WriteLine($"[LocationContent] Spot: {spot?.Name}, Properties: {string.Join(", ", spot?.SpotProperties ?? new List<SpotPropertyType>())}, CanTravel: {CanTravel}");
 
-            // Check if can work at this spot (legacy)
+            // Check if can work at this spot
             CanWork = spot?.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
 
             // Get dynamic location actions

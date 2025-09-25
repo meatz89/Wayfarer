@@ -19,7 +19,6 @@ namespace Wayfarer
     public class AnimatingCard
     {
         public CardInstance Card { get; set; }
-        public bool Success { get; set; }  // Legacy - kept for compatibility
         public CardAnimationType AnimationType { get; set; }
         public DateTime AddedAt { get; set; }
         public int OriginalPosition { get; set; } // Track original position in hand

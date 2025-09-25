@@ -116,9 +116,6 @@ public class GameConfigValidator : IContentValidator
             return;
         }
 
-        // hoursPerDay property has been removed in favor of segment-based timing
-
-        // Legacy hour-based validation has been removed in favor of segment-based timing
     }
 
     private void ValidateStaminaConfig(JsonElement root, string fileName, List<ValidationError> errors)

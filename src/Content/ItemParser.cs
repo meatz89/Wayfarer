@@ -16,7 +16,6 @@ public static class ItemParser
             Focus = dto.Focus,
             BuyPrice = dto.BuyPrice,
             SellPrice = dto.SellPrice,
-            InventorySlots = dto.InventorySlots,
             Description = dto.Description ?? ""
         };
 

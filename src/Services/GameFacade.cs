@@ -285,7 +285,7 @@ public class GameFacade
 
         // 2. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
-        int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
+        int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
         int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
 
         // Add load penalties if carrying many items

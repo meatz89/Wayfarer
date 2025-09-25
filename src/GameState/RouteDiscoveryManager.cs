@@ -142,7 +142,7 @@ public class RouteDiscoveryManager
     /// </summary>
     private bool PlayerHasItem(Player player, string itemId)
     {
-        return player.Inventory.ItemSlots.Any(slot => slot == itemId);
+        return player.Inventory.GetAllItems().Any(slot => slot == itemId);
     }
 
     /// <summary>

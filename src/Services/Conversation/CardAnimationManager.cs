@@ -44,7 +44,6 @@ namespace Wayfarer
             animatingCards.Add(new AnimatingCard
             {
                 Card = card,
-                Success = success,
                 AnimationType = success ? CardAnimationType.PlayedSuccess : CardAnimationType.PlayedFailure,
                 AddedAt = DateTime.Now,
                 OriginalPosition = originalPosition

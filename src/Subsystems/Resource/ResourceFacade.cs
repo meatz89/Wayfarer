@@ -198,7 +198,7 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                 }).ToList(),
                 TotalFocus = CalculateTotalFocus(),
                 MaxSlots = inventory.GetCapacity(),
-                UsedSlots = inventory.UsedCapacity,
+                UsedSlots = inventory.GetAllItems().Count,
                 Coins = GetCoins()
             };
         }

@@ -244,7 +244,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         BuyPrice = pricing.BuyPrice,
                         SellPrice = pricing.SellPrice,
                         Categories = item.Categories,
-                        InventorySlots = item.InventorySlots,
+                        Weight = item.Weight,
                         Size = item.Size
                     };
                     availableItems.Add(pricedItem);

@@ -153,7 +153,7 @@ public class AccessRequirementChecker
         if (!requirement.RequiredItemIds.Any())
             return true;
 
-        List<string> playerItems = player.Inventory.ItemSlots.Where(i => !string.IsNullOrEmpty(i)).ToList();
+        List<string> playerItems = player.Inventory.GetAllItems().Where(i => !string.IsNullOrEmpty(i)).ToList();
 
         if (requirement.Logic == RequirementLogic.Or)
         {
@@ -320,7 +320,7 @@ public class AccessRequirementChecker
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.ItemSlots)
+        foreach (string itemId in player.Inventory.GetAllItems())
         {
             if (!string.IsNullOrEmpty(itemId))
             {

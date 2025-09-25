@@ -8,7 +8,6 @@ namespace Wayfarer.Subsystems.TimeSubsystem
     /// </summary>
     public class TimeBlockCalculator
     {
-        // Legacy hour-based methods have been replaced with segment-based equivalents
 
         /// <summary>
         /// Calculate segments until a specific time block from current position.

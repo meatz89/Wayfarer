@@ -159,7 +159,7 @@ namespace Wayfarer.Pages.Components
 
             // Add load penalties
             Player player = GameFacade.GetPlayer();
-            int itemCount = player.Inventory.ItemSlots.Count(i => !string.IsNullOrEmpty(i));
+            int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
             if (itemCount > 3) // Light load threshold
             {
                 hungerCost += (itemCount - 3);

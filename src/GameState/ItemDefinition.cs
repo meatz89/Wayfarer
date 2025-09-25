@@ -10,7 +10,7 @@
             new Item { Name = "Rope", Focus = 2, BuyPrice = 6, SellPrice = 3, Categories = new List<ItemCategory> { ItemCategory.Climbing_Equipment } },
             new Item { Name = "Merchant Papers", Focus = 0, BuyPrice = 10, SellPrice = 5, Categories = new List<ItemCategory> { ItemCategory.Special_Access } },
             new Item { Name = "Lantern", Focus = 1, BuyPrice = 4, SellPrice = 2, Categories = new List<ItemCategory> { ItemCategory.Light_Source } },
-            new Item { Name = "Iron Ingots", Focus = 6, BuyPrice = 5, SellPrice = 15, InventorySlots = 2 },
+            new Item { Name = "Iron Ingots", Focus = 6, BuyPrice = 5, SellPrice = 15, Weight = 2 },
         };
     }
 }

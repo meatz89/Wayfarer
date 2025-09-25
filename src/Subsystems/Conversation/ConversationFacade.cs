@@ -981,7 +981,6 @@ public class ConversationFacade
     /// </summary>
     private List<CardInstance> ExecuteListenAction(ConversationSession session)
     {
-        // DELETED: Legacy Opening card logic - only Thought and Impulse exist now
 
         // Refresh focus
         session.RefreshFocus();
@@ -989,14 +988,12 @@ public class ConversationFacade
         // Calculate draw count based on state and atmosphere
         int baseDrawCount = session.GetDrawCount();
 
-        // CORRECT: Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
+        // Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
         int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Impulse);
         if (impulseCount > 0 && session.MomentumManager != null)
         {
             session.MomentumManager.AddDoubt(impulseCount);
         }
-
-        // Draw normal count - no draw penalty for Impulse cards
         session.Deck.DrawToHand(baseDrawCount);
 
         // Get the drawn cards for return value
@@ -1187,7 +1184,6 @@ public class ConversationFacade
             }
         }
 
-        // CORRECT: Impulse cards persist - they don't get removed after SPEAK
 
         CardPlayResult result = new CardPlayResult
         {
@@ -1205,7 +1201,6 @@ public class ConversationFacade
             FinalFlow = flowChange
         };
 
-        // CORRECT: No conversation ending from Impulse card removal
 
         return result;
     }
@@ -1395,11 +1390,7 @@ public class ConversationFacade
         }
     }
 
-    // DELETED: RemoveImpulseCardsFromHand - WRONG IMPLEMENTATION
-    // CORRECT: Impulse cards persist and only add +1 doubt on LISTEN
 
-    // DELETED: ExhaustOpeningCards - Legacy persistence type
-    // CORRECT: Only Thought and Impulse persistence exist now
 
 
 

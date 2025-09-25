@@ -24,7 +24,6 @@ public enum CardCategory
 
 /// <summary>
 /// Defines when a card can be played and how long it persists
-/// NEW DESIGN: Only TWO persistence types exist
 /// </summary>
 public enum PersistenceType
 {
@@ -37,8 +36,6 @@ public enum PersistenceType
     /// Persists on LISTEN but adds +1 doubt per card
     /// </summary>
     Impulse
-
-    // DELETED: Opening (legacy persistence type)
 }
 
 /// <summary>

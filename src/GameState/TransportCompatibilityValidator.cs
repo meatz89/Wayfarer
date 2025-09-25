@@ -105,7 +105,7 @@ public class TransportCompatibilityValidator
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.ItemSlots)
+        foreach (string itemId in player.Inventory.GetAllItems())
         {
             if (itemId != null && itemId != string.Empty)
             {
@@ -127,7 +127,7 @@ public class TransportCompatibilityValidator
     {
         List<Item> items = new List<Item>();
 
-        foreach (string itemId in player.Inventory.ItemSlots)
+        foreach (string itemId in player.Inventory.GetAllItems())
         {
             if (itemId != null && itemId != string.Empty)
             {

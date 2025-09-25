@@ -52,7 +52,6 @@ public class ConversationNarrativeGenerator
         CardAnalysis analysis = new CardAnalysis
         {
             HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Impulse)
-            // DELETED: HasOpening - legacy persistence type
         };
 
         // Categorize each card
@@ -81,7 +80,6 @@ public class ConversationNarrativeGenerator
 
         // Set urgency requirements
         analysis.RequiresUrgency = analysis.HasImpulse || analysis.RiskCards.Any();
-        // DELETED: RequiresInvitation - based on legacy Opening cards
 
         return analysis;
     }
@@ -97,7 +95,6 @@ public class ConversationNarrativeGenerator
         return new NarrativeConstraints
         {
             MustIncludeUrgency = analysis.RequiresUrgency,
-            // DELETED: MustIncludeInvitation - based on legacy Opening cards
             IntensityLevel = GetIntensityFromFocusPattern(analysis.FocusPattern),
             NarrativeStyle = analysis.DominantCategory
         };
@@ -327,7 +324,6 @@ public class ConversationNarrativeGenerator
         if (analysis.HasImpulse)
             return "Some opportunities require immediate action";
 
-        // DELETED: HasOpening check - legacy persistence type
 
         return null;
     }

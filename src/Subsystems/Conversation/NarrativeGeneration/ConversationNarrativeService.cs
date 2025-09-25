@@ -383,7 +383,6 @@ public class ConversationNarrativeService
         // Card persistence-based categories
         if (card.Persistence == PersistenceType.Impulse)
             return "pressure";
-        // DELETED: Opening persistence check - legacy type
 
         // Token type indicates support/connection building
         if (card.TokenType == ConnectionType.Trust)

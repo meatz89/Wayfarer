@@ -43,7 +43,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
             if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
             {
                 bool hasRequiredItem = route.AccessRequirement.RequiredItemIds
-                    .Any(itemId => player.Inventory.ItemSlots.Contains(itemId));
+                    .Any(itemId => player.Inventory.GetAllItems().Contains(itemId));
                 if (!hasRequiredItem)
                 {
                     return false;
@@ -78,7 +78,7 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 Player player = _gameWorld.GetPlayer();
                 foreach (string itemId in route.AccessRequirement.RequiredItemIds)
                 {
-                    if (!player.Inventory.ItemSlots.Contains(itemId))
+                    if (!player.Inventory.GetAllItems().Contains(itemId))
                     {
                         Item item = _itemRepository.GetItemById(itemId);
                         missingPermits.Add(item?.Name ?? itemId);

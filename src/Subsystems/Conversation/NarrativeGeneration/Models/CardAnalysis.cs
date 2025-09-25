@@ -10,7 +10,6 @@ public class CardAnalysis
     /// </summary>
     public bool HasImpulse { get; set; }
 
-    // DELETED: HasOpening - legacy persistence type
 
     /// <summary>
     /// Pattern of focus costs across all cards.
@@ -31,7 +30,6 @@ public class CardAnalysis
     /// </summary>
     public bool RequiresUrgency { get; set; }
 
-    // DELETED: RequiresInvitation - based on legacy Opening cards
 
     /// <summary>
     /// List of card IDs that are categorized as risk cards.

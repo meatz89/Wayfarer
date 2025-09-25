@@ -214,12 +214,4 @@ public class Inventory
         RemoveItem(item.Id);
     }
 
-    // Legacy compatibility properties (for gradual migration)
-    public string[] ItemSlots => _items.ToArray();
-    public int Size => MaxWeight;
-    public int UsedCapacity => _items.Count;
-    public bool HasFreeSlot()
-    {
-        return _items.Count < 100; // Arbitrary high number for compatibility
-    }
 }

@@ -103,7 +103,7 @@ public class TravelManager
     /// </summary>
     private List<PathCardDTO> GetPathCardsForEventSegment(RouteSegment segment, TravelSession session)
     {
-        // Step 1: Get event collection ID (new normalized or legacy)
+        // Step 1: Get event collection ID
         string eventCollectionId = segment.EventCollectionId;
 
         if (string.IsNullOrEmpty(eventCollectionId))

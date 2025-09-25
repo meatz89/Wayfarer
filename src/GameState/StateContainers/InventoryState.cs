@@ -150,7 +150,7 @@ public sealed class InventoryState
     /// </summary>
     public static InventoryState FromInventory(Inventory inventory)
     {
-        return new InventoryState(inventory.ItemSlots.ToImmutableList(), inventory.Size);
+        return new InventoryState(inventory.GetAllItems().ToImmutableList(), inventory.MaxWeight);
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public sealed class InventoryState
                 Item item = itemRepository.GetItemById(itemId);
                 if (item != null)
                 {
-                    usedSlots += item.GetRequiredSlots();
+                    usedSlots += item.GetWeight();
                 }
             }
         }
@@ -182,7 +182,7 @@ public sealed class InventoryState
     {
         if (item == null) return false;
 
-        int requiredSlots = item.GetRequiredSlots();
+        int requiredSlots = item.GetWeight();
         int usedSlots = GetUsedSlots(itemRepository);
         int maxSlots = GetMaxSlots(itemRepository, currentTransport);
 

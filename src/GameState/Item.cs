@@ -42,7 +42,6 @@ public class Item
     public int Focus { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
-    public int InventorySlots { get; set; } = 1; // Legacy - now uses Weight
     public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
 
     // Weight system - replaces slots (1-6 weight scale)
@@ -133,13 +132,6 @@ public class Item
         };
     }
 
-    /// <summary>
-    /// Legacy method for compatibility - redirects to weight
-    /// </summary>
-    public int GetRequiredSlots()
-    {
-        return GetWeight();
-    }
 
 
 

@@ -78,7 +78,7 @@ namespace Wayfarer.Pages.Components
         // Static UI - no animation blocking needed
 
         /// <summary>
-        /// Legacy processing flag - still used for backend calls, but will be replaced by animation orchestration
+        /// Processing flag for backend calls
         /// </summary>
         protected bool IsProcessing { get; set; } = false;
 
@@ -163,7 +163,6 @@ namespace Wayfarer.Pages.Components
             SelectedCard = null;
 
             // SYNCHRONOUS PRINCIPLE: Clean up old animation states periodically
-            // Legacy animation cleanup removed - choreography system handles cleanup
 
             // Store current cards before listen for animation tracking
             List<CardInstance> previousCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
@@ -311,8 +310,7 @@ namespace Wayfarer.Pages.Components
                 IsProcessing = true;
 
                 // Clean up old animation states periodically
-                // Legacy animation cleanup removed - choreography system handles cleanup
-
+    
                 // Store cards before speak to track what gets removed
                 List<CardInstance> cardsBeforeSpeak = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 

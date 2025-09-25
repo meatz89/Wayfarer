@@ -230,7 +230,6 @@ public class JsonNarrativeProvider : INarrativeProvider
     {
         // Check for special card requirements first
         bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Impulse);
-        // DELETED: hasOpening - legacy persistence type
         bool hasHighFocusCards = activeCards.Cards.Any(c => c.Focus >= 3);
 
         // Rapport-based dialogue depth
@@ -255,7 +254,6 @@ public class JsonNarrativeProvider : INarrativeProvider
             {
                 return "I need an answer. Now.";
             }
-            // DELETED: hasOpening check - legacy persistence type
         }
 
         // Flow-based greetings for initial conversation
@@ -388,7 +386,6 @@ public class JsonNarrativeProvider : INarrativeProvider
             return "An urgent matter requires immediate attention.";
         }
 
-        // DELETED: Opening persistence check - legacy type
 
         // State-based hints
         if (state.Doubt < 3)
