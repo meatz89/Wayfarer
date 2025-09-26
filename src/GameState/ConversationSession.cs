@@ -28,8 +28,8 @@ public class ConversationSession
     public string RequestText { get; set; } // Text displayed when NPC presents a request
 
     // New 4-Resource System (Initiative, Cadence, Momentum, Doubt)
-    public int CurrentInitiative { get; set; } = 0; // Starts at 0, built through cards (Steamworld Quest style)
-    public int Cadence { get; set; } = 0; // Range -10 to +10, conversation balance tracking
+    public int CurrentInitiative { get; set; } = 0; // Starts at 0, ACCUMULATES between LISTEN (never resets to base)
+    public int Cadence { get; set; } = 0; // Range -5 to +5, conversation balance tracking
 
 
     // Doubt system continues to exist but now has tax effect
@@ -83,18 +83,19 @@ public class ConversationSession
         CurrentDoubt = Math.Clamp(CurrentDoubt + amount, 0, MaxDoubt);
     }
 
-    // NEW: Cadence effects (corrected mechanics from implementation plan)
-    public bool ShouldApplyCadenceDoubtPenalty() => Cadence >= 6;
-    public int GetCadenceDoubtPenalty() => Math.Max(0, Cadence - 5);
-    public bool ShouldApplyCadenceBonusDraw() => Cadence <= -3;
+    // NEW: Cadence effects (corrected mechanics from game document)
+    public bool ShouldApplyCadenceDoubtPenalty() => Cadence > 0;
+    public int GetCadenceDoubtPenalty() => Math.Max(0, Cadence); // +1 Doubt per positive point
+    public bool ShouldApplyCadenceBonusDraw() => Cadence < 0;
+    public int GetCadenceBonusDrawCount() => Math.Abs(Math.Min(0, Cadence)); // +1 draw per negative point
 
 
 
-    // NEW: Fixed card draw system (no Connection State modifier)
+    // NEW: Fixed card draw system (corrected per game document)
     public int GetDrawCount()
     {
-        int baseDraw = 4; // Fixed base draw
-        int cadenceBonus = ShouldApplyCadenceBonusDraw() ? 1 : 0;
+        int baseDraw = 3; // Base draw is 3 cards
+        int cadenceBonus = GetCadenceBonusDrawCount(); // +1 per negative Cadence point
         return baseDraw + cadenceBonus;
     }
 
@@ -106,21 +107,15 @@ public class ConversationSession
     public bool CanAffordCard(int initiativeCost) => CurrentInitiative >= initiativeCost;
 
 
-    // NEW: Initiative does NOT refresh automatically (must be earned like Steamworld Quest)
-    public void ResetInitiative()
-    {
-        CurrentInitiative = 0; // Always resets to 0, not based on connection state
-    }
-
-    // NEW: Cadence management methods
+    // NEW: Cadence management methods (corrected per game document)
     public void ApplyCadenceFromSpeak()
     {
-        Cadence -= 1; // Player speaking decreases cadence
+        Cadence = Math.Min(5, Cadence + 1); // Player speaking increases cadence (+1, max +5)
     }
 
     public void ApplyCadenceFromListen()
     {
-        Cadence += 3; // Listening increases cadence (giving NPC space)
+        Cadence = Math.Max(-5, Cadence - 2); // Listening decreases cadence (-2, min -5)
     }
 
     // NEW: Doubt reduction method
@@ -150,6 +145,14 @@ public class ConversationSession
     public void AddInitiative(int amount)
     {
         CurrentInitiative += amount; // Can accumulate without limit
+    }
+
+    // NEW: Conversation time cost per game document formula
+    public int GetConversationTimeCost()
+    {
+        int statementsInSpoken = Deck.SpokenCards.Count(card =>
+            card.ConversationCardTemplate?.Persistence == PersistenceType.Statement);
+        return 1 + statementsInSpoken; // 1 base segment + Statements in Spoken
     }
 
 

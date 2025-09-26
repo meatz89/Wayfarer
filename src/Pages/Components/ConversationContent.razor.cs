@@ -975,7 +975,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get current Cadence (-10 to +10 range)
+        /// Get current Cadence (-5 to +5 range)
         /// </summary>
         protected int GetCurrentCadence()
         {
@@ -996,8 +996,8 @@ namespace Wayfarer.Pages.Components
         protected double GetCadencePosition()
         {
             int cadence = GetCurrentCadence();
-            // Convert from -10 to +10 range to 0-100% position
-            return ((cadence + 10) / 20.0) * 100;
+            // Convert from -5 to +5 range to 0-100% position
+            return ((cadence + 5) / 10.0) * 100;
         }
 
         /// <summary>
@@ -1113,7 +1113,7 @@ namespace Wayfarer.Pages.Components
             // Check condition requirements
             return altCost.Condition switch
             {
-                "High Cadence" => GetCurrentCadence() >= 5,
+                "High Cadence" => GetCurrentCadence() >= 3, // Corrected for -5 to +5 range
                 "High Doubt" => (Session?.CurrentDoubt ?? 0) >= 7,
                 _ => true
             };
@@ -1153,18 +1153,14 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get CSS class for cadence scale segments matching mockup
+        /// Get CSS class for cadence scale segments matching mockup (-5 to +5 range)
         /// </summary>
         protected string GetCadenceSegmentClass(int segmentValue)
         {
-            int currentCadence = GetCurrentCadence();
-
-            if (segmentValue <= -6) return "negative";
-            if (segmentValue <= -3) return "negative";
-            if (segmentValue <= -1) return "neutral";
-            if (segmentValue <= 1) return "neutral";
-            if (segmentValue <= 4) return "positive";
-            return "high";
+            // Simple logic: <0 negative, =0 neutral, >0 positive
+            if (segmentValue < 0) return "negative";
+            if (segmentValue == 0) return "neutral";
+            return "positive";
         }
 
         /// <summary>

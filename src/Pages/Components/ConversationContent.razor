@@ -35,7 +35,8 @@
             <div class="cadence-container">
                 <span class="cadence-label">Listen Heavy</span>
                 <div class="cadence-scale">
-                    @for (int i = -8; i <= 8; i++)
+     38 -                      @* Fixed cadence range: -5 to +5 (11 segments total) *@
+       39 -                      @for (int i = -5; i <= 5; i++)
                     {
                         <div class="cadence-segment @GetCadenceSegmentClass(i) @(GetCurrentCadence() == i ? "current" : "")"></div>
                     }
@@ -134,7 +135,8 @@
                 <span class="initiative-label">Initiative</span>
                 <span class="initiative-value">@GetCurrentInitiative()</span>
                 <div class="initiative-dots">
-                    @for (int i = 1; i <= Math.Max(5, GetCurrentInitiative()); i++)
+                    @* Always show exactly 5 dots, fill based on current Initiative *@
+                    @for (int i = 1; i <= 5; i++)
                     {
                         <span class="initiative-dot @(i <= GetCurrentInitiative() ? "available" : "")"></span>
                     }
@@ -260,7 +262,7 @@
                         else
                     {
                         <!-- Card (matching mockup exactly) -->
-                        <div class="card @GetCardStatColorClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <div class="card @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
                             <span class="card-persistence">@GetCardPersistenceType(convCard)</span>
                             <div class="card-content">

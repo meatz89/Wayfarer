@@ -675,20 +675,20 @@ public class ConversationFacade
     #region 4-Resource System Helper Methods
 
     /// <summary>
-    /// Process Cadence effects on LISTEN action
-    /// High Cadence (6+): +1 Doubt per point above 5
-    /// Apply +3 Cadence (giving NPC space to speak)
+    /// Process Cadence effects on LISTEN action (CORRECTED PER GAME DOCUMENT)
+    /// Positive Cadence: +1 Doubt per positive point on LISTEN
+    /// Apply -2 Cadence (LISTEN decreases Cadence)
     /// </summary>
     private void ProcessCadenceEffectsOnListen(ConversationSession session)
     {
-        // Apply doubt penalty for high Cadence (player dominating conversation)
+        // Apply doubt penalty for positive Cadence (player has been dominating conversation)
         if (session.ShouldApplyCadenceDoubtPenalty())
         {
             int doubtPenalty = session.GetCadenceDoubtPenalty();
             session.AddDoubt(doubtPenalty);
         }
 
-        // Apply Cadence change (+3 for giving NPC space)
+        // Apply Cadence change (-2 for LISTEN action)
         session.ApplyCadenceFromListen();
     }
 
@@ -1776,33 +1776,33 @@ public class ConversationFacade
 
         List<string> preview = new List<string>();
 
-        // Show Cadence effects
+        // Show Cadence effects (CORRECTED)
         int currentCadence = _currentSession.Cadence;
-        int newCadence = currentCadence + 3; // LISTEN gives +3 Cadence
-        preview.Add($"Cadence: {currentCadence} → {Math.Clamp(newCadence, -10, 10)} (+3 for listening)");
+        int newCadence = Math.Max(-5, currentCadence - 2); // LISTEN gives -2 Cadence (min -5)
+        preview.Add($"Cadence: {currentCadence} → {newCadence} (-2 for listening)");
 
-        // Show high cadence doubt penalty if applicable
-        if (newCadence >= 6)
+        // Show positive cadence doubt penalty if applicable
+        if (currentCadence > 0)
         {
-            int doubtPenalty = Math.Max(0, newCadence - 5);
+            int doubtPenalty = currentCadence; // +1 Doubt per positive Cadence point
             int newDoubt = Math.Min(_currentSession.MaxDoubt, _currentSession.CurrentDoubt + doubtPenalty);
-            preview.Add($"Doubt: {_currentSession.CurrentDoubt} → {newDoubt} (high cadence penalty)");
+            preview.Add($"Doubt: {_currentSession.CurrentDoubt} → {newDoubt} (+{doubtPenalty} from positive Cadence)");
         }
 
-        // Show card draw (fixed 4 + cadence bonus)
+        // Show card draw (3 base + negative cadence bonus)
         int drawCount = _currentSession.GetDrawCount();
-        bool hasCadenceBonus = newCadence <= -3;
-        if (hasCadenceBonus)
+        int cadenceBonus = newCadence < 0 ? Math.Abs(newCadence) : 0;
+        if (cadenceBonus > 0)
         {
-            preview.Add($"Draw {drawCount} cards (4 base + 1 cadence bonus)");
+            preview.Add($"Draw {drawCount} cards (3 base + {cadenceBonus} from negative Cadence)");
         }
         else
         {
-            preview.Add($"Draw {drawCount} cards (4 base)");
+            preview.Add($"Draw {drawCount} cards (3 base)");
         }
 
-        // Show Initiative status (no refresh in 4-resource system)
-        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (no refresh - must build through cards)");
+        // Show Initiative status (accumulates between LISTEN - no reset)
+        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (accumulates - never resets)");
 
         return string.Join("<br/>", preview);
     }
@@ -1821,11 +1821,11 @@ public class ConversationFacade
 
         int initiativeCost = GetCardInitiativeCost(selectedCard);
         int newInitiative = Math.Max(0, _currentSession.CurrentInitiative - initiativeCost);
-        int newCadence = Math.Clamp(_currentSession.Cadence - 1, -10, 10); // SPEAK gives -1 Cadence
+        int newCadence = Math.Min(5, _currentSession.Cadence + 1); // SPEAK gives +1 Cadence (max +5)
 
         List<string> preview = new List<string>();
         preview.Add($"Initiative: {_currentSession.CurrentInitiative} → {newInitiative} (-{initiativeCost})");
-        preview.Add($"Cadence: {_currentSession.Cadence} → {newCadence} (-1 for speaking)");
+        preview.Add($"Cadence: {_currentSession.Cadence} → {newCadence} (+1 for speaking)");
 
         return string.Join("<br/>", preview);
     }
