@@ -176,22 +176,6 @@ public static class ConversationCardParser
             }
         }
 
-        // Parse alternative costs
-        List<AlternativeCost> alternativeCosts = new List<AlternativeCost>();
-        if (dto.AlternativeCosts != null && dto.AlternativeCosts.Any())
-        {
-            foreach (var altCostDto in dto.AlternativeCosts)
-            {
-                alternativeCosts.Add(new AlternativeCost
-                {
-                    Condition = altCostDto.Condition ?? "always",
-                    ReducedInitiativeCost = altCostDto.ReducedInitiativeCost,
-                    MomentumCost = altCostDto.MomentumCost,
-                    Description = altCostDto.Description ?? ""
-                });
-            }
-        }
-
         // Parse scaling formula
         ScalingFormula scalingFormula = null;
         if (dto.ScalingEffect != null)
@@ -244,7 +228,6 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
-            AlternativeCosts = alternativeCosts,
             ScalingEffect = scalingFormula,
             // New 4-resource effects
             EffectInitiative = effectInitiative,
@@ -357,7 +340,6 @@ public class ConversationCardDTO
     public int? Depth { get; set; } // 1-10 depth system
     public int? InitiativeCost { get; set; } // Replaces Focus
     public CardEffectsDTO Effects { get; set; } // New effects structure
-    public List<AlternativeCostDTO> AlternativeCosts { get; set; }
     public ScalingEffectDTO ScalingEffect { get; set; }
 
     // Level bonuses (optional, uses default progression if not specified)
@@ -409,17 +391,6 @@ public class CardSuccessEffectsDTO
     public int? Doubt { get; set; }
     public int? DrawCards { get; set; }
     public decimal? MomentumMultiplier { get; set; }
-}
-
-/// <summary>
-/// DTO for alternative costs in 4-resource system
-/// </summary>
-public class AlternativeCostDTO
-{
-    public string Condition { get; set; }
-    public int ReducedInitiativeCost { get; set; }
-    public int MomentumCost { get; set; }
-    public string Description { get; set; }
 }
 
 /// <summary>

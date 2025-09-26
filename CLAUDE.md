@@ -1,5 +1,8 @@
 * CLAUDE.md
 
+**🔥🔥🔥 NEVER INVENT GAME MECHANICS THAT DON'T EXIST 🔥🔥🔥**
+**CATASTROPHIC VIOLATION: NEVER add "alternative costs", "OR mechanics", conditional costs, or ANY complex cost systems unless EXPLICITLY documented. Cards have ONE fixed cost from JSON. No conditions, no alternatives, no "if this then that" complexity. If you cannot find the EXACT mechanic in documentation, DON'T IMPLEMENT IT.**
+
 **🚨🚨🚨 DEPENDENCY ANALYSIS PRINCIPLE: ALWAYS CHECK RELATIONSHIPS FIRST 🚨🚨🚨**
 **BEFORE making ANY changes to files (especially CSS, layouts, global components), you MUST:**
 - **USE FILE AGENTS OR SEARCH TOOLS** to find ALL files that use/reference the classes/components you're changing

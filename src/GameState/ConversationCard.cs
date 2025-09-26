@@ -26,7 +26,6 @@ public class ConversationCard
     // New 4-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
-    public List<AlternativeCost> AlternativeCosts { get; init; } = new();
     public ScalingFormula ScalingEffect { get; init; }
 
     // Parsed effects from JSON
@@ -92,40 +91,7 @@ public class ConversationCard
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(ConversationSession session = null)
     {
-        // Check for available alternative costs
-        if (session != null && AlternativeCosts.Any())
-        {
-            foreach (var altCost in AlternativeCosts)
-            {
-                if (EvaluateAlternativeCostCondition(altCost.Condition, session))
-                {
-                    return altCost.ReducedInitiativeCost;
-                }
-            }
-        }
-
         return InitiativeCost;
-    }
-
-    // Check if alternative cost condition is met
-    private bool EvaluateAlternativeCostCondition(string condition, ConversationSession session)
-    {
-        if (string.IsNullOrEmpty(condition)) return false;
-
-        // Simple condition evaluation for common patterns
-        if (condition.Contains("Cadence >= "))
-        {
-            if (int.TryParse(condition.Split(">=\\u0020")[1], out int threshold))
-                return session.Cadence >= threshold;
-        }
-        else if (condition.Contains("Doubt >= "))
-        {
-            if (int.TryParse(condition.Split(">=\\u0020")[1], out int threshold))
-                return session.CurrentDoubt >= threshold;
-        }
-        // Add more condition types as needed
-
-        return false;
     }
 
     // Calculate actual momentum effect based on success type, category, difficulty, and scaling formula

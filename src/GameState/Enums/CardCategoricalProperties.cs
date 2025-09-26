@@ -107,17 +107,6 @@ public enum FailureEffectType
 }
 
 /// <summary>
-/// Alternative cost structure for high-depth cards
-/// </summary>
-public class AlternativeCost
-{
-    public string Condition { get; set; } // "Cadence >= 5", "Doubt >= 7", etc.
-    public int ReducedInitiativeCost { get; set; }
-    public int MomentumCost { get; set; }
-    public string Description { get; set; }
-}
-
-/// <summary>
 /// Scaling formula for card effects based on visible game state
 /// </summary>
 public class ScalingFormula

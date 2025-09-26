@@ -418,17 +418,6 @@
           "success": {
             "Momentum": 2,
           }
-        },
-        "alternativeCosts": [{
-          "description": "Spend 2 Momentum to reduce 3 Doubt instead",
-          "condition": "always",
-          "reducedInitiativeCost": 3,
-          "momentumCost": 2,
-          "alternativeEffects": {
-            "success": {
-              "Doubt": -3,
-            }
-          }
         }]
       },
       {
@@ -611,12 +600,6 @@
             "Doubt": -2,
           }
         },
-        "alternativeCosts": [{
-          "description": "Cost reduced if Cadence is negative (good listening)",
-          "condition": "Cadence < 0",
-          "reducedInitiativeCost": 4,
-          "momentumCost": 0
-        }]
       },
       {
         "id": "ultimate_authority",
@@ -637,13 +620,6 @@
             "Doubt": 2,
           }
         },
-        "alternativeCosts": [{
-          "description": "Spend high Cadence for reduced cost",
-          "condition": "Cadence >= 6",
-          "reducedInitiativeCost": 6,
-          "momentumCost": 0,
-          "cadenceCost": 2
-        }]
       },
       {
         "id": "elena_shared_memory",
