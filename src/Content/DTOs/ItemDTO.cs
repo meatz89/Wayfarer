@@ -8,7 +8,7 @@ public class ItemDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public int Focus { get; set; } = 1;
+    public int InitiativeCost { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public int InventorySlots { get; set; } = 1;

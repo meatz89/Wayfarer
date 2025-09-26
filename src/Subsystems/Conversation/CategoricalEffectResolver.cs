@@ -45,7 +45,6 @@ public class CategoricalEffectResolver
             DoubtChange = 0,
             InitiativeChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            FocusAdded = 0,
             EffectDescription = "",
             EndsConversation = false
         };
@@ -114,7 +113,6 @@ public class CategoricalEffectResolver
             DoubtChange = 1, // Standard failure adds 1 doubt
             InitiativeChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            FocusAdded = 0,
             EffectDescription = "Failure: +1 doubt",
             EndsConversation = false
         };
@@ -134,8 +132,8 @@ public class CategoricalEffectResolver
                 PlayerStats playerStats = gameWorld.GetPlayer().Stats;
                 if (!card.IgnoresFailureListen(playerStats))
                 {
-                    // Indicate focus would be depleted
-                    result.FocusAdded = -session.GetAvailableFocus();
+                    // Indicate initiative would be depleted
+                    result.InitiativeChange = -session.GetCurrentInitiative();
                     result.EffectDescription = "Must LISTEN next turn";
                 }
                 else
@@ -170,21 +168,6 @@ public class CategoricalEffectResolver
         };
     }
 
-    /// <summary>
-    /// Get atmosphere type from magnitude (for Atmospheric success type)
-    /// Progression: Patient → Receptive → Focused → Synchronized
-    /// </summary>
-    private AtmosphereType? GetAtmosphereFromMagnitude(int magnitude)
-    {
-        return magnitude switch
-        {
-            1 => AtmosphereType.Patient,      // 0 patience cost - minor benefit
-            2 => AtmosphereType.Receptive,    // +1 card on LISTEN - moderate benefit
-            3 => AtmosphereType.Focused,      // +20% success - strong benefit
-            4 => AtmosphereType.Synchronized, // Next effect twice - powerful benefit
-            _ => AtmosphereType.Patient
-        };
-    }
 
     /// <summary>
     /// Calculate magnitude from difficulty
@@ -340,7 +323,6 @@ public class CategoricalEffectResolver
             "Momentum" => TryGetNullableInt(template.EffectMomentum, out effectValue),
             "Initiative" => TryGetNullableInt(template.EffectInitiative, out effectValue),
             "Doubt" => TryGetNullableInt(template.EffectDoubt, out effectValue),
-            "Cadence" => TryGetNullableInt(template.EffectCadence, out effectValue),
             "DrawCards" => TryGetNullableInt(template.EffectDrawCards, out effectValue),
             _ => false
         };
@@ -372,7 +354,6 @@ public class CategoricalEffectResolver
             DoubtChange = 0,
             InitiativeChange = 0,
             CardsToAdd = new List<CardInstance>(),
-            FocusAdded = 0,
             EffectDescription = "",
             EndsConversation = false
         };
@@ -400,7 +381,6 @@ public class CategoricalEffectResolver
 
         if (TryGetStoredEffect(card, "Cadence", out int cadence) && cadence != 0)
         {
-            result.CadenceChange = cadence;
             effects.Add(cadence > 0 ? $"+{cadence} Cadence" : $"{cadence} Cadence");
         }
 
@@ -435,11 +415,9 @@ public class CardEffectResult
 {
     public CardInstance Card { get; set; }
     public int InitiativeChange { get; set; } // Replaces FlowChange in 4-resource system
-    public int CadenceChange { get; set; } = 0; // New for 4-resource system
     public int MomentumChange { get; set; }
     public int DoubtChange { get; set; }
     public List<CardInstance> CardsToAdd { get; set; }
-    public int FocusAdded { get; set; } // Legacy compatibility - maps to InitiativeChange
     public bool EndsConversation { get; set; }
     public string EffectDescription { get; set; }
 }

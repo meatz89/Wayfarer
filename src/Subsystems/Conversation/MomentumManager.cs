@@ -72,14 +72,11 @@ public class MomentumManager
     /// Add momentum (always positive)
     /// </summary>
     /// <param name="amount">Amount of momentum to add</param>
-    /// <param name="atmosphere">Current conversation atmosphere for modifiers</param>
-    public void AddMomentum(int amount, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public void AddMomentum(int amount)
     {
         if (amount <= 0) return;
 
-        // Apply atmosphere modifiers if needed
-        int modified = ModifyByAtmosphere(amount, atmosphere);
-        currentMomentum = Math.Max(0, currentMomentum + modified);
+        currentMomentum = Math.Max(0, currentMomentum + amount);
         SyncToSession();
     }
 
@@ -87,8 +84,7 @@ public class MomentumManager
     /// Add doubt (penalty resource)
     /// </summary>
     /// <param name="amount">Amount of doubt to add</param>
-    /// <param name="atmosphere">Current conversation atmosphere for modifiers</param>
-    public void AddDoubt(int amount, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public void AddDoubt(int amount)
     {
         if (amount <= 0) return;
 
@@ -99,8 +95,7 @@ public class MomentumManager
             return; // Doubt increase prevented
         }
 
-        int modified = ModifyByAtmosphere(amount, atmosphere);
-        currentDoubt = Math.Clamp(currentDoubt + modified, 0, MAX_DOUBT);
+        currentDoubt = Math.Clamp(currentDoubt + amount, 0, MAX_DOUBT);
         SyncToSession();
     }
 
@@ -108,13 +103,11 @@ public class MomentumManager
     /// Reduce doubt (from Soothe effects)
     /// </summary>
     /// <param name="amount">Amount of doubt to reduce</param>
-    /// <param name="atmosphere">Current conversation atmosphere for modifiers</param>
-    public void ReduceDoubt(int amount, AtmosphereType atmosphere = AtmosphereType.Neutral)
+    public void ReduceDoubt(int amount)
     {
         if (amount <= 0) return;
 
-        int modified = ModifyByAtmosphere(amount, atmosphere);
-        currentDoubt = Math.Max(0, currentDoubt - modified);
+        currentDoubt = Math.Max(0, currentDoubt - amount);
         SyncToSession();
     }
 
@@ -187,22 +180,6 @@ public class MomentumManager
         }
     }
 
-    /// <summary>
-    /// Apply atmosphere modifiers to momentum/doubt changes
-    /// </summary>
-    /// <param name="baseChange">Base change amount</param>
-    /// <param name="atmosphere">Current atmosphere</param>
-    /// <returns>Modified change amount</returns>
-    private int ModifyByAtmosphere(int baseChange, AtmosphereType atmosphere)
-    {
-        return atmosphere switch
-        {
-            AtmosphereType.Volatile => baseChange > 0 ? baseChange + 1 : baseChange,
-            AtmosphereType.Exposed => baseChange * 2,
-            AtmosphereType.Synchronized => baseChange * 2,
-            _ => baseChange
-        };
-    }
 
     /// <summary>
     /// Get a visual representation of current momentum

@@ -389,7 +389,7 @@ public class PromptBuilder
 
             // Card properties
             ["card_count"] = cards.Cards.Count.ToString(),
-            ["focus_pattern"] = analysis?.FocusPattern.ToString() ?? "Unknown",
+            ["focus_pattern"] = analysis?.InitiativePattern.ToString() ?? "Unknown",
 
             // Boolean flags
             ["has_impulse"] = (analysis?.HasImpulse ?? false).ToString().ToLower(),
@@ -425,7 +425,7 @@ public class PromptBuilder
         for (int i = 0; i < cards.Cards.Count; i++)
         {
             CardInfo card = cards.Cards[i];
-            summary.AppendLine($"- Card {i + 1}: {card.Focus} focus, {card.Persistence} type, {card.Difficulty} difficulty");
+            summary.AppendLine($"- Card {i + 1}: {card.InitiativeCost} focus, {card.Persistence} type, {card.Difficulty} difficulty");
         }
 
         return summary.ToString().Trim();
@@ -441,7 +441,7 @@ public class PromptBuilder
         foreach (CardInfo card in cards.Cards)
         {
             detail.AppendLine($"Card ID: {card.Id}");
-            detail.AppendLine($"- Focus Cost: {card.Focus}");
+            detail.AppendLine($"- Focus Cost: {card.InitiativeCost}");
             detail.AppendLine($"- Success Effect: {card.Effect}");
             detail.AppendLine($"- Difficulty: {card.Difficulty}");
             detail.AppendLine($"- Persistence: {card.Persistence}");

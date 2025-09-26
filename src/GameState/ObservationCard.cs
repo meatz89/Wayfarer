@@ -12,11 +12,11 @@ public enum ObservationEffectType
 
     // Cost bypasses
     FreePatience,    // Next action 0 patience
-    FreeFocus,      // Next SPEAK 0 focus
+    FreeInitiative,      // Next SPEAK 0 initiative
 
     // Manipulations
-    ResetFlow,    // Flow = 0
-    RefreshFocus    // Focus = max
+    ResetCadence,    // Cadence = 0
+    RefreshInitiative    // Initiative = max
 }
 
 public class ObservationCard : ConversationCard
@@ -44,7 +44,7 @@ public class ObservationCard : ConversationCard
     {
         Id = id;
         Description = description;
-        Focus = 1;
+        InitiativeCost = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         CardType = CardType.Observation; // Mark as observation
         Persistence = PersistenceType.Standard; // Observations persist through LISTEN
@@ -112,7 +112,7 @@ public class ObservationCard : ConversationCard
         {
             Id = card.Id,
             Description = card.Description,
-            Focus = card.Focus,
+            InitiativeCost = card.InitiativeCost,
             Difficulty = card.Difficulty,
             TokenType = card.TokenType,
             Persistence = card.Persistence,
@@ -137,7 +137,7 @@ public class ObservationCard : ConversationCard
         {
             Id = card.Id,
             Description = card.Description,
-            Focus = card.Focus,
+            InitiativeCost = card.InitiativeCost,
             Difficulty = card.Difficulty,
             TokenType = card.TokenType,
             Persistence = card.Persistence,

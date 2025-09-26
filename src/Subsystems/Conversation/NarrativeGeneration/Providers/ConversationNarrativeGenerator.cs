@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
+
 /// <summary>
 /// Core backwards construction algorithm for generating conversation narratives.
 /// Implements the principle of analyzing cards first, then generating NPC dialogue 
@@ -75,7 +76,7 @@ public class ConversationNarrativeGenerator
         }
 
         // Determine focus pattern and dominant category
-        analysis.FocusPattern = DetermineFocusPattern(cards);
+        analysis.InitiativePattern = DetermineInitiativePattern(cards);
         analysis.DominantCategory = DetermineDominantCategory(cards);
 
         // Set urgency requirements
@@ -95,7 +96,7 @@ public class ConversationNarrativeGenerator
         return new NarrativeConstraints
         {
             MustIncludeUrgency = analysis.RequiresUrgency,
-            IntensityLevel = GetIntensityFromFocusPattern(analysis.FocusPattern),
+            IntensityLevel = GetIntensityFromInitiativePattern(analysis.InitiativePattern),
             NarrativeStyle = analysis.DominantCategory
         };
     }
@@ -179,13 +180,13 @@ public class ConversationNarrativeGenerator
         return TopicLayer.Core;
     }
 
-    private FocusPattern DetermineFocusPattern(CardCollection cards)
+    private InitiativePattern DetermineInitiativePattern(CardCollection cards)
     {
-        int[] focusCosts = cards.Cards.Select(c => c.Focus).ToArray();
+        int[] initiativeCosts = cards.Cards.Select(c => c.InitiativeCost).ToArray();
 
-        if (focusCosts.All(f => f <= 2)) return FocusPattern.AllLow;
-        if (focusCosts.All(f => f >= 3)) return FocusPattern.AllHigh;
-        return FocusPattern.Mixed;
+        if (initiativeCosts.All(f => f <= 2)) return InitiativePattern.AllFoundation;
+        if (initiativeCosts.All(f => f >= 3)) return InitiativePattern.AllHighTier;
+        return InitiativePattern.Mixed;
     }
 
     private string DetermineDominantCategory(CardCollection cards)
@@ -201,13 +202,13 @@ public class ConversationNarrativeGenerator
         return categoryCounts.OrderByDescending(kv => kv.Value).First().Key;
     }
 
-    private int GetIntensityFromFocusPattern(FocusPattern pattern)
+    private int GetIntensityFromInitiativePattern(InitiativePattern pattern)
     {
         return pattern switch
         {
-            FocusPattern.AllLow => 1,
-            FocusPattern.Mixed => 2,
-            FocusPattern.AllHigh => 3,
+            InitiativePattern.AllFoundation => 1,
+            InitiativePattern.Mixed => 2,
+            InitiativePattern.AllHighTier => 3,
             _ => 2
         };
     }
@@ -281,7 +282,7 @@ public class ConversationNarrativeGenerator
     {
         // Generate response narrative based on card type and context
         string baseResponse = GenerateResponseByCategory(card.NarrativeCategory, card.Effect);
-        return ScaleResponseToRapport(baseResponse, rapportStage, card.Focus);
+        return ScaleResponseToRapport(baseResponse, rapportStage, card.InitiativeCost);
     }
 
     private string GenerateResponseByCategory(string category, string effect)

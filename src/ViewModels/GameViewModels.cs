@@ -17,7 +17,7 @@ public class LocationScreenViewModel
     public string AtmosphereText { get; set; }
     public string Familiarity { get; set; }
     public List<LocationActionViewModel> QuickActions { get; set; } = new();
-    public List<NPCFocusViewModel> NPCsPresent { get; set; } = new();
+    public List<NPCInteractionViewModel> NPCsPresent { get; set; } = new();
     public string ObservationHeader { get; set; } = "Observations Available";
     public List<ObservationViewModel> Observations { get; set; } = new();
     public List<AreaWithinLocationViewModel> AreasWithinLocation { get; set; } = new();
@@ -36,7 +36,7 @@ public class LocationActionViewModel
     public string LockReason { get; set; }
 }
 
-public class NPCFocusViewModel
+public class NPCInteractionViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }

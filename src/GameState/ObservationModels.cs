@@ -45,7 +45,7 @@ public class ObservationsData
 
 public class ObservationTypeData
 {
-    public int Focus { get; set; }
+    public int InitiativeCost { get; set; }
     public int BaseFlow { get; set; }
     public bool CreatesOpening { get; set; }
     public bool ProvidesInformation { get; set; }

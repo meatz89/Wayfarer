@@ -10,7 +10,7 @@ public class ObservationDTO
     public string Category { get; set; }
     public List<string> RequiredTags { get; set; } = new List<string>();
     public List<string> ExcludedTags { get; set; } = new List<string>();
-    public int Focus { get; set; } = 1;
+    public int InitiativeCost { get; set; } = 1;
     public string TriggerCondition { get; set; }
     public bool OneTimeOnly { get; set; }
 

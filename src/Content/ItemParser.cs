@@ -13,7 +13,7 @@ public static class ItemParser
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
-            Focus = dto.Focus,
+            InitiativeCost = dto.InitiativeCost,
             BuyPrice = dto.BuyPrice,
             SellPrice = dto.SellPrice,
             Description = dto.Description ?? ""

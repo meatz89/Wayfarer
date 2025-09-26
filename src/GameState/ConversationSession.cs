@@ -101,15 +101,6 @@ public class ConversationSession
     // NEW: Initiative system methods (replacing Focus methods)
     public int GetCurrentInitiative() => CurrentInitiative;
 
-    // LEGACY COMPATIBILITY WARNING: These methods are deprecated - use Initiative methods instead
-    public int GetAvailableFocus() => CurrentInitiative; // Legacy compatibility - returns Initiative
-    public void SpendFocus(int initiativeCost) => CurrentInitiative = Math.Max(0, CurrentInitiative - initiativeCost);
-    public void AddFocus(int initiative) => CurrentInitiative += initiative;
-    public void RefreshFocus()
-    {
-        // In 4-resource system, Initiative doesn't refresh automatically - must be built through cards
-        // This method maintained for compatibility but does nothing
-    }
 
     // PROPER 4-RESOURCE SYSTEM METHODS
     public bool CanAffordCard(int initiativeCost) => CurrentInitiative >= initiativeCost;
@@ -180,8 +171,7 @@ public class ConversationSession
             return new ConversationOutcome
             {
                 Success = false,
-                FinalFlow = 0,
-                FinalState = CurrentState,
+                FinalMomentum = CurrentMomentum,
                 TokensEarned = 0,
                 Reason = "Doubt overwhelmed conversation"
             };
@@ -191,8 +181,7 @@ public class ConversationSession
         return new ConversationOutcome
         {
             Success = true,
-            FinalFlow = 0, // FlowBattery deprecated
-            FinalState = CurrentState,
+            FinalMomentum = CurrentMomentum,
             TokensEarned = CalculateTokenReward(),
             Reason = "Conversation ended"
         };
@@ -215,7 +204,7 @@ public class ConversationSession
         // Implementation handled by ConversationFacade
         return new CardPlayResult
         {
-            FinalFlow = 0,
+            MomentumGenerated = 0,
             Results = new List<SingleCardResult>()
         };
     }

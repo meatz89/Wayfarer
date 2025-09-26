@@ -11,8 +11,7 @@ public class NarrativePromptContext
     public string Flow { get; set; } = "0";
     public string Rapport { get; set; } = "0";
     public string Atmosphere { get; set; } = "0";
-    public string ConnectionState { get; set; } = "Unknown";
-    public string FocusAvailable { get; set; } = "0";
+    public string InitiativeAvailable { get; set; } = "0";
     public string Patience { get; set; } = "0";
     public string TurnCount { get; set; } = "0";
     public string TopicLayer { get; set; } = "0";
@@ -27,7 +26,7 @@ public class NarrativePromptContext
 
     // Card properties
     public string CardCount { get; set; } = "0";
-    public string FocusPattern { get; set; } = "Unknown";
+    public string InitiativePattern { get; set; } = "Unknown";
 
     // Boolean flags (stored as lowercase strings for template compatibility)
     public string HasImpulse { get; set; } = "false";
@@ -54,8 +53,7 @@ public class NarrativePromptContext
             ["flow"] = Flow,
             ["rapport"] = Rapport,
             ["atmosphere"] = Atmosphere,
-            ["connection_state"] = ConnectionState,
-            ["focus_available"] = FocusAvailable,
+            ["initiative_available"] = InitiativeAvailable,
             ["patience"] = Patience,
             ["turn_count"] = TurnCount,
             ["topic_layer"] = TopicLayer,
@@ -66,7 +64,7 @@ public class NarrativePromptContext
             ["npc_emotional_state"] = NpcEmotionalState,
             ["current_topic"] = CurrentTopic,
             ["card_count"] = CardCount,
-            ["focus_pattern"] = FocusPattern,
+            ["initiative_pattern"] = InitiativePattern,
             ["has_impulse"] = HasImpulse,
             ["has_opening"] = HasOpening,
             ["has_observation"] = HasObservation,

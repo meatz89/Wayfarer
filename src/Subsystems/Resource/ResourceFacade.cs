@@ -191,30 +191,30 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
                         ItemId = itemId,
                         Name = item?.Name ?? itemId,
                         Description = item?.Description ?? "",
-                        Focus = item?.Focus ?? 1,
+                        Weight = item?.InitiativeCost ?? 1,
                         Value = item?.SellPrice ?? 0,
                         CanRead = item?.Categories.Contains(ItemCategory.Special_Document) ?? false
                     };
                 }).ToList(),
-                TotalFocus = CalculateTotalFocus(),
+                TotalWeight = CalculateTotalWeight(),
                 MaxSlots = inventory.GetCapacity(),
                 UsedSlots = inventory.GetAllItems().Count,
                 Coins = GetCoins()
             };
         }
 
-        public int CalculateTotalFocus()
+        public int CalculateTotalWeight()
         {
             Inventory inventory = GetInventory();
-            int totalFocus = 0;
+            int totalWeight = 0;
 
             foreach (string itemId in inventory.GetItemIds())
             {
                 Item item = _itemRepository.GetItemById(itemId);
-                totalFocus += item?.Focus ?? 1;
+                totalWeight += item?.InitiativeCost ?? 1;
             }
 
-            return totalFocus;
+            return totalWeight;
         }
 
         // ========== WORK AND REST OPERATIONS ==========

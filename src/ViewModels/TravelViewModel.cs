@@ -20,7 +20,7 @@ public class TravelViewModel
 /// </summary>
 public class TravelStatusViewModel
 {
-    public int TotalFocus { get; init; }
+    public int TotalWeight { get; init; }
     public string FocusClass { get; init; }
     public string FocusStatus { get; init; }
     public int BaseStaminaCost { get; init; }

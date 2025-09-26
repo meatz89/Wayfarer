@@ -52,7 +52,7 @@ public class OllamaClient
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
-            OllamaStreamResponse streamResponse = JsonSerializer.Deserialize<OllamaStreamResponse>(line);
+            OllamaStreamResponse streamResponse = JsonSerializer.Deserialize<OllamaStreamResponse>(line, new JsonSerializerOptions { AllowTrailingCommas = true, PropertyNameCaseInsensitive = true });
 
             if (streamResponse.Done)
                 break;

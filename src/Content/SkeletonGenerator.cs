@@ -184,7 +184,7 @@ public static class SkeletonGenerator
 
             // Random but deterministic mechanical values
             TokenType = connectionTypes[hash % connectionTypes.Length],
-            Focus = 1 + (hash % 3),
+            InitiativeCost = 1 + (hash % 3),
             Difficulty = (Difficulty)(hash % 3), // Easy, Medium, or Hard
 
             // Generic dialogue

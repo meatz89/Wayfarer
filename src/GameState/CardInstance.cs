@@ -17,7 +17,7 @@ public class CardInstance
     public FailureEffectType FailureType => ConversationCardTemplate.FailureType;
     public CardType CardType => ConversationCardTemplate.CardType;
     public ConnectionType TokenType => ConversationCardTemplate.TokenType;
-    public int Focus => ConversationCardTemplate.Focus;
+    public int InitiativeCost => ConversationCardTemplate.InitiativeCost;
     public Difficulty Difficulty => ConversationCardTemplate.Difficulty;
     public int MomentumThreshold => ConversationCardTemplate.MomentumThreshold;
     public string RequestId => ConversationCardTemplate.RequestId;
@@ -120,7 +120,7 @@ public class CardInstance
 
     public int GetEffectiveFocus(ConnectionState state)
     {
-        return Focus;
+        return InitiativeCost;
     }
 
 

@@ -276,7 +276,7 @@ public class ObservationManager
         {
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
             Description = description,
-            Focus = baseCard.Focus,
+            InitiativeCost = baseCard.InitiativeCost,
             Difficulty = baseCard.Difficulty,
             TokenType = baseCard.TokenType,
             SuccessType = baseCard.SuccessType,
@@ -418,7 +418,7 @@ public class ObservationManager
             Id = cardReward.Id,
             Description = cardReward.Name,
             DialogueFragment = cardReward.Description,
-            Focus = 0, // Observations cost 0 focus according to Work Packet 3
+            InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
             CardType = CardType.Observation,
             Persistence = PersistenceType.Standard, // Observations persist through LISTEN
             SuccessType = successType,

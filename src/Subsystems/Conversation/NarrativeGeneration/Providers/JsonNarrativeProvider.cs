@@ -230,7 +230,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     {
         // Check for special card requirements first
         bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Standard);
-        bool hasHighFocusCards = activeCards.Cards.Any(c => c.Focus >= 3);
+        bool hasHighFocusCards = activeCards.Cards.Any(c => c.InitiativeCost >= 3);
 
         // Rapport-based dialogue depth
         if (state.Momentum >= 16)
@@ -306,7 +306,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         // Handle by narrative category first
         string baseNarrative = card.NarrativeCategory switch
         {
-            "risk" => GenerateRiskCardNarrative(card.Focus),
+            "risk" => GenerateRiskCardNarrative(card.InitiativeCost),
             "utility" => GenerateUtilityCardNarrative(card),
             "support" => "You offer understanding and support",
             "pressure" => "You press for more information",
@@ -315,7 +315,7 @@ public class JsonNarrativeProvider : INarrativeProvider
         };
 
         // Modify based on difficulty and focus cost
-        if (card.Focus >= 3)
+        if (card.InitiativeCost >= 3)
         {
             return $"{baseNarrative} with bold conviction";
         }
@@ -342,20 +342,6 @@ public class JsonNarrativeProvider : INarrativeProvider
         };
     }
 
-    /// <summary>
-    /// Generates atmosphere card narratives based on current atmosphere.
-    /// </summary>
-    private string GenerateAtmosphereCardNarrative(AtmosphereType currentAtmosphere)
-    {
-        return currentAtmosphere switch
-        {
-            AtmosphereType.Volatile => "Raise emotional stakes",
-            AtmosphereType.Patient => "Slow things down",
-            AtmosphereType.Focused => "Cut through confusion",
-            AtmosphereType.Prepared => "Build on the foundation",
-            _ => "Shift the conversation's tone"
-        };
-    }
 
     /// <summary>
     /// Generates utility card narratives based on card effect.

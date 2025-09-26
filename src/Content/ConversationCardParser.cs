@@ -50,7 +50,7 @@ public static class ConversationCardParser
             depth = (CardDepth)dto.Depth.Value;
         }
 
-        int initiativeCost = dto.InitiativeCost ?? dto.Focus; // Use InitiativeCost or fall back to Focus
+        int initiativeCost = dto.InitiativeCost ?? 0;
 
         // Parse categorical properties
         PersistenceType persistence = PersistenceType.Standard;
@@ -199,7 +199,6 @@ public static class ConversationCardParser
         int? effectInitiative = dto.Effects?.Success?.Initiative;
         int? effectMomentum = dto.Effects?.Success?.Momentum;
         int? effectDoubt = dto.Effects?.Success?.Doubt;
-        int? effectCadence = dto.Effects?.Success?.Cadence;
         int? effectDrawCards = dto.Effects?.Success?.DrawCards;
         decimal? effectMomentumMultiplier = dto.Effects?.Success?.MomentumMultiplier;
 
@@ -211,7 +210,6 @@ public static class ConversationCardParser
             CardType = cardType,
             Category = category,
             TokenType = tokenType,
-            Focus = dto.Focus, // Legacy compatibility
             Depth = depth,
             InitiativeCost = initiativeCost,
             AlternativeCosts = alternativeCosts,
@@ -220,7 +218,6 @@ public static class ConversationCardParser
             EffectInitiative = effectInitiative,
             EffectMomentum = effectMomentum,
             EffectDoubt = effectDoubt,
-            EffectCadence = effectCadence,
             EffectDrawCards = effectDrawCards,
             EffectMomentumMultiplier = effectMomentumMultiplier,
             Difficulty = difficulty,
@@ -298,7 +295,6 @@ public class ConversationCardDTO
     public string Id { get; set; }
     public string Type { get; set; }
     public string ConnectionType { get; set; }
-    public int Focus { get; set; }
     public int? MomentumThreshold { get; set; } // For request cards
     public string Description { get; set; }
     public string DialogueFragment { get; set; }
@@ -371,7 +367,6 @@ public class CardSuccessEffectsDTO
     public int? Initiative { get; set; }
     public int? Momentum { get; set; }
     public int? Doubt { get; set; }
-    public int? Cadence { get; set; }
     public int? DrawCards { get; set; }
     public decimal? MomentumMultiplier { get; set; }
 }

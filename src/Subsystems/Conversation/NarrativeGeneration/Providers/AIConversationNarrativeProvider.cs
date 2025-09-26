@@ -586,7 +586,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     private string GenerateFallbackCardNarrative(CardInfo card, int rapport)
     {
         // Simple fallback based on card category and focus
-        string intensity = card.Focus <= 1 ? "carefully" : card.Focus >= 3 ? "boldly" : "directly";
+        string intensity = card.InitiativeCost <= 1 ? "carefully" : card.InitiativeCost >= 3 ? "boldly" : "directly";
         string action = card.NarrativeCategory switch
         {
             "risk" => "challenge their perspective",

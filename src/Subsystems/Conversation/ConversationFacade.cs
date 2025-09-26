@@ -134,19 +134,18 @@ public class ConversationFacade
 
         // THEN: Perform initial draw of regular cards
         // This is the initial conversation start, so we just draw cards without exhausting
-        _currentSession.RefreshFocus();
         int drawCount = _currentSession.GetDrawCount();
         // HIGHLANDER: Draw directly to hand
         _currentSession.Deck.DrawToHand(drawCount);
 
-        // Update request card playability based on focus
+        // Update request card playability based on initiative
         UpdateRequestCardPlayability(_currentSession);
 
-        // Reset focus after initial draw (as per standard LISTEN)
+        // Initialize Initiative to 0 (4-resource system)
         _currentSession.CurrentInitiative = 0; // Initiative starts at 0 in 4-resource system
 
         // Update card playability based on initial initiative
-        UpdateCardPlayabilityBasedOnFocus(_currentSession);
+        UpdateCardPlayabilityBasedOnInitiative(_currentSession);
 
         return _currentSession;
     }
@@ -763,9 +762,7 @@ public class ConversationFacade
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        // For now, use the existing Focus cost as Initiative cost
-        // This will be replaced when card templates are migrated
-        return card.Focus;
+        return card.ConversationCardTemplate?.InitiativeCost ?? 0;
     }
 
     /// <summary>
@@ -825,9 +822,9 @@ public class ConversationFacade
             }
 
             // Apply Initiative generation (for Foundation cards)
-            if (effectResult.FocusAdded > 0) // Repurpose focus as Initiative
+            if (effectResult.InitiativeChange > 0) // Repurpose focus as Initiative
             {
-                session.AddInitiative(effectResult.FocusAdded);
+                session.AddInitiative(effectResult.InitiativeChange);
             }
 
             // Handle other card effects (drawing cards, etc.)
@@ -866,7 +863,7 @@ public class ConversationFacade
                     SuccessChance = success ? 100 : 0
                 }
             },
-            FinalFlow = 0 // No flow in new system
+            MomentumGenerated = 0 // No flow in new system
         };
     }
 
@@ -992,8 +989,10 @@ public class ConversationFacade
         return new ConversationOutcome
         {
             Success = success,
-            FinalFlow = 0, // FlowBattery removed in 4-resource system
-            FinalState = session.CurrentState,
+            FinalMomentum = session.CurrentMomentum,
+            FinalDoubt = session.CurrentDoubt,
+            FinalInitiative = session.CurrentInitiative,
+            FinalCadence = session.Cadence,
             TokensEarned = tokensEarned,
             RequestAchieved = requestAchieved,
             Reason = reason
@@ -1148,8 +1147,7 @@ public class ConversationFacade
     private List<CardInstance> ExecuteListenAction(ConversationSession session)
     {
 
-        // Refresh focus
-        session.RefreshFocus();
+        // Initiative does not refresh on LISTEN in 4-resource system
 
         // Calculate draw count based on state and atmosphere
         int baseDrawCount = session.GetDrawCount();
@@ -1193,7 +1191,7 @@ public class ConversationFacade
                         SuccessChance = 0
                     }
                 },
-                FinalFlow = 0
+                MomentumGenerated = 0
             };
         }
 
@@ -1216,7 +1214,7 @@ public class ConversationFacade
                         SuccessChance = 0
                     }
                 },
-                FinalFlow = 0
+                MomentumGenerated = 0
             };
         }
 
@@ -1236,18 +1234,18 @@ public class ConversationFacade
         }
 
         // Spend Initiative - Initiative represents built-up conversational energy
-        session.SpendFocus(initiativeCost); // Using legacy method for compatibility
+        session.SpendInitiative(initiativeCost);
 
         // Update card playability immediately after spending Initiative
         UpdateCardPlayabilityBasedOnInitiative(session);
 
         CardEffectResult effectResult = null;
-        int flowChange = 0;
+        int cadenceChange = 0;
 
         if (success)
         {
-            // Flow only changes from explicit "Advancing" effect type (no automatic changes)
-            flowChange = 0;
+            // Cadence only changes from explicit card effects (no automatic changes)
+            cadenceChange = 0;
 
             // Reset bad luck protection on success would go here if implemented
 
@@ -1269,10 +1267,10 @@ public class ConversationFacade
                 session.MomentumManager.ReduceDoubt(-effectResult.DoubtChange);
             }
 
-            // Apply focus restoration (for Focusing success effect)
-            if (effectResult.FocusAdded > 0)
+            // Apply initiative restoration (for Initiative-granting success effect)
+            if (effectResult.InitiativeChange > 0)
             {
-                session.AddFocus(effectResult.FocusAdded);
+                session.AddInitiative(effectResult.InitiativeChange);
             }
 
             // Apply initiative change (for Initiative-granting success effects)
@@ -1304,7 +1302,7 @@ public class ConversationFacade
         else
         {
             // Flow only changes from explicit "Advancing" effect type (no automatic changes)
-            flowChange = 0;
+            cadenceChange = 0;
 
             // Bad luck protection tracking would go here if implemented
 
@@ -1323,10 +1321,10 @@ public class ConversationFacade
                 session.MomentumManager.LoseMomentum(-effectResult.MomentumChange);
             }
 
-            // Apply focus penalty (for ForceListen effect)
-            if (effectResult.FocusAdded < 0)
+            // Apply initiative penalty (for ForceListen effect)
+            if (effectResult.InitiativeChange < 0)
             {
-                session.AddFocus(effectResult.FocusAdded); // Adding negative = removing
+                session.AddInitiative(effectResult.InitiativeChange); // Adding negative = removing
             }
         }
 
@@ -1359,12 +1357,12 @@ public class ConversationFacade
                 {
                     Card = selectedCard,
                     Success = success,
-                    Flow = flowChange,
+                    Flow = cadenceChange,
                     Roll = 0, // No dice rolls in deterministic system
                     SuccessChance = success ? 100 : 0 // Deterministic: either succeeds or fails
                 }
             },
-            FinalFlow = flowChange
+            MomentumGenerated = cadenceChange
         };
 
 

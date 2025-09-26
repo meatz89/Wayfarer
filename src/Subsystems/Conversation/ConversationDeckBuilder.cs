@@ -135,7 +135,7 @@ public class ConversationDeckBuilder
             {
                 Id = requestCard.Id,
                 Description = requestCard.Description,
-                Focus = requestCard.Focus,
+                InitiativeCost = requestCard.InitiativeCost,
                 Difficulty = requestCard.Difficulty,
                 TokenType = requestCard.TokenType,
                 Persistence = requestCard.Persistence,

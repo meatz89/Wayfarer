@@ -176,7 +176,7 @@ public class GameFacade
         // Depth 4-6: Focus 3-5 (Standard)
         // Depth 7-10: Focus 6+ (Decisive)
 
-        int focusCost = card.Focus;
+        int focusCost = card.InitiativeCost;
 
         if (focusCost <= 2) return Math.Max(1, focusCost + 1); // Depth 1-3
         if (focusCost <= 5) return focusCost + 1; // Depth 4-6

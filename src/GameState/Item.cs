@@ -39,7 +39,7 @@ public class Item
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public int Focus { get; set; } = 1;
+    public int InitiativeCost { get; set; } = 1;
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public List<ItemCategory> Categories { get; set; } = new List<ItemCategory>();
@@ -61,13 +61,13 @@ public class Item
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
 
 
-    public string FocusDescription => Focus switch
+    public string InitiativeCostDescription => InitiativeCost switch
     {
-        0 => "Focusless",
+        0 => "InitiativeCostless",
         1 => "Light",
         2 => "Medium",
         3 => "Heavy",
-        _ => $"Very Heavy ({Focus})"
+        _ => $"Very Heavy ({InitiativeCost})"
     };
 
     // Helper properties for UI display

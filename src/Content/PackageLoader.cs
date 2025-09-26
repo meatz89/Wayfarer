@@ -75,7 +75,8 @@ public class PackageLoader
                 string json = File.ReadAllText(packagePath);
                 Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true
+                    PropertyNameCaseInsensitive = true,
+                    AllowTrailingCommas = true
                 });
 
                 // Check if already loaded
@@ -203,7 +204,8 @@ public class PackageLoader
             string json = File.ReadAllText(packageFilePath);
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
             });
 
             // Check if already loaded
@@ -245,7 +247,8 @@ public class PackageLoader
         {
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
             });
 
             // Set package ID if not present
@@ -1383,7 +1386,7 @@ public class PackageLoader
         {
             Id = dto.Id,
             Description = dto.DisplayText ?? "",
-            Focus = dto.Focus,
+            InitiativeCost = dto.InitiativeCost,
             TokenType = ConnectionType.Trust,
             Difficulty = Difficulty.Medium,
             CardType = CardType.Observation,

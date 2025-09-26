@@ -75,7 +75,7 @@ public class PersonalityRuleEnforcer
     {
         // For now, use the existing Focus cost as Initiative cost
         // This will be replaced when card templates are migrated to Initiative system
-        return card.Focus;
+        return card.InitiativeCost;
     }
 
     /// <summary>

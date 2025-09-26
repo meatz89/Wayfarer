@@ -619,11 +619,11 @@ namespace Wayfarer.Pages.Components
                     return $"Draw {count} card{(count == 1 ? "" : "s")}";
                 }
 
-                if (projection.FocusAdded != 0)
+                if (projection.InitiativeChange != 0)
                 {
-                    return projection.FocusAdded > 0
-                        ? $"+{projection.FocusAdded} focus"
-                        : $"{projection.FocusAdded} focus";
+                    return projection.InitiativeChange > 0
+                        ? $"+{projection.InitiativeChange} focus"
+                        : $"{projection.InitiativeChange} focus";
                 }
             }
 
@@ -1014,7 +1014,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Legacy fallback: use Focus property until all cards migrated
-            return card.Focus;
+            return card.InitiativeCost;
         }
 
         /// <summary>

@@ -240,7 +240,7 @@ namespace Wayfarer.Subsystems.MarketSubsystem
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
-                        Focus = item.Focus,
+                        InitiativeCost = item.InitiativeCost,
                         BuyPrice = pricing.BuyPrice,
                         SellPrice = pricing.SellPrice,
                         Categories = item.Categories,

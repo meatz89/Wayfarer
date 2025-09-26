@@ -193,7 +193,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 LocationTraits = _spotManager.GetLocationTraits(location, spot, _timeManager.GetCurrentTimeBlock()),
                 AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, location, _timeManager.GetCurrentTimeBlock(), GetUrgentObligationCount(), GetNPCCountAtSpot(spot)),
                 QuickActions = new List<LocationActionViewModel>(),
-                NPCsPresent = new List<NPCFocusViewModel>(),
+                NPCsPresent = new List<NPCInteractionViewModel>(),
                 Observations = new List<ObservationViewModel>(),
                 AreasWithinLocation = new List<AreaWithinLocationViewModel>(),
                 Routes = new List<RouteOptionViewModel>()
@@ -272,9 +272,9 @@ namespace Wayfarer.Subsystems.LocationSubsystem
 
         // Private helper methods
 
-        private List<NPCFocusViewModel> GetNPCsWithInteractions(LocationSpot spot, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
+        private List<NPCInteractionViewModel> GetNPCsWithInteractions(LocationSpot spot, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
         {
-            List<NPCFocusViewModel> result = new List<NPCFocusViewModel>();
+            List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>();
 
             Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Looking for NPCs at {spot.SpotID} during {currentTime}");
             List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
@@ -308,7 +308,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     });
                 }
 
-                result.Add(new NPCFocusViewModel
+                result.Add(new NPCInteractionViewModel
                 {
                     Id = npc.ID,
                     Name = npc.Name,

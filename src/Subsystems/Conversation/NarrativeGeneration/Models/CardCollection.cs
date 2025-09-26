@@ -27,10 +27,10 @@ public class CardInfo
     public string Id { get; set; }
 
     /// <summary>
-    /// Focus cost required to play this card.
+    /// Initiative cost required to play this card.
     /// Indicates the intensity/commitment level of the card's effect.
     /// </summary>
-    public int Focus { get; set; }
+    public int InitiativeCost { get; set; }
 
     /// <summary>
     /// Base difficulty level of the card.

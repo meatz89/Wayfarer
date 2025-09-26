@@ -33,13 +33,11 @@ public class ConversationCard
     public int? EffectInitiative { get; init; } // Initiative gained/lost
     public int? EffectMomentum { get; init; } // Momentum gained/lost
     public int? EffectDoubt { get; init; } // Doubt gained/lost (negative = reduction)
-    public int? EffectCadence { get; init; } // Cadence change
     public int? EffectDrawCards { get; init; } // Cards to draw
     public decimal? EffectMomentumMultiplier { get; init; } // Momentum multiplier
 
     // Legacy system properties (maintained for migration compatibility)
     public ConnectionType TokenType { get; init; }
-    public int Focus { get; init; } = 0; // DEPRECATED: Use InitiativeCost instead
     public Difficulty Difficulty { get; init; }
 
     // Token requirements for gated exchanges

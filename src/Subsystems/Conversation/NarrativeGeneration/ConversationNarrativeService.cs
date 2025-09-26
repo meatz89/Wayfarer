@@ -171,8 +171,8 @@ public class ConversationNarrativeService
         // Generate basic card narratives
         foreach (CardInstance card in activeCards)
         {
-            string basicNarrative = card.Focus <= 1 ? "Say something carefully" :
-                                   card.Focus >= 3 ? "Speak boldly" :
+            string basicNarrative = card.InitiativeCost <= 1 ? "Say something carefully" :
+                                   card.InitiativeCost >= 3 ? "Speak boldly" :
                                    "Continue the conversation";
             fallback.CardNarratives.Add(new CardNarrative
             {
@@ -199,7 +199,7 @@ public class ConversationNarrativeService
         {
             Flow = session.Cadence, // Cadence system (-10 to +10)
             Momentum = momentum, // Use momentum as rapport for narrative compatibility
-            Focus = session.GetAvailableFocus(),
+            Focus = session.GetCurrentInitiative(),
             Doubt = session.MaxDoubt - session.CurrentDoubt, // Convert doubt to patience for narrative
             CurrentState = session.CurrentState,
             CurrentTopicLayer = currentLayer,
@@ -292,7 +292,7 @@ public class ConversationNarrativeService
             CardInfo cardInfo = new CardInfo
             {
                 Id = card.Id,
-                Focus = card.Focus,
+                InitiativeCost = card.InitiativeCost,
                 Difficulty = card.Difficulty,
                 Effect = card.SuccessType.ToString() ?? card.Description ?? "",
                 Persistence = DetermineCardPersistence(card),

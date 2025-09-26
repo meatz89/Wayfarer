@@ -24,7 +24,6 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "Cadence": 1
           }
         }
       },
@@ -45,7 +44,6 @@
           "success": {
             "Initiative": 1,
             "DrawCards": 1,
-            "Cadence": 1
           }
         }
       },
@@ -66,7 +64,6 @@
           "success": {
             "Momentum": 1,
             "Initiative": 1,
-            "Cadence": 1
           }
         }
       },
@@ -88,7 +85,6 @@
             "Initiative": 1,
             "Momentum": 2,
             "Doubt": 1,
-            "Cadence": 1
           }
         }
       },
@@ -109,7 +105,6 @@
           "success": {
             "Initiative": 2,
             "Doubt": -1,
-            "Cadence": 1
           }
         }
       },
@@ -129,7 +124,6 @@
         "effects": {
           "success": {
             "Momentum": 1,
-            "Cadence": 1
           }
         }
       },
@@ -149,7 +143,6 @@
         "effects": {
           "success": {
             "Doubt": -1,
-            "Cadence": 1
           }
         }
       },
@@ -169,7 +162,6 @@
         "effects": {
           "success": {
             "Momentum": 2,
-            "Cadence": 1
           }
         }
       },
@@ -189,7 +181,6 @@
         "effects": {
           "success": {
             "Momentum": 3,
-            "Cadence": 1
           }
         }
       },
@@ -209,7 +200,6 @@
         "effects": {
           "success": {
             "Momentum": 2,
-            "Cadence": 1
           }
         },
         "alternativeCosts": [{
@@ -220,7 +210,6 @@
           "alternativeEffects": {
             "success": {
               "Doubt": -3,
-              "Cadence": 1
             }
           }
         }]
@@ -241,7 +230,6 @@
         "effects": {
           "success": {
             "DrawCards": 2,
-            "Cadence": 1
           }
         }
       },
@@ -262,7 +250,6 @@
           "success": {
             "Momentum": 4,
             "Doubt": 1,
-            "Cadence": 1
           }
         }
       },
@@ -282,7 +269,6 @@
         "effects": {
           "success": {
             "Momentum": 2,
-            "Cadence": 1
           }
         }
       },
@@ -302,7 +288,6 @@
         "effects": {
           "success": {
             "Momentum": 2,
-            "Cadence": 1
           }
         }
       },
@@ -322,7 +307,6 @@
         "effects": {
           "success": {
             "Momentum": 6,
-            "Cadence": 1
           }
         }
       },
@@ -343,7 +327,6 @@
           "success": {
             "MomentumMultiplier": 2.0,
             "Doubt": -999,
-            "Cadence": 1
           }
         }
       },
@@ -362,9 +345,8 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Momentum": "3 + SpokeCards/3",
+            "Momentum": 3,
             "DrawCards": 2,
-            "Cadence": 1
           }
         },
         "scalingEffect": {
@@ -387,8 +369,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": "2 + Doubt",
-            "Cadence": 1
+            "Momentum": 2,
           }
         },
         "scalingEffect": {
@@ -413,7 +394,6 @@
           "success": {
             "Momentum": 5,
             "Doubt": -2,
-            "Cadence": 1
           }
         },
         "alternativeCosts": [{
@@ -440,7 +420,6 @@
           "success": {
             "Momentum": 20,
             "Doubt": 2,
-            "Cadence": 1
           }
         },
         "alternativeCosts": [{

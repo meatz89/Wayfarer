@@ -24,7 +24,7 @@ public class NPCGoalCardDTO
     /// <summary>
     /// Focus cost (usually 0 for promise cards)
     /// </summary>
-    public int Focus { get; set; }
+    public int InitiativeCost { get; set; }
 
     /// <summary>
     /// Token type for this promise (Trust, Commerce, Status, Shadow)

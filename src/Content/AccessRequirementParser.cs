@@ -86,7 +86,7 @@ public static class AccessRequirementParser
         if (element.ValueKind == JsonValueKind.Null || element.ValueKind == JsonValueKind.Undefined)
             return null;
 
-        AccessRequirementDTO? dto = JsonSerializer.Deserialize<AccessRequirementDTO>(element.GetRawText());
+        AccessRequirementDTO? dto = JsonSerializer.Deserialize<AccessRequirementDTO>(element.GetRawText(), new JsonSerializerOptions { AllowTrailingCommas = true, PropertyNameCaseInsensitive = true });
         if (dto == null)
             return null;
 

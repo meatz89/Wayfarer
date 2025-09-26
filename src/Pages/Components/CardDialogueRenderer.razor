@@ -37,7 +37,7 @@
     private int GetCardFocus()
     {
         // Get focus directly from the card's mechanical properties
-        return Card?.Focus ?? 1; // Default to 1 if Card is null
+        return Card?.InitiativeCost ?? 1; // Default to 1 if Card is null
     }
 
     private string GetCardTypeClass()
