@@ -31,21 +31,6 @@ public class ExchangeRewardStructure
     /// </summary>
     public List<string> EffectIds { get; set; } = new List<string>();
 
-    /// <summary>
-    /// Creates a deep clone of this reward structure.
-    /// </summary>
-    public ExchangeRewardStructure DeepClone()
-    {
-        return new ExchangeRewardStructure
-        {
-            Resources = new List<ResourceAmount>(Resources.Count > 0
-                ? Resources.ConvertAll(r => new ResourceAmount(r.Type, r.Amount))
-                : new List<ResourceAmount>()),
-            ItemIds = new List<string>(ItemIds),
-            Tokens = new Dictionary<ConnectionType, int>(Tokens),
-            EffectIds = new List<string>(EffectIds)
-        };
-    }
 
     /// <summary>
     /// Gets a human-readable description of the rewards.
