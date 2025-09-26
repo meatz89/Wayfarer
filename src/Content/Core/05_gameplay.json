@@ -197,6 +197,17 @@
         }
       }
     ],
+    "deckCompositions": {
+      "npcDecks": {
+        "marcus": {
+          "exchangeDeck": {
+            "quick_food_trade": 1,
+            "bread_trade": 1,
+            "caravan_transport": 1
+          }
+        }
+      }
+    },
     "dialogueTemplates": {
       "connectionStateDialogue": {
         "DISCONNECTED": {
