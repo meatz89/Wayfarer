@@ -35,7 +35,6 @@ The game must create strategic depth through impossible choices, not mechanical 
 - **Perfect Information**: All calculations visible to players
 - **No Soft-Lock Architecture**: Always a path forward, even if suboptimal
 - **Deterministic Systems**: No hidden randomness beyond stated percentages
-- **No Threshold Design**: Every resource scales linearly
 
 ### Intentional Mechanic Design
 
@@ -169,7 +168,7 @@ These cards are specific to that NPC, not generic token type cards. Marcus doesn
 Each personality type applies one rule that fundamentally changes how conversations work:
 
 - **Proud**: Cards must be played in ascending Initiative order each turn (resets when you LISTEN)
-- **Devoted**: Doubt increases by +2 instead of +1 when cards fail requirements
+- **Devoted**: When card effects add Doubt, add +1 additional Doubt
 - **Mercantile**: Your highest Initiative cost card each turn gains +3 Momentum bonus
 - **Cunning**: Playing same Initiative cost as previous card costs -2 Momentum
 - **Steadfast**: All Momentum changes are capped at ±2 per card
@@ -673,7 +672,7 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 - **Momentum**: Progress toward conversation goals (8/12/16 thresholds)
 - **Doubt**: Timer (ends at 10) and conversation pressure
 - **Cadence**: Conversation balance affecting LISTEN (-5 to +10)
-- **Statements**: Cards in Spoken pile that can scale effects
+- **Statements**: Cards in Spoken pile that scale effects
 
 ### Time Segment Economy Connections
 
@@ -799,13 +798,14 @@ Four types, each with distinct identity:
 ### Per-Conversation Resources
 
 #### Initiative
-- **Starting Value**: 0
+- **Starting Value**: 0 (must be generated from nothing)
 - **Mechanics**:
-  - Persists between LISTEN actions
-  - Each card costs its Initiative value on SPEAK actions
+  - Accumulates and persists between LISTEN actions
+  - Each card costs its Initiative value on SPEAK
   - Foundation cards generate Initiative
-  - Decisive cards require more than base capacity
-- **Strategic Role**: Core action economy. Must be built through Foundation cards to enable powerful Decisive cards.
+  - Can bank Initiative for future turns
+  - No maximum cap - can accumulate indefinitely
+- **Strategic Role**: Core action economy. Must generate through Foundation cards before any other cards become playable.
 
 #### Momentum
 - **Range**: 0 to 20+
@@ -823,17 +823,18 @@ Four types, each with distinct identity:
   - Each SPEAK action: +1 Cadence
   - Each LISTEN action: -2 Cadence
 - **Effects**:
-  - Each point of Cadence on player side (positive): +1 Doubt per point on LISTEN
-  - Each point of Cadence on npc side (negative): +1 card draw on next LISTEN
-- **Strategic Role**: Conversation balance forcing strategic listening
+  - Positive Cadence: +1 Doubt per point on LISTEN
+  - Negative Cadence: +1 card draw per point on LISTEN
+  - At ±5 cannot go further in that direction
+- **Strategic Role**: Conversation balance forcing strategic listening. Dominating creates Doubt, listening grants cards.
 
 #### Doubt
 - **Range**: 0 to 10
 - **Starting Value**: 0
-- **Increase**: Through cadence or card effects
+- **Increase**: Through Cadence effects on LISTEN or card effects
 - **Effect**: Conversation ends at 10 Doubt
-- **Reduction**: Through card effects
-- **Strategic Role**: Timer creating urgency
+- **Reduction**: Through card effects that consume momentum
+- **Strategic Role**: Timer creating urgency and punishing conversation dominance
 
 ## Time Segment System
 
@@ -877,7 +878,7 @@ When segments in a block are exhausted, time advances to the next block. Startin
 
 ### Conversation Time Integration
 
-Conversations cost 1 base segment plus accumulated Spoken Pile (only Statement cards played) as time depth.
+Conversations cost 1 base segment plus Statements in Spoken as time depth. Each Statement card played adds to the conversation's substance and duration. Echo cards don't increase time since they return to the Deck. This creates tension between thorough conversations and time efficiency.
 
 ### Investigation Mechanics
 
@@ -958,10 +959,10 @@ Each resource has exactly ONE mechanical identity with no overlap:
 
 **Initiative** - Conversational Action Economy:
 - Determines how many cards can be played in sequence
-- Starts at 0
-- Accumulates - does not reset on LISTEN
+- Starts at 0 (must be built from nothing)
+- Accumulates and persists between LISTEN actions
 - Foundation cards generate Initiative, other cards spend it
-- Creates builder/spender dynamic requiring setup for powerful effects
+- Creates builder/spender dynamic where you must generate before spending
 
 **Momentum** - Progress Toward Goals:
 - Victory track toward conversation objectives
@@ -972,15 +973,15 @@ Each resource has exactly ONE mechanical identity with no overlap:
 
 **Doubt** - Rising Conversation Failure:
 - Timer that ends conversation at 10 points
-- Can increase through cadence or card effects
+- Increases through Cadence effects or card effects
 - Can be reduced through cards that consume momentum
 - Creates urgency and resource pressure
 - Represents conversation going off track
 
-**Cadence** - Conversation Balance (-5 to +10):
+**Cadence** - Conversation Balance (-5 to +5):
 - Tracks who dominates the conversation
 - +1 per SPEAK action, -2 per LISTEN action
-- High Cadence: +1 Doubt per point on LISTEN
+- Positive Cadence: +1 Doubt per point on LISTEN
 - Negative Cadence: +1 card draw per point on LISTEN
 - Creates natural conversation rhythm and rewards strategic listening
 
@@ -988,7 +989,7 @@ Each resource has exactly ONE mechanical identity with no overlap:
 - Count of Statement cards played (not Echo cards)
 - Used to scale card effects ("per Statement")
 - Enables requirements for powerful cards
-- Influences time segment cost for conversation
+- Determines conversation time cost (1 segment + Statements)
 - Represents accumulated conversation foundation
 
 ### Stat-Gated Depth System
@@ -1175,17 +1176,18 @@ NPCs have a list of Requests (not a deck). Each Request bundles:
 
 Complete sequence:
 1. **Apply Cadence Effects**
-   - If Cadence ≥ 6: +1 Doubt per point above 5
-   - If Cadence ≤ -3: Mark for +1 card draw
-   - Cadence decreases by 3
+   - If Cadence > 0: +1 Doubt per positive point
+   - If Cadence < 0: +1 card draw per negative point
+   - Cadence decreases by 2 (giving them space)
 
 2. **Calculate Card Draw**
    - Base: 3 cards
-   - +1 if negative Cadence marked
+   - Plus bonus cards from negative Cadence
    - Draw from Deck
 
-3. **Refresh Initiative**
-   - Initiative returns to base value (3-6)
+3. **Initiative Persists**
+   - Initiative does NOT reset
+   - Accumulated Initiative carries forward
 
 4. **Check Goal Activation**
    - If Momentum ≥ goal threshold, can play request card next turn
@@ -1204,13 +1206,13 @@ Complete sequence:
    - **Proud**: Cards must be in ascending Initiative order
    - **Mercantile**: Highest Initiative card gets +3 Momentum
    - **Cunning**: Same Initiative as previous costs -2 Momentum
-   - **Devoted**: +2 Doubt instead of +1 on failed requirements
+   - **Devoted**: Card effects that add Doubt add +1 additional Doubt
    - **Steadfast**: Momentum changes capped at ±2
 
 5. **Pay Initiative Cost**
 
 6. **Check Requirement or Pay Cost**
-   - If Requirement not met: +1 Doubt (or +2 for Devoted)
+   - If Requirement not met: Card cannot be played
    - If Cost: Consume the resource
 
 7. **Apply Deterministic Effect**
@@ -1220,8 +1222,8 @@ Complete sequence:
    - **Echo**: Returns to Deck
 
 9. **Continue or Must LISTEN**
-   - If failed requirement: Must LISTEN next
-   - Otherwise: Can SPEAK again if Initiative remains
+   - Can SPEAK again if Initiative remains
+   - Or choose to LISTEN
 
 ### Promise Cards - Queue Manipulation
 
@@ -1253,7 +1255,7 @@ Triggers:
 Cleanup:
 - All piles cleared
 - NPC persistent decks unchanged
-- Time cost: Base segment + doubt accumulated
+- Time cost: 1 segment + total Statements in Spoken pile
 
 ### Conversation Difficulty Levels
 
@@ -1289,25 +1291,27 @@ Based on momentum thresholds achieved:
 
 ### Builder/Spender Dynamic
 
-The core tactical loop requires using Foundation cards to generate Initiative, enabling Standard and Decisive cards:
+The core tactical loop requires using Foundation cards to generate Initiative from zero, enabling all other cards:
 
 #### Foundation Cards (Depth 1-2)
 - **Cost**: 0 Initiative
 - **Effect**: Generate 1-3 Initiative
-- **Purpose**: Enable powerful plays while making progress
+- **Purpose**: Essential starting point - nothing else playable without Initiative
 - **Example**: "Active Listening" - 0 Initiative, +2 Initiative
 
 #### Standard Cards (Depth 3-6)
-- **Cost**: 3-5 Initiative
+- **Cost**: 0-6 Initiative (overlapping ranges)
 - **Effect**: Core momentum and resource effects
-- **Purpose**: Primary conversation tools
+- **Purpose**: Primary conversation tools with varying costs
 - **Example**: "Thoughtful Response" - 4 Initiative, +5 Momentum
 
 #### Decisive Cards (Depth 7-10)
-- **Cost**: 6-12 Initiative
+- **Cost**: 4-12 Initiative (requires significant buildup)
 - **Effect**: Powerful conversation-defining effects
-- **Purpose**: Win conditions requiring setup
+- **Purpose**: Win conditions requiring multi-turn setup
 - **Example**: "Perfect Understanding" - 10 Initiative, +12 Momentum
+
+Note that depths overlap in Initiative costs - a depth 8 card might cost only 4 Initiative if it's a simple effect, while a depth 4 card might cost 4 Initiative if it's complex. Depth gates variety and options, not raw power.
 
 ### Scaling Through Visible State
 
