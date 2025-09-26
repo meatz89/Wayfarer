@@ -344,27 +344,24 @@
     }
 
     /// <summary>
-    /// Get current total weight (inventory + obligations)
+    /// Get current total weight (inventory + carried letters)
     /// </summary>
     public int GetCurrentWeight(ItemRepository itemRepository)
     {
         int inventoryWeight = Inventory.GetUsedWeight(itemRepository);
-        int obligationWeight = GetObligationWeight();
-        return inventoryWeight + obligationWeight;
+        int letterWeight = GetCarriedLetterWeight();
+        return inventoryWeight + letterWeight;
     }
 
     /// <summary>
-    /// Get weight from all active obligations
+    /// Get weight from all carried letters (physical objects in satchel)
     /// </summary>
-    public int GetObligationWeight()
+    public int GetCarriedLetterWeight()
     {
         int totalWeight = 0;
-        for (int i = 0; i < ObligationQueue.Length; i++)
+        foreach (Letter letter in CarriedLetters)
         {
-            if (ObligationQueue[i] != null)
-            {
-                totalWeight += ObligationQueue[i].Weight;
-            }
+            totalWeight += letter.GetWeight();
         }
         return totalWeight;
     }

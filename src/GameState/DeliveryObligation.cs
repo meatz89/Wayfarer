@@ -58,7 +58,6 @@ public class DeliveryObligation
     public string RecipientName { get; set; }
     public int DeadlineInSegments { get; set; } // Segments until letter expires
     public int Payment { get; set; }
-    public int Weight { get; set; } = 1; // Physical weight for carrying capacity
     public ConnectionType TokenType { get; set; }
 
     // Literary UI properties - drives narrative generation

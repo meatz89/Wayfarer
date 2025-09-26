@@ -48,6 +48,14 @@ public class Letter
     public bool IsSpecial => SpecialType != LetterSpecialType.None;
     public bool IsBulky => PhysicalProperties.HasFlag(LetterPhysicalProperties.Bulky);
     public bool IsFragile => PhysicalProperties.HasFlag(LetterPhysicalProperties.Fragile);
+
+    /// <summary>
+    /// Get the weight of this letter for carrying capacity calculations
+    /// </summary>
+    public int GetWeight()
+    {
+        return Size; // Size property represents physical weight
+    }
 }
 
 public enum LetterCondition
