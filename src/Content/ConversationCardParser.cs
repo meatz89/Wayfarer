@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Stateless parser for converting conversation card DTOs to domain models
+/// Stateless parser for converting conversation card DTOs to domain models.
+///
+/// CRITICAL ARCHITECTURAL PRINCIPLE: Conversation cards and exchange cards are PARALLEL SYSTEMS.
+/// - Conversation cards use "effects" structure and are parsed by this parser
+/// - Exchange cards use "successEffect" structure and are handled by the exchange system
+/// - They must NEVER be mixed or cross-parsed between systems
 /// </summary>
 public static class ConversationCardParser
 {
@@ -25,7 +30,10 @@ public static class ConversationCardParser
     }
 
     /// <summary>
-    /// Convert a ConversationCardDTO to a ConversationCard domain model
+    /// Convert a ConversationCardDTO to a ConversationCard domain model.
+    ///
+    /// IMPORTANT: This method only handles conversation cards with "effects" structure.
+    /// Exchange cards with "successEffect" structure are handled by the exchange system.
     /// </summary>
     public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null, string customId = null)
     {
@@ -205,9 +213,13 @@ public static class ConversationCardParser
                 !successEffects.Momentum.HasValue &&
                 !successEffects.Doubt.HasValue &&
                 !successEffects.DrawCards.HasValue &&
-                !successEffects.MomentumMultiplier.HasValue)
+                !successEffects.MomentumMultiplier.HasValue &&
+                string.IsNullOrEmpty(successEffects.OfferLetter) &&
+                string.IsNullOrEmpty(successEffects.AddObligation) &&
+                !successEffects.GainCoins.HasValue &&
+                string.IsNullOrEmpty(successEffects.GainCard))
             {
-                throw new InvalidOperationException($"Conversation card '{dto.Id}' has no effects defined! At least one effect (Initiative, Momentum, Doubt, DrawCards, or MomentumMultiplier) MUST be specified.");
+                throw new InvalidOperationException($"Conversation card '{dto.Id}' has no effects defined! At least one effect (Initiative, Momentum, Doubt, DrawCards, MomentumMultiplier, OfferLetter, AddObligation, GainCoins, or GainCard) MUST be specified.");
             }
         }
 
@@ -391,6 +403,12 @@ public class CardSuccessEffectsDTO
     public int? Doubt { get; set; }
     public int? DrawCards { get; set; }
     public decimal? MomentumMultiplier { get; set; }
+
+    // Custom game effects for request/goal cards
+    public string OfferLetter { get; set; }
+    public string AddObligation { get; set; }
+    public int? GainCoins { get; set; }
+    public string GainCard { get; set; }
 }
 
 /// <summary>

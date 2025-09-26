@@ -54,6 +54,9 @@ public class ConversationDeckBuilder
         // Create card instances from the conversation type's deck
         List<CardInstance> deckInstances = CreateInstancesFromCardIds(cardDeck.CardIds, npc.ID);
 
+        // Filter signature cards based on token requirements
+        deckInstances = FilterSignatureCardsByTokenRequirements(deckInstances, npc);
+
         // Create session deck
         SessionCardDeck deck = SessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
@@ -190,6 +193,57 @@ public class ConversationDeckBuilder
         }
 
         return promiseCards;
+    }
+
+    /// <summary>
+    /// Filter signature cards based on token requirements with the NPC
+    /// </summary>
+    private List<CardInstance> FilterSignatureCardsByTokenRequirements(List<CardInstance> instances, NPC npc)
+    {
+        List<CardInstance> filteredInstances = new List<CardInstance>();
+
+        foreach (CardInstance instance in instances)
+        {
+            ConversationCard card = instance.Card;
+
+            // Check if this is a signature card (has token requirements)
+            if (card.TokenRequirements != null && card.TokenRequirements.Any())
+            {
+                // Get player's tokens with this NPC
+                Dictionary<string, int> playerTokens = GetPlayerTokensWithNPC(npc);
+
+                // Check if token requirements are met
+                if (card.CanAccessWithTokens(playerTokens))
+                {
+                    filteredInstances.Add(instance);
+                }
+                // If token requirements not met, exclude this signature card from deck
+            }
+            else
+            {
+                // Regular card without token requirements - always include
+                filteredInstances.Add(instance);
+            }
+        }
+
+        return filteredInstances;
+    }
+
+    /// <summary>
+    /// Get player's current token counts with the specified NPC
+    /// </summary>
+    private Dictionary<string, int> GetPlayerTokensWithNPC(NPC npc)
+    {
+        Dictionary<string, int> tokens = new Dictionary<string, int>();
+
+        // Get all connection types and their token counts
+        foreach (ConnectionType connectionType in Enum.GetValues<ConnectionType>())
+        {
+            int tokenCount = npc.GetTokenCount(connectionType);
+            tokens[connectionType.ToString()] = tokenCount;
+        }
+
+        return tokens;
     }
 
 }

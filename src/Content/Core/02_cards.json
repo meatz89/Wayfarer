@@ -416,9 +416,9 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Momentum": 2,
+            "Momentum": 2
           }
-        }]
+        }
       },
       {
         "id": "racing_thoughts",
@@ -829,9 +829,10 @@
           "connectionType": "Trust",
           "description": "Deliver my letter to Lord Blackwood",
           "difficulty": "Easy",
-          "successEffect": {
-            "type": "OfferLetter",
-            "value": "elena_urgent_letter"
+          "effects": {
+            "success": {
+              "OfferLetter": "elena_urgent_letter"
+            }
           },
           "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
           "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word.",
@@ -848,9 +849,10 @@
           "connectionType": "Trust",
           "description": "Get me to safety before nightfall",
           "difficulty": "Medium",
-          "successEffect": {
-            "type": "AddObligation",
-            "value": "elena_safety_obligation"
+          "effects": {
+            "success": {
+              "AddObligation": "elena_safety_obligation"
+            }
           },
           "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
           "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon.",
@@ -869,9 +871,10 @@
           "description": "Discuss trade opportunities",
           "difficulty": "Easy",
           "momentumThreshold": 4,
-          "successEffect": {
-            "type": "GainCoins",
-            "value": "10"
+          "effects": {
+            "success": {
+              "GainCoins": 10
+            }
           },
           "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
           "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you.",
@@ -888,9 +891,10 @@
           "description": "Partner in a business venture",
           "difficulty": "Medium",
           "momentumThreshold": 8,
-          "successEffect": {
-            "type": "GainCard",
-            "value": "commercial_insight"
+          "effects": {
+            "success": {
+              "GainCard": "commercial_insight"
+            }
           },
           "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
           "dialogueFragment": "Marcus, I have a business proposal that could benefit us both.",
