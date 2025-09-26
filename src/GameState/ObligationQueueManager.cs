@@ -2698,7 +2698,7 @@ public class ObligationQueueManager
             CardType = CardType.Letter,  // Burden cards use BurdenGoal type
             Description = $"Past betrayal weighs on {npc.Name}'s mind",
             TokenType = tokenType,
-            Persistence = PersistenceType.Standard,  // Burdens persist
+            Persistence = PersistenceType.Statement,  // Burdens persist
             SuccessType = SuccessEffectType.None,
             FailureType = FailureEffectType.None,
         };

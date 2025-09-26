@@ -229,7 +229,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     private string GenerateFlowBasedDialogue(ConversationState state, NPCData npcData, CardCollection activeCards)
     {
         // Check for special card requirements first
-        bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Standard);
+        bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Statement);
         bool hasHighFocusCards = activeCards.Cards.Any(c => c.InitiativeCost >= 3);
 
         // Rapport-based dialogue depth
@@ -367,7 +367,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     private string GenerateSmartProgressionHint(ConversationState state, CardCollection activeCards)
     {
         // Check card-specific hints first
-        if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Standard))
+        if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Statement))
         {
             return "An urgent matter requires immediate attention.";
         }

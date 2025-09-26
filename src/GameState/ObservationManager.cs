@@ -294,7 +294,7 @@ public class ObservationManager
             SkeletonSource = baseCard.SkeletonSource,
             RequiredTokenType = baseCard.RequiredTokenType,
             // Override for observation cards
-            Persistence = PersistenceType.Standard, // Observations persist through LISTEN
+            Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             CardType = CardType.Observation
         };
 
@@ -420,7 +420,7 @@ public class ObservationManager
             DialogueFragment = cardReward.Description,
             InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
             CardType = CardType.Observation,
-            Persistence = PersistenceType.Standard, // Observations persist through LISTEN
+            Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             SuccessType = successType,
             FailureType = FailureEffectType.None,
             Difficulty = Difficulty.VeryEasy

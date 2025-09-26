@@ -19,8 +19,8 @@ public enum ScalingType
     DoubleMomentum,        // Double current momentum
 
     // Visible pile scaling (Mind, Spoken, Deck)
-    CardsInMind,           // = cards in mind (hand)
-    CardsInSpoken,         // = cards in spoken pile
+    CardsInMind,           // = cards in Mind pile
+    CardsInSpoken,         // = cards in Spoken pile
     CardsInDeck,           // = cards remaining in deck
 
     // Resource conversion (Momentum spending)

@@ -20,59 +20,57 @@
                 <div class="npc-name">@NpcName</div>
                 <div class="npc-status">@GetNpcStatusLine()</div>
             </div>
-
-            <div class="personality-badge">@(Session?.PersonalityEnforcer?.GetRuleDescription() ?? "")</div>
+            <div class="personality-rule">@(Session?.PersonalityEnforcer?.GetRuleDescription() ?? "")</div>
         </div>
 
-            <!-- Resource Display Bar - 4-Resource System -->
-            <div class="resource-bar">
-                <!-- Initiative Display -->
-                <div class="initiative-display">
-                    <span class="initiative-label">Initiative</span>
-                    <div class="initiative-counter">
-                        <span class="initiative-value">@GetCurrentInitiative()</span>
-                    </div>
-                    <span class="initiative-info">Earn with Foundation cards</span>
-                </div>
-
-                <!-- Cadence Meter -->
-                <div class="cadence-display">
-                    <span class="cadence-label">Conversation Balance</span>
-                    <div class="cadence-meter">
-                        <div class="cadence-track">
-                            <div class="cadence-indicator" style="left: @GetCadencePosition()%"></div>
-                            <div class="cadence-center-line"></div>
-                        </div>
-                        <div class="cadence-labels">
-                            <span class="cadence-min">-10</span>
-                            <span class="cadence-value">@GetCurrentCadence()</span>
-                            <span class="cadence-max">+10</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Momentum Display -->
-                <div class="momentum-display">
-                    <span class="momentum-label">Momentum</span>
-                    <span class="momentum-counter">@(Session?.CurrentMomentum ?? 0)</span>
-                    <div class="momentum-goals">
-                        <span class="goal-threshold @(GetCurrentMomentum() >= 8 ? "achieved" : "")">8</span>
-                        <span class="goal-threshold @(GetCurrentMomentum() >= 12 ? "achieved" : "")">12</span>
-                        <span class="goal-threshold @(GetCurrentMomentum() >= 16 ? "achieved" : "")">16</span>
-                    </div>
-                </div>
-
-                <!-- Doubt Display -->
-                <div class="doubt-display">
-                    <span class="doubt-label">Doubt</span>
-                    <div class="doubt-slots">
-                        @for (int i = 1; i <= Session.MaxDoubt; i++)
-                        {
-                            <span class="doubt-slot @GetDoubtSlotClass(i)"></span>
-                        }
-                    </div>
+        <!-- Core Resources Display (matching mockup exactly) -->
+        <div class="resources-display">
+            <div class="resource-item">
+                <div class="resource-label">Momentum</div>
+                <div class="resource-value">@(Session?.CurrentMomentum ?? 0)</div>
+                <div class="resource-bar">
+                    <div class="resource-fill" style="width: @GetMomentumPercentage()%;"></div>
                 </div>
             </div>
+            <div class="cadence-container">
+                <span class="cadence-label">Listen Heavy</span>
+                <div class="cadence-scale">
+                    @for (int i = -8; i <= 8; i++)
+                    {
+                        <div class="cadence-segment @GetCadenceSegmentClass(i) @(GetCurrentCadence() == i ? "current" : "")"></div>
+                    }
+                </div>
+                <span class="cadence-label">Speak Heavy</span>
+            </div>
+            <div class="resource-item">
+                <div class="resource-label">Doubt</div>
+                <div class="resource-value">@(Session?.CurrentDoubt ?? 0)</div>
+                <div class="resource-bar">
+                    <div class="resource-fill doubt-fill" style="width: @GetDoubtPercentage()%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goal Thresholds Display (matching mockup) -->
+        <div class="goals-section">
+            <div class="goals-container">
+                <div class="goal-card @(GetCurrentMomentum() >= 8 ? "achievable" : "")">
+                    <div class="goal-threshold">8</div>
+                    <div class="goal-name">Basic Delivery</div>
+                    <div class="goal-reward">1 Trust token</div>
+                </div>
+                <div class="goal-card @(GetCurrentMomentum() >= 12 ? "achievable" : "") @(GetCurrentMomentum() >= 12 ? "active" : "")">
+                    <div class="goal-threshold">12</div>
+                    <div class="goal-name">Priority Delivery</div>
+                    <div class="goal-reward">2 Trust + Observation</div>
+                </div>
+                <div class="goal-card @(GetCurrentMomentum() >= 16 ? "achievable" : "")">
+                    <div class="goal-threshold">16</div>
+                    <div class="goal-name">Immediate Action</div>
+                    <div class="goal-reward">3 Trust + Permit</div>
+                </div>
+            </div>
+        </div>
 
 
     <!-- CENTRAL: Narrative Section (from mockup) -->
@@ -91,55 +89,58 @@
         }
     </div>
 
-    <!-- Action Choice (from mockup) -->
-    <div class="action-section">
-        @if (!IsConversationEnded)
-        {
-            <div class="action-choices">
-                <GameTooltip Position="top" CssClass="action-tooltip" Content="@(ConversationFacade?.GetListenActionPreview() ?? "")">
+        <!-- Action Section (matching mockup layout) -->
+        <div class="action-display">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Deck:</span>
+                    <span class="pile-number">@GetDeckCount()</span>
+                </div>
+            </div>
+            <div class="action-section">
+                @if (!IsConversationEnded)
+                {
                     <div class="action-button @(IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteListen"
                          disabled="@(IsGeneratingNarrative || IsProcessing)">
-                        <div>LISTEN</div>
-                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : $"Draw {Session?.GetDrawCount() ?? 3} cards")</div>
+                        LISTEN
+                        <div class="tooltip">Effects: Cadence -2, Draw @(Session?.GetDrawCount() ?? 3) cards</div>
                     </div>
-                </GameTooltip>
-                <GameTooltip Position="top" CssClass="action-tooltip" Content="@(ConversationFacade?.GetSpeakActionPreview(SelectedCard) ?? "")">
-                    <div class="action-button @(SelectedCard == null || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
+                    <div class="action-button primary @(SelectedCard == null || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
                          disabled="@(SelectedCard == null || IsGeneratingNarrative || IsProcessing)">
-                        <div>SPEAK</div>
-                        <div class="action-details">@(IsProcessing ? "Processing..." : IsGeneratingNarrative ? "Generating narrative..." : (ConversationFacade?.GetSpeakActionText(SelectedCard) ?? ""))</div>
+                        SPEAK
+                        <div class="tooltip">Effects: Cadence +1, Play a card from Mind</div>
                     </div>
-                </GameTooltip>
-            </div>
-        }
-        else
-        {
-            <div class="conversation-ended">
-                <div class="end-message">
-                    <p>@EndReason</p>
-                </div>
-                <div class="end-actions">
+                }
+                else
+                {
                     <div class="action-button primary" @onclick="ManuallyEndConversation">
-                        <div>END CONVERSATION</div>
-                        <div class="action-details">Return to location</div>
+                        END CONVERSATION
                     </div>
+                }
+            </div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Spoken:</span>
+                    <span class="pile-number">@GetSpokenCount()</span>
                 </div>
             </div>
-        }
-    </div>
-
-    <!-- Initiative Display (Above Cards) -->
-    <div class="initiative-display-section">
-        <div class="initiative-content">
-            <span class="initiative-label">INITIATIVE AVAILABLE</span>
-            <div class="initiative-counter-large">
-                <span class="initiative-value-large">@GetCurrentInitiative()</span>
-            </div>
-            <span class="initiative-info">Build with Foundation cards • Spend on Standard/Decisive cards</span>
         </div>
-    </div>
+
+        <!-- Initiative Display (with glowing orbs matching mockup) -->
+        <div class="initiative-display">
+            <div class="initiative-counter">
+                <span class="initiative-label">Initiative</span>
+                <span class="initiative-value">@GetCurrentInitiative()</span>
+                <div class="initiative-dots">
+                    @for (int i = 1; i <= Math.Max(5, GetCurrentInitiative()); i++)
+                    {
+                        <span class="initiative-dot @(i <= GetCurrentInitiative() ? "available" : "")"></span>
+                    }
+                </div>
+            </div>
+        </div>
 
     <!-- NPC Observation Cards Section -->
     @{
@@ -181,11 +182,13 @@
         </div>
     }
 
-    <!-- Cards Section -->
-    <div class="cards-section">
-        @* Normal conversation cards *@
-            <div class="cards-header">
-                <div class="cards-title">Your Hand</div>
+        <!-- Cards Section (Mind) -->
+        <div class="cards-section">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Mind:</span>
+                    <span class="pile-number">@GetMindCount()</span>
+                </div>
             </div>
             
             <div class="card-grid slot-aware-container" style="@GetContainerCSSVariables()">
@@ -256,60 +259,37 @@
                     }
                         else
                     {
-                        <div class="card @GetCardDepthClass(convCard) @GetCardStatColorClass(convCard) @GetCardCssClasses(convCard) @GetCardNarrativeClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <!-- Card (matching mockup exactly) -->
+                        <div class="card @GetCardStatColorClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="card-depth-marker">@GetDepthDisplayName(convCard)</div>
-
+                            <span class="card-persistence">@GetCardPersistenceType(convCard)</span>
                             <div class="card-content">
-                                <!-- Top row: Category tag and Stat badge -->
-                                <div class="card-top-row">
-                                    <div class="card-tags">
-                                        @* Legacy persistence types removed in 4-resource system *@
-                                        <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
-                                    </div>
-                                    <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat ?? PlayerStatType.Rapport))
-                                        @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
-                                        {
-                                            <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
-                                        }
-                                    </div>
-                                </div>
-
-                                <!-- Card header: Name and Focus cost -->
+                                <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
                                 <div class="card-header">
-                                    <div class="card-name">
-                                        @GetProperCardName(convCard)
+                                    <div class="card-name">@GetProperCardName(convCard)</div>
+                                    <div class="card-initiative">
+                                        <div class="initiative-cost">@GetCardInitiativeCost(convCard)</div>
+                                        <div class="card-depth">D@GetCardDepth(convCard)</div>
                                     </div>
-                                    <div class="card-initiative">@GetCardInitiativeCost(convCard)</div>
                                 </div>
-
-                                <!-- Card dialogue text -->
-                                <div class="card-text @GetNarrativeClass()">
+                                <div class="card-text">
                                     "@GetProperCardDialogue(convCard)"
                                 </div>
-
-                                <!-- Effect description -->
-                                <div class="card-effect">
-                                    <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
-                                </div>
-
-                                <!-- Alternative costs -->
-                                @if (HasAlternativeCosts(convCard))
+                                @if (HasCardRequirement(convCard))
                                 {
-                                    <div class="alternative-costs">
-                                        <div class="alt-cost-header">Alternative Costs:</div>
-                                        @foreach (var altCost in GetAvailableAlternativeCosts(convCard))
-                                        {
-                                            <div class="alt-cost-option @(CanAffordAlternativeCost(convCard, altCost) ? "" : "disabled")"
-                                                 @onclick="() => PlayCardWithAltCost(convCard, altCost)">
-                                                @GetAlternativeCostDescription(altCost)
-                                            </div>
-                                        }
+                                    <div class="card-requirement">
+                                        @GetCardRequirement(convCard)
                                     </div>
                                 }
-
-                                <!-- Impulse warning -->
+                                @if (HasCardCost(convCard))
+                                {
+                                    <div class="card-cost">
+                                        @GetCardCost(convCard)
+                                    </div>
+                                }
+                                <div class="card-effect">
+                                    Effect: @GetCardEffectDescription(convCard)
+                                </div>
                             </div>
                         </div>
                     }

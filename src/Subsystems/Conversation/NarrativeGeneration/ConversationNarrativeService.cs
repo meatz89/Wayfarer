@@ -381,7 +381,7 @@ public class ConversationNarrativeService
             return "risk_moderate";
 
         // Card persistence-based categories
-        if (card.Persistence == PersistenceType.Standard)
+        if (card.Persistence == PersistenceType.Statement)
             return "pressure";
 
         // Token type indicates support/connection building

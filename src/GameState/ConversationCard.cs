@@ -15,7 +15,7 @@ public class ConversationCard
     public CardCategory Category { get; init; } = CardCategory.Expression;
 
     // Categorical properties that define behavior through context
-    public PersistenceType Persistence { get; init; } = PersistenceType.Standard;
+    public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
 

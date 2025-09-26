@@ -33,20 +33,19 @@ public enum CardDepth
 }
 
 /// <summary>
-/// Defines card persistence behavior in the refined conversation system
-/// ONLY 2 types exist: Standard and Banish
+/// Defines card persistence behavior - ONLY 2 types exist
 /// </summary>
 public enum PersistenceType
 {
     /// <summary>
-    /// Goes to Spoken pile when played, reshuffles when deck empty (most cards)
+    /// Goes to Spoken pile immediately upon playing, NEVER reshuffles
     /// </summary>
-    Standard,
+    Statement,
 
     /// <summary>
-    /// Goes to Spoken pile when played, NEVER reshuffles
+    /// Goes to bottom of Deck pile immediately upon playing
     /// </summary>
-    Banish
+    Echo
 }
 
 /// <summary>

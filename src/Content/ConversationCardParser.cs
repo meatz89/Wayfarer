@@ -53,7 +53,7 @@ public static class ConversationCardParser
         int initiativeCost = dto.InitiativeCost ?? 0;
 
         // Parse categorical properties
-        PersistenceType persistence = PersistenceType.Standard;
+        PersistenceType persistence = PersistenceType.Statement;
         if (!string.IsNullOrEmpty(dto.Persistence))
         {
             Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);

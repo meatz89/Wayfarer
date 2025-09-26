@@ -1153,7 +1153,7 @@ public class ConversationFacade
         int baseDrawCount = session.GetDrawCount();
 
         // Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
-        int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Standard);
+        int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Statement);
         if (impulseCount > 0 && session.MomentumManager != null)
         {
             session.MomentumManager.AddDoubt(impulseCount);
@@ -1739,7 +1739,7 @@ public class ConversationFacade
     /// <summary>
     /// Get deck statistics for UI display
     /// </summary>
-    public (int drawPile, int discardPile, int handSize, int requestPile) GetDeckStatistics()
+    public (int deck, int spoken, int mind, int requestPile) GetDeckStatistics()
     {
         if (_currentSession?.Deck == null)
             return (0, 0, 0, 0);

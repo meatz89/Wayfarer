@@ -52,7 +52,7 @@ public class ConversationNarrativeGenerator
     {
         CardAnalysis analysis = new CardAnalysis
         {
-            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Standard)
+            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Statement)
         };
 
         // Categorize each card

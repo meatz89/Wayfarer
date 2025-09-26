@@ -47,7 +47,7 @@ public class ObservationCard : ConversationCard
         InitiativeCost = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         CardType = CardType.Observation; // Mark as observation
-        Persistence = PersistenceType.Standard; // Observations persist through LISTEN
+        Persistence = PersistenceType.Statement; // Observations persist through LISTEN
         SuccessType = SuccessEffectType.None; // Default, can be overridden
         FailureType = FailureEffectType.None;
         PersonalityTypes = new List<string>();

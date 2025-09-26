@@ -1139,5 +1139,133 @@ namespace Wayfarer.Pages.Components
             SelectedCard = card;
             await ExecuteSpeak();
         }
+
+        // ===== NEW MOCKUP-SPECIFIC HELPER METHODS =====
+
+        /// <summary>
+        /// Get momentum as percentage (0-100%) for resource bar display
+        /// </summary>
+        protected double GetMomentumPercentage()
+        {
+            int momentum = GetCurrentMomentum();
+            // Assuming max momentum of 16 for percentage calculation
+            return Math.Min(100, (momentum / 16.0) * 100);
+        }
+
+        /// <summary>
+        /// Get CSS class for cadence scale segments matching mockup
+        /// </summary>
+        protected string GetCadenceSegmentClass(int segmentValue)
+        {
+            int currentCadence = GetCurrentCadence();
+
+            if (segmentValue <= -6) return "negative";
+            if (segmentValue <= -3) return "negative";
+            if (segmentValue <= -1) return "neutral";
+            if (segmentValue <= 1) return "neutral";
+            if (segmentValue <= 4) return "positive";
+            return "high";
+        }
+
+        /// <summary>
+        /// Get doubt as percentage (0-100%) for resource bar display
+        /// </summary>
+        protected double GetDoubtPercentage()
+        {
+            int doubt = Session?.CurrentDoubt ?? 0;
+            int maxDoubt = Session?.MaxDoubt ?? 10;
+            return Math.Min(100, (doubt / (double)maxDoubt) * 100);
+        }
+
+        /// <summary>
+        /// Get count of cards in Deck pile
+        /// </summary>
+        protected int GetDeckCount()
+        {
+            // TODO: Get actual count when deck tracking is implemented
+            return 12; // Fallback value matching mockup
+        }
+
+        /// <summary>
+        /// Get count of cards in Spoken pile
+        /// </summary>
+        protected int GetSpokenCount()
+        {
+            // TODO: Get actual count when pile tracking is implemented
+            return 4; // Fallback value matching mockup
+        }
+
+        /// <summary>
+        /// Get count of cards in Mind pile
+        /// </summary>
+        protected int GetMindCount()
+        {
+            var handCards = ConversationFacade?.GetHandCards();
+            return handCards?.Count ?? 5; // Fallback value matching mockup
+        }
+
+        /// <summary>
+        /// Get card persistence type for display (Statement/Echo only)
+        /// </summary>
+        protected string GetCardPersistenceType(CardInstance card)
+        {
+            return card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo ? "Echo" : "Statement";
+        }
+
+        /// <summary>
+        /// Get card depth level from JSON data
+        /// </summary>
+        protected int GetCardDepth(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Depth == null) return 1;
+            return (int)card.ConversationCardTemplate.Depth;
+        }
+
+        /// <summary>
+        /// Check if card has requirement constraints - DELEGATE TO BACKEND
+        /// </summary>
+        protected bool HasCardRequirement(CardInstance card)
+        {
+            // Backend methods don't exist yet - return safe fallback
+            return false;
+        }
+
+        /// <summary>
+        /// Get card requirement text - DELEGATE TO BACKEND
+        /// </summary>
+        protected string GetCardRequirement(CardInstance card)
+        {
+            // Backend methods don't exist yet - return safe fallback
+            return "";
+        }
+
+        /// <summary>
+        /// Check if card has additional resource costs - DELEGATE TO BACKEND
+        /// </summary>
+        protected bool HasCardCost(CardInstance card)
+        {
+            // Backend methods don't exist yet - return safe fallback
+            return false;
+        }
+
+        /// <summary>
+        /// Get card additional cost text - DELEGATE TO BACKEND
+        /// </summary>
+        protected string GetCardCost(CardInstance card)
+        {
+            // Backend methods don't exist yet - return safe fallback
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// Alternative cost structure for high-cost cards
+    /// </summary>
+    public class AlternativeCost
+    {
+        public string Condition { get; set; } = "";
+        public int ReducedInitiativeCost { get; set; }
+        public int MomentumCost { get; set; }
+        public string Description { get; set; } = "";
     }
 }
