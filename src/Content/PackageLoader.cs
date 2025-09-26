@@ -146,7 +146,6 @@ public class PackageLoader
         LoadConversationTypesAndDecks(package.Content.ConversationTypes, package.Content.CardDecks, allowSkeletons);
         LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
         LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
-        LoadExchangeCards(package.Content.ExchangeCards, allowSkeletons);
 
         // 4. NPCs (reference locations, spots, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -532,18 +531,6 @@ public class PackageLoader
         }
     }
 
-    private void LoadExchangeCards(List<ConversationCardDTO> exchangeCards, bool allowSkeletons)
-    {
-        if (exchangeCards == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading exchange cards...");
-        foreach (ConversationCardDTO dto in exchangeCards)
-        {
-            ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
-            _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
-            Console.WriteLine($"[PackageLoader] Loaded exchange card '{card.Id}'");
-        }
-    }
 
     private void LoadLocations(List<LocationDTO> locationDtos, bool allowSkeletons)
     {
