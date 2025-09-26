@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wayfarer - Desperate Request: Elena (Updated Mechanics)</title>
+    <title>Wayfarer - Elena Conversation (Refined System)</title>
     <style>
         * {
             margin: 0;
@@ -43,60 +43,14 @@
             font-size: 13px;
         }
 
-        /* Conversation Type Banner */
-        .conversation-type-banner {
-            background: linear-gradient(to bottom, #8b4726, #7b3716);
+        .difficulty-badge {
+            background: #8b4726;
             color: #faf4ea;
-            padding: 12px 20px;
-            text-align: center;
-            border-bottom: 2px solid #6b2706;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .type-description {
-            font-size: 11px;
-            margin-top: 4px;
-            opacity: 0.9;
-            text-transform: none;
-            letter-spacing: normal;
-            font-style: italic;
-        }
-
-        /* Connection Display */
-        .connection-display {
-            background: #3d3429;
-            padding: 8px 20px;
-            border-bottom: 1px solid #5c4a3a;
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .connection-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .connection-label {
-            font-size: 10px;
-            color: #8b7355;
-            text-transform: uppercase;
-        }
-
-        .connection-value {
-            font-size: 14px;
+            padding: 3px 8px;
+            border-radius: 3px;
             font-weight: bold;
-            color: #d4a76a;
-        }
-
-        .connection-type {
-            font-size: 10px;
-            color: #7a8b5a;
-            margin-left: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
         }
 
         /* NPC Bar */
@@ -136,17 +90,17 @@
             letter-spacing: 0.5px;
         }
 
-        /* Critical Resources Bar */
-        .critical-resources {
-            background: #2c241a;
-            padding: 15px 20px;
-            border-bottom: 2px solid #5c4a3a;
+        /* Core Resources Display */
+        .resources-display {
+            background: #3d3429;
+            padding: 10px 20px;
+            border-bottom: 1px solid #5c4a3a;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: center;
+            gap: 40px;
         }
 
-        .resource-display {
+        .resource-item {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -156,140 +110,104 @@
             font-size: 10px;
             color: #8b7355;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
 
-        .momentum-display {
-            font-size: 32px;
+        .resource-value {
+            font-size: 24px;
             font-weight: bold;
-            color: #7a8b5a;
-        }
-
-        .doubt-display {
-            font-size: 32px;
-            font-weight: bold;
-            color: #d4704a;
-        }
-
-        .doubt-effect {
-            font-size: 11px;
             color: #d4a76a;
-            margin-top: 2px;
         }
 
-        /* Visual Doubt Bar */
-        .doubt-bar {
-            display: flex;
-            gap: 4px;
+        .resource-bar {
+            width: 120px;
+            height: 6px;
+            background: #2c241a;
+            border: 1px solid #5c4a3a;
+            border-radius: 3px;
+            margin-top: 4px;
+            overflow: hidden;
         }
 
-        .doubt-pip {
-            width: 20px;
-            height: 20px;
-            border: 1px solid #8b4726;
-            background: #3d3429;
+        .resource-fill {
+            height: 100%;
+            background: #7a8b5a;
+            transition: width 0.3s ease;
         }
 
-        .doubt-pip.filled {
+        .doubt-fill {
             background: #d4704a;
         }
 
-        /* Win/Lose Conditions Bar */
-        .conditions-bar {
-            background: #f9f3e9;
-            padding: 12px 20px;
-            border-bottom: 1px solid #c4a684;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Cadence Display */
+        .cadence-display {
+            background: #2c241a;
+            padding: 15px 20px;
+            border-bottom: 2px solid #5c4a3a;
         }
 
-        .patience-display {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .patience-label {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .patience-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #5c4a3a;
-        }
-
-        /* Flow State Bar */
-        .flow-state-bar {
-            background: #e8dcc4;
-            padding: 10px 20px;
-            border-bottom: 1px solid #a68b6f;
-        }
-
-        .flow-container {
+        .cadence-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        .flow-negative {
+        .cadence-scale {
             display: flex;
-            gap: 4px;
-            flex-direction: row-reverse;
+            align-items: center;
+            gap: 2px;
+            padding: 0 20px;
         }
 
-        .flow-positive {
-            display: flex;
-            gap: 4px;
-        }
-
-        .flow-segment {
-            width: 20px;
-            height: 24px;
+        .cadence-segment {
+            width: 30px;
+            height: 20px;
             border: 1px solid #5c4a3a;
-            background: #f4e8d0;
+            background: #3d3429;
         }
 
-        .flow-segment.filled {
+        .cadence-segment.negative {
+            background: #5a7a8a;
+        }
+
+        .cadence-segment.neutral {
             background: #7a8b5a;
         }
 
-        .current-state {
-            background: white;
-            border: 2px solid #8b7355;
-            border-radius: 4px;
-            padding: 6px 16px;
-            min-width: 180px;
-            text-align: center;
+        .cadence-segment.positive {
+            background: #d4a76a;
         }
 
-        .state-name {
-            font-size: 13px;
-            font-weight: bold;
-            color: #5c4a3a;
+        .cadence-segment.high {
+            background: #d4704a;
+        }
+
+        .cadence-segment.current {
+            border: 2px solid #faf4ea;
+            box-shadow: 0 0 8px rgba(250, 244, 234, 0.5);
+        }
+
+        .cadence-label {
+            font-size: 11px;
+            color: #8b7355;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        /* Request Thresholds */
+        .cadence-effect {
+            font-size: 10px;
+            color: #8b7355;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Goals Section */
         .goals-section {
-            background: #f4e8d0;
+            background: #e8dcc4;
             padding: 10px 15px;
             border-bottom: 2px solid #a68b6f;
-        }
-
-        .goals-header {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
         }
 
         .goals-container {
@@ -305,12 +223,17 @@
             padding: 10px;
             min-width: 150px;
             text-align: center;
-            position: relative;
+            transition: all 0.2s;
         }
 
         .goal-card.achievable {
             border-color: #7a8b5a;
             background: #f4f9e9;
+        }
+
+        .goal-card.active {
+            border-color: #d4a76a;
+            transform: scale(1.05);
         }
 
         .goal-threshold {
@@ -332,22 +255,10 @@
             font-weight: bold;
         }
 
-        .momentum-indicator {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #7a8b5a;
-            color: #faf4ea;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
         /* Narrative Section */
         .narrative-section {
             padding: 20px;
-            background: white;
+            background: #f4e8d0;
             border-bottom: 2px solid #a68b6f;
         }
 
@@ -362,11 +273,17 @@
         }
 
         /* Action Section */
+        .action-display {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #a68b6f;
+        }
+
         .action-section {
             padding: 12px;
             background: #e8dcc4;
             text-align: center;
-            border-bottom: 1px solid #a68b6f;
+            position: relative;
         }
 
         .action-button {
@@ -377,46 +294,85 @@
             color: #5c4a3a;
             font-size: 15px;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: inline-block;
             margin: 0 15px;
             position: relative;
         }
 
-        .action-button.special {
-            background: linear-gradient(to bottom, #d4704a, #b4604a);
-            border-color: #8b4726;
+        .action-button:hover .tooltip {
+            display: block;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
             color: #faf4ea;
+            border-color: #5a6a3a;
         }
 
-        .action-cost {
+        .tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 8px 12px;
+            border-radius: 4px;
             font-size: 11px;
-            margin-top: 4px;
-            opacity: 0.9;
+            white-space: nowrap;
+            margin-bottom: 5px;
+            z-index: 100;
         }
 
-        /* Focus Bar */
-        .focus-bar {
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #2c241a;
+        }
+
+        /* Initiative Display */
+        .initiative-display {
             background: #3d3429;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .initiative-counter {
+            display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .focus-label {
-            font-size: 11px;
+        .initiative-label {
+            font-size: 14px;
             color: #e8dcc4;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
-        .focus-dots {
+        .initiative-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #d4a76a;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .initiative-dots {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
 
-        .focus-dot {
+        .initiative-dot {
             width: 14px;
             height: 14px;
             border-radius: 50%;
@@ -424,50 +380,35 @@
             background: #2c241a;
         }
 
-        .focus-dot.available {
+        .initiative-dot.available {
             background: #d4a76a;
+            box-shadow: 0 0 4px rgba(212, 167, 106, 0.5);
         }
 
-        .focus-numbers {
-            font-size: 18px;
-            font-weight: bold;
+        /* Pile Counters */
+        .pile-display {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #8b7355;
+            margin: 12px;
+        }
+
+        .pile-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pile-number {
             color: #d4a76a;
+            font-weight: bold;
         }
 
         /* Cards Section */
         .cards-section {
             padding: 15px;
             background: #f4e8d0;
-        }
-
-        .deck-notice {
-            text-align: center;
-            font-size: 12px;
-            color: #8b4726;
-            margin-bottom: 15px;
-            font-style: italic;
-            padding: 8px;
-            background: #faf0e6;
-            border: 1px solid #d4a76a;
-            border-radius: 3px;
-        }
-
-        .hand-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 0 10px;
-        }
-
-        .hand-stat {
-            font-size: 11px;
-            color: #7a6250;
-            text-transform: uppercase;
-        }
-
-        .hand-value {
-            font-weight: bold;
-            color: #5c4a3a;
         }
 
         .card-grid {
@@ -494,6 +435,11 @@
             transform: translateX(5px);
         }
 
+        .card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         /* Stat Colors */
         .card.insight {
             border-left: 5px solid #5a7a8a;
@@ -501,6 +447,10 @@
 
         .card.rapport {
             border-left: 5px solid #7a8b5a;
+        }
+
+        .card.authority {
+            border-left: 5px solid #8b4726;
         }
 
         .card.commerce {
@@ -513,39 +463,7 @@
 
         /* Card Layout */
         .card-content {
-            display: flex;
-        }
-
-        .card-main {
-            flex: 1;
             padding: 12px;
-            position: relative;
-        }
-
-        .persistence-tag {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 2px 6px;
-            border-radius: 2px;
-            font-size: 8px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .persistence-tag.thought {
-            background: #7a8b5a;
-            color: #faf4ea;
-        }
-
-        .persistence-tag.impulse {
-            background: #d4704a;
-            color: #faf4ea;
-        }
-
-        .persistence-tag.opening {
-            background: #5a7a8a;
-            color: #faf4ea;
         }
 
         .card-header {
@@ -561,7 +479,13 @@
             color: #5c4a3a;
         }
 
-        .card-focus {
+        .card-initiative {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .initiative-cost {
             width: 22px;
             height: 22px;
             background: #5c4a3a;
@@ -573,12 +497,65 @@
             font-size: 12px;
         }
 
+        .card-depth {
+            font-size: 9px;
+            color: #7a6250;
+            text-transform: uppercase;
+        }
+
         .card-text {
             font-size: 12px;
             line-height: 1.4;
             color: #2c241a;
             font-style: italic;
             margin-bottom: 8px;
+        }
+
+        .card-requirement {
+            font-size: 11px;
+            color: #8b4726;
+            font-weight: bold;
+            padding: 4px 8px;
+            background: #f9f3e9;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+            margin-bottom: 6px;
+        }
+
+        .card-cost {
+            font-size: 11px;
+            color: #d4704a;
+            font-weight: bold;
+            padding: 4px 8px;
+            background: #fff4e6;
+            border: 1px solid #d4a76a;
+            border-radius: 2px;
+            margin-bottom: 6px;
+        }
+
+        .card-effect {
+            font-size: 12px;
+            color: #5a7a3a;
+            font-weight: bold;
+            padding-top: 8px;
+            border-top: 1px solid #e8dcc4;
+        }
+
+        .card-persistence {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+            background: #7a8b5a;
+            color: #faf4ea;
+        }
+
+        .card-persistence.echo {
+            background: #5a7a8a;
         }
 
         .stat-badge {
@@ -601,6 +578,11 @@
             color: #faf4ea;
         }
 
+        .stat-badge.authority {
+            background: #8b4726;
+            color: #faf4ea;
+        }
+
         .stat-badge.commerce {
             background: #d4a76a;
             color: #2c241a;
@@ -610,74 +592,6 @@
             background: #6a5a8a;
             color: #faf4ea;
         }
-
-        .card-effect {
-            background: #f9f3e9;
-            padding: 8px;
-            border-radius: 3px;
-            margin-bottom: 8px;
-        }
-
-        .effect-type {
-            font-size: 10px;
-            color: #7a6250;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .effect-description {
-            font-size: 12px;
-            color: #5c4a3a;
-            font-weight: bold;
-        }
-
-        .card-outcomes {
-            display: flex;
-            width: 30%;
-            border-left: 1px solid #d4c5a0;
-        }
-
-        .outcome {
-            padding: 8px;
-            width: 50%;
-            text-align: center;
-            background: #f9f3e9;
-        }
-
-        .outcome.failure {
-            background: #f4e8d0;
-        }
-
-        .outcome-chance {
-            font-size: 18px;
-            font-weight: bold;
-            color: #5c4a3a;
-            margin-bottom: 2px;
-        }
-
-        .outcome-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            color: #7a6250;
-            margin-bottom: 4px;
-        }
-
-        .outcome-effect {
-            font-size: 10px;
-            color: #5a7a3a;
-            line-height: 1.2;
-        }
-
-        .outcome.failure .outcome-effect {
-            color: #8b4726;
-        }
-
-        .scaling-note {
-            font-size: 10px;
-            color: #8b7355;
-            font-style: italic;
-            margin-top: 4px;
-        }
     </style>
 </head>
 <body>
@@ -685,126 +599,75 @@
         <!-- Header -->
         <div class="header">
             <span>Tuesday, 2:47 PM - Copper Kettle Tavern</span>
-            <span>Time Remaining: 2 hours 13 minutes until Lord Blackwood leaves</span>
-        </div>
-
-        <!-- Conversation Type Banner -->
-        <div class="conversation-type-banner">
-            DESPERATE REQUEST
-            <div class="type-description">Crisis conversation - Limited to supportive approaches</div>
-        </div>
-
-        <!-- Connection Display -->
-        <div class="connection-display">
-            <div class="connection-item">
-                <span class="connection-label">Trust:</span>
-                <span class="connection-value">3</span>
-                <span class="connection-type">(Used for this conversation)</span>
-            </div>
-            <div class="connection-item">
-                <span class="connection-label">Commerce:</span>
-                <span class="connection-value">0</span>
-            </div>
-            <div class="connection-item">
-                <span class="connection-label">Status:</span>
-                <span class="connection-value">1</span>
-            </div>
-            <div class="connection-item">
-                <span class="connection-label">Shadow:</span>
-                <span class="connection-value">0</span>
-            </div>
+            <span class="difficulty-badge">Level 3 Conversation</span>
         </div>
 
         <!-- NPC Bar -->
         <div class="npc-bar">
             <div class="npc-info">
                 <div class="npc-name">Elena</div>
-                <div class="npc-status">Scribe • Starting State: Neutral (3 Trust tokens)</div>
+                <div class="npc-status">Scribe • Corner table (Private spot)</div>
             </div>
-            <div class="personality-rule">Devoted: LISTEN costs 3 momentum instead of patience</div>
+            <div class="personality-rule">Devoted: Doubt increases +2 on failures</div>
         </div>
 
-        <!-- Critical Resources -->
-        <div class="critical-resources">
-            <div class="resource-display">
+
+        <!-- Cadence Display -->
+        <!-- Core Resources -->
+        <div class="resources-display">
+            <div class="resource-item">
                 <div class="resource-label">Momentum</div>
-                <div class="momentum-display">14</div>
+                <div class="resource-value">3</div>
+                <div class="resource-bar">
+                    <div class="resource-fill" style="width: 19%;"></div>
+                </div>
             </div>
-            
-            <div class="resource-display">
+            <div class="cadence-container">
+                <span class="cadence-label">Listen Heavy</span>
+                <div class="cadence-scale">
+                    <div class="cadence-segment negative"></div>
+                    <div class="cadence-segment negative"></div>
+                    <div class="cadence-segment negative"></div>
+                    <div class="cadence-segment neutral current"></div>
+                    <div class="cadence-segment neutral"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                    <div class="cadence-segment"></div>
+                </div>
+                <span class="cadence-label">Speak Heavy</span>
+            </div>
+            <div class="resource-item">
                 <div class="resource-label">Doubt</div>
-                <div class="doubt-display">4</div>
-                <div class="doubt-effect">-20% success all cards</div>
-            </div>
-
-            <div class="resource-display">
-                <div class="resource-label">Doubt Progress</div>
-                <div class="doubt-bar">
-                    <div class="doubt-pip filled"></div>
-                    <div class="doubt-pip filled"></div>
-                    <div class="doubt-pip filled"></div>
-                    <div class="doubt-pip filled"></div>
-                    <div class="doubt-pip"></div>
-                    <div class="doubt-pip"></div>
-                    <div class="doubt-pip"></div>
-                    <div class="doubt-pip"></div>
-                    <div class="doubt-pip"></div>
-                    <div class="doubt-pip"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Win/Lose Conditions Bar -->
-        <div class="conditions-bar">
-            <div class="patience-display">
-                <span class="patience-label">Patience Remaining:</span>
-                <span class="patience-value">9</span>
-            </div>
-            
-            <div class="patience-display">
-                <span class="patience-label">Cards in Hand:</span>
-                <span class="patience-value">5</span>
-            </div>
-        </div>
-
-        <!-- Flow State Bar -->
-        <div class="flow-state-bar">
-            <div class="flow-container">
-                <div class="flow-negative">
-                    <span class="flow-segment"></span>
-                    <span class="flow-segment"></span>
-                    <span class="flow-segment"></span>
-                </div>
-                
-                <div class="current-state">
-                    <div class="state-name">Neutral</div>
-                </div>
-                
-                <div class="flow-positive">
-                    <span class="flow-segment filled"></span>
-                    <span class="flow-segment filled"></span>
-                    <span class="flow-segment"></span>
+                <div class="resource-value">1</div>
+                <div class="resource-bar">
+                    <div class="resource-fill doubt-fill" style="width: 10%;"></div>
                 </div>
             </div>
         </div>
 
         <!-- Goal Thresholds Display -->
         <div class="goals-section">
-            <div class="goals-header">Request Thresholds - Elena's Letter (Check but don't consume momentum)</div>
             <div class="goals-container">
-                <div class="goal-card achievable">
-                    <div class="momentum-indicator">✓</div>
+                <div class="goal-card">
                     <div class="goal-threshold">8</div>
                     <div class="goal-name">Basic Delivery</div>
                     <div class="goal-reward">1 Trust token</div>
                 </div>
-                <div class="goal-card">
-                    <div class="goal-threshold">15</div>
+                <div class="goal-card achievable">
+                    <div class="goal-threshold">12</div>
                     <div class="goal-name">Priority Delivery</div>
                     <div class="goal-reward">2 Trust + Observation</div>
                 </div>
                 <div class="goal-card">
-                    <div class="goal-threshold">25</div>
+                    <div class="goal-threshold">16</div>
                     <div class="goal-name">Immediate Action</div>
                     <div class="goal-reward">3 Trust + Permit</div>
                 </div>
@@ -814,224 +677,176 @@
         <!-- Narrative Section -->
         <div class="narrative-section">
             <div class="npc-dialogue">
-                "You're starting to understand, aren't you? This isn't just about the marriage - it's about my whole life being decided without me. Every moment we wait, Lord Blackwood gets closer to leaving."
+                "I don't know what to do. Lord Blackwood leaves at 5 PM, and this letter is my only chance to escape this arranged marriage. But I'm terrified of what my uncle will do if he finds out..."
+            </div>
+        </div>
+
+
+        <!-- Initiative Display -->
+        <div class="initiative-display">
+            <div class="initiative-counter">
+                <span class="initiative-label">Initiative</span>
+                <span class="initiative-value">4</span>
+                <div class="initiative-dots">
+                    <span class="initiative-dot available"></span>
+                    <span class="initiative-dot available"></span>
+                    <span class="initiative-dot available"></span>
+                    <span class="initiative-dot available"></span>
+                    <span class="initiative-dot"></span>
+                </div>
             </div>
         </div>
 
         <!-- Action Section -->
-        <div class="action-section">
-            <div class="action-button special">
-                LISTEN
-                <div class="action-cost">Costs 3 Momentum (Devoted rule)</div>
+        <div class="action-display">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Deck:</span>
+                    <span class="pile-number">12</span>
+                </div>
             </div>
-            <div class="action-button">
-                SPEAK
-                <div class="action-cost">Play a card</div>
+            <div class="action-section">
+                <div class="action-button">
+                    LISTEN
+                    <div class="tooltip">Effects: Cadence -2, Draw 4 cards (Base 3, +1 from current Cadence (-2))</div>
+                </div>
+                <div class="action-button primary">
+                    SPEAK
+                    <div class="tooltip">Effects: Cadence +1, Play a card from Mind</div>
+                </div>
             </div>
-        </div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Spoken:</span>
+                    <span class="pile-number">4</span>
+                </div>
+            </div>
+        </div>  
 
-        <!-- Focus Bar -->
-        <div class="focus-bar">
-            <span class="focus-label">Focus</span>
-            <div class="focus-dots">
-                <span class="focus-dot"></span>
-                <span class="focus-dot"></span>
-                <span class="focus-dot available"></span>
-                <span class="focus-dot available"></span>
-                <span class="focus-dot available"></span>
-            </div>
-            <span class="focus-numbers">3/5</span>
-        </div>
-
-        <!-- Cards Section -->
+        <!-- Cards Section (Mind) -->
         <div class="cards-section">
-            <div class="deck-notice">
-                Cards from DESPERATE REQUEST deck - Each stat scales with different resources
-            </div>
             
-            <div class="hand-info">
-                <div>
-                    <span class="hand-stat">Cards in Hand:</span>
-                    <span class="hand-value">5</span>
-                </div>
-                <div>
-                    <span class="hand-stat">10 - Doubt:</span>
-                    <span class="hand-value">6</span>
-                </div>
-                <div>
-                    <span class="hand-stat">Patience:</span>
-                    <span class="hand-value">9</span>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Mind:</span>
+                    <span class="pile-number">5</span>
                 </div>
             </div>
-            
+
             <div class="card-grid">
+                <!-- Foundation Card - Generates Initiative -->
+                <div class="card rapport">
+                    <span class="card-persistence">Statement</span>
+                    <div class="card-content">
+                        <div class="stat-badge rapport">Rapport Depth 1</div>
+                        <div class="card-header">
+                            <div class="card-name">Active Listening</div>
+                            <div class="card-initiative">
+                                <div class="initiative-cost">0</div>
+                                <div class="card-depth">D1</div>
+                            </div>
+                        </div>
+                        <div class="card-text">
+                            "Tell me more about your situation..."
+                        </div>
+                        <div class="card-effect">
+                            Effect: +2 Initiative
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Insight Strike Card -->
+                <!-- Standard Card with Requirement -->
                 <div class="card insight">
+                    <span class="card-persistence">Statement</span>
                     <div class="card-content">
-                        <div class="card-main">
-                            <span class="persistence-tag thought">THOUGHT</span>
-                            <div class="stat-badge insight">Insight</div>
-                            <div class="card-header">
-                                <div class="card-name">Analyze the Situation</div>
-                                <div class="card-focus">2</div>
-                            </div>
-                            <div class="card-text">
-                                "Let me think through all your options systematically..."
-                            </div>
-                            <div class="card-effect">
-                                <div class="effect-type">Strike Effect</div>
-                                <div class="effect-description">Gain 5 momentum</div>
-                                <div class="scaling-note">= cards in hand (5)</div>
+                        <div class="stat-badge insight">Insight Depth 3</div>
+                        <div class="card-header">
+                            <div class="card-name">Pattern Recognition</div>
+                            <div class="card-initiative">
+                                <div class="initiative-cost">3</div>
+                                <div class="card-depth">D3</div>
                             </div>
                         </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">55%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">+5 momentum</div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">45%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">+1 doubt</div>
-                            </div>
+                        <div class="card-text">
+                            "I've noticed your uncle follows predictable routines..."
+                        </div>
+                        <div class="card-requirement">
+                            Requires: 3+ Statements in Spoken
+                        </div>
+                        <div class="card-effect">
+                            Effect: +4 Momentum
                         </div>
                     </div>
                 </div>
 
-                <!-- Rapport Strike Card -->
-                <div class="card rapport">
+                <!-- Card with Consume Cost -->
+                <div class="card authority disabled">
+                    <span class="card-persistence">Statement</span>
                     <div class="card-content">
-                        <div class="card-main">
-                            <span class="persistence-tag thought">THOUGHT</span>
-                            <div class="stat-badge rapport">Rapport</div>
-                            <div class="card-header">
-                                <div class="card-name">I Understand</div>
-                                <div class="card-focus">1</div>
-                            </div>
-                            <div class="card-text">
-                                "This must be terrifying. You're not alone."
-                            </div>
-                            <div class="card-effect">
-                                <div class="effect-type">Strike Effect</div>
-                                <div class="effect-description">Gain 6 momentum</div>
-                                <div class="scaling-note">= (10 - doubt)</div>
+                        <div class="stat-badge authority">Authority Depth 2</div>
+                        <div class="card-header">
+                            <div class="card-name">Direct Confrontation</div>
+                            <div class="card-initiative">
+                                <div class="initiative-cost">2</div>
+                                <div class="card-depth">D2</div>
                             </div>
                         </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">65%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">+6 momentum</div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">35%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">+1 doubt</div>
-                            </div>
+                        <div class="card-text">
+                            "You need to act now, not later!"
+                        </div>
+                        <div class="card-cost">
+                            Cost: Consume 2 Momentum
+                        </div>
+                        <div class="card-effect">
+                            Effect: -3 Doubt
                         </div>
                     </div>
                 </div>
 
-                <!-- Rapport Soothe Card -->
-                <div class="card rapport">
-                    <div class="card-content">
-                        <div class="card-main">
-                            <span class="persistence-tag thought">THOUGHT</span>
-                            <div class="stat-badge rapport">Rapport</div>
-                            <div class="card-header">
-                                <div class="card-name">Calm Reassurance</div>
-                                <div class="card-focus">2</div>
-                            </div>
-                            <div class="card-text">
-                                "We'll find a way. Trust me."
-                            </div>
-                            <div class="card-effect">
-                                <div class="effect-type">Soothe Effect</div>
-                                <div class="effect-description">Reduce doubt by 3</div>
-                                <div class="scaling-note">= (10 - doubt) / 2</div>
-                            </div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">45%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">-3 doubt</div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">55%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">+2 doubt</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cunning Impulse Card -->
-                <div class="card cunning">
-                    <div class="card-content">
-                        <div class="card-main">
-                            <span class="persistence-tag impulse">IMPULSE</span>
-                            <div class="stat-badge cunning">Cunning</div>
-                            <div class="card-header">
-                                <div class="card-name">Risky Gambit</div>
-                                <div class="card-focus">3</div>
-                            </div>
-                            <div class="card-text">
-                                "What if we... bent the truth about the urgency?"
-                            </div>
-                            <div class="card-effect">
-                                <div class="effect-type">State Manipulation</div>
-                                <div class="effect-description">Double current momentum</div>
-                                <div class="scaling-note">(Impulse: play or lose)</div>
-                            </div>
-                        </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">50%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">14 → 28 momentum!</div>
-                            </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">50%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">Lose 5 momentum</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Commerce Thread Card -->
+                <!-- Scaling Card -->
                 <div class="card commerce">
+                    <span class="card-persistence echo">Echo</span>
                     <div class="card-content">
-                        <div class="card-main">
-                            <span class="persistence-tag thought">THOUGHT</span>
-                            <div class="stat-badge commerce">Commerce</div>
-                            <div class="card-header">
-                                <div class="card-name">Consider Resources</div>
-                                <div class="card-focus">2</div>
-                            </div>
-                            <div class="card-text">
-                                "Let's think about what we have to work with."
-                            </div>
-                            <div class="card-effect">
-                                <div class="effect-type">Thread Effect</div>
-                                <div class="effect-description">Draw 3 cards</div>
-                                <div class="scaling-note">= patience / 3</div>
+                        <div class="stat-badge commerce">Commerce Depth 4</div>
+                        <div class="card-header">
+                            <div class="card-name">Building Agreement</div>
+                            <div class="card-initiative">
+                                <div class="initiative-cost">4</div>
+                                <div class="card-depth">D4</div>
                             </div>
                         </div>
-                        <div class="card-outcomes">
-                            <div class="outcome success">
-                                <div class="outcome-chance">55%</div>
-                                <div class="outcome-label">Success</div>
-                                <div class="outcome-effect">Draw 3 cards</div>
+                        <div class="card-text">
+                            "Let's find a solution that works for everyone..."
+                        </div>
+                        <div class="card-requirement">
+                            Requires: 5+ Statements in Spoken
+                        </div>
+                        <div class="card-effect">
+                            Effect: +1 Momentum per 2 Statements in Spoken
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High Depth Decisive Card -->
+                <div class="card rapport disabled">
+                    <span class="card-persistence">Statement</span>
+                    <div class="card-content">
+                        <div class="stat-badge rapport">Rapport Depth 7</div>
+                        <div class="card-header">
+                            <div class="card-name">Emotional Breakthrough</div>
+                            <div class="card-initiative">
+                                <div class="initiative-cost">8</div>
+                                <div class="card-depth">D7</div>
                             </div>
-                            <div class="outcome failure">
-                                <div class="outcome-chance">45%</div>
-                                <div class="outcome-label">Failure</div>
-                                <div class="outcome-effect">+1 doubt</div>
-                            </div>
+                        </div>
+                        <div class="card-text">
+                            "I understand completely - I've been in your position before..."
+                        </div>
+                        <div class="card-requirement">
+                            Requires: 8+ Statements in Spoken
+                        </div>
+                        <div class="card-effect">
+                            Effect: +10 Momentum
                         </div>
                     </div>
                 </div>
