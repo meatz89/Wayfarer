@@ -350,8 +350,7 @@
           }
         },
         "scalingEffect": {
-          "scalingType": "SpokeCards",
-          "formula": "Momentum increases based on cards already played this conversation"
+          "scalingType": "SpokeCards"
         }
       },
       {
@@ -373,8 +372,7 @@
           }
         },
         "scalingEffect": {
-          "scalingType": "Doubt",
-          "formula": "Gains momentum equal to current Doubt level"
+          "scalingType": "Doubt"
         }
       },
       {
