@@ -35,8 +35,8 @@
             <div class="cadence-container">
                 <span class="cadence-label">Listen Heavy</span>
                 <div class="cadence-scale">
-     38 -                      @* Fixed cadence range: -5 to +5 (11 segments total) *@
-       39 -                      @for (int i = -5; i <= 5; i++)
+                    @* Fixed cadence range: -5 to +5 (11 segments total) *@
+                    @for (int i = -5; i <= 5; i++)
                     {
                         <div class="cadence-segment @GetCadenceSegmentClass(i) @(GetCurrentCadence() == i ? "current" : "")"></div>
                     }

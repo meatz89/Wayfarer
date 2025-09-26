@@ -1,5 +1,14 @@
 * CLAUDE.md
 
+**🚨🚨🚨 DEPENDENCY ANALYSIS PRINCIPLE: ALWAYS CHECK RELATIONSHIPS FIRST 🚨🚨🚨**
+**BEFORE making ANY changes to files (especially CSS, layouts, global components), you MUST:**
+- **USE FILE AGENTS OR SEARCH TOOLS** to find ALL files that use/reference the classes/components you're changing
+- **CHECK FOR DEPENDENCIES** - What other components, pages, or systems depend on what you're modifying?
+- **TEST IMPACT RADIUS** - How far do the changes propagate through the system?
+- **VERIFY ALL RELATED FILES** still work after your changes
+- **Example**: Before removing CSS classes, search the ENTIRE codebase for references. Before changing global components, check what screens use them.
+- **NO EXCEPTIONS** - This analysis MUST happen BEFORE any modifications, not after discovering you broke something.
+
 **⚠️ MANDATORY: READ THE ENTIRE CLAUDE.MD FILE FULLY ⚠️**
 **⚠️ MANDATORY: READ OUR EXISTING JSON CONTENT FILES AND CSS FILES ⚠️**
 **🚨 MANDATORY: READ ENTIRE DOCUMENTS BEFORE MAKING ANY CHANGES 🚨**
