@@ -73,9 +73,6 @@ public class NPC
     public ConnectionState CurrentState => GetConnectionState();
     public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
 
-    // Daily Patience Economy
-    public int DailyPatience { get; set; } // Current remaining patience for the day
-    public int MaxDailyPatience { get; set; } // Maximum patience based on personality
 
     // NPC DECK ARCHITECTURE
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
@@ -84,6 +81,9 @@ public class NPC
 
     // Requests system - Multiple requests, each with multiple cards at different rapport thresholds
     public List<NPCRequest> Requests { get; set; } = new List<NPCRequest>();
+
+    // Initial token values to be applied during game initialization
+    public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
 
     // Stranger-specific properties (for unnamed one-time NPCs)
     public bool IsStranger { get; set; } = false;
@@ -207,48 +207,6 @@ public class NPC
 
 
 
-    /// <summary>
-    /// Initialize daily patience based on personality type
-    /// </summary>
-    public void InitializeDailyPatience()
-    {
-        MaxDailyPatience = PersonalityType switch
-        {
-            PersonalityType.DEVOTED => 15,
-            PersonalityType.STEADFAST => 13,
-            PersonalityType.MERCANTILE => 12,
-            PersonalityType.CUNNING => 12,
-            PersonalityType.PROUD => 10,
-            _ => 12 // Default fallback
-        };
-
-        // Set current patience to max on initialization
-        DailyPatience = MaxDailyPatience;
-    }
-
-    /// <summary>
-    /// Refresh patience to maximum (called at dawn)
-    /// </summary>
-    public void RefreshDailyPatience()
-    {
-        DailyPatience = MaxDailyPatience;
-    }
-
-    /// <summary>
-    /// Check if NPC has patience for conversation
-    /// </summary>
-    public bool HasPatienceForConversation()
-    {
-        return DailyPatience > 0;
-    }
-
-    /// <summary>
-    /// Spend patience for an exchange
-    /// </summary>
-    public void SpendPatience(int amount)
-    {
-        DailyPatience = Math.Max(0, DailyPatience - amount);
-    }
 
     /// <summary>
     /// Get connection state from single flow value

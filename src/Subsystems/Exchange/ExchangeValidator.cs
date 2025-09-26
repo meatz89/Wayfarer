@@ -222,11 +222,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         /// </summary>
         private bool CheckNPCStateRequirements(ExchangeData exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
         {
-            // Check if NPC has patience for exchange
-            if (exchange.RequiresPatience && !npc.HasPatienceForConversation())
-            {
-                return false;
-            }
+            // Patience system removed - all NPCs always have patience
 
             // Check connection state requirements
             if (exchange.RequiredConnectionState.HasValue)

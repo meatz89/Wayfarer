@@ -28,6 +28,7 @@ public class NPCDTO
 
     // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }
+    public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
 
     // One-time requests with multiple cards at different rapport thresholds
     public List<NPCRequestDTO> Requests { get; set; } = new List<NPCRequestDTO>();

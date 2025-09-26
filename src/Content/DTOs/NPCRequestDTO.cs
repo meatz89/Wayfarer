@@ -13,4 +13,30 @@ public class NPCRequestDTO
     public string ConversationTypeId { get; set; } // REQUIRED: Must specify which conversation type to use
     public List<string> RequestCards { get; set; } = new List<string>();
     public List<string> PromiseCards { get; set; } = new List<string>();
+    public List<NPCRequestGoalDTO> Goals { get; set; } = new List<NPCRequestGoalDTO>();
+}
+
+/// <summary>
+/// Data Transfer Object for NPC request goals with tiered rewards
+/// </summary>
+public class NPCRequestGoalDTO
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int MomentumThreshold { get; set; }
+    public int Weight { get; set; }
+    public NPCRequestRewardDTO Rewards { get; set; }
+}
+
+/// <summary>
+/// Data Transfer Object for NPC request goal rewards
+/// </summary>
+public class NPCRequestRewardDTO
+{
+    public int? Coins { get; set; }
+    public string LetterId { get; set; }
+    public string Obligation { get; set; }
+    public string Item { get; set; }
+    public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
 }

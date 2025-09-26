@@ -124,36 +124,25 @@ namespace Wayfarer.Subsystems.ResourceSubsystem
             IncreaseHunger(20, "Time passes");
 
 
-            // Refresh NPC daily patience when transitioning to Dawn (morning refresh)
+            // Apply daily NPC decay when transitioning to Dawn (morning refresh)
             if (newBlock == TimeBlocks.Dawn)
             {
-                RefreshNPCDailyPatience();
+                ApplyNPCDailyDecay();
             }
         }
 
-        private void RefreshNPCDailyPatience()
+        private void ApplyNPCDailyDecay()
         {
-            // Refresh patience and apply daily decay for all NPCs at dawn
+            // Apply daily decay for all NPCs at dawn
             foreach (NPC npc in _gameWorld.GetAllNPCs())
             {
-                if (npc.MaxDailyPatience == 0)
-                {
-                    // Initialize patience if not yet set
-                    npc.InitializeDailyPatience();
-                }
-                else
-                {
-                    // Refresh to maximum
-                    npc.RefreshDailyPatience();
-                }
-
                 // Apply daily decay to flow and connection state
                 // This moves relationships toward neutral over time
                 npc.ApplyDailyDecay();
             }
 
             _messageSystem.AddSystemMessage(
-                "🌅 A new day dawns. NPCs have refreshed patience for conversations.",
+                "🌅 A new day dawns. Relationships naturally shift toward neutral over time.",
                 SystemMessageTypes.Info);
         }
 

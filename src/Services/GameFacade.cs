@@ -1321,14 +1321,6 @@ public class GameFacade
             }
         }
 
-        if (operation.ConsumesPatience)
-        {
-            NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-            if (npc != null)
-            {
-                npc.SpendPatience(operation.PatienceCost);
-            }
-        }
 
         // Mark exchange as used if unique
         if (operation.IsUnique)

@@ -12,7 +12,7 @@
       {
         "id": "elena",
         "name": "Elena",
-        "level": 2,
+        "level": 3,
         "profession": "Scribe",
         "locationId": "copper_kettle_tavern",
         "spotId": "corner_table",
@@ -23,7 +23,6 @@
           "Trust"
         ],
         "currentState": "DISCONNECTED",
-        "patience": 15,
         "initialTokens": {
           "Trust": 0
         },
@@ -35,7 +34,46 @@
             "name": "Urgent Letter Delivery",
             "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
             "requestCards": ["elena_letter_request", "elena_safety_request"],
-            "promiseCards": ["elena_priority_promise"]
+            "promiseCards": ["elena_priority_promise"],
+            "goals": [
+              {
+                "id": "elena_basic_goal",
+                "name": "Letter Delivery",
+                "description": "Deliver Elena's letter to Lord Blackwood",
+                "momentumThreshold": 8,
+                "weight": 1,
+                "rewards": {
+                  "coins": 25,
+                  "letterId": "elena_urgent_letter"
+                }
+              },
+              {
+                "id": "elena_enhanced_goal",
+                "name": "Letter + Safety Escort",
+                "description": "Deliver the letter and escort Elena to safety",
+                "momentumThreshold": 12,
+                "weight": 2,
+                "rewards": {
+                  "coins": 35,
+                  "letterId": "elena_urgent_letter",
+                  "obligation": "elena_safety_escort"
+                }
+              },
+              {
+                "id": "elena_premium_goal",
+                "name": "Complete Protection",
+                "description": "Letter delivery, safety escort, and additional protection services",
+                "momentumThreshold": 16,
+                "weight": 3,
+                "rewards": {
+                  "coins": 50,
+                  "letterId": "elena_urgent_letter",
+                  "obligation": "elena_safety_escort",
+                  "item": "elena_gratitude_token",
+                  "tokens": {"Trust": 2}
+                }
+              }
+            ]
           }
         ]
       },
@@ -53,7 +91,6 @@
           "Commerce"
         ],
         "currentState": "NEUTRAL",
-        "patience": 12,
         "initialTokens": {
           "Commerce": 0
         },
@@ -82,7 +119,6 @@
           "Status"
         ],
         "currentState": "NEUTRAL",
-        "patience": 8,
         "initialTokens": {
           "Status": 0
         },
@@ -101,7 +137,6 @@
           "Commerce"
         ],
         "currentState": "NEUTRAL",
-        "patience": 10,
         "initialTokens": {
           "Commerce": 0
         },
@@ -120,7 +155,6 @@
           "Status"
         ],
         "currentState": "NEUTRAL",
-        "patience": 5,
         "initialTokens": {
           "Status": 0
         }
@@ -128,22 +162,82 @@
     ],
     "strangers": [
       {
-        "id": "market_vendor_morning",
-        "name": "Fresh Bread Vendor",
+        "id": "tea_vendor_morning",
+        "name": "Tea Vendor",
         "level": 1,
         "personality": "Steadfast",
         "locationId": "market_square",
         "timeBlock": "morning",
         "request": {
-          "id": "market_vendor_morning_chat",
-          "name": "Friendly Chat",
-          "description": "A pleasant conversation with the bread vendor",
+          "id": "tea_vendor_morning_trade",
+          "name": "Calming Tea Trade",
+          "description": "Purchase soothing tea from the friendly vendor",
+          "conversationTypeId": "trade_negotiation",
+          "rapportThresholds": [4, 8, 12],
+          "rewards": [
+            {"coins": 2, "health": 5},
+            {"coins": 4, "item": "calming_tea", "health": 10},
+            {"coins": 6, "item": "premium_tea", "health": 15, "tokens": {"Commerce": 1}}
+          ]
+        }
+      },
+      {
+        "id": "scholar_morning",
+        "name": "Scholar",
+        "level": 2,
+        "personality": "Proud",
+        "locationId": "library",
+        "timeBlock": "morning",
+        "request": {
+          "id": "scholar_morning_discussion",
+          "name": "Academic Knowledge Trade",
+          "description": "Exchange scholarly insights and research knowledge",
+          "conversationTypeId": "friendly_chat",
+          "rapportThresholds": [6, 12, 18],
+          "rewards": [
+            {"coins": 3, "familiarity": 1},
+            {"coins": 6, "observation": "research_insights_for_elena"},
+            {"coins": 9, "observation": "advanced_research_for_anyone", "tokens": {"Insight": 1}}
+          ]
+        }
+      },
+      {
+        "id": "pilgrim_afternoon",
+        "name": "Pilgrim",
+        "level": 2,
+        "personality": "Devoted",
+        "locationId": "temple",
+        "timeBlock": "afternoon",
+        "request": {
+          "id": "pilgrim_afternoon_wisdom",
+          "name": "Spiritual Wisdom Exchange",
+          "description": "Share spiritual insights and seek guidance",
           "conversationTypeId": "friendly_chat",
           "rapportThresholds": [5, 10, 15],
           "rewards": [
-            {"coins": 2},
-            {"coins": 4, "item": "bread"},
-            {"coins": 6, "item": "medicine", "tokens": {"Commerce": 1}}
+            {"health": 10, "coins": 2},
+            {"health": 20, "observation": "spiritual_wisdom_for_elena"},
+            {"health": 30, "item": "blessing", "tokens": {"Trust": 1}}
+          ]
+        }
+      },
+      {
+        "id": "foreign_merchant_evening",
+        "name": "Foreign Merchant",
+        "level": 3,
+        "personality": "Mercantile",
+        "locationId": "market_square",
+        "timeBlock": "evening",
+        "request": {
+          "id": "foreign_merchant_evening_trade",
+          "name": "Exotic Goods Exchange",
+          "description": "Trade for rare and valuable foreign goods",
+          "conversationTypeId": "trade_negotiation",
+          "rapportThresholds": [8, 16, 24],
+          "rewards": [
+            {"coins": 5, "item": "exotic_spices"},
+            {"coins": 10, "item": "rare_silk", "observation": "trade_routes_for_marcus"},
+            {"coins": 15, "item": "precious_gems", "observation": "foreign_contacts_for_marcus", "tokens": {"Commerce": 2}}
           ]
         }
       },
@@ -184,195 +278,6 @@
             {"coins": 1, "food": 1},
             {"coins": 3, "observation": "travel_tales_for_elena"},
             {"coins": 5, "observation": "travel_tales_for_elena", "tokens": {"Trust": 1}}
-          ]
-        }
-      },
-      {
-        "id": "workshop_apprentice_morning",
-        "name": "Young Apprentice",
-        "level": 1,
-        "personality": "Cunning",
-        "locationId": "artisan_workshop",
-        "timeBlock": "morning",
-        "request": {
-          "id": "workshop_apprentice_morning_gossip",
-          "name": "Trade Gossip",
-          "description": "Exchange workshop secrets with the apprentice",
-          "requestCards": ["workshop_apprentice_gossip_tier1", "workshop_apprentice_gossip_tier2", "workshop_apprentice_gossip_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [7, 14, 21],
-          "rewards": [
-            {"coins": 2},
-            {"coins": 4, "observation": "workshop_secrets_for_marcus"},
-            {"coins": 7, "item": "tool", "tokens": {"Shadow": 1}}
-          ]
-        }
-      },
-      {
-        "id": "noble_servant_afternoon",
-        "name": "Palace Servant",
-        "level": 3,
-        "personality": "Mercantile",
-        "locationId": "noble_quarter",
-        "timeBlock": "afternoon",
-        "request": {
-          "id": "noble_servant_afternoon_exchange",
-          "name": "Information Exchange",
-          "description": "Trade information with the palace servant",
-          "requestCards": ["noble_servant_exchange_tier1", "noble_servant_exchange_tier2", "noble_servant_exchange_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [10, 18, 25],
-          "rewards": [
-            {"coins": 5},
-            {"coins": 8, "permit": "noble_district_pass"},
-            {"coins": 12, "observation": "noble_gossip_for_blackwood", "tokens": {"Status": 1}}
-          ]
-        }
-      },
-      {
-        "id": "dock_worker_dawn",
-        "name": "Early Dock Worker",
-        "level": 2,
-        "personality": "Steadfast",
-        "locationId": "harbor_district",
-        "timeBlock": "dawn",
-        "request": {
-          "id": "dock_worker_dawn_advice",
-          "name": "Work Advice",
-          "description": "Get tips from the experienced dock worker",
-          "requestCards": ["dock_worker_advice_tier1", "dock_worker_advice_tier2", "dock_worker_advice_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [8, 16, 24],
-          "rewards": [
-            {"coins": 4},
-            {"coins": 7, "item": "rope"},
-            {"coins": 10, "permit": "dock_access", "tokens": {"Commerce": 1}}
-          ]
-        }
-      },
-      {
-        "id": "library_scholar_morning",
-        "name": "Scholarly Researcher",
-        "level": 2,
-        "personality": "Proud",
-        "locationId": "library",
-        "timeBlock": "morning",
-        "request": {
-          "id": "library_scholar_morning_discussion",
-          "name": "Academic Discussion",
-          "description": "Engage in scholarly discourse",
-          "requestCards": ["library_scholar_discussion_tier1", "library_scholar_discussion_tier2", "library_scholar_discussion_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [9, 17, 26],
-          "rewards": [
-            {"coins": 3, "familiarity": 1},
-            {"coins": 6, "observation": "research_insights_for_elena"},
-            {"coins": 9, "permit": "restricted_archives", "tokens": {"Insight": 1}}
-          ]
-        }
-      },
-      {
-        "id": "alley_contact_night",
-        "name": "Hooded Figure",
-        "level": 3,
-        "personality": "Cunning",
-        "locationId": "back_alley",
-        "timeBlock": "night",
-        "request": {
-          "id": "alley_contact_night_dealings",
-          "name": "Shadow Dealings",
-          "description": "Negotiate in the shadows",
-          "requestCards": ["alley_contact_dealings_tier1", "alley_contact_dealings_tier2", "alley_contact_dealings_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [12, 20, 30],
-          "rewards": [
-            {"coins": 6},
-            {"coins": 10, "item": "lockpick"},
-            {"coins": 15, "permit": "underground_passage", "tokens": {"Shadow": 2}}
-          ]
-        }
-      },
-      {
-        "id": "merchant_apprentice_afternoon",
-        "name": "Merchant's Assistant",
-        "level": 1,
-        "personality": "Mercantile",
-        "locationId": "merchant_district",
-        "timeBlock": "afternoon",
-        "request": {
-          "id": "merchant_apprentice_afternoon_opportunities",
-          "name": "Trade Opportunities",
-          "description": "Discuss trade opportunities",
-          "requestCards": ["merchant_apprentice_opportunities_tier1", "merchant_apprentice_opportunities_tier2", "merchant_apprentice_opportunities_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [6, 12, 18],
-          "rewards": [
-            {"coins": 3},
-            {"coins": 5, "item": "trade_goods"},
-            {"coins": 8, "observation": "market_trends_for_marcus", "tokens": {"Commerce": 1}}
-          ]
-        }
-      },
-      {
-        "id": "temple_acolyte_evening",
-        "name": "Temple Acolyte",
-        "level": 2,
-        "personality": "Devoted",
-        "locationId": "temple",
-        "timeBlock": "evening",
-        "request": {
-          "id": "temple_acolyte_evening_guidance",
-          "name": "Spiritual Guidance",
-          "description": "Seek spiritual wisdom",
-          "requestCards": ["temple_acolyte_guidance_tier1", "temple_acolyte_guidance_tier2", "temple_acolyte_guidance_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [8, 15, 22],
-          "rewards": [
-            {"health": 10},
-            {"health": 20, "observation": "spiritual_wisdom_for_elena"},
-            {"health": 30, "item": "blessing", "tokens": {"Trust": 1}}
-          ]
-        }
-      },
-      {
-        "id": "city_messenger_midday",
-        "name": "City Messenger",
-        "level": 2,
-        "personality": "Cunning",
-        "locationId": "central_plaza",
-        "timeBlock": "midday",
-        "request": {
-          "id": "city_messenger_midday_exchange",
-          "name": "News Exchange",
-          "description": "Exchange city news and rumors",
-          "requestCards": ["city_messenger_exchange_tier1", "city_messenger_exchange_tier2", "city_messenger_exchange_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [9, 16, 24],
-          "rewards": [
-            {"coins": 4, "familiarity": 1},
-            {"coins": 7, "observation": "city_rumors_for_anyone"},
-            {"coins": 11, "permit": "messenger_routes", "tokens": {"Shadow": 1}}
-          ]
-        }
-      },
-      {
-        "id": "warehouse_supervisor_morning",
-        "name": "Warehouse Supervisor",
-        "level": 3,
-        "personality": "Mercantile",
-        "locationId": "warehouse_district",
-        "timeBlock": "morning",
-        "request": {
-          "id": "warehouse_supervisor_morning_discussion",
-          "name": "Logistics Discussion",
-          "description": "Discuss warehouse logistics",
-          "requestCards": ["warehouse_supervisor_discussion_tier1", "warehouse_supervisor_discussion_tier2", "warehouse_supervisor_discussion_tier3"],
-          "promiseCards": [],
-          "rapportThresholds": [11, 19, 28],
-          "rewards": [
-            {"coins": 6},
-            {"coins": 10, "permit": "warehouse_access"},
-            {"coins": 15, "observation": "shipping_manifest_for_marcus", "tokens": {"Commerce": 2}}
           ]
         }
       }

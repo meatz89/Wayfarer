@@ -70,6 +70,11 @@ public class NPCRequest
     public List<RequestReward> Rewards { get; set; } = new List<RequestReward>();
 
     /// <summary>
+    /// Tiered goals with different momentum thresholds and weights (new system)
+    /// </summary>
+    public List<NPCRequestGoal> Goals { get; set; } = new List<NPCRequestGoal>();
+
+    /// <summary>
     /// Check if this request is available to attempt
     /// </summary>
     public bool IsAvailable()
@@ -176,5 +181,30 @@ public class RequestReward
     public string Item { get; set; }
     public string Permit { get; set; }
     public string Observation { get; set; }
+    public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
+}
+
+/// <summary>
+/// Tiered request goal with weight-based rewards
+/// </summary>
+public class NPCRequestGoal
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int MomentumThreshold { get; set; }
+    public int Weight { get; set; }
+    public NPCRequestRewards Rewards { get; set; } = new NPCRequestRewards();
+}
+
+/// <summary>
+/// Reward structure for tiered request goals
+/// </summary>
+public class NPCRequestRewards
+{
+    public int? Coins { get; set; }
+    public string LetterId { get; set; }
+    public string Obligation { get; set; }
+    public string Item { get; set; }
     public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
 }

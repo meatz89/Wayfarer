@@ -69,6 +69,12 @@ public class ConversationCard
     public ScalingType MomentumScaling { get; init; } = ScalingType.None;
     public ScalingType DoubtScaling { get; init; } = ScalingType.None;
 
+    // Token requirements for signature cards
+    public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
+
+    // NPC-specific targeting for signature cards
+    public string NpcSpecific { get; init; }
+
     // Get base success percentage from difficulty tier (for display only)
     public int GetBaseSuccessPercentage()
     {
@@ -314,5 +320,54 @@ public class ConversationCard
     {
         if (!BoundStat.HasValue || playerStats == null) return true;
         return playerStats.GetLevel(BoundStat.Value) >= (int)Depth;
+    }
+
+    /// <summary>
+    /// Check if token requirements are met for this signature card
+    /// </summary>
+    public bool CanAccessWithTokens(Dictionary<string, int> availableTokens)
+    {
+        if (TokenRequirements == null || !TokenRequirements.Any()) return true;
+
+        foreach (var requirement in TokenRequirements)
+        {
+            if (!availableTokens.TryGetValue(requirement.Key, out int available) || available < requirement.Value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Get the effective Initiative effect from new JSON structure (overrides legacy calculation)
+    /// </summary>
+    public int GetInitiativeEffect()
+    {
+        return EffectInitiative ?? 0;
+    }
+
+    /// <summary>
+    /// Get the effective Momentum effect from new JSON structure (overrides legacy calculation)
+    /// </summary>
+    public int GetMomentumEffectFromJSON()
+    {
+        return EffectMomentum ?? 0;
+    }
+
+    /// <summary>
+    /// Get the effective Doubt effect from new JSON structure (overrides legacy calculation)
+    /// </summary>
+    public int GetDoubtEffectFromJSON()
+    {
+        return EffectDoubt ?? 0;
+    }
+
+    /// <summary>
+    /// Get the effective DrawCards effect from new JSON structure
+    /// </summary>
+    public int GetDrawCardsEffect()
+    {
+        return EffectDrawCards ?? 0;
     }
 }

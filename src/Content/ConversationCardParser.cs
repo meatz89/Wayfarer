@@ -138,6 +138,19 @@ public static class ConversationCardParser
             }
         }
 
+        // Parse token requirements (for signature cards)
+        Dictionary<string, int> tokenRequirements = new Dictionary<string, int>();
+        if (dto.TokenRequirement != null)
+        {
+            foreach (var requirement in dto.TokenRequirement)
+            {
+                tokenRequirements[requirement.Key] = requirement.Value;
+            }
+        }
+
+        // Parse NPC-specific targeting
+        string npcSpecific = dto.NpcSpecific;
+
         // Apply ForceListen as fallback for cards with None failure effect
         if (failureType == FailureEffectType.None)
         {
@@ -251,7 +264,9 @@ public static class ConversationCardParser
             BoundStat = boundStat,
             LevelBonuses = levelBonuses,
             MomentumScaling = momentumScaling,
-            DoubtScaling = doubtScaling
+            DoubtScaling = doubtScaling,
+            TokenRequirements = tokenRequirements,
+            NpcSpecific = npcSpecific
         };
     }
 
@@ -347,6 +362,12 @@ public class ConversationCardDTO
 
     // Level bonuses (optional, uses default progression if not specified)
     public List<CardLevelBonusDTO> LevelBonuses { get; set; }
+
+    // Token requirements for signature cards
+    public Dictionary<string, int> TokenRequirement { get; set; }
+
+    // NPC-specific targeting for signature cards
+    public string NpcSpecific { get; set; }
 }
 
 /// <summary>

@@ -112,6 +112,14 @@ public static class NPCParser
         // Observation deck will be populated from deck compositions if NPC has observation cards
         // The deck initialization happens in PackageLoader when processing deckCompositions
 
+        // Parse initial tokens if specified
+        if (dto.InitialTokens != null && dto.InitialTokens.Count > 0)
+        {
+            // These would be set during game initialization after player is created
+            // For now, store the values to be applied later
+            npc.InitialTokenValues = new Dictionary<string, int>(dto.InitialTokens);
+        }
+
         // Parse one-time requests
         if (dto.Requests != null && dto.Requests.Count > 0)
         {
@@ -134,11 +142,53 @@ public static class NPCParser
                     PromiseCardIds = new List<string>(requestDto.PromiseCards ?? new List<string>())
                 };
 
+                // Parse tiered goals if present
+                if (requestDto.Goals != null && requestDto.Goals.Count > 0)
+                {
+                    foreach (NPCRequestGoalDTO goalDto in requestDto.Goals)
+                    {
+                        NPCRequestGoal goal = new NPCRequestGoal
+                        {
+                            Id = goalDto.Id,
+                            Name = goalDto.Name,
+                            Description = goalDto.Description,
+                            MomentumThreshold = goalDto.MomentumThreshold,
+                            Weight = goalDto.Weight,
+                            Rewards = ParseRequestRewards(goalDto.Rewards)
+                        };
+                        request.Goals.Add(goal);
+                    }
+                }
+
                 npc.Requests.Add(request);
             }
         }
 
         return npc;
+    }
+
+    /// <summary>
+    /// Parse request goal rewards from DTO
+    /// </summary>
+    private static NPCRequestRewards ParseRequestRewards(NPCRequestRewardDTO rewardsDto)
+    {
+        if (rewardsDto == null) return new NPCRequestRewards();
+
+        NPCRequestRewards rewards = new NPCRequestRewards
+        {
+            Coins = rewardsDto.Coins,
+            LetterId = rewardsDto.LetterId,
+            Obligation = rewardsDto.Obligation,
+            Item = rewardsDto.Item
+        };
+
+        // Parse token rewards
+        if (rewardsDto.Tokens != null && rewardsDto.Tokens.Count > 0)
+        {
+            rewards.Tokens = new Dictionary<string, int>(rewardsDto.Tokens);
+        }
+
+        return rewards;
     }
 
     private static Professions MapProfessionFromJson(string jsonProfession)

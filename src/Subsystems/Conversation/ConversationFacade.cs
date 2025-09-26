@@ -95,11 +95,6 @@ public class ConversationFacade
         // Initialize momentum manager for this conversation with token data
         _momentumManager.InitializeForConversation(npcTokens);
 
-        // Initialize NPC's daily patience if needed
-        if (npc.MaxDailyPatience == 0)
-        {
-            npc.InitializeDailyPatience();
-        }
 
         // Initialize momentum and doubt for the session
         int initialMomentum = 0;
@@ -464,18 +459,6 @@ public class ConversationFacade
     {
         List<ConversationOption> options = new List<ConversationOption>();
 
-        // Initialize daily patience if needed
-        if (npc.MaxDailyPatience == 0)
-        {
-            npc.InitializeDailyPatience();
-        }
-
-        // Check if NPC has patience left for conversations
-        if (!npc.HasPatienceForConversation())
-        {
-            // No patience left - no conversations available today
-            return options;
-        }
 
         // Get one-time requests as conversation options
         if (npc.Requests != null && npc.Requests.Count > 0)
@@ -545,18 +528,6 @@ public class ConversationFacade
     {
         List<NPCRequest> available = new List<NPCRequest>();
 
-        // Initialize daily patience if needed
-        if (npc.MaxDailyPatience == 0)
-        {
-            npc.InitializeDailyPatience();
-        }
-
-        // Check if NPC has patience left for conversations
-        if (!npc.HasPatienceForConversation())
-        {
-            // No patience left - no conversations available today
-            return available;
-        }
 
         // Get all available requests from the NPC
         foreach (NPCRequest request in npc.Requests)

@@ -11,5 +11,6 @@ public class ExchangeDTO
     public int GiveAmount { get; set; }
     public string ReceiveCurrency { get; set; }
     public int ReceiveAmount { get; set; }
+    public string ReceiveItem { get; set; } // For specific item rewards
     public Dictionary<string, int> TokenGate { get; set; }
 }

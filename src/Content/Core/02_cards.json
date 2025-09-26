@@ -147,6 +147,223 @@
         }
       },
       {
+        "id": "rapport_gentle_nod",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "A subtle acknowledgment that builds conversational energy.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "I understand where you're coming from.",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+          }
+        }
+      },
+      {
+        "id": "insight_careful_observation",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Statement",
+        "connectionType": "Insight",
+        "description": "Careful observation opens new conversational paths.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "I notice something important here...",
+        "boundStat": "insight",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+          }
+        }
+      },
+      {
+        "id": "authority_confident_presence",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Statement",
+        "connectionType": "Authority",
+        "description": "Confident bearing commands attention but creates tension.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Let me be clear about this.",
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "Doubt": 1,
+          }
+        }
+      },
+      {
+        "id": "commerce_value_assessment",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Quick assessment of mutual benefit opens possibilities.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "I see opportunity here for both of us.",
+        "boundStat": "commerce",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "DrawCards": 1,
+          }
+        }
+      },
+      {
+        "id": "cunning_subtle_inquiry",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 1,
+        "persistence": "Statement",
+        "connectionType": "Cunning",
+        "description": "Indirect questioning builds understanding while reducing tension.",
+        "difficulty": "VeryEasy",
+        "dialogueFragment": "Perhaps there's more to consider here...",
+        "boundStat": "cunning",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "Doubt": -1,
+          }
+        }
+      },
+      {
+        "id": "rapport_empathetic_response",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Understanding response that builds both energy and progress.",
+        "difficulty": "Easy",
+        "dialogueFragment": "Your feelings are completely valid.",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "Momentum": 1,
+          }
+        }
+      },
+      {
+        "id": "insight_pattern_recognition",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Insight",
+        "description": "Recognizing patterns provides significant conversational advantage.",
+        "difficulty": "Easy",
+        "dialogueFragment": "I see the pattern emerging here.",
+        "boundStat": "insight",
+        "effects": {
+          "success": {
+            "Initiative": 3,
+          }
+        }
+      },
+      {
+        "id": "authority_clear_direction",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Authority",
+        "description": "Clear direction builds momentum through decisive action.",
+        "difficulty": "Easy",
+        "dialogueFragment": "This is what we need to do.",
+        "boundStat": "authority",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "Momentum": 1,
+          }
+        }
+      },
+      {
+        "id": "commerce_mutual_benefit",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Identifying mutual benefit creates strong forward progress.",
+        "difficulty": "Easy",
+        "dialogueFragment": "This could work well for both of us.",
+        "boundStat": "commerce",
+        "effects": {
+          "success": {
+            "Initiative": 1,
+            "Momentum": 2,
+          }
+        }
+      },
+      {
+        "id": "cunning_strategic_pause",
+        "type": "Conversation",
+        "category": "Regulation",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Cunning",
+        "description": "Strategic silence opens new conversational options.",
+        "difficulty": "Easy",
+        "dialogueFragment": "Let me consider this carefully...",
+        "boundStat": "cunning",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "DrawCards": 1,
+          }
+        }
+      },
+      {
+        "id": "rapport_supportive_gesture",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["ALL"],
+        "initiativeCost": 0,
+        "depth": 2,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Small supportive gestures reduce tension and build connection.",
+        "difficulty": "Easy",
+        "dialogueFragment": "I'm here to help however I can.",
+        "boundStat": "rapport",
+        "effects": {
+          "success": {
+            "Momentum": 1,
+            "Doubt": -1,
+          }
+        }
+      },
+      {
         "id": "build_rapport",
         "type": "Conversation",
         "category": "Expression",
@@ -427,6 +644,200 @@
           "momentumCost": 0,
           "cadenceCost": 2
         }]
+      },
+      {
+        "id": "elena_shared_memory",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["DEVOTED"],
+        "initiativeCost": 1,
+        "depth": 3,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Share a meaningful memory to deepen connection with Elena.",
+        "difficulty": "Easy",
+        "dialogueFragment": "Elena, this reminds me of something important we've shared...",
+        "boundStat": "rapport",
+        "tokenRequirement": {
+          "Trust": 1
+        },
+        "npcSpecific": "elena",
+        "effects": {
+          "success": {
+            "Initiative": 3,
+            "Momentum": 1,
+          }
+        }
+      },
+      {
+        "id": "elena_vulnerability",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["DEVOTED"],
+        "initiativeCost": 3,
+        "depth": 4,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Open yourself vulnerably to Elena, creating deep understanding.",
+        "difficulty": "Medium",
+        "dialogueFragment": "Elena, I understand your fear because I've felt it too...",
+        "boundStat": "rapport",
+        "tokenRequirement": {
+          "Trust": 3
+        },
+        "npcSpecific": "elena",
+        "effects": {
+          "success": {
+            "Momentum": 2,
+            "Doubt": -3,
+          }
+        }
+      },
+      {
+        "id": "elena_urgent_confidence",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["DEVOTED"],
+        "initiativeCost": 5,
+        "depth": 6,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Speak with absolute confidence about Elena's situation, leveraging your deep trust.",
+        "difficulty": "Hard",
+        "dialogueFragment": "Elena, I know exactly what needs to happen and I'll make sure it does.",
+        "boundStat": "authority",
+        "tokenRequirement": {
+          "Trust": 6
+        },
+        "npcSpecific": "elena",
+        "effects": {
+          "success": {
+            "Momentum": 4,
+            "Initiative": 2,
+          }
+        }
+      },
+      {
+        "id": "elena_perfect_trust",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["DEVOTED"],
+        "initiativeCost": 8,
+        "depth": 8,
+        "persistence": "Statement",
+        "connectionType": "Trust",
+        "description": "Channel the perfect trust between you and Elena for maximum effect.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "Elena, we understand each other completely. Let me handle everything.",
+        "boundStat": "rapport",
+        "tokenRequirement": {
+          "Trust": 10
+        },
+        "npcSpecific": "elena",
+        "effects": {
+          "success": {
+            "Momentum": 6,
+            "Doubt": -5,
+            "Initiative": 3,
+          }
+        }
+      },
+      {
+        "id": "marcus_trade_insight",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["MERCANTILE"],
+        "initiativeCost": 1,
+        "depth": 3,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Leverage your business connection with Marcus to identify opportunities.",
+        "difficulty": "Easy",
+        "dialogueFragment": "Marcus, I see a profitable angle here that we should explore...",
+        "boundStat": "commerce",
+        "tokenRequirement": {
+          "Commerce": 1
+        },
+        "npcSpecific": "marcus",
+        "effects": {
+          "success": {
+            "Initiative": 2,
+            "DrawCards": 1,
+          }
+        }
+      },
+      {
+        "id": "marcus_negotiation_advantage",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["MERCANTILE"],
+        "initiativeCost": 3,
+        "depth": 4,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Use your business relationship with Marcus to gain negotiating leverage.",
+        "difficulty": "Medium",
+        "dialogueFragment": "Marcus, based on our previous dealings, I think we can structure this differently...",
+        "boundStat": "commerce",
+        "tokenRequirement": {
+          "Commerce": 3
+        },
+        "npcSpecific": "marcus",
+        "effects": {
+          "success": {
+            "Momentum": 3,
+            "Initiative": 1,
+          }
+        }
+      },
+      {
+        "id": "marcus_commercial_authority",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["MERCANTILE"],
+        "initiativeCost": 5,
+        "depth": 6,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Command Marcus's respect through proven business acumen.",
+        "difficulty": "Hard",
+        "dialogueFragment": "Marcus, you know I understand the market better than most. Here's what we need to do.",
+        "boundStat": "authority",
+        "tokenRequirement": {
+          "Commerce": 6
+        },
+        "npcSpecific": "marcus",
+        "effects": {
+          "success": {
+            "Momentum": 4,
+            "Doubt": -2,
+          }
+        }
+      },
+      {
+        "id": "marcus_master_merchant",
+        "type": "Conversation",
+        "category": "Expression",
+        "personalityTypes": ["MERCANTILE"],
+        "initiativeCost": 8,
+        "depth": 8,
+        "persistence": "Statement",
+        "connectionType": "Commerce",
+        "description": "Speak as an equal merchant-prince to Marcus, wielding maximum commercial influence.",
+        "difficulty": "VeryHard",
+        "dialogueFragment": "Marcus, as one master of commerce to another, this is how we dominate the market.",
+        "boundStat": "commerce",
+        "tokenRequirement": {
+          "Commerce": 10
+        },
+        "npcSpecific": "marcus",
+        "effects": {
+          "success": {
+            "Momentum": 5,
+            "Initiative": 4,
+            "DrawCards": 2,
+          }
+        }
       }
     ],
     "npcRequestCards": {
@@ -568,6 +979,46 @@
           "value": "quick_food_trade"
         },
         "dialogueFragment": "Need some food? 10 coins for a meal's worth.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "marcus_bread_trade",
+        "type": "Exchange",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "initiativeCost": 0,
+        "connectionType": "Commerce",
+        "description": "Trade 5 coins for fresh bread",
+        "difficulty": "Easy",
+        "tokenRequirement": {
+          "Commerce": 0
+        },
+        "successEffect": {
+          "type": "Exchange",
+          "value": "bread_trade"
+        },
+        "dialogueFragment": "Fresh bread from the morning batch - 5 coins.",
+        "boundStat": "commerce"
+      },
+      {
+        "id": "marcus_caravan_transport",
+        "type": "Exchange",
+        "personalityTypes": [
+          "MERCANTILE"
+        ],
+        "initiativeCost": 1,
+        "connectionType": "Commerce",
+        "description": "Hire caravan space to reduce carrying weight",
+        "difficulty": "Medium",
+        "tokenRequirement": {
+          "Commerce": 2
+        },
+        "successEffect": {
+          "type": "Exchange",
+          "value": "caravan_transport"
+        },
+        "dialogueFragment": "My caravan can carry your heavy packages. 15 coins for the service.",
         "boundStat": "commerce"
       }
     ],

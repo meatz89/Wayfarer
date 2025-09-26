@@ -9,11 +9,13 @@
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 10,
+      "coins": 0,
       "health": 100,
       "maxHealth": 100,
       "hunger": 50,
-      "maxHunger": 100
+      "maxHunger": 100,
+      "satchelCapacity": 10,
+      "satchelWeight": 3
     },
     "startingSpotId": "central_fountain",
     "startingObligations": [
@@ -22,10 +24,11 @@
         "type": "delivery",
         "position": 1,
         "deadline": 480,
-        "recipientId": "warehouse_recipient",
+        "recipientId": "marcus",
         "letterId": "viktor_package_letter",
-        "payment": 10,
-        "description": "Viktor's package for the warehouse"
+        "payment": 7,
+        "weight": 3,
+        "description": "Viktor's package for Marcus at Market Square"
       }
     ]
   },
@@ -170,6 +173,27 @@
         "receiveAmount": 1,
         "tokenGate": {
           "Commerce": 1
+        }
+      },
+      {
+        "id": "bread_trade",
+        "name": "Fresh Bread Purchase",
+        "giveCurrency": "coins",
+        "giveAmount": 5,
+        "receiveCurrency": "item",
+        "receiveItem": "fresh_bread",
+        "receiveAmount": 1,
+        "tokenGate": {}
+      },
+      {
+        "id": "caravan_transport",
+        "name": "Caravan Transport Service",
+        "giveCurrency": "coins",
+        "giveAmount": 15,
+        "receiveCurrency": "weight_reduction",
+        "receiveAmount": 5,
+        "tokenGate": {
+          "Commerce": 2
         }
       }
     ],

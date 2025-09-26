@@ -10,5 +10,6 @@ public enum ResourceType
     CommerceToken,
     StatusToken,
     ShadowToken,
-    Item
+    Item,
+    CarryingCapacity
 }

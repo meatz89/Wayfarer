@@ -66,11 +66,16 @@ public static class ExchangeParser
                             "commerce" => ResourceType.CommerceToken,
                             "status" => ResourceType.StatusToken,
                             "shadow" => ResourceType.ShadowToken,
+                            "weight_reduction" => ResourceType.CarryingCapacity,
+                            "item" => ResourceType.Item,
                             _ => ResourceType.Coins
                         },
                         Amount = dto.ReceiveAmount
                     }
-                } : new List<ResourceAmount>()
+                } : new List<ResourceAmount>(),
+
+                // Handle specific item rewards
+                ItemIds = !string.IsNullOrEmpty(dto.ReceiveItem) ? new List<string> { dto.ReceiveItem } : new List<string>()
             },
 
             // Default properties
@@ -88,7 +93,11 @@ public static class ExchangeParser
     /// </summary>
     private static string GenerateDescription(ExchangeDTO dto)
     {
-        return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency}";
+        string receiveText = !string.IsNullOrEmpty(dto.ReceiveItem)
+            ? dto.ReceiveItem
+            : $"{dto.ReceiveAmount} {dto.ReceiveCurrency}";
+
+        return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {receiveText}";
     }
 
 
