@@ -95,6 +95,30 @@
             "spotId": "merchant_row",
             "hungerReduction": 30
           }
+        ],
+        "observationRewards": [
+          {
+            "locationId": "market_square",
+            "familiarityRequired": 1,
+            "observationCard": {
+              "id": "safe_passage_knowledge",
+              "name": "Safe Passage Knowledge",
+              "description": "Knowledge of safe routes provides crucial conversational advantage with Elena.",
+              "targetNpcId": "elena",
+              "effect": "Momentum +4"
+            }
+          },
+          {
+            "locationId": "market_square",
+            "familiarityRequired": 2,
+            "observationCard": {
+              "id": "merchant_caravan_route",
+              "name": "Merchant Caravan Route",
+              "description": "Understanding caravan routes unlocks Marcus's transport option.",
+              "targetNpcId": "marcus",
+              "effect": "UnlockExchange caravan_transport"
+            }
+          }
         ]
       },
       {
@@ -293,6 +317,24 @@
           ]
         },
         "canInvestigate": false
+      }
+    ],
+    "locationActions": [
+      {
+        "id": "investigate_location",
+        "name": "Investigate",
+        "description": "Study the area to gain familiarity and potentially unlock observations",
+        "actionType": "investigate",
+        "icon": "🔍",
+        "priority": 50,
+        "cost": {
+          "segments": 1
+        },
+        "timeRequired": 20,
+        "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
+        "requiredProperties": [],
+        "optionalProperties": ["Quiet", "Busy"],
+        "excludedProperties": []
       }
     ]
   }

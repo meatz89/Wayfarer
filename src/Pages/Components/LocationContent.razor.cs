@@ -342,6 +342,10 @@ namespace Wayfarer.Pages.Components
                     Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
                 }
             }
+            else if (action.ActionType == "investigate")
+            {
+                await InvestigateLocation();
+            }
             else
             {
                 // Other action types not supported in current game design

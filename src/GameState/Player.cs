@@ -332,6 +332,59 @@
         if (config.MaxHealth.HasValue) MaxHealth = config.MaxHealth.Value;
         if (config.Hunger.HasValue) Hunger = config.Hunger.Value;
         if (config.MaxHunger.HasValue) MaxHunger = config.MaxHunger.Value;
+
+        // Apply satchel capacity - update inventory max weight
+        if (config.SatchelCapacity.HasValue)
+        {
+            Inventory = new Inventory(config.SatchelCapacity.Value);
+        }
+
+        // SatchelWeight represents initial weight from starting obligations (Viktor's package)
+        // This will be handled by the obligation system when adding starting obligations
+    }
+
+    /// <summary>
+    /// Get current total weight (inventory + obligations)
+    /// </summary>
+    public int GetCurrentWeight(ItemRepository itemRepository)
+    {
+        int inventoryWeight = Inventory.GetUsedWeight(itemRepository);
+        int obligationWeight = GetObligationWeight();
+        return inventoryWeight + obligationWeight;
+    }
+
+    /// <summary>
+    /// Get weight from all active obligations
+    /// </summary>
+    public int GetObligationWeight()
+    {
+        int totalWeight = 0;
+        for (int i = 0; i < ObligationQueue.Length; i++)
+        {
+            if (ObligationQueue[i] != null)
+            {
+                totalWeight += ObligationQueue[i].Weight;
+            }
+        }
+        return totalWeight;
+    }
+
+    /// <summary>
+    /// Check if player can carry additional weight
+    /// </summary>
+    public bool CanCarry(int additionalWeight, ItemRepository itemRepository)
+    {
+        int currentWeight = GetCurrentWeight(itemRepository);
+        int maxWeight = Inventory.GetCapacity();
+        return (currentWeight + additionalWeight) <= maxWeight;
+    }
+
+    /// <summary>
+    /// Get current weight as ratio (for UI display)
+    /// </summary>
+    public (int current, int max) GetWeightStatus(ItemRepository itemRepository)
+    {
+        return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
 }
