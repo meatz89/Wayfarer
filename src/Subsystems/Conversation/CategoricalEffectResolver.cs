@@ -51,50 +51,9 @@ public class CategoricalEffectResolver
 
         int magnitude = GetMagnitude(card.Difficulty);
 
-        switch (card.SuccessType)
-        {
-            case SuccessEffectType.Strike:
-                // Build comprehensive effect description from all 4-resource effects
-                result = BuildComprehensiveEffectResult(card, session);
-                break;
-
-            case SuccessEffectType.Soothe:
-                // Calculate doubt reduction from card's direct effects
-                int doubtChange = GetEffectiveDoubtChange(card, session);
-                result.DoubtChange = doubtChange;
-                result.EffectDescription = doubtChange < 0 ? $"{doubtChange} Doubt" : $"+{doubtChange} Doubt";
-                break;
-
-            case SuccessEffectType.Threading:
-                // Calculate card draw from card's direct effects
-                int cardsToDraw = GetEffectiveCardDraw(card, session);
-                result.EffectDescription = cardsToDraw > 0 ? $"Draw {cardsToDraw} card{(cardsToDraw == 1 ? "" : "s")}" : "No cards drawn";
-                // Note: Don't actually draw cards in projection - that's for execution
-                break;
-
-            // Deprecated effect types removed in refined system
-
-            case SuccessEffectType.DoubleMomentum:
-                // Double current momentum (powerful realization effect)
-                int currentMomentum = session.CurrentMomentum;
-                result.MomentumChange = currentMomentum; // Double current momentum
-                result.EffectDescription = $"Double momentum: {currentMomentum} → {currentMomentum * 2}";
-                break;
-
-            case SuccessEffectType.Promising:
-                // Move obligation to position 1 and gain momentum based on magnitude
-                result.MomentumChange = magnitude * 2; // Promising gives double momentum
-                result.EffectDescription = $"Promise made, +{magnitude * 2} momentum";
-                // Queue manipulation handled by ConversationFacade
-                break;
-
-            // Advancing effect removed in refined system (used deprecated Flow)
-
-            case SuccessEffectType.None:
-            default:
-                // No effect
-                break;
-        }
+        // ONLY use comprehensive effects from card model - NO LEGACY FALLBACKS
+        // Parser ensures all cards have effects, so this should always succeed
+        result = BuildComprehensiveEffectResult(card, session);
 
         return result;
     }

@@ -61,11 +61,6 @@ public static class ConversationCardParser
 
         // Parse effects from new structure and determine success type
         SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
-        if (successType == SuccessEffectType.None && !string.IsNullOrEmpty(dto.SuccessType))
-        {
-            // Fall back to legacy SuccessType if new effects don't specify
-            Enum.TryParse<SuccessEffectType>(dto.SuccessType, true, out successType);
-        }
 
         FailureEffectType failureType = FailureEffectType.None;
         if (!string.IsNullOrEmpty(dto.FailureType))
@@ -73,13 +68,15 @@ public static class ConversationCardParser
             Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
         }
 
-        // Parse card type from DTO type field
+        // Parse card type from DTO type field - MUST be defined early as it's used in validation
         CardType cardType = string.IsNullOrEmpty(dto.Type) ? CardType.Conversation : dto.Type.ToLower() switch
         {
             "letter" => CardType.Letter,
             "promise" => CardType.Promise,
             "burdengoal" => CardType.Letter,
             "observation" => CardType.Observation,
+            "request" => CardType.Conversation, // Request cards are conversation cards
+            "exchange" => CardType.Conversation, // Exchange cards are conversation cards
             "normal" => CardType.Conversation,
             _ => CardType.Conversation
         };
@@ -195,7 +192,29 @@ public static class ConversationCardParser
             };
         }
 
-        // Parse effects from new structure
+        // VALIDATE effects based on card type
+        if (cardType == CardType.Conversation)
+        {
+            // Regular conversation cards MUST have new effects structure
+            if (dto.Effects?.Success == null)
+            {
+                throw new InvalidOperationException($"Conversation card '{dto.Id}' is missing effects.success definition in JSON! All conversation cards MUST have effects defined.");
+            }
+
+            var successEffects = dto.Effects.Success;
+
+            // At least ONE effect must be defined for conversation cards
+            if (!successEffects.Initiative.HasValue &&
+                !successEffects.Momentum.HasValue &&
+                !successEffects.Doubt.HasValue &&
+                !successEffects.DrawCards.HasValue &&
+                !successEffects.MomentumMultiplier.HasValue)
+            {
+                throw new InvalidOperationException($"Conversation card '{dto.Id}' has no effects defined! At least one effect (Initiative, Momentum, Doubt, DrawCards, or MomentumMultiplier) MUST be specified.");
+            }
+        }
+
+        // Parse effects from new structure (if present)
         int? effectInitiative = dto.Effects?.Success?.Initiative;
         int? effectMomentum = dto.Effects?.Success?.Momentum;
         int? effectDoubt = dto.Effects?.Success?.Doubt;

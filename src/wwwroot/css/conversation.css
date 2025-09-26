@@ -196,15 +196,6 @@ body {
 }
 
 /* Global Resource Components - used by game header and other screens */
-.resource-bar {
-    background: #f9f3e9;
-    padding: 12px 20px;
-    border-bottom: 1px solid #c4a684;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
 
 /* === TOKEN DISPLAY === */
 

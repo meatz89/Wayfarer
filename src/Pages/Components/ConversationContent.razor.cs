@@ -587,48 +587,11 @@ namespace Wayfarer.Pages.Components
                 return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
             }
 
-            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects
-            if (card.SuccessType != SuccessEffectType.None)
-            {
-                CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
+            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects (no SuccessType check)
+            CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
-                // First check for comprehensive effect description (4-resource system)
-                if (!string.IsNullOrEmpty(projection.EffectDescription) && projection.EffectDescription != "No effect")
-                {
-                    return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
-                }
-
-                // Legacy fallback checks for individual effects
-                if (projection.MomentumChange != 0)
-                {
-                    return projection.MomentumChange > 0
-                        ? $"+{projection.MomentumChange} Momentum"
-                        : $"{projection.MomentumChange} Momentum";
-                }
-
-                if (projection.InitiativeChange != 0)
-                {
-                    return projection.InitiativeChange > 0
-                        ? $"+{projection.InitiativeChange} Initiative"
-                        : $"{projection.InitiativeChange} Initiative";
-                }
-
-                if (projection.CardsToAdd?.Count > 0)
-                {
-                    int count = projection.CardsToAdd.Count;
-                    return $"Draw {count} card{(count == 1 ? "" : "s")}";
-                }
-
-                if (projection.InitiativeChange != 0)
-                {
-                    return projection.InitiativeChange > 0
-                        ? $"+{projection.InitiativeChange} focus"
-                        : $"{projection.InitiativeChange} focus";
-                }
-            }
-
-            // No effect
-            return "No effect";
+            // Use comprehensive effect description (4-resource system only)
+            return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
         }
 
         private string GetInitialDialogue()
