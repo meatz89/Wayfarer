@@ -115,32 +115,6 @@ public class ExchangeCard
         return true;
     }
 
-    /// <summary>
-    /// Creates a deep clone of this exchange card.
-    /// </summary>
-    public ExchangeCard DeepClone()
-    {
-        return new ExchangeCard
-        {
-            Id = this.Id,
-            Name = this.Name,
-            Description = this.Description,
-            ExchangeType = this.ExchangeType,
-            NpcId = this.NpcId,
-            Cost = this.Cost?.DeepClone() ?? new ExchangeCostStructure(),
-            Reward = this.Reward?.DeepClone() ?? new ExchangeRewardStructure(),
-            SingleUse = this.SingleUse,
-            IsCompleted = this.IsCompleted,
-            SuccessRate = this.SuccessRate,
-            FailurePenalty = this.FailurePenalty?.DeepClone(),
-            IconId = this.IconId,
-            FlavorText = this.FlavorText,
-            IsSkeleton = this.IsSkeleton,
-            SkeletonSource = this.SkeletonSource,
-            RequiredLocationId = this.RequiredLocationId,
-            AvailableTimeBlocks = new List<TimeBlocks>(this.AvailableTimeBlocks)
-        };
-    }
 
     /// <summary>
     /// Gets the exchange ratio as a readable string.

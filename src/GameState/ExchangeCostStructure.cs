@@ -79,21 +79,6 @@ public class ExchangeCostStructure
         return true;
     }
 
-    /// <summary>
-    /// Creates a deep clone of this cost structure.
-    /// </summary>
-    public ExchangeCostStructure DeepClone()
-    {
-        return new ExchangeCostStructure
-        {
-            Resources = new List<ResourceAmount>(Resources.Count > 0
-                ? Resources.ConvertAll(r => new ResourceAmount(r.Type, r.Amount))
-                : new List<ResourceAmount>()),
-            TokenRequirements = new Dictionary<ConnectionType, int>(TokenRequirements),
-            RequiredItemIds = new List<string>(RequiredItemIds),
-            ConsumedItemIds = new List<string>(ConsumedItemIds)
-        };
-    }
 
     /// <summary>
     /// Gets a human-readable description of the costs.

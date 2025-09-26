@@ -1196,9 +1196,8 @@ public class PackageLoader
                             // Add the specified number of copies to the deck
                             for (int i = 0; i < count; i++)
                             {
-                                // Use the DeepClone method to create a copy
-                                ExchangeCard cardCopy = exchangeCard.DeepClone();
-                                npcExchangeCards.Add(cardCopy);
+                                // Exchange cards are templates, no need to clone
+                                npcExchangeCards.Add(exchangeCard);
                                 Console.WriteLine($"[PackageLoader] Added exchange card {cardId} to {npc.Name}'s deck");
                             }
                         }
