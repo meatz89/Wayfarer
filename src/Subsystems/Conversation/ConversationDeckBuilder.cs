@@ -204,7 +204,7 @@ public class ConversationDeckBuilder
 
         foreach (CardInstance instance in instances)
         {
-            ConversationCard card = instance.Card;
+            ConversationCard card = instance.ConversationCardTemplate;
 
             // Check if this is a signature card (has token requirements)
             if (card.TokenRequirements != null && card.TokenRequirements.Any())
@@ -239,7 +239,7 @@ public class ConversationDeckBuilder
         // Get all connection types and their token counts
         foreach (ConnectionType connectionType in Enum.GetValues<ConnectionType>())
         {
-            int tokenCount = npc.GetTokenCount(connectionType);
+            int tokenCount = _tokenManager.GetTokenCount(connectionType, npc.ID);
             tokens[connectionType.ToString()] = tokenCount;
         }
 

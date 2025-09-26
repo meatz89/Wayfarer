@@ -940,68 +940,6 @@
         "boundStat": "commerce"
       }
     ],
-    "exchangeCards": [
-      {
-        "id": "marcus_quick_trade",
-        "type": "Exchange",
-        "personalityTypes": [
-          "MERCANTILE"
-        ],
-        "initiativeCost": 0,
-        "connectionType": "Commerce",
-        "description": "Trade 10 coins for 1 food",
-        "difficulty": "Easy",
-        "tokenRequirement": {
-          "Commerce": 1
-        },
-        "successEffect": {
-          "type": "Exchange",
-          "value": "quick_food_trade"
-        },
-        "dialogueFragment": "Need some food? 10 coins for a meal's worth.",
-        "boundStat": "commerce"
-      },
-      {
-        "id": "marcus_bread_trade",
-        "type": "Exchange",
-        "personalityTypes": [
-          "MERCANTILE"
-        ],
-        "initiativeCost": 0,
-        "connectionType": "Commerce",
-        "description": "Trade 5 coins for fresh bread",
-        "difficulty": "Easy",
-        "tokenRequirement": {
-          "Commerce": 0
-        },
-        "successEffect": {
-          "type": "Exchange",
-          "value": "bread_trade"
-        },
-        "dialogueFragment": "Fresh bread from the morning batch - 5 coins.",
-        "boundStat": "commerce"
-      },
-      {
-        "id": "marcus_caravan_transport",
-        "type": "Exchange",
-        "personalityTypes": [
-          "MERCANTILE"
-        ],
-        "initiativeCost": 1,
-        "connectionType": "Commerce",
-        "description": "Hire caravan space to reduce carrying weight",
-        "difficulty": "Medium",
-        "tokenRequirement": {
-          "Commerce": 2
-        },
-        "successEffect": {
-          "type": "Exchange",
-          "value": "caravan_transport"
-        },
-        "dialogueFragment": "My caravan can carry your heavy packages. 15 coins for the service.",
-        "boundStat": "commerce"
-      }
-    ],
     "cardDecks": [
       {
         "id": "deck_desperate_empathy",
