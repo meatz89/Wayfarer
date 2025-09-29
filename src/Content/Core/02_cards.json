@@ -427,7 +427,7 @@
         "personalityTypes": ["ALL"],
         "initiativeCost": 3,
         "depth": 4,
-        "persistence": "Impulse",
+        "persistence": "Echo",
         "connectionType": "Insight",
         "title": "Multiple ideas flood your mind, drawing more options.",
         "difficulty": "Medium",
@@ -911,7 +911,7 @@
           "ALL"
         ],
         "initiativeCost": 5,
-        "persistence": "Thought",
+        "persistence": "Statement",
         "successType": "Promising",
         "connectionType": "Trust",
         "title": "Make Elena my priority",
@@ -928,7 +928,7 @@
           "ALL"
         ],
         "initiativeCost": 4,
-        "persistence": "Impulse",
+        "persistence": "Statement",
         "successType": "Promising",
         "connectionType": "Commerce",
         "title": "Guarantee Marcus immediate action",

@@ -14,7 +14,7 @@ public class CardInstance
     // Categorical properties that define behavior through context
     /// <summary>
     /// Get persistence type for this card, potentially modified by player stat bonuses
-    /// Cards gain Thought persistence when bound stat reaches level 3
+    /// Cards gain Statement persistence when bound stat reaches level 3
     /// </summary>
     public PersistenceType GetPersistence(PlayerStats playerStats)
     {
@@ -23,7 +23,7 @@ public class CardInstance
         // Check if bound stat has persistence bonus (level 3+)
         if (ConversationCardTemplate.BoundStat.HasValue && playerStats.HasPersistenceBonus(ConversationCardTemplate.BoundStat.Value))
         {
-            // Cards gain Thought persistence if they don't already have it
+            // Cards gain Statement persistence if they don't already have it
             if (basePersistence != PersistenceType.Statement)
             {
                 return PersistenceType.Statement;

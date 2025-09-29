@@ -392,14 +392,11 @@ public class PromptBuilder
             ["focus_pattern"] = analysis?.InitiativePattern.ToString() ?? "Unknown",
 
             // Boolean flags
-            ["has_impulse"] = (analysis?.HasImpulse ?? false).ToString().ToLower(),
             ["has_observation"] = "false", // Could be determined from card analysis
 
             // Template-specific placeholders
             ["card_summary"] = BuildCardSummary(cards),
             ["cards_detail"] = BuildCardsDetail(cards),
-            ["impulse_requirement"] = BuildImpulseRequirement(analysis),
-            ["opening_requirement"] = BuildOpeningRequirement(analysis),
             ["card_narrative_template"] = BuildCardNarrativeTemplate(cards),
 
             // Additional context
@@ -452,25 +449,7 @@ public class PromptBuilder
         return detail.ToString().Trim();
     }
 
-    /// <summary>
-    /// Builds impulse requirement text for templates.
-    /// </summary>
-    private string BuildImpulseRequirement(CardAnalysis analysis)
-    {
-        if (analysis?.HasImpulse == true)
-        {
-            return "4. Include urgency that Impulse cards can address";
-        }
-        return "";
-    }
 
-    /// <summary>
-    /// Builds opening requirement text for templates.
-    /// </summary>
-    private string BuildOpeningRequirement(CardAnalysis analysis)
-    {
-        return "";
-    }
 
     /// <summary>
     /// Builds card narrative template for JSON structure.

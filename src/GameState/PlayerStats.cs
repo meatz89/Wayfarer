@@ -160,7 +160,7 @@ public class PlayerStats
 
     /// <summary>
     /// Check if stat has persistence bonus (level 3+)
-    /// Cards bound to this stat gain Thought persistence
+    /// Cards bound to this stat gain Statement persistence
     /// </summary>
     public bool HasPersistenceBonus(PlayerStatType stat)
     {

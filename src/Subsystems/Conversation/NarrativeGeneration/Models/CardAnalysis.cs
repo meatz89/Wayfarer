@@ -4,11 +4,6 @@
 /// </summary>
 public class CardAnalysis
 {
-    /// <summary>
-    /// True if any cards have Impulse persistence (need urgent response).
-    /// NPC dialogue must include urgent elements requiring immediate response.
-    /// </summary>
-    public bool HasImpulse { get; set; }
 
 
     /// <summary>
@@ -26,7 +21,7 @@ public class CardAnalysis
 
     /// <summary>
     /// True if cards require urgent NPC response.
-    /// Typically when Impulse cards are present or high-risk cards dominate.
+    /// Typically when high-risk cards dominate.
     /// </summary>
     public bool RequiresUrgency { get; set; }
 

@@ -48,7 +48,7 @@ public class NPCGoalCardDTO
 
     // Categorical properties - define behavior through context
     public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
-    public string Persistence { get; set; } // Usually "Thought" for goal cards
+    public string Persistence { get; set; } // Usually "Statement" for goal cards
     public string SuccessType { get; set; } // Usually "Promising" or "Advancing"
     public string FailureType { get; set; } // Usually "None" for goal cards
 

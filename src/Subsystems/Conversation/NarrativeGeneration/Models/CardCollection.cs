@@ -46,7 +46,7 @@ public class CardInfo
 
     /// <summary>
     /// Persistence type determining when card is removed from hand.
-    /// Affects narrative timing requirements (Impulse needs urgency, Opening invites elaboration).
+    /// Affects narrative timing requirements (Echo for repeatability, Statement for one-time effects).
     /// </summary>
     public PersistenceType Persistence { get; set; }
 

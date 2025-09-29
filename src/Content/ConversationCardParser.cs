@@ -376,7 +376,7 @@ public class ConversationCardDTO
 
     // Categorical properties - define behavior through context
     public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
-    public string Persistence { get; set; } // Thought/Impulse/Opening
+    public string Persistence { get; set; } // Echo/Statement
     public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
 
     // Personality targeting - which NPCs can use this card

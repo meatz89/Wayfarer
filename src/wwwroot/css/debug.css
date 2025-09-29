@@ -433,17 +433,12 @@
     position: relative;
 }
 
-.debug-card .card-properties span:contains("Impulse") {
-    color: #f59e0b;
-    font-weight: bold;
-}
-
-.debug-card .card-properties span:contains("Opening") {
+.debug-card .card-properties span:contains("Echo") {
     color: #10b981;
     font-weight: bold;
 }
 
-.debug-card .card-properties span:contains("Thought") {
+.debug-card .card-properties span:contains("Statement") {
     color: #6366f1;
     font-weight: bold;
 }

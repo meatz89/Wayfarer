@@ -29,15 +29,11 @@ public class NarrativePromptContext
     public string InitiativePattern { get; set; } = "Unknown";
 
     // Boolean flags (stored as lowercase strings for template compatibility)
-    public string HasImpulse { get; set; } = "false";
-    public string HasOpening { get; set; } = "false";
     public string HasObservation { get; set; } = "false";
 
     // Template-specific content
     public string CardSummary { get; set; } = "";
     public string CardsDetail { get; set; } = "";
-    public string ImpulseRequirement { get; set; } = "";
-    public string OpeningRequirement { get; set; } = "";
 
     // Conversation-specific
     public string ConversationType { get; set; } = "standard";
@@ -65,13 +61,9 @@ public class NarrativePromptContext
             ["current_topic"] = CurrentTopic,
             ["card_count"] = CardCount,
             ["initiative_pattern"] = InitiativePattern,
-            ["has_impulse"] = HasImpulse,
-            ["has_opening"] = HasOpening,
             ["has_observation"] = HasObservation,
             ["card_summary"] = CardSummary,
             ["cards_detail"] = CardsDetail,
-            ["impulse_requirement"] = ImpulseRequirement,
-            ["opening_requirement"] = OpeningRequirement,
             ["conversation_type"] = ConversationType,
             ["conversation_history"] = ConversationHistory
         };

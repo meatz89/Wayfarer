@@ -50,10 +50,7 @@ public class ConversationNarrativeGenerator
     /// <returns>Analysis results for narrative generation</returns>
     public CardAnalysis AnalyzeActiveCards(CardCollection cards)
     {
-        CardAnalysis analysis = new CardAnalysis
-        {
-            HasImpulse = cards.Cards.Any(c => c.Persistence == PersistenceType.Statement)
-        };
+        CardAnalysis analysis = new CardAnalysis();
 
         // Categorize each card
         foreach (CardInfo card in cards.Cards)
@@ -80,7 +77,7 @@ public class ConversationNarrativeGenerator
         analysis.DominantCategory = DetermineDominantCategory(cards);
 
         // Set urgency requirements
-        analysis.RequiresUrgency = analysis.HasImpulse || analysis.RiskCards.Any();
+        analysis.RequiresUrgency = analysis.RiskCards.Any();
 
         return analysis;
     }
@@ -322,7 +319,7 @@ public class ConversationNarrativeGenerator
         if (state.Momentum >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
             return "The conversation has reached a point where deeper trust might unlock new possibilities";
 
-        if (analysis.HasImpulse)
+        if (analysis.RequiresUrgency)
             return "Some opportunities require immediate action";
 
 
