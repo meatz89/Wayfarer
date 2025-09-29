@@ -124,9 +124,13 @@ public class SessionCardDeck
 
         for (int i = 0; i < count; i++)
         {
-            // Reshuffle if needed - ONLY Standard cards reshuffle
-            if (deckPile.Count == 0 && spokenPile.Count > 0)
+            // With correct Echo/Statement architecture, this should rarely be needed
+            // Echo cards return immediately to deck, only Statement cards go to spoken pile
+            bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats));
+
+            if (!hasAccessibleCards && spokenPile.Count > 0)
             {
+                Console.WriteLine($"[SessionCardDeck] No accessible cards at momentum {currentMomentum}, attempting legacy reshuffle");
                 ReshuffleSpokenPile();
             }
 
@@ -165,9 +169,9 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Play a card - ALL cards persist on SPEAK and LISTEN
-    /// Cards go to Spoken pile (conversation memory)
-    /// Standard cards can reshuffle, Banish cards cannot
+    /// Play a card with correct Echo/Statement persistence behavior:
+    /// - Echo cards: Return immediately to deck (always available)
+    /// - Statement cards: Go to spoken pile permanently (one-time use)
     /// </summary>
     public void PlayCard(CardInstance card)
     {
@@ -177,11 +181,8 @@ public class SessionCardDeck
             return;
         }
 
-        Console.WriteLine($"[SessionCardDeck] Playing card {card.ConversationCardTemplate.Id} from Mind to Spoken pile");
-
         // Track total cards before operation
         int totalCardsBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Before play - Mind: {mindPile.Count}, Deck: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsBefore}");
 
         // Check if card exists in mind (hand) before removing
         if (!mindPile.Contains(card))
@@ -192,10 +193,19 @@ public class SessionCardDeck
 
         mindPile.Remove(card);
 
-        // ALL cards go to Spoken pile (conversation memory)
-        spokenPile.Add(card);
-
-        Console.WriteLine($"[SessionCardDeck] Card {card.ConversationCardTemplate.Id} moved to Spoken pile. Spoken count: {spokenPile.Count}");
+        // Route card based on persistence type
+        if (card.ConversationCardTemplate.Persistence == PersistenceType.Echo)
+        {
+            // Echo cards return to BOTTOM of deck (drawn last, not immediately)
+            deckPile.Add(card);
+            Console.WriteLine($"[SessionCardDeck] Echo card {card.ConversationCardTemplate.Id} added to bottom of deck (drawn last)");
+        }
+        else
+        {
+            // Statement cards go to spoken pile permanently (one-time use)
+            spokenPile.Add(card);
+            Console.WriteLine($"[SessionCardDeck] Statement card {card.ConversationCardTemplate.Id} moved to spoken pile permanently");
+        }
 
         // Validate total card count remains constant
         int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
@@ -279,26 +289,33 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Reshuffle ONLY Echo cards from Spoken pile back into Deck pile
-    /// Statement cards stay in Spoken pile permanently
+    /// Legacy reshuffle method - NO LONGER NEEDED
+    /// Echo cards return immediately to deck when played, never go to spoken pile
+    /// Only Statement cards go to spoken pile permanently
     /// </summary>
     private void ReshuffleSpokenPile()
     {
+        // Echo cards should never be in spoken pile due to correct PlayCard implementation
         List<CardInstance> echoCards = spokenPile.Cards
             .Where(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo)
             .ToList();
 
-        Console.WriteLine($"[SessionCardDeck] Reshuffling {echoCards.Count} Echo cards from spoken into deck (leaving {spokenPile.Count - echoCards.Count} Statement cards in spoken permanently)");
-
-        // Remove ONLY Echo cards from Spoken pile
-        foreach (CardInstance card in echoCards)
+        if (echoCards.Any())
         {
-            spokenPile.Remove(card);
-        }
+            Console.WriteLine($"[SessionCardDeck] ERROR: Found {echoCards.Count} Echo cards in spoken pile! This should never happen with correct PlayCard implementation!");
 
-        // Move Echo cards to Deck pile
-        deckPile.AddRange(echoCards);
-        deckPile.Shuffle();
+            // Remove them as emergency fix
+            foreach (CardInstance card in echoCards)
+            {
+                spokenPile.Remove(card);
+            }
+            deckPile.AddRange(echoCards);
+            deckPile.Shuffle();
+        }
+        else
+        {
+            Console.WriteLine($"[SessionCardDeck] No cards to reshuffle - spoken pile contains only Statement cards as expected");
+        }
     }
 
     /// <summary>
@@ -484,27 +501,26 @@ public class SessionCardDeck
 
     /// <summary>
     /// Draw the next accessible card from the deck pile based on momentum filtering
+    /// Maintains deck order - draws the first accessible card from top of deck
     /// Returns null if no accessible cards are available
     /// </summary>
     private CardInstance DrawNextAccessibleCard(int currentMomentum, PlayerStats playerStats)
     {
-        // Find accessible cards in the deck pile
-        List<CardInstance> accessibleCards = deckPile.Cards
-            .Where(card => CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats))
-            .ToList();
-
-        if (accessibleCards.Count == 0)
+        // Go through deck in order (top to bottom) and find first accessible card
+        foreach (CardInstance card in deckPile.Cards)
         {
-            Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at momentum {currentMomentum}");
-            return null;
+            if (CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats))
+            {
+                // Found the first accessible card - remove and return it
+                deckPile.Remove(card);
+                Console.WriteLine($"[SessionCardDeck] Drew accessible card: {card.ConversationCardTemplate.Title} (depth {(int)card.ConversationCardTemplate.Depth})");
+                return card;
+            }
         }
 
-        // Take the first accessible card (maintains deck order but applies filter)
-        CardInstance selectedCard = accessibleCards.First();
-        deckPile.Remove(selectedCard);
-
-        Console.WriteLine($"[SessionCardDeck] Drew accessible card: {selectedCard.ConversationCardTemplate.Title} (depth {(int)selectedCard.ConversationCardTemplate.Depth})");
-        return selectedCard;
+        // No accessible cards found
+        Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at momentum {currentMomentum}");
+        return null;
     }
 
     // NO DIRECT PILE ACCESS - ALL OPERATIONS GO THROUGH METHODS!
