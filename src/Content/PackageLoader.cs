@@ -1378,7 +1378,6 @@ public class PackageLoader
             CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             SuccessType = SuccessEffectType.None,
-            FailureType = FailureEffectType.None,
             PersonalityTypes = new List<string>(),
             LevelBonuses = new List<CardLevelBonus>(),
             DialogueFragment = "",

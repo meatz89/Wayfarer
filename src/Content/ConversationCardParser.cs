@@ -70,12 +70,6 @@ public static class ConversationCardParser
         // Parse effects from new structure and determine success type
         SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
 
-        FailureEffectType failureType = FailureEffectType.None;
-        if (!string.IsNullOrEmpty(dto.FailureType))
-        {
-            Enum.TryParse<FailureEffectType>(dto.FailureType, true, out failureType);
-        }
-
         // Parse card type from DTO type field - MUST be defined early as it's used in validation
         CardType cardType = string.IsNullOrEmpty(dto.Type) ? CardType.Conversation : dto.Type.ToLower() switch
         {
@@ -158,12 +152,6 @@ public static class ConversationCardParser
 
         // Parse NPC-specific targeting
         string npcSpecific = dto.NpcSpecific;
-
-        // Apply ForceListen as fallback for cards with None failure effect
-        if (failureType == FailureEffectType.None)
-        {
-            failureType = FailureEffectType.ForceListen;
-        }
 
         // Parse momentum/doubt scaling properties
         ScalingType momentumScaling = ScalingType.None;
@@ -250,7 +238,6 @@ public static class ConversationCardParser
             Difficulty = difficulty,
             Persistence = persistence,
             SuccessType = successType,
-            FailureType = failureType,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueFragment = dto.DialogueFragment,
             VerbPhrase = "",
@@ -333,7 +320,6 @@ public class ConversationCardDTO
     public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
     public string Persistence { get; set; } // Thought/Impulse/Opening
     public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
-    public string FailureType { get; set; } // Backfire/None
 
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; }

@@ -10,18 +10,17 @@ using System.Linq;
 public class PersonalityRuleEnforcer
 {
     private readonly PersonalityModifier _modifier;
-    private readonly List<int> _playedInitiativeThisTurn; // UPDATED: Focus → Initiative
+    private readonly List<int> _playedInitiativeThisTurn;
     private CardInstance _lastPlayedCard;
-    private int _highestInitiativeThisTurn; // UPDATED: Focus → Initiative
+    private int _highestInitiativeThisTurn;
     private bool _isFirstCardOfTurn;
 
     public PersonalityRuleEnforcer(PersonalityModifier modifier)
     {
         _modifier = modifier ?? new PersonalityModifier { Type = PersonalityModifierType.None };
-        _playedInitiativeThisTurn = new List<int>(); // UPDATED: Focus → Initiative
+        _playedInitiativeThisTurn = new List<int>();
         _isFirstCardOfTurn = true;
-        _highestInitiativeThisTurn = 0; // UPDATED: Focus → Initiative
-    }
+        _highestInitiativeThisTurn = 0;     }
 
     /// <summary>
     /// Validate if a card can be legally played according to personality rules (UPDATED FOR INITIATIVE)
@@ -69,12 +68,10 @@ public class PersonalityRuleEnforcer
     }
 
     /// <summary>
-    /// Get Initiative cost for a card (replaces Focus cost)
+    /// Get Initiative cost for a card
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        // For now, use the existing Focus cost as Initiative cost
-        // This will be replaced when card templates are migrated to Initiative system
         return card.InitiativeCost;
     }
 
@@ -146,13 +143,10 @@ public class PersonalityRuleEnforcer
     public void OnCardPlayed(CardInstance card)
     {
         int cardInitiative = GetCardInitiativeCost(card);
-        _playedInitiativeThisTurn.Add(cardInitiative); // UPDATED: Focus → Initiative
-        _lastPlayedCard = card;
+        _playedInitiativeThisTurn.Add(cardInitiative);         _lastPlayedCard = card;
 
-        if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn) // UPDATED: Focus → Initiative
-        {
-            _highestInitiativeThisTurn = cardInitiative; // UPDATED: Focus → Initiative
-        }
+        if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)         {
+            _highestInitiativeThisTurn = cardInitiative;         }
 
         _isFirstCardOfTurn = false;
     }
@@ -162,10 +156,8 @@ public class PersonalityRuleEnforcer
     /// </summary>
     public void OnListen()
     {
-        _playedInitiativeThisTurn.Clear(); // UPDATED: Focus → Initiative
-        _isFirstCardOfTurn = true;
-        _highestInitiativeThisTurn = 0; // UPDATED: Focus → Initiative
-        // Note: We keep _lastPlayedCard for Cunning personality check across turns
+        _playedInitiativeThisTurn.Clear();         _isFirstCardOfTurn = true;
+        _highestInitiativeThisTurn = 0;         // Note: We keep _lastPlayedCard for Cunning personality check across turns
     }
 
     /// <summary>
@@ -175,12 +167,8 @@ public class PersonalityRuleEnforcer
     {
         return _modifier.Type switch
         {
-            PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending Initiative order", // UPDATED: focus → Initiative
-            PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled, +1 doubt on failure", // UPDATED: Added doubt effect
-            PersonalityModifierType.HighestFocusBonus => "Mercantile: Your highest Initiative card gains +30% success", // UPDATED: focus → Initiative
-            PersonalityModifierType.RepeatFocusPenalty => "Cunning: Playing same Initiative as previous costs -2 momentum", // UPDATED: focus → Initiative, rapport → momentum
-            PersonalityModifierType.RapportChangeCap => "Steadfast: All momentum changes capped at ±2", // UPDATED: rapport → momentum
-            _ => ""
+            PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending Initiative order",             PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled, +1 doubt on failure",             PersonalityModifierType.HighestFocusBonus => "Mercantile: Your highest Initiative card gains +30% success",             PersonalityModifierType.RepeatFocusPenalty => "Cunning: Playing same Initiative as previous costs -2 momentum", // UPDATED: focus → Initiative, rapport → momentum
+            PersonalityModifierType.RapportChangeCap => "Steadfast: All momentum changes capped at ±2",             _ => ""
         };
     }
 
@@ -193,8 +181,7 @@ public class PersonalityRuleEnforcer
             return false;
 
         int cardInitiative = GetCardInitiativeCost(card);
-        return _isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn; // UPDATED: Focus → Initiative
-    }
+        return _isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn;     }
 
     /// <summary>
     /// Check if a specific card would trigger Cunning penalty - UPDATED FOR INITIATIVE
@@ -206,8 +193,7 @@ public class PersonalityRuleEnforcer
 
         int cardInitiative = GetCardInitiativeCost(card);
         int lastInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : -1;
-        return lastInitiative != -1 && cardInitiative == lastInitiative; // UPDATED: Focus → Initiative
-    }
+        return lastInitiative != -1 && cardInitiative == lastInitiative;     }
 
     /// <summary>
     /// Get momentum cost for LISTEN action based on personality rules
@@ -236,10 +222,7 @@ public class PersonalityRuleEnforcer
         return new PersonalityRuleState
         {
             ModifierType = _modifier.Type,
-            PlayedInitiativeOrder = _playedInitiativeThisTurn.ToList(), // UPDATED: Focus → Initiative
-            LastPlayedInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : null, // UPDATED: Focus → Initiative
-            HighestInitiativeThisTurn = _highestInitiativeThisTurn, // UPDATED: Focus → Initiative
-            IsFirstCardOfTurn = _isFirstCardOfTurn
+            PlayedInitiativeOrder = _playedInitiativeThisTurn.ToList(),             LastPlayedInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : null,             HighestInitiativeThisTurn = _highestInitiativeThisTurn,             IsFirstCardOfTurn = _isFirstCardOfTurn
         };
     }
 }
@@ -250,18 +233,6 @@ public class PersonalityRuleEnforcer
 public class PersonalityRuleState
 {
     public PersonalityModifierType ModifierType { get; set; }
-    public List<int> PlayedInitiativeOrder { get; set; } // UPDATED: Focus → Initiative
-    public int? LastPlayedInitiative { get; set; } // UPDATED: Focus → Initiative
-    public int HighestInitiativeThisTurn { get; set; } // UPDATED: Focus → Initiative
-    public bool IsFirstCardOfTurn { get; set; }
+    public List<int> PlayedInitiativeOrder { get; set; }     public int? LastPlayedInitiative { get; set; }     public int HighestInitiativeThisTurn { get; set; }     public bool IsFirstCardOfTurn { get; set; }
 
-    // DEPRECATED PROPERTIES - maintained for compatibility
-    [Obsolete("Use PlayedInitiativeOrder instead")]
-    public List<int> PlayedFocusOrder => PlayedInitiativeOrder;
-
-    [Obsolete("Use LastPlayedInitiative instead")]
-    public int? LastPlayedFocus => LastPlayedInitiative;
-
-    [Obsolete("Use HighestInitiativeThisTurn instead")]
-    public int HighestFocusThisTurn => HighestInitiativeThisTurn;
 }

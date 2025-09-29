@@ -47,7 +47,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 {
                     foreach (ExchangeCard card in exchangeEntry.ExchangeCards)
                     {
-                        // Convert ExchangeCard to ExchangeData for compatibility
+                        // Convert ExchangeCard to ExchangeData
                         ExchangeData exchangeData = ConvertExchangeCardToData(card);
                         if (exchangeData != null)
                         {
@@ -227,7 +227,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         }
 
         /// <summary>
-        /// Convert ExchangeCard to ExchangeData for compatibility
+        /// Convert ExchangeCard to ExchangeData
         /// </summary>
         private ExchangeData ConvertExchangeCardToData(ExchangeCard card)
         {

@@ -178,7 +178,6 @@ public static class SkeletonGenerator
             Description = "The conversation continues.",
             Persistence = PersistenceType.Statement, // Skeleton cards persist
             SuccessType = SuccessEffectType.Strike, // Default to momentum gain
-            FailureType = FailureEffectType.None,
             SkeletonSource = source,
             IsSkeleton = true,
 

@@ -49,7 +49,6 @@ public class ObservationCard : ConversationCard
         CardType = CardType.Observation; // Mark as observation
         Persistence = PersistenceType.Statement; // Observations persist through LISTEN
         SuccessType = SuccessEffectType.None; // Default, can be overridden
-        FailureType = FailureEffectType.None;
         PersonalityTypes = new List<string>();
         LevelBonuses = new List<CardLevelBonus>();
         VerbPhrase = "";
@@ -104,55 +103,4 @@ public class ObservationCard : ConversationCard
         if (ageInSegments < 144) return "Aging"; // Aging state (< 144 segments)
         return "Stale";
     }
-
-    // Create from a base conversation card with observation properties
-    public static ObservationCard FromConversationCard(ConversationCard card)
-    {
-        return new ObservationCard
-        {
-            Id = card.Id,
-            Description = card.Description,
-            InitiativeCost = card.InitiativeCost,
-            Difficulty = card.Difficulty,
-            TokenType = card.TokenType,
-            Persistence = card.Persistence,
-            SuccessType = card.SuccessType,
-            FailureType = card.FailureType,
-            CardType = CardType.Observation,
-            DialogueFragment = card.DialogueFragment,
-            VerbPhrase = card.VerbPhrase,
-            PersonalityTypes = card.PersonalityTypes,
-            LevelBonuses = card.LevelBonuses,
-            ObservationId = card.Id,
-            ItemName = "Unknown",
-            LocationDiscovered = "Unknown",
-            TimeDiscovered = DateTime.Now.ToString(),
-            CreatedAt = DateTime.Now
-        };
-    }
-
-    public static ObservationCard FromConversationCard(ConversationCard card, string source, string location)
-    {
-        return new ObservationCard
-        {
-            Id = card.Id,
-            Description = card.Description,
-            InitiativeCost = card.InitiativeCost,
-            Difficulty = card.Difficulty,
-            TokenType = card.TokenType,
-            Persistence = card.Persistence,
-            SuccessType = card.SuccessType,
-            FailureType = card.FailureType,
-            CardType = CardType.Observation,
-            DialogueFragment = card.DialogueFragment,
-            VerbPhrase = card.VerbPhrase,
-            PersonalityTypes = card.PersonalityTypes,
-            LevelBonuses = card.LevelBonuses,
-            ObservationId = source,
-            LocationDiscovered = location,
-            CreatedAt = DateTime.Now
-        };
-    }
-
-    public ConversationCard ConversationCard { get; set; }
 }

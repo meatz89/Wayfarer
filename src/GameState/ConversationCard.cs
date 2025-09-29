@@ -17,7 +17,6 @@ public class ConversationCard
     // Categorical properties that define behavior through context
     public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
-    public FailureEffectType FailureType { get; init; } = FailureEffectType.None;
 
     // Skeleton tracking - consistent with other entities
     public bool IsSkeleton { get; init; } = false;
@@ -35,7 +34,7 @@ public class ConversationCard
     public int? EffectDrawCards { get; init; } // Cards to draw
     public decimal? EffectMomentumMultiplier { get; init; } // Momentum multiplier
 
-    // Legacy system properties (maintained for migration compatibility)
+    // Card properties
     public ConnectionType TokenType { get; init; }
     public Difficulty Difficulty { get; init; }
 

@@ -143,7 +143,7 @@ public class ActionGenerator
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        // Generate actions based on spot's properties (converted to string for legacy compatibility)
+        // Generate actions based on spot's properties
         if (spot.SpotProperties != null)
         {
             foreach (SpotPropertyType prop in spot.SpotProperties)

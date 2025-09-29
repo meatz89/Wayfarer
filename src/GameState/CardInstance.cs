@@ -10,11 +10,10 @@ public class CardInstance
     // Template reference - single source of truth for card properties
     public ConversationCard ConversationCardTemplate { get; init; }
 
-    // Delegating properties for API compatibility
+    // Delegating properties to template
     public string Id => ConversationCardTemplate.Id;
     public string Description => ConversationCardTemplate.Description;
     public SuccessEffectType SuccessType => ConversationCardTemplate.SuccessType;
-    public FailureEffectType FailureType => ConversationCardTemplate.FailureType;
     public CardType CardType => ConversationCardTemplate.CardType;
     public ConnectionType TokenType => ConversationCardTemplate.TokenType;
     public int InitiativeCost => ConversationCardTemplate.InitiativeCost;
@@ -85,12 +84,6 @@ public class CardInstance
         if (SuccessType != SuccessEffectType.None)
         {
             classes.Add($"success-{SuccessType.ToString().ToLower()}");
-        }
-
-        // Add failure type class if not None
-        if (FailureType != FailureEffectType.None)
-        {
-            classes.Add($"failure-{FailureType.ToString().ToLower()}");
         }
 
         // Add special classes for request cards

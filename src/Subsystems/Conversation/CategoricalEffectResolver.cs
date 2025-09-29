@@ -59,59 +59,6 @@ public class CategoricalEffectResolver
     }
 
     /// <summary>
-    /// PROJECTION: Returns what WOULD happen on card failure without modifying state.
-    /// Calculates hand clearing, rapport loss, card discards, etc.
-    /// The caller decides whether to apply these projected changes.
-    /// </summary>
-    public CardEffectResult ProcessFailureEffect(CardInstance card, ConversationSession session)
-    {
-        CardEffectResult result = new CardEffectResult
-        {
-            Card = card,
-            MomentumChange = 0,
-            DoubtChange = 1, // Standard failure adds 1 doubt
-            InitiativeChange = 0,
-            CardsToAdd = new List<CardInstance>(),
-            EffectDescription = "Failure: +1 doubt",
-            EndsConversation = false
-        };
-
-        int magnitude = GetMagnitude(card.Difficulty);
-
-        switch (card.FailureType)
-        {
-            case FailureEffectType.Backfire:
-                // Negative rapport based on magnitude
-                result.MomentumChange = -magnitude;
-                result.EffectDescription = $"-{magnitude} rapport";
-                break;
-
-            case FailureEffectType.ForceListen:
-                // PROJECTION: Would deplete focus to force LISTEN on next turn
-                PlayerStats playerStats = gameWorld.GetPlayer().Stats;
-                if (!card.IgnoresFailureListen(playerStats))
-                {
-                    // Indicate initiative would be depleted
-                    result.InitiativeChange = -session.GetCurrentInitiative();
-                    result.EffectDescription = "Must LISTEN next turn";
-                }
-                else
-                {
-                    result.EffectDescription = "Immune to forced LISTEN (Level 5)";
-                }
-                break;
-
-            case FailureEffectType.None:
-            default:
-                // No additional effect
-                break;
-        }
-
-        return result;
-    }
-
-
-    /// <summary>
     /// Get magnitude based on difficulty tier
     /// </summary>
     private int GetMagnitude(Difficulty difficulty)
@@ -216,7 +163,7 @@ public class CategoricalEffectResolver
             return storedMomentum;
         }
 
-        // Fall back to legacy calculation
+        // Use template calculation
         PlayerStats player = gameWorld.GetPlayer().Stats;
         return card.ConversationCardTemplate.GetMomentumEffect(session, player);
     }
@@ -232,7 +179,7 @@ public class CategoricalEffectResolver
             return storedDoubt;
         }
 
-        // Fall back to legacy calculation
+        // Use template calculation
         return card.ConversationCardTemplate.GetDoubtEffect(session);
     }
 
@@ -247,7 +194,7 @@ public class CategoricalEffectResolver
             return storedDraw;
         }
 
-        // Fall back to legacy - Threading gives magnitude-based draw
+        // Use difficulty-based draw calculation
         return GetMagnitude(card.Difficulty);
     }
 
@@ -262,7 +209,7 @@ public class CategoricalEffectResolver
             return storedInitiative;
         }
 
-        // No legacy initiative system - return 0
+        // No stored initiative effect - return 0
         return 0;
     }
 

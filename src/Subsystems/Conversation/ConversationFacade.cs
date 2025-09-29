@@ -111,8 +111,7 @@ public class ConversationFacade
             ConversationTypeId = request.ConversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
-            CurrentInitiative = 0, // Starts at 0 in 4-resource system
-            Cadence = 0, // Starts at 0
+            CurrentInitiative = 0, // Starts at 0             Cadence = 0, // Starts at 0
             CurrentMomentum = initialMomentum,
             CurrentDoubt = initialDoubt,
             TurnNumber = 0,
@@ -137,8 +136,7 @@ public class ConversationFacade
         UpdateRequestCardPlayability(_currentSession);
 
         // Initialize Initiative to 0 (4-resource system)
-        _currentSession.CurrentInitiative = 0; // Initiative starts at 0 in 4-resource system
-
+        _currentSession.CurrentInitiative = 0; // Initiative starts at 0 
         // Update card playability based on initial initiative
         UpdateCardPlayabilityBasedOnInitiative(_currentSession);
 
@@ -326,7 +324,7 @@ public class ConversationFacade
         // 4. Apply Cadence Change (-1 per card played)
         _currentSession.ApplyCadenceFromSpeak();
 
-        // 5. Calculate Success with new 4-resource system
+        // 5. Calculate Success
         bool success = CalculateInitiativeCardSuccess(selectedCard, _currentSession);
 
         // 6. Process Card Results
@@ -364,10 +362,7 @@ public class ConversationFacade
             Success = success,
             NewState = _currentSession.CurrentState, // Connection State doesn't change
             NPCResponse = narrative.NPCDialogue,
-            FlowChange = 0, // No flow in new system
-            OldFlow = 0, // No flow in new system
-            NewFlow = 0, // No flow in new system
-            DoubtLevel = _currentSession.CurrentDoubt,
+            FlowChange = 0, // No flow             OldFlow = 0, // No flow             NewFlow = 0, // No flow             DoubtLevel = _currentSession.CurrentDoubt,
             CardPlayResult = playResult,
             Narrative = narrative
         };
@@ -804,21 +799,6 @@ public class ConversationFacade
                 session.Deck.AddCardsToMind(effectResult.CardsToAdd);
             }
         }
-        else
-        {
-            // Process failure effects
-            effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
-
-            // Standard failure: +1 Doubt
-            session.AddDoubt(1);
-
-            // Apply other failure effects
-            if (effectResult.MomentumChange < 0)
-            {
-                int momentumLoss = -effectResult.MomentumChange;
-                session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - momentumLoss);
-            }
-        }
 
         // Create play result
         return new CardPlayResult
@@ -829,12 +809,12 @@ public class ConversationFacade
                 {
                     Card = selectedCard,
                     Success = success,
-                    Flow = 0, // No flow in new system
+                    Flow = 0, // No flow
                     Roll = 0, // Deterministic system
                     SuccessChance = success ? 100 : 0
                 }
             },
-            MomentumGenerated = 0 // No flow in new system
+            MomentumGenerated = 0 // No flow
         };
     }
 
@@ -1118,8 +1098,7 @@ public class ConversationFacade
     private List<CardInstance> ExecuteListenAction(ConversationSession session)
     {
 
-        // Initiative does not refresh on LISTEN in 4-resource system
-
+        // Initiative does not refresh on LISTEN 
         // Calculate draw count based on state and atmosphere
         int baseDrawCount = session.GetDrawCount();
 
@@ -1269,34 +1248,6 @@ public class ConversationFacade
             }
 
             // Atmosphere effects simplified - no longer tracked
-        }
-        else
-        {
-            // Flow only changes from explicit "Advancing" effect type (no automatic changes)
-            cadenceChange = 0;
-
-            // Bad luck protection tracking would go here if implemented
-
-            // PROJECTION PRINCIPLE: Get projection from resolver
-            effectResult = _effectResolver.ProcessFailureEffect(selectedCard, session);
-
-            // Apply doubt on failure (standard failure adds 1 doubt)
-            if (session.MomentumManager != null)
-            {
-                session.MomentumManager.AddDoubt(1);
-            }
-
-            // Apply other failure momentum/doubt changes if any
-            if (effectResult.MomentumChange < 0 && session.MomentumManager != null)
-            {
-                session.MomentumManager.LoseMomentum(-effectResult.MomentumChange);
-            }
-
-            // Apply initiative penalty (for ForceListen effect)
-            if (effectResult.InitiativeChange < 0)
-            {
-                session.AddInitiative(effectResult.InitiativeChange); // Adding negative = removing
-            }
         }
 
         // HIGHLANDER: Use deck's PlayCard method which handles all transitions
@@ -1484,7 +1435,7 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Legacy method for compatibility - now just marks request card presence
+    /// Mark request card presence in conversation session
     /// </summary>
     private void UpdateRequestCardPlayability(ConversationSession session)
     {

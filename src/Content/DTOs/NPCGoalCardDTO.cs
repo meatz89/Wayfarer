@@ -22,7 +22,7 @@ public class NPCGoalCardDTO
     public string Type { get; set; }
 
     /// <summary>
-    /// Focus cost (usually 0 for promise cards)
+    /// Initiative cost (usually 0 for promise cards)
     /// </summary>
     public int InitiativeCost { get; set; }
 

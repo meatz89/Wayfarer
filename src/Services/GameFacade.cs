@@ -117,8 +117,8 @@ public class GameFacade
     /// </summary>
     private bool CanAccessCardDepth(PlayerStats playerStats, ConversationCard card)
     {
-        // Get card depth (for now, estimate from existing properties)
-        int cardDepth = EstimateCardDepth(card);
+        // Get card depth
+        int cardDepth = GetCardDepth(card);
 
         // Get required stat for this card
         PlayerStatType? boundStat = card.BoundStat;
@@ -167,20 +167,11 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Estimate card depth from existing properties (temporary until card migration)
+    /// Get card depth from actual depth property
     /// </summary>
-    private int EstimateCardDepth(ConversationCard card)
+    private int GetCardDepth(ConversationCard card)
     {
-        // Use Focus cost as rough depth estimate for now
-        // Depth 1-3: Focus 0-2 (Foundation)
-        // Depth 4-6: Focus 3-5 (Standard)
-        // Depth 7-10: Focus 6+ (Decisive)
-
-        int focusCost = card.InitiativeCost;
-
-        if (focusCost <= 2) return Math.Max(1, focusCost + 1); // Depth 1-3
-        if (focusCost <= 5) return focusCost + 1; // Depth 4-6
-        return Math.Min(10, focusCost + 2); // Depth 7-10, capped at 10
+        return (int)card.Depth;
     }
 
     /// <summary>
@@ -192,7 +183,7 @@ public class GameFacade
         PlayerStats playerStats = GetPlayerStats();
 
         // Log depth analysis for debugging
-        var depthAnalysis = accessibleCards.GroupBy(c => EstimateCardDepth(c))
+        var depthAnalysis = accessibleCards.GroupBy(c => GetCardDepth(c))
             .Select(g => new { Depth = g.Key, Count = g.Count() })
             .OrderBy(x => x.Depth);
 

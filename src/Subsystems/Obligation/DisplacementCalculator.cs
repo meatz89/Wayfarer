@@ -561,7 +561,6 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
                 TokenType = tokenType,
                 Persistence = PersistenceType.Statement,  // Burdens persist
                 SuccessType = SuccessEffectType.None,
-                FailureType = FailureEffectType.None,
             };
 
             // Add to the NPC's burden deck

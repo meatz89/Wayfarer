@@ -1,5 +1,8 @@
 * CLAUDE.md
 
+**🏗️🏗️🏗️ PRIME PRINCIPLE: READ ARCHITECTURE.MD FIRST 🏗️🏗️🏗️**
+**ABSOLUTE REQUIREMENT: Before making ANY changes to the Wayfarer codebase, you MUST read and understand the complete ARCHITECTURE.md file in the root directory. This document contains critical system architecture, data flow patterns, and dependency relationships that govern the entire codebase. Violating architectural principles will break the system. NO EXCEPTIONS - read ARCHITECTURE.md first, always.**
+
 **🔥🔥🔥 NEVER INVENT GAME MECHANICS THAT DON'T EXIST 🔥🔥🔥**
 **CATASTROPHIC VIOLATION: NEVER add "alternative costs", "OR mechanics", conditional costs, or ANY complex cost systems unless EXPLICITLY documented. Cards have ONE fixed cost from JSON. No conditions, no alternatives, no "if this then that" complexity. If you cannot find the EXACT mechanic in documentation, DON'T IMPLEMENT IT.**
 

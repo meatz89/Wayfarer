@@ -590,7 +590,7 @@ namespace Wayfarer.Pages.Components
             // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects (no SuccessType check)
             CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
 
-            // Use comprehensive effect description (4-resource system only)
+            // Use comprehensive effect description
             return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
         }
 
@@ -691,7 +691,7 @@ namespace Wayfarer.Pages.Components
             IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
             if (handCards == null) return new List<CardInstance>();
 
-            // Legacy Impulse cards removed in 4-resource system
+            // No Impulse cards in current system
             return new List<CardInstance>();
         }
 
@@ -757,7 +757,6 @@ namespace Wayfarer.Pages.Components
             List<string> classes = new List<string> { "card" };
             string cardId = card.InstanceId ?? card.Id ?? "";
 
-            // Legacy impulse warning removed in 4-resource system
 
             // Add selected state
             if (SelectedCard?.InstanceId == cardId)
@@ -918,8 +917,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get card effect description for the new system
-        /// </summary>
+        /// Get card effect description         /// </summary>
         protected string GetCardEffectDescription(CardInstance card)
         {
             if (card?.ConversationCardTemplate == null) return "";
@@ -970,14 +968,8 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.ConversationCardTemplate == null) return 0;
 
-            // In 4-resource system, use InitiativeCost from template, fallback to legacy Focus for compatibility
-            if (card.ConversationCardTemplate.InitiativeCost > 0)
-            {
-                return card.ConversationCardTemplate.InitiativeCost;
-            }
-
-            // Legacy fallback: use Focus property until all cards migrated
-            return card.InitiativeCost;
+            // FIXED: Always use InitiativeCost from template (0 is a valid cost for Foundation cards!)
+            return card.ConversationCardTemplate.InitiativeCost;
         }
 
         /// <summary>

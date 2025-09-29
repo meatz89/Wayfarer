@@ -71,7 +71,6 @@ public class NPC
 
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
-    public ConnectionState CurrentConnectionState => CurrentState; // Alias for compatibility
 
 
     // NPC DECK ARCHITECTURE

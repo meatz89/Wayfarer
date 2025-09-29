@@ -85,26 +85,6 @@ public enum SuccessEffectType
 
 }
 
-/// <summary>
-/// Type of penalty when card play fails
-/// </summary>
-public enum FailureEffectType
-{
-    /// <summary>
-    /// No additional effect on failure (automatically applies ForceListen as fallback)
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// Player must LISTEN on next turn after failure
-    /// </summary>
-    ForceListen,
-
-    /// <summary>
-    /// Negative rapport change (magnitude from difficulty)
-    /// </summary>
-    Backfire
-}
 
 /// <summary>
 /// Scaling formula for card effects based on visible game state

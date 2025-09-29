@@ -79,7 +79,6 @@ public class ObservationManager
         {
             // Create observation card with decay tracking
             DateTime currentGameTime = GetCurrentGameTime();
-            ObservationCard observationCard = ObservationCard.FromConversationCard(conversationCard);
 
             // ARCHITECTURE: Observations are stored in NPC-specific decks
             // Each observation must specify which NPCs it's relevant to
@@ -118,13 +117,10 @@ public class ObservationManager
                         Name = observation.Text,
                         Description = observation.Description,
                         NarrativeText = observation.Description,  // Use description as narrative
-                        GeneratedCard = observationCard,
                         TimeTaken = currentGameTime,
                         TimeBlockTaken = _timeManager.GetCurrentTimeBlock()
                     };
                     _takenObservations[observation.Id] = takenObs;
-
-                    return observationCard;
                 }
                 else
                 {
@@ -156,10 +152,6 @@ public class ObservationManager
         List<ObservationCard> observationCards = new List<ObservationCard>();
         foreach (ConversationCard card in npc.ObservationDeck.GetAllCards())
         {
-            if (card.CardType == CardType.Observation)
-            {
-                observationCards.Add(ObservationCard.FromConversationCard(card));
-            }
         }
         return observationCards;
     }
@@ -280,7 +272,6 @@ public class ObservationManager
             Difficulty = baseCard.Difficulty,
             TokenType = baseCard.TokenType,
             SuccessType = baseCard.SuccessType,
-            FailureType = baseCard.FailureType,
             DialogueFragment = baseCard.DialogueFragment,
             VerbPhrase = baseCard.VerbPhrase,
             PersonalityTypes = baseCard.PersonalityTypes,
@@ -422,7 +413,6 @@ public class ObservationManager
             CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             SuccessType = successType,
-            FailureType = FailureEffectType.None,
             Difficulty = Difficulty.VeryEasy
         };
     }
