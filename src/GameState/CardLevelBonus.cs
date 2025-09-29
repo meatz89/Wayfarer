@@ -18,8 +18,4 @@ public class CardLevelBonus
     /// </summary>
     public int? AddDrawOnSuccess { get; set; }
 
-    /// <summary>
-    /// If true, card does not force LISTEN on failure
-    /// </summary>
-    public bool? IgnoreFailureListen { get; set; }
 }

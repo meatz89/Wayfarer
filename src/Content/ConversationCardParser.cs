@@ -113,8 +113,7 @@ public static class ConversationCardParser
                 CardLevelBonus bonus = new CardLevelBonus
                 {
                     SuccessBonus = bonusDto.SuccessBonus,
-                    AddDrawOnSuccess = bonusDto.AddDrawOnSuccess,
-                    IgnoreFailureListen = bonusDto.IgnoreFailureListen
+                    AddDrawOnSuccess = bonusDto.AddDrawOnSuccess
                 };
 
                 // Parse persistence type if specified
@@ -359,7 +358,6 @@ public class CardLevelBonusDTO
     public int? SuccessBonus { get; set; }
     public string AddPersistence { get; set; }
     public int? AddDrawOnSuccess { get; set; }
-    public bool? IgnoreFailureListen { get; set; }
 }
 
 /// <summary>

@@ -151,14 +151,6 @@ public class PlayerStats
         return _stats[stat].Level >= 3;
     }
 
-    /// <summary>
-    /// Check if stat has mastery effect (level 5+)
-    /// Cards bound to this stat never force LISTEN on failure
-    /// </summary>
-    public bool IgnoresFailureListen(PlayerStatType stat)
-    {
-        return _stats[stat].Level >= 5;
-    }
 
     /// <summary>
     /// Get maximum accessible card depth for a stat

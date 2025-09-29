@@ -79,19 +79,13 @@
             }
         </div>
         
-        @* Success/Failure Outcome Panels (for conversation cards) *@
+        @* Success Outcome Panel (deterministic conversation system) *@
         @if (ShowOutcomes)
         {
             <div class="card-outcomes">
                 <div class="outcome success">
-                    <div class="outcome-percentage">@SuccessChance%</div>
-                    <div class="outcome-label">SUCCESS</div>
+                    <div class="outcome-label">EFFECT</div>
                     <div class="outcome-effect">@SuccessEffect</div>
-                </div>
-                <div class="outcome failure">
-                    <div class="outcome-percentage">@FailureChance%</div>
-                    <div class="outcome-label">FAILURE</div>
-                    <div class="outcome-effect">@FailureEffect</div>
                 </div>
             </div>
         }
@@ -117,10 +111,7 @@
     
     // Outcomes for conversation cards
     [Parameter] public bool ShowOutcomes { get; set; }
-    [Parameter] public int SuccessChance { get; set; } = 50;
-    [Parameter] public int FailureChance { get; set; } = 50;
     [Parameter] public string SuccessEffect { get; set; } = "No effect";
-    [Parameter] public string FailureEffect { get; set; } = "No effect";
     
     // Special markers
     [Parameter] public string MarkerText { get; set; }

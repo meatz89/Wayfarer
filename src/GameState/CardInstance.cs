@@ -60,17 +60,6 @@ public class CardInstance
     public bool IsPlayable { get; set; } = true;
 
 
-    /// <summary>
-    /// Check if card ignores forced LISTEN on failure based on player stat level
-    /// </summary>
-    public bool IgnoresFailureListen(PlayerStats playerStats)
-    {
-        if (ConversationCardTemplate.BoundStat.HasValue)
-        {
-            return playerStats.IgnoresFailureListen(ConversationCardTemplate.BoundStat.Value);
-        }
-        return false;
-    }
 
 
     public string GetCategoryClass()

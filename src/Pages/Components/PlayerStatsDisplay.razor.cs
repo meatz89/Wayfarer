@@ -19,7 +19,6 @@ namespace Wayfarer.Pages.Components
         public int ProgressPercent { get; set; }
         public int SuccessBonus { get; set; }
         public bool HasPersistenceBonus { get; set; }
-        public bool HasMasteryBonus { get; set; }
     }
 
     public class PlayerStatsDisplayBase : ComponentBase
@@ -62,8 +61,7 @@ namespace Wayfarer.Pages.Components
                     XPToNext = level >= 5 ? 0 : xpToNext,
                     ProgressPercent = progressPercent,
                     SuccessBonus = successBonus,
-                    HasPersistenceBonus = playerStats.HasPersistenceBonus(statType),
-                    HasMasteryBonus = playerStats.IgnoresFailureListen(statType)
+                    HasPersistenceBonus = playerStats.HasPersistenceBonus(statType)
                 });
             }
 

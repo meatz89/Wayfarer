@@ -70,9 +70,6 @@ public static class PlayerStatParser
                             case "gains_thought_persistence":
                                 bonus.GainsThoughtPersistence = true;
                                 break;
-                            case "ignores_failure_listen":
-                                bonus.IgnoresFailureListen = true;
-                                break;
                         }
                     }
 
@@ -118,7 +115,6 @@ public class StatLevelBonus
     public int Level { get; set; }
     public int SuccessBonus { get; set; }
     public bool GainsThoughtPersistence { get; set; }
-    public bool IgnoresFailureListen { get; set; }
     public string Description { get; set; } = "";
 }
 

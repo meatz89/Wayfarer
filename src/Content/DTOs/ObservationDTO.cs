@@ -25,5 +25,4 @@ public class ObservationDTO
     public string TokenType { get; set; }
     public string Difficulty { get; set; }
     public object SuccessEffect { get; set; }
-    public object FailureEffect { get; set; }
 }
