@@ -114,10 +114,10 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Draw cards directly to hand with optional momentum-based filtering
-    /// When momentum filtering is disabled (default), all cards are accessible
+    /// Draw cards directly to hand with momentum-based filtering
+    /// Momentum 0 = depth 1 cards, momentum 1 = depths 1-2, momentum 2 = depths 1-3, etc.
     /// </summary>
-    public void DrawToHand(int count, int currentMomentum = int.MaxValue, PlayerStats playerStats = null)
+    public void DrawToHand(int count, int currentMomentum, PlayerStats playerStats = null)
     {
         Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, momentum={currentMomentum}");
         int cardsDrawn = 0;
@@ -137,22 +137,8 @@ public class SessionCardDeck
                 break;
             }
 
-            CardInstance card;
-
-            // If momentum is int.MaxValue (default), bypass momentum filtering entirely
-            if (currentMomentum == int.MaxValue)
-            {
-                card = deckPile.DrawTop();
-                if (card != null)
-                {
-                    Console.WriteLine($"[SessionCardDeck] Drew card without momentum filtering: {card.ConversationCardTemplate.Title}");
-                }
-            }
-            else
-            {
-                // Apply momentum-based filtering for initial conversation start
-                card = DrawNextAccessibleCard(currentMomentum, playerStats);
-            }
+            // Always apply momentum-based filtering
+            CardInstance card = DrawNextAccessibleCard(currentMomentum, playerStats);
 
             if (card != null)
             {
@@ -473,26 +459,24 @@ public class SessionCardDeck
 
     /// <summary>
     /// Check if a card can be accessed based on momentum and stat specialization bonuses
-    /// Cards accessible if depth <= momentum OR (has matching stat AND depth <= momentum + stat bonus)
-    /// Foundation cards (depth 1-2) are always accessible
+    /// Rule: momentum 0 = depth 1, momentum 1 = depths 1-2, momentum 2 = depths 1-3, etc.
+    /// So: cardDepth <= (currentMomentum + 1)
     /// </summary>
     private bool CanAccessCard(ConversationCard card, int currentMomentum, PlayerStats playerStats)
     {
         if (card == null) return false;
 
         int cardDepth = (int)card.Depth;
+        int maxAccessibleDepth = currentMomentum + 1;
 
-        // Foundation cards (depth 1-2) are always accessible
-        if (cardDepth <= 2) return true;
-
-        // Basic momentum gate: card accessible if depth <= momentum
-        if (cardDepth <= currentMomentum) return true;
+        // Basic momentum gate: card accessible if depth <= (momentum + 1)
+        if (cardDepth <= maxAccessibleDepth) return true;
 
         // Stat specialization bonus: if card has bound stat, check for bonus access
         if (card.BoundStat.HasValue && playerStats != null)
         {
             int statBonus = playerStats.GetDepthBonus(card.BoundStat.Value);
-            return cardDepth <= currentMomentum + statBonus;
+            return cardDepth <= maxAccessibleDepth + statBonus;
         }
 
         return false;

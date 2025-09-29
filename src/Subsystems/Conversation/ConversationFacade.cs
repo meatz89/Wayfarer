@@ -809,7 +809,8 @@ public class ConversationFacade
             if (selectedCard.ConversationCardTemplate.EffectDrawCards.HasValue && selectedCard.ConversationCardTemplate.EffectDrawCards.Value > 0)
             {
                 int cardsToDraw = selectedCard.ConversationCardTemplate.EffectDrawCards.Value;
-                session.Deck.DrawToHand(cardsToDraw);
+                Player player = _gameWorld.GetPlayer();
+                session.Deck.DrawToHand(cardsToDraw, session.CurrentMomentum, player.Stats);
                 Console.WriteLine($"[ConversationFacade] Card '{selectedCard.ConversationCardTemplate.Id}' drew {cardsToDraw} cards immediately");
             }
 
@@ -1128,7 +1129,8 @@ public class ConversationFacade
         {
             session.MomentumManager.AddDoubt(impulseCount);
         }
-        session.Deck.DrawToHand(baseDrawCount);
+        Player player = _gameWorld.GetPlayer();
+        session.Deck.DrawToHand(baseDrawCount, session.CurrentMomentum, player.Stats);
 
         // Get the drawn cards for return value
         List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(baseDrawCount).ToList();
