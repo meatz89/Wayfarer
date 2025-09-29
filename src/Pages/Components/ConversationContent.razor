@@ -18,7 +18,19 @@
         <div class="npc-bar">
             <div class="npc-info">
                 <div class="npc-name">@NpcName</div>
-                <div class="npc-status">@GetNpcStatusLine()</div>
+                <div class="npc-status">
+                    @{
+                        var statusParts = GetNpcStatusParts();
+                        for (int i = 0; i < statusParts.Count; i++)
+                        {
+                            <span>@statusParts[i]</span>
+                            if (i < statusParts.Count - 1)
+                            {
+                                <span class="icon-bullet"></span>
+                            }
+                        }
+                    }
+                </div>
             </div>
             <div class="personality-rule">@(Session?.PersonalityEnforcer?.GetRuleDescription() ?? "")</div>
         </div>
@@ -163,13 +175,13 @@
                         <div class="card-content">
                             <!-- Card header: Name and Focus cost -->
                             <div class="card-header">
-                                <div class="card-name">@obsCard.Id</div>
+                                <div class="card-name">@obsCard.ConversationCardTemplate.Id</div>
                                 <div class="card-initiative">0</div>
                             </div>
 
                             <!-- Card dialogue text -->
                             <div class="card-text">
-                                "@obsCard.Description"
+                                "@obsCard.ConversationCardTemplate.Title"
                             </div>
 
                             <!-- Effect description -->
@@ -198,7 +210,7 @@
                 {
                     var convCard = displayCard.Card;
 
-                    @if (convCard.CardType == CardType.Letter || convCard.CardType == CardType.Letter)
+                    @if (convCard.ConversationCardTemplate.CardType == CardType.Letter || convCard.ConversationCardTemplate.CardType == CardType.Letter)
                     {
                         <div class="card promise @GetCardDepthClass(convCard) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">

@@ -125,7 +125,7 @@
                                         <div class="debug-card letter-card request-card">
                                             <div class="card-header">
                                                 <span class="card-id">@card.Id</span>
-                                                <span class="card-name">@(card.Description ?? card.Id)</span>
+                                                <span class="card-name">@(card.Title ?? card.Id)</span>
                                                 <span class="request-type-badge">REQUEST</span>
                                             </div>
                                             <div class="card-properties">
@@ -149,7 +149,7 @@
                                         <div class="debug-card promise-card">
                                             <div class="card-header">
                                                 <span class="card-id">@card.Id</span>
-                                                <span class="card-name">@(card.Description ?? card.Id)</span>
+                                                <span class="card-name">@(card.Title ?? card.Id)</span>
                                                 <span class="request-type-badge">PROMISE</span>
                                             </div>
                                             <div class="card-properties">
@@ -253,11 +253,11 @@
     private string GetCategoryClass(CardInstance card)
     {
         // Determine category based on card type
-        if (card.CardType == CardType.Observation)
+        if (card.ConversationCardTemplate.CardType == CardType.Observation)
             return "observation";
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
             return "promise";
-        if (card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter)
             return "burden";
         
         return "flow"; // Default
@@ -273,11 +273,11 @@
     private string GetCategoryText(CardInstance card)
     {
         // Determine category display text based on card type
-        if (card.CardType == CardType.Observation)
+        if (card.ConversationCardTemplate.CardType == CardType.Observation)
             return "OBSERVATION";
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
             return "PROMISE";
-        if (card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter)
             return "BURDEN";
 
         return "FLOW"; // Default

@@ -49,7 +49,7 @@ public class CategoricalEffectResolver
             EndsConversation = false
         };
 
-        int magnitude = GetMagnitude(card.Difficulty);
+        int magnitude = GetMagnitude(card.ConversationCardTemplate.Difficulty);
 
         // ONLY use comprehensive effects from card model - NO LEGACY FALLBACKS
         // Parser ensures all cards have effects, so this should always succeed
@@ -98,9 +98,9 @@ public class CategoricalEffectResolver
     public bool CheckCardSuccess(CardInstance card, ConversationSession session)
     {
         // Goal cards (Letters, Promises) always succeed if momentum threshold is met
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
         {
-            return session.CurrentMomentum >= card.MomentumThreshold;
+            return session.CurrentMomentum >= card.ConversationCardTemplate.MomentumThreshold;
         }
 
         // Regular conversation cards ALWAYS succeed - no failure possible
@@ -195,7 +195,7 @@ public class CategoricalEffectResolver
         }
 
         // Use difficulty-based draw calculation
-        return GetMagnitude(card.Difficulty);
+        return GetMagnitude(card.ConversationCardTemplate.Difficulty);
     }
 
     /// <summary>

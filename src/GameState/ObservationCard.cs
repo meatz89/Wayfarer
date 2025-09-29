@@ -43,7 +43,7 @@ public class ObservationCard : ConversationCard
     public ObservationCard(string id, string description) : this()
     {
         Id = id;
-        Description = description;
+        Title = description;
         InitiativeCost = 1;
         Difficulty = Difficulty.VeryEasy; // 85%
         CardType = CardType.Observation; // Mark as observation
@@ -52,7 +52,7 @@ public class ObservationCard : ConversationCard
         PersonalityTypes = new List<string>();
         LevelBonuses = new List<CardLevelBonus>();
         VerbPhrase = "";
-        DialogueFragment = "";
+        DialogueText = "";
     }
 
     public bool IsExpired()

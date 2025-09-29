@@ -1371,7 +1371,7 @@ public class PackageLoader
         return new ConversationCard
         {
             Id = dto.Id,
-            Description = dto.DisplayText ?? "",
+            Title = dto.DisplayText ?? "",
             InitiativeCost = dto.InitiativeCost,
             TokenType = ConnectionType.Trust,
             Difficulty = Difficulty.Medium,
@@ -1380,7 +1380,7 @@ public class PackageLoader
             SuccessType = SuccessEffectType.None,
             PersonalityTypes = new List<string>(),
             LevelBonuses = new List<CardLevelBonus>(),
-            DialogueFragment = "",
+            DialogueText = "",
             VerbPhrase = ""
         };
     }

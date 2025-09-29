@@ -563,7 +563,7 @@ public class ConversationFacade
 
         // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -686,7 +686,7 @@ public class ConversationFacade
         foreach (CardInstance card in activatedCards)
         {
             _messageSystem.AddSystemMessage(
-                $"{card.Description} is now available (Momentum threshold met)",
+                $"{card.ConversationCardTemplate.Title} is now available (Momentum threshold met)",
                 SystemMessageTypes.Success);
         }
     }
@@ -712,7 +712,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request cards - their playability is based on momentum thresholds
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+            if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
             {
                 continue;
             }
@@ -929,9 +929,9 @@ public class ConversationFacade
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
         bool requestAchieved = session.Deck.SpokenCards.Any(c =>
-            c.CardType == CardType.Letter ||
-            c.CardType == CardType.Promise ||
-            c.CardType == CardType.Letter);
+            c.ConversationCardTemplate.CardType == CardType.Letter ||
+            c.ConversationCardTemplate.CardType == CardType.Promise ||
+            c.ConversationCardTemplate.CardType == CardType.Letter);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1126,7 +1126,7 @@ public class ConversationFacade
     {
         // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
         if (!selectedCard.IsPlayable &&
-            !(selectedCard.CardType == CardType.Letter || selectedCard.CardType == CardType.Promise || selectedCard.CardType == CardType.Letter))
+            !(selectedCard.ConversationCardTemplate.CardType == CardType.Letter || selectedCard.ConversationCardTemplate.CardType == CardType.Promise || selectedCard.ConversationCardTemplate.CardType == CardType.Letter))
         {
             return new CardPlayResult
             {
@@ -1172,7 +1172,7 @@ public class ConversationFacade
         bool success = _effectResolver.CheckCardSuccess(selectedCard, session);
 
         // Mark request as completed if this is a BurdenGoal (request) card and it succeeds
-        if (success && selectedCard.CardType == CardType.Letter && selectedCard.Context?.RequestId != null)
+        if (success && selectedCard.ConversationCardTemplate.CardType == CardType.Letter && selectedCard.Context?.RequestId != null)
         {
             // Find and complete the request
             NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
@@ -1242,7 +1242,7 @@ public class ConversationFacade
             }
 
             // Handle Promise card queue manipulation (for Promising success effect)
-            if (selectedCard.SuccessType == SuccessEffectType.Promising)
+            if (selectedCard.ConversationCardTemplate.SuccessType == SuccessEffectType.Promising)
             {
                 HandlePromiseCardQueueManipulation(selectedCard, session);
             }
@@ -1256,10 +1256,10 @@ public class ConversationFacade
         // Remove observation card from NPC's observation deck if it was played
         // ARCHITECTURE: Observations are stored per-NPC, not globally on player
         // This ensures observations are contextually relevant to specific NPCs
-        if (selectedCard.CardType == CardType.Observation && session.NPC != null)
+        if (selectedCard.ConversationCardTemplate.CardType == CardType.Observation && session.NPC != null)
         {
             // Observation cards are consumed when played - remove from NPC's observation deck
-            string observationCardId = selectedCard.Id;
+            string observationCardId = selectedCard.ConversationCardTemplate.Id;
             ConversationCard cardToRemove = session.NPC.ObservationDeck?.GetAllCards()
                 .FirstOrDefault(c => c.Id == observationCardId);
 
@@ -1415,7 +1415,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
-            if ((card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+            if ((card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1441,7 +1441,7 @@ public class ConversationFacade
     {
         // This is called at conversation start - just check for goal card presence
         bool hasRequestCard = session.Deck.HandCards
-            .Any(c => c.CardType == CardType.Letter || c.CardType == CardType.Promise || c.CardType == CardType.Letter);
+            .Any(c => c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise || c.ConversationCardTemplate.CardType == CardType.Letter);
 
         if (hasRequestCard)
         {
@@ -1460,7 +1460,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not Initiative
-            if (card.CardType == CardType.Letter || card.CardType == CardType.Promise || card.CardType == CardType.Letter)
+            if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
             {
                 continue; // Don't modify request card playability here
             }
@@ -1490,7 +1490,7 @@ public class ConversationFacade
     {
         foreach (CardInstance card in playedCards)
         {
-            Console.WriteLine($"[ConversationFacade] Processing card {card.Description}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
+            Console.WriteLine($"[ConversationFacade] Processing card {card.ConversationCardTemplate.Title}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
 
             // Handle exchange cards (exchanges use separate ExchangeCard system)
             if (card.Context?.ExchangeData != null)
@@ -1571,7 +1571,7 @@ public class ConversationFacade
         {
             card.IsPlayable = true;
             _messageSystem.AddSystemMessage(
-                $"{card.Description} is now available (Momentum threshold met)",
+                $"{card.ConversationCardTemplate.Title} is now available (Momentum threshold met)",
                 SystemMessageTypes.Success);
         }
 

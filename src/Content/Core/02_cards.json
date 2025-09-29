@@ -17,9 +17,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "A soft nod of understanding, generating Initiative for deeper conversation.",
+        "title": "A soft nod of understanding, generating Initiative for deeper conversation.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Yes, I can see your perspective.",
+        "dialogueText": "Yes, I can see your perspective.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -36,9 +36,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "A quick question that opens possibilities while building Initiative.",
+        "title": "A quick question that opens possibilities while building Initiative.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Wait, I'm starting to understand...",
+        "dialogueText": "Wait, I'm starting to understand...",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -56,9 +56,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Efficient resource exchange to build conversational momentum.",
+        "title": "Efficient resource exchange to build conversational momentum.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Let me offer you something in exchange...",
+        "dialogueText": "Let me offer you something in exchange...",
         "boundStat": "commerce",
         "effects": {
           "success": {
@@ -76,9 +76,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "A direct statement that commands attention but increases tension.",
+        "title": "A direct statement that commands attention but increases tension.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Here's what needs to happen...",
+        "dialogueText": "Here's what needs to happen...",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -97,9 +97,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Cunning",
-        "description": "Skillfully redirect while reducing tension.",
+        "title": "Skillfully redirect while reducing tension.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Perhaps we should consider another angle...",
+        "dialogueText": "Perhaps we should consider another angle...",
         "boundStat": "cunning",
         "effects": {
           "success": {
@@ -117,9 +117,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Build on their point with gentle agreement.",
+        "title": "Build on their point with gentle agreement.",
         "difficulty": "Easy",
-        "dialogueFragment": "I agree, and let me add...",
+        "dialogueText": "I agree, and let me add...",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -136,9 +136,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "Take a moment to center and reduce tension.",
+        "title": "Take a moment to center and reduce tension.",
         "difficulty": "Easy",
-        "dialogueFragment": "Let me think about this carefully...",
+        "dialogueText": "Let me think about this carefully...",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -155,9 +155,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "A subtle acknowledgment that builds conversational energy.",
+        "title": "A subtle acknowledgment that builds conversational energy.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "I understand where you're coming from.",
+        "dialogueText": "I understand where you're coming from.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -174,9 +174,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "Careful observation opens new conversational paths.",
+        "title": "Careful observation opens new conversational paths.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "I notice something important here...",
+        "dialogueText": "I notice something important here...",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -193,9 +193,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "Confident bearing commands attention but creates tension.",
+        "title": "Confident bearing commands attention but creates tension.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Let me be clear about this.",
+        "dialogueText": "Let me be clear about this.",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -213,9 +213,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Quick assessment of mutual benefit opens possibilities.",
+        "title": "Quick assessment of mutual benefit opens possibilities.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "I see opportunity here for both of us.",
+        "dialogueText": "I see opportunity here for both of us.",
         "boundStat": "commerce",
         "effects": {
           "success": {
@@ -233,9 +233,9 @@
         "depth": 1,
         "persistence": "Statement",
         "connectionType": "Cunning",
-        "description": "Indirect questioning builds understanding while reducing tension.",
+        "title": "Indirect questioning builds understanding while reducing tension.",
         "difficulty": "VeryEasy",
-        "dialogueFragment": "Perhaps there's more to consider here...",
+        "dialogueText": "Perhaps there's more to consider here...",
         "boundStat": "cunning",
         "effects": {
           "success": {
@@ -253,9 +253,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Understanding response that builds both energy and progress.",
+        "title": "Understanding response that builds both energy and progress.",
         "difficulty": "Easy",
-        "dialogueFragment": "Your feelings are completely valid.",
+        "dialogueText": "Your feelings are completely valid.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -273,9 +273,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "Recognizing patterns provides significant conversational advantage.",
+        "title": "Recognizing patterns provides significant conversational advantage.",
         "difficulty": "Easy",
-        "dialogueFragment": "I see the pattern emerging here.",
+        "dialogueText": "I see the pattern emerging here.",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -292,9 +292,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "Clear direction builds momentum through decisive action.",
+        "title": "Clear direction builds momentum through decisive action.",
         "difficulty": "Easy",
-        "dialogueFragment": "This is what we need to do.",
+        "dialogueText": "This is what we need to do.",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -312,9 +312,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Identifying mutual benefit creates strong forward progress.",
+        "title": "Identifying mutual benefit creates strong forward progress.",
         "difficulty": "Easy",
-        "dialogueFragment": "This could work well for both of us.",
+        "dialogueText": "This could work well for both of us.",
         "boundStat": "commerce",
         "effects": {
           "success": {
@@ -332,9 +332,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Cunning",
-        "description": "Strategic silence opens new conversational options.",
+        "title": "Strategic silence opens new conversational options.",
         "difficulty": "Easy",
-        "dialogueFragment": "Let me consider this carefully...",
+        "dialogueText": "Let me consider this carefully...",
         "boundStat": "cunning",
         "effects": {
           "success": {
@@ -352,9 +352,9 @@
         "depth": 2,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Small supportive gestures reduce tension and build connection.",
+        "title": "Small supportive gestures reduce tension and build connection.",
         "difficulty": "Easy",
-        "dialogueFragment": "I'm here to help however I can.",
+        "dialogueText": "I'm here to help however I can.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -372,9 +372,9 @@
         "depth": 3,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Establish genuine connection through empathy.",
+        "title": "Establish genuine connection through empathy.",
         "difficulty": "Easy",
-        "dialogueFragment": "I want you to know I'm truly listening.",
+        "dialogueText": "I want you to know I'm truly listening.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -391,9 +391,9 @@
         "depth": 4,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Speak with heartfelt conviction to drive momentum.",
+        "title": "Speak with heartfelt conviction to drive momentum.",
         "difficulty": "Medium",
-        "dialogueFragment": "Please, you have to understand how important this is!",
+        "dialogueText": "Please, you have to understand how important this is!",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -410,9 +410,9 @@
         "depth": 4,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "Trade momentum to clarify misunderstandings and reduce doubt.",
+        "title": "Trade momentum to clarify misunderstandings and reduce doubt.",
         "difficulty": "Medium",
-        "dialogueFragment": "Let me address your concerns directly...",
+        "dialogueText": "Let me address your concerns directly...",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -429,9 +429,9 @@
         "depth": 4,
         "persistence": "Impulse",
         "connectionType": "Insight",
-        "description": "Multiple ideas flood your mind, drawing more options.",
+        "title": "Multiple ideas flood your mind, drawing more options.",
         "difficulty": "Medium",
-        "dialogueFragment": "So many things to consider!",
+        "dialogueText": "So many things to consider!",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -448,9 +448,9 @@
         "depth": 5,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "Command attention through sheer presence and determination.",
+        "title": "Command attention through sheer presence and determination.",
         "difficulty": "Hard",
-        "dialogueFragment": "Listen to me - this cannot wait!",
+        "dialogueText": "Listen to me - this cannot wait!",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -468,9 +468,9 @@
         "depth": 3,
         "persistence": "Statement",
         "connectionType": "Cunning",
-        "description": "Choose words with precision to maximize impact.",
+        "title": "Choose words with precision to maximize impact.",
         "difficulty": "Medium",
-        "dialogueFragment": "Let me focus on what matters most.",
+        "dialogueText": "Let me focus on what matters most.",
         "boundStat": "cunning",
         "effects": {
           "success": {
@@ -487,9 +487,9 @@
         "depth": 3,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Reach for their heart with genuine emotion.",
+        "title": "Reach for their heart with genuine emotion.",
         "difficulty": "Medium",
-        "dialogueFragment": "Please, I'm asking you as a friend.",
+        "dialogueText": "Please, I'm asking you as a friend.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -506,9 +506,9 @@
         "depth": 7,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "Pour your entire being into this decisive moment.",
+        "title": "Pour your entire being into this decisive moment.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "Everything I am tells me this is right!",
+        "dialogueText": "Everything I am tells me this is right!",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -525,9 +525,9 @@
         "depth": 10,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Achieve perfect understanding and eliminate all doubt.",
+        "title": "Achieve perfect understanding and eliminate all doubt.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "Now I see everything clearly - we're completely aligned.",
+        "dialogueText": "Now I see everything clearly - we're completely aligned.",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -545,9 +545,9 @@
         "depth": 9,
         "persistence": "Statement",
         "connectionType": "Insight",
-        "description": "Everything clicks into perfect clarity, scaling with your understanding.",
+        "title": "Everything clicks into perfect clarity, scaling with your understanding.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "Now I see the complete picture...",
+        "dialogueText": "Now I see the complete picture...",
         "boundStat": "insight",
         "effects": {
           "success": {
@@ -568,9 +568,9 @@
         "depth": 5,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Channel desperation into determination - more effective under pressure.",
+        "title": "Channel desperation into determination - more effective under pressure.",
         "difficulty": "Hard",
-        "dialogueFragment": "I'm willing to risk everything for this!",
+        "dialogueText": "I'm willing to risk everything for this!",
         "boundStat": "rapport",
         "effects": {
           "success": {
@@ -590,9 +590,9 @@
         "depth": 8,
         "persistence": "Statement",
         "connectionType": "Cunning",
-        "description": "Strike at the perfect moment with devastating effect.",
+        "title": "Strike at the perfect moment with devastating effect.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "And that's exactly why this is the perfect moment to act.",
+        "dialogueText": "And that's exactly why this is the perfect moment to act.",
         "boundStat": "cunning",
         "effects": {
           "success": {
@@ -610,9 +610,9 @@
         "depth": 10,
         "persistence": "Statement",
         "connectionType": "Authority",
-        "description": "Command absolute attention and set momentum to maximum.",
+        "title": "Command absolute attention and set momentum to maximum.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "This is how it's going to be, and I will make it happen.",
+        "dialogueText": "This is how it's going to be, and I will make it happen.",
         "boundStat": "authority",
         "effects": {
           "success": {
@@ -630,9 +630,9 @@
         "depth": 3,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Share a meaningful memory to deepen connection with Elena.",
+        "title": "Share a meaningful memory to deepen connection with Elena.",
         "difficulty": "Easy",
-        "dialogueFragment": "Elena, this reminds me of something important we've shared...",
+        "dialogueText": "Elena, this reminds me of something important we've shared...",
         "boundStat": "rapport",
         "tokenRequirement": {
           "Trust": 1
@@ -654,9 +654,9 @@
         "depth": 4,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Open yourself vulnerably to Elena, creating deep understanding.",
+        "title": "Open yourself vulnerably to Elena, creating deep understanding.",
         "difficulty": "Medium",
-        "dialogueFragment": "Elena, I understand your fear because I've felt it too...",
+        "dialogueText": "Elena, I understand your fear because I've felt it too...",
         "boundStat": "rapport",
         "tokenRequirement": {
           "Trust": 3
@@ -678,9 +678,9 @@
         "depth": 6,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Speak with absolute confidence about Elena's situation, leveraging your deep trust.",
+        "title": "Speak with absolute confidence about Elena's situation, leveraging your deep trust.",
         "difficulty": "Hard",
-        "dialogueFragment": "Elena, I know exactly what needs to happen and I'll make sure it does.",
+        "dialogueText": "Elena, I know exactly what needs to happen and I'll make sure it does.",
         "boundStat": "authority",
         "tokenRequirement": {
           "Trust": 6
@@ -702,9 +702,9 @@
         "depth": 8,
         "persistence": "Statement",
         "connectionType": "Trust",
-        "description": "Channel the perfect trust between you and Elena for maximum effect.",
+        "title": "Channel the perfect trust between you and Elena for maximum effect.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "Elena, we understand each other completely. Let me handle everything.",
+        "dialogueText": "Elena, we understand each other completely. Let me handle everything.",
         "boundStat": "rapport",
         "tokenRequirement": {
           "Trust": 10
@@ -727,9 +727,9 @@
         "depth": 3,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Leverage your business connection with Marcus to identify opportunities.",
+        "title": "Leverage your business connection with Marcus to identify opportunities.",
         "difficulty": "Easy",
-        "dialogueFragment": "Marcus, I see a profitable angle here that we should explore...",
+        "dialogueText": "Marcus, I see a profitable angle here that we should explore...",
         "boundStat": "commerce",
         "tokenRequirement": {
           "Commerce": 1
@@ -751,9 +751,9 @@
         "depth": 4,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Use your business relationship with Marcus to gain negotiating leverage.",
+        "title": "Use your business relationship with Marcus to gain negotiating leverage.",
         "difficulty": "Medium",
-        "dialogueFragment": "Marcus, based on our previous dealings, I think we can structure this differently...",
+        "dialogueText": "Marcus, based on our previous dealings, I think we can structure this differently...",
         "boundStat": "commerce",
         "tokenRequirement": {
           "Commerce": 3
@@ -775,9 +775,9 @@
         "depth": 6,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Command Marcus's respect through proven business acumen.",
+        "title": "Command Marcus's respect through proven business acumen.",
         "difficulty": "Hard",
-        "dialogueFragment": "Marcus, you know I understand the market better than most. Here's what we need to do.",
+        "dialogueText": "Marcus, you know I understand the market better than most. Here's what we need to do.",
         "boundStat": "authority",
         "tokenRequirement": {
           "Commerce": 6
@@ -799,9 +799,9 @@
         "depth": 8,
         "persistence": "Statement",
         "connectionType": "Commerce",
-        "description": "Speak as an equal merchant-prince to Marcus, wielding maximum commercial influence.",
+        "title": "Speak as an equal merchant-prince to Marcus, wielding maximum commercial influence.",
         "difficulty": "VeryHard",
-        "dialogueFragment": "Marcus, as one master of commerce to another, this is how we dominate the market.",
+        "dialogueText": "Marcus, as one master of commerce to another, this is how we dominate the market.",
         "boundStat": "commerce",
         "tokenRequirement": {
           "Commerce": 10
@@ -827,7 +827,7 @@
           "initiativeCost": 0,
           "momentumThreshold": 8,
           "connectionType": "Trust",
-          "description": "Deliver my letter to Lord Blackwood",
+          "title": "Deliver my letter to Lord Blackwood",
           "difficulty": "Easy",
           "effects": {
             "success": {
@@ -835,7 +835,7 @@
             }
           },
           "npcRequestText": "Please, I need someone to deliver this letter to Lord Blackwood immediately. It's my response to his proposal - he leaves at sunset!",
-          "dialogueFragment": "I'll deliver your letter to Lord Blackwood. You have my word.",
+          "dialogueText": "I'll deliver your letter to Lord Blackwood. You have my word.",
           "boundStat": "authority"
         },
         {
@@ -847,7 +847,7 @@
           "initiativeCost": 0,
           "momentumThreshold": 12,
           "connectionType": "Trust",
-          "description": "Get me to safety before nightfall",
+          "title": "Get me to safety before nightfall",
           "difficulty": "Medium",
           "effects": {
             "success": {
@@ -855,7 +855,7 @@
             }
           },
           "npcRequestText": "I fear for my safety. Lord Blackwood's rivals know about the letter. Can you escort me to the North Gate before nightfall? I'll pay well for your protection.",
-          "dialogueFragment": "I'll get you to the North Gate safely. We should leave soon.",
+          "dialogueText": "I'll get you to the North Gate safely. We should leave soon.",
           "boundStat": "authority"
         }
       ],
@@ -868,7 +868,7 @@
           ],
           "initiativeCost": 0,
           "connectionType": "Commerce",
-          "description": "Discuss trade opportunities",
+          "title": "Discuss trade opportunities",
           "difficulty": "Easy",
           "momentumThreshold": 4,
           "effects": {
@@ -877,7 +877,7 @@
             }
           },
           "npcRequestText": "I hear you're looking for work. I have profitable trade connections that could benefit us both.",
-          "dialogueFragment": "Marcus, I'm interested in exploring trade opportunities with you.",
+          "dialogueText": "Marcus, I'm interested in exploring trade opportunities with you.",
           "boundStat": "commerce"
         },
         {
@@ -888,7 +888,7 @@
           ],
           "initiativeCost": 0,
           "connectionType": "Commerce",
-          "description": "Partner in a business venture",
+          "title": "Partner in a business venture",
           "difficulty": "Medium",
           "momentumThreshold": 8,
           "effects": {
@@ -897,7 +897,7 @@
             }
           },
           "npcRequestText": "There's a lucrative venture I'm considering. I need a trustworthy partner. Interested?",
-          "dialogueFragment": "Marcus, I have a business proposal that could benefit us both.",
+          "dialogueText": "Marcus, I have a business proposal that could benefit us both.",
           "boundStat": "commerce"
         }
       ]
@@ -914,10 +914,10 @@
         "persistence": "Thought",
         "successType": "Promising",
         "connectionType": "Trust",
-        "description": "Make Elena my priority",
+        "title": "Make Elena my priority",
         "difficulty": "Easy",
         "momentumThreshold": 8,
-        "dialogueFragment": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
+        "dialogueText": "Elena, I promise to make your needs my absolute priority. Everything else can wait.",
         "boundStat": "authority"
       },
       {
@@ -931,10 +931,10 @@
         "persistence": "Impulse",
         "successType": "Promising",
         "connectionType": "Commerce",
-        "description": "Guarantee Marcus immediate action",
+        "title": "Guarantee Marcus immediate action",
         "difficulty": "Medium",
         "momentumThreshold": 6,
-        "dialogueFragment": "Marcus, I'll drop everything to handle your business first. You have my word.",
+        "dialogueText": "Marcus, I'll drop everything to handle your business first. You have my word.",
         "boundStat": "commerce"
       }
     ],

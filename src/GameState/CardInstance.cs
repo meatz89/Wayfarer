@@ -10,19 +10,6 @@ public class CardInstance
     // Template reference - single source of truth for card properties
     public ConversationCard ConversationCardTemplate { get; init; }
 
-    // Delegating properties to template
-    public string Id => ConversationCardTemplate.Id;
-    public string Description => ConversationCardTemplate.Description;
-    public SuccessEffectType SuccessType => ConversationCardTemplate.SuccessType;
-    public CardType CardType => ConversationCardTemplate.CardType;
-    public ConnectionType TokenType => ConversationCardTemplate.TokenType;
-    public int InitiativeCost => ConversationCardTemplate.InitiativeCost;
-    public Difficulty Difficulty => ConversationCardTemplate.Difficulty;
-    public int MomentumThreshold => ConversationCardTemplate.MomentumThreshold;
-    public string RequestId => ConversationCardTemplate.RequestId;
-    public int MinimumTokensRequired => ConversationCardTemplate.MinimumTokensRequired;
-    public string DialogueFragment => ConversationCardTemplate.DialogueFragment;
-    public string VerbPhrase => ConversationCardTemplate.VerbPhrase;
 
     // Categorical properties that define behavior through context
     /// <summary>
@@ -70,13 +57,13 @@ public class CardInstance
         classes.Add($"card-{Persistence.ToString().ToLower()}");
 
         // Add success type class if not None
-        if (SuccessType != SuccessEffectType.None)
+        if (ConversationCardTemplate.SuccessType != SuccessEffectType.None)
         {
-            classes.Add($"success-{SuccessType.ToString().ToLower()}");
+            classes.Add($"success-{ConversationCardTemplate.SuccessType.ToString().ToLower()}");
         }
 
         // Add special classes for request cards
-        if (CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter)
+        if (ConversationCardTemplate.CardType == CardType.Letter || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Letter)
         {
             classes.Add("card-request");
             if (!IsPlayable)
@@ -93,7 +80,7 @@ public class CardInstance
     public ConnectionState? SuccessState => null;
     public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
-    public bool CanDeliverLetter => CardType == CardType.Letter || CardType == CardType.Promise || CardType == CardType.Letter;
+    public bool CanDeliverLetter => ConversationCardTemplate.CardType == CardType.Letter || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Letter;
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
     // Exchange detection - exchanges are now separate ExchangeCard entities, not ConversationCards
@@ -102,7 +89,7 @@ public class CardInstance
 
     public int GetEffectiveFocus(ConnectionState state)
     {
-        return InitiativeCost;
+        return ConversationCardTemplate.InitiativeCost;
     }
 
 

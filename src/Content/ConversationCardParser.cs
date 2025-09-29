@@ -221,7 +221,7 @@ public static class ConversationCardParser
         return new ConversationCard
         {
             Id = customId ?? dto.Id,
-            Description = dto.Description ?? "",
+            Title = dto.Title ?? "",
             CardType = cardType,
             Category = category,
             TokenType = tokenType,
@@ -238,7 +238,7 @@ public static class ConversationCardParser
             Persistence = persistence,
             SuccessType = successType,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
-            DialogueFragment = dto.DialogueFragment,
+            DialogueText = dto.DialogueText,
             VerbPhrase = "",
             MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
             MomentumThreshold = dto.MomentumThreshold ?? 0,
@@ -311,8 +311,8 @@ public class ConversationCardDTO
     public string Type { get; set; }
     public string ConnectionType { get; set; }
     public int? MomentumThreshold { get; set; } // For request cards
-    public string Description { get; set; }
-    public string DialogueFragment { get; set; }
+    public string Title { get; set; }
+    public string DialogueText { get; set; }
     public int? MinimumTokensRequired { get; set; }
 
     // Categorical properties - define behavior through context

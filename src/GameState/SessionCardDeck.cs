@@ -168,7 +168,7 @@ public class SessionCardDeck
             return;
         }
 
-        Console.WriteLine($"[SessionCardDeck] Playing card {card.Id} from Mind to Spoken pile");
+        Console.WriteLine($"[SessionCardDeck] Playing card {card.ConversationCardTemplate.Id} from Mind to Spoken pile");
 
         // Track total cards before operation
         int totalCardsBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
@@ -177,7 +177,7 @@ public class SessionCardDeck
         // Check if card exists in mind (hand) before removing
         if (!mindPile.Contains(card))
         {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.Id} not found in mind!");
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.ConversationCardTemplate.Id} not found in mind!");
             return;
         }
 
@@ -186,7 +186,7 @@ public class SessionCardDeck
         // ALL cards go to Spoken pile (conversation memory)
         spokenPile.Add(card);
 
-        Console.WriteLine($"[SessionCardDeck] Card {card.Id} moved to Spoken pile. Spoken count: {spokenPile.Count}");
+        Console.WriteLine($"[SessionCardDeck] Card {card.ConversationCardTemplate.Id} moved to Spoken pile. Spoken count: {spokenPile.Count}");
 
         // Validate total card count remains constant
         int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
@@ -195,7 +195,7 @@ public class SessionCardDeck
         if (totalCardsBefore != totalCardsAfter)
         {
             Console.WriteLine($"[SessionCardDeck] CRITICAL ERROR: Card count mismatch! Lost {totalCardsBefore - totalCardsAfter} cards!");
-            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.Id} (Persistence: {card?.ConversationCardTemplate?.Persistence})");
+            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.ConversationCardTemplate.Id} (Persistence: {card?.ConversationCardTemplate?.Persistence})");
         }
     }
 
@@ -218,7 +218,7 @@ public class SessionCardDeck
         if (card == null) return;
 
         int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Moving card {card.Id} from Mind to Spoken pile");
+        Console.WriteLine($"[SessionCardDeck] Moving card {card.ConversationCardTemplate.Id} from Mind to Spoken pile");
 
         mindPile.Remove(card);
         spokenPile.Add(card);
@@ -226,7 +226,7 @@ public class SessionCardDeck
         int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore != totalAfter)
         {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during move to spoken! {card.Id} disappeared");
+            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during move to spoken! {card.ConversationCardTemplate.Id} disappeared");
         }
     }
 
@@ -248,7 +248,7 @@ public class SessionCardDeck
 
             requestPile.Remove(card);
             mindPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Request card {card.Id} moved to mind (momentum {currentMomentum})");
+            Console.WriteLine($"[SessionCardDeck] Request card {card.ConversationCardTemplate.Id} moved to mind (momentum {currentMomentum})");
             movedCards.Add(card);
 
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;

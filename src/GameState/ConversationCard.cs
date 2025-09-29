@@ -6,7 +6,7 @@ public class ConversationCard
 {
     // Core identity
     public string Id { get; init; }
-    public string Description { get; init; }
+    public string Title { get; init; }
 
     // Single source of truth for card type
     public CardType CardType { get; init; } = CardType.Conversation;
@@ -51,7 +51,7 @@ public class ConversationCard
     public string RequestId { get; init; } // Links card to its parent NPCRequest
 
     // Display properties
-    public string DialogueFragment { get; init; }
+    public string DialogueText { get; init; }
     public string VerbPhrase { get; init; }
 
     // Level bonuses that apply at specific levels

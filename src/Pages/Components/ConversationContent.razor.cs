@@ -94,7 +94,7 @@ namespace Wayfarer.Pages.Components
             // Check if this specific card has AI-generated narrative
             if (card != null && CurrentCardNarratives != null)
             {
-                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.Id);
+                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.ConversationCardTemplate.Id);
                 if (cardNarrative != null && !string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
                 {
                     return cardNarrative.ProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
@@ -229,7 +229,7 @@ namespace Wayfarer.Pages.Components
 
                 // Check for conversation end (promise card success, etc.)
                 bool wasSuccessful = turnResult.CardPlayResult.Results?.FirstOrDefault()?.Success ?? false;
-                bool isPromiseCard = playedCard.CardType == CardType.Letter || playedCard.CardType == CardType.Promise;
+                bool isPromiseCard = playedCard.ConversationCardTemplate.CardType == CardType.Letter || playedCard.ConversationCardTemplate.CardType == CardType.Promise;
 
                 if (isPromiseCard && wasSuccessful)
                 {
@@ -498,24 +498,8 @@ namespace Wayfarer.Pages.Components
 
         protected string GetProperCardName(CardInstance card)
         {
-            // Use the card's description as its display name
-            if (!string.IsNullOrEmpty(card.Description))
-                return card.Description;
-
-            // Generate meaningful card names based on properties
-            if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
-                return card.Context.ExchangeName;
-
-            if (card.CardType == CardType.Letter)
-                return "Address Past Failure";
-
-            if (card.CardType == CardType.Observation)
-            {
-                return "Share Observation";
-            }
-
-            // Default to template ID with formatting
-            return card.Id?.Replace("_", " ") ?? "Unknown Card";
+            // Use the card's title - all cards must have titles from JSON
+            return card.ConversationCardTemplate.Title;
         }
 
         protected string GetDoubtSlotClass(int slotNumber)
@@ -524,10 +508,10 @@ namespace Wayfarer.Pages.Components
             return slotNumber <= currentDoubt ? "filled" : "empty";
         }
 
-        protected string GetNpcStatusLine()
+        protected List<string> GetNpcStatusParts()
         {
             NPC? npc = Context?.Npc;
-            if (npc == null) return "";
+            if (npc == null) return new List<string>();
 
             List<string> status = new List<string>();
 
@@ -540,7 +524,7 @@ namespace Wayfarer.Pages.Components
             if (!string.IsNullOrEmpty(currentLocation?.Name))
                 status.Add(currentLocation.Name);
 
-            return string.Join(" <span class='icon-bullet'></span> ", status);
+            return status;
         }
 
         protected string GetProperCardDialogue(CardInstance card)
@@ -548,30 +532,20 @@ namespace Wayfarer.Pages.Components
             // First check for AI-generated narrative
             if (CurrentCardNarratives != null && card != null)
             {
-                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.Id);
+                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.ConversationCardTemplate.Id);
                 if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
                     return cardNarrative.NarrativeText;
             }
 
-            // Fallback to card's Description property or name
-            return !string.IsNullOrEmpty(card.Description) ? card.Description : GetProperCardName(card);
+            // Use DialogueText property - this is what the player says
+            return card.ConversationCardTemplate.DialogueText ?? "";
         }
 
 
         protected string GetCardName(CardInstance card)
         {
-            // Use the card's description as its name
-            if (!string.IsNullOrEmpty(card.Description))
-                return card.Description;
-
-            // For exchange cards, use the exchange name
-            if (card.Context?.ExchangeData != null && card.Context?.ExchangeName != null)
-                return card.Context.ExchangeName;
-
-            // Generate name from template and context
-            if (card.Context?.NPCName != null)
-                return $"{card.Id} ({card.Context.NPCName})";
-            return card.Id;
+            // Use the card's title - all cards must have titles from JSON
+            return card.ConversationCardTemplate.Title;
         }
 
         /// <summary>
@@ -622,7 +596,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsObservationExpired(CardInstance card)
         {
-            return card.CardType == CardType.Observation &&
+            return card.ConversationCardTemplate.CardType == CardType.Observation &&
                    card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
@@ -730,7 +704,7 @@ namespace Wayfarer.Pages.Components
             if (handCards == null) return new List<CardInstance>();
 
             return handCards
-                .Where(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)) // Request cards have Opening property
+                .Where(c => (c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise)) // Request cards have Opening property
                 .ToList();
         }
 
@@ -739,7 +713,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
         {
-            return cards.Where(c => (c.CardType == CardType.Letter || c.CardType == CardType.Promise)).ToList();
+            return cards.Where(c => (c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise)).ToList();
         }
 
         /// <summary>
@@ -755,7 +729,7 @@ namespace Wayfarer.Pages.Components
             if (card == null) return "card";
 
             List<string> classes = new List<string> { "card" };
-            string cardId = card.InstanceId ?? card.Id ?? "";
+            string cardId = card.InstanceId ?? card.ConversationCardTemplate.Id ?? "";
 
 
             // Add selected state

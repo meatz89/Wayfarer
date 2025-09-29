@@ -171,12 +171,12 @@ public class ConversationNarrativeService
         // Generate basic card narratives
         foreach (CardInstance card in activeCards)
         {
-            string basicNarrative = card.InitiativeCost <= 1 ? "Say something carefully" :
-                                   card.InitiativeCost >= 3 ? "Speak boldly" :
+            string basicNarrative = card.ConversationCardTemplate.InitiativeCost <= 1 ? "Say something carefully" :
+                                   card.ConversationCardTemplate.InitiativeCost >= 3 ? "Speak boldly" :
                                    "Continue the conversation";
             fallback.CardNarratives.Add(new CardNarrative
             {
-                CardId = card.Id,
+                CardId = card.ConversationCardTemplate.Id,
                 NarrativeText = basicNarrative,
                 ProviderSource = NarrativeProviderType.JsonFallback
             });
@@ -234,7 +234,7 @@ public class ConversationNarrativeService
                 // Speak turns - show what card was played
                 if (turn.CardPlayed != null)
                 {
-                    string cardDescription = turn.CardPlayed.Description ?? turn.CardPlayed.Id;
+                    string cardDescription = turn.CardPlayed.ConversationCardTemplate.Title ?? turn.CardPlayed.ConversationCardTemplate.Id;
                     history.Add($"Player: {cardDescription}");
 
                     // Also include NPC's response if available
@@ -291,10 +291,10 @@ public class ConversationNarrativeService
         {
             CardInfo cardInfo = new CardInfo
             {
-                Id = card.Id,
-                InitiativeCost = card.InitiativeCost,
-                Difficulty = card.Difficulty,
-                Effect = card.SuccessType.ToString() ?? card.Description ?? "",
+                Id = card.ConversationCardTemplate.Id,
+                InitiativeCost = card.ConversationCardTemplate.InitiativeCost,
+                Difficulty = card.ConversationCardTemplate.Difficulty,
+                Effect = card.ConversationCardTemplate.SuccessType.ToString() ?? card.ConversationCardTemplate.Title ?? "",
                 Persistence = DetermineCardPersistence(card),
                 NarrativeCategory = DetermineNarrativeCategory(card)
             };
@@ -369,15 +369,15 @@ public class ConversationNarrativeService
     private string DetermineNarrativeCategory(CardInstance card)
     {
         // Check for atmosphere effects (indicates risk/pressure cards)
-        if (card.SuccessType == SuccessEffectType.None)
+        if (card.ConversationCardTemplate.SuccessType == SuccessEffectType.None)
         {
             return "atmosphere_change";
         }
 
         // Difficulty-based risk assessment
-        if (card.Difficulty == Difficulty.VeryHard)
+        if (card.ConversationCardTemplate.Difficulty == Difficulty.VeryHard)
             return "risk_high";
-        if (card.Difficulty == Difficulty.Hard)
+        if (card.ConversationCardTemplate.Difficulty == Difficulty.Hard)
             return "risk_moderate";
 
         // Card persistence-based categories
@@ -385,13 +385,13 @@ public class ConversationNarrativeService
             return "pressure";
 
         // Token type indicates support/connection building
-        if (card.TokenType == ConnectionType.Trust)
+        if (card.ConversationCardTemplate.TokenType == ConnectionType.Trust)
             return "support_trust";
-        if (card.TokenType == ConnectionType.Commerce)
+        if (card.ConversationCardTemplate.TokenType == ConnectionType.Commerce)
             return "support_commerce";
-        if (card.TokenType == ConnectionType.Status)
+        if (card.ConversationCardTemplate.TokenType == ConnectionType.Status)
             return "support_status";
-        if (card.TokenType == ConnectionType.Shadow)
+        if (card.ConversationCardTemplate.TokenType == ConnectionType.Shadow)
             return "support_shadow";
 
         // Default

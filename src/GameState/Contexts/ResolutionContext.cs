@@ -43,7 +43,7 @@ public class ResolutionContext : ConversationContextBase
         if (burden != null)
         {
             BurdenId = burden.Id;
-            BurdenDescription = burden.Description;
+            BurdenDescription = burden.Title;
             TokenType = burden.TokenType;
         }
     }
@@ -90,7 +90,7 @@ public class ResolutionContext : ConversationContextBase
     public string GetBurdenSummary()
     {
         if (BurdenCount == 0) return "No burdens to resolve";
-        if (BurdenCount == 1) return $"1 burden ({BurdenCards.First().Description})";
+        if (BurdenCount == 1) return $"1 burden ({BurdenCards.First().Title})";
         return $"{BurdenCount} burdens to resolve";
     }
 

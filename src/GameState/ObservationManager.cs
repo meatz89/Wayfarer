@@ -261,18 +261,18 @@ public class ObservationManager
 
         // Create new observation card based on template with observation-specific properties
         ConversationCard baseCard = entry.Card;
-        string description = !string.IsNullOrEmpty(baseCard.Description) ? baseCard.Description :
+        string description = !string.IsNullOrEmpty(baseCard.Title) ? baseCard.Title :
                            !string.IsNullOrEmpty(observation.Text) ? observation.Text : observation.Description;
 
         ConversationCard observationCard = new ConversationCard
         {
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
-            Description = description,
+            Title = description,
             InitiativeCost = baseCard.InitiativeCost,
             Difficulty = baseCard.Difficulty,
             TokenType = baseCard.TokenType,
             SuccessType = baseCard.SuccessType,
-            DialogueFragment = baseCard.DialogueFragment,
+            DialogueText = baseCard.DialogueText,
             VerbPhrase = baseCard.VerbPhrase,
             PersonalityTypes = baseCard.PersonalityTypes,
             LevelBonuses = baseCard.LevelBonuses,
@@ -405,8 +405,8 @@ public class ObservationManager
         return new ConversationCard
         {
             Id = cardReward.Id,
-            Description = cardReward.Name,
-            DialogueFragment = cardReward.Description,
+            Title = cardReward.Name,
+            DialogueText = cardReward.Description,
             InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
             CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN

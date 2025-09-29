@@ -702,7 +702,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 TimeDiscovered = _timeManager.GetCurrentTimeBlock().ToString(),
                 TokenType = ConnectionType.None, // Default for observations
                 SuccessType = ParseSuccessType(cardReward.Effect),
-                DialogueFragment = cardReward.Description
+                DialogueText = cardReward.Description
             };
 
             // Initialize NPC's observation deck if needed

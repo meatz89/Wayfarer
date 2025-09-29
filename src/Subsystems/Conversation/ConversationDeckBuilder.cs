@@ -137,13 +137,13 @@ public class ConversationDeckBuilder
             ConversationCard burdenGoalTemplate = new ConversationCard
             {
                 Id = requestCard.Id,
-                Description = requestCard.Description,
+                Title = requestCard.Title,
                 InitiativeCost = requestCard.InitiativeCost,
                 Difficulty = requestCard.Difficulty,
                 TokenType = requestCard.TokenType,
                 Persistence = requestCard.Persistence,
                 SuccessType = requestCard.SuccessType,
-                DialogueFragment = requestCard.DialogueFragment,
+                DialogueText = requestCard.DialogueText,
                 VerbPhrase = requestCard.VerbPhrase,
                 PersonalityTypes = requestCard.PersonalityTypes,
                 LevelBonuses = requestCard.LevelBonuses,

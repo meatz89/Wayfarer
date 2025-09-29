@@ -72,7 +72,7 @@ public class PersonalityRuleEnforcer
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        return card.InitiativeCost;
+        return card.ConversationCardTemplate.InitiativeCost;
     }
 
     /// <summary>
