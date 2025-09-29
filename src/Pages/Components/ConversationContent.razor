@@ -11,7 +11,21 @@
     <div class="conversation-content">
         <!-- Location context bar -->
         <div class="location-context">
-            <span>@GetLocationContext()</span>
+            <span>
+                @{
+                    var (locationName, spotName, spotTraits) = GetLocationContextParts();
+                }
+                @locationName
+                @if (!string.IsNullOrEmpty(spotName))
+                {
+                    <span class="icon-arrow-right"></span>
+                    @spotName
+                    @if (!string.IsNullOrEmpty(spotTraits))
+                    {
+                        <span> (@spotTraits)</span>
+                    }
+                }
+            </span>
         </div>
 
         <!-- NPC Bar -->
@@ -283,7 +297,7 @@
                                     <div class="card-name">@GetProperCardName(convCard)</div>
                                     <div class="card-initiative">
                                         <div class="initiative-cost">@GetCardInitiativeCost(convCard)</div>
-                                        <div class="card-depth">D@GetCardDepth(convCard)</div>
+                                        <div class="card-depth">D@(GetCardDepth(convCard))</div>
                                     </div>
                                 </div>
                                 <div class="card-text">

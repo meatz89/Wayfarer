@@ -601,30 +601,23 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get the location context string for display in the location bar
+        /// Get the location context data for display in the location bar
         /// </summary>
-        protected string GetLocationContext()
+        protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null) return "Unknown Location";
+            if (GameFacade == null) return ("Unknown Location", "", "");
 
             Location currentLocation = GameFacade.GetCurrentLocation();
             LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
-                return "Unknown Location";
+                return ("Unknown Location", "", "");
 
             string locationName = currentLocation.Name ?? "Unknown";
             string spotName = currentSpot.Name ?? "Unknown";
             string spotTraits = GetSpotTraits(currentSpot);
 
-            if (!string.IsNullOrEmpty(spotTraits))
-            {
-                return $"{locationName} <span class='icon-arrow-right'></span> {spotName} ({spotTraits})";
-            }
-            else
-            {
-                return $"{locationName} <span class='icon-arrow-right'></span> {spotName}";
-            }
+            return (locationName, spotName, spotTraits);
         }
 
         /// <summary>
