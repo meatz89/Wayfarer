@@ -38,12 +38,12 @@ public enum CardDepth
 public enum PersistenceType
 {
     /// <summary>
-    /// Goes to Spoken pile immediately upon playing, NEVER reshuffles
+    /// Statement: One-time content that stays permanently in Spoken pile after playing, NEVER reshuffles
     /// </summary>
     Statement,
 
     /// <summary>
-    /// Goes to bottom of Deck pile immediately upon playing
+    /// Echo: Repeatable techniques that can reshuffle from Spoken pile back to Deck for reuse
     /// </summary>
     Echo
 }
