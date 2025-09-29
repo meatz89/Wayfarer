@@ -234,6 +234,9 @@ public class ConversationFacade
         // Draw cards from deck
         List<CardInstance> drawnCards = ExecuteNewListenCardDraw(_currentSession, cardsToDraw);
 
+        // Force discard down to 7-card hand limit if necessary
+        _currentSession.Deck.DiscardDown(7);
+
         // Update card playability based on Initiative system
         UpdateCardPlayabilityForInitiative(_currentSession);
 

@@ -276,25 +276,25 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Reshuffle ONLY Standard cards from Spoken pile back into Deck pile
-    /// Banish cards stay in Spoken pile permanently
+    /// Reshuffle ONLY Echo cards from Spoken pile back into Deck pile
+    /// Statement cards stay in Spoken pile permanently
     /// </summary>
     private void ReshuffleSpokenPile()
     {
-        List<CardInstance> standardCards = spokenPile.Cards
-            .Where(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Statement)
+        List<CardInstance> echoCards = spokenPile.Cards
+            .Where(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo)
             .ToList();
 
-        Console.WriteLine($"[SessionCardDeck] Reshuffling {standardCards.Count} Standard cards from spoken into deck (leaving {spokenPile.Count - standardCards.Count} Banish cards in spoken)");
+        Console.WriteLine($"[SessionCardDeck] Reshuffling {echoCards.Count} Echo cards from spoken into deck (leaving {spokenPile.Count - echoCards.Count} Statement cards in spoken permanently)");
 
-        // Remove ONLY Standard cards from Spoken pile
-        foreach (CardInstance card in standardCards)
+        // Remove ONLY Echo cards from Spoken pile
+        foreach (CardInstance card in echoCards)
         {
             spokenPile.Remove(card);
         }
 
-        // Move Standard cards to Deck pile
-        deckPile.AddRange(standardCards);
+        // Move Echo cards to Deck pile
+        deckPile.AddRange(echoCards);
         deckPile.Shuffle();
     }
 
@@ -312,12 +312,12 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Check if cards are available (in deck or can reshuffle Standard cards from spoken)
+    /// Check if cards are available (in deck or can reshuffle Echo cards from spoken)
     /// </summary>
     public bool HasCardsAvailable()
     {
         bool hasInDeck = deckPile.Count > 0;
-        bool hasReshufflableInSpoken = spokenPile.Cards.Any(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Statement);
+        bool hasReshufflableInSpoken = spokenPile.Cards.Any(card => card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo);
 
         return hasInDeck || hasReshufflableInSpoken;
     }
@@ -404,6 +404,36 @@ public class SessionCardDeck
         {
             Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding cards to mind! Expected {totalBefore + cards.Count}, got {totalAfter}");
         }
+    }
+
+    /// <summary>
+    /// Force discard down to maximum hand size (7 cards)
+    /// Removes excess cards from mind back to deck pile
+    /// </summary>
+    public void DiscardDown(int maxSize = 7)
+    {
+        if (mindPile.Count <= maxSize) return;
+
+        int cardsToDiscard = mindPile.Count - maxSize;
+        Console.WriteLine($"[SessionCardDeck] Forcing discard of {cardsToDiscard} cards (hand size {mindPile.Count} > limit {maxSize})");
+
+        List<CardInstance> cardsToRemove = new List<CardInstance>();
+
+        // For now, discard from the end of hand (could be made more sophisticated later)
+        for (int i = 0; i < cardsToDiscard; i++)
+        {
+            if (mindPile.Count > maxSize)
+            {
+                CardInstance cardToDiscard = mindPile.Cards.Last();
+                cardsToRemove.Add(cardToDiscard);
+                mindPile.Remove(cardToDiscard);
+            }
+        }
+
+        // Add discarded cards back to deck pile
+        deckPile.AddRange(cardsToRemove);
+
+        Console.WriteLine($"[SessionCardDeck] Discarded {cardsToRemove.Count} cards back to deck. Hand size now: {mindPile.Count}");
     }
 
     /// <summary>

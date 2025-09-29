@@ -252,6 +252,65 @@ public static class ConversationCardParser
     }
 
     /// <summary>
+    /// Validate Foundation card rules for SteamWorld Quest-inspired Initiative system
+    /// 70% of Foundation cards (depth 1-2) must be Echo type
+    /// ALL Initiative-generating cards must be Echo type
+    /// </summary>
+    public static void ValidateFoundationCardRules(List<ConversationCard> allCards)
+    {
+        if (allCards == null || !allCards.Any())
+        {
+            throw new InvalidOperationException("No conversation cards loaded for validation");
+        }
+
+        // Get Foundation cards (depth 1-2)
+        List<ConversationCard> foundationCards = allCards
+            .Where(c => (int)c.Depth <= 2)
+            .ToList();
+
+        if (!foundationCards.Any())
+        {
+            Console.WriteLine("[ConversationCardParser] WARNING: No Foundation cards (depth 1-2) found");
+            return;
+        }
+
+        // Check 70% Echo rule for Foundation cards
+        int echoFoundationCount = foundationCards.Count(c => c.Persistence == PersistenceType.Echo);
+        decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;
+
+        Console.WriteLine($"[ConversationCardParser] Foundation cards: {foundationCards.Count}, Echo: {echoFoundationCount} ({echoPercentage:P1})");
+
+        if (echoPercentage < 0.70m)
+        {
+            throw new InvalidOperationException(
+                $"Foundation card sustainability validation FAILED: Only {echoPercentage:P1} of Foundation cards are Echo type. " +
+                $"Minimum 70% required for sustainable Initiative generation. " +
+                $"Echo Foundation cards: {echoFoundationCount}/{foundationCards.Count}");
+        }
+
+        // Check that ALL Initiative-generating cards are Echo type
+        List<ConversationCard> initiativeGenerators = allCards
+            .Where(c => c.EffectInitiative.HasValue && c.EffectInitiative.Value > 0)
+            .ToList();
+
+        List<ConversationCard> nonEchoInitiativeCards = initiativeGenerators
+            .Where(c => c.Persistence != PersistenceType.Echo)
+            .ToList();
+
+        if (nonEchoInitiativeCards.Any())
+        {
+            string violatingCards = string.Join(", ", nonEchoInitiativeCards.Select(c => c.Id));
+            throw new InvalidOperationException(
+                $"Initiative generation validation FAILED: Cards that generate Initiative must be Echo type for repeatability. " +
+                $"Violating cards: {violatingCards}");
+        }
+
+        Console.WriteLine($"[ConversationCardParser] ✓ Foundation card validation passed: " +
+                         $"{echoPercentage:P1} Echo Foundation cards, " +
+                         $"{initiativeGenerators.Count} Initiative generators (all Echo)");
+    }
+
+    /// <summary>
     /// Determine success type from new effects structure
     /// </summary>
     private static SuccessEffectType DetermineSuccessTypeFromEffects(CardEffectsDTO effects)

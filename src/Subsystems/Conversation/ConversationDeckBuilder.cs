@@ -51,8 +51,8 @@ public class ConversationDeckBuilder
         }
         CardDeckDefinition cardDeck = deckEntry.Definition;
 
-        // Create card instances from the conversation type's deck
-        List<CardInstance> deckInstances = CreateInstancesFromCardIds(cardDeck.CardIds, npc.ID);
+        // Create card instances using depth distribution filtering
+        List<CardInstance> deckInstances = CreateInstancesWithDepthDistribution(cardDeck.CardIds, conversationType.Distribution, npc.ID);
 
         // Filter signature cards based on token requirements
         deckInstances = FilterSignatureCardsByTokenRequirements(deckInstances, npc);
@@ -90,6 +90,74 @@ public class ConversationDeckBuilder
 
         // Return deck with empty request cards (they're in the deck's request pile)
         return (deck, new List<CardInstance>());
+    }
+
+    /// <summary>
+    /// Create instances from card IDs using depth distribution filtering
+    /// </summary>
+    private List<CardInstance> CreateInstancesWithDepthDistribution(List<string> cardIds, DepthDistribution distribution, string ownerId)
+    {
+        // Get all available cards
+        List<ConversationCard> availableCards = new List<ConversationCard>();
+        foreach (string cardId in cardIds)
+        {
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(cardId);
+            if (cardEntry != null)
+            {
+                availableCards.Add(cardEntry.Card);
+            }
+        }
+
+        // Apply depth distribution
+        List<ConversationCard> filteredCards = ApplyDepthDistribution(availableCards, distribution);
+
+        // Convert to card instances
+        List<CardInstance> instances = new List<CardInstance>();
+        foreach (ConversationCard card in filteredCards)
+        {
+            CardInstance instance = new CardInstance(card, ownerId);
+            instances.Add(instance);
+        }
+
+        Console.WriteLine($"[ConversationDeckBuilder] Applied depth distribution: {filteredCards.Count} cards selected from {availableCards.Count} available");
+        return instances;
+    }
+
+    /// <summary>
+    /// Apply depth distribution to filter cards
+    /// </summary>
+    private List<ConversationCard> ApplyDepthDistribution(List<ConversationCard> allCards, DepthDistribution distribution)
+    {
+        // Group cards by depth ranges
+        var foundationCards = allCards.Where(c => (int)c.Depth <= 2).ToList();
+        var standardCards = allCards.Where(c => (int)c.Depth >= 3 && (int)c.Depth <= 4).ToList();
+        var advancedCards = allCards.Where(c => (int)c.Depth >= 5 && (int)c.Depth <= 6).ToList();
+        var decisiveCards = allCards.Where(c => (int)c.Depth >= 7).ToList();
+
+        List<ConversationCard> selectedCards = new List<ConversationCard>();
+
+        // Target deck size (could be configurable)
+        int targetDeckSize = 40;
+
+        // Calculate how many cards to select from each category
+        int foundationCount = (int)(targetDeckSize * distribution.Foundation);
+        int standardCount = (int)(targetDeckSize * distribution.Standard);
+        int advancedCount = (int)(targetDeckSize * distribution.Advanced);
+        int decisiveCount = (int)(targetDeckSize * distribution.Decisive);
+
+        // Select cards from each category (taking first N cards for deterministic behavior)
+        selectedCards.AddRange(foundationCards.Take(foundationCount));
+        selectedCards.AddRange(standardCards.Take(standardCount));
+        selectedCards.AddRange(advancedCards.Take(advancedCount));
+        selectedCards.AddRange(decisiveCards.Take(decisiveCount));
+
+        Console.WriteLine($"[ConversationDeckBuilder] Depth distribution applied: " +
+                         $"Foundation:{foundationCount}/{foundationCards.Count}, " +
+                         $"Standard:{standardCount}/{standardCards.Count}, " +
+                         $"Advanced:{advancedCount}/{advancedCards.Count}, " +
+                         $"Decisive:{decisiveCount}/{decisiveCards.Count}");
+
+        return selectedCards;
     }
 
     /// <summary>

@@ -158,7 +158,7 @@ public class ConversationSession
 
     public bool IsHandOverflowing()
     {
-        return Deck.HandSize > 10; // Check hand size from deck
+        return Deck.HandSize > 7; // 7-card hand limit for refined system
     }
 
     public bool ShouldEnd()

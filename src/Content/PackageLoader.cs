@@ -446,6 +446,10 @@ public class PackageLoader
             ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
         }
+
+        // Validate Foundation card rules after all cards are loaded
+        List<ConversationCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
+        ConversationCardParser.ValidateFoundationCardRules(allCards);
     }
 
     private void LoadConversationTypesAndDecks(List<ConversationTypeDefinitionDTO> conversationTypeDtos, List<CardDeckDTO> cardDeckDtos, bool allowSkeletons)

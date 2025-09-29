@@ -15,6 +15,19 @@ public class ConversationTypeDefinition
     public int DoubtPerListen { get; set; } = 0;
     public bool MomentumErosion { get; set; } = false;
     public int MaxDoubt { get; set; } = 10;
+    public DepthDistribution Distribution { get; set; } = new();
+}
+
+/// <summary>
+/// Depth distribution for conversation types
+/// Defines what percentage of cards should come from each depth range
+/// </summary>
+public class DepthDistribution
+{
+    public float Foundation { get; set; } = 0.4f; // Depth 1-2
+    public float Standard { get; set; } = 0.3f;   // Depth 3-4
+    public float Advanced { get; set; } = 0.2f;   // Depth 5-6
+    public float Decisive { get; set; } = 0.1f;   // Depth 7-8
 }
 
 /// <summary>
