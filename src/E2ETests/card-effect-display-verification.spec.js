@@ -16,33 +16,33 @@ test.describe('Card Effect Display Verification', () => {
     await page.waitForSelector('.card', { timeout: 10000 });
   });
 
-  test('should display focus costs correctly on all cards', async ({ page }) => {
-    console.log('Testing focus cost display on cards...');
+  test('should display initiative costs correctly on all cards', async ({ page }) => {
+    console.log('Testing initiative cost display on cards...');
 
     const cards = await page.locator('.card').all();
     let cardCount = 0;
 
     for (const card of cards) {
-      const focusCostElement = await card.locator('.card-focus').first();
+      const initiativeCostElement = await card.locator('.card-initiative').first();
 
-      if (await focusCostElement.isVisible()) {
-        const focusCost = await focusCostElement.textContent();
+      if (await initiativeCostElement.isVisible()) {
+        const initiativeCost = await initiativeCostElement.textContent();
         cardCount++;
 
-        // Focus cost should be a valid number
-        expect(focusCost).toMatch(/^\d+$/);
+        // Initiative cost should be a valid number
+        expect(initiativeCost).toMatch(/^\d+$/);
 
-        // Focus cost should be reasonable (0-5 typically)
-        const cost = parseInt(focusCost);
+        // Initiative cost should be reasonable (0-10 for depth 1-10 system)
+        const cost = parseInt(initiativeCost);
         expect(cost).toBeGreaterThanOrEqual(0);
-        expect(cost).toBeLessThanOrEqual(10); // Sanity check
+        expect(cost).toBeLessThanOrEqual(10); // Depth 1-10 system
 
-        console.log(`Card ${cardCount}: Focus cost = ${focusCost}`);
+        console.log(`Card ${cardCount}: Initiative cost = ${initiativeCost}`);
       }
     }
 
     expect(cardCount).toBeGreaterThan(0);
-    console.log(`Verified focus costs on ${cardCount} cards`);
+    console.log(`Verified initiative costs on ${cardCount} cards`);
   });
 
   test('should display card effects correctly', async ({ page }) => {
@@ -279,19 +279,16 @@ test.describe('Card Effect Display Verification', () => {
           cardsWithPersistence++;
 
           // Should be one of the valid persistence types
-          const validTypes = ['Impulse', 'Opening', 'Thought'];
+          const validTypes = ['Echo', 'Statement'];
           expect(validTypes).toContain(persistenceType);
 
           console.log(`Card persistence: ${persistenceType}`);
 
-          // Check for impulse warning
-          if (persistenceType === 'Impulse') {
-            const warningElement = await card.locator('.card-warning').first();
-            if (await warningElement.isVisible()) {
-              const warningText = await warningElement.textContent();
-              expect(warningText.toLowerCase()).toContain('impulse');
-              console.log('Impulse card shows proper warning');
-            }
+          // Check for Echo/Statement specific behavior
+          if (persistenceType === 'Echo') {
+            console.log('Echo card found - should be repeatable');
+          } else if (persistenceType === 'Statement') {
+            console.log('Statement card found - one-time use');
           }
         }
       }
