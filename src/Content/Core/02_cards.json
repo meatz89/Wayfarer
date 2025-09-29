@@ -23,7 +23,8 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Initiative": 2
+            "Initiative": 1,
+            "Momentum": 1
           }
         }
       },
@@ -42,8 +43,7 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Initiative": 1,
-            "DrawCards": 1
+            "DrawCards": 2
           }
         }
       },
@@ -103,7 +103,6 @@
         "boundStat": "cunning",
         "effects": {
           "success": {
-            "Initiative": 2,
             "Doubt": -1
           }
         }
@@ -161,7 +160,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Initiative": 1
+            "Momentum": 2
           }
         }
       },
@@ -180,7 +179,8 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Initiative": 2
+            "Initiative": 1,
+            "Momentum": 1
           }
         }
       },
@@ -199,7 +199,6 @@
         "boundStat": "authority",
         "effects": {
           "success": {
-            "Initiative": 1,
             "Doubt": 1
           }
         }
@@ -219,8 +218,7 @@
         "boundStat": "commerce",
         "effects": {
           "success": {
-            "Initiative": 1,
-            "DrawCards": 1
+            "DrawCards": 2
           }
         }
       },
@@ -239,7 +237,6 @@
         "boundStat": "cunning",
         "effects": {
           "success": {
-            "Initiative": 2,
             "Doubt": -1
           }
         }
