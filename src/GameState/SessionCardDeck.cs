@@ -114,10 +114,12 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Draw cards directly to hand with momentum-based filtering
+    /// Draw cards directly to hand with optional momentum-based filtering
+    /// When momentum filtering is disabled (default), all cards are accessible
     /// </summary>
     public void DrawToHand(int count, int currentMomentum = int.MaxValue, PlayerStats playerStats = null)
     {
+        Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, momentum={currentMomentum}");
         int cardsDrawn = 0;
 
         for (int i = 0; i < count; i++)
@@ -135,8 +137,23 @@ public class SessionCardDeck
                 break;
             }
 
-            // Find next accessible card based on momentum and stat bonuses
-            CardInstance card = DrawNextAccessibleCard(currentMomentum, playerStats);
+            CardInstance card;
+
+            // If momentum is int.MaxValue (default), bypass momentum filtering entirely
+            if (currentMomentum == int.MaxValue)
+            {
+                card = deckPile.DrawTop();
+                if (card != null)
+                {
+                    Console.WriteLine($"[SessionCardDeck] Drew card without momentum filtering: {card.ConversationCardTemplate.Title}");
+                }
+            }
+            else
+            {
+                // Apply momentum-based filtering for initial conversation start
+                card = DrawNextAccessibleCard(currentMomentum, playerStats);
+            }
+
             if (card != null)
             {
                 AssignPreRoll(card);

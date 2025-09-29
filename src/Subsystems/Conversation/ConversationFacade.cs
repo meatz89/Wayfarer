@@ -805,7 +805,15 @@ public class ConversationFacade
                 session.AddInitiative(effectResult.InitiativeChange);
             }
 
-            // Handle other card effects (drawing cards, etc.)
+            // Handle card draw effects (Threading success type)
+            if (selectedCard.ConversationCardTemplate.EffectDrawCards.HasValue && selectedCard.ConversationCardTemplate.EffectDrawCards.Value > 0)
+            {
+                int cardsToDraw = selectedCard.ConversationCardTemplate.EffectDrawCards.Value;
+                session.Deck.DrawToHand(cardsToDraw);
+                Console.WriteLine($"[ConversationFacade] Card '{selectedCard.ConversationCardTemplate.Id}' drew {cardsToDraw} cards immediately");
+            }
+
+            // Handle other card effects (specific cards to add)
             if (effectResult.CardsToAdd.Any())
             {
                 session.Deck.AddCardsToMind(effectResult.CardsToAdd);
