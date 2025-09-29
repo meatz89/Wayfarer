@@ -23,7 +23,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Initiative": 2,
+            "Initiative": 2
           }
         }
       },
@@ -43,7 +43,7 @@
         "effects": {
           "success": {
             "Initiative": 1,
-            "DrawCards": 1,
+            "DrawCards": 1
           }
         }
       },
@@ -63,7 +63,7 @@
         "effects": {
           "success": {
             "Momentum": 1,
-            "Initiative": 1,
+            "Initiative": 1
           }
         }
       },
@@ -84,7 +84,7 @@
           "success": {
             "Initiative": 1,
             "Momentum": 2,
-            "Doubt": 1,
+            "Doubt": 1
           }
         }
       },
@@ -104,7 +104,7 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "Doubt": -1,
+            "Doubt": -1
           }
         }
       },
@@ -123,7 +123,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": 1,
+            "Momentum": 1
           }
         }
       },
@@ -142,7 +142,7 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Doubt": -1,
+            "Doubt": -1
           }
         }
       },
@@ -161,7 +161,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Initiative": 1,
+            "Initiative": 1
           }
         }
       },
@@ -180,7 +180,7 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Initiative": 2,
+            "Initiative": 2
           }
         }
       },
@@ -200,7 +200,7 @@
         "effects": {
           "success": {
             "Initiative": 1,
-            "Doubt": 1,
+            "Doubt": 1
           }
         }
       },
@@ -220,7 +220,7 @@
         "effects": {
           "success": {
             "Initiative": 1,
-            "DrawCards": 1,
+            "DrawCards": 1
           }
         }
       },
@@ -240,7 +240,7 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "Doubt": -1,
+            "Doubt": -1
           }
         }
       },
@@ -260,7 +260,7 @@
         "effects": {
           "success": {
             "Initiative": 1,
-            "Momentum": 1,
+            "Momentum": 1
           }
         }
       },
@@ -279,7 +279,7 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "Initiative": 3,
+            "Initiative": 3
           }
         }
       },
@@ -299,7 +299,7 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "Momentum": 1,
+            "Momentum": 1
           }
         }
       },
@@ -319,7 +319,7 @@
         "effects": {
           "success": {
             "Initiative": 1,
-            "Momentum": 2,
+            "Momentum": 2
           }
         }
       },
@@ -339,7 +339,7 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "DrawCards": 1,
+            "DrawCards": 1
           }
         }
       },
@@ -359,7 +359,7 @@
         "effects": {
           "success": {
             "Momentum": 1,
-            "Doubt": -1,
+            "Doubt": -1
           }
         }
       },
@@ -378,7 +378,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": 2,
+            "Momentum": 2
           }
         }
       },
@@ -397,7 +397,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": 3,
+            "Momentum": 3
           }
         }
       },
@@ -435,7 +435,7 @@
         "boundStat": "insight",
         "effects": {
           "success": {
-            "DrawCards": 2,
+            "DrawCards": 2
           }
         }
       },
@@ -455,7 +455,7 @@
         "effects": {
           "success": {
             "Momentum": 4,
-            "Doubt": 1,
+            "Doubt": 1
           }
         }
       },
@@ -474,7 +474,7 @@
         "boundStat": "cunning",
         "effects": {
           "success": {
-            "Momentum": 2,
+            "Momentum": 2
           }
         }
       },
@@ -493,7 +493,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": 2,
+            "Momentum": 2
           }
         }
       },
@@ -512,7 +512,7 @@
         "boundStat": "authority",
         "effects": {
           "success": {
-            "Momentum": 6,
+            "Momentum": 6
           }
         }
       },
@@ -532,7 +532,7 @@
         "effects": {
           "success": {
             "MomentumMultiplier": 2.0,
-            "Doubt": -999,
+            "Doubt": -999
           }
         }
       },
@@ -552,7 +552,7 @@
         "effects": {
           "success": {
             "Momentum": 3,
-            "DrawCards": 2,
+            "DrawCards": 2
           }
         },
         "scalingEffect": {
@@ -574,7 +574,7 @@
         "boundStat": "rapport",
         "effects": {
           "success": {
-            "Momentum": 2,
+            "Momentum": 2
           }
         },
         "scalingEffect": {
@@ -597,9 +597,9 @@
         "effects": {
           "success": {
             "Momentum": 5,
-            "Doubt": -2,
+            "Doubt": -2
           }
-        },
+        }
       },
       {
         "id": "ultimate_authority",
@@ -617,9 +617,9 @@
         "effects": {
           "success": {
             "Momentum": 20,
-            "Doubt": 2,
+            "Doubt": 2
           }
-        },
+        }
       },
       {
         "id": "elena_shared_memory",
@@ -641,7 +641,7 @@
         "effects": {
           "success": {
             "Initiative": 3,
-            "Momentum": 1,
+            "Momentum": 1
           }
         }
       },
@@ -665,7 +665,7 @@
         "effects": {
           "success": {
             "Momentum": 2,
-            "Doubt": -3,
+            "Doubt": -3
           }
         }
       },
@@ -689,7 +689,7 @@
         "effects": {
           "success": {
             "Momentum": 4,
-            "Initiative": 2,
+            "Initiative": 2
           }
         }
       },
@@ -714,7 +714,7 @@
           "success": {
             "Momentum": 6,
             "Doubt": -5,
-            "Initiative": 3,
+            "Initiative": 3
           }
         }
       },
@@ -738,7 +738,7 @@
         "effects": {
           "success": {
             "Initiative": 2,
-            "DrawCards": 1,
+            "DrawCards": 1
           }
         }
       },
@@ -762,7 +762,7 @@
         "effects": {
           "success": {
             "Momentum": 3,
-            "Initiative": 1,
+            "Initiative": 1
           }
         }
       },
@@ -786,7 +786,7 @@
         "effects": {
           "success": {
             "Momentum": 4,
-            "Doubt": -2,
+            "Doubt": -2
           }
         }
       },
@@ -811,7 +811,7 @@
           "success": {
             "Momentum": 5,
             "Initiative": 4,
-            "DrawCards": 2,
+            "DrawCards": 2
           }
         }
       }
