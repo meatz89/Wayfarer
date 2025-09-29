@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Market Square with Task Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 720px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #faf4ea;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        /* Player Resources Bar */
+        .resources-bar {
+            background: #1a1612;
+            color: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .resource-icon {
+            width: 18px;
+            height: 18px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .resource-value {
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .resource.low {
+            color: #d4704a;
+        }
+
+        /* Time Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 8px 20px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .time-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            align-items: center;
+        }
+
+        .time-display {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .time-period {
+            padding: 2px 6px;
+            background: #3d3429;
+            border-radius: 2px;
+            color: #d4a76a;
+            font-size: 11px;
+        }
+
+        .deadline-info {
+            color: #d4a76a;
+        }
+
+        /* Location Header */
+        .location-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            border-bottom: 2px solid #a68b6f;
+            padding: 15px 20px;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .location-name {
+            font-size: 22px;
+            color: #5c4a3a;
+            margin-bottom: 6px;
+            font-weight: normal;
+        }
+
+        .location-traits {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .trait {
+            font-size: 10px;
+            color: #7a6250;
+            padding: 2px 6px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .familiarity-display {
+            display: inline-block;
+            background: #7a8b5a;
+            color: #faf4ea;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* Current Spot Banner */
+        .current-spot-banner {
+            background: #e8dcc4;
+            padding: 10px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-spot-name {
+            font-size: 15px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .spot-traits {
+            display: flex;
+            gap: 6px;
+        }
+
+        .spot-trait {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #f4e8d0;
+            border: 1px solid #d4c5a0;
+            border-radius: 2px;
+            color: #7a6250;
+        }
+
+        .spot-trait.crossroads {
+            background: #7a8b5a;
+            color: #faf4ea;
+            border: none;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 20px;
+        }
+
+        /* Task Board Section */
+        .task-board-section {
+            background: #f9f3e9;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .task-board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .task-board-title {
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .task-refresh-timer {
+            font-size: 11px;
+            color: #7a6250;
+            background: #faf4ea;
+            padding: 2px 6px;
+            border-radius: 2px;
+            border: 1px solid #d4c5a0;
+        }
+
+        .task-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 12px;
+        }
+
+        .task-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .task-item {
+            background: #faf4ea;
+            border: 1px solid #d4c5a0;
+            border-radius: 3px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .task-item:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(3px);
+        }
+
+        .task-item.selected {
+            border-color: #7a8b5a;
+            background: #f4f9e9;
+        }
+
+        .task-item.too-heavy {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .task-item.too-heavy:hover {
+            transform: none;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .task-name {
+            font-size: 13px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .task-payment {
+            font-size: 12px;
+            color: #7a8b5a;
+            font-weight: bold;
+        }
+
+        .task-details {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 4px;
+        }
+
+        .task-detail {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .task-route {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .task-difficulty {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #faf4ea;
+            font-weight: bold;
+        }
+
+        .task-difficulty.easy { background: #7a8b5a; }
+        .task-difficulty.medium { background: #d4a76a; }
+        .task-difficulty.hard { background: #d4704a; }
+
+        .task-selection-summary {
+            background: #e8dcc4;
+            border: 2px solid #a68b6f;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .selection-header {
+            font-size: 13px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .selection-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+
+        .selection-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-good { color: #7a8b5a; font-weight: bold; }
+        .stat-warning { color: #d4a76a; font-weight: bold; }
+        .stat-bad { color: #d4704a; font-weight: bold; }
+
+        .optimize-button {
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            color: #faf4ea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .optimize-button:hover {
+            background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+            transform: translateY(-1px);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-action {
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            border: 2px solid #a68b6f;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #5c4a3a;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            transform: translateY(-1px);
+        }
+
+        /* Section Headers */
+        .section-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin: 20px 0 12px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #d4c5a0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Player Resources -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-value">24</div>
+                    <span>Coins</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-value">100</div>
+                    <span>Health</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">🍞</div>
+                    <div class="resource-value">30</div>
+                    <span>Hunger</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">⚖️</div>
+                    <div class="resource-value">4/10</div>
+                    <span>Weight</span>
+                </div>
+            </div>
+            <div class="resource">
+                <span>Morning</span>
+            </div>
+        </div>
+
+        <!-- Time Header -->
+        <div class="header">
+            <div class="time-bar">
+                <div class="time-display">
+                    <span>Tuesday, 9:00 AM</span>
+                    <span class="time-period">Morning</span>
+                </div>
+                <div class="deadline-info">
+                    Tasks refresh in 4 hours
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Header -->
+        <div class="location-header">
+            <div class="location-path">
+                <span>Lower Wards</span>
+                <span>→</span>
+                <span>Market District</span>
+                <span>→</span>
+                <span>Central Square</span>
+            </div>
+            <div class="location-name">
+                Central Market Square
+                <span class="familiarity-display">Familiarity: 3</span>
+            </div>
+            <div class="location-traits">
+                <span class="trait">Public</span>
+                <span class="trait">Morning: Light Crowd</span>
+                <span class="trait">Commerce Hub</span>
+                <span class="trait">Task Board Access</span>
+            </div>
+        </div>
+
+        <!-- Current Spot -->
+        <div class="current-spot-banner">
+            <div class="current-spot-name">The Fountain</div>
+            <div class="spot-traits">
+                <span class="spot-trait crossroads">Crossroads</span>
+                <span class="spot-trait">Quiet (Morning)</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Task Board Section -->
+            <div class="task-board-section">
+                <div class="task-board-header">
+                    <div class="task-board-title">Daily Task Board</div>
+                    <div class="task-refresh-timer">Refreshes: 1:00 PM</div>
+                </div>
+                
+                <div class="task-stats">
+                    <div class="task-stat">
+                        <span>Available:</span>
+                        <span style="color: #7a8b5a; font-weight: bold;">9 tasks</span>
+                    </div>
+                    <div class="task-stat">
+                        <span>Selected:</span>
+                        <span style="color: #d4a76a; font-weight: bold;">2 tasks</span>
+                    </div>
+                    <div class="task-stat">
+                        <span>Efficiency:</span>
+                        <span style="color: #7a8b5a; font-weight: bold;">3.2 coins/segment</span>
+                    </div>
+                </div>
+
+                <div class="task-selection-summary">
+                    <div class="selection-header">Current Selection (2 tasks)</div>
+                    <div class="selection-stats">
+                        <div class="selection-stat">
+                            <span>Total Payment:</span>
+                            <span class="stat-good">8 coins</span>
+                        </div>
+                        <div class="selection-stat">
+                            <span>Total Weight:</span>
+                            <span class="stat-good">3/6 available</span>
+                        </div>
+                        <div class="selection-stat">
+                            <span>Est. Time:</span>
+                            <span class="stat-good">2.5 segments</span>
+                        </div>
+                        <button class="optimize-button">Auto-Optimize</button>
+                    </div>
+                </div>
+
+                <div class="task-list">
+                    <div class="task-item selected">
+                        <div class="task-difficulty easy">1</div>
+                        <div class="task-header">
+                            <div class="task-name">Fetch Baker's Order</div>
+                            <div class="task-payment">3 coins</div>
+                        </div>
+                        <div class="task-details">
+                            <div class="task-detail">📦 Weight: 2</div>
+                            <div class="task-detail">⏰ 1.5 segments</div>
+                            <div class="task-detail">📍 2 stops</div>
+                        </div>
+                        <div class="task-route">Baker → Noble Quarter → Return</div>
+                    </div>
+
+                    <div class="task-item selected">
+                        <div class="task-difficulty easy">1</div>
+                        <div class="task-header">
+                            <div class="task-name">Message Delivery</div>
+                            <div class="task-payment">5 coins</div>
+                        </div>
+                        <div class="task-details">
+                            <div class="task-detail">📦 Weight: 1</div>
+                            <div class="task-detail">⏰ 1 segment</div>
+                            <div class="task-detail">📍 1 stop</div>
+                        </div>
+                        <div class="task-route">Market → Warehouse District</div>
+                    </div>
+
+                    <div class="task-item">
+                        <div class="task-difficulty medium">2</div>
+                        <div class="task-header">
+                            <div class="task-name">Heavy Transport</div>
+                            <div class="task-payment">8 coins</div>
+                        </div>
+                        <div class="task-details">
+                            <div class="task-detail">📦 Weight: 5</div>
+                            <div class="task-detail">⏰ 2 segments</div>
+                            <div class="task-detail">📍 1 stop</div>
+                        </div>
+                        <div class="task-route">Market → Docks (permit required)</div>
+                    </div>
+
+                    <div class="task-item too-heavy">
+                        <div class="task-difficulty hard">3</div>
+                        <div class="task-header">
+                            <div class="task-name">Bulk Goods Movement</div>
+                            <div class="task-payment">12 coins</div>
+                        </div>
+                        <div class="task-details">
+                            <div class="task-detail">📦 Weight: 8</div>
+                            <div class="task-detail">⏰ 3 segments</div>
+                            <div class="task-detail">📍 3 stops</div>
+                        </div>
+                        <div class="task-route">Would exceed weight capacity</div>
+                    </div>
+
+                    <div class="task-item">
+                        <div class="task-difficulty easy">1</div>
+                        <div class="task-header">
+                            <div class="task-name">Guard Duty</div>
+                            <div class="task-payment">4 coins</div>
+                        </div>
+                        <div class="task-details">
+                            <div class="task-detail">📦 Weight: 0</div>
+                            <div class="task-detail">⏰ 2 segments</div>
+                            <div class="task-detail">📍 Stay here</div>
+                        </div>
+                        <div class="task-route">Stand watch at fountain</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="quick-action">🎯 Execute Selected Tasks</div>
+                <div class="quick-action">🗂️ View All Locations</div>
+                <div class="quick-action">📊 Task Planner</div>
+                <div class="quick-action">🛍️ Equipment Shop</div>
+            </div>
+
+            <div class="section-header">Other Activities</div>
+            
+            <div style="background: #f9f3e9; padding: 12px; border-radius: 4px; border: 1px solid #c4a684;">
+                <div style="font-size: 12px; color: #7a6250; margin-bottom: 8px;">Standard location actions still available:</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span style="padding: 4px 8px; background: #faf4ea; border: 1px solid #d4c5a0; border-radius: 2px; font-size: 11px;">🔍 Investigate</span>
+                    <span style="padding: 4px 8px; background: #faf4ea; border: 1px solid #d4c5a0; border-radius: 2px; font-size: 11px;">💬 Talk to NPCs</span>
+                    <span style="padding: 4px 8px; background: #faf4ea; border: 1px solid #d4c5a0; border-radius: 2px; font-size: 11px;">🗺️ Travel</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

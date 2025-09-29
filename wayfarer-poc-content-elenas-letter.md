@@ -1,4 +1,4 @@
-# Wayfarer POC: Elena's Letter - Updated for Stat System
+# Wayfarer POC: Elena's Letter - Refined System
 
 ## Table of Contents
 1. [Scenario Overview](#scenario-overview)
@@ -21,7 +21,7 @@
 Elena, a young scribe at the Copper Kettle Tavern, desperately needs to refuse an arranged marriage. Lord Blackwood, who could intervene, leaves the city at 5:00 PM. The player must navigate complex systems to help Elena deliver her letter before the deadline.
 
 ### The Core Challenge
-This POC demonstrates how conversations are the primary gameplay loop. The player uses their starting conversation deck against different NPC personality rules while developing their problem-solving methodologies (stats) through play. Success requires understanding how each personality transforms the basic conversation puzzle and how your developing stats open new approaches to problems.
+This POC demonstrates how conversations are the primary gameplay loop. The player uses conversation type decks filtered by their stat depths against different NPC personality rules while developing their problem-solving methodologies (stats) through play. Success requires understanding how each personality transforms the basic conversation puzzle and how your developing stats open new card depths to problems.
 
 ### The Discovery
 Every seemingly inefficient action has purpose. Investigation unlocks critical observation cards. Building Commerce tokens with Marcus enables signature cards. Optional stranger encounters provide resources and stat development. The optimal time path emerges through system mastery, but different stat builds offer alternative approaches.
@@ -29,7 +29,7 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 ### Success Criteria
 - Build Market Square familiarity through investigation
 - Gain Commerce tokens to unlock Marcus's signature cards
-- Use observation cards to advance Elena's connection state
+- Use observation cards to advance Elena's conversation
 - Optional: Develop stats through stranger encounters
 - Manage resources with precision
 - Complete Elena's letter delivery before 5:00 PM
@@ -72,43 +72,37 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 
 ## Player Starting Deck
 
-20 cards representing basic social repertoire, distributed evenly across stats (4 cards each):
+The conversation system uses type-specific decks filtered by stat depth access. With all stats at Level 1, players can only access depth 1-2 cards from any conversation type.
 
-### Insight Cards (Analytical)
-1. **"Let me analyze"** - Focus 1, Easy (75%), Thought/Rapport/None/None
-2. **"Notice the pattern"** - Focus 2, Medium (60%), Thought/Threading/None/None
-3. **"Consider the evidence"** - Focus 3, Medium (60%), Thought/Rapport/None/None
-4. **"Critical observation"** - Focus 4, Hard (50%), Impulse/Threading/Backfire/Threading
+### Depth Access by Stat Level
+- **Level 1**: Access depths 1-2 (Foundation cards only)
+- **Level 3**: Access depths 1-4 (Foundation + Standard)
+- **Level 5**: Access depths 1-6 (Foundation + Standard + Advanced)
+- **Level 7**: Access depths 1-8 (Foundation through Powerful)
+- **Level 9**: Access depths 1-10 (Complete mastery)
 
-### Rapport Cards (Empathetic)
-5. **"I understand"** - Focus 1, Easy (75%), Thought/Rapport/None/None
-6. **"Let me help"** - Focus 2, Medium (60%), Thought/Rapport/None/None
-7. **"Share your burden"** - Focus 3, Medium (60%), Thought/Rapport/Backfire/None
-8. **"Deep connection"** - Focus 4, Hard (50%), Thought/Rapport/None/None
+### Card Structure
+Every card has:
+- **Initiative Cost**: 0 for depth 1-2, scales with depth
+- **Either** Requirement OR Cost (never both):
+  - Requirement: Condition to play (e.g., "5+ Statements in Spoken")
+  - Cost: Consume resource (e.g., "Consume 3 Momentum")
+- **One Effect**: Deterministic result
+  - Flat increase ("+3 Momentum")
+  - Scaled increase ("+1 Momentum per 2 Statements")
+  - Flat decrease ("-2 Doubt")
 
-### Authority Cards (Commanding)
-9. **"Listen carefully"** - Focus 1, Easy (75%), Thought/Rapport/None/None
-10. **"Take charge"** - Focus 2, Medium (60%), Opening/Atmospheric-Focused/None/Focusing
-11. **"Direct order"** - Focus 3, Hard (50%), Impulse/Rapport/Backfire/Regret
-12. **"Final word"** - Focus 5, Very Hard (40%), Impulse/Rapport/Disrupting/Regret
+### Foundation Cards Available at Level 1
+Since all stats start at Level 1, players access only depth 1-2 cards:
 
-### Commerce Cards (Transactional)
-13. **"Fair exchange"** - Focus 1, Easy (75%), Thought/Rapport/None/None
-14. **"Find the angle"** - Focus 2, Medium (60%), Thought/Threading/None/None
-15. **"Mutual benefit"** - Focus 3, Medium (60%), Thought/Rapport/None/None
-16. **"Close the deal"** - Focus 4, Hard (50%), Thought/Promising/Backfire/None
+**Depth 1 (0 Initiative Cost) - Builders**:
+- Generate Initiative to enable higher-cost cards
+- Provide small momentum gains
+- Create conversation foundation
 
-### Cunning Cards (Indirect)
-17. **"Subtle hint"** - Focus 1, Easy (75%), Thought/Rapport/None/None
-18. **"Misdirection"** - Focus 2, Medium (60%), Opening/Atmospheric-Patient/None/Threading
-19. **"Hidden meaning"** - Focus 3, Medium (60%), Thought/Rapport/None/None
-20. **"Perfect lie"** - Focus 4, Hard (50%), Impulse/Rapport/Disrupting/Regret
-
-**Note**: As stats develop, cards gain bonuses:
-- Level 2: +10% success rate
-- Level 3: All cards gain Persistent keyword
-- Level 4: +20% success rate
-- Level 5: Never force LISTEN on failure
+**Depth 2 (0-2 Initiative Cost) - Early Options**:
+- Small effects requiring minimal setup
+- Begin building toward requirements
 
 ## NPCs
 
@@ -118,22 +112,27 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 - Name: Elena
 - Location: Copper Kettle Tavern, Corner Table
 - Personality: DEVOTED
-- Rule: "When rapport decreases, decrease it twice"
-- Starting State: DISCONNECTED (3 focus, draws 3)
+- Rule: "Doubt increases by +2 instead of +1"
+- Starting Initiative: 0
 - Token Type: Trust
 - **Conversation Level**: 3 (3 XP per card played)
 
-**Signature Cards** (Require Trust tokens):
-- 1 token: "Elena's Faith" (Rapport card, Thought/Rapport/None/None)
-- 3 tokens: "Shared Understanding" (Rapport card, Thought/Threading/None/None)
-- 6 tokens: "Elena's Trust" (Authority card, Impulse/Rapport/None/Regret)
-- 10 tokens: "Emotional Bond" (Rapport card, Thought/Atmospheric-Receptive/None/None)
+**Signature Cards** (Mixed based on Trust tokens):
+- 1 token: "Elena's Faith" (Rapport card, depth 3)
+- 3 tokens: "Shared Understanding" (Rapport card, depth 4)
+- 6 tokens: "Elena's Trust" (Authority card, depth 5)
+- 10 tokens: "Emotional Bond" (Rapport card, depth 6)
 
 **Request**: Elena's Letter
-- Available at 5 focus (requires NEUTRAL state)
-- Basic (5 rapport): Letter weight 1, deadline 5 PM
-- Enhanced (10 rapport): Priority letter weight 2, +1 Trust token
-- Premium (15 rapport): Legal documents weight 3, +2 Trust tokens
+- Available at 8 momentum
+- Basic (8 momentum): Letter weight 1, deadline 5 PM
+- Enhanced (12 momentum): Priority letter weight 2, +1 Trust token
+- Premium (16 momentum): Legal documents weight 3, +2 Trust tokens
+
+**Conversation Mechanics with Elena**:
+- Devoted personality means card effects that increase Doubt add +2 instead of +1
+- Level 3 conversation grants 3 XP per card played to bound stat
+- Time cost: 1 segment + Statement cards in Spoken pile
 
 ### Marcus - The Merchant (Level 2 Conversation)
 
@@ -141,21 +140,21 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 - Name: Marcus  
 - Location: Market Square, Merchant Row
 - Personality: MERCANTILE
-- Rule: "Highest focus card each turn gains +30% success"
-- Starting State: NEUTRAL (5 focus, draws 4)
+- Rule: "Highest Initiative cost card each turn gains double effect"
+- Starting Initiative: 0
 - Token Type: Commerce
 - **Conversation Level**: 2 (2 XP per card played)
 
 **Signature Cards**:
-- 1 token: "Marcus's Bargain" (Commerce card, Thought/Rapport/None/None)
-- 3 tokens: "Trade Knowledge" (Commerce card, Thought/Threading/None/None)
-- 6 tokens: "Commercial Trust" (Commerce card, Thought/Rapport/Backfire/None)
-- 10 tokens: "Marcus's Favor" (Authority card, Thought/Rapport/None/None)
+- 1 token: "Marcus's Bargain" (Commerce card, depth 3)
+- 3 tokens: "Trade Knowledge" (Commerce card, depth 4)
+- 6 tokens: "Commercial Trust" (Commerce card, depth 5)
+- 10 tokens: "Marcus's Favor" (Authority card, depth 6)
 
 **Request**: Trade Letter to Warehouse
-- Basic (5 rapport): 5 coins, +1 Commerce token
-- Enhanced (10 rapport): 8 coins, +2 Commerce tokens
-- Premium (15 rapport): 12 coins, +3 Commerce tokens
+- Basic (8 momentum): 5 coins, +1 Commerce token
+- Enhanced (12 momentum): 8 coins, +2 Commerce tokens
+- Premium (16 momentum): 12 coins, +3 Commerce tokens
 
 **Exchange Options**:
 - Buy Food: 2 coins → -50 hunger
@@ -168,7 +167,7 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 - Name: Lord Blackwood
 - Location: Noble Quarter, Blackwood Manor
 - Personality: PROUD
-- Rule: "Cards must be played in ascending focus order"
+- Rule: "Cards must be played in ascending Initiative order"
 - Leaves: 5:00 PM sharp
 - **Note**: Letter has noble seal, no conversation required
 
@@ -180,18 +179,20 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 **Tea Vendor** (Level 1)
 - Location: Market Square Fountain
-- Personality: STEADFAST (rapport changes capped at ±2)
-- Conversation Types:
-  - Friendly Chat: 2 coins (5 rapport)
-  - Buy Special Tea: Tea item for 4 coins (10 rapport, weight 1, +20 focus in conversations)
+- Personality: STEADFAST (all effects capped at ±2)
+- Conversation Rewards:
+  - Basic (8 momentum): 2 coins
+  - Enhanced (12 momentum): 4 coins
+  - Premium (16 momentum): Tea item (weight 1, +2 Initiative in conversations)
 - **XP Benefit**: 1 XP per card played
 
 **Pilgrim** (Level 1)  
 - Location: Market Square entrance
-- Personality: DEVOTED (failures hurt twice)
-- Conversation Types:
-  - Friendly Chat: Blessing (+1 starting rapport with Devoted NPCs today)
-  - Share Wisdom: Reveals one observation at current location
+- Personality: DEVOTED (doubt increases +2)
+- Conversation Rewards:
+  - Basic (8 momentum): Blessing (+1 starting Initiative today)
+  - Enhanced (12 momentum): Reveals one observation
+  - Premium (16 momentum): Holy symbol (weight 1)
 - **XP Benefit**: 1 XP per card played
 
 ### Midday - Copper Kettle Tavern
@@ -199,21 +200,22 @@ Optional conversations for resources and XP. Each stranger available once per ti
 **Traveling Scholar** (Level 2)
 - Location: Tavern common room
 - Personality: STEADFAST
-- Conversation Types:
-  - Information Trade: Learn about stat-gated paths (5 rapport)
-  - Academic Debate: 5 coins + temporary Insight +1 for day (10 rapport)
+- Conversation Rewards:
+  - Basic (8 momentum): Information about routes
+  - Enhanced (12 momentum): 5 coins
+  - Premium (16 momentum): Insight training (next 10 Insight cards grant +1 XP)
 - **XP Benefit**: 2 XP per card played
 
 ### Afternoon - Various Locations
 
 **Foreign Merchant** (Level 3)
 - Location: Market Square
-- Personality: MERCANTILE (high focus cards +30% success)  
-- Conversation Types:
-  - Trade Negotiation: Exotic goods worth 8 coins (10 rapport)
-  - Partnership: Reduces all exchange costs by 1 coin today (15 rapport)
+- Personality: MERCANTILE (highest Initiative card double effect)  
+- Conversation Rewards:
+  - Basic (8 momentum): Trade goods (weight 2, value 8 coins)
+  - Enhanced (12 momentum): Exotic permit (weight 1)
+  - Premium (16 momentum): Partnership (-1 coin all exchanges today)
 - **XP Benefit**: 3 XP per card played
-- **Risk**: -10% success on all cards
 
 ## Locations and Investigation
 
@@ -250,15 +252,15 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ### Safe Passage Knowledge
 - **Stat**: Insight
-- **Focus**: 0
-- **Difficulty**: Very Easy (85%)
-- **Effect**: Advances Elena from DISCONNECTED to NEUTRAL
-- **Critical**: Required for Elena's request to be reachable
+- **Depth**: 3
+- **Initiative Cost**: 2
+- **Effect**: +4 Momentum
+- **Critical**: Provides momentum boost for Elena conversation
 
 ### Merchant Caravan Route  
 - **Stat**: Commerce
-- **Focus**: 0
-- **Difficulty**: Very Easy (85%)
+- **Depth**: 3
+- **Initiative Cost**: 3
 - **Effect**: Unlocks Marcus's caravan exchange option
 - **Value**: Alternative to expensive permit
 
@@ -303,26 +305,23 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Now Busy: +1 familiarity (total: 3)
 - Unlock "Merchant Caravan Route" observation
 
-**12:20 PM - Conversation with Marcus** (Segment 2)
+**12:20 PM - Conversation with Marcus** (Segment 2-3)
 - Level 2 conversation (2 XP per card)
 - Deliver Viktor's package first
-- Play high-focus cards for Mercantile bonus
-- Use both observation cards
-- Achieve Enhanced goal (10 rapport)
+- Use Foundation cards to build Initiative
+- Play highest Initiative cards for Mercantile bonus (double effect)
+- Use both observation cards when drawn
+- Build to 12 momentum for Enhanced goal
 - Receive: 8 coins, 2 Commerce tokens
 - Accept trade letter (weight 1)
-- XP gained: ~10-14 to various stats
+- XP gained: ~8-12 to various stats
+- Time: 1 segment + ~2 Statements played
 
-**12:40 PM - Quick Travel** (Segment 3)
+**12:40 PM - Quick Travel** (Segment 4)
 - To Warehouse District: 1 segment
 - Deliver Marcus's letter: +7 coins (total: 15)
 
-**Optional: 1:00 PM - Traveling Scholar** (Segment 4)
-- Level 2 stranger at Copper Kettle
-- Could gain coins or Insight boost
-- Cost: 1 segment (risky with time)
-
-**1:00 PM - Return to Market Square** (Segment 4)
+**1:00 PM - Return to Market Square** (End of block)
 - 1 segment travel
 
 ### Afternoon Block (2:00 PM - 6:00 PM)
@@ -334,20 +333,22 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 **2:20 PM - Travel to Copper Kettle** (Segment 2)
 
-**2:40 PM - Critical Elena Conversation** (Segment 3)
-- Level 3 conversation (3 XP per card)
-- Starting: DISCONNECTED (3 focus)
-- Play Safe Passage Knowledge → NEUTRAL (5 focus)
-- Devoted personality: failures hurt double
-- Carefully build to 5 rapport
+**2:40 PM - Critical Elena Conversation** (Segment 3-5)
+- Level 3 conversation (3 XP per card played)
+- Starting: 0 Initiative, 0 Cadence
+- Devoted personality: Doubt increases +2
+- Use Foundation cards to build Initiative
+- Carefully manage Cadence (avoid high positive)
+- Build to 8+ momentum for Basic letter
 - Accept basic letter (weight 1)
-- XP gained: ~15-20 to various stats
+- XP gained: ~15-24 to various stats
+- Time: 1 segment + ~3-4 Statements
 
-**3:00 PM - Caravan to Noble Quarter** (Segment 4)
+**3:20 PM - Caravan to Noble Quarter** (Segment 6)
 - Use pre-purchased caravan passage
 - Instant travel via caravan
 - Deliver letter to Lord Blackwood
-- **SUCCESS** with 1 hour buffer
+- **SUCCESS** with ~40 minutes buffer
 
 ## Alternative Approaches by Build
 
@@ -355,11 +356,12 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Morning: Use Systematic Observation for +3 familiarity total
 - Unlock both observations in one investigation
 - Save 1 segment for stranger encounter
+- Access depth 3-4 Insight cards in conversations
 - Take Scholar's Shortcut to Noble Quarter (1 segment saved)
 
 ### Rapport Build (If Rapport reaches Level 2)
-- Use Local Inquiry to learn NPC needs directly
-- Better success rates with Elena (Devoted personality)
+- Access depth 3-4 Rapport cards
+- Better momentum generation with Elena (Devoted personality)
 - Take Local's Path from Tavern to Noble Quarter
 - Could attempt Elena's Enhanced goal more safely
 
@@ -371,8 +373,8 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ### Commerce Build (Natural from Marcus conversation)
 - Marcus conversation likely pushes Commerce toward Level 2
-- All Commerce cards gain +10% success
-- Better Marcus conversation outcomes
+- Access depth 3-4 Commerce cards
+- Better Marcus conversation outcomes with Mercantile bonus
 - Merchant Road speeds up goods delivery
 
 ### Cunning Build (If developed through strangers)
@@ -400,14 +402,14 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Miss alternate solutions
 
 #### Rush Elena Without Preparation
-- DISCONNECTED state: only 3 focus capacity
-- Cannot reach 5-focus request card
-- Safe Passage Knowledge essential
+- 0 Initiative start requires Foundation cards
+- Cannot reach momentum thresholds without building
+- Safe Passage Knowledge provides critical momentum
 
-#### Poor Stat Development
-- Playing random cards instead of focusing a stat
-- Missing Level 2 threshold benefits
-- Not utilizing personality bonuses
+#### Poor Resource Management in Conversations
+- High positive Cadence causes excessive Doubt on LISTEN
+- Not building Initiative before attempting powerful cards
+- Consuming momentum too early, unable to reach goals
 
 #### Accept Heavy Obligations
 - Marcus offers 5-weight silk delivery
@@ -417,7 +419,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 ### Why The Path Works
 
 1. **Investigation timing**: Morning quiet bonus maximized
-2. **Conversation order**: Marcus before Elena for resources
+2. **Conversation management**: Build Initiative, manage Cadence, reach goals
 3. **Stat development**: Natural Commerce growth from Marcus
 4. **Resource management**: Coins for caravan, food if needed
 5. **Weight management**: Never exceed capacity
@@ -425,23 +427,76 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ## System Reference
 
+### Conversation Resources
+
+**Initiative** - Conversational Action Economy:
+- Starting Value: 0
+- Persists between LISTEN actions
+- Cards cost their Initiative value when played
+- Foundation cards (depth 1-2) generate Initiative
+
+**Momentum** - Progress Toward Goals:
+- Range: 0 to 20+
+- Goal thresholds: Basic (8), Enhanced (12), Premium (16)
+- Can be consumed by cards for effects
+- Primary victory condition
+
+**Doubt** - Conversation Timer:
+- Range: 0 to 10
+- Conversation ends at 10 Doubt
+- Increases through Cadence or card effects
+- Reduced by cards that consume momentum
+
+**Cadence** - Conversation Balance:
+- Range: -5 to +5
+- Always starts at 0
+- SPEAK action: +1 Cadence
+- LISTEN action: -2 Cadence
+- Positive Cadence: +1 Doubt per point on LISTEN
+- Negative Cadence: +1 card draw per point on LISTEN
+
+**Statements in Spoken** - Conversation History:
+- Count of Statement cards played (not Echo)
+- Scales card effects
+- Enables requirements
+- Determines conversation time cost
+
+### Card Depth Architecture
+
+- **Depth 1-2**: Foundation (0 Initiative, generate Initiative)
+- **Depth 3-4**: Standard (0-4 Initiative cost)
+- **Depth 5-6**: Advanced (2-6 Initiative cost)
+- **Depth 7-8**: Powerful (4-8 Initiative cost)
+- **Depth 9-10**: Master (7-12 Initiative cost)
+
 ### Stat Progression
-- **Level 1**: Base abilities
-- **Level 2**: +10% success, unlock investigation approaches and special paths
-- **Level 3**: Cards gain Persistent, more approaches unlock
-- **Level 4**: +20% success, powerful investigation abilities
-- **Level 5**: Never force LISTEN on failure
+- **Level 1**: Access depths 1-2
+- **Level 2**: Access depths 1-3, unlock investigation approaches
+- **Level 3**: Access depths 1-4
+- **Level 4**: Access depths 1-5
+- **Level 5**: Access depths 1-6
+- **Level 6**: Access depths 1-7
+- **Level 7**: Access depths 1-8
+- **Level 8**: Access depths 1-9
+- **Level 9+**: Access all depths (1-10)
+
+### XP Requirements
+- Level 1→2: 10 XP
+- Level 2→3: 25 XP
+- Level 3→4: 50 XP
+- Level 4→5: 100 XP
 
 ### XP Accumulation
 - Every card played grants XP to its bound stat
-- Base: 1 XP per card (Level 1 conversation)
-- Scaled: 2 XP (Level 2), 3 XP (Level 3)
-- Success and failure both grant XP
+- Multiplied by conversation difficulty:
+  - Level 1: 1 XP per card
+  - Level 2: 2 XP per card
+  - Level 3: 3 XP per card
 
-### Conversation Difficulty
-- **Level 1**: +10% success all cards, 1 XP per card
-- **Level 2**: Normal success rates, 2 XP per card
-- **Level 3**: -10% success all cards, 3 XP per card
+### Conversation Time Cost
+- Base: 1 segment
+- Additional: +1 segment per Statement card in Spoken pile
+- Echo cards don't add time (they return to deck)
 
 ### Investigation Approaches by Stat
 - **Insight**: Systematic patterns and connections
@@ -451,22 +506,22 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - **Cunning**: Covert investigation without detection
 
 ### Personality Rules
-- **Devoted**: Rapport losses doubled
-- **Mercantile**: Highest focus +30% success
-- **Proud**: Ascending focus order required
-- **Cunning**: Same focus as previous -2 rapport
-- **Steadfast**: Rapport changes capped at ±2
+- **Devoted**: Doubt increases +2 instead of +1
+- **Mercantile**: Highest Initiative card each turn gets double effect
+- **Proud**: Cards must be played in ascending Initiative order
+- **Cunning**: Playing same Initiative as previous costs 2 Momentum
+- **Steadfast**: All effects capped at ±2
 
 ## Conclusion
 
 This POC demonstrates the complete Wayfarer experience:
 
-1. **Conversations drive everything**: Every card played develops your character
-2. **Stats are methodologies**: Not numbers but problem-solving approaches
+1. **Conversations drive everything**: Initiative management and Cadence balance create tactical depth
+2. **Stats are methodologies**: Unlock deeper card access as you develop
 3. **Strangers provide options**: Optional grinding for resources and XP
 4. **Stats gate content**: Higher stats unlock new solutions
 5. **Multiple builds work**: Time-optimal path exists but alternatives viable
-6. **Every choice matters**: Card selection shapes your character's growth
-7. **Personality rules transform gameplay**: Same deck, different puzzle
+6. **Every choice matters**: Resource management shapes outcomes
+7. **Personality rules transform gameplay**: Same cards, different puzzle
 
-The scenario takes 30-45 minutes and teaches all core mechanics. Players finish understanding that success requires both tactical card play and strategic character development, with the stat system providing meaningful progression from the very first conversation.
+The scenario takes 30-45 minutes and teaches all core mechanics. Players finish understanding that success requires both tactical resource management (Initiative building, Cadence balance, momentum goals) and strategic character development through stat progression and depth access.

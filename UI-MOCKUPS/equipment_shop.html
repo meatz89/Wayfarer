@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Equipment Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .shop-container {
+            width: 100%;
+            max-width: 1000px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Header */
+        .header {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 15px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .player-money {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .money-icon {
+            width: 24px;
+            height: 24px;
+            background: #d4a76a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #2c241a;
+        }
+
+        .money-value {
+            color: #d4a76a;
+            font-weight: bold;
+        }
+
+        /* Shop Info */
+        .shop-info {
+            background: #f9f3e9;
+            padding: 12px 20px;
+            border-bottom: 1px solid #c4a684;
+            text-align: center;
+            font-size: 13px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        /* Equipment Categories */
+        .categories-nav {
+            background: #f4e8d0;
+            padding: 10px 20px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            gap: 15px;
+        }
+
+        .category-tab {
+            padding: 6px 12px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-tab:hover {
+            background: #f4f9e9;
+            border-color: #a68b6f;
+        }
+
+        .category-tab.active {
+            background: #7a8b5a;
+            color: #faf4ea;
+            border-color: #5a6a3a;
+        }
+
+        /* Equipment Grid */
+        .equipment-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .equipment-card {
+            background: #faf4ea;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .equipment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .equipment-card.owned {
+            border-color: #7a8b5a;
+            background: #f4f9e9;
+        }
+
+        .equipment-card.unaffordable {
+            opacity: 0.6;
+        }
+
+        .equipment-header {
+            background: #f4e8d0;
+            padding: 12px 15px;
+            border-bottom: 1px solid #c4a684;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .equipment-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .equipment-price {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .price-icon {
+            width: 16px;
+            height: 16px;
+            background: #d4a76a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #2c241a;
+        }
+
+        .price-value {
+            color: #5c4a3a;
+        }
+
+        .price-value.affordable {
+            color: #7a8b5a;
+        }
+
+        .price-value.expensive {
+            color: #d4704a;
+        }
+
+        .equipment-content {
+            padding: 15px;
+        }
+
+        .equipment-description {
+            font-size: 13px;
+            color: #5c4a3a;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .equipment-stats {
+            background: #f9f3e9;
+            border: 1px solid #d4c5a0;
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label {
+            color: #7a6250;
+        }
+
+        .stat-change {
+            font-weight: bold;
+        }
+
+        .stat-improvement {
+            color: #7a8b5a;
+        }
+
+        .stat-current {
+            color: #8b7355;
+        }
+
+        .efficiency-impact {
+            background: #fff4e6;
+            border: 1px solid #d4a76a;
+            border-radius: 3px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .efficiency-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #8b4726;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .efficiency-text {
+            font-size: 11px;
+            color: #7a6250;
+            line-height: 1.3;
+        }
+
+        .equipment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .buy-button {
+            flex: 1;
+            padding: 8px 12px;
+            background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+            color: #faf4ea;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .buy-button:hover {
+            background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+            transform: translateY(-1px);
+        }
+
+        .buy-button:disabled {
+            background: #8b7355;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .buy-button:disabled:hover {
+            transform: none;
+        }
+
+        .owned-button {
+            background: linear-gradient(to bottom, #d4c5a0, #c4b590);
+            color: #5c4a3a;
+            cursor: default;
+        }
+
+        .owned-button:hover {
+            transform: none;
+        }
+
+        .preview-button {
+            padding: 8px 12px;
+            background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+            color: #5c4a3a;
+            border: 1px solid #a68b6f;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-button:hover {
+            background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+            transform: translateY(-1px);
+        }
+
+        /* ROI Calculator */
+        .roi-section {
+            background: #e8dcc4;
+            padding: 15px 20px;
+            border-top: 2px solid #a68b6f;
+        }
+
+        .roi-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .roi-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 12px;
+        }
+
+        .roi-stat {
+            text-align: center;
+        }
+
+        .roi-label {
+            color: #7a6250;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .roi-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #5c4a3a;
+        }
+
+        .roi-value.good {
+            color: #7a8b5a;
+        }
+
+        .roi-value.excellent {
+            color: #5a7a3a;
+        }
+
+        /* Upgrade Path Hint */
+        .upgrade-hint {
+            background: #f4f9e9;
+            border: 2px solid #7a8b5a;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .upgrade-hint-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #5a6a3a;
+            margin-bottom: 6px;
+        }
+
+        .upgrade-hint-text {
+            font-size: 11px;
+            color: #7a6250;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="shop-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">Courier Equipment Shop</div>
+            <div class="player-money">
+                <div class="money-icon">💰</div>
+                <div class="money-value">24 coins</div>
+            </div>
+        </div>
+
+        <!-- Shop Info -->
+        <div class="shop-info">
+            "Efficiency is profit, friend. The right tools pay for themselves within days." - Marcus, Equipment Vendor
+        </div>
+
+        <!-- Categories -->
+        <div class="categories-nav">
+            <div class="category-tab active">Carrying Capacity</div>
+            <div class="category-tab">Route Access</div>
+            <div class="category-tab">Information Tools</div>
+            <div class="category-tab">Work Equipment</div>
+        </div>
+
+        <!-- Upgrade Path Hint -->
+        <div style="padding: 15px 20px 0;">
+            <div class="upgrade-hint">
+                <div class="upgrade-hint-title">💡 Recommended Upgrade Path</div>
+                <div class="upgrade-hint-text">
+                    Start with Reinforced Satchel for +2 weight capacity (15 coins). This enables Heavy Transport tasks worth 8+ coins each. 
+                    The investment pays for itself in ~2 task cycles. Next, consider Route Permits for access to Noble Quarter tasks.
+                </div>
+            </div>
+        </div>
+
+        <!-- Equipment Grid -->
+        <div class="equipment-grid">
+            <!-- Reinforced Satchel -->
+            <div class="equipment-card">
+                <div class="equipment-header">
+                    <div class="equipment-name">Reinforced Satchel</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">💰</div>
+                        <div class="price-value affordable">15</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        A sturdy leather satchel with reinforced stitching and additional compartments. Allows carrying heavier loads without strain.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Weight Capacity</span>
+                            <span class="stat-change">
+                                <span class="stat-current">10</span> → 
+                                <span class="stat-improvement">12 (+2)</span>
+                            </span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Permanent Effect</span>
+                            <span class="stat-improvement">Always equipped</span>
+                        </div>
+                    </div>
+                    <div class="efficiency-impact">
+                        <div class="efficiency-title">Efficiency Impact</div>
+                        <div class="efficiency-text">
+                            Enables Heavy Transport tasks (8 coins, 5 weight). Allows profitable task combinations that were previously impossible. 
+                            Expected return: +12 coins per day.
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="buy-button">Purchase</button>
+                        <button class="preview-button">Preview Tasks</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Noble District Permit -->
+            <div class="equipment-card unaffordable">
+                <div class="equipment-header">
+                    <div class="equipment-name">Noble District Permit</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">💰</div>
+                        <div class="price-value expensive">35</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        Official documentation granting access to Noble Quarter. Opens high-paying service tasks for wealthy patrons.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Route Access</span>
+                            <span class="stat-improvement">Noble Quarter unlocked</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Task Access</span>
+                            <span class="stat-improvement">4 high-paying tasks</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Duration</span>
+                            <span class="stat-current">Permanent</span>
+                        </div>
+                    </div>
+                    <div class="efficiency-impact">
+                        <div class="efficiency-title">Efficiency Impact</div>
+                        <div class="efficiency-text">
+                            Unlocks Butler Service (15 coins), Garden Maintenance (8 coins), and other noble tasks. 
+                            Average task value increases from 4 to 7 coins per task.
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="buy-button" disabled>Insufficient Funds</button>
+                        <button class="preview-button">Preview Tasks</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Prediction Guide -->
+            <div class="equipment-card">
+                <div class="equipment-header">
+                    <div class="equipment-name">Task Prediction Guide</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">💰</div>
+                        <div class="price-value affordable">10</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        Marcus's insider knowledge about which tasks appear when. See tomorrow's tasks early to plan better routes.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Preview Window</span>
+                            <span class="stat-improvement">Next day's tasks</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Planning Time</span>
+                            <span class="stat-improvement">+4 hours advance notice</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Usage</span>
+                            <span class="stat-current">Unlimited</span>
+                        </div>
+                    </div>
+                    <div class="efficiency-impact">
+                        <div class="efficiency-title">Efficiency Impact</div>
+                        <div class="efficiency-text">
+                            Plan optimal routes in advance. Know which equipment to have ready. Reduces planning time from 15 minutes to 5 minutes each day.
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="buy-button">Purchase</button>
+                        <button class="preview-button">See Preview</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Optimization Map -->
+            <div class="equipment-card unaffordable">
+                <div class="equipment-header">
+                    <div class="equipment-name">Route Optimization Map</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">💰</div>
+                        <div class="price-value expensive">25</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        Detailed city map with travel times and shortcuts marked. Automatic route optimization for task combinations.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Auto-Optimization</span>
+                            <span class="stat-improvement">One-click best routes</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Time Savings</span>
+                            <span class="stat-improvement">-0.5 segments average</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Efficiency Boost</span>
+                            <span class="stat-improvement">+15% coins per hour</span>
+                        </div>
+                    </div>
+                    <div class="efficiency-impact">
+                        <div class="efficiency-title">Efficiency Impact</div>
+                        <div class="efficiency-text">
+                            Automatically finds the most efficient task combinations and route sequences. 
+                            Eliminates manual route planning time and improves daily efficiency.
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="buy-button" disabled>Insufficient Funds</button>
+                        <button class="preview-button">See Demo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Master's Ledger -->
+            <div class="equipment-card owned">
+                <div class="equipment-header">
+                    <div class="equipment-name">Basic Ledger</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">✓</div>
+                        <div class="price-value">Owned</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        Simple record-keeping book for tracking daily earnings and task efficiency. Standard equipment for all couriers.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Efficiency Tracking</span>
+                            <span class="stat-current">Basic metrics</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">History</span>
+                            <span class="stat-current">Last 3 days</span>
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="owned-button">Currently Equipped</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crowbar -->
+            <div class="equipment-card">
+                <div class="equipment-header">
+                    <div class="equipment-name">Professional Crowbar</div>
+                    <div class="equipment-price">
+                        <div class="price-icon">💰</div>
+                        <div class="price-value affordable">8</div>
+                    </div>
+                </div>
+                <div class="equipment-content">
+                    <div class="equipment-description">
+                        Heavy-duty lever tool. Enables forced entry paths and emergency shortcuts during travel. Warning: Permanent weight cost.
+                    </div>
+                    <div class="equipment-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Permanent Weight</span>
+                            <span class="stat-change">
+                                <span class="stat-current">4/10</span> → 
+                                <span style="color: #d4a76a;">6/10 (-2)</span>
+                            </span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Path Access</span>
+                            <span class="stat-improvement">Forced Entry routes</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Emergency Use</span>
+                            <span class="stat-improvement">Bypass some obstacles</span>
+                        </div>
+                    </div>
+                    <div class="efficiency-impact">
+                        <div class="efficiency-title">Efficiency Impact</div>
+                        <div class="efficiency-text">
+                            Reduces carrying capacity but enables exclusive shortcuts that save 1-2 segments on certain routes. 
+                            Best for players who prioritize speed over maximum load.
+                        </div>
+                    </div>
+                    <div class="equipment-actions">
+                        <button class="buy-button">Purchase</button>
+                        <button class="preview-button">View Paths</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROI Calculator -->
+        <div class="roi-section">
+            <div class="roi-title">Investment Analysis</div>
+            <div class="roi-stats">
+                <div class="roi-stat">
+                    <div class="roi-label">Current Daily Average</div>
+                    <div class="roi-value">16 coins</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-label">With Reinforced Satchel</div>
+                    <div class="roi-value good">28 coins</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-label">Payback Period</div>
+                    <div class="roi-value excellent">1.3 days</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-label">Weekly Profit Increase</div>
+                    <div class="roi-value excellent">+84 coins</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
