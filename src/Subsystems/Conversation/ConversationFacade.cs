@@ -650,7 +650,8 @@ public class ConversationFacade
     /// 1. Calculate doubt to clear
     /// 2. Reset doubt to 0
     /// 3. Reduce momentum by doubt cleared
-    /// 4. Apply -3 Cadence (LISTEN decreases Cadence)
+    /// 4. Convert positive cadence to doubt
+    /// 5. Apply -2 Cadence (LISTEN decreases Cadence)
     /// </summary>
     private void ProcessCadenceEffectsOnListen(ConversationSession session)
     {
@@ -664,8 +665,16 @@ public class ConversationFacade
         // 3. Reduce momentum by amount of doubt cleared (minimum 0)
         session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);
 
-        // 4. Apply Cadence change (-3 for LISTEN action)
-        session.Cadence = Math.Max(-5, session.Cadence - 3); // Changed from -2 to -3
+        // 4. Convert positive cadence to doubt (NEW: CRITICAL MISSING STEP)
+        if (session.Cadence > 0)
+        {
+            int cadenceToDoubt = session.Cadence;
+            session.CurrentDoubt = Math.Min(session.MaxDoubt, session.CurrentDoubt + cadenceToDoubt);
+            Console.WriteLine($"[ConversationFacade] LISTEN converted {cadenceToDoubt} positive cadence to doubt. New doubt: {session.CurrentDoubt}");
+        }
+
+        // 5. Apply Cadence change (-2 for LISTEN action)
+        session.Cadence = Math.Max(-5, session.Cadence - 2); 
     }
 
     /// <summary>
@@ -1712,7 +1721,7 @@ public class ConversationFacade
     #region Preview Methods for UI
 
     /// <summary>
-    /// Get preview text for LISTEN action showing effects of doubt increase, momentum erosion, and card draw
+    /// Get preview text for LISTEN action showing effects of doubt clear/add, momentum loss, cadence change, and card draw
     /// </summary>
     public string GetListenActionPreview()
     {
@@ -1720,25 +1729,37 @@ public class ConversationFacade
 
         List<string> preview = new List<string>();
 
-        // Show Cadence effects (CORRECTED)
+        int currentDoubt = _currentSession.CurrentDoubt;
+        int currentMomentum = _currentSession.CurrentMomentum;
         int currentCadence = _currentSession.Cadence;
-        int newCadence = Math.Max(-5, currentCadence - 2); // LISTEN gives -2 Cadence (min -5)
-        preview.Add($"Cadence: {currentCadence} → {newCadence} (-2 for listening)");
 
-        // Show positive cadence doubt penalty if applicable
-        if (currentCadence > 0)
+        // Step 1: Show doubt clearing and momentum loss
+        if (currentDoubt > 0)
         {
-            int doubtPenalty = currentCadence; // +1 Doubt per positive Cadence point
-            int newDoubt = Math.Min(_currentSession.MaxDoubt, _currentSession.CurrentDoubt + doubtPenalty);
-            preview.Add($"Doubt: {_currentSession.CurrentDoubt} → {newDoubt} (+{doubtPenalty} from positive Cadence)");
+            int newMomentum = Math.Max(0, currentMomentum - currentDoubt);
+            preview.Add($"Clear {currentDoubt} doubt, lose {currentDoubt} momentum");
+            preview.Add($"Momentum: {currentMomentum} → {newMomentum}");
         }
 
-        // Show card draw (3 base + negative cadence bonus)
+        // Step 2: Show positive cadence conversion to doubt
+        if (currentCadence > 0)
+        {
+            int cadenceToDoubt = currentCadence;
+            int finalDoubt = Math.Min(_currentSession.MaxDoubt, cadenceToDoubt);
+            preview.Add($"Convert {cadenceToDoubt} positive cadence to doubt");
+            preview.Add($"Doubt: 0 → {finalDoubt}");
+        }
+
+        // Step 3: Show cadence change
+        int newCadence = Math.Max(-5, currentCadence - 3);
+        preview.Add($"Cadence: {currentCadence} → {newCadence} (-3 for listening)");
+
+        // Step 4: Show card draw
         int drawCount = _currentSession.GetDrawCount();
         int cadenceBonus = newCadence < 0 ? Math.Abs(newCadence) : 0;
         if (cadenceBonus > 0)
         {
-            preview.Add($"Draw {drawCount} cards (3 base + {cadenceBonus} from negative Cadence)");
+            preview.Add($"Draw {drawCount} cards (3 base + {cadenceBonus} from negative cadence)");
         }
         else
         {
@@ -1746,7 +1767,7 @@ public class ConversationFacade
         }
 
         // Show Initiative status (accumulates between LISTEN - no reset)
-        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (accumulates - never resets)");
+        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (never resets)");
 
         return string.Join("<br/>", preview);
     }
