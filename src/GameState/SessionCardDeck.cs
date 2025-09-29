@@ -114,9 +114,9 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Draw cards directly to hand
+    /// Draw cards directly to hand with momentum-based filtering
     /// </summary>
-    public void DrawToHand(int count)
+    public void DrawToHand(int count, int currentMomentum = int.MaxValue, PlayerStats playerStats = null)
     {
         int cardsDrawn = 0;
 
@@ -135,23 +135,29 @@ public class SessionCardDeck
                 break;
             }
 
-            CardInstance card = deckPile.DrawTop();
+            // Find next accessible card based on momentum and stat bonuses
+            CardInstance card = DrawNextAccessibleCard(currentMomentum, playerStats);
             if (card != null)
             {
                 AssignPreRoll(card);
                 mindPile.Add(card);
                 cardsDrawn++;
             }
+            else
+            {
+                Console.WriteLine($"[SessionCardDeck] No more accessible cards at momentum {currentMomentum}");
+                break;
+            }
         }
 
         // Log the actual draw result
         if (cardsDrawn < count)
         {
-            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (not enough cards in circulation)");
+            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (momentum filter limited available cards)");
         }
         else
         {
-            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards");
+            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards with momentum filtering");
         }
     }
 
@@ -416,6 +422,58 @@ public class SessionCardDeck
         Console.WriteLine($"[SessionCardDeck] Current state - Mind: {mindPile.Count}, Spoken: {spokenPile.Count}, Deck: {deckPile.Count}");
 
         // Nothing to process - all cards stay where they are during LISTEN
+    }
+
+    /// <summary>
+    /// Check if a card can be accessed based on momentum and stat specialization bonuses
+    /// Cards accessible if depth <= momentum OR (has matching stat AND depth <= momentum + stat bonus)
+    /// Foundation cards (depth 1-2) are always accessible
+    /// </summary>
+    private bool CanAccessCard(ConversationCard card, int currentMomentum, PlayerStats playerStats)
+    {
+        if (card == null) return false;
+
+        int cardDepth = (int)card.Depth;
+
+        // Foundation cards (depth 1-2) are always accessible
+        if (cardDepth <= 2) return true;
+
+        // Basic momentum gate: card accessible if depth <= momentum
+        if (cardDepth <= currentMomentum) return true;
+
+        // Stat specialization bonus: if card has bound stat, check for bonus access
+        if (card.BoundStat.HasValue && playerStats != null)
+        {
+            int statBonus = playerStats.GetDepthBonus(card.BoundStat.Value);
+            return cardDepth <= currentMomentum + statBonus;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Draw the next accessible card from the deck pile based on momentum filtering
+    /// Returns null if no accessible cards are available
+    /// </summary>
+    private CardInstance DrawNextAccessibleCard(int currentMomentum, PlayerStats playerStats)
+    {
+        // Find accessible cards in the deck pile
+        List<CardInstance> accessibleCards = deckPile.Cards
+            .Where(card => CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats))
+            .ToList();
+
+        if (accessibleCards.Count == 0)
+        {
+            Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at momentum {currentMomentum}");
+            return null;
+        }
+
+        // Take the first accessible card (maintains deck order but applies filter)
+        CardInstance selectedCard = accessibleCards.First();
+        deckPile.Remove(selectedCard);
+
+        Console.WriteLine($"[SessionCardDeck] Drew accessible card: {selectedCard.ConversationCardTemplate.Title} (depth {(int)selectedCard.ConversationCardTemplate.Depth})");
+        return selectedCard;
     }
 
     // NO DIRECT PILE ACCESS - ALL OPERATIONS GO THROUGH METHODS!

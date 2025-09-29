@@ -97,7 +97,9 @@ public class ConversationFacade
 
 
         // Initialize momentum and doubt for the session
-        int initialMomentum = 0;
+        // Starting momentum formula: 2 + floor(highest_stat / 3)
+        Player player = _gameWorld.GetPlayer();
+        int startingMomentum = 2 + (player.Stats.GetHighestStatLevel() / 3);
         int initialDoubt = 0;
 
         // Get request text from the request
@@ -112,7 +114,7 @@ public class ConversationFacade
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = 0, // Starts at 0             Cadence = 0, // Starts at 0
-            CurrentMomentum = initialMomentum,
+            CurrentMomentum = startingMomentum,
             CurrentDoubt = initialDoubt,
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
@@ -126,11 +128,11 @@ public class ConversationFacade
         // Set up state synchronization between MomentumManager and ConversationSession
         _momentumManager.SetSession(_currentSession);
 
-        // THEN: Perform initial draw of regular cards
+        // THEN: Perform initial draw of regular cards with momentum filtering
         // This is the initial conversation start, so we just draw cards without exhausting
         int drawCount = _currentSession.GetDrawCount();
-        // HIGHLANDER: Draw directly to hand
-        _currentSession.Deck.DrawToHand(drawCount);
+        // Draw with momentum-based filtering
+        _currentSession.Deck.DrawToHand(drawCount, _currentSession.CurrentMomentum, player.Stats);
 
         // Update request card playability based on initiative
         UpdateRequestCardPlayability(_currentSession);
@@ -641,21 +643,26 @@ public class ConversationFacade
     #region 4-Resource System Helper Methods
 
     /// <summary>
-    /// Process Cadence effects on LISTEN action (CORRECTED PER GAME DOCUMENT)
-    /// Positive Cadence: +1 Doubt per positive point on LISTEN
-    /// Apply -2 Cadence (LISTEN decreases Cadence)
+    /// Process Cadence effects on LISTEN action - NEW REFACTORED SYSTEM
+    /// 1. Calculate doubt to clear
+    /// 2. Reset doubt to 0
+    /// 3. Reduce momentum by doubt cleared
+    /// 4. Apply -3 Cadence (LISTEN decreases Cadence)
     /// </summary>
     private void ProcessCadenceEffectsOnListen(ConversationSession session)
     {
-        // Apply doubt penalty for positive Cadence (player has been dominating conversation)
-        if (session.ShouldApplyCadenceDoubtPenalty())
-        {
-            int doubtPenalty = session.GetCadenceDoubtPenalty();
-            session.AddDoubt(doubtPenalty);
-        }
+        // NEW REFACTORED LISTEN MECHANICS:
+        // 1. Calculate doubt that will be cleared
+        int doubtCleared = session.CurrentDoubt;
 
-        // Apply Cadence change (-2 for LISTEN action)
-        session.ApplyCadenceFromListen();
+        // 2. Reset doubt to 0 (complete relief)
+        session.CurrentDoubt = 0;
+
+        // 3. Reduce momentum by amount of doubt cleared (minimum 0)
+        session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);
+
+        // 4. Apply Cadence change (-3 for LISTEN action)
+        session.Cadence = Math.Max(-5, session.Cadence - 3); // Changed from -2 to -3
     }
 
     /// <summary>
@@ -692,11 +699,13 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Execute card draw with fixed system (4 + Cadence bonus)
+    /// Execute card draw with momentum-based filtering
     /// </summary>
     private List<CardInstance> ExecuteNewListenCardDraw(ConversationSession session, int cardsToDraw)
     {
-        session.Deck.DrawToHand(cardsToDraw);
+        // Draw with momentum and stat filtering
+        Player player = _gameWorld.GetPlayer();
+        session.Deck.DrawToHand(cardsToDraw, session.CurrentMomentum, player.Stats);
 
         // Return the newly drawn cards (last N cards in hand)
         return session.Deck.HandCards.TakeLast(cardsToDraw).ToList();

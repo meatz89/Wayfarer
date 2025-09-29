@@ -91,11 +91,11 @@ public class ConversationSession
 
 
 
-    // NEW: Fixed card draw system (corrected per game document)
+    // NEW: Linear cadence scaling system - no arbitrary thresholds
     public int GetDrawCount()
     {
         int baseDraw = 3; // Base draw is 3 cards
-        int cadenceBonus = GetCadenceBonusDrawCount(); // +1 per negative Cadence point
+        int cadenceBonus = Math.Abs(Math.Min(0, Cadence)); // Linear scaling: +1 per negative Cadence point
         return baseDraw + cadenceBonus;
     }
 
@@ -115,7 +115,7 @@ public class ConversationSession
 
     public void ApplyCadenceFromListen()
     {
-        Cadence = Math.Max(-5, Cadence - 2); // Listening decreases cadence (-2, min -5)
+        Cadence = Math.Max(-5, Cadence - 3); // Listening decreases cadence (-3, min -5)
     }
 
     // NEW: Doubt reduction method

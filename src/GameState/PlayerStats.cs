@@ -70,11 +70,27 @@ public class PlayerStats
     }
 
     /// <summary>
-    /// Get the current level for a stat (1-5)
+    /// Get the current level for a stat (1-8)
     /// </summary>
     public int GetLevel(PlayerStatType stat)
     {
         return _stats[stat].Level;
+    }
+
+    /// <summary>
+    /// Get depth bonus for stat specialization in conversation system refactor
+    /// Levels 1-3: +0 bonus, Levels 4-6: +1 bonus, Levels 7-9: +2 bonus, Level 10: +3 bonus
+    /// </summary>
+    public int GetDepthBonus(PlayerStatType stat)
+    {
+        int level = GetLevel(stat);
+        return level switch
+        {
+            >= 10 => 3,
+            >= 7 => 2,
+            >= 4 => 1,
+            _ => 0
+        };
     }
 
     /// <summary>
