@@ -14,4 +14,5 @@ public class ConversationTypeDefinitionDTO
     public int? DoubtPerListen { get; set; }
     public bool? MomentumErosion { get; set; }
     public int? MaxDoubt { get; set; }
+    public int? MaxInitiative { get; set; }
 }

@@ -903,6 +903,14 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get maximum Initiative for current conversation type
+        /// </summary>
+        protected int GetMaxInitiative()
+        {
+            return Session?.MaxInitiative ?? 10;
+        }
+
+        /// <summary>
         /// Get current Cadence (-5 to +5 range)
         /// </summary>
         protected int GetCurrentCadence()

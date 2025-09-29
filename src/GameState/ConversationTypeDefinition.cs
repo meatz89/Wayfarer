@@ -15,6 +15,7 @@ public class ConversationTypeDefinition
     public int DoubtPerListen { get; set; } = 0;
     public bool MomentumErosion { get; set; } = false;
     public int MaxDoubt { get; set; } = 10;
+    public int MaxInitiative { get; set; } = 10;
     public DepthDistribution Distribution { get; set; } = new();
 }
 

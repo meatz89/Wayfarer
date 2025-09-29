@@ -14,6 +14,7 @@ public class ConversationSession
     public int CurrentMomentum { get; set; } = 0;
     public int CurrentDoubt { get; set; } = 0;
     public int MaxDoubt { get; set; } = 10;
+    public int MaxInitiative { get; set; } = 10;
     public int TurnNumber { get; set; }
     public bool LetterGenerated { get; set; }
     public bool RequestCardDrawn { get; set; }
@@ -144,7 +145,7 @@ public class ConversationSession
 
     public void AddInitiative(int amount)
     {
-        CurrentInitiative += amount; // Can accumulate without limit
+        CurrentInitiative = Math.Clamp(CurrentInitiative + amount, 0, MaxInitiative);
     }
 
     // NEW: Conversation time cost per game document formula
