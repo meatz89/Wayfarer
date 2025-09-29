@@ -281,8 +281,6 @@ public class ObservationManager
             QueuePosition = baseCard.QueuePosition,
             InstantMomentum = baseCard.InstantMomentum,
             RequestId = baseCard.RequestId,
-            IsSkeleton = baseCard.IsSkeleton,
-            SkeletonSource = baseCard.SkeletonSource,
             RequiredTokenType = baseCard.RequiredTokenType,
             // Override for observation cards
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN

@@ -942,25 +942,25 @@
       {
         "id": "deck_desperate_empathy",
         "cardCounts": {
+          "rapport_active_listening": 1,
+          "insight_quick_question": 1,
+          "rapport_gentle_nod": 1,
+          "insight_careful_observation": 1,
+          "cunning_deflection": 1,
           "gentle_agreement": 1,
-          "quick_insight": 1,
-          "pause_reflect": 1,
+          "thoughtful_pause": 1,
           "build_rapport": 1,
           "passionate_plea": 1,
-          "clear_confusion": 1,
-          "establish_trust": 1,
+          "clear_thinking": 1,
           "racing_thoughts": 1,
           "burning_conviction": 1,
-          "moment_of_truth": 1,
-          "deep_understanding": 1,
-          "show_understanding": 1,
-          "build_pressure": 1,
-          "mental_reset": 1,
+          "perfect_understanding": 1,
+          "rapport_empathetic_response": 1,
+          "authoritative_presence": 1,
           "desperate_gambit": 1,
-          "authoritative_demand": 1,
           "careful_words": 1,
           "emotional_appeal": 1,
-          "strategic_pause": 1
+          "cunning_strategic_pause": 1
         }
       }
     ],

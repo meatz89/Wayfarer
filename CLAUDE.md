@@ -35,6 +35,16 @@
 - LOOK AT THE FULL PICTURE: Examine the complete system, not just the piece you're working on
 - THINK FIRST: Before writing code, understand WHY the current approach isn't working
 
+**🚨 CERTAINTY THRESHOLD PRINCIPLE: NO FIXES BELOW 9/10 CERTAINTY 🚨**
+**CATASTROPHIC FAILURE PATTERN: Making changes based on assumptions without HIGH CERTAINTY**
+- **NEVER make fixes if you are only 7/10 or 8/10 certain** - you WILL waste time on wrong solutions
+- **GET TO 9/10 CERTAINTY FIRST** - Investigate deeper, test assumptions, trace actual data flow
+- **9/10 means**: You've traced the EXACT data flow, found the EXACT broken component, tested the EXACT hypothesis
+- **Example of WRONG approach**: "JSON has trailing commas, that might be the problem" (7/10 certainty)
+- **Example of RIGHT approach**: "I've traced the card data from JSON → Parser → Domain → UI and found the exact line where Initiative becomes Momentum" (9/10 certainty)
+- **If you can't get to 9/10**: Stop and ask for help rather than implementing likely-wrong solutions
+- **VERIFICATION REQUIRED**: Before claiming a fix works, you MUST verify it actually solves the reported problem
+
 **🚨 HOLISTIC IMPACT ANALYSIS: NEVER VIEW FEATURES IN ISOLATION 🚨**
 - **CRITICAL: You MUST NEVER view features in isolation** - ALWAYS check for side effects, edge cases, and ramifications
 - **BEFORE implementing** - Analyze impact on ALL connected systems, not just the immediate feature

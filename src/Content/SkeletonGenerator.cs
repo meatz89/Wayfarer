@@ -162,37 +162,6 @@ public static class SkeletonGenerator
         return spot;
     }
 
-    /// <summary>
-    /// Generate a skeleton conversation card with mechanical defaults
-    /// </summary>
-    public static ConversationCard GenerateSkeletonCard(string id, string source)
-    {
-        int hash = Math.Abs(id.GetHashCode());
-        ConnectionType[] connectionTypes = Enum.GetValues<ConnectionType>()
-            .Where(ct => ct != ConnectionType.None)
-            .ToArray();
-
-        ConversationCard card = new ConversationCard
-        {
-            Id = id,
-            Description = "The conversation continues.",
-            Persistence = PersistenceType.Statement, // Skeleton cards persist
-            SuccessType = SuccessEffectType.Strike, // Default to momentum gain
-            SkeletonSource = source,
-            IsSkeleton = true,
-
-            // Random but deterministic mechanical values
-            TokenType = connectionTypes[hash % connectionTypes.Length],
-            InitiativeCost = 1 + (hash % 3),
-            Difficulty = (Difficulty)(hash % 3), // Easy, Medium, or Hard
-
-            // Generic dialogue
-            DialogueFragment = "You discuss matters of mutual interest.",
-            VerbPhrase = "converse about topics"
-        };
-
-        return card;
-    }
 
     /// <summary>
     /// Generate a skeleton exchange card with mechanical defaults

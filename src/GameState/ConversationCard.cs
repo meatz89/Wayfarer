@@ -18,9 +18,6 @@ public class ConversationCard
     public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
 
-    // Skeleton tracking - consistent with other entities
-    public bool IsSkeleton { get; init; } = false;
-    public string SkeletonSource { get; init; } // What created this skeleton
 
     // New 4-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
