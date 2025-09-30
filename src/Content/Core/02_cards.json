@@ -848,6 +848,90 @@
         "effectVariant": "Signature",
         "personalityTypes": ["ALL"]
       }
+    ],
+    "cardDecks": [
+      {
+        "id": "deck_desperate_request",
+        "cardCounts": {
+          "rapport_show_understanding": 2,
+          "rapport_gentle_encouragement": 2,
+          "rapport_empathetic_response": 2,
+          "rapport_active_listening": 2,
+          "rapport_reflect_emotions": 1,
+          "rapport_find_common_ground": 1,
+          "rapport_validate_feelings": 1,
+          "rapport_emotional_resonance": 1,
+          "insight_quick_scan": 1,
+          "insight_ask_question": 1,
+          "insight_careful_analysis": 1,
+          "insight_notice_detail": 1,
+          "insight_connect_evidence": 1,
+          "insight_cross_reference": 1,
+          "commerce_reassure": 2,
+          "commerce_propose_alternative": 2,
+          "commerce_address_concern": 2,
+          "commerce_mitigate_risk": 2,
+          "commerce_trade_concession": 1,
+          "commerce_calculate_risk": 1,
+          "cunning_feint": 1,
+          "cunning_subtle_maneuver": 1
+        }
+      },
+      {
+        "id": "deck_trade_negotiation",
+        "cardCounts": {
+          "commerce_reassure": 1,
+          "commerce_propose_alternative": 1,
+          "commerce_mitigate_risk": 1,
+          "commerce_address_concern": 1,
+          "commerce_trade_concession": 1,
+          "commerce_calculate_risk": 1,
+          "commerce_find_middle_ground": 1,
+          "commerce_strategic_exchange": 1,
+          "commerce_mitigate_crisis": 1,
+          "commerce_propose_terms": 1,
+          "commerce_perfect_terms": 1,
+          "commerce_perfect_agreement": 1,
+          "insight_quick_scan": 1,
+          "insight_ask_question": 1,
+          "insight_careful_analysis": 1,
+          "insight_notice_detail": 1,
+          "insight_connect_evidence": 1,
+          "insight_cross_reference": 1,
+          "insight_identify_pattern": 1,
+          "insight_pattern_synthesis": 1,
+          "insight_synthesize_information": 1,
+          "insight_reveal_implication": 1,
+          "insight_analytical_mastery": 1,
+          "insight_complete_understanding": 1,
+          "authority_state_firmly": 1,
+          "authority_direct_statement": 1,
+          "authority_assert_position": 1,
+          "cunning_feint": 1,
+          "cunning_bait": 1,
+          "cunning_subtle_maneuver": 1
+        }
+      },
+      {
+        "id": "deck_friendly_chat",
+        "cardCounts": {
+          "insight_quick_scan": 1,
+          "insight_ask_question": 1,
+          "insight_careful_analysis": 1,
+          "rapport_show_understanding": 1,
+          "rapport_gentle_encouragement": 1,
+          "rapport_empathetic_response": 1,
+          "authority_state_firmly": 1,
+          "authority_direct_statement": 1,
+          "authority_assert_position": 1,
+          "commerce_reassure": 1,
+          "commerce_propose_alternative": 1,
+          "commerce_address_concern": 1,
+          "cunning_feint": 1,
+          "cunning_bait": 1,
+          "cunning_subtle_maneuver": 1
+        }
+      }
     ]
   }
 }

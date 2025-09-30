@@ -231,6 +231,35 @@
           "personalityModifiers": {}
         }
       }
-    }
+    },
+    "conversationTypes": [
+      {
+        "id": "desperate_request",
+        "name": "Desperate Request",
+        "description": "Someone in crisis needs help - heavy Rapport/Insight, zero Authority",
+        "deckId": "deck_desperate_request",
+        "maxMomentum": 20,
+        "maxDoubt": 10,
+        "maxInitiative": 10
+      },
+      {
+        "id": "trade_negotiation",
+        "name": "Trade Negotiation",
+        "description": "Business discussions and deals - heavy Commerce/Insight, zero Rapport",
+        "deckId": "deck_trade_negotiation",
+        "maxMomentum": 20,
+        "maxDoubt": 10,
+        "maxInitiative": 10
+      },
+      {
+        "id": "friendly_chat",
+        "name": "Friendly Chat",
+        "description": "Casual conversation with balanced stat mix",
+        "deckId": "deck_friendly_chat",
+        "maxMomentum": 20,
+        "maxDoubt": 10,
+        "maxInitiative": 10
+      }
+    ]
   }
 }
