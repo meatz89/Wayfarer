@@ -56,8 +56,21 @@
                     }
                 </div>
             }
-            
-            
+
+            @* Card Traits Display *@
+            @if (Traits != null && Traits.Any())
+            {
+                <div class="card-traits">
+                    @foreach (var trait in Traits)
+                    {
+                        <div class="card-trait @GetTraitClass(trait)" title="@GetTraitTooltip(trait)">
+                            @GetTraitDisplayName(trait)
+                        </div>
+                    }
+                </div>
+            }
+
+
             @* Card Text/Dialogue *@
             <div class="card-text">
                 @if (!string.IsNullOrEmpty(CardText))
@@ -121,6 +134,9 @@
     [Parameter] public PlayerStatType? BoundStat { get; set; }
     [Parameter] public int StatBonus { get; set; } = 0;
 
+    // Card traits
+    [Parameter] public IReadOnlyList<CardTrait> Traits { get; set; }
+
     // Custom content slot
     [Parameter] public RenderFragment ChildContent { get; set; }
 
@@ -168,6 +184,29 @@
             PlayerStatType.Commerce => "Commerce",
             PlayerStatType.Cunning => "Cunning",
             _ => statType.ToString()
+        };
+    }
+
+    private string GetTraitClass(CardTrait trait)
+    {
+        return $"trait-{trait.ToString().ToLower()}";
+    }
+
+    private string GetTraitDisplayName(CardTrait trait)
+    {
+        return trait switch
+        {
+            CardTrait.SuppressSpeakCadence => "Persistent Effect",
+            _ => trait.ToString()
+        };
+    }
+
+    private string GetTraitTooltip(CardTrait trait)
+    {
+        return trait switch
+        {
+            CardTrait.SuppressSpeakCadence => "This card's Cadence effect is not reduced by playing it (SPEAK action doesn't counter the effect)",
+            _ => trait.ToString()
         };
     }
 }

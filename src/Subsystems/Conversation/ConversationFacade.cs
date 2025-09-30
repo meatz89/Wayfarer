@@ -331,8 +331,11 @@ public class ConversationFacade
             };
         }
 
-        // 4. Apply Cadence Change (-1 per card played)
-        _currentSession.ApplyCadenceFromSpeak();
+        // 4. Apply Cadence Change (+1 per card played, unless card has SuppressSpeakCadence trait)
+        if (!selectedCard.ConversationCardTemplate.HasTrait(CardTrait.SuppressSpeakCadence))
+        {
+            _currentSession.ApplyCadenceFromSpeak();
+        }
 
         // 5. Calculate Success
         bool success = CalculateInitiativeCardSuccess(selectedCard, _currentSession);
@@ -888,7 +891,7 @@ public class ConversationFacade
         if (projection.CadenceChange != 0)
         {
             session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);
-            Console.WriteLine($"[Effect] Cadence {(projection.CadenceChange > 0 ? "+" : "")}{projection.CadenceChange} → {session.Cadence}");
+            Console.WriteLine($"[Effect] Cadence {(projection.CadenceChange > 0 ? "+" : "")}{projection.CadenceChange} (now {session.Cadence})");
         }
 
         // Apply card draw

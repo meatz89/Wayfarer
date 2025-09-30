@@ -59,6 +59,9 @@ public class ConversationCard
     public PlayerStatType? RequiredStat { get; init; } // Which stat's Statement count to check
     public int RequiredStatements { get; init; } = 0; // How many Statements of that stat are required
 
+    // Special traits that modify card behavior
+    public IReadOnlyList<CardTrait> Traits { get; init; } = new List<CardTrait>();
+
     // DELETED: MomentumScaling, DoubtScaling - replaced by EffectFormula
 
     // Token requirements for signature cards
@@ -130,5 +133,13 @@ public class ConversationCard
 
         int statementCount = session.GetStatementCount(RequiredStat.Value);
         return statementCount >= RequiredStatements;
+    }
+
+    /// <summary>
+    /// Check if card has a specific trait
+    /// </summary>
+    public bool HasTrait(CardTrait trait)
+    {
+        return Traits != null && Traits.Contains(trait);
     }
 }

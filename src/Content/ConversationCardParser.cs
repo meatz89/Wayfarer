@@ -243,6 +243,9 @@ public static class ConversationCardParser
             Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using formula: {effectFormula}");
         }
 
+        // Auto-assign traits based on effect formula (NOT from JSON)
+        List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {
@@ -265,6 +268,7 @@ public static class ConversationCardParser
             BoundStat = boundStat,
             RequiredStat = requiredStat,
             RequiredStatements = requiredStatements,
+            Traits = traits, // Use derived traits (includes auto-assigned traits)
             LevelBonuses = levelBonuses,
             TokenRequirements = tokenRequirements,
             NpcSpecific = npcSpecific
@@ -424,11 +428,42 @@ public static class ConversationCardParser
         return SuccessEffectType.None;
     }
 
+    /// <summary>
+    /// Derive traits automatically based on card's effect formula.
+    /// Traits are NEVER defined in JSON - they are derived from categorical properties.
+    /// </summary>
+    private static List<CardTrait> DeriveTraitsFromEffect(CardEffectFormula effectFormula)
+    {
+        List<CardTrait> traits = new List<CardTrait>();
 
+        // Auto-assign SuppressSpeakCadence if the card has a Cadence effect
+        if (HasCadenceEffect(effectFormula))
+        {
+            traits.Add(CardTrait.SuppressSpeakCadence);
+        }
 
+        return traits;
+    }
 
+    /// <summary>
+    /// Check if an effect formula contains a Cadence effect (recursively checks compound effects)
+    /// </summary>
+    private static bool HasCadenceEffect(CardEffectFormula formula)
+    {
+        if (formula == null) return false;
 
+        // Check top-level effect
+        if (formula.TargetResource == ConversationResourceType.Cadence)
+            return true;
 
+        // Check compound effects recursively
+        if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
+        {
+            return formula.CompoundEffects.Any(e => HasCadenceEffect(e));
+        }
+
+        return false;
+    }
 }
 
 /// <summary>
@@ -473,6 +508,9 @@ public class ConversationCardDTO
     // Statement requirement system - cards may require prior Statement cards to be playable
     public string RequiredStat { get; set; } // Which stat's Statement count to check
     public int? RequiredStatements { get; set; } // How many Statements of that stat are required
+
+    // Special card traits that modify behavior
+    public List<string> Traits { get; set; } // e.g., ["SuppressSpeakCadence"]
 
     // Momentum/Doubt scaling properties
     public string MomentumScaling { get; set; } // "None", "CardsInHand", "DoubtReduction", etc.
