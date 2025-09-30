@@ -308,26 +308,64 @@ public static class ConversationCardParser
                 $"Echo Foundation cards: {echoFoundationCount}/{foundationCards.Count}");
         }
 
-        // Check that ALL Initiative-generating cards are Echo type
-        List<ConversationCard> initiativeGenerators = allCards
-            .Where(c => c.EffectFormula != null && GeneratesInitiative(c.EffectFormula))
+        // SPECIALIST FRAMEWORK: Only validate that PRIMARY Initiative generators (Cunning) are Echo
+        // Other stats can generate Initiative as universal/secondary resource in Statement cards
+        List<ConversationCard> primaryInitiativeGenerators = allCards
+            .Where(c => c.EffectFormula != null &&
+                        c.BoundStat == PlayerStatType.Cunning &&
+                        GeneratesInitiativeAsPrimary(c.EffectFormula))
             .ToList();
 
-        List<ConversationCard> nonEchoInitiativeCards = initiativeGenerators
+        List<ConversationCard> nonEchoPrimaryInitiative = primaryInitiativeGenerators
             .Where(c => c.Persistence != PersistenceType.Echo)
             .ToList();
 
-        if (nonEchoInitiativeCards.Any())
+        if (nonEchoPrimaryInitiative.Any())
         {
-            string violatingCards = string.Join(", ", nonEchoInitiativeCards.Select(c => c.Id));
+            string violatingCards = string.Join(", ", nonEchoPrimaryInitiative.Select(c => c.Id));
             throw new InvalidOperationException(
-                $"Initiative generation validation FAILED: Cards that generate Initiative must be Echo type for repeatability. " +
+                $"Initiative generation validation FAILED: Cunning cards that generate Initiative as PRIMARY effect must be Echo type for repeatability. " +
                 $"Violating cards: {violatingCards}");
         }
 
         Console.WriteLine($"[ConversationCardParser] ✓ Foundation card validation passed: " +
                          $"{echoPercentage:P1} Echo Foundation cards, " +
-                         $"{initiativeGenerators.Count} Initiative generators (all Echo)");
+                         $"{primaryInitiativeGenerators.Count} primary Initiative generators (all Echo)");
+    }
+
+    /// <summary>
+    /// Check if a card effect formula generates Initiative as PRIMARY specialist resource
+    /// (for Cunning cards only - other stats generate Initiative as universal/secondary)
+    /// </summary>
+    private static bool GeneratesInitiativeAsPrimary(CardEffectFormula formula)
+    {
+        if (formula == null) return false;
+
+        // Trading effects that consume Initiative don't count
+        if (formula.FormulaType == EffectFormulaType.Trading &&
+            formula.ConsumeResource == ConversationResourceType.Initiative)
+        {
+            return false;
+        }
+
+        // Top-level Initiative generation = primary
+        if (formula.TargetResource == ConversationResourceType.Initiative &&
+            formula.FormulaType != EffectFormulaType.Trading)
+        {
+            return true;
+        }
+
+        // For compound effects, Initiative is primary if it's the FIRST effect or alone
+        if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
+        {
+            if (formula.CompoundEffects.Count > 0 &&
+                formula.CompoundEffects[0].TargetResource == ConversationResourceType.Initiative)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -527,3 +527,101 @@
     background: #6a5a8a;
     color: #faf4ea;
 }
+
+/* Tier Display */
+.tier-display {
+    background: #f9f3e9;
+    padding: 10px 20px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.tier-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.tier-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.tier-value {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.tier-unlocks {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.tier-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+}
+
+.tier-badge.unlocked {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border-color: #6a7b4a;
+}
+
+.tier-badge.locked {
+    background: #e8dcc4;
+    color: #a68b6f;
+    border-color: #c4a684;
+    opacity: 0.5;
+}
+
+/* Statement Display */
+.statement-display {
+    background: #f4e8d0;
+    padding: 10px 20px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.statement-counts {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.statement-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.statement-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.stat-count .stat-icon {
+    font-size: 16px;
+}
+
+.stat-count .count-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}
