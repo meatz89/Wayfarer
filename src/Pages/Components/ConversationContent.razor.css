@@ -625,3 +625,42 @@
     font-weight: bold;
     color: #5c4a3a;
 }
+
+/* Card Traits Display */
+.card-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 6px 0;
+}
+
+.card-trait {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: #6a5a7a;
+    color: #faf4ea;
+    border: 1px solid #5a4a6a;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+.card-trait:hover {
+    background: #7a6a8a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Specific trait types */
+.card-trait.trait-suppressspeakcadence {
+    background: #6a7a5a;
+    border-color: #5a6a4a;
+}
+
+.card-trait.trait-suppressspeakcadence:hover {
+    background: #7a8b6a;
+}

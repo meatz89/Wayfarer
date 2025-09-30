@@ -334,6 +334,20 @@
                             <span class="card-persistence">@GetCardPersistenceType(convCard)</span>
                             <div class="card-content">
                                 <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
+
+                                @* Card Traits Display *@
+                                @if (convCard.ConversationCardTemplate.Traits != null && convCard.ConversationCardTemplate.Traits.Any())
+                                {
+                                    <div class="card-traits">
+                                        @foreach (var trait in convCard.ConversationCardTemplate.Traits)
+                                        {
+                                            <div class="card-trait @GetTraitClass(trait)" title="@GetTraitTooltip(trait)">
+                                                @GetTraitDisplayName(trait)
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
                                 <div class="card-header">
                                     <div class="card-name">@GetProperCardName(convCard)</div>
                                     <div class="card-initiative">

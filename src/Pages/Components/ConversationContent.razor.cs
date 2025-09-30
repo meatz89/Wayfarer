@@ -1180,6 +1180,30 @@ namespace Wayfarer.Pages.Components
 
             return 0;
         }
+
+        // Card trait display methods
+        protected string GetTraitClass(CardTrait trait)
+        {
+            return $"trait-{trait.ToString().ToLower()}";
+        }
+
+        protected string GetTraitDisplayName(CardTrait trait)
+        {
+            return trait switch
+            {
+                CardTrait.SuppressSpeakCadence => "Persistent Effect",
+                _ => trait.ToString()
+            };
+        }
+
+        protected string GetTraitTooltip(CardTrait trait)
+        {
+            return trait switch
+            {
+                CardTrait.SuppressSpeakCadence => "This card's Cadence effect is not reduced by playing it (SPEAK action doesn't counter the effect)",
+                _ => trait.ToString()
+            };
+        }
     }
 
     /// <summary>
