@@ -1,28 +1,4 @@
 /// <summary>
-/// Conversation card categories that define strategic role and mechanics
-/// </summary>
-public enum CardCategory
-{
-    /// <summary>
-    /// Expression Cards: Generate momentum directly, represent statements that advance your position
-    /// Effect types: Strike, Promising
-    /// </summary>
-    Expression,
-
-    /// <summary>
-    /// Realization Cards: Consume momentum for powerful effects, represent breakthrough moments
-    /// Effect types: Advancing, DoubleMomentum
-    /// </summary>
-    Realization,
-
-    /// <summary>
-    /// Regulation Cards: Manage resources (initiative, doubt, cards), enable setup turns and recovery
-    /// Effect types: Soothe, Threading
-    /// </summary>
-    Regulation
-}
-
-/// <summary>
 /// Card Depth determines stat requirements and strategic tier (1-10 system)
 /// </summary>
 public enum CardDepth

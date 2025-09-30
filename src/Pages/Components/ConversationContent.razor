@@ -278,12 +278,8 @@
                                 Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.MomentumManager?.CurrentMomentum ?? 0))
                             </div>
                             <div class="card-content">
-                                <!-- Top row: Category tag and Stat badge -->
+                                <!-- Top row: Stat badge -->
                                 <div class="card-top-row">
-                                    <div class="card-tags">
-                                        @* Legacy persistence types removed in 4-resource system *@
-                                        <span class="category-tag @GetCategoryClass(convCard.ConversationCardTemplate)">@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category)</span>
-                                    </div>
                                     <div class="stat-badge @GetCardStatClass(convCard)">
                                         @GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat ?? PlayerStatType.Rapport))
                                         @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
@@ -308,7 +304,7 @@
 
                                 <!-- Effect description -->
                                 <div class="card-effect">
-                                    <strong>@GetCategoryDisplayName(convCard.ConversationCardTemplate.Category):</strong> @GetCardEffectDescription(convCard)
+                                    @GetCardEffectDescription(convCard)
                                 </div>
 
                                 <!-- Alternative costs -->

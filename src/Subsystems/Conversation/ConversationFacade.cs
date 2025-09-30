@@ -1717,9 +1717,6 @@ public class ConversationFacade
     {
         if (card?.ConversationCardTemplate?.BoundStat == null || _gameWorld == null) return "";
 
-        // Only Expression cards get momentum bonuses
-        if (card.ConversationCardTemplate.Category != CardCategory.Expression) return "";
-
         try
         {
             Player player = _gameWorld.GetPlayer();

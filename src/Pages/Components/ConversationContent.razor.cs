@@ -731,12 +731,6 @@ namespace Wayfarer.Pages.Components
                 classes.Add("selected");
             }
 
-            // Add category class for left border styling
-            if (card?.ConversationCardTemplate != null)
-            {
-                classes.Add(card.ConversationCardTemplate.Category.ToString().ToLower());
-            }
-
             return string.Join(" ", classes);
         }
 
@@ -850,36 +844,6 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Commerce => "Commerce",
                 PlayerStatType.Cunning => "Cunning",
                 _ => stat.ToString()
-            };
-        }
-
-        /// <summary>
-        /// Returns display-friendly name for card category
-        /// </summary>
-        protected string GetCategoryDisplayName(CardCategory category)
-        {
-            return category switch
-            {
-                CardCategory.Expression => "Expression",
-                CardCategory.Realization => "Realization",
-                CardCategory.Regulation => "Regulation",
-                _ => "Unknown"
-            };
-        }
-
-        /// <summary>
-        /// Returns CSS class for card category styling
-        /// </summary>
-        protected string GetCategoryClass(ConversationCard card)
-        {
-            if (card == null) return "category-unknown";
-
-            return card.Category switch
-            {
-                CardCategory.Expression => "category-expression",
-                CardCategory.Realization => "category-realization",
-                CardCategory.Regulation => "category-regulation",
-                _ => "category-unknown"
             };
         }
 

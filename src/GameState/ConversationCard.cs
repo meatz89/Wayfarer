@@ -11,9 +11,6 @@ public class ConversationCard
     // Single source of truth for card type
     public CardType CardType { get; init; } = CardType.Conversation;
 
-    // Card category defines strategic role and mechanics
-    public CardCategory Category { get; init; } = CardCategory.Expression;
-
     // Categorical properties that define behavior through context
     public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
@@ -79,46 +76,6 @@ public class ConversationCard
 
 
 
-
-    /// <summary>
-    /// Determines card category based on success effect type
-    /// Uses the refined mapping: Expression (Strike, Promising), Realization (DoubleMomentum), Regulation (Soothe, Threading)
-    /// </summary>
-    public static CardCategory DetermineCategoryFromEffect(SuccessEffectType effectType)
-    {
-        return effectType switch
-        {
-            SuccessEffectType.Strike => CardCategory.Expression,
-            SuccessEffectType.Promising => CardCategory.Expression,
-            SuccessEffectType.DoubleMomentum => CardCategory.Realization,
-            SuccessEffectType.Soothe => CardCategory.Regulation,
-            SuccessEffectType.Threading => CardCategory.Regulation,
-            _ => CardCategory.Expression // Default fallback
-        };
-    }
-
-    /// <summary>
-    /// Gets all effect types that belong to a specific category
-    /// </summary>
-    public static IReadOnlyList<SuccessEffectType> GetEffectTypesForCategory(CardCategory category)
-    {
-        return category switch
-        {
-            CardCategory.Expression => new[] { SuccessEffectType.Strike, SuccessEffectType.Promising },
-            CardCategory.Realization => new[] { SuccessEffectType.DoubleMomentum },
-            CardCategory.Regulation => new[] { SuccessEffectType.Soothe, SuccessEffectType.Threading },
-            _ => new[] { SuccessEffectType.Strike } // Default fallback
-        };
-    }
-
-    /// <summary>
-    /// Determines if this card matches its assigned category based on effect type
-    /// Used for validation and consistency checking
-    /// </summary>
-    public bool IsCategoryConsistent()
-    {
-        return DetermineCategoryFromEffect(SuccessType) == Category;
-    }
 
     /// <summary>
     /// Get the strategic tier based on depth (Foundation, Standard, Decisive)

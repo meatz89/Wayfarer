@@ -10,12 +10,11 @@ This document specifies the complete card library using a hybrid system where **
 1. [Core Design Philosophy](#core-design-philosophy)
 2. [The Two-Tiered System](#the-two-tiered-system)
 3. [Mathematical Foundation](#mathematical-foundation)
-4. [Card Categories](#card-categories)
-5. [Effect Formula System](#effect-formula-system)
-6. [Card Structure](#card-structure)
-7. [Complete Card Library](#complete-card-library)
-8. [Implementation Guidelines](#implementation-guidelines)
-9. [Strategic Implications](#strategic-implications)
+4. [Effect Formula System](#effect-formula-system)
+5. [Card Structure](#card-structure)
+6. [Complete Card Library](#complete-card-library)
+7. [Implementation Guidelines](#implementation-guidelines)
+8. [Strategic Implications](#strategic-implications)
 
 ---
 
@@ -150,32 +149,6 @@ TOTAL: 22 cards played, 9 Statement cards
 
 ---
 
-## Card Categories
-
-Cards belong to one of three mechanical categories that determine their strategic role:
-
-### Expression (Momentum Generation)
-**Mechanical Role**: Generate Momentum directly to reach conversation goals
-**Typical Effects**: +Momentum, +Momentum +Doubt, +Initiative +Momentum
-**Strategic Use**: Push toward goal thresholds and unlock higher tiers
-**Example Stats**: Authority (direct momentum), Cunning (momentum + setup)
-
-### Realization (Card Advantage)
-**Mechanical Role**: Draw cards to increase options and enable longer turns
-**Typical Effects**: Draw X cards, Draw cards based on state, Draw + Momentum
-**Strategic Use**: Build hand size for combo turns and maintain card flow
-**Example Stats**: Insight (primary card drawing)
-
-### Regulation (Resource Management)
-**Mechanical Role**: Manage Cadence and Doubt to maintain conversation health
-**Typical Effects**: Reduce Cadence, Reduce Doubt, Set Cadence to value
-**Strategic Use**: Prevent conversation failure and optimize rhythm
-**Example Stats**: Rapport (cadence), Commerce (doubt)
-
-**Categories are descriptive, not prescriptive**: They help understand card roles but don't enforce hard mechanical rules.
-
----
-
 ## Effect Formula System
 
 All card effects use deterministic formulas. No randomness, no player choices, no percentage-based scaling.
@@ -239,11 +212,30 @@ Linear scaling formulas can reference these game state values:
 ```
 NAME - [Base/Signature]
 Stat, Depth X, Persistence, Initiative Cost
-Category: [Expression/Realization/Regulation]
 Requirement: [None | X+ Stat Statements]
 Effect: [Formula-based effect]
 Verisimilitude: [Why this effect makes sense]
 ```
+
+**JSON Structure** (Categorical Properties Only):
+```json
+{
+  "id": "stat_card_name",
+  "title": "Card Name",
+  "dialogueText": "What the character says...",
+  "type": "Conversation",
+  "boundStat": "StatName",
+  "depth": 1-8,
+  "persistence": "Echo|Statement",
+  "initiativeCost": 0-8,
+  "requiredStat": null or "StatName",
+  "requiredStatements": 0 or 3-8,
+  "effectVariant": "Base|Signature",
+  "personalityTypes": ["ALL"]
+}
+```
+
+**Effect Determination**: Effects are NOT in JSON. The parser looks up effects from `CardEffectCatalog` based on `boundStat` + `depth` + `effectVariant`.
 
 ### Persistence Distribution by Tier
 
@@ -274,7 +266,6 @@ Verisimilitude: [Why this effect makes sense]
 **"Quick Scan" - Base**
 ```
 Insight, Depth 1, Echo, 0 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 2 cards
 Verisimilitude: Rapid information gathering, repeatable technique
@@ -283,7 +274,6 @@ Verisimilitude: Rapid information gathering, repeatable technique
 **"Ask Question" - Base**
 ```
 Insight, Depth 1, Statement, 0 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 1 card, +1 Initiative
 Verisimilitude: Questions open conversational opportunities
@@ -292,7 +282,6 @@ Verisimilitude: Questions open conversational opportunities
 **"Careful Analysis" - Base**
 ```
 Insight, Depth 2, Echo, 0 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 2 cards
 Verisimilitude: Methodical examination, repeatable process
@@ -301,7 +290,6 @@ Verisimilitude: Methodical examination, repeatable process
 **"Notice Detail" - Base**
 ```
 Insight, Depth 2, Statement, 0 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 2 cards, +1 Momentum
 Verisimilitude: Basic observation is the foundation of analysis
@@ -312,7 +300,6 @@ Verisimilitude: Basic observation is the foundation of analysis
 **"Identify Pattern" - Base**
 ```
 Insight, Depth 4, Statement, 3 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 3 cards, +2 Momentum
 Verisimilitude: Patterns emerge from observation
@@ -321,7 +308,6 @@ Verisimilitude: Patterns emerge from observation
 **"Connect Evidence" - Base**
 ```
 Insight, Depth 3, Echo, 2 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 1 card per 2 TotalStatements (max 3)
 Verisimilitude: More conversation history reveals more connections
@@ -330,7 +316,6 @@ Verisimilitude: More conversation history reveals more connections
 **"Cross-Reference" - Base**
 ```
 Insight, Depth 3, Statement, 2 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 2 cards, +1 Momentum, +1 Initiative
 Verisimilitude: Referencing prior information builds understanding
@@ -339,7 +324,6 @@ Verisimilitude: Referencing prior information builds understanding
 **"Complex Analysis" - Signature**
 ```
 Insight, Depth 4, Statement, 3 Initiative
-Category: Realization
 Requirement: 3+ Insight Statements
 Effect: Draw 4 cards, +3 Momentum
 Power Increase: +33% cards, +50% momentum
@@ -349,7 +333,6 @@ Verisimilitude: Deep analysis builds on substantial prior observations
 **"Pattern Synthesis" - Signature**
 ```
 Insight, Depth 3, Echo, 2 Initiative
-Category: Realization
 Requirement: 3+ Insight Statements
 Effect: Draw 1 card per InsightStatement (max 4)
 Power Increase: +33% max draw
@@ -361,7 +344,6 @@ Verisimilitude: Synthesizing all prior analytical work
 **"Draw Conclusion" - Base**
 ```
 Insight, Depth 6, Statement, 5 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 4 cards, +5 Momentum
 Verisimilitude: Logical conclusions from accumulated information
@@ -370,7 +352,6 @@ Verisimilitude: Logical conclusions from accumulated information
 **"Synthesize Information" - Base**
 ```
 Insight, Depth 5, Echo, 4 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 1 card per 2 TotalStatements (max 5)
 Verisimilitude: Bringing together all conversation threads
@@ -379,7 +360,6 @@ Verisimilitude: Bringing together all conversation threads
 **"Reveal Implication" - Base**
 ```
 Insight, Depth 5, Statement, 4 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 3 cards, +4 Momentum, +2 Initiative
 Verisimilitude: Hidden implications become clear
@@ -388,7 +368,6 @@ Verisimilitude: Hidden implications become clear
 **"Perfect Deduction" - Signature**
 ```
 Insight, Depth 6, Statement, 5 Initiative
-Category: Realization
 Requirement: 5+ Insight Statements
 Effect: Draw 6 cards, +6 Momentum
 Power Increase: +50% cards, +20% momentum
@@ -398,7 +377,6 @@ Verisimilitude: Masterful deduction from comprehensive foundation
 **"Analytical Mastery" - Signature**
 ```
 Insight, Depth 5, Echo, 4 Initiative
-Category: Realization
 Requirement: 5+ Insight Statements
 Effect: Draw 1 card per InsightStatement (max 6)
 Power Increase: +20% max draw
@@ -410,7 +388,6 @@ Verisimilitude: Mastery means leveraging all gathered information
 **"Undeniable Logic" - Base**
 ```
 Insight, Depth 8, Statement, 7 Initiative
-Category: Realization
 Requirement: None
 Effect: Draw 5 cards, +7 Momentum, +3 Initiative
 Verisimilitude: Irrefutable arguments from logical foundation
@@ -419,7 +396,6 @@ Verisimilitude: Irrefutable arguments from logical foundation
 **"Complete Understanding" - Signature**
 ```
 Insight, Depth 8, Statement, 7 Initiative
-Category: Realization
 Requirement: 8+ Insight Statements
 Effect: Draw 8 cards, +10 Momentum, +4 Initiative
 Power Increase: +60% cards, +43% momentum, +33% initiative
@@ -435,7 +411,6 @@ Verisimilitude: Total comprehension achieved through exhaustive analysis
 **"Show Understanding" - Base**
 ```
 Rapport, Depth 1, Echo, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 1
 Verisimilitude: Repeatable empathetic response
@@ -444,7 +419,6 @@ Verisimilitude: Repeatable empathetic response
 **"Gentle Encouragement" - Base**
 ```
 Rapport, Depth 1, Statement, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: +1 Initiative, +1 Momentum
 Verisimilitude: Encouragement creates openings
@@ -453,7 +427,6 @@ Verisimilitude: Encouragement creates openings
 **"Empathetic Response" - Base**
 ```
 Rapport, Depth 2, Echo, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 1, +1 Initiative
 Verisimilitude: Sustained empathy technique
@@ -462,7 +435,6 @@ Verisimilitude: Sustained empathy technique
 **"Active Listening" - Base**
 ```
 Rapport, Depth 2, Statement, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 1, +1 Momentum
 Verisimilitude: Basic empathy begins building connection
@@ -473,7 +445,6 @@ Verisimilitude: Basic empathy begins building connection
 **"Validate Feelings" - Base**
 ```
 Rapport, Depth 4, Statement, 3 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 2, +3 Momentum
 Verisimilitude: Validation addresses emotional needs
@@ -482,7 +453,6 @@ Verisimilitude: Validation addresses emotional needs
 **"Find Common Ground" - Base**
 ```
 Rapport, Depth 3, Statement, 2 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 1, +2 Momentum, +1 Initiative
 Verisimilitude: Shared understanding builds naturally
@@ -491,7 +461,6 @@ Verisimilitude: Shared understanding builds naturally
 **"Reflect Emotions" - Base**
 ```
 Rapport, Depth 3, Echo, 2 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 1 per 3 TotalStatements (max -3)
 Verisimilitude: Reflection grows powerful with conversation depth
@@ -500,7 +469,6 @@ Verisimilitude: Reflection grows powerful with conversation depth
 **"Profound Validation" - Signature**
 ```
 Rapport, Depth 4, Statement, 3 Initiative
-Category: Regulation
 Requirement: 3+ Rapport Statements
 Effect: Reduce Cadence by 3, +4 Momentum
 Power Increase: +50% cadence reduction, +33% momentum
@@ -510,7 +478,6 @@ Verisimilitude: Deep validation from established trust
 **"Emotional Resonance" - Signature**
 ```
 Rapport, Depth 3, Echo, 2 Initiative
-Category: Regulation
 Requirement: 3+ Rapport Statements
 Effect: Reduce Cadence by 1 per 2 RapportStatements (max -4)
 Power Increase: +33% max cadence reduction
@@ -522,7 +489,6 @@ Verisimilitude: Perfect attunement to emotional state
 **"Deep Understanding" - Base**
 ```
 Rapport, Depth 6, Statement, 5 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 3, +5 Momentum
 Verisimilitude: Profound understanding transcends words
@@ -531,7 +497,6 @@ Verisimilitude: Profound understanding transcends words
 **"Emotional Support" - Base**
 ```
 Rapport, Depth 5, Statement, 4 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Cadence by 2, +4 Momentum, Reduce Doubt by 1 per 2 Doubt (round down)
 Verisimilitude: Support addresses both emotions and concerns
@@ -540,7 +505,6 @@ Verisimilitude: Support addresses both emotions and concerns
 **"Resonate" - Base**
 ```
 Rapport, Depth 5, Echo, 4 Initiative
-Category: Regulation
 Requirement: None
 Effect: Set Cadence to 0
 Verisimilitude: Perfect balance achieved
@@ -549,7 +513,6 @@ Verisimilitude: Perfect balance achieved
 **"Perfect Empathy" - Signature**
 ```
 Rapport, Depth 6, Statement, 5 Initiative
-Category: Regulation
 Requirement: 5+ Rapport Statements
 Effect: Reduce Cadence by 5, +7 Momentum, +3 Initiative
 Power Increase: +67% cadence reduction, +40% momentum
@@ -559,7 +522,6 @@ Verisimilitude: Perfect empathy from sustained relational work
 **"Emotional Harmony" - Signature**
 ```
 Rapport, Depth 5, Echo, 4 Initiative
-Category: Regulation
 Requirement: 5+ Rapport Statements
 Effect: Set Cadence to -3
 Power Increase: From neutral to strong negative (better outcome)
@@ -571,7 +533,6 @@ Verisimilitude: Deep harmony from trust foundation
 **"Emotional Breakthrough" - Base**
 ```
 Rapport, Depth 8, Statement, 7 Initiative
-Category: Regulation
 Requirement: None
 Effect: Set Cadence to -5, +8 Momentum
 Verisimilitude: Transformative emotional moment
@@ -580,7 +541,6 @@ Verisimilitude: Transformative emotional moment
 **"Transcendent Understanding" - Signature**
 ```
 Rapport, Depth 8, Statement, 7 Initiative
-Category: Regulation
 Requirement: 8+ Rapport Statements
 Effect: Set Cadence to -5, +11 Momentum, +4 Initiative
 Power Increase: +38% momentum, +4 initiative
@@ -596,7 +556,6 @@ Verisimilitude: Ultimate empathetic connection from complete trust
 **"State Firmly" - Base**
 ```
 Authority, Depth 1, Echo, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Momentum, +1 Doubt
 Verisimilitude: Repeatable firm statement
@@ -605,7 +564,6 @@ Verisimilitude: Repeatable firm statement
 **"Challenge" - Base**
 ```
 Authority, Depth 1, Statement, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Momentum, +1 Initiative
 Verisimilitude: Challenges create opportunities
@@ -614,7 +572,6 @@ Verisimilitude: Challenges create opportunities
 **"Direct Statement" - Base**
 ```
 Authority, Depth 2, Echo, 1 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Momentum, +1 Doubt
 Verisimilitude: Clear, direct communication
@@ -623,7 +580,6 @@ Verisimilitude: Clear, direct communication
 **"Assert Position" - Base**
 ```
 Authority, Depth 2, Statement, 1 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Momentum, +1 Doubt
 Verisimilitude: Basic assertion establishes presence
@@ -634,7 +590,6 @@ Verisimilitude: Basic assertion establishes presence
 **"Direct Demand" - Base**
 ```
 Authority, Depth 4, Statement, 4 Initiative
-Category: Expression
 Requirement: None
 Effect: +5 Momentum, +2 Doubt
 Verisimilitude: Direct demands drive progress
@@ -643,7 +598,6 @@ Verisimilitude: Direct demands drive progress
 **"Pressure Point" - Base**
 ```
 Authority, Depth 3, Statement, 3 Initiative
-Category: Expression
 Requirement: None
 Effect: +4 Momentum, +1 Doubt, +1 Initiative
 Verisimilitude: Identifying leverage points
@@ -652,7 +606,6 @@ Verisimilitude: Identifying leverage points
 **"Escalate Tension" - Base**
 ```
 Authority, Depth 3, Echo, 3 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Momentum per PositiveCadence (max +5), +2 Doubt
 Verisimilitude: Leveraging conversational dominance
@@ -661,7 +614,6 @@ Verisimilitude: Leveraging conversational dominance
 **"Overwhelming Demand" - Signature**
 ```
 Authority, Depth 4, Statement, 4 Initiative
-Category: Expression
 Requirement: 3+ Authority Statements
 Effect: +7 Momentum, +2 Doubt, +2 Initiative
 Power Increase: +40% momentum, +2 initiative
@@ -671,7 +623,6 @@ Verisimilitude: Commands backed by established authority
 **"Calculated Pressure" - Signature**
 ```
 Authority, Depth 3, Echo, 3 Initiative
-Category: Expression
 Requirement: 3+ Authority Statements
 Effect: +1 Momentum per AuthorityStatement (max +5), +2 Doubt
 Power Increase: Scales with specialization
@@ -683,7 +634,6 @@ Verisimilitude: Leveraging accumulated authority
 **"Compelling Argument" - Base**
 ```
 Authority, Depth 6, Statement, 6 Initiative
-Category: Expression
 Requirement: None
 Effect: +8 Momentum, +3 Doubt
 Verisimilitude: Powerful arguments compel action
@@ -692,7 +642,6 @@ Verisimilitude: Powerful arguments compel action
 **"Overwhelming Presence" - Base**
 ```
 Authority, Depth 5, Statement, 5 Initiative
-Category: Expression
 Requirement: None
 Effect: +7 Momentum, +2 Doubt, +2 Initiative
 Verisimilitude: Presence dominates conversation
@@ -701,7 +650,6 @@ Verisimilitude: Presence dominates conversation
 **"Dominate" - Base**
 ```
 Authority, Depth 5, Echo, 5 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Momentum per 2 TotalStatements (max +6), +3 Doubt
 Verisimilitude: Leveraging entire conversation
@@ -710,7 +658,6 @@ Verisimilitude: Leveraging entire conversation
 **"Unquestionable Authority" - Signature**
 ```
 Authority, Depth 6, Statement, 6 Initiative
-Category: Expression
 Requirement: 5+ Authority Statements
 Effect: +11 Momentum, +3 Doubt, +3 Initiative
 Power Increase: +38% momentum, +3 initiative
@@ -720,7 +667,6 @@ Verisimilitude: Authority so established it cannot be challenged
 **"Total Domination" - Signature**
 ```
 Authority, Depth 5, Echo, 5 Initiative
-Category: Expression
 Requirement: 5+ Authority Statements
 Effect: +2 Momentum per AuthorityStatement (max +10), +3 Doubt
 Power Increase: +67% max momentum
@@ -732,7 +678,6 @@ Verisimilitude: Complete conversational control
 **"Decisive Command" - Base**
 ```
 Authority, Depth 8, Statement, 8 Initiative
-Category: Expression
 Requirement: None
 Effect: +12 Momentum, +4 Doubt
 Verisimilitude: Commands that compel immediate action
@@ -741,7 +686,6 @@ Verisimilitude: Commands that compel immediate action
 **"Absolute Authority" - Signature**
 ```
 Authority, Depth 8, Statement, 8 Initiative
-Category: Expression
 Requirement: 8+ Authority Statements
 Effect: +16 Momentum, +4 Doubt, +4 Initiative
 Power Increase: +33% momentum, +4 initiative
@@ -757,7 +701,6 @@ Verisimilitude: Authority so overwhelming it ends debates
 **"Reassure" - Base**
 ```
 Commerce, Depth 1, Echo, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: -1 Doubt
 Verisimilitude: Repeatable reassurance technique
@@ -766,7 +709,6 @@ Verisimilitude: Repeatable reassurance technique
 **"Propose Alternative" - Base**
 ```
 Commerce, Depth 1, Statement, 0 Initiative
-Category: Regulation
 Requirement: None
 Effect: -1 Doubt, +1 Initiative
 Verisimilitude: Options reduce tension
@@ -775,7 +717,6 @@ Verisimilitude: Options reduce tension
 **"Mitigate Risk" - Base**
 ```
 Commerce, Depth 2, Echo, 1 Initiative
-Category: Regulation
 Requirement: None
 Effect: -1 Doubt, +1 Initiative
 Verisimilitude: Ongoing risk management
@@ -784,7 +725,6 @@ Verisimilitude: Ongoing risk management
 **"Address Concern" - Base**
 ```
 Commerce, Depth 2, Statement, 1 Initiative
-Category: Regulation
 Requirement: None
 Effect: -1 Doubt, +1 Momentum
 Verisimilitude: Basic risk mitigation
@@ -795,7 +735,6 @@ Verisimilitude: Basic risk mitigation
 **"Find Middle Ground" - Base**
 ```
 Commerce, Depth 4, Statement, 4 Initiative
-Category: Regulation
 Requirement: None
 Effect: -2 Doubt, +3 Momentum, Consume 2 Momentum
 Verisimilitude: Compromise requires giving ground
@@ -804,7 +743,6 @@ Verisimilitude: Compromise requires giving ground
 **"Calculate Risk" - Base**
 ```
 Commerce, Depth 3, Statement, 3 Initiative
-Category: Regulation
 Requirement: None
 Effect: -2 Doubt, +2 Momentum
 Verisimilitude: Understanding risks reduces them
@@ -813,7 +751,6 @@ Verisimilitude: Understanding risks reduces them
 **"Trade Concession" - Base**
 ```
 Commerce, Depth 3, Echo, 3 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Doubt by 1 per 3 Momentum consumed (max -3, requires 9 Momentum)
 Verisimilitude: Trading progress for safety
@@ -822,7 +759,6 @@ Verisimilitude: Trading progress for safety
 **"Expert Negotiation" - Signature**
 ```
 Commerce, Depth 4, Statement, 4 Initiative
-Category: Regulation
 Requirement: 3+ Commerce Statements
 Effect: -3 Doubt, +4 Momentum, Consume 2 Momentum
 Power Increase: +50% doubt reduction, +33% momentum
@@ -832,7 +768,6 @@ Verisimilitude: Masterful compromise from negotiation expertise
 **"Strategic Exchange" - Signature**
 ```
 Commerce, Depth 3, Echo, 3 Initiative
-Category: Regulation
 Requirement: 3+ Commerce Statements
 Effect: Reduce Doubt by 1 per 2 Momentum consumed (max -4, requires 8 Momentum)
 Power Increase: +33% efficiency, +33% max reduction
@@ -844,7 +779,6 @@ Verisimilitude: Efficient trading from experience
 **"Propose Terms" - Base**
 ```
 Commerce, Depth 6, Statement, 6 Initiative
-Category: Regulation
 Requirement: None
 Effect: -4 Doubt, +5 Momentum, Consume 3 Momentum
 Verisimilitude: Formal terms require foundation
@@ -853,7 +787,6 @@ Verisimilitude: Formal terms require foundation
 **"Strategic Concession" - Base**
 ```
 Commerce, Depth 5, Statement, 5 Initiative
-Category: Regulation
 Requirement: None
 Effect: -3 Doubt, +4 Momentum, +2 Initiative, Consume 2 Momentum
 Verisimilitude: Strategic giving to gain
@@ -862,7 +795,6 @@ Verisimilitude: Strategic giving to gain
 **"Mitigate Crisis" - Base**
 ```
 Commerce, Depth 5, Echo, 5 Initiative
-Category: Regulation
 Requirement: None
 Effect: Reduce Doubt by 1 per 2 Doubt (round down)
 Verisimilitude: Crisis management expertise
@@ -871,7 +803,6 @@ Verisimilitude: Crisis management expertise
 **"Perfect Terms" - Signature**
 ```
 Commerce, Depth 6, Statement, 6 Initiative
-Category: Regulation
 Requirement: 5+ Commerce Statements
 Effect: -5 Doubt, +7 Momentum, +3 Initiative, Consume 3 Momentum
 Power Increase: +25% doubt reduction, +40% momentum, +3 initiative
@@ -881,7 +812,6 @@ Verisimilitude: Ideal terms from comprehensive negotiation
 **"Master Negotiator" - Signature**
 ```
 Commerce, Depth 5, Echo, 5 Initiative
-Category: Regulation
 Requirement: 5+ Commerce Statements
 Effect: Reduce Doubt by 1 per CommerceStatement (max -6)
 Power Increase: Direct scaling with specialization
@@ -893,7 +823,6 @@ Verisimilitude: Every negotiation builds expertise
 **"Seal Agreement" - Base**
 ```
 Commerce, Depth 8, Statement, 8 Initiative
-Category: Regulation
 Requirement: None
 Effect: Set Doubt to 0, +8 Momentum, Consume 4 Momentum
 Verisimilitude: Final agreement removes all concerns
@@ -902,7 +831,6 @@ Verisimilitude: Final agreement removes all concerns
 **"Perfect Agreement" - Signature**
 ```
 Commerce, Depth 8, Statement, 8 Initiative
-Category: Regulation
 Requirement: 8+ Commerce Statements
 Effect: Set Doubt to 0, +11 Momentum, +4 Initiative, Consume 4 Momentum
 Power Increase: +38% momentum, +4 initiative
@@ -918,7 +846,6 @@ Verisimilitude: Flawless agreement from negotiation mastery
 **"Feint" - Base**
 ```
 Cunning, Depth 1, Echo, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Initiative
 Verisimilitude: Repeatable tactical tool
@@ -927,7 +854,6 @@ Verisimilitude: Repeatable tactical tool
 **"Bait" - Base**
 ```
 Cunning, Depth 1, Statement, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Initiative, +1 Momentum
 Verisimilitude: Creating tactical openings
@@ -936,7 +862,6 @@ Verisimilitude: Creating tactical openings
 **"Quick Maneuver" - Base**
 ```
 Cunning, Depth 2, Echo, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Initiative
 Verisimilitude: Rapid tactical adjustment
@@ -945,7 +870,6 @@ Verisimilitude: Rapid tactical adjustment
 **"Subtle Maneuver" - Base**
 ```
 Cunning, Depth 2, Statement, 0 Initiative
-Category: Expression
 Requirement: None
 Effect: +2 Initiative, +1 Momentum
 Verisimilitude: Basic tactical positioning
@@ -956,7 +880,6 @@ Verisimilitude: Basic tactical positioning
 **"Create Opening" - Base**
 ```
 Cunning, Depth 4, Statement, 2 Initiative
-Category: Expression
 Requirement: None
 Effect: +4 Initiative, +2 Momentum
 Verisimilitude: Manufactured opportunities
@@ -965,7 +888,6 @@ Verisimilitude: Manufactured opportunities
 **"Position Advantage" - Base**
 ```
 Cunning, Depth 3, Statement, 2 Initiative
-Category: Expression
 Requirement: None
 Effect: +3 Initiative, +2 Momentum, Draw 1 card
 Verisimilitude: Positioning creates options
@@ -974,7 +896,6 @@ Verisimilitude: Positioning creates options
 **"Tactical Leverage" - Base**
 ```
 Cunning, Depth 3, Echo, 2 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Initiative per 2 MindCards (max +5)
 Verisimilitude: Options create opportunities
@@ -983,7 +904,6 @@ Verisimilitude: Options create opportunities
 **"Masterful Setup" - Signature**
 ```
 Cunning, Depth 4, Statement, 2 Initiative
-Category: Expression
 Requirement: 3+ Cunning Statements
 Effect: +5 Initiative, +3 Momentum, Draw 1 card
 Power Increase: +25% initiative, +50% momentum, +1 card
@@ -993,7 +913,6 @@ Verisimilitude: Superior positioning from tactical mastery
 **"Perfect Leverage" - Signature**
 ```
 Cunning, Depth 3, Echo, 2 Initiative
-Category: Expression
 Requirement: 3+ Cunning Statements
 Effect: +1 Initiative per CunningStatement (max +5)
 Power Increase: Direct scaling with specialization
@@ -1005,7 +924,6 @@ Verisimilitude: Every setup creates more opportunities
 **"Exploit Opening" - Base**
 ```
 Cunning, Depth 6, Statement, 4 Initiative
-Category: Expression
 Requirement: None
 Effect: +6 Initiative, +5 Momentum
 Verisimilitude: Capitalizing on created opportunities
@@ -1014,7 +932,6 @@ Verisimilitude: Capitalizing on created opportunities
 **"Perfect Timing" - Base**
 ```
 Cunning, Depth 5, Statement, 3 Initiative
-Category: Expression
 Requirement: None
 Effect: +5 Initiative, +4 Momentum, Draw 2 cards
 Verisimilitude: Timing multiplies effectiveness
@@ -1023,7 +940,6 @@ Verisimilitude: Timing multiplies effectiveness
 **"Convert Tension" - Base**
 ```
 Cunning, Depth 5, Echo, 4 Initiative
-Category: Expression
 Requirement: None
 Effect: +1 Initiative per Doubt (max +8)
 Verisimilitude: Danger becomes opportunity
@@ -1032,7 +948,6 @@ Verisimilitude: Danger becomes opportunity
 **"Total Exploitation" - Signature**
 ```
 Cunning, Depth 6, Statement, 4 Initiative
-Category: Expression
 Requirement: 5+ Cunning Statements
 Effect: +8 Initiative, +7 Momentum, Draw 2 cards
 Power Increase: +33% initiative, +40% momentum
@@ -1042,7 +957,6 @@ Verisimilitude: Complete setup exploitation
 **"Tactical Mastery" - Signature**
 ```
 Cunning, Depth 5, Echo, 4 Initiative
-Category: Expression
 Requirement: 5+ Cunning Statements
 Effect: +2 Initiative per CunningStatement (max +10)
 Power Increase: +25% max initiative
@@ -1054,7 +968,6 @@ Verisimilitude: Every maneuver multiplies opportunities
 **"Spring the Trap" - Base**
 ```
 Cunning, Depth 8, Statement, 6 Initiative
-Category: Expression
 Requirement: None
 Effect: +10 Initiative, +8 Momentum
 Verisimilitude: The payoff from extensive setup
@@ -1063,7 +976,6 @@ Verisimilitude: The payoff from extensive setup
 **"Overwhelming Advantage" - Signature**
 ```
 Cunning, Depth 8, Statement, 6 Initiative
-Category: Expression
 Requirement: 8+ Cunning Statements
 Effect: +13 Initiative, +11 Momentum, Draw 3 cards
 Power Increase: +30% initiative, +38% momentum, +3 cards

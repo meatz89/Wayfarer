@@ -100,18 +100,6 @@ public static class ConversationCardParser
             _ => CardType.Conversation
         };
 
-        // Parse or determine card category
-        CardCategory category = CardCategory.Expression; // Default
-        if (!string.IsNullOrEmpty(dto.Category))
-        {
-            Enum.TryParse<CardCategory>(dto.Category, true, out category);
-        }
-        else
-        {
-            // Auto-determine category from success effect type
-            category = ConversationCard.DetermineCategoryFromEffect(successType);
-        }
-
         // Validate momentum threshold for goal cards
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.Letter)
         {
@@ -261,7 +249,6 @@ public static class ConversationCardParser
             Id = customId ?? dto.Id,
             Title = dto.Title ?? "",
             CardType = cardType,
-            Category = category,
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
@@ -410,7 +397,6 @@ public class ConversationCardDTO
     public int? MinimumTokensRequired { get; set; }
 
     // Categorical properties - define behavior through context
-    public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
     public string Persistence { get; set; } // Echo/Statement
     public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
 
