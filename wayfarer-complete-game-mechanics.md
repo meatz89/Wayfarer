@@ -65,7 +65,7 @@ Instead of players owning a personal conversation deck that levels up, each conv
 
 **Friendly Chat**: Casual, balanced mix of all stats
 - Used for building relationships without pressure
-- Contains cards from all strategic categories
+- Contains cards from all five stats
 - Lower depth cards predominate
 
 **Desperate Request**: Heavy Rapport/Insight, zero Authority
