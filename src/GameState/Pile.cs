@@ -66,8 +66,18 @@ public class Pile
 
     public void Shuffle()
     {
-        // DETERMINISTIC SYSTEM: No shuffling - cards maintain their original order
-        // This ensures consistent, predictable card draw order
+        // Fisher-Yates shuffle for proper randomization
+        // Card EFFECTS are deterministic (no dice rolls), but draw ORDER is randomized for variety
+        Random rng = new Random();
+        int n = cards.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            CardInstance value = cards[k];
+            cards[k] = cards[n];
+            cards[n] = value;
+        }
     }
 
     public bool Contains(CardInstance card)
