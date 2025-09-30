@@ -310,9 +310,7 @@ public static class ConversationCardParser
 
         // Check that ALL Initiative-generating cards are Echo type
         List<ConversationCard> initiativeGenerators = allCards
-            .Where(c => c.EffectFormula != null &&
-                       c.EffectFormula.TargetResource == ConversationResourceType.Initiative &&
-                       c.EffectFormula.FormulaType != EffectFormulaType.Trading) // Trading effects consume, not generate
+            .Where(c => c.EffectFormula != null && GeneratesInitiative(c.EffectFormula))
             .ToList();
 
         List<ConversationCard> nonEchoInitiativeCards = initiativeGenerators
@@ -330,6 +328,28 @@ public static class ConversationCardParser
         Console.WriteLine($"[ConversationCardParser] ✓ Foundation card validation passed: " +
                          $"{echoPercentage:P1} Echo Foundation cards, " +
                          $"{initiativeGenerators.Count} Initiative generators (all Echo)");
+    }
+
+    /// <summary>
+    /// Check if a card effect formula generates Initiative (including in compound effects)
+    /// </summary>
+    private static bool GeneratesInitiative(CardEffectFormula formula)
+    {
+        if (formula == null) return false;
+
+        // Trading effects consume, not generate
+        if (formula.FormulaType == EffectFormulaType.Trading) return false;
+
+        // Check if top-level effect generates Initiative
+        if (formula.TargetResource == ConversationResourceType.Initiative) return true;
+
+        // Recursively check compound effects
+        if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
+        {
+            return formula.CompoundEffects.Any(e => GeneratesInitiative(e));
+        }
+
+        return false;
     }
 
     /// <summary>
