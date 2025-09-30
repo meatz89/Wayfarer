@@ -25,15 +25,28 @@ This document describes the complete conversation card system architecture inclu
 
 ### Stat-to-Resource Mapping
 
-**Perfect 1-to-1 mapping** - Each stat manipulates one primary resource:
+**CRITICAL REFINEMENT**: **Specialist with Universal Access** model, NOT hard exclusivity.
 
-| Stat | Resource | Role | Verisimilitude |
-|------|----------|------|----------------|
-| **Insight** | Cards | Information gathering | Observant people gather more information |
-| **Rapport** | Cadence | Rhythm management | Empathetic people balance conversation flow |
-| **Authority** | Momentum | Direct progress | Commanding people drive toward goals |
-| **Commerce** | Doubt | Risk mitigation | Negotiators manage tension and stakes |
-| **Cunning** | Initiative | Action economy | Tactical people create opportunities |
+Each stat SPECIALIZES in one resource (2-3x efficiency) but can ACCESS universal resources (Momentum/Initiative) at standard rates.
+
+| Stat | Specialist Resource | Universal Access | Trade-offs |
+|------|---------------------|------------------|------------|
+| **Insight** | Cards (2-6 draw) | Momentum (+1-3), Initiative (+1-2) | Information-focused |
+| **Rapport** | Cadence (-1 to -3) | Momentum (+1-3), Initiative (+1-3) | Sustainable, lower momentum |
+| **Authority** | Momentum (+2-12) | Initiative (+1-2) | High momentum but generates Doubt |
+| **Commerce** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
+| **Cunning** | Initiative (+2-6) | Momentum (+1-3) | Enables long action chains |
+
+**Why This Works:**
+- **Verisimilitude**: All conversation approaches advance progress (momentum), not just commands
+- **Gameplay**: Every deck can reach goals; specialists just excel in their domain
+- **Mechanical**: Prevents impossible deck compositions (e.g., "zero Authority" can't win without Momentum)
+
+**Pattern by Depth:**
+- **Foundation (1-2)**: Specialist 2x rate, Universal 1x rate
+- **Standard (3-4)**: Specialist 2.5x rate, Universal 1.5x rate
+- **Advanced (5-6)**: Specialist 3x rate, Universal 2x rate
+- **Master (7-8)**: Specialist 3-4x rate, Universal 2-3x rate
 
 ### Formula Types
 

@@ -311,13 +311,41 @@ Draw pool still includes depths 1-6
 3. Card effects were arbitrary rather than predictable
 4. Players couldn't reliably plan resource flows
 
-### Solution: Perfect 1-to-1 Mapping
+### Solution: Specialist with Universal Access
 
-Each stat manipulates exactly ONE primary resource. This creates:
-- Clear mechanical identity per stat
-- Predictable resource flows
-- Distinct playstyles through specialization
-- Easy mental model (5 stats → 5 resources)
+**CRITICAL REFINEMENT**: Resources use a **Specialist with Universal Access** model, NOT hard exclusivity.
+
+**Core Principle**: Each stat SPECIALIZES in one resource (generating 2-3x more efficiently) but can ACCESS universal resources at weaker rates.
+
+**Why This Works**:
+- **Verisimilitude**: In real conversations, insightful analysis DOES advance conversation (momentum), just not as forcefully as commands
+- **Gameplay**: Every deck can progress toward goals, but specialists excel in their domain
+- **Identity**: Authority is still "the momentum stat" - it's just 2-3x better at it, not exclusive
+
+**Resource Tiers**:
+
+**Tier 1: Universal Resources** (all stats can generate)
+- **Momentum**: Progression gate, must be accessible to all stats
+- **Initiative**: Action economy, should be accessible to all stats
+
+**Tier 2: Specialist Resources** (only specialists generate efficiently)
+- **Cards** (Insight specialty): Others might get +1 card occasionally, Insight gets +2-6
+- **Cadence** (Rapport specialty): Others rarely touch it, Rapport specializes in reduction
+- **Doubt** (Commerce specialty): Others rarely reduce it, Commerce specializes
+
+**Efficiency Pattern by Depth**:
+```
+Foundation (Depth 1-2): Specialist 2x rate, Universal 1x rate
+Standard (Depth 3-4): Specialist 2.5x rate, Universal 1.5x rate
+Advanced (Depth 5-6): Specialist 3x rate, Universal 2x rate
+Master (Depth 7-8): Specialist 3-4x rate, Universal 2-3x rate
+```
+
+This creates:
+- Clear mechanical identity per stat (via specialization)
+- Predictable resource flows (specialists excel in their domain)
+- Distinct playstyles through specialization (specialists are 2-3x better)
+- Verisimilitude (all approaches advance progress, some more efficiently)
 
 ### The Five Mappings
 
@@ -329,27 +357,32 @@ Each stat manipulates exactly ONE primary resource. This creates:
 
 **Verisimilitude**: Observant, analytical people gather more information and see more possibilities.
 
-**Effect Patterns**:
-- Foundation: Draw 2 cards
-- Standard: Draw 3-4 cards (or conditional draws)
-- Advanced: Draw 4-5 cards (or draw based on state)
-- Master: Draw 6+ cards (or powerful draw combinations)
+**Specialization**: Cards (2-6 draw) + Universal Access to Momentum/Initiative
+
+**Effect Patterns (Specialist + Universal)**:
+- Foundation: Draw 2 cards (specialist 2x), +1 Momentum (universal 1x)
+- Standard: Draw 3 cards (specialist 2.5x), +2 Momentum + 1 Initiative (universal 1.5x)
+- Advanced: Draw 4 cards (specialist 3x), +3 Momentum + 2 Initiative (universal 2x)
+- Master: Draw 6 cards (specialist 3-4x), +5 Momentum + 3 Initiative (universal 2-3x)
 
 **Example Cards**:
 ```
 "Notice Detail" - Insight Depth 2 (Foundation)
 Statement, 0 Initiative
 Effect: Draw 2 cards, +1 Momentum
+(Specialist: Draw 2 | Universal: +1 Momentum)
 
 "Identify Pattern" - Insight Depth 4 (Standard)
 Statement, 3 Initiative
 Requirement: 2+ Insight Statements in Spoken
-Effect: Draw 3 cards, +2 Momentum
+Effect: Draw 3 cards, +2 Momentum, +1 Initiative
+(Specialist: Draw 3 | Universal: +2M +1I)
 
 "Draw Conclusion" - Insight Depth 6 (Advanced)
 Statement, 5 Initiative
 Requirement: 5+ Insight Statements in Spoken
-Effect: Draw 4 cards, +5 Momentum
+Effect: Draw 4 cards, +3 Momentum, +2 Initiative
+(Specialist: Draw 4 | Universal: +3M +2I)
 ```
 
 #### Rapport → Cadence (Rhythm Management)
@@ -360,27 +393,32 @@ Effect: Draw 4 cards, +5 Momentum
 
 **Verisimilitude**: Empathetic people balance conversation flow, neither dominating nor being dominated.
 
-**Effect Patterns**:
-- Foundation: Reduce Cadence by 1
-- Standard: Reduce Cadence by 2 (or conditional reduction)
-- Advanced: Reduce Cadence by 3-4 (or set to specific value)
-- Master: Reduce Cadence by 5 (or set to -5 maximum listening)
+**Specialization**: Cadence (-1 to -3 reduction) + Universal Access to Momentum/Initiative
+
+**Effect Patterns (Specialist + Universal)**:
+- Foundation: -1 Cadence (specialist 2x), +1 Momentum + 1 Initiative (universal 1x)
+- Standard: -2 Cadence (specialist 2.5x), +2 Momentum + 2 Initiative (universal 1.5x)
+- Advanced: -3 Cadence (specialist 3x), +3 Momentum + 3 Initiative (universal 2x)
+- Master: Set Cadence to -5 (specialist transform), +8 Momentum + 5 Initiative (universal 2-3x)
 
 **Example Cards**:
 ```
 "Active Listening" - Rapport Depth 2 (Foundation)
-Statement, 0 Initiative
-Effect: Reduce Cadence by 1, +1 Momentum
+Echo, 0 Initiative
+Effect: -1 Cadence, +1 Momentum, +1 Initiative
+(Specialist: -1 Cad | Universal: +1M +1I)
 
 "Validate Feelings" - Rapport Depth 4 (Standard)
 Statement, 3 Initiative
 Requirement: 3+ Rapport Statements in Spoken
-Effect: Reduce Cadence by 2, +3 Momentum
+Effect: -2 Cadence, +2 Momentum, +2 Initiative
+(Specialist: -2 Cad | Universal: +2M +2I)
 
 "Emotional Breakthrough" - Rapport Depth 8 (Master)
 Statement, 7 Initiative
 Requirement: 8+ Rapport Statements in Spoken
-Effect: Set Cadence to -5, +8 Momentum
+Effect: Set Cadence to -5, +8 Momentum, +5 Initiative
+(Specialist: Set Cad -5 | Universal: +8M +5I)
 ```
 
 #### Authority → Momentum (Direct Progress)
@@ -391,27 +429,32 @@ Effect: Set Cadence to -5, +8 Momentum
 
 **Verisimilitude**: Commanding people drive conversations toward conclusions through force of will.
 
-**Effect Patterns**:
-- Foundation: +2 Momentum (often with +1 Doubt cost)
-- Standard: +4-5 Momentum (often with +2 Doubt cost)
-- Advanced: +7-8 Momentum (often with +3 Doubt cost or momentum consumption)
-- Master: +10-12 Momentum (explosive but dangerous)
+**Specialization**: Momentum (+2-12 generation) + Universal Access to Initiative + Doubt Trade-off
+
+**Effect Patterns (Specialist + Universal + Trade-off)**:
+- Foundation: +2 Momentum (specialist 2x), +1 Doubt (trade-off)
+- Standard: +5 Momentum (specialist 2.5x), +2 Doubt, +1 Initiative (universal 1.5x)
+- Advanced: +8 Momentum (specialist 3x), +3 Doubt, +2 Initiative (universal 2x)
+- Master: +12 Momentum (specialist 3-4x), +4 Doubt, +3 Initiative (universal 2-3x)
 
 **Example Cards**:
 ```
 "Assert Position" - Authority Depth 2 (Foundation)
 Statement, 1 Initiative
 Effect: +2 Momentum, +1 Doubt
+(Specialist: +2M | Trade-off: +1D | No universal at depth 2)
 
 "Direct Demand" - Authority Depth 4 (Standard)
 Statement, 4 Initiative
 Requirement: 3+ Authority Statements in Spoken
-Effect: +5 Momentum, +2 Doubt
+Effect: +5 Momentum, +2 Doubt, +1 Initiative
+(Specialist: +5M | Trade-off: +2D | Universal: +1I)
 
 "Decisive Command" - Authority Depth 8 (Master)
 Statement, 8 Initiative
 Requirement: 8+ Authority Statements in Spoken
-Effect: +12 Momentum, +4 Doubt
+Effect: +12 Momentum, +4 Doubt, +3 Initiative
+(Specialist: +12M | Trade-off: +4D | Universal: +3I)
 ```
 
 #### Commerce → Doubt (Risk Mitigation)
@@ -422,27 +465,32 @@ Effect: +12 Momentum, +4 Doubt
 
 **Verisimilitude**: Negotiators address concerns and manage risks, reducing tension.
 
-**Effect Patterns**:
-- Foundation: -1 Doubt (sometimes with momentum cost)
-- Standard: -2 to -3 Doubt (often trading momentum)
-- Advanced: -4 to -5 Doubt (significant momentum trades)
-- Master: Set Doubt to 0 (complete safety, expensive)
+**Specialization**: Doubt (-1 to -6 reduction) + Universal Access to Momentum + Trading Pattern
+
+**Effect Patterns (Specialist + Universal + Trading)**:
+- Foundation: -1 Doubt (specialist 2x), +1 Momentum (universal 1x)
+- Standard: -2 Doubt (specialist 2.5x), +2 Momentum (universal 1.5x), Consume 2 Momentum (trade)
+- Advanced: -4 Doubt (specialist 3x), +3 Momentum (universal 2x), Consume 3 Momentum (trade)
+- Master: Set Doubt to 0 (specialist transform), +5 Momentum (universal 2-3x), Consume 4 Momentum (trade)
 
 **Example Cards**:
 ```
 "Address Concern" - Commerce Depth 2 (Foundation)
 Statement, 1 Initiative
 Effect: -1 Doubt, +1 Momentum
+(Specialist: -1D | Universal: +1M | No trade at depth 2)
 
 "Find Common Ground" - Commerce Depth 4 (Standard)
 Statement, 4 Initiative
 Requirement: 3+ Commerce Statements in Spoken
-Effect: -2 Doubt, +3 Momentum, Consume 2 Momentum
+Effect: -2 Doubt, +2 Momentum, Consume 2 Momentum
+(Specialist: -2D | Universal: +2M | Trade: Consume 2M)
 
 "Seal Agreement" - Commerce Depth 8 (Master)
 Statement, 8 Initiative
 Requirement: 8+ Commerce Statements in Spoken
-Effect: Set Doubt to 0, +8 Momentum, Consume 4 Momentum
+Effect: Set Doubt to 0, +5 Momentum, Consume 4 Momentum
+(Specialist: Set D→0 | Universal: +5M | Trade: Consume 4M)
 ```
 
 #### Cunning → Initiative (Action Economy)
@@ -453,27 +501,32 @@ Effect: Set Doubt to 0, +8 Momentum, Consume 4 Momentum
 
 **Verisimilitude**: Tactical people create opportunities for multiple moves.
 
-**Effect Patterns**:
-- Foundation: +2 Initiative
-- Standard: +4 Initiative (or conditional generation)
-- Advanced: +6 Initiative (or state-based generation)
-- Master: +10 Initiative (or scaling based on game state)
+**Specialization**: Initiative (+2-10 generation) + Universal Access to Momentum + Secondary Cards
+
+**Effect Patterns (Specialist + Universal + Secondary)**:
+- Foundation: +2 Initiative (specialist 2x), +1 Momentum (universal 1x)
+- Standard: +4 Initiative (specialist 2.5x), +2 Momentum (universal 1.5x), Draw 1 card (secondary)
+- Advanced: +6 Initiative (specialist 3x), +3 Momentum (universal 2x), Draw 2 cards (secondary)
+- Master: +10 Initiative (specialist 3-4x), +5 Momentum (universal 2-3x), Draw 3 cards (secondary)
 
 **Example Cards**:
 ```
 "Subtle Maneuver" - Cunning Depth 2 (Foundation)
-Statement, 0 Initiative
+Echo, 0 Initiative
 Effect: +2 Initiative, +1 Momentum
+(Specialist: +2I | Universal: +1M)
 
 "Create Opening" - Cunning Depth 4 (Standard)
 Statement, 2 Initiative
 Requirement: 3+ Cunning Statements in Spoken
-Effect: +4 Initiative, +2 Momentum
+Effect: +4 Initiative, +2 Momentum, Draw 1 card
+(Specialist: +4I | Universal: +2M | Secondary: Draw 1)
 
 "Spring the Trap" - Cunning Depth 8 (Master)
 Statement, 6 Initiative
 Requirement: 8+ Cunning Statements in Spoken
-Effect: +10 Initiative, +8 Momentum
+Effect: +10 Initiative, +5 Momentum, Draw 3 cards
+(Specialist: +10I | Universal: +5M | Secondary: Draw 3)
 ```
 
 ### Stat Bonus System

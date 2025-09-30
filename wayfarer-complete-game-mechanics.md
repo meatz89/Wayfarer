@@ -955,35 +955,45 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 
 ### The Five Core Resources
 
-Each resource has exactly ONE mechanical identity with no overlap:
+**IMPORTANT REFINEMENT**: Resources use a **Specialist with Universal Access** model, NOT hard exclusivity. Each stat SPECIALIZES in one resource (2-3x efficiency) but can ACCESS other universal resources at weaker rates.
+
+#### Universal Resources (All Stats Can Generate)
 
 **Initiative** - Conversational Action Economy:
 - Determines how many cards can be played in sequence
 - Starts at 0 (must be built from nothing)
 - Accumulates and persists between LISTEN actions
-- Foundation cards generate Initiative, other cards spend it
+- **Cunning specializes** (2-3x generation), but ALL stats provide some Initiative
 - Creates builder/spender dynamic where you must generate before spending
 
 **Momentum** - Progress Toward Goals:
 - Victory track toward conversation objectives
 - Goal thresholds: Basic (8), Enhanced (12), Premium (16)
 - Can be consumed by card costs for powerful effects
-- Built through card effects, never decreases except through consumption
-- Represents progress toward achieving conversation objectives
+- **Authority specializes** (2-3x generation), but ALL stats provide some Momentum
+- CRITICAL: Every conversation deck MUST generate Momentum to reach goals
+- Verisimilitude: In real conversations, all approaches advance progress, not just commands
 
-**Doubt** - Rising Conversation Failure:
-- Timer that ends conversation at 10 points
-- Increases through Cadence effects or card effects
-- Can be reduced through cards that consume momentum
-- Creates urgency and resource pressure
-- Represents conversation going off track
+#### Specialist Resources (Only Specialists Generate Efficiently)
 
-**Cadence** - Conversation Balance (-5 to +5):
-- Tracks who dominates the conversation
+**Cards** (Insight Specialty):
+- Card draw to maintain options
+- Insight generates +2-6 cards efficiently
+- Others might get +1 card occasionally as secondary effect
+
+**Cadence** (Rapport Specialty):
+- Conversation Balance (-5 to +5)
 - +1 per SPEAK action, -2 per LISTEN action
 - Positive Cadence: +1 Doubt per point on LISTEN
 - Negative Cadence: +1 card draw per point on LISTEN
-- Creates natural conversation rhythm and rewards strategic listening
+- Rapport specializes in Cadence manipulation
+- Others rarely touch Cadence directly
+
+**Doubt** (Commerce Specialty):
+- Timer that ends conversation at 10 points
+- Increases through Cadence effects or card effects
+- Commerce specializes in Doubt reduction
+- Others rarely reduce Doubt (except by avoiding Cadence buildup)
 
 **Statements in Spoken** - Conversation History:
 - Count of Statement cards played (not Echo cards)
@@ -1045,32 +1055,49 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 - Cost: Consume 4 Momentum
 - Effect: -5 Doubt
 
-#### The Five Stats as Card Identities
+#### The Five Stats as Specialists with Universal Access
 
-**Insight** - Information and Analysis:
-- Effects: Draw cards, reveal information, pattern recognition
-- Scaling: Based on cards in Mind or Spoken
-- Foundation Example: "Quick Analysis" (0 Initiative, +1 Initiative, +1 card draw)
+**Specialist Framework Pattern:**
+- Primary resource at 2-3x specialist efficiency
+- Universal resources (Momentum/Initiative) at 1x universal rate
+- Secondary resources occasionally as compound effects
 
-**Rapport** - Support and Trust Building:
-- Effects: Generate Initiative, reduce Doubt, build momentum
-- Scaling: Based on current Momentum or positive states
-- Foundation Example: "Active Listening" (0 Initiative, +2 Initiative)
+**Authority** (Momentum Specialist):
+- **Specialist**: +2-12 Momentum (scales 2-3x faster than others)
+- **Universal**: +1-2 Initiative (same rate as others)
+- **Trade-off**: Generates Doubt (+1-4) for higher momentum
+- Foundation Example: "+2 Momentum, +1 Doubt" (0 Initiative)
+- Standard Example: "+5 Momentum, +2 Doubt, +1 Initiative" (2 Initiative cost)
 
-**Commerce** - Resource Exchange:
-- Effects: Convert between resources efficiently
-- Scaling: Efficient ratios and multi-resource effects
-- Foundation Example: "Quick Deal" (0 Initiative, +1 Initiative, +1 Momentum)
+**Insight** (Cards Specialist):
+- **Specialist**: Draw 2-6 cards (efficient card generation)
+- **Universal**: +1-3 Momentum (slower than Authority)
+- **Secondary**: +1-2 Initiative occasionally
+- Foundation Example: "Draw 2 cards, +1 Momentum" (0 Initiative)
+- Standard Example: "Draw 3 cards, +2 Momentum, +1 Initiative" (3 Initiative cost)
 
-**Authority** - Power and Impact:
-- Effects: High Initiative costs for powerful single effects
-- Scaling: Based on Cadence or conversation intensity
-- Foundation Example: "Direct Statement" (0 Initiative, +2 Momentum, +1 Doubt)
+**Rapport** (Cadence Specialist):
+- **Specialist**: Reduce Cadence 1-3 (prevents Doubt accumulation)
+- **Universal**: +1-3 Momentum, +1-3 Initiative
+- **Trade-off**: Lower momentum generation but sustainable
+- Foundation Example: "-1 Cadence, +1 Momentum, +1 Initiative" (0 Initiative)
+- Standard Example: "-2 Cadence, +2 Momentum, +2 Initiative" (2 Initiative cost)
 
-**Cunning** - Timing and Exploitation:
-- Effects: Exploit specific game states, cost reductions
-- Scaling: Based on Doubt, Cadence, or negative conditions
-- Foundation Example: "Deflection" (0 Initiative, +1 Initiative if Doubt ≥ 3)
+**Commerce** (Doubt Specialist):
+- **Specialist**: -1 to -6 Doubt (crisis management)
+- **Universal**: +1-3 Momentum
+- **Trade-off**: Often consumes Momentum to reduce Doubt
+- Foundation Example: "-1 Doubt, +1 Momentum" (0 Initiative)
+- Standard Example: "-2 Doubt, +2 Momentum, Consume 2 Momentum" (2 Initiative cost)
+
+**Cunning** (Initiative Specialist):
+- **Specialist**: +2-6 Initiative (enables longer action chains)
+- **Universal**: +1-3 Momentum (same rate as Rapport/Commerce)
+- **Secondary**: Draw 1-2 cards occasionally
+- Foundation Example: "+2 Initiative, +1 Momentum" (0 Initiative)
+- Standard Example: "+4 Initiative, +2 Momentum, Draw 1 card" (2 Initiative cost)
+
+**KEY INSIGHT**: Every stat generates SOME Momentum because all conversations must progress toward goals. Authority just does it 2-3x more efficiently (and with Doubt costs).
 
 #### Card Persistence Types
 

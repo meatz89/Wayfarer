@@ -20,6 +20,38 @@ This document specifies the complete card library using a hybrid system where **
 
 ## Core Design Philosophy
 
+### **CRITICAL REFINEMENT: Specialist with Universal Access**
+
+**Resource Generation Model**: Each stat SPECIALIZES in one resource (2-3x efficiency) but can ACCESS universal resources (Momentum/Initiative) at standard rates.
+
+**Why This Change:**
+- **Original Problem**: Hard 1:1 mapping (Authority-only generates Momentum) created impossible deck compositions
+- **Mechanical Issue**: "Zero Authority" decks can't reach goals without Momentum generation
+- **Solution**: All stats generate SOME Momentum; Authority just does it 2-3x more efficiently
+
+**Stat Specialization Rates:**
+
+| Stat | Specialist Resource | Universal Access | Trade-offs |
+|------|---------------------|------------------|------------|
+| **Insight** | Cards (2-6 draw) | Momentum (+1-3), Initiative (+1-2) | Information-focused |
+| **Rapport** | Cadence (-1 to -3) | Momentum (+1-3), Initiative (+1-3) | Sustainable, lower momentum |
+| **Authority** | Momentum (+2-12) | Initiative (+1-2) | 2-3x faster momentum but generates Doubt |
+| **Commerce** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
+| **Cunning** | Initiative (+2-6) | Momentum (+1-3) | Enables long action chains |
+
+**Effect Pattern by Depth:**
+- **Foundation (1-2)**: Specialist 2x, Universal 1x
+- **Standard (3-4)**: Specialist 2.5x, Universal 1.5x
+- **Advanced (5-6)**: Specialist 3x, Universal 2x
+- **Master (7-8)**: Specialist 3-4x, Universal 2-3x
+
+**Example:**
+```
+Authority Depth 1: +2 Momentum, +1 Doubt (specialist)
+Insight Depth 1: Draw 2 cards, +1 Momentum (specialist + universal)
+Cunning Depth 4: +4 Initiative, +2 Momentum, Draw 1 card (specialist + universals + secondary)
+```
+
 ### The Hybrid Approach
 
 **PRIMARY: Momentum-Based Tier Unlocking**
@@ -38,10 +70,11 @@ This document specifies the complete card library using a hybrid system where **
 
 ✓ **Sustainable Economy**: Echo cards provide efficiency without blocking progression
 ✓ **Clear Progression**: Momentum thresholds unlock new options predictably
-✓ **Specialist Rewards**: Statement variants provide meaningful optimization
-✓ **Verisimilitude**: Powerful conclusions require conversational foundation (Standard+ only)
+✓ **Specialist Rewards**: Statement variants AND resource specialization provide meaningful optimization
+✓ **Verisimilitude**: All conversation approaches advance progress; commanding just does it faster/riskier
 ✓ **Mathematical Validity**: Requirements achievable within conversation length
 ✓ **Universal Foundation**: Everyone starts with same tools, specialization rewards come later
+✓ **Playable Decks**: Every composition can generate Momentum to reach goals
 
 ---
 
