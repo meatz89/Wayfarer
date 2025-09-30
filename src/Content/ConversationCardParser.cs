@@ -152,16 +152,11 @@ public static class ConversationCardParser
         // Standard (3-4): Require depth-1 statements
         // Advanced (5-6): Require depth-1 statements
         // Master (7-8): Require depth-1 statements
+        // Statement requirements: Get from JSON ONLY (no auto-derivation)
         PlayerStatType? requiredStat = null;
         int requiredStatements = 0;
 
-        if (boundStat.HasValue && (int)depth > 2)
-        {
-            requiredStat = boundStat.Value; // Require same stat
-            requiredStatements = (int)depth - 1; // Depth 3 requires 2 statements, etc.
-        }
-
-        // Allow JSON overrides
+        // Parse requiredStat from JSON
         if (!string.IsNullOrEmpty(dto.RequiredStat))
         {
             if (Enum.TryParse<PlayerStatType>(dto.RequiredStat, true, out PlayerStatType reqStatType))
@@ -169,9 +164,51 @@ public static class ConversationCardParser
                 requiredStat = reqStatType;
             }
         }
+
+        // Parse requiredStatements from JSON
         if (dto.RequiredStatements.HasValue)
         {
             requiredStatements = dto.RequiredStatements.Value;
+        }
+
+        // NO AUTO-DERIVATION: Statement requirements must be explicit in JSON
+        // Specification requires exact thresholds: 3, 4, 5, 8 (not depth-based formulas)
+
+        // VALIDATION: Foundation tier must have NO signature variants
+        if ((int)depth <= 2 && requiredStatements > 0)
+        {
+            throw new InvalidOperationException(
+                $"FOUNDATION SIGNATURE VIOLATION: Card '{dto.Id}' (depth {(int)depth}) cannot have Statement requirements. " +
+                $"Foundation tier (depths 1-2) must be 100% base cards accessible to all players. " +
+                $"Signature variants must start at Standard tier (depth 3+).");
+        }
+
+        // VALIDATION: Signature cards must start at Standard tier (depth 3+)
+        if (requiredStatements > 0 && (int)depth < 3)
+        {
+            throw new InvalidOperationException(
+                $"SIGNATURE DEPTH VIOLATION: Card '{dto.Id}' has Statement requirements but is depth {(int)depth}. " +
+                $"Signature variants must be depth 3 or higher.");
+        }
+
+        // VALIDATION: Statement requirements must match valid thresholds
+        if (requiredStatements > 0)
+        {
+            var validThresholds = new[] { 3, 4, 5, 8 };
+            if (!validThresholds.Contains(requiredStatements))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID STATEMENT REQUIREMENT: Card '{dto.Id}' requires {requiredStatements} statements. " +
+                    $"Valid thresholds are: 3 (Standard), 4 (Standard), 5 (Advanced), 8 (Master).");
+            }
+        }
+
+        // VALIDATION: RequiredStat must match BoundStat for signature variants
+        if (requiredStatements > 0 && requiredStat.HasValue && boundStat.HasValue && requiredStat.Value != boundStat.Value)
+        {
+            throw new InvalidOperationException(
+                $"SIGNATURE STAT MISMATCH: Card '{dto.Id}' requires {requiredStat.Value} statements but is bound to {boundStat.Value}. " +
+                $"Signature cards must require statements of their own stat.");
         }
 
         // Parse token requirements (for signature cards)

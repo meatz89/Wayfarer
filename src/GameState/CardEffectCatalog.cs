@@ -33,6 +33,21 @@ public static class CardEffectCatalog
     }
 
     /// <summary>
+    /// Get a specific effect by card index within depth tier.
+    /// Index 0 = first base card, index 1 = second base card, etc.
+    /// Signature cards are at the end of the list for each depth.
+    /// </summary>
+    public static CardEffectFormula GetEffectByIndex(PlayerStatType stat, int depth, int index)
+    {
+        var variants = GetEffectVariants(stat, depth);
+        if (index >= 0 && index < variants.Count)
+        {
+            return variants[index];
+        }
+        return variants.FirstOrDefault();
+    }
+
+    /// <summary>
     /// Get a specific effect variant by name.
     /// Used when JSON specifies which variant to use.
     /// </summary>
@@ -64,17 +79,17 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2)
-            1 or 2 => new List<CardEffectFormula>
+            // Foundation (Depth 1-2) - 4 base cards only, NO signatures
+            1 => new List<CardEffectFormula>
             {
-                // Type A: Draw 2 cards
+                // "Quick Scan" - Base Echo
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Cards,
                     BaseValue = 2
                 },
-                // Compound: Draw 1 card, +1 Initiative
+                // "Ask Question" - Base Statement
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
@@ -85,27 +100,16 @@ public static class CardEffectCatalog
                     }
                 }
             },
-
-            // Standard (Depth 3-4)
-            3 or 4 => new List<CardEffectFormula>
+            2 => new List<CardEffectFormula>
             {
-                // Type A: Draw 3 cards
+                // "Careful Analysis" - Base Echo
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Cards,
-                    BaseValue = 3
+                    BaseValue = 2
                 },
-                // Type B: Draw 1 per 2 Statements (max 4)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Scaling,
-                    TargetResource = ConversationResourceType.Cards,
-                    ScalingSource = ScalingSourceType.TotalStatements,
-                    ScalingMultiplier = 0.5m,
-                    ScalingMax = 4
-                },
-                // Compound: Draw 2, +1 Momentum
+                // "Notice Detail" - Base Statement
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
@@ -117,53 +121,133 @@ public static class CardEffectCatalog
                 }
             },
 
-            // Advanced (Depth 5-6)
-            5 or 6 => new List<CardEffectFormula>
+            // Standard (Depth 3-4) - 3 base + 1 signature
+            3 => new List<CardEffectFormula>
             {
-                // Type B: Draw 1 per Doubt
+                // "Connect Evidence" - Base Echo
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Scaling,
                     TargetResource = ConversationResourceType.Cards,
-                    ScalingSource = ScalingSourceType.Doubt,
-                    ScalingMultiplier = 1.0m
+                    ScalingSource = ScalingSourceType.TotalStatements,
+                    ScalingMultiplier = 0.5m,
+                    ScalingMax = 3
                 },
-                // Type B: Draw 1 per negative Cadence
+                // "Cross-Reference" - Base Statement
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 2 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 }
+                    }
+                },
+                // "Pattern Synthesis" - Signature Echo (3+ Insight Statements)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Scaling,
                     TargetResource = ConversationResourceType.Cards,
-                    ScalingSource = ScalingSourceType.NegativeCadence,
-                    ScalingMultiplier = 1.0m
-                },
-                // Type D: Draw 4, Consume 2 Momentum
+                    ScalingSource = ScalingSourceType.InsightStatements,
+                    ScalingMultiplier = 1.0m,
+                    ScalingMax = 4
+                }
+            },
+            4 => new List<CardEffectFormula>
+            {
+                // "Identify Pattern" - Base Statement
                 new CardEffectFormula
                 {
-                    FormulaType = EffectFormulaType.Trading,
-                    TargetResource = ConversationResourceType.Cards,
-                    TradeRatio = 4,
-                    ConsumeResource = ConversationResourceType.Momentum,
-                    ConsumeAmount = 2
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 }
+                    }
+                },
+                // "Complex Analysis" - Signature Statement (3+ Insight Statements)
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 3 }
+                    }
                 }
             },
 
-            // Master (Depth 7-8)
-            7 or 8 => new List<CardEffectFormula>
+            // Advanced (Depth 5-6) - 2 base + 1 signature
+            5 => new List<CardEffectFormula>
             {
-                // Type A: Draw 6 cards
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Cards,
-                    BaseValue = 6
-                },
-                // Type B: Draw cards = cards in Mind (doubling)
+                // "Synthesize Information" - Base Echo
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Scaling,
                     TargetResource = ConversationResourceType.Cards,
-                    ScalingSource = ScalingSourceType.MindCards,
-                    ScalingMultiplier = 1.0m
+                    ScalingSource = ScalingSourceType.TotalStatements,
+                    ScalingMultiplier = 0.5m,
+                    ScalingMax = 5
+                },
+                // "Reveal Implication" - Base Statement
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 }
+                    }
+                },
+                // "Analytical Mastery" - Signature Echo (5+ Insight Statements)
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Scaling,
+                    TargetResource = ConversationResourceType.Cards,
+                    ScalingSource = ScalingSourceType.InsightStatements,
+                    ScalingMultiplier = 1.0m,
+                    ScalingMax = 6
+                }
+            },
+            6 => new List<CardEffectFormula>
+            {
+                // "Draw Conclusion" - Base Statement
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 5 }
+                    }
+                },
+                // "Perfect Deduction" - Signature Statement (5+ Insight Statements)
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 6 }
+                    }
+                }
+            },
+
+            // Master (Depth 7-8) - 1 signature only (specialist tier)
+            8 => new List<CardEffectFormula>
+            {
+                // "Complete Understanding" - Signature Statement (8+ Insight Statements)
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 8 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 10 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 4 }
+                    }
                 }
             },
 

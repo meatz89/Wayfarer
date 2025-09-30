@@ -500,6 +500,29 @@ public class SessionCardDeck
     }
 
     /// <summary>
+    /// Check if a card can be played RIGHT NOW (tier + Statement requirements + Initiative cost).
+    /// This is used by UI to determine which cards in hand are playable vs locked.
+    /// </summary>
+    public bool CanPlayCard(CardInstance card, ConversationSession session, PlayerStats playerStats)
+    {
+        if (card == null) return false;
+
+        // Check tier access
+        if (!CanAccessCard(card.ConversationCardTemplate, session, playerStats))
+            return false;
+
+        // Check Statement requirements (signature card lock)
+        if (!card.ConversationCardTemplate.MeetsStatementRequirements(session))
+            return false;
+
+        // Check Initiative cost
+        if (card.ConversationCardTemplate.InitiativeCost > session.CurrentInitiative)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
     /// Draw the next accessible card from the deck pile based on tier filtering
     /// Maintains deck order - draws the first accessible card from top of deck
     /// Returns null if no accessible cards are available
