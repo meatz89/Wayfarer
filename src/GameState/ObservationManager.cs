@@ -269,7 +269,6 @@ public class ObservationManager
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
             Title = description,
             InitiativeCost = baseCard.InitiativeCost,
-            Difficulty = baseCard.Difficulty,
             TokenType = baseCard.TokenType,
             SuccessType = baseCard.SuccessType,
             DialogueText = baseCard.DialogueText,
@@ -410,8 +409,7 @@ public class ObservationManager
             InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
             CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
-            SuccessType = successType,
-            Difficulty = Difficulty.VeryEasy
+            SuccessType = successType
         };
     }
 

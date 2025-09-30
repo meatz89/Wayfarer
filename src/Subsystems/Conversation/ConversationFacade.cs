@@ -97,9 +97,9 @@ public class ConversationFacade
 
 
         // Initialize momentum and doubt for the session
-        // Starting momentum formula: 2 + floor(highest_stat / 3)
+        // All conversations start at momentum 0 - stats only matter for their specific cards
         Player player = _gameWorld.GetPlayer();
-        int startingMomentum = 2 + (player.Stats.GetHighestStatLevel() / 3);
+        int startingMomentum = 0;
         int initialDoubt = 0;
 
         // Get request text from the request
@@ -128,17 +128,20 @@ public class ConversationFacade
         // Set up state synchronization between MomentumManager and ConversationSession
         _momentumManager.SetSession(_currentSession);
 
-        // THEN: Perform initial draw of regular cards with momentum filtering
+        // Check and unlock depth tiers based on starting momentum
+        _currentSession.CheckAndUnlockTiers();
+
+        // THEN: Perform initial draw of regular cards with tier-based filtering
         // This is the initial conversation start, so we just draw cards without exhausting
         int drawCount = _currentSession.GetDrawCount();
-        // Draw with momentum-based filtering
-        _currentSession.Deck.DrawToHand(drawCount, _currentSession.CurrentMomentum, player.Stats);
+        // Draw with tier-based filtering
+        _currentSession.Deck.DrawToHand(drawCount, _currentSession, player.Stats);
 
         // Update request card playability based on initiative
         UpdateRequestCardPlayability(_currentSession);
 
-        // Initialize Initiative to 0 (4-resource system)
-        _currentSession.CurrentInitiative = 0; // Initiative starts at 0 
+        // Initialize Initiative to 0 (SteamWorld Quest pattern: build before spending)
+        _currentSession.CurrentInitiative = 0;
         // Update card playability based on initial initiative
         UpdateCardPlayabilityBasedOnInitiative(_currentSession);
 
@@ -213,8 +216,7 @@ public class ConversationFacade
         // 1. Apply Cadence Effects
         ProcessCadenceEffectsOnListen(_currentSession);
 
-        // 2. Apply Doubt Tax on Momentum (handled automatically via GetEffectiveMomentumGain)
-        // Doubt reduces momentum gains by 20% per doubt point - applied when momentum is added
+        // DELETED: Doubt Tax system - not in specification
 
         // 3. Handle Card Persistence
         ProcessCardPersistence(_currentSession);
@@ -233,6 +235,9 @@ public class ConversationFacade
 
         // Draw cards from deck
         List<CardInstance> drawnCards = ExecuteNewListenCardDraw(_currentSession, cardsToDraw);
+
+        // CRITICAL: Reduce cadence AFTER draw calculation (spec line 894)
+        ReduceCadenceAfterDraw(_currentSession);
 
         // Force discard down to 7-card hand limit if necessary
         _currentSession.Deck.DiscardDown(7);
@@ -348,6 +353,13 @@ public class ConversationFacade
 
         // 9. Handle Card Persistence (Standard/Echo/Persistent/Banish)
         ProcessCardAfterPlay(selectedCard, success, _currentSession);
+
+        // 9b. Increment Statement counter if this is a Statement card
+        if (selectedCard.ConversationCardTemplate.Persistence == PersistenceType.Statement
+            && selectedCard.ConversationCardTemplate.BoundStat.HasValue)
+        {
+            _currentSession.IncrementStatementCount(selectedCard.ConversationCardTemplate.BoundStat.Value);
+        }
 
         // 10. Update card playability based on new Initiative level
         UpdateCardPlayabilityForInitiative(_currentSession);
@@ -650,12 +662,13 @@ public class ConversationFacade
     /// 1. Calculate doubt to clear
     /// 2. Reset doubt to 0
     /// 3. Reduce momentum by doubt cleared
-    /// 4. Convert positive cadence to doubt
-    /// 5. Apply -2 Cadence (LISTEN decreases Cadence)
+    /// 4. Check and unlock tiers (momentum may have changed)
+    /// 5. Convert positive cadence to doubt
+    /// BEFORE card draw calculation (cadence reduction happens AFTER draw)
     /// </summary>
     private void ProcessCadenceEffectsOnListen(ConversationSession session)
     {
-        // NEW REFACTORED LISTEN MECHANICS:
+        // NEW REFACTORED LISTEN MECHANICS (Per Spec lines 862-896):
         // 1. Calculate doubt that will be cleared
         int doubtCleared = session.CurrentDoubt;
 
@@ -665,16 +678,35 @@ public class ConversationFacade
         // 3. Reduce momentum by amount of doubt cleared (minimum 0)
         session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);
 
-        // 4. Convert positive cadence to doubt (NEW: CRITICAL MISSING STEP)
+        // 4. Check and unlock tiers after momentum change
+        session.CheckAndUnlockTiers();
+
+        // 5. Convert positive cadence to doubt (CRITICAL: Check for conversation death)
         if (session.Cadence > 0)
         {
             int cadenceToDoubt = session.Cadence;
             session.CurrentDoubt = Math.Min(session.MaxDoubt, session.CurrentDoubt + cadenceToDoubt);
             Console.WriteLine($"[ConversationFacade] LISTEN converted {cadenceToDoubt} positive cadence to doubt. New doubt: {session.CurrentDoubt}");
+
+            // CRITICAL: If doubt reaches max (10), conversation ends immediately
+            // This is the "cadence trap" - listening while dominating can end the conversation
+            if (session.CurrentDoubt >= session.MaxDoubt)
+            {
+                Console.WriteLine($"[ConversationFacade] CONVERSATION ENDED: Cadence refill brought doubt to {session.CurrentDoubt} (max {session.MaxDoubt})");
+                // Conversation will end - ExecuteListen will detect this in ShouldEnd() check
+            }
         }
 
-        // 5. Apply Cadence change (-2 for LISTEN action)
-        session.Cadence = Math.Max(-5, session.Cadence - 2); 
+        // 6. Cadence reduction by -3 happens AFTER draw calculation (NOT here)
+        // This is handled in ReduceCadenceAfterDraw() method called after ExecuteNewListenCardDraw
+    }
+
+    /// <summary>
+    /// Reduce cadence AFTER card draw (step 7 of LISTEN sequence)
+    /// </summary>
+    private void ReduceCadenceAfterDraw(ConversationSession session)
+    {
+        session.Cadence = Math.Max(-10, session.Cadence - 3);
     }
 
     /// <summary>
@@ -711,20 +743,20 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Execute card draw with momentum-based filtering
+    /// Execute card draw with tier-based filtering
     /// </summary>
     private List<CardInstance> ExecuteNewListenCardDraw(ConversationSession session, int cardsToDraw)
     {
-        // Draw with momentum and stat filtering
+        // Draw with tier and stat filtering
         Player player = _gameWorld.GetPlayer();
-        session.Deck.DrawToHand(cardsToDraw, session.CurrentMomentum, player.Stats);
+        session.Deck.DrawToHand(cardsToDraw, session, player.Stats);
 
         // Return the newly drawn cards (last N cards in hand)
         return session.Deck.HandCards.TakeLast(cardsToDraw).ToList();
     }
 
     /// <summary>
-    /// Update card playability based on Initiative system (not Focus)
+    /// Update card playability based on Initiative system and Statement requirements
     /// </summary>
     private void UpdateCardPlayabilityForInitiative(ConversationSession session)
     {
@@ -740,7 +772,13 @@ public class ConversationFacade
 
             // Check if player can afford this card's Initiative cost
             int initiativeCost = GetCardInitiativeCost(card);
-            card.IsPlayable = currentInitiative >= initiativeCost;
+            bool canAffordInitiative = currentInitiative >= initiativeCost;
+
+            // Check if Statement requirements are met
+            bool meetsStatementRequirements = card.ConversationCardTemplate.MeetsStatementRequirements(session);
+
+            // Card is playable if BOTH conditions are met
+            card.IsPlayable = canAffordInitiative && meetsStatementRequirements;
         }
     }
 
@@ -781,53 +819,17 @@ public class ConversationFacade
 
     /// <summary>
     /// Process card play results with Initiative system
+    /// PROJECTION PRINCIPLE: Get projection from resolver, then apply to session
     /// </summary>
     private CardPlayResult ProcessInitiativeCardPlay(CardInstance selectedCard, bool success, ConversationSession session)
     {
-        CardEffectResult effectResult = null;
-
         if (success)
         {
-            // Process success effects with doubt tax applied to momentum
-            effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
+            // Get projection from resolver (single source of truth)
+            CardEffectResult projection = _effectResolver.ProcessSuccessEffect(selectedCard, session);
 
-            // Apply momentum with doubt tax
-            if (effectResult.MomentumChange > 0)
-            {
-                int effectiveMomentum = session.GetEffectiveMomentumGain(effectResult.MomentumChange);
-                session.CurrentMomentum += effectiveMomentum;
-            }
-
-            // Apply doubt changes
-            if (effectResult.DoubtChange > 0)
-            {
-                session.AddDoubt(effectResult.DoubtChange);
-            }
-            else if (effectResult.DoubtChange < 0)
-            {
-                session.ReduceDoubt(-effectResult.DoubtChange);
-            }
-
-            // Apply Initiative generation (for Foundation cards)
-            if (effectResult.InitiativeChange > 0) // Repurpose focus as Initiative
-            {
-                session.AddInitiative(effectResult.InitiativeChange);
-            }
-
-            // Handle card draw effects (Threading success type)
-            if (selectedCard.ConversationCardTemplate.EffectDrawCards.HasValue && selectedCard.ConversationCardTemplate.EffectDrawCards.Value > 0)
-            {
-                int cardsToDraw = selectedCard.ConversationCardTemplate.EffectDrawCards.Value;
-                Player player = _gameWorld.GetPlayer();
-                session.Deck.DrawToHand(cardsToDraw, session.CurrentMomentum, player.Stats);
-                Console.WriteLine($"[ConversationFacade] Card '{selectedCard.ConversationCardTemplate.Id}' drew {cardsToDraw} cards immediately");
-            }
-
-            // Handle other card effects (specific cards to add)
-            if (effectResult.CardsToAdd.Any())
-            {
-                session.Deck.AddCardsToMind(effectResult.CardsToAdd);
-            }
+            // Apply projection to session state
+            ApplyProjectionToSession(projection, session);
         }
 
         // Create play result
@@ -846,6 +848,63 @@ public class ConversationFacade
             },
             MomentumGenerated = 0 // No flow
         };
+    }
+
+    /// <summary>
+    /// Apply a projection result to actual session state
+    /// PROJECTION PRINCIPLE: This is the ONLY place where projections become reality
+    /// </summary>
+    private void ApplyProjectionToSession(CardEffectResult projection, ConversationSession session)
+    {
+        // Apply Initiative changes
+        if (projection.InitiativeChange != 0)
+        {
+            session.AddInitiative(projection.InitiativeChange);
+            Console.WriteLine($"[Effect] Initiative {(projection.InitiativeChange > 0 ? "+" : "")}{projection.InitiativeChange} → {session.CurrentInitiative}");
+        }
+
+        // Apply Momentum changes
+        if (projection.MomentumChange != 0)
+        {
+            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);
+            Console.WriteLine($"[Effect] Momentum {(projection.MomentumChange > 0 ? "+" : "")}{projection.MomentumChange} → {session.CurrentMomentum}");
+            // Check tier unlocks after momentum change
+            session.CheckAndUnlockTiers();
+        }
+
+        // Apply Doubt changes
+        if (projection.DoubtChange > 0)
+        {
+            session.AddDoubt(projection.DoubtChange);
+            Console.WriteLine($"[Effect] Doubt +{projection.DoubtChange} → {session.CurrentDoubt}");
+        }
+        else if (projection.DoubtChange < 0)
+        {
+            session.ReduceDoubt(-projection.DoubtChange);
+            Console.WriteLine($"[Effect] Doubt {projection.DoubtChange} → {session.CurrentDoubt}");
+        }
+
+        // Apply Cadence changes
+        if (projection.CadenceChange != 0)
+        {
+            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);
+            Console.WriteLine($"[Effect] Cadence {(projection.CadenceChange > 0 ? "+" : "")}{projection.CadenceChange} → {session.Cadence}");
+        }
+
+        // Apply card draw
+        if (projection.CardsToDraw > 0)
+        {
+            Player player = _gameWorld.GetPlayer();
+            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);
+            Console.WriteLine($"[Effect] Draw {projection.CardsToDraw} cards → Hand: {session.Deck.HandSize}");
+        }
+
+        // Add any specific card instances (legacy support)
+        if (projection.CardsToAdd != null && projection.CardsToAdd.Any())
+        {
+            session.Deck.AddCardsToMind(projection.CardsToAdd);
+            Console.WriteLine($"[Effect] Added {projection.CardsToAdd.Count} specific cards to hand");
+        }
     }
 
     /// <summary>
@@ -1139,7 +1198,7 @@ public class ConversationFacade
             session.MomentumManager.AddDoubt(impulseCount);
         }
         Player player = _gameWorld.GetPlayer();
-        session.Deck.DrawToHand(baseDrawCount, session.CurrentMomentum, player.Stats);
+        session.Deck.DrawToHand(baseDrawCount, session, player.Stats);
 
         // Get the drawn cards for return value
         List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(baseDrawCount).ToList();
@@ -1150,177 +1209,6 @@ public class ConversationFacade
         return drawnCards;
     }
 
-    /// <summary>
-    /// Play a single card with dice roll and focus management
-    /// </summary>
-    private CardPlayResult PlayCard(ConversationSession session, CardInstance selectedCard)
-    {
-        // Check if card is unplayable (but skip this check for promise cards which handle rapport separately)
-        if (!selectedCard.IsPlayable &&
-            !(selectedCard.ConversationCardTemplate.CardType == CardType.Letter || selectedCard.ConversationCardTemplate.CardType == CardType.Promise || selectedCard.ConversationCardTemplate.CardType == CardType.Letter))
-        {
-            return new CardPlayResult
-            {
-                Results = new List<SingleCardResult>
-                {
-                    new SingleCardResult
-                    {
-                        Card = selectedCard,
-                        Success = false,
-                        Flow = 0,
-                        Roll = 0,
-                        SuccessChance = 0
-                    }
-                },
-                MomentumGenerated = 0
-            };
-        }
-
-        // Initiative cost is determined by the card's Initiative requirement
-        int initiativeCost = GetCardInitiativeCost(selectedCard);
-
-        // Validate Initiative availability
-        if (!session.CanAffordCard(initiativeCost))
-        {
-            return new CardPlayResult
-            {
-                Results = new List<SingleCardResult>
-                {
-                    new SingleCardResult
-                    {
-                        Card = selectedCard,
-                        Success = false,
-                        Flow = 0,
-                        Roll = 0,
-                        SuccessChance = 0
-                    }
-                },
-                MomentumGenerated = 0
-            };
-        }
-
-        // DETERMINISTIC: Check success based on clear rules (no randomness)
-        bool success = _effectResolver.CheckCardSuccess(selectedCard, session);
-
-        // Mark request as completed if this is a BurdenGoal (request) card and it succeeds
-        if (success && selectedCard.ConversationCardTemplate.CardType == CardType.Letter && selectedCard.Context?.RequestId != null)
-        {
-            // Find and complete the request
-            NPCRequest request = session.NPC.GetRequestById(selectedCard.Context.RequestId);
-            if (request != null)
-            {
-                request.Complete();
-                // The conversation will end after this card is played
-            }
-        }
-
-        // Spend Initiative - Initiative represents built-up conversational energy
-        session.SpendInitiative(initiativeCost);
-
-        // Update card playability immediately after spending Initiative
-        UpdateCardPlayabilityBasedOnInitiative(session);
-
-        CardEffectResult effectResult = null;
-        int cadenceChange = 0;
-
-        if (success)
-        {
-            // Cadence only changes from explicit card effects (no automatic changes)
-            cadenceChange = 0;
-
-            // Reset bad luck protection on success would go here if implemented
-
-            // Process card's success effect
-            // PROJECTION PRINCIPLE: Get projection from resolver and apply it
-            effectResult = _effectResolver.ProcessSuccessEffect(selectedCard, session);
-
-            // Apply momentum/doubt changes based on card effects
-            if (effectResult.MomentumChange > 0 && session.MomentumManager != null)
-            {
-                session.MomentumManager.AddMomentum(effectResult.MomentumChange);
-            }
-            if (effectResult.DoubtChange > 0 && session.MomentumManager != null)
-            {
-                session.MomentumManager.AddDoubt(effectResult.DoubtChange);
-            }
-            if (effectResult.DoubtChange < 0 && session.MomentumManager != null)
-            {
-                session.MomentumManager.ReduceDoubt(-effectResult.DoubtChange);
-            }
-
-            // Apply initiative restoration (for Initiative-granting success effect)
-            if (effectResult.InitiativeChange > 0)
-            {
-                session.AddInitiative(effectResult.InitiativeChange);
-            }
-
-            // Apply initiative change (for Initiative-granting success effects)
-            if (effectResult.InitiativeChange != 0)
-            {
-                session.AddInitiative(effectResult.InitiativeChange);
-            }
-
-            // Add drawn cards to active cards (for Threading success effect)
-            if (effectResult.CardsToAdd.Any())
-            {
-                session.Deck.AddCardsToMind(effectResult.CardsToAdd);
-            }
-
-            // Handle doubt reduction effect (for Soothe cards with doubt reduction scaling)
-            if (selectedCard.ConversationCardTemplate.MomentumScaling == ScalingType.SpendMomentumForDoubt)
-            {
-                session.PreventNextDoubtIncrease = true;
-            }
-
-            // Handle Promise card queue manipulation (for Promising success effect)
-            if (selectedCard.ConversationCardTemplate.SuccessType == SuccessEffectType.Promising)
-            {
-                HandlePromiseCardQueueManipulation(selectedCard, session);
-            }
-
-            // Atmosphere effects simplified - no longer tracked
-        }
-
-        // HIGHLANDER: Use deck's PlayCard method which handles all transitions
-        session.Deck.PlayCard(selectedCard);
-
-        // Remove observation card from NPC's observation deck if it was played
-        // ARCHITECTURE: Observations are stored per-NPC, not globally on player
-        // This ensures observations are contextually relevant to specific NPCs
-        if (selectedCard.ConversationCardTemplate.CardType == CardType.Observation && session.NPC != null)
-        {
-            // Observation cards are consumed when played - remove from NPC's observation deck
-            string observationCardId = selectedCard.ConversationCardTemplate.Id;
-            ConversationCard cardToRemove = session.NPC.ObservationDeck?.GetAllCards()
-                .FirstOrDefault(c => c.Id == observationCardId);
-
-            if (cardToRemove != null)
-            {
-                session.NPC.ObservationDeck.RemoveCard(cardToRemove);
-                Console.WriteLine($"[ConversationFacade] Consumed observation card {observationCardId} from {session.NPC.Name}'s deck");
-            }
-        }
-
-
-        CardPlayResult result = new CardPlayResult
-        {
-            Results = new List<SingleCardResult>
-            {
-                new SingleCardResult
-                {
-                    Card = selectedCard,
-                    Success = success,
-                    Flow = cadenceChange,
-                    Roll = 0, // No dice rolls in deterministic system
-                    SuccessChance = success ? 100 : 0 // Deterministic: either succeeds or fails
-                }
-            },
-            MomentumGenerated = cadenceChange
-        };
-
-
-        return result;
-    }
 
     /// <summary>
     /// Handle Promise card queue manipulation - moves target obligation to position 1
@@ -1481,8 +1369,8 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Update all cards' playability based on current Initiative availability
-    /// Cards that cost more Initiative than available are marked Unplayable
+    /// Update all cards' playability based on current Initiative availability and Statement requirements
+    /// Cards that cost more Initiative than available or don't meet Statement requirements are marked Unplayable
     /// </summary>
     private void UpdateCardPlayabilityBasedOnInitiative(ConversationSession session)
     {
@@ -1502,8 +1390,11 @@ public class ConversationFacade
             // Check if we can afford this card
             bool canAfford = session.CanAffordCard(effectiveInitiativeCost);
 
-            // Update playability based on Initiative availability
-            card.IsPlayable = canAfford;
+            // Check if Statement requirements are met
+            bool meetsStatementRequirements = card.ConversationCardTemplate.MeetsStatementRequirements(session);
+
+            // Update playability based on Initiative availability AND Statement requirements
+            card.IsPlayable = canAfford && meetsStatementRequirements;
         }
     }
 

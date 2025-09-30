@@ -32,9 +32,21 @@ public class ConversationSession
     public int CurrentInitiative { get; set; } = 0; // Starts at 0, ACCUMULATES between LISTEN (never resets to base)
     public int Cadence { get; set; } = 0; // Range -5 to +5, conversation balance tracking
 
+    // Depth Tier Unlock System - tiers unlock at momentum thresholds and persist
+    public HashSet<int> UnlockedTiers { get; set; } = new HashSet<int> { 1 }; // Tier 1 (depths 1-2) always unlocked
 
     // Doubt system continues to exist but now has tax effect
     public bool PreventNextDoubtIncrease { get; set; } = false;
+
+    // Statement History Tracking - count of Statement cards played per stat type
+    public Dictionary<PlayerStatType, int> StatementCounts { get; set; } = new Dictionary<PlayerStatType, int>
+    {
+        { PlayerStatType.Insight, 0 },
+        { PlayerStatType.Rapport, 0 },
+        { PlayerStatType.Authority, 0 },
+        { PlayerStatType.Commerce, 0 },
+        { PlayerStatType.Cunning, 0 }
+    };
 
     // Visible momentum system for deterministic gameplay
     // HiddenMomentum removed - now using visible CurrentMomentum
@@ -56,12 +68,8 @@ public class ConversationSession
     // Use Deck.HandCards for read-only access to hand cards
     // Use Deck.HandSize for hand count
 
-    // NEW: Doubt tax calculation for momentum (20% reduction per doubt point)
-    public int GetEffectiveMomentumGain(int baseMomentum)
-    {
-        decimal reduction = CurrentDoubt * 0.20m;
-        return (int)(baseMomentum * (1 - reduction));
-    }
+    // DELETED: GetEffectiveMomentumGain() - Doubt Tax system NOT in specification
+    // Doubt only matters when it reaches 10 (conversation ends), not as a tax on momentum
 
 
     public bool CanReachMomentumThreshold(int threshold)
@@ -111,12 +119,12 @@ public class ConversationSession
     // NEW: Cadence management methods (corrected per game document)
     public void ApplyCadenceFromSpeak()
     {
-        Cadence = Math.Min(5, Cadence + 1); // Player speaking increases cadence (+1, max +5)
+        Cadence = Math.Min(10, Cadence + 1); // Player speaking increases cadence (+1, max +10)
     }
 
     public void ApplyCadenceFromListen()
     {
-        Cadence = Math.Max(-5, Cadence - 3); // Listening decreases cadence (-3, min -5)
+        Cadence = Math.Max(-10, Cadence - 3); // Listening decreases cadence (-3, min -10)
     }
 
     // NEW: Doubt reduction method
@@ -151,9 +159,90 @@ public class ConversationSession
     // NEW: Conversation time cost per game document formula
     public int GetConversationTimeCost()
     {
-        int statementsInSpoken = Deck.SpokenCards.Count(card =>
-            card.ConversationCardTemplate?.Persistence == PersistenceType.Statement);
-        return 1 + statementsInSpoken; // 1 base segment + Statements in Spoken
+        return 1 + GetTotalStatements(); // 1 base segment + total Statements played
+    }
+
+    // TIER UNLOCK SYSTEM METHODS
+
+    /// <summary>
+    /// Get the maximum depth accessible based on unlocked tiers
+    /// Tier 1 = depths 1-2, Tier 2 = depths 3-4, Tier 3 = depths 5-6, Tier 4 = depths 7-8
+    /// </summary>
+    public int GetUnlockedMaxDepth()
+    {
+        return UnlockedTiers.Max() * 2; // Tier number × 2 = max depth for that tier
+    }
+
+    /// <summary>
+    /// Check current momentum and unlock tiers at thresholds
+    /// Momentum 6+ unlocks Tier 2, 12+ unlocks Tier 3, 18+ unlocks Tier 4
+    /// Tiers persist once unlocked (never lock again)
+    /// </summary>
+    public void CheckAndUnlockTiers()
+    {
+        bool tiersChanged = false;
+
+        if (CurrentMomentum >= 6 && !UnlockedTiers.Contains(2))
+        {
+            UnlockedTiers.Add(2);
+            tiersChanged = true;
+            Console.WriteLine($"[ConversationSession] TIER 2 UNLOCKED at momentum {CurrentMomentum}! Depths 3-4 now accessible.");
+        }
+
+        if (CurrentMomentum >= 12 && !UnlockedTiers.Contains(3))
+        {
+            UnlockedTiers.Add(3);
+            tiersChanged = true;
+            Console.WriteLine($"[ConversationSession] TIER 3 UNLOCKED at momentum {CurrentMomentum}! Depths 5-6 now accessible.");
+        }
+
+        if (CurrentMomentum >= 18 && !UnlockedTiers.Contains(4))
+        {
+            UnlockedTiers.Add(4);
+            tiersChanged = true;
+            Console.WriteLine($"[ConversationSession] TIER 4 UNLOCKED at momentum {CurrentMomentum}! Depths 7-8 now accessible.");
+        }
+
+        if (tiersChanged)
+        {
+            Console.WriteLine($"[ConversationSession] Unlocked tiers: {string.Join(", ", UnlockedTiers.OrderBy(t => t))}. Max accessible depth: {GetUnlockedMaxDepth()}");
+        }
+    }
+
+    // STATEMENT HISTORY TRACKING METHODS
+
+    /// <summary>
+    /// Get the count of Statement cards played for a specific stat type
+    /// </summary>
+    public int GetStatementCount(PlayerStatType stat)
+    {
+        return StatementCounts.TryGetValue(stat, out int count) ? count : 0;
+    }
+
+    /// <summary>
+    /// Get the total number of Statement cards played across all stat types
+    /// </summary>
+    public int GetTotalStatements()
+    {
+        return StatementCounts.Values.Sum();
+    }
+
+    /// <summary>
+    /// Increment the Statement counter for a specific stat type
+    /// Called when a Statement card is played
+    /// </summary>
+    public void IncrementStatementCount(PlayerStatType stat)
+    {
+        if (StatementCounts.ContainsKey(stat))
+        {
+            StatementCounts[stat]++;
+        }
+        else
+        {
+            StatementCounts[stat] = 1;
+        }
+
+        Console.WriteLine($"[ConversationSession] Statement count for {stat}: {StatementCounts[stat]} (Total: {GetTotalStatements()})");
     }
 
 

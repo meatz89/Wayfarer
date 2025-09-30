@@ -44,24 +44,41 @@ public static class ConversationCardParser
             Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
         }
 
-        // Parse difficulty
-        Difficulty difficulty = Difficulty.Medium;
-        if (!string.IsNullOrEmpty(dto.Difficulty))
-        {
-            Enum.TryParse<Difficulty>(dto.Difficulty, true, out difficulty);
-        }
-
-        // Parse 4-resource system properties
+        // Parse depth (required for template derivation)
         CardDepth depth = CardDepth.Depth1;
         if (dto.Depth.HasValue)
         {
             depth = (CardDepth)dto.Depth.Value;
         }
 
-        int initiativeCost = dto.InitiativeCost ?? 0;
+        // Parse bound stat (required for template derivation)
+        PlayerStatType? boundStat = null;
+        if (!string.IsNullOrEmpty(dto.BoundStat))
+        {
+            if (Enum.TryParse<PlayerStatType>(dto.BoundStat, true, out PlayerStatType statType))
+            {
+                boundStat = statType;
+            }
+        }
 
-        // Parse categorical properties
+        // DERIVE properties from catalog (for standard cards with boundStat)
+        int initiativeCost = 0;
         PersistenceType persistence = PersistenceType.Statement;
+
+        if (boundStat.HasValue)
+        {
+            // Derive Initiative cost from catalog
+            initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
+
+            // Derive persistence: Foundation (1-2) = Echo, higher = Statement
+            persistence = (int)depth <= 2 ? PersistenceType.Echo : PersistenceType.Statement;
+        }
+
+        // Allow JSON overrides (only if explicitly specified)
+        if (dto.InitiativeCost.HasValue)
+        {
+            initiativeCost = dto.InitiativeCost.Value;
+        }
         if (!string.IsNullOrEmpty(dto.Persistence))
         {
             Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
@@ -129,14 +146,32 @@ public static class ConversationCardParser
             }
         }
 
-        // Parse bound stat
-        PlayerStatType? boundStat = null;
-        if (!string.IsNullOrEmpty(dto.BoundStat))
+        // boundStat already parsed above for template derivation
+
+        // DERIVE Statement requirements from depth
+        // Standard (3-4): Require depth-1 statements
+        // Advanced (5-6): Require depth-1 statements
+        // Master (7-8): Require depth-1 statements
+        PlayerStatType? requiredStat = null;
+        int requiredStatements = 0;
+
+        if (boundStat.HasValue && (int)depth > 2)
         {
-            if (Enum.TryParse<PlayerStatType>(dto.BoundStat, true, out PlayerStatType statType))
+            requiredStat = boundStat.Value; // Require same stat
+            requiredStatements = (int)depth - 1; // Depth 3 requires 2 statements, etc.
+        }
+
+        // Allow JSON overrides
+        if (!string.IsNullOrEmpty(dto.RequiredStat))
+        {
+            if (Enum.TryParse<PlayerStatType>(dto.RequiredStat, true, out PlayerStatType reqStatType))
             {
-                boundStat = statType;
+                requiredStat = reqStatType;
             }
+        }
+        if (dto.RequiredStatements.HasValue)
+        {
+            requiredStatements = dto.RequiredStatements.Value;
         }
 
         // Parse token requirements (for signature cards)
@@ -152,70 +187,36 @@ public static class ConversationCardParser
         // Parse NPC-specific targeting
         string npcSpecific = dto.NpcSpecific;
 
-        // Parse momentum/doubt scaling properties
-        ScalingType momentumScaling = ScalingType.None;
-        if (!string.IsNullOrEmpty(dto.MomentumScaling))
+        // DELETED: Legacy MomentumScaling, DoubtScaling, ScalingFormula parsing
+        // All effects now use EffectFormula system
+
+        // FORMULA-BASED EFFECT SYSTEM
+        CardEffectFormula effectFormula = null;
+
+        if (cardType == CardType.Conversation && boundStat.HasValue)
         {
-            if (!Enum.TryParse<ScalingType>(dto.MomentumScaling, out momentumScaling))
+            // Get effect formula from catalog based on boundStat + depth + variant
+            string variantName = dto.EffectVariant ?? "Base"; // Default to first variant if not specified
+
+            if (variantName == "Base")
             {
-                throw new InvalidOperationException($"Invalid MomentumScaling value '{dto.MomentumScaling}' for card '{dto.Id}'");
+                // Get first (default) variant
+                var variants = CardEffectCatalog.GetEffectVariants(boundStat.Value, (int)depth);
+                effectFormula = variants.FirstOrDefault();
             }
-        }
-
-        ScalingType doubtScaling = ScalingType.None;
-        if (!string.IsNullOrEmpty(dto.DoubtScaling))
-        {
-            if (!Enum.TryParse<ScalingType>(dto.DoubtScaling, out doubtScaling))
+            else
             {
-                throw new InvalidOperationException($"Invalid DoubtScaling value '{dto.DoubtScaling}' for card '{dto.Id}'");
-            }
-        }
-
-        // Parse scaling formula
-        ScalingFormula scalingFormula = null;
-        if (dto.ScalingEffect != null)
-        {
-            scalingFormula = new ScalingFormula
-            {
-                ScalingType = dto.ScalingEffect.ScalingType ?? "None",
-                BaseEffect = dto.ScalingEffect.BaseEffect,
-                Multiplier = dto.ScalingEffect.Multiplier,
-                Formula = dto.ScalingEffect.Formula ?? ""
-            };
-        }
-
-        // VALIDATE effects based on card type
-        if (cardType == CardType.Conversation)
-        {
-            // Regular conversation cards MUST have new effects structure
-            if (dto.Effects?.Success == null)
-            {
-                throw new InvalidOperationException($"Conversation card '{dto.Id}' is missing effects.success definition in JSON! All conversation cards MUST have effects defined.");
+                // Get specific variant by name
+                effectFormula = CardEffectCatalog.GetEffectByVariantName(boundStat.Value, (int)depth, variantName);
             }
 
-            var successEffects = dto.Effects.Success;
-
-            // At least ONE effect must be defined for conversation cards
-            if (!successEffects.Initiative.HasValue &&
-                !successEffects.Momentum.HasValue &&
-                !successEffects.Doubt.HasValue &&
-                !successEffects.DrawCards.HasValue &&
-                !successEffects.MomentumMultiplier.HasValue &&
-                string.IsNullOrEmpty(successEffects.OfferLetter) &&
-                string.IsNullOrEmpty(successEffects.AddObligation) &&
-                !successEffects.GainCoins.HasValue &&
-                string.IsNullOrEmpty(successEffects.GainCard))
+            if (effectFormula == null)
             {
-                throw new InvalidOperationException($"Conversation card '{dto.Id}' has no effects defined! At least one effect (Initiative, Momentum, Doubt, DrawCards, MomentumMultiplier, OfferLetter, AddObligation, GainCoins, or GainCard) MUST be specified.");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant '{variantName}'!");
             }
-        }
 
-        // Parse effects from new structure (if present)
-        int? effectInitiative = dto.Effects?.Success?.Initiative;
-        int? effectMomentum = dto.Effects?.Success?.Momentum;
-        int? effectDoubt = dto.Effects?.Success?.Doubt;
-        int? effectDrawCards = dto.Effects?.Success?.DrawCards;
-        decimal? effectMomentumMultiplier = dto.Effects?.Success?.MomentumMultiplier;
+            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using formula: {effectFormula}");
+        }
 
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
@@ -227,14 +228,9 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
-            ScalingEffect = scalingFormula,
-            // New 4-resource effects
-            EffectInitiative = effectInitiative,
-            EffectMomentum = effectMomentum,
-            EffectDoubt = effectDoubt,
-            EffectDrawCards = effectDrawCards,
-            EffectMomentumMultiplier = effectMomentumMultiplier,
-            Difficulty = difficulty,
+            // Formula-based effect system
+            EffectFormula = effectFormula,
+            // OLD: ScalingEffect, EffectInitiative, etc. (deprecated, removed)
             Persistence = persistence,
             SuccessType = successType,
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
@@ -243,9 +239,9 @@ public static class ConversationCardParser
             MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
             MomentumThreshold = dto.MomentumThreshold ?? 0,
             BoundStat = boundStat,
+            RequiredStat = requiredStat,
+            RequiredStatements = requiredStatements,
             LevelBonuses = levelBonuses,
-            MomentumScaling = momentumScaling,
-            DoubtScaling = doubtScaling,
             TokenRequirements = tokenRequirements,
             NpcSpecific = npcSpecific
         };
@@ -290,7 +286,9 @@ public static class ConversationCardParser
 
         // Check that ALL Initiative-generating cards are Echo type
         List<ConversationCard> initiativeGenerators = allCards
-            .Where(c => c.EffectInitiative.HasValue && c.EffectInitiative.Value > 0)
+            .Where(c => c.EffectFormula != null &&
+                       c.EffectFormula.TargetResource == ConversationResourceType.Initiative &&
+                       c.EffectFormula.FormulaType != EffectFormulaType.Trading) // Trading effects consume, not generate
             .ToList();
 
         List<ConversationCard> nonEchoInitiativeCards = initiativeGenerators
@@ -387,6 +385,13 @@ public class ConversationCardDTO
 
     // Player stats system - which stat this card is bound to
     public string BoundStat { get; set; } // insight/rapport/authority/commerce/cunning
+
+    // Effect variant system - which formula variant to use from catalog
+    public string EffectVariant { get; set; } // "Base", "Compound", "Scaling_Doubt", etc. (optional, defaults to "Base")
+
+    // Statement requirement system - cards may require prior Statement cards to be playable
+    public string RequiredStat { get; set; } // Which stat's Statement count to check
+    public int? RequiredStatements { get; set; } // How many Statements of that stat are required
 
     // Momentum/Doubt scaling properties
     public string MomentumScaling { get; set; } // "None", "CardsInHand", "DoubtReduction", etc.

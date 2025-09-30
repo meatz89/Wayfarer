@@ -278,46 +278,13 @@ public class PlayerStats
     }
 
     /// <summary>
-    /// Get highest stat level (for display/progression)
+    /// DELETED: GetHighestStatLevel() - Highest stat is not relevant for any game mechanics.
+    /// Stats only matter for their specific card types.
     /// </summary>
-    public int GetHighestStatLevel()
-    {
-        return _stats.Values.Max(s => s.Level);
-    }
 
     /// <summary>
-    /// Get primary stat (highest level, breaking ties by total XP)
+    /// DELETED: GetHighestStatLevel() and GetPrimaryStat()
+    /// "Highest stat" and "primary stat" concepts violate design principles.
+    /// Stats only matter for their specific card types, not for global bonuses or identity.
     /// </summary>
-    public PlayerStatType GetPrimaryStat()
-    {
-        int maxLevel = GetHighestStatLevel();
-        List<KeyValuePair<PlayerStatType, StatProgress>> primaryCandidates = _stats.Where(kvp => kvp.Value.Level == maxLevel).ToList();
-
-        if (primaryCandidates.Count == 1)
-        {
-            return primaryCandidates[0].Key;
-        }
-
-        // Break ties by total XP in that stat (extended to level 8)
-        return primaryCandidates.OrderByDescending(kvp =>
-        {
-            StatProgress stat = kvp.Value;
-            int totalXp = stat.XP;
-            for (int level = 1; level < stat.Level; level++)
-            {
-                totalXp += level switch
-                {
-                    1 => 10,
-                    2 => 25,
-                    3 => 50,
-                    4 => 100,
-                    5 => 175,
-                    6 => 275,
-                    7 => 400,
-                    _ => 0
-                };
-            }
-            return totalXp;
-        }).First().Key;
-    }
 }

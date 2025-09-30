@@ -73,7 +73,8 @@ namespace Wayfarer.Pages.Components
 
             TotalLevel = playerStats.GetTotalLevel();
             TotalXP = playerStats.GetTotalXP();
-            PrimaryStatName = GetStatDisplayName(playerStats.GetPrimaryStat());
+            // DELETED: PrimaryStat concept - stats don't have global "primary" role
+            PrimaryStatName = "N/A"; // Stats are equal, no "primary" stat
         }
 
         protected string GetStatDisplayName(PlayerStatType statType)

@@ -1379,7 +1379,6 @@ public class PackageLoader
             Title = dto.DisplayText ?? "",
             InitiativeCost = dto.InitiativeCost,
             TokenType = ConnectionType.Trust,
-            Difficulty = Difficulty.Medium,
             CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             SuccessType = SuccessEffectType.None,

@@ -93,22 +93,6 @@ public class CardInstance
     }
 
 
-    /// <summary>
-    /// Get base success percentage applying player stat bonuses
-    /// </summary>
-    public int GetBaseSuccessPercentage(PlayerStats playerStats)
-    {
-        int baseChance = ConversationCardTemplate.GetBaseSuccessPercentage();
-
-        // Add stat bonus instead of card level bonus
-        if (ConversationCardTemplate.BoundStat.HasValue)
-        {
-            int statBonus = playerStats.GetSuccessBonus(ConversationCardTemplate.BoundStat.Value);
-            return baseChance + statBonus;
-        }
-
-        return baseChance;
-    }
 
 
     public CardInstance() { }

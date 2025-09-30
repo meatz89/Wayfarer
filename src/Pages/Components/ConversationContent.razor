@@ -170,6 +170,51 @@
             </div>
         </div>
 
+        <!-- Tier Unlock Display -->
+        <div class="tier-display">
+            <div class="tier-info">
+                <span class="tier-label">Unlocked Depths</span>
+                <span class="tier-value">1-@GetUnlockedMaxDepth()</span>
+                <div class="tier-unlocks">
+                    @for (int tier = 1; tier <= 4; tier++)
+                    {
+                        <span class="tier-badge @(IsTierUnlocked(tier) ? "unlocked" : "locked")">
+                            Tier @tier (@(tier * 2 - 1)-@(tier * 2))
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Statement Counts Display -->
+        <div class="statement-display">
+            <div class="statement-counts">
+                <span class="statement-label">Statement History</span>
+                <div class="statement-stats">
+                    <div class="stat-count">
+                        <span class="stat-icon insight">⚡</span>
+                        <span class="stat-value">@GetStatementCount("Insight")</span>
+                    </div>
+                    <div class="stat-count">
+                        <span class="stat-icon rapport">❤</span>
+                        <span class="stat-value">@GetStatementCount("Rapport")</span>
+                    </div>
+                    <div class="stat-count">
+                        <span class="stat-icon authority">⚔</span>
+                        <span class="stat-value">@GetStatementCount("Authority")</span>
+                    </div>
+                    <div class="stat-count">
+                        <span class="stat-icon commerce">💰</span>
+                        <span class="stat-value">@GetStatementCount("Commerce")</span>
+                    </div>
+                    <div class="stat-count">
+                        <span class="stat-icon cunning">🎭</span>
+                        <span class="stat-value">@GetStatementCount("Cunning")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     <!-- NPC Observation Cards Section -->
     @{
         var observationCards = GetNPCObservationCards();

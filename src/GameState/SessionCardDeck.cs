@@ -114,23 +114,23 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Draw cards directly to hand with momentum-based filtering
-    /// Momentum 0 = depth 1 cards, momentum 1 = depths 1-2, momentum 2 = depths 1-3, etc.
+    /// Draw cards directly to hand with tier-based filtering
+    /// Uses ConversationSession to get unlocked tiers and stat bonuses for depth access
     /// </summary>
-    public void DrawToHand(int count, int currentMomentum, PlayerStats playerStats = null)
+    public void DrawToHand(int count, ConversationSession session, PlayerStats playerStats = null)
     {
-        Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, momentum={currentMomentum}");
+        int maxDepth = session.GetUnlockedMaxDepth();
+        Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, unlocked tiers: {string.Join(",", session.UnlockedTiers)}, max depth: {maxDepth}");
         int cardsDrawn = 0;
 
         for (int i = 0; i < count; i++)
         {
-            // With correct Echo/Statement architecture, this should rarely be needed
-            // Echo cards return immediately to deck, only Statement cards go to spoken pile
-            bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats));
+            // Check if there are accessible cards before attempting draw
+            bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.ConversationCardTemplate, session, playerStats));
 
             if (!hasAccessibleCards && spokenPile.Count > 0)
             {
-                Console.WriteLine($"[SessionCardDeck] No accessible cards at momentum {currentMomentum}, attempting legacy reshuffle");
+                Console.WriteLine($"[SessionCardDeck] No accessible cards at current tier, attempting reshuffle");
                 ReshuffleSpokenPile();
             }
 
@@ -141,8 +141,8 @@ public class SessionCardDeck
                 break;
             }
 
-            // Always apply momentum-based filtering
-            CardInstance card = DrawNextAccessibleCard(currentMomentum, playerStats);
+            // Apply tier-based filtering
+            CardInstance card = DrawNextAccessibleCard(session, playerStats);
 
             if (card != null)
             {
@@ -152,7 +152,7 @@ public class SessionCardDeck
             }
             else
             {
-                Console.WriteLine($"[SessionCardDeck] No more accessible cards at momentum {currentMomentum}");
+                Console.WriteLine($"[SessionCardDeck] No more accessible cards at max depth {maxDepth}");
                 break;
             }
         }
@@ -160,11 +160,11 @@ public class SessionCardDeck
         // Log the actual draw result
         if (cardsDrawn < count)
         {
-            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (momentum filter limited available cards)");
+            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (tier filter limited available cards)");
         }
         else
         {
-            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards with momentum filtering");
+            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards with tier filtering");
         }
     }
 
@@ -475,51 +475,53 @@ public class SessionCardDeck
     }
 
     /// <summary>
-    /// Check if a card can be accessed based on momentum and stat specialization bonuses
-    /// Rule: momentum 0 = depth 1, momentum 1 = depths 1-2, momentum 2 = depths 1-3, etc.
-    /// So: cardDepth <= (currentMomentum + 1)
+    /// Check if a card can be accessed based on unlocked tiers and stat specialization bonuses
+    /// Tier system: Tier 1 (depths 1-2), Tier 2 (depths 3-4), Tier 3 (depths 5-6), Tier 4 (depths 7-8)
+    /// Tiers unlock at momentum 6/12/18 and persist once unlocked
     /// </summary>
-    private bool CanAccessCard(ConversationCard card, int currentMomentum, PlayerStats playerStats)
+    private bool CanAccessCard(ConversationCard card, ConversationSession session, PlayerStats playerStats)
     {
         if (card == null) return false;
 
         int cardDepth = (int)card.Depth;
-        int maxAccessibleDepth = currentMomentum + 1;
+        int tierMaxDepth = session.GetUnlockedMaxDepth(); // Based on unlocked tiers, not momentum directly
 
-        // Basic momentum gate: card accessible if depth <= (momentum + 1)
-        if (cardDepth <= maxAccessibleDepth) return true;
+        // Universal access via unlocked tiers
+        if (cardDepth <= tierMaxDepth) return true;
 
-        // Stat specialization bonus: if card has bound stat, check for bonus access
+        // Specialist bonus access - can access deeper cards if stat matches
         if (card.BoundStat.HasValue && playerStats != null)
         {
             int statBonus = playerStats.GetDepthBonus(card.BoundStat.Value);
-            return cardDepth <= maxAccessibleDepth + statBonus;
+            if (cardDepth <= tierMaxDepth + statBonus) return true;
         }
 
         return false;
     }
 
     /// <summary>
-    /// Draw the next accessible card from the deck pile based on momentum filtering
+    /// Draw the next accessible card from the deck pile based on tier filtering
     /// Maintains deck order - draws the first accessible card from top of deck
     /// Returns null if no accessible cards are available
     /// </summary>
-    private CardInstance DrawNextAccessibleCard(int currentMomentum, PlayerStats playerStats)
+    private CardInstance DrawNextAccessibleCard(ConversationSession session, PlayerStats playerStats)
     {
+        int maxDepth = session.GetUnlockedMaxDepth();
+
         // Go through deck in order (top to bottom) and find first accessible card
         foreach (CardInstance card in deckPile.Cards)
         {
-            if (CanAccessCard(card.ConversationCardTemplate, currentMomentum, playerStats))
+            if (CanAccessCard(card.ConversationCardTemplate, session, playerStats))
             {
                 // Found the first accessible card - remove and return it
                 deckPile.Remove(card);
-                Console.WriteLine($"[SessionCardDeck] Drew accessible card: {card.ConversationCardTemplate.Title} (depth {(int)card.ConversationCardTemplate.Depth})");
+                Console.WriteLine($"[SessionCardDeck] Drew accessible card: {card.ConversationCardTemplate.Title} (depth {(int)card.ConversationCardTemplate.Depth}, max: {maxDepth})");
                 return card;
             }
         }
 
         // No accessible cards found
-        Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at momentum {currentMomentum}");
+        Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at max depth {maxDepth}");
         return null;
     }
 

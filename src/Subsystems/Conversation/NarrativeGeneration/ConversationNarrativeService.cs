@@ -293,7 +293,6 @@ public class ConversationNarrativeService
             {
                 Id = card.ConversationCardTemplate.Id,
                 InitiativeCost = card.ConversationCardTemplate.InitiativeCost,
-                Difficulty = card.ConversationCardTemplate.Difficulty,
                 Effect = card.ConversationCardTemplate.SuccessType.ToString() ?? card.ConversationCardTemplate.Title ?? "",
                 Persistence = DetermineCardPersistence(card),
                 NarrativeCategory = DetermineNarrativeCategory(card)
@@ -374,11 +373,8 @@ public class ConversationNarrativeService
             return "atmosphere_change";
         }
 
-        // Difficulty-based risk assessment
-        if (card.ConversationCardTemplate.Difficulty == Difficulty.VeryHard)
-            return "risk_high";
-        if (card.ConversationCardTemplate.Difficulty == Difficulty.Hard)
-            return "risk_moderate";
+        // DELETED: Difficulty-based risk assessment
+        // Risk now assessed through card depth and Initiative cost
 
         // Card persistence-based categories
         if (card.Persistence == PersistenceType.Statement)

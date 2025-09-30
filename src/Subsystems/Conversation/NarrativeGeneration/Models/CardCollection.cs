@@ -32,11 +32,6 @@ public class CardInfo
     /// </summary>
     public int InitiativeCost { get; set; }
 
-    /// <summary>
-    /// Base difficulty level of the card.
-    /// Affects success percentage and determines narrative boldness.
-    /// </summary>
-    public Difficulty Difficulty { get; set; }
 
     /// <summary>
     /// Description of the card's mechanical effect.

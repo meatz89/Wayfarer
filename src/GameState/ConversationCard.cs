@@ -22,18 +22,16 @@ public class ConversationCard
     // New 4-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
-    public ScalingFormula ScalingEffect { get; init; }
 
-    // Parsed effects from JSON
-    public int? EffectInitiative { get; init; } // Initiative gained/lost
-    public int? EffectMomentum { get; init; } // Momentum gained/lost
-    public int? EffectDoubt { get; init; } // Doubt gained/lost (negative = reduction)
-    public int? EffectDrawCards { get; init; } // Cards to draw
-    public decimal? EffectMomentumMultiplier { get; init; } // Momentum multiplier
+    // Formula-based effect system (replaces old explicit effect properties)
+    public CardEffectFormula EffectFormula { get; init; }
+
+    // DELETED: ALL legacy effect properties
+    // EffectInitiative, EffectMomentum, EffectDoubt, EffectDrawCards, EffectMomentumMultiplier, ScalingFormula
+    // ALL effects now use EffectFormula system only
 
     // Card properties
     public ConnectionType TokenType { get; init; }
-    public Difficulty Difficulty { get; init; }
 
     // Token requirements for gated exchanges
     public int MinimumTokensRequired { get; init; } = 0;
@@ -60,9 +58,11 @@ public class ConversationCard
     // Player stats system - which stat this card is bound to for XP progression
     public PlayerStatType? BoundStat { get; init; }
 
-    // Momentum/Doubt effect scaling properties
-    public ScalingType MomentumScaling { get; init; } = ScalingType.None;
-    public ScalingType DoubtScaling { get; init; } = ScalingType.None;
+    // Statement requirement system - cards may require prior Statement cards to be playable
+    public PlayerStatType? RequiredStat { get; init; } // Which stat's Statement count to check
+    public int RequiredStatements { get; init; } = 0; // How many Statements of that stat are required
+
+    // DELETED: MomentumScaling, DoubtScaling - replaced by EffectFormula
 
     // Token requirements for signature cards
     public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
@@ -70,19 +70,6 @@ public class ConversationCard
     // NPC-specific targeting for signature cards
     public string NpcSpecific { get; init; }
 
-    // Get base success percentage from difficulty tier (for display only)
-    public int GetBaseSuccessPercentage()
-    {
-        return Difficulty switch
-        {
-            Difficulty.VeryEasy => 85,
-            Difficulty.Easy => 70,
-            Difficulty.Medium => 60,
-            Difficulty.Hard => 50,
-            Difficulty.VeryHard => 40,
-            _ => 60
-        };
-    }
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(ConversationSession session = null)
@@ -90,137 +77,8 @@ public class ConversationCard
         return InitiativeCost;
     }
 
-    // Calculate actual momentum effect based on success type, category, difficulty, and scaling formula
-    public int GetMomentumEffect(ConversationSession session, PlayerStats playerStats = null)
-    {
-        int baseEffect = GetBaseMomentumFromProperties();
-        if (baseEffect == 0) return 0;
 
-        // Apply new scaling formula if specified
-        if (ScalingEffect != null)
-        {
-            baseEffect = ApplyScalingFormula(baseEffect, session);
-        }
-        // Apply 4-resource system scaling
-        else if (MomentumScaling != ScalingType.None)
-        {
-            baseEffect = MomentumScaling switch
-            {
-                // Resource-based scaling (Initiative, Cadence, Momentum, Doubt)
-                ScalingType.CurrentInitiative => session.CurrentInitiative,
-                ScalingType.CurrentCadence => session.Cadence,
-                ScalingType.CurrentMomentum => session.CurrentMomentum,
-                ScalingType.CurrentDoubt => session.CurrentDoubt,
-                ScalingType.DoubleMomentum => session.CurrentMomentum * 2,
 
-                // Pile-based scaling (Mind, Spoken, Deck)
-                ScalingType.CardsInMind => session.Deck.HandSize,
-                ScalingType.CardsInSpoken => session.Deck.SpokenPileCount,
-                ScalingType.CardsInDeck => session.Deck.RemainingDeckCards,
-
-                // Resource conversion effects (momentum spending)
-                ScalingType.SpendMomentumForDoubt => -2, // Spend 2 momentum to reduce doubt
-                ScalingType.SpendMomentumForInitiative => -3, // Spend 3 momentum to gain initiative
-
-                // Conditional scaling
-                ScalingType.DoubtMultiplier => Math.Max(1, session.CurrentDoubt), // Desperation effects
-                ScalingType.CadenceBonus => Math.Max(0, session.Cadence), // Positive cadence bonus
-                ScalingType.InitiativeThreshold => session.CurrentInitiative >= 5 ? baseEffect * 2 : baseEffect,
-
-                _ => baseEffect
-            };
-        }
-
-        // Apply doubt tax on momentum gains
-        if (baseEffect > 0)
-        {
-            baseEffect = session.GetEffectiveMomentumGain(baseEffect);
-        }
-
-        // Add stat bonus for Expression cards (Category determines if it's an Expression card)
-        if (Category == CardCategory.Expression && BoundStat.HasValue && playerStats != null)
-        {
-            int statLevel = playerStats.GetLevel(BoundStat.Value);
-
-            // According to desperate plea spec: Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
-            if (statLevel >= 2)
-            {
-                baseEffect += (statLevel - 1);
-            }
-        }
-
-        return baseEffect;
-    }
-
-    // Apply new scaling formula system using 4-resource + visible piles
-    private int ApplyScalingFormula(int baseEffect, ConversationSession session)
-    {
-        return ScalingEffect.ScalingType switch
-        {
-            "Initiative" => baseEffect + (int)(session.CurrentInitiative * ScalingEffect.Multiplier),
-            "Cadence" => baseEffect + (int)(session.Cadence * ScalingEffect.Multiplier),
-            "Momentum" => baseEffect + (int)(session.CurrentMomentum * ScalingEffect.Multiplier),
-            "Doubt" => baseEffect + (int)(session.CurrentDoubt * ScalingEffect.Multiplier),
-            "SpokenCards" => baseEffect + (int)(session.Deck.SpokenPileCount * ScalingEffect.Multiplier),
-            "MindCards" => baseEffect + (int)(session.Deck.HandSize * ScalingEffect.Multiplier),
-            "DeckCards" => baseEffect + (int)(session.Deck.RemainingDeckCards * ScalingEffect.Multiplier),
-            _ => baseEffect
-        };
-    }
-
-    // Calculate actual doubt effect based on success type, category, difficulty, and scaling formula
-    public int GetDoubtEffect(ConversationSession session)
-    {
-        int baseEffect = GetBaseDoubtFromProperties();
-        if (baseEffect == 0) return 0;
-
-        // Apply scaling formula if specified
-        if (DoubtScaling != ScalingType.None)
-        {
-            return DoubtScaling switch
-            {
-                ScalingType.CurrentDoubt => 10 - session.CurrentDoubt,
-                _ => baseEffect
-            };
-        }
-
-        return baseEffect;
-    }
-
-    // Calculate base momentum from success type and difficulty only
-    public int GetBaseMomentumFromProperties()
-    {
-        return SuccessType switch
-        {
-            SuccessEffectType.Strike => GetDifficultyMagnitude(),
-            SuccessEffectType.DoubleMomentum => 0, // Special case - doubles existing momentum
-            _ => 0
-        };
-    }
-
-    // Calculate base doubt from success type and difficulty only
-    private int GetBaseDoubtFromProperties()
-    {
-        return SuccessType switch
-        {
-            SuccessEffectType.Soothe => -GetDifficultyMagnitude(), // Negative = reduces doubt
-            _ => 0
-        };
-    }
-
-    // Get magnitude based on difficulty
-    private int GetDifficultyMagnitude()
-    {
-        return Difficulty switch
-        {
-            Difficulty.VeryEasy => 1,
-            Difficulty.Easy => 2,
-            Difficulty.Medium => 3,
-            Difficulty.Hard => 4,
-            Difficulty.VeryHard => 5,
-            _ => 2
-        };
-    }
 
     /// <summary>
     /// Determines card category based on success effect type
@@ -301,35 +159,19 @@ public class ConversationCard
         return true;
     }
 
-    /// <summary>
-    /// Get the effective Initiative effect from new JSON structure (overrides legacy calculation)
-    /// </summary>
-    public int GetInitiativeEffect()
-    {
-        return EffectInitiative ?? 0;
-    }
 
     /// <summary>
-    /// Get the effective Momentum effect from new JSON structure (overrides legacy calculation)
+    /// Check if Statement requirements are met for this card
+    /// Returns true if no requirements or requirements are satisfied
     /// </summary>
-    public int GetMomentumEffectFromJSON()
+    public bool MeetsStatementRequirements(ConversationSession session)
     {
-        return EffectMomentum ?? 0;
-    }
+        if (!RequiredStat.HasValue || RequiredStatements <= 0)
+        {
+            return true; // No requirements
+        }
 
-    /// <summary>
-    /// Get the effective Doubt effect from new JSON structure (overrides legacy calculation)
-    /// </summary>
-    public int GetDoubtEffectFromJSON()
-    {
-        return EffectDoubt ?? 0;
-    }
-
-    /// <summary>
-    /// Get the effective DrawCards effect from new JSON structure
-    /// </summary>
-    public int GetDrawCardsEffect()
-    {
-        return EffectDrawCards ?? 0;
+        int statementCount = session.GetStatementCount(RequiredStat.Value);
+        return statementCount >= RequiredStatements;
     }
 }

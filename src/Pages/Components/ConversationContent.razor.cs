@@ -1148,21 +1148,31 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Check if card has requirement constraints - DELEGATE TO BACKEND
+        /// Check if card has Statement requirement constraints
         /// </summary>
         protected bool HasCardRequirement(CardInstance card)
         {
-            // Backend methods don't exist yet - return safe fallback
-            return false;
+            if (card?.ConversationCardTemplate == null) return false;
+
+            return card.ConversationCardTemplate.RequiredStat.HasValue
+                && card.ConversationCardTemplate.RequiredStatements > 0;
         }
 
         /// <summary>
-        /// Get card requirement text - DELEGATE TO BACKEND
+        /// Get card requirement text showing Statement requirements
         /// </summary>
         protected string GetCardRequirement(CardInstance card)
         {
-            // Backend methods don't exist yet - return safe fallback
-            return "";
+            if (!HasCardRequirement(card) || Session == null) return "";
+
+            var reqStat = card.ConversationCardTemplate.RequiredStat.Value;
+            var reqCount = card.ConversationCardTemplate.RequiredStatements;
+            var currentCount = Session.GetStatementCount(reqStat);
+
+            bool requirementMet = currentCount >= reqCount;
+            string status = requirementMet ? "✓" : "✗";
+
+            return $"{status} Requires {reqCount} {reqStat} Statements (Current: {currentCount})";
         }
 
         /// <summary>
@@ -1181,6 +1191,30 @@ namespace Wayfarer.Pages.Components
         {
             // Backend methods don't exist yet - return safe fallback
             return "";
+        }
+
+        // Tier unlock system methods
+        protected int GetUnlockedMaxDepth()
+        {
+            return Session?.GetUnlockedMaxDepth() ?? 2; // Default to Tier 1 max
+        }
+
+        protected bool IsTierUnlocked(int tier)
+        {
+            return Session?.UnlockedTiers?.Contains(tier) ?? (tier == 1);
+        }
+
+        // Statement count methods
+        protected int GetStatementCount(string statName)
+        {
+            if (Session == null) return 0;
+
+            if (Enum.TryParse<PlayerStatType>(statName, true, out PlayerStatType stat))
+            {
+                return Session.GetStatementCount(stat);
+            }
+
+            return 0;
         }
     }
 

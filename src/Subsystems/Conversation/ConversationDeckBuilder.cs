@@ -207,7 +207,6 @@ public class ConversationDeckBuilder
                 Id = requestCard.Id,
                 Title = requestCard.Title,
                 InitiativeCost = requestCard.InitiativeCost,
-                Difficulty = requestCard.Difficulty,
                 TokenType = requestCard.TokenType,
                 Persistence = requestCard.Persistence,
                 SuccessType = requestCard.SuccessType,

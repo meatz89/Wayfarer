@@ -422,7 +422,7 @@ public class PromptBuilder
         for (int i = 0; i < cards.Cards.Count; i++)
         {
             CardInfo card = cards.Cards[i];
-            summary.AppendLine($"- Card {i + 1}: {card.InitiativeCost} focus, {card.Persistence} type, {card.Difficulty} difficulty");
+            summary.AppendLine($"- Card {i + 1}: {card.InitiativeCost} initiative, {card.Persistence} type");
         }
 
         return summary.ToString().Trim();
@@ -438,9 +438,8 @@ public class PromptBuilder
         foreach (CardInfo card in cards.Cards)
         {
             detail.AppendLine($"Card ID: {card.Id}");
-            detail.AppendLine($"- Focus Cost: {card.InitiativeCost}");
+            detail.AppendLine($"- Initiative Cost: {card.InitiativeCost}");
             detail.AppendLine($"- Success Effect: {card.Effect}");
-            detail.AppendLine($"- Difficulty: {card.Difficulty}");
             detail.AppendLine($"- Persistence: {card.Persistence}");
             detail.AppendLine($"- Category: {card.NarrativeCategory}");
             detail.AppendLine();
