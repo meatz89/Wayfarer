@@ -97,19 +97,17 @@ public class ConversationCard
 
     /// <summary>
     /// Get Initiative generation based on conversational move type.
-    /// Remarks and Observations (simple conversation moves) generate Initiative.
-    /// Arguments (complex developed points) cost Initiative instead of generating it.
-    /// This is a categorical effect of the move type, not an explicit property.
+    /// Remarks and Observations (simple conversation moves) ALWAYS generate +1 Initiative.
+    /// Arguments (complex developed points) cost Initiative instead of generating it (0 generation).
+    /// Cunning specializes in Initiative by having MORE Observation/Remark cards, not higher values.
     /// </summary>
     public int GetInitiativeGeneration()
     {
-        // Only simple moves (Remark/Observation) generate Initiative (Arguments cost Initiative instead)
+        // Arguments never generate Initiative (they COST it instead)
         if (Move == ConversationalMove.Argument) return 0;
 
-        // Cunning specializes in Initiative generation
-        if (BoundStat == PlayerStatType.Cunning) return 3;
-
-        // All other simple moves generate +1 Initiative
+        // ALL Remarks and Observations generate +1 Initiative (no special cases)
+        // Specialization comes from deck composition (Cunning has more Observation cards), not multipliers
         return BoundStat.HasValue ? 1 : 0;
     }
 
