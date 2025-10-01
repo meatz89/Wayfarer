@@ -819,9 +819,9 @@ Four types, each with distinct identity:
 #### Cadence
 - **Range**: -5 to +5
 - **Always starts at 0**
-- **Changes**: 
+- **Changes**:
   - Each SPEAK action: +1 Cadence
-  - Each LISTEN action: -2 Cadence
+  - Each LISTEN action: -1 Cadence
 - **Effects**:
   - Positive Cadence: +1 Doubt per point on LISTEN
   - Negative Cadence: +1 card draw per point on LISTEN
@@ -1859,7 +1859,7 @@ This is character progression through conversational mastery, not statistical ad
 **Cadence System**:
 - Range: -5 to +10
 - SPEAK action: +1 Cadence
-- LISTEN action: -3 Cadence
+- LISTEN action: -1 Cadence
 - Cadence ≥ 6: +1 Doubt per point above 5 on LISTEN
 - Cadence ≤ -3: +1 card draw on LISTEN
 

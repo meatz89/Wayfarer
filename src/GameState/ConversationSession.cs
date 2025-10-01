@@ -125,7 +125,7 @@ public class ConversationSession
 
     public void ApplyCadenceFromListen()
     {
-        Cadence = Math.Max(-10, Cadence - 3); // Listening decreases cadence (-3, min -10)
+        Cadence = Math.Max(-10, Cadence - 1); // Listening decreases cadence (-1, min -10)
     }
 
     // NEW: Doubt reduction method

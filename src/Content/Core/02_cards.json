@@ -34,7 +34,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "insight_careful_analysis",
@@ -62,7 +62,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "insight_connect_evidence",
@@ -202,7 +202,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Yielding"
       },
       {
         "id": "rapport_empathetic_response",
@@ -216,7 +216,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "rapport_active_listening",
@@ -258,7 +258,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "rapport_validate_feelings",
@@ -538,7 +538,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_mitigate_risk",
@@ -566,7 +566,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_trade_concession",
@@ -594,7 +594,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_find_middle_ground",
@@ -608,7 +608,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_strategic_exchange",
@@ -622,7 +622,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_mitigate_crisis",
@@ -633,10 +633,7 @@
         "depth": 5,
         "persistence": "Echo",
         "effectVariant": "Base",
-        "personalityTypes": [
-          "ALL"
-        ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_propose_terms",
@@ -650,7 +647,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_perfect_terms",
@@ -664,7 +661,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "diplomacy_perfect_agreement",
@@ -720,7 +717,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "cunning_subtle_maneuver",
@@ -818,7 +815,7 @@
         "personalityTypes": [
           "ALL"
         ],
-        "delivery": "Measured"
+        "delivery": "Standard"
       },
       {
         "id": "cunning_total_exploitation",

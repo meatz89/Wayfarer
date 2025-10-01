@@ -727,7 +727,7 @@ public class ConversationFacade
             }
         }
 
-        // 6. Cadence reduction by -3 happens AFTER draw calculation (NOT here)
+        // 6. Cadence reduction by -1 happens AFTER draw calculation (NOT here)
         // This is handled in ReduceCadenceAfterDraw() method called after ExecuteNewListenCardDraw
     }
 
@@ -736,7 +736,7 @@ public class ConversationFacade
     /// </summary>
     private void ReduceCadenceAfterDraw(ConversationSession session)
     {
-        session.Cadence = Math.Max(-10, session.Cadence - 3);
+        session.Cadence = Math.Max(-10, session.Cadence - 1);
     }
 
     /// <summary>
@@ -1678,8 +1678,8 @@ public class ConversationFacade
         }
 
         // Step 3: Show cadence change
-        int newCadence = Math.Max(-5, currentCadence - 3);
-        preview.Add($"Cadence: {currentCadence} → {newCadence} (-3 for listening)");
+        int newCadence = Math.Max(-5, currentCadence - 1);
+        preview.Add($"Cadence: {currentCadence} → {newCadence} (-1 for listening)");
 
         // Step 4: Show card draw
         int drawCount = _currentSession.GetDrawCount();
