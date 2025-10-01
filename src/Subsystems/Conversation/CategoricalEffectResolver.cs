@@ -98,10 +98,16 @@ public class CategoricalEffectResolver
 
         var effectsOnly = new List<string>();  // Card effects only (for card display)
 
-        // CRITICAL: Initiative is NEVER a card effect
-        // Initiative generation comes ONLY from ConversationalMove type (Remark/Observation)
+        // CRITICAL: Initiative generation from ConversationalMove (NOT from card effects!)
+        // Remark/Observation generate Initiative through ConversationalMove property
         // Arguments COST Initiative, they never generate it
-        // NO card effect should ever modify Initiative
+        // This is added to InitiativeChange for projection, but NOT to description strings
+        int initiativeGen = card.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
+        if (initiativeGen > 0)
+        {
+            result.InitiativeChange += initiativeGen;
+            // DO NOT add to effectsOnly - shown via ConversationalMove badge instead
+        }
 
         // Use EffectFormula system for singular card effect
         CardEffectFormula formula = card.ConversationCardTemplate?.EffectFormula;
