@@ -243,13 +243,6 @@ public static class ConversationCardParser
             }
         }
 
-        // VALIDATION: Authority cards MUST use Commanding delivery
-        if (boundStat == PlayerStatType.Authority && delivery != DeliveryType.Commanding)
-        {
-            Console.WriteLine($"[ConversationCardParser] WARNING: Authority card '{dto.Id}' should use Commanding delivery. Overriding '{delivery}' → Commanding");
-            delivery = DeliveryType.Commanding;
-        }
-
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
