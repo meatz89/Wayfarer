@@ -662,17 +662,17 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 ### Initiative Economy Integration
 
 **Initiative Generation Through ConversationalMove Types**:
-- **Observations** (Foundation tier, 0 Initiative cost):
-  - Cunning Observations generate +3 Initiative
-  - Other stat Observations generate +1 Initiative (or their specialty resource)
-- **Remarks** (Authority Foundation tier, 0 Initiative cost): Generate +2 Momentum
-- **Arguments** (Depth 3+, 3-12 Initiative cost): Cost Initiative for compound effects
+- **Observations** (Foundation tier, 0 Initiative cost): Generate +1 Initiative
+- **Remarks** (Foundation tier, 0 Initiative cost): Generate +1 Initiative
+- **Arguments** (Depth 3+, 3-12 Initiative cost): Cost Initiative for compound effects (0 generation)
 - **Base Initiative**: Starts at 0 (must be generated from zero)
+- **Cunning Specialization**: Cunning has MORE Observation/Remark cards in deck composition (not higher values per card)
 
 **Initiative Generation is Derived from ConversationalMove**:
-- Remarks and Observations generate Initiative (+1 base, +3 for Cunning)
-- Arguments cost Initiative instead of generating it
+- ALL Remarks and Observations generate +1 Initiative uniformly (no stat multipliers)
+- Arguments cost Initiative instead of generating it (0 generation)
 - The move type determines whether a card builds or spends Initiative
+- Specialization comes from deck composition (quantity of cards), not hidden multipliers
 
 **Resource Identity Separation**:
 - **Initiative**: Action economy for playing cards (starts at 0, must generate)
@@ -1153,8 +1153,9 @@ The ConversationalMove system categorizes cards by their conversational purpose,
   - Diplomatic resolution: "We can find common ground here..."
 
 **Cunning** (Observation Specialist - Initiative):
-- **Foundation (Depth 1-2)**: Observation move → Generates Initiative (+1, +3 for Cunning cards)
+- **Foundation (Depth 1-2)**: Observation move → Generates Initiative (+1)
   - Subtle positioning: "Interesting perspective..."
+  - Specialization: Cunning has MORE Observation cards in deck, not higher values
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Strategic maneuvering: "If we consider the implications..."
 
@@ -1390,7 +1391,7 @@ The core tactical loop uses ConversationalMove types to manage Initiative and ef
   - Diplomacy: -Doubt
   - Cunning: Initiative
 - **Purpose**: Essential starting point - build resources from zero
-- **Example**: "Active Listening" (Cunning Observation) - 0 Initiative cost, generates +3 Initiative
+- **Example**: "Active Listening" (Cunning Observation) - 0 Initiative cost, generates +1 Initiative
 
 #### Standard/Advanced Cards (Depth 3-10) - Arguments
 - **Cost**: 3-12 Initiative (requires buildup through Foundation plays)

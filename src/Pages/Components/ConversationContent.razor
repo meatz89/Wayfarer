@@ -150,13 +150,16 @@
                         {
                             <div class="tooltip card-effects-tooltip">
                                 <div class="tooltip-title">@GetProperCardName(SelectedCard)</div>
-                                <div class="tooltip-section">
-                                    <strong>Costs:</strong>
-                                    <ul>
-                                        <li>Initiative: @GetCardInitiativeCost(SelectedCard)</li>
-                                        <li>Cadence: @GetCardDeliveryCadenceEffect(SelectedCard)</li>
-                                    </ul>
-                                </div>
+                                @if (GetCardInitiativeCost(SelectedCard) > 0)
+                                {
+                                    <div class="tooltip-section">
+                                        <strong>Costs:</strong>
+                                        <ul>
+                                            <li>Initiative: @GetCardInitiativeCost(SelectedCard)</li>
+                                            <li>Cadence: @GetCardDeliveryCadenceEffect(SelectedCard)</li>
+                                        </ul>
+                                    </div>
+                                }
                                 <div class="tooltip-section">
                                     <strong>Effects:</strong>
                                     <div>
