@@ -370,10 +370,10 @@ public class ObligationQueueManager
         // Base algorithm: Position = 8 - (highest positive token) + (worst negative token penalty)
         int position = _config.LetterQueue.MaxQueueSize - highestPositiveToken + worstNegativeTokenPenalty;
 
-        // Apply Commerce debt leverage override
-        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        // Apply Diplomacy debt leverage override
+        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Diplomacy) && allTokens[ConnectionType.Diplomacy] <= -3)
         {
-            position = 2; // Commerce debt >= 3 forces position 2
+            position = 2; // Diplomacy debt >= 3 forces position 2
         }
 
         // Clamp to valid queue range
@@ -460,9 +460,9 @@ public class ObligationQueueManager
             return LetterPositioningReason.Obligation;
         }
 
-        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
+        if (allTokens.Any(kvp => kvp.Key == ConnectionType.Diplomacy) && allTokens[ConnectionType.Diplomacy] <= -3)
         {
-            return LetterPositioningReason.CommerceDebt;
+            return LetterPositioningReason.DiplomacyDebt;
         }
 
         if (worstNegativeTokenPenalty > 0)
@@ -1093,7 +1093,7 @@ public class ObligationQueueManager
         {
             return $"{npc.Name} waited for your help that never came. Some wounds don't heal.";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Diplomacy))
         {
             return $"{npc.Name}'s opening has passed. 'Time is money, and you've cost me both.'";
         }
@@ -1252,7 +1252,7 @@ public class ObligationQueueManager
         {
             return $"{npc.Name} looks hurt as you prioritize other obligations over their {GetTokenTypeDescription(letter.TokenType)} request.";
         }
-        else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
+        else if (npc.LetterTokenTypes.Contains(ConnectionType.Diplomacy))
         {
             return $"{npc.Name} frowns at the delay. 'Business waits for no one,' they mutter.";
         }
@@ -1660,7 +1660,7 @@ public class ObligationQueueManager
         {
             case ConnectionType.Trust:
                 return "personal";
-            case ConnectionType.Commerce:
+            case ConnectionType.Diplomacy:
                 return "commercial";
             case ConnectionType.Status:
                 return "aristocratic";
@@ -2779,7 +2779,7 @@ public class ObligationQueueManager
         else if (displacementReason.Contains("proud", StringComparison.OrdinalIgnoreCase) ||
                  displacementReason.Contains("Lord Blackwood", StringComparison.OrdinalIgnoreCase))
         {
-            return LetterPositioningReason.CommerceDebt;  // Using this to indicate power/status
+            return LetterPositioningReason.DiplomacyDebt;  // Using this to indicate power/status
         }
         else
         {

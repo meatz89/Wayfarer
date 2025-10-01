@@ -441,7 +441,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "Insight",
                 PlayerStatType.Rapport => "Rapport",
                 PlayerStatType.Authority => "Authority",
-                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Diplomacy => "Diplomacy",
                 PlayerStatType.Cunning => "Cunning",
                 _ => statType.ToString()
             };
@@ -456,7 +456,7 @@ namespace Wayfarer.Pages.Components
                     PlayerStatType.Insight => "insight",
                     PlayerStatType.Rapport => "rapport",
                     PlayerStatType.Authority => "authority",
-                    PlayerStatType.Commerce => "commerce",
+                    PlayerStatType.Diplomacy => "diplomacy",
                     PlayerStatType.Cunning => "cunning",
                     _ => "default"
                 };

@@ -473,7 +473,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 return $"{npc.Name} waited for your help that never came. Some wounds don't heal.";
             }
-            else if (npc.LetterTokenTypes.Contains(ConnectionType.Commerce))
+            else if (npc.LetterTokenTypes.Contains(ConnectionType.Diplomacy))
             {
                 return $"{npc.Name}'s opening has passed. 'Time is money, and you've cost me both.'";
             }

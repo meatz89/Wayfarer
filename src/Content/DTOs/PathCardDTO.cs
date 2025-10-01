@@ -29,7 +29,7 @@ public class PathCardDTO
     public bool ForceReturn { get; set; } = false; // Dead-end paths that force return
 
     // Token Gains
-    public Dictionary<string, int> TokenGains { get; set; } // e.g., {"Commerce": 1, "Status": 2}
+    public Dictionary<string, int> TokenGains { get; set; } // e.g., {"Diplomacy": 1, "Status": 2}
 
     // Path Revelations
     public List<string> RevealsPaths { get; set; } // List of path IDs to reveal when played

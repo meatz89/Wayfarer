@@ -34,7 +34,7 @@ Each stat SPECIALIZES in one resource (2-3x efficiency) but can ACCESS universal
 | **Insight** | Cards (2-6 draw) | Momentum (+1-3), Initiative (+1-2) | Information-focused |
 | **Rapport** | Cadence (-1 to -3) | Momentum (+1-3), Initiative (+1-3) | Sustainable, lower momentum |
 | **Authority** | Momentum (+2-12) | Initiative (+1-2) | High momentum but generates Doubt |
-| **Commerce** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
+| **Diplomacy** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
 | **Cunning** | Initiative (+2-6) | Momentum (+1-3) | Enables long action chains |
 
 **Why This Works:**
@@ -103,21 +103,21 @@ Three categories represent conversational moves:
 - Insight: Questions, observations revealed
 - Rapport: Encouragement, validation
 - Authority: Demands, assertions
-- Commerce: Proposals, alternatives
+- Diplomacy: Proposals, alternatives
 - Cunning: Baits, maneuvers
 
 **Realization** - Understanding moves (patterns, opportunities)
 - Insight: Conclusions, deductions
 - Rapport: (Not used - Rapport is Expression/Regulation)
 - Authority: (Not used - Authority is Expression)
-- Commerce: (Not used - Commerce is Regulation)
+- Diplomacy: (Not used - Diplomacy is Regulation)
 - Cunning: Openings, advantages
 
 **Regulation** - Control moves (balance, safety, rhythm)
 - Insight: (Not used - Insight is Expression/Realization)
 - Rapport: Listening, understanding
 - Authority: (Not used - Authority drives, not regulates)
-- Commerce: Risk mitigation, reassurance
+- Diplomacy: Risk mitigation, reassurance
 - Cunning: (Not used - Cunning creates, not regulates)
 
 ### Persistence Types
@@ -268,7 +268,7 @@ public enum ScalingSourceType
     InsightStatements,        // Insight Statements played
     RapportStatements,        // Rapport Statements played
     AuthorityStatements,      // Authority Statements played
-    CommerceStatements,       // Commerce Statements played
+    CommerceStatements,       // Diplomacy Statements played
     CunningStatements         // Cunning Statements played
 }
 ```
@@ -287,7 +287,7 @@ public Dictionary<PlayerStatType, int> StatementCounts { get; set; } = new()
     { PlayerStatType.Insight, 0 },
     { PlayerStatType.Rapport, 0 },
     { PlayerStatType.Authority, 0 },
-    { PlayerStatType.Commerce, 0 },
+    { PlayerStatType.Diplomacy, 0 },
     { PlayerStatType.Cunning, 0 }
 };
 
@@ -357,7 +357,7 @@ Currently not implemented - would need code extension.
 **Doubt** (0-10)
 - Failure timer
 - Conversation ends at 10
-- Reduced by Commerce cards
+- Reduced by Diplomacy cards
 - Added by Authority cards
 
 **Cadence** (-10 to +10)
@@ -467,7 +467,7 @@ public static class CardEffectCatalog
             PlayerStatType.Insight => GetInsightEffects(depth),
             PlayerStatType.Rapport => GetRapportEffects(depth),
             PlayerStatType.Authority => GetAuthorityEffects(depth),
-            PlayerStatType.Commerce => GetCommerceEffects(depth),
+            PlayerStatType.Diplomacy => GetCommerceEffects(depth),
             PlayerStatType.Cunning => GetCunningEffects(depth),
             _ => new List<CardEffectFormula>()
         };
@@ -558,7 +558,7 @@ public static int GetInitiativeCost(PlayerStatType stat, int depth)
             7 or 8 => 7,
             _ => 0
         },
-        PlayerStatType.Commerce => depth switch  // Expensive (safety costs)
+        PlayerStatType.Diplomacy => depth switch  // Expensive (safety costs)
         {
             1 or 2 => 1,
             3 or 4 => 4,
@@ -1037,7 +1037,7 @@ public (SessionCardDeck deck, List<CardInstance> requestCards)
 private List<ConversationCard> GetNPCConversationCards(NPC npc)
 {
     // NPC has ConversationStatDistribution
-    // Example: { Insight: 40%, Rapport: 30%, Authority: 20%, Commerce: 10% }
+    // Example: { Insight: 40%, Rapport: 30%, Authority: 20%, Diplomacy: 10% }
 
     var cards = new List<ConversationCard>();
 

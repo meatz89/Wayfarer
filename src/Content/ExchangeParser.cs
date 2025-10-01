@@ -39,7 +39,7 @@ public static class ExchangeParser
                             "food" => ResourceType.Hunger,
                             "health" => ResourceType.Health,
                             "trust" => ResourceType.TrustToken,
-                            "commerce" => ResourceType.CommerceToken,
+                            "diplomacy" => ResourceType.DiplomacyToken,
                             "status" => ResourceType.StatusToken,
                             "shadow" => ResourceType.ShadowToken,
                             _ => ResourceType.Coins
@@ -63,7 +63,7 @@ public static class ExchangeParser
                             "food" => ResourceType.Hunger,
                             "health" => ResourceType.Health,
                             "trust" => ResourceType.TrustToken,
-                            "commerce" => ResourceType.CommerceToken,
+                            "diplomacy" => ResourceType.DiplomacyToken,
                             "status" => ResourceType.StatusToken,
                             "shadow" => ResourceType.ShadowToken,
                             "weight_reduction" => ResourceType.CarryingCapacity,

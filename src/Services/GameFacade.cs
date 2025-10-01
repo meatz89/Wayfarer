@@ -208,7 +208,7 @@ public class GameFacade
             { PlayerStatType.Insight, playerStats.GetLevel(PlayerStatType.Insight) },
             { PlayerStatType.Rapport, playerStats.GetLevel(PlayerStatType.Rapport) },
             { PlayerStatType.Authority, playerStats.GetLevel(PlayerStatType.Authority) },
-            { PlayerStatType.Commerce, playerStats.GetLevel(PlayerStatType.Commerce) },
+            { PlayerStatType.Diplomacy, playerStats.GetLevel(PlayerStatType.Diplomacy) },
             { PlayerStatType.Cunning, playerStats.GetLevel(PlayerStatType.Cunning) }
         };
     }
@@ -1222,13 +1222,13 @@ public class GameFacade
 
 
                 case ResourceType.TrustToken:
-                case ResourceType.CommerceToken:
+                case ResourceType.DiplomacyToken:
                 case ResourceType.StatusToken:
                 case ResourceType.ShadowToken:
                     ConnectionType tokenType = cost.Type switch
                     {
                         ResourceType.TrustToken => ConnectionType.Trust,
-                        ResourceType.CommerceToken => ConnectionType.Commerce,
+                        ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
                         ResourceType.StatusToken => ConnectionType.Status,
                         ResourceType.ShadowToken => ConnectionType.Shadow,
                         _ => ConnectionType.Trust
@@ -1273,13 +1273,13 @@ public class GameFacade
                     break;
 
                 case ResourceType.TrustToken:
-                case ResourceType.CommerceToken:
+                case ResourceType.DiplomacyToken:
                 case ResourceType.StatusToken:
                 case ResourceType.ShadowToken:
                     ConnectionType tokenType = reward.Type switch
                     {
                         ResourceType.TrustToken => ConnectionType.Trust,
-                        ResourceType.CommerceToken => ConnectionType.Commerce,
+                        ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
                         ResourceType.StatusToken => ConnectionType.Status,
                         ResourceType.ShadowToken => ConnectionType.Shadow,
                         _ => ConnectionType.Trust

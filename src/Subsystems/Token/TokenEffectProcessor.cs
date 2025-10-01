@@ -15,7 +15,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
 
         // Base success bonus per token (configurable via GameRules)
         private const int BASE_TRUST_BONUS = 5;      // +5% per Trust token
-        private const int BASE_COMMERCE_BONUS = 5;   // +5% per Commerce token
+        private const int BASE_COMMERCE_BONUS = 5;   // +5% per Diplomacy token
         private const int BASE_STATUS_BONUS = 10;    // +10% per Status token
         private const int BASE_SHADOW_BONUS = 8;     // +8% per Shadow token
 
@@ -126,7 +126,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
         public bool IsTokenTypeEnabled(ConnectionType type)
         {
             // Base token types are always enabled
-            if (type == ConnectionType.Trust || type == ConnectionType.Commerce)
+            if (type == ConnectionType.Trust || type == ConnectionType.Diplomacy)
             {
                 return true;
             }
@@ -206,7 +206,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             {
                 case ConnectionType.Trust:
                     return BASE_TRUST_BONUS;
-                case ConnectionType.Commerce:
+                case ConnectionType.Diplomacy:
                     return BASE_COMMERCE_BONUS;
                 case ConnectionType.Status:
                     return BASE_STATUS_BONUS;
@@ -256,8 +256,8 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             {
                 case ConnectionType.Trust:
                     return 0.05f; // Trust decays slowly (5% per week)
-                case ConnectionType.Commerce:
-                    return 0.03f; // Commerce is most stable (3% per week)
+                case ConnectionType.Diplomacy:
+                    return 0.03f; // Diplomacy is most stable (3% per week)
                 case ConnectionType.Status:
                     return 0.08f; // Status decays faster (8% per week)
                 case ConnectionType.Shadow:

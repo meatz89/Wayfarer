@@ -221,7 +221,7 @@ public class NarrativeService
                     $"\"You've proven yourself trustworthy,\" {npcName} says with appreciation.",
                     $"{npcName} nods gratefully. \"It's good to have someone reliable.\""
                 },
-            ConnectionType.Commerce => new[]
+            ConnectionType.Diplomacy => new[]
             {
                     $"{npcName} nods approvingly. \"Good business, as always.\"",
                     $"\"Reliable couriers are worth their focus in gold,\" says {npcName}.",

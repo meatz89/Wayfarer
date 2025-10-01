@@ -38,7 +38,7 @@ JSON Cards → Parser → CardEffectCatalog → Domain Models → Session Logic 
 ```
 
 **Key Fields**:
-- `boundStat`: Which stat this card belongs to (Insight/Rapport/Authority/Commerce/Cunning)
+- `boundStat`: Which stat this card belongs to (Insight/Rapport/Authority/Diplomacy/Cunning)
 - `depth`: 1-8, determines when accessible via tier unlocks
 - `persistence`: Echo (repeatable) or Statement (one-time)
 - `initiativeCost`: How much Initiative required to play
@@ -203,7 +203,7 @@ public Dictionary<PlayerStatType, int> StatementCounts { get; set; } = new Dicti
     { PlayerStatType.Insight, 0 },
     { PlayerStatType.Rapport, 0 },
     { PlayerStatType.Authority, 0 },
-    { PlayerStatType.Commerce, 0 },
+    { PlayerStatType.Diplomacy, 0 },
     { PlayerStatType.Cunning, 0 }
 };
 ```
@@ -303,7 +303,7 @@ private int GetMaxDepthForTier(int tier)
         PlayerStatType.Insight,
         PlayerStatType.Rapport,
         PlayerStatType.Authority,
-        PlayerStatType.Commerce,
+        PlayerStatType.Diplomacy,
         PlayerStatType.Cunning
     })
     {
@@ -572,7 +572,7 @@ public async Task PlayConversation_SignatureCardsUnlockWithStatements()
 - [ ] Implement Statement increment on card play
 - [ ] Write unit tests for Statement tracking
 - [ ] Write E2E test for signature unlock flow
-- [ ] Complete remaining stats (Rapport, Authority, Commerce, Cunning)
+- [ ] Complete remaining stats (Rapport, Authority, Diplomacy, Cunning)
 
 ---
 
@@ -586,7 +586,7 @@ public async Task PlayConversation_SignatureCardsUnlockWithStatements()
 
 The architecture is now in place. The remaining work is:
 - **Code**: Parser validation + deck filtering + UI components (~200 lines)
-- **Content**: 48 more JSON cards (Rapport, Authority, Commerce, Cunning)
+- **Content**: 48 more JSON cards (Rapport, Authority, Diplomacy, Cunning)
 - **Testing**: Unit + E2E tests (~300 lines)
 
 **Total implementation**: ~500 lines of code + 48 JSON cards.

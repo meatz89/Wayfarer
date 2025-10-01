@@ -49,8 +49,8 @@
     font-style: italic;
 }
 
-/* Commerce Connection Display */
-.commerce-display {
+/* Diplomacy Connection Display */
+.diplomacy-display {
     background: #f9f3e9;
     padding: 12px 20px;
     border-bottom: 1px solid #c4a684;
@@ -59,13 +59,13 @@
     align-items: center;
 }
 
-.commerce-label {
+.diplomacy-label {
     font-size: 11px;
     color: #7a6250;
     text-transform: uppercase;
 }
 
-.commerce-value {
+.diplomacy-value {
     font-size: 18px;
     font-weight: bold;
     color: #5a7a3a;

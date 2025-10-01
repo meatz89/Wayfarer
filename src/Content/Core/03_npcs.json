@@ -88,11 +88,11 @@
         "personality": "Calculating and opportunistic",
         "personalityType": "MERCANTILE",
         "letterTokenTypes": [
-          "Commerce"
+          "Diplomacy"
         ],
         "currentState": "NEUTRAL",
         "initialTokens": {
-          "Commerce": 0
+          "Diplomacy": 0
         },
         "conversationDifficulty": 1,
         "requests": [
@@ -134,11 +134,11 @@
         "personality": "Efficient and no-nonsense",
         "personalityType": "MERCANTILE",
         "letterTokenTypes": [
-          "Commerce"
+          "Diplomacy"
         ],
         "currentState": "NEUTRAL",
         "initialTokens": {
-          "Commerce": 0
+          "Diplomacy": 0
         },
         "conversationDifficulty": 1
       },
@@ -177,7 +177,7 @@
           "rewards": [
             {"coins": 2, "health": 5},
             {"coins": 4, "item": "calming_tea", "health": 10},
-            {"coins": 6, "item": "premium_tea", "health": 15, "tokens": {"Commerce": 1}}
+            {"coins": 6, "item": "premium_tea", "health": 15, "tokens": {"Diplomacy": 1}}
           ]
         }
       },
@@ -237,7 +237,7 @@
           "rewards": [
             {"coins": 5, "item": "exotic_spices"},
             {"coins": 10, "item": "rare_silk", "observation": "trade_routes_for_marcus"},
-            {"coins": 15, "item": "precious_gems", "observation": "foreign_contacts_for_marcus", "tokens": {"Commerce": 2}}
+            {"coins": 15, "item": "precious_gems", "observation": "foreign_contacts_for_marcus", "tokens": {"Diplomacy": 2}}
           ]
         }
       },

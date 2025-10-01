@@ -841,7 +841,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "Insight",
                 PlayerStatType.Rapport => "Rapport",
                 PlayerStatType.Authority => "Authority",
-                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Diplomacy => "Diplomacy",
                 PlayerStatType.Cunning => "Cunning",
                 _ => stat.ToString()
             };
@@ -1044,6 +1044,24 @@ namespace Wayfarer.Pages.Components
             int momentum = GetCurrentMomentum();
             // Assuming max momentum of 16 for percentage calculation
             return Math.Min(100, (momentum / 16.0) * 100);
+        }
+
+        /// <summary>
+        /// Get current Understanding from session (unlocks tiers at 6/12/18)
+        /// </summary>
+        protected int GetCurrentUnderstanding()
+        {
+            return Session?.CurrentUnderstanding ?? 0;
+        }
+
+        /// <summary>
+        /// Get Understanding as percentage (0-100%) for resource bar display
+        /// </summary>
+        protected double GetUnderstandingPercentage()
+        {
+            int understanding = GetCurrentUnderstanding();
+            // Max Understanding of 18 for tier 4 unlock
+            return Math.Min(100, (understanding / 18.0) * 100);
         }
 
         /// <summary>

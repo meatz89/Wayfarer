@@ -21,6 +21,6 @@ public enum ScalingSourceType
     InsightStatements,
     RapportStatements,
     AuthorityStatements,
-    CommerceStatements,
+    DiplomacyStatements,
     CunningStatements
 }

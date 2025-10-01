@@ -33,7 +33,7 @@ public class PackageStartingConditions
 public class NPCTokenRelationship
 {
     public int Trust { get; set; }
-    public int Commerce { get; set; }
+    public int Diplomacy { get; set; }
     public int Status { get; set; }
     public int Shadow { get; set; }
 }

@@ -383,8 +383,8 @@ public class ConversationNarrativeService
         // Token type indicates support/connection building
         if (card.ConversationCardTemplate.TokenType == ConnectionType.Trust)
             return "support_trust";
-        if (card.ConversationCardTemplate.TokenType == ConnectionType.Commerce)
-            return "support_commerce";
+        if (card.ConversationCardTemplate.TokenType == ConnectionType.Diplomacy)
+            return "support_diplomacy";
         if (card.ConversationCardTemplate.TokenType == ConnectionType.Status)
             return "support_status";
         if (card.ConversationCardTemplate.TokenType == ConnectionType.Shadow)

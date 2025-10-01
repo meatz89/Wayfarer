@@ -28,11 +28,12 @@ public class ConversationSession
     public PersonalityRuleEnforcer PersonalityEnforcer { get; set; }  // Enforces NPC personality rules
     public string RequestText { get; set; } // Text displayed when NPC presents a request
 
-    // New 4-Resource System (Initiative, Cadence, Momentum, Doubt)
+    // New 5-Resource System (Initiative, Cadence, Momentum, Doubt, Understanding)
     public int CurrentInitiative { get; set; } = 0; // Starts at 0, ACCUMULATES between LISTEN (never resets to base)
-    public int Cadence { get; set; } = 0; // Range -5 to +5, conversation balance tracking
+    public int Cadence { get; set; } = 0; // Range -10 to +10, conversation balance tracking
+    public int CurrentUnderstanding { get; set; } = 0; // NEW: Sophistication/connection depth - unlocks tiers, PERSISTS through LISTEN
 
-    // Depth Tier Unlock System - tiers unlock at momentum thresholds and persist
+    // Depth Tier Unlock System - tiers unlock at UNDERSTANDING thresholds (not momentum) and persist
     public HashSet<int> UnlockedTiers { get; set; } = new HashSet<int> { 1 }; // Tier 1 (depths 1-2) always unlocked
 
     // Doubt system continues to exist but now has tax effect
@@ -44,7 +45,7 @@ public class ConversationSession
         { PlayerStatType.Insight, 0 },
         { PlayerStatType.Rapport, 0 },
         { PlayerStatType.Authority, 0 },
-        { PlayerStatType.Commerce, 0 },
+        { PlayerStatType.Diplomacy, 0 },
         { PlayerStatType.Cunning, 0 }
     };
 
@@ -156,6 +157,16 @@ public class ConversationSession
         CurrentInitiative = Math.Clamp(CurrentInitiative + amount, 0, MaxInitiative);
     }
 
+    // NEW: Understanding management methods
+    public void AddUnderstanding(int amount)
+    {
+        CurrentUnderstanding = Math.Max(0, CurrentUnderstanding + amount);
+        // Check for tier unlocks whenever Understanding changes
+        CheckAndUnlockTiers();
+    }
+
+    public int GetCurrentUnderstanding() => CurrentUnderstanding;
+
     // NEW: Conversation time cost per game document formula
     public int GetConversationTimeCost()
     {
@@ -174,33 +185,34 @@ public class ConversationSession
     }
 
     /// <summary>
-    /// Check current momentum and unlock tiers at thresholds
-    /// Momentum 6+ unlocks Tier 2, 12+ unlocks Tier 3, 18+ unlocks Tier 4
+    /// Check current UNDERSTANDING and unlock tiers at thresholds
+    /// Understanding 6+ unlocks Tier 2, 12+ unlocks Tier 3, 18+ unlocks Tier 4
     /// Tiers persist once unlocked (never lock again)
+    /// CRITICAL: Uses Understanding (not Momentum) for tier unlocking
     /// </summary>
     public void CheckAndUnlockTiers()
     {
         bool tiersChanged = false;
 
-        if (CurrentMomentum >= 6 && !UnlockedTiers.Contains(2))
+        if (CurrentUnderstanding >= 6 && !UnlockedTiers.Contains(2))
         {
             UnlockedTiers.Add(2);
             tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 2 UNLOCKED at momentum {CurrentMomentum}! Depths 3-4 now accessible.");
+            Console.WriteLine($"[ConversationSession] TIER 2 UNLOCKED at understanding {CurrentUnderstanding}! Depths 3-4 now accessible.");
         }
 
-        if (CurrentMomentum >= 12 && !UnlockedTiers.Contains(3))
+        if (CurrentUnderstanding >= 12 && !UnlockedTiers.Contains(3))
         {
             UnlockedTiers.Add(3);
             tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 3 UNLOCKED at momentum {CurrentMomentum}! Depths 5-6 now accessible.");
+            Console.WriteLine($"[ConversationSession] TIER 3 UNLOCKED at understanding {CurrentUnderstanding}! Depths 5-6 now accessible.");
         }
 
-        if (CurrentMomentum >= 18 && !UnlockedTiers.Contains(4))
+        if (CurrentUnderstanding >= 18 && !UnlockedTiers.Contains(4))
         {
             UnlockedTiers.Add(4);
             tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 4 UNLOCKED at momentum {CurrentMomentum}! Depths 7-8 now accessible.");
+            Console.WriteLine($"[ConversationSession] TIER 4 UNLOCKED at understanding {CurrentUnderstanding}! Depths 7-8 now accessible.");
         }
 
         if (tiersChanged)

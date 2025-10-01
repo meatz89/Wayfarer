@@ -238,7 +238,7 @@ public class RouteDiscoveryManager
         if (routeContext.Contains("trade") || routeContext.Contains("merchant") ||
             routeContext.Contains("commercial") || routeContext.Contains("toll"))
         {
-            return ConnectionType.Commerce;
+            return ConnectionType.Diplomacy;
         }
 
         // Noble/estate routes use Noble tokens

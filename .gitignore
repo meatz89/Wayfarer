@@ -364,3 +364,10 @@ FodyWeavers.xsd
 /Wayfarer/appsettings.Development.json
 *.txt
 /google-chrome-stable_current_amd64.deb
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

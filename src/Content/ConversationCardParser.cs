@@ -243,6 +243,24 @@ public static class ConversationCardParser
             Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using formula: {effectFormula}");
         }
 
+        // Parse Delivery property (NEW: Controls cadence on SPEAK)
+        DeliveryType delivery = DeliveryType.Standard; // Default to Standard
+        if (!string.IsNullOrEmpty(dto.Delivery))
+        {
+            if (!Enum.TryParse<DeliveryType>(dto.Delivery, true, out delivery))
+            {
+                Console.WriteLine($"[ConversationCardParser] WARNING: Invalid delivery '{dto.Delivery}' for card '{dto.Id}'. Using Standard.");
+                delivery = DeliveryType.Standard;
+            }
+        }
+
+        // VALIDATION: Authority cards MUST use Commanding delivery
+        if (boundStat == PlayerStatType.Authority && delivery != DeliveryType.Commanding)
+        {
+            Console.WriteLine($"[ConversationCardParser] WARNING: Authority card '{dto.Id}' should use Commanding delivery. Overriding '{delivery}' → Commanding");
+            delivery = DeliveryType.Commanding;
+        }
+
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
@@ -255,6 +273,7 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
+            Delivery = delivery, // NEW: How this card affects Cadence when spoken
             // Formula-based effect system
             EffectFormula = effectFormula,
             // OLD: ScalingEffect, EffectInitiative, etc. (deprecated, removed)
@@ -500,7 +519,7 @@ public class ConversationCardDTO
     public string Difficulty { get; set; }
 
     // Player stats system - which stat this card is bound to
-    public string BoundStat { get; set; } // insight/rapport/authority/commerce/cunning
+    public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
 
     // Effect variant system - which formula variant to use from catalog
     public string EffectVariant { get; set; } // "Base", "Compound", "Scaling_Doubt", etc. (optional, defaults to "Base")
@@ -509,6 +528,9 @@ public class ConversationCardDTO
     public string RequiredStat { get; set; } // Which stat's Statement count to check
     public int? RequiredStatements { get; set; } // How many Statements of that stat are required
 
+    // NEW: Delivery property - how card affects Cadence when spoken
+    public string Delivery { get; set; } // "Standard" (+1), "Commanding" (+2), "Measured" (+0), "Yielding" (-1)
+
     // Special card traits that modify behavior
     public List<string> Traits { get; set; } // e.g., ["SuppressSpeakCadence"]
 
@@ -516,7 +538,7 @@ public class ConversationCardDTO
     public string MomentumScaling { get; set; } // "None", "CardsInHand", "DoubtReduction", etc.
     public string DoubtScaling { get; set; } // "None", "DoubtHalved", "DoubtReduction"
 
-    // 4-Resource System Properties
+    // 5-Resource System Properties (Understanding + Delivery)
     public int? Depth { get; set; } // 1-10 depth system
     public int? InitiativeCost { get; set; } // Replaces Focus
     public CardEffectsDTO Effects { get; set; } // New effects structure

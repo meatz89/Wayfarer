@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Handles exchange system for Commerce conversations.
+/// Handles exchange system for Diplomacy conversations.
 /// Manages resource trades and exchange validation.
 /// </summary>
 public class ExchangeHandler
@@ -152,8 +152,8 @@ public class ExchangeHandler
                         return false;
                     break;
 
-                case ResourceType.CommerceToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Commerce, cost.Amount, npc.ID))
+                case ResourceType.DiplomacyToken:
+                    if (!_tokenManager.SpendTokens(ConnectionType.Diplomacy, cost.Amount, npc.ID))
                         return false;
                     break;
 
@@ -199,8 +199,8 @@ public class ExchangeHandler
                     _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
                     break;
 
-                case ResourceType.CommerceToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Commerce, reward.Amount, npc.ID);
+                case ResourceType.DiplomacyToken:
+                    _tokenManager.AddTokensToNPC(ConnectionType.Diplomacy, reward.Amount, npc.ID);
                     break;
 
                 case ResourceType.StatusToken:
@@ -325,7 +325,7 @@ public class ExchangeHandler
             ResourceType.Health => "health",
             ResourceType.Hunger => "hunger",
             ResourceType.TrustToken => "trust",
-            ResourceType.CommerceToken => "commerce",
+            ResourceType.DiplomacyToken => "diplomacy",
             ResourceType.StatusToken => "status",
             ResourceType.ShadowToken => "shadow",
             _ => type.ToString().ToLower()

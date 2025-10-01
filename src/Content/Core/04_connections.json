@@ -68,7 +68,7 @@
         "hungerEffect": 0,
         "oneTimeReward": "Shipping Manifest for Marcus",
         "narrativeText": "The commercial district with its toll booth.",
-        "statRequirements": {"commerce": 2}
+        "statRequirements": {"diplomacy": 2}
       },
       {
         "id": "loading_docks",

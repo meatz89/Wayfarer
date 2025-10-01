@@ -315,7 +315,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 ResourceType.Health => "health",
                 ResourceType.Hunger => "food",
                 ResourceType.TrustToken => "trust",
-                ResourceType.CommerceToken => "commerce",
+                ResourceType.DiplomacyToken => "diplomacy",
                 ResourceType.StatusToken => "status",
                 ResourceType.ShadowToken => "shadow",
                 _ => type.ToString().ToLower()

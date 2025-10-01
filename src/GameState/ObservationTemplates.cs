@@ -318,7 +318,7 @@ public class ObservationTemplates
             {
                 "coins changing hands",
                 "goods being displayed",
-                "busy commerce"
+                "busy diplomacy"
             },
             [LocationTag.GuardPatrol] = new()
             {

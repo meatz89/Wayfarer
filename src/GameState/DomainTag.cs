@@ -5,7 +5,7 @@ public enum DomainTag
 {
     // Social domains
     Social,
-    Commerce,
+    Diplomacy,
     Residential,
     Religious,
 

@@ -59,8 +59,8 @@
         "travelUnlock": "Noble gates at level 2: Access to checkpoint bypasses, official routes, and command passages"
       },
       {
-        "id": "commerce",
-        "name": "Commerce",
+        "id": "diplomacy",
+        "name": "Diplomacy",
         "description": "Negotiation and trade acumen. Represents your ability to identify value, negotiate deals, and think in terms of profit and exchange.",
         "conversationBenefit": "Better success with negotiation and trade-focused cards. Unlocks cards that propose deals and calculate value.",
         "investigationUnlock": "Purchase Information at level 2: Pay coins for instant familiarity gain",
@@ -154,12 +154,12 @@
         "description": "Understanding merchant traffic patterns",
         "category": "Investigation",
         "focus": 2,
-        "properties": ["investigation", "commerce", "trade"],
+        "properties": ["investigation", "diplomacy", "trade"],
         "requiredTags": ["market"],
         "excludedTags": [],
         "triggerCondition": "familiarity >= 2",
         "oneTimeOnly": true,
-        "tokenType": "Commerce",
+        "tokenType": "Diplomacy",
         "difficulty": "Medium"
       }
     ],
@@ -172,7 +172,7 @@
         "receiveCurrency": "food",
         "receiveAmount": 1,
         "tokenGate": {
-          "Commerce": 1
+          "Diplomacy": 1
         }
       },
       {
@@ -193,7 +193,7 @@
         "receiveCurrency": "weight_reduction",
         "receiveAmount": 5,
         "tokenGate": {
-          "Commerce": 2
+          "Diplomacy": 2
         }
       }
     ],
@@ -245,7 +245,7 @@
       {
         "id": "trade_negotiation",
         "name": "Trade Negotiation",
-        "description": "Business discussions and deals - heavy Commerce/Insight, zero Rapport",
+        "description": "Business discussions and deals - heavy Diplomacy/Insight, zero Rapport",
         "deckId": "deck_trade_negotiation",
         "maxMomentum": 20,
         "maxDoubt": 10,

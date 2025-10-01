@@ -16,9 +16,10 @@ public class ConversationCard
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
 
 
-    // New 4-Resource System Properties
+    // New 5-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
+    public DeliveryType Delivery { get; init; } = DeliveryType.Standard; // NEW: How this card affects Cadence when spoken
 
     // Formula-based effect system (replaces old explicit effect properties)
     public CardEffectFormula EffectFormula { get; init; }

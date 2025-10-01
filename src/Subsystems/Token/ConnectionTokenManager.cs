@@ -35,7 +35,7 @@ public class ConnectionTokenManager
             Dictionary<ConnectionType, int> tokens = new Dictionary<ConnectionType, int>
             {
                 [ConnectionType.Trust] = entry.Trust,
-                [ConnectionType.Commerce] = entry.Commerce,
+                [ConnectionType.Diplomacy] = entry.Diplomacy,
                 [ConnectionType.Status] = entry.Status
             };
             return tokens;
@@ -279,7 +279,7 @@ public class ConnectionTokenManager
         foreach (NPCTokenEntry entry in player.NPCTokens)
         {
             // Check if NPC has any non-zero tokens
-            if (entry.Trust != 0 || entry.Commerce != 0 || entry.Status != 0 || entry.Shadow != 0)
+            if (entry.Trust != 0 || entry.Diplomacy != 0 || entry.Status != 0 || entry.Shadow != 0)
             {
                 npcsWithTokens.Add(entry.NpcId);
             }

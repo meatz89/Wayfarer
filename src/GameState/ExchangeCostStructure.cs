@@ -16,7 +16,7 @@ public class ExchangeCostStructure
     /// <summary>
     /// Token requirements that gate access to this exchange.
     /// These are prerequisites, not consumed by the exchange.
-    /// Key: ConnectionType (Trust/Commerce/Status/Shadow)
+    /// Key: ConnectionType (Trust/Diplomacy/Status/Shadow)
     /// Value: Minimum number of tokens required
     /// </summary>
     public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new Dictionary<ConnectionType, int>();

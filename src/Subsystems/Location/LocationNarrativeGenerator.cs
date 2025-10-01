@@ -267,7 +267,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                 if (properties.Contains(SpotPropertyType.ViewsMarket))
                     return "The area has several interesting details worth observing.";
                 if (properties.Contains(SpotPropertyType.Commercial))
-                    return "The bustling commerce provides many things to notice.";
+                    return "The bustling diplomacy provides many things to notice.";
             }
 
             return "There might be something worth observing here.";

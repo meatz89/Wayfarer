@@ -33,7 +33,7 @@ public enum LocationTag
     Shadowed,       // Can spot hidden figures, concealed items
 
     // Activity types that provide context
-    MarketDay,      // Can observe commerce, trades, deals
+    MarketDay,      // Can observe diplomacy, trades, deals
     GuardPatrol,    // Can notice security, restricted areas
     Religious,      // Can observe faithful, ceremonies
     Industrial,     // Can notice work patterns, tools
@@ -84,7 +84,7 @@ public static class LocationTagObservations
         },
         [LocationTag.MarketDay] = new()
         {
-            new ObservationAction("watch_trades", "Observe commerce patterns", 1),
+            new ObservationAction("watch_trades", "Observe diplomacy patterns", 1),
             new ObservationAction("spot_deals", "Notice special transactions", 1)
         },
         [LocationTag.GuardPatrol] = new()

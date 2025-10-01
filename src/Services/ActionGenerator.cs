@@ -175,7 +175,7 @@ public class ActionGenerator
                 "🗺️", "Travel", "Leave for another district", "Various times",
                 TierLevel.T1, playerTier, "travel"),
 
-            "commerce" => CreateActionWithTierCheck(
+            "diplomacy" => CreateActionWithTierCheck(
                 "🛍️", "Purchase Provisions", "Hunger and supplies", "1-5 coins",
                 TierLevel.T1, playerTier, "purchase"),
 

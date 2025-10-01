@@ -36,14 +36,14 @@ public class PendingQueueState
 public class PurgeTokenSelection
 {
     public int TrustTokens { get; set; }
-    public int CommerceTokens { get; set; }
+    public int DiplomacyTokens { get; set; }
     public int StatusTokens { get; set; }
     public int ShadowTokens { get; set; }
 
     public void Clear()
     {
         TrustTokens = 0;
-        CommerceTokens = 0;
+        DiplomacyTokens = 0;
         StatusTokens = 0;
         ShadowTokens = 0;
     }
@@ -53,7 +53,7 @@ public class PurgeTokenSelection
         return tokenType switch
         {
             ConnectionType.Trust => TrustTokens,
-            ConnectionType.Commerce => CommerceTokens,
+            ConnectionType.Diplomacy => DiplomacyTokens,
             ConnectionType.Status => StatusTokens,
             ConnectionType.Shadow => ShadowTokens,
             _ => 0
@@ -67,8 +67,8 @@ public class PurgeTokenSelection
             case ConnectionType.Trust:
                 TrustTokens = count;
                 break;
-            case ConnectionType.Commerce:
-                CommerceTokens = count;
+            case ConnectionType.Diplomacy:
+                DiplomacyTokens = count;
                 break;
             case ConnectionType.Status:
                 StatusTokens = count;
@@ -79,7 +79,7 @@ public class PurgeTokenSelection
         }
     }
 
-    public int TotalTokens => TrustTokens + CommerceTokens + StatusTokens + ShadowTokens;
+    public int TotalTokens => TrustTokens + DiplomacyTokens + StatusTokens + ShadowTokens;
 }
 
 public enum QueueActionType

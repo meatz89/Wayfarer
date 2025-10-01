@@ -24,7 +24,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             { 12, "Life-changing favors" }
         };
 
-        private readonly Dictionary<int, string> _commerceUnlocks = new Dictionary<int, string>
+        private readonly Dictionary<int, string> _diplomacyUnlocks = new Dictionary<int, string>
         {
             { 2, "Trade discounts" },
             { 4, "Business letters" },
@@ -183,7 +183,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
 
                 case "business":
                 case "trade":
-                    return _tokenManager.GetTokenCount(npcId, ConnectionType.Commerce) >= 2;
+                    return _tokenManager.GetTokenCount(npcId, ConnectionType.Diplomacy) >= 2;
 
                 case "formal":
                 case "noble":
@@ -222,8 +222,8 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 categories.Add("secret");
             }
 
-            // Commerce unlocks business letters
-            if (tokens.GetValueOrDefault(ConnectionType.Commerce, 0) >= 4)
+            // Diplomacy unlocks business letters
+            if (tokens.GetValueOrDefault(ConnectionType.Diplomacy, 0) >= 4)
             {
                 categories.Add("business");
                 categories.Add("contract");
@@ -295,8 +295,8 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             {
                 case ConnectionType.Trust:
                     return _trustUnlocks;
-                case ConnectionType.Commerce:
-                    return _commerceUnlocks;
+                case ConnectionType.Diplomacy:
+                    return _diplomacyUnlocks;
                 case ConnectionType.Status:
                     return _statusUnlocks;
                 case ConnectionType.Shadow:
@@ -334,7 +334,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                 case "personal letters":
                     return "You can now accept personal letters from this NPC, which offer higher rewards.";
                 case "business letters":
-                    return "Business correspondence is now available, providing commerce tokens and coin bonuses.";
+                    return "Business correspondence is now available, providing diplomacy tokens and coin bonuses.";
                 case "noble correspondence":
                     return "Noble letters grant status tokens and may unlock new locations.";
                 case "secret messages":

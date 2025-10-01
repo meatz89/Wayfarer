@@ -160,7 +160,7 @@ test.describe('Card Effect Display Verification', () => {
         expect(statText).toMatch(/Lv \d+/);
 
         // Should contain one of the valid stats
-        const validStats = ['Insight', 'Rapport', 'Authority', 'Commerce', 'Cunning'];
+        const validStats = ['Insight', 'Rapport', 'Authority', 'Diplomacy', 'Cunning'];
         const hasValidStat = validStats.some(stat => statText.includes(stat));
         expect(hasValidStat).toBe(true);
 

@@ -27,7 +27,7 @@ public class SpotDescriptionGenerator
         // View properties
         [SpotPropertyType.ViewsMainEntrance] = new[] { "overlooking arrivals", "watching the gates", "seeing who comes and goes" },
         [SpotPropertyType.ViewsBackAlley] = new[] { "glimpsing shadowed dealings", "observing discrete meetings", "watching the back ways" },
-        [SpotPropertyType.ViewsMarket] = new[] { "surveying commerce", "watching trade flow", "observing merchant activity" },
+        [SpotPropertyType.ViewsMarket] = new[] { "surveying diplomacy", "watching trade flow", "observing merchant activity" },
         [SpotPropertyType.ViewsTemple] = new[] { "facing the sacred", "viewing devotions", "watching the faithful" },
 
         // Social properties

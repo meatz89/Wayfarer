@@ -65,7 +65,7 @@ public static class ConversationContextFactory
     {
         switch (context)
         {
-            // Commerce removed - exchanges use separate Exchange system
+            // Diplomacy removed - exchanges use separate Exchange system
             case PromiseContext promiseContext: // Handles Request bundles
                 InitializePromiseContext(promiseContext, gameWorld);
                 break;
@@ -81,7 +81,7 @@ public static class ConversationContextFactory
         }
     }
 
-    // REMOVED: InitializeCommerceContext deleted - exchanges use separate Exchange system
+    // REMOVED: InitializeDiplomacyContext deleted - exchanges use separate Exchange system
 
     private static void InitializePromiseContext(PromiseContext context, GameWorld gameWorld)
     {

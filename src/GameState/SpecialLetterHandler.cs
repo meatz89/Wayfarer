@@ -125,7 +125,7 @@ public class SpecialLetterHandler
     }
 
     /// <summary>
-    /// Commerce - Access Permit letters unlock new locations and routes
+    /// Diplomacy - Access Permit letters unlock new locations and routes
     /// CONTENT EFFICIENT: Works with Transport NPCs to unlock routes
     /// </summary>
     private void ProcessAccessPermitLetter(Letter physicalLetter, DeliveryObligation obligation)
@@ -230,10 +230,10 @@ public class SpecialLetterHandler
 
         if (!routeUnlocked)
         {
-            // All routes already available - grant commerce tokens as bonus
-            _tokenManager.AddTokensToNPC(ConnectionType.Commerce, 5, transportNPC.ID);
+            // All routes already available - grant diplomacy tokens as bonus
+            _tokenManager.AddTokensToNPC(ConnectionType.Diplomacy, 5, transportNPC.ID);
             _messageSystem.AddSystemMessage(
-                $"{transportNPC.Name} notes you already have access to all routes. Your permit is filed. (+5 Commerce)",
+                $"{transportNPC.Name} notes you already have access to all routes. Your permit is filed. (+5 Diplomacy)",
                 SystemMessageTypes.Info
             );
         }
@@ -318,7 +318,7 @@ public class SpecialLetterHandler
         {
             case ConnectionType.Trust: // Introduction letters
                 return baseBonus + 2;
-            case ConnectionType.Commerce: // Access permit letters
+            case ConnectionType.Diplomacy: // Access permit letters
                 return baseBonus + 2;
             default:
                 return baseBonus;
@@ -364,7 +364,7 @@ public class SpecialLetterHandler
         return type switch
         {
             LetterSpecialType.Introduction => ConnectionType.Trust,
-            LetterSpecialType.AccessPermit => ConnectionType.Commerce,
+            LetterSpecialType.AccessPermit => ConnectionType.Diplomacy,
             _ => ConnectionType.Trust
         };
     }

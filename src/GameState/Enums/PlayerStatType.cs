@@ -6,6 +6,6 @@ public enum PlayerStatType
     Insight,
     Rapport,
     Authority,
-    Commerce,
+    Diplomacy,
     Cunning
 }

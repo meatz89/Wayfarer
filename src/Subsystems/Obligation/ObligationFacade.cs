@@ -777,7 +777,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             foreach (NPCTokenEntry npcTokenEntry in player.NPCTokens)
             {
                 totalTokens += Math.Max(0, npcTokenEntry.Trust);
-                totalTokens += Math.Max(0, npcTokenEntry.Commerce);
+                totalTokens += Math.Max(0, npcTokenEntry.Diplomacy);
                 totalTokens += Math.Max(0, npcTokenEntry.Status);
                 totalTokens += Math.Max(0, npcTokenEntry.Shadow);
             }
@@ -792,7 +792,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             Dictionary<ConnectionType, int> tokenTotals = new Dictionary<ConnectionType, int>
             {
                 [ConnectionType.Trust] = 0,
-                [ConnectionType.Commerce] = 0,
+                [ConnectionType.Diplomacy] = 0,
                 [ConnectionType.Status] = 0,
                 [ConnectionType.Shadow] = 0
             };
@@ -802,8 +802,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             {
                 if (tokenTotals.ContainsKey(ConnectionType.Trust))
                     tokenTotals[ConnectionType.Trust] += Math.Max(0, npcTokenEntry.Trust);
-                if (tokenTotals.ContainsKey(ConnectionType.Commerce))
-                    tokenTotals[ConnectionType.Commerce] += Math.Max(0, npcTokenEntry.Commerce);
+                if (tokenTotals.ContainsKey(ConnectionType.Diplomacy))
+                    tokenTotals[ConnectionType.Diplomacy] += Math.Max(0, npcTokenEntry.Diplomacy);
                 if (tokenTotals.ContainsKey(ConnectionType.Status))
                     tokenTotals[ConnectionType.Status] += Math.Max(0, npcTokenEntry.Status);
                 if (tokenTotals.ContainsKey(ConnectionType.Shadow))
@@ -869,7 +869,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             return tokenType switch
             {
                 ConnectionType.Trust => "❤️",
-                ConnectionType.Commerce => "🪙",
+                ConnectionType.Diplomacy => "🪙",
                 ConnectionType.Status => "👑",
                 ConnectionType.Shadow => "🌑",
                 _ => "?"

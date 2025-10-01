@@ -35,7 +35,7 @@ public enum LetterSpecialType
 {
     None,         // Regular letter
     Introduction, // Trust - Unlocks NPCs
-    AccessPermit  // Commerce - Unlocks routes (locations accessible emergently)
+    AccessPermit  // Diplomacy - Unlocks routes (locations accessible emergently)
 }
 
 [Flags]
@@ -138,7 +138,7 @@ public class DeliveryObligation
         return TokenType switch
         {
             ConnectionType.Trust => "❤️",
-            ConnectionType.Commerce => "🪙",
+            ConnectionType.Diplomacy => "🪙",
             ConnectionType.Status => "👑",
             ConnectionType.Shadow => "🌑",
             _ => "❓"
@@ -167,10 +167,10 @@ public class DeliveryObligation
             (ConnectionType.Trust, StakeType.SAFETY) => "a warning between friends",
             (ConnectionType.Trust, StakeType.SECRET) => "a dangerous confession",
 
-            (ConnectionType.Commerce, StakeType.REPUTATION) => "a merchant's credibility",
-            (ConnectionType.Commerce, StakeType.WEALTH) => "an urgent trade arrangement",
-            (ConnectionType.Commerce, StakeType.SAFETY) => "dangerous cargo manifest",
-            (ConnectionType.Commerce, StakeType.SECRET) => "smuggler's instructions",
+            (ConnectionType.Diplomacy, StakeType.REPUTATION) => "a merchant's credibility",
+            (ConnectionType.Diplomacy, StakeType.WEALTH) => "an urgent trade arrangement",
+            (ConnectionType.Diplomacy, StakeType.SAFETY) => "dangerous cargo manifest",
+            (ConnectionType.Diplomacy, StakeType.SECRET) => "smuggler's instructions",
 
             (ConnectionType.Status, StakeType.REPUTATION) => "a noble's standing",
             (ConnectionType.Status, StakeType.WEALTH) => "an inheritance dispute",

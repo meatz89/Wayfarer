@@ -215,7 +215,7 @@ new CardEffectFormula
 }
 ```
 
-#### 1.4 Commerce Effects (Specialist: Doubt | Universal: Momentum | Trading)
+#### 1.4 Diplomacy Effects (Specialist: Doubt | Universal: Momentum | Trading)
 
 **Foundation (Depth 1-2)**:
 ```csharp
@@ -443,11 +443,11 @@ For each card in 02_cards.json:
 
 #### 3.2 trade_negotiation Deck
 
-**Current Issue**: Needs to balance Momentum generation (Authority) with Doubt reduction (Commerce).
+**Current Issue**: Needs to balance Momentum generation (Authority) with Doubt reduction (Diplomacy).
 
-**Fix**: Already includes both Authority and Commerce. Verify that:
+**Fix**: Already includes both Authority and Diplomacy. Verify that:
 - Authority cards provide Momentum + Initiative (not just Momentum + Doubt)
-- Commerce cards provide Momentum while reducing Doubt
+- Diplomacy cards provide Momentum while reducing Doubt
 - Deck has sustainable Momentum generation
 
 #### 3.3 friendly_chat Deck
@@ -530,7 +530,7 @@ private static ConversationResourceType GetExpectedSpecialistResource(StatType s
         StatType.Insight => ConversationResourceType.Cards,
         StatType.Rapport => ConversationResourceType.Cadence,
         StatType.Authority => ConversationResourceType.Momentum,
-        StatType.Commerce => ConversationResourceType.Doubt,
+        StatType.Diplomacy => ConversationResourceType.Doubt,
         StatType.Cunning => ConversationResourceType.Initiative,
         _ => throw new ArgumentException($"Unknown stat type: {stat}")
     };
@@ -668,7 +668,7 @@ Test complete card play scenarios:
 1. **Insight Card Play**: Verify playing Insight depth-4 card draws 3 cards AND adds 2 Momentum AND adds 1 Initiative
 2. **Rapport Card Play**: Verify Rapport cards reduce Cadence AND generate Momentum AND generate Initiative
 3. **Authority Card Play**: Verify Authority cards generate Momentum AND Initiative AND Doubt
-4. **Commerce Card Play**: Verify Commerce cards reduce Doubt AND generate Momentum (with trading)
+4. **Diplomacy Card Play**: Verify Diplomacy cards reduce Doubt AND generate Momentum (with trading)
 5. **Cunning Card Play**: Verify Cunning cards generate Initiative AND Momentum AND draw cards
 
 #### 8.3 E2E Playwright Tests
@@ -798,7 +798,7 @@ From the user's latest message, key concrete examples to implement:
 Authority: +2 Momentum, +1 Doubt
 Insight: Draw 2 cards, +1 Momentum
 Rapport: -1 Cadence, +1 Momentum, +1 Initiative
-Commerce: -1 Doubt, +1 Momentum
+Diplomacy: -1 Doubt, +1 Momentum
 Cunning: +2 Initiative, +1 Momentum
 ```
 
@@ -808,7 +808,7 @@ Cunning: +2 Initiative, +1 Momentum
 Authority: +5 Momentum, +2 Doubt, +1 Initiative
 Insight: Draw 3 cards, +2 Momentum, +1 Initiative
 Rapport: -2 Cadence, +2 Momentum, +2 Initiative
-Commerce: -2 Doubt, +2 Momentum, Consume 2 Momentum
+Diplomacy: -2 Doubt, +2 Momentum, Consume 2 Momentum
 Cunning: +4 Initiative, +2 Momentum, Draw 1 card
 ```
 
@@ -818,7 +818,7 @@ Cunning: +4 Initiative, +2 Momentum, Draw 1 card
 Authority: +8 Momentum, +3 Doubt, +2 Initiative
 Insight: Draw 4 cards, +3 Momentum, +2 Initiative
 Rapport: -3 Cadence, +3 Momentum, +3 Initiative
-Commerce: -4 Doubt, +3 Momentum, Consume 3 Momentum
+Diplomacy: -4 Doubt, +3 Momentum, Consume 3 Momentum
 Cunning: +6 Initiative, +3 Momentum, Draw 2 cards
 ```
 

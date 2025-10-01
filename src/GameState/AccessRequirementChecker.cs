@@ -386,7 +386,7 @@ public class AccessRequirementChecker
 
         // Bonus tier from total tokens (every 10 tokens = potential tier increase)
         int totalTokens = _tokenManager.GetTokenCount(ConnectionType.Trust) +
-                         _tokenManager.GetTokenCount(ConnectionType.Commerce) +
+                         _tokenManager.GetTokenCount(ConnectionType.Diplomacy) +
                          _tokenManager.GetTokenCount(ConnectionType.Status) +
                          _tokenManager.GetTokenCount(ConnectionType.Shadow);
         int tierFromTokens = Math.Min(5, 1 + totalTokens / 10);

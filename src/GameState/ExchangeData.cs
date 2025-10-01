@@ -1,5 +1,5 @@
 
-// Exchange data for commerce cards
+// Exchange data for diplomacy cards
 public class ExchangeData
 {
     public string Id { get; set; }

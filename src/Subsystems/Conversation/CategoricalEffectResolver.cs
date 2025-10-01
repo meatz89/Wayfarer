@@ -44,6 +44,7 @@ public class CategoricalEffectResolver
             MomentumChange = 0,
             DoubtChange = 0,
             InitiativeChange = 0,
+            UnderstandingChange = 0,
             CardsToAdd = new List<CardInstance>(),
             EffectDescription = "",
             EndsConversation = false
@@ -88,6 +89,7 @@ public class CategoricalEffectResolver
             DoubtChange = 0,
             InitiativeChange = 0,
             CadenceChange = 0,
+            UnderstandingChange = 0, // NEW: Understanding effects
             CardsToDraw = 0,
             CardsToAdd = new List<CardInstance>(),
             EffectDescription = "",
@@ -163,6 +165,12 @@ public class CategoricalEffectResolver
                 if (effectValue > 0)
                     effects.Add($"Draw {effectValue} card{(effectValue == 1 ? "" : "s")}");
                 break;
+
+            case ConversationResourceType.Understanding:
+                result.UnderstandingChange += effectValue;
+                if (effectValue != 0)
+                    effects.Add(effectValue > 0 ? $"+{effectValue} Understanding" : $"{effectValue} Understanding");
+                break;
         }
     }
 }
@@ -176,8 +184,9 @@ public class CardEffectResult
     public int InitiativeChange { get; set; }
     public int MomentumChange { get; set; }
     public int DoubtChange { get; set; }
-    public int CadenceChange { get; set; } // NEW: Cadence resource tracking
-    public int CardsToDraw { get; set; } // NEW: Number of cards to draw
+    public int CadenceChange { get; set; } // Cadence resource tracking (rarely used - most cadence comes from Delivery)
+    public int UnderstandingChange { get; set; } // NEW: Understanding resource - unlocks tiers, persists through LISTEN
+    public int CardsToDraw { get; set; } // Number of cards to draw
     public List<CardInstance> CardsToAdd { get; set; }
     public bool EndsConversation { get; set; }
     public string EffectDescription { get; set; }

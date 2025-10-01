@@ -95,12 +95,17 @@ public class ConversationFacade
         // Initialize momentum manager for this conversation with token data
         _momentumManager.InitializeForConversation(npcTokens);
 
-
-        // Initialize momentum and doubt for the session
-        // All conversations start at momentum 0 - stats only matter for their specific cards
+        // Calculate starting resources based on player's highest stat
         Player player = _gameWorld.GetPlayer();
-        int startingMomentum = 0;
+        int highestStat = player.Stats.GetHighestLevel();
+        int statBonus = (int)Math.Floor(highestStat / 3.0);
+
+        int startingUnderstanding = 2 + statBonus;
+        int startingMomentum = 2 + statBonus;
+        int startingInitiative = 3 + statBonus;
         int initialDoubt = 0;
+
+        Console.WriteLine($"[ConversationFacade] Starting resources - Understanding: {startingUnderstanding}, Momentum: {startingMomentum}, Initiative: {startingInitiative} (highest stat: {highestStat}, bonus: {statBonus})");
 
         // Get request text from the request
         string requestText = request.NpcRequestText;
@@ -113,9 +118,11 @@ public class ConversationFacade
             ConversationTypeId = request.ConversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
-            CurrentInitiative = 0, // Starts at 0             Cadence = 0, // Starts at 0
+            CurrentInitiative = startingInitiative,
+            CurrentUnderstanding = startingUnderstanding,
             CurrentMomentum = startingMomentum,
             CurrentDoubt = initialDoubt,
+            Cadence = 0, // Starts at 0
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
             TokenManager = _tokenManager,
@@ -128,8 +135,10 @@ public class ConversationFacade
         // Set up state synchronization between MomentumManager and ConversationSession
         _momentumManager.SetSession(_currentSession);
 
-        // Check and unlock depth tiers based on starting momentum
+        // Check and unlock depth tiers based on starting Understanding (NOT Momentum)
+        // Starting Understanding determines which tiers are accessible from the beginning
         _currentSession.CheckAndUnlockTiers();
+        Console.WriteLine($"[ConversationFacade] Starting with tiers: {string.Join(", ", _currentSession.UnlockedTiers.OrderBy(t => t))}. Max depth: {_currentSession.GetUnlockedMaxDepth()}");
 
         // THEN: Perform initial draw of regular cards with tier-based filtering
         // This is the initial conversation start, so we just draw cards without exhausting
@@ -140,9 +149,7 @@ public class ConversationFacade
         // Update request card playability based on initiative
         UpdateRequestCardPlayability(_currentSession);
 
-        // Initialize Initiative to 0 (SteamWorld Quest pattern: build before spending)
-        _currentSession.CurrentInitiative = 0;
-        // Update card playability based on initial initiative
+        // Update card playability based on starting initiative (already set from formula)
         UpdateCardPlayabilityBasedOnInitiative(_currentSession);
 
         return _currentSession;
@@ -331,11 +338,8 @@ public class ConversationFacade
             };
         }
 
-        // 4. Apply Cadence Change (+1 per card played, unless card has SuppressSpeakCadence trait)
-        if (!selectedCard.ConversationCardTemplate.HasTrait(CardTrait.SuppressSpeakCadence))
-        {
-            _currentSession.ApplyCadenceFromSpeak();
-        }
+        // 4. Apply Cadence Change based on Delivery property (replaces old +1 flat system)
+        ApplyCadenceFromDelivery(selectedCard, _currentSession);
 
         // 5. Calculate Success
         bool success = CalculateInitiativeCardSuccess(selectedCard, _currentSession);
@@ -658,7 +662,26 @@ public class ConversationFacade
 
     // AtmosphereManager has been deleted - atmosphere is simplified to always Neutral
 
-    #region 4-Resource System Helper Methods
+    #region 5-Resource System Helper Methods (Understanding + Delivery)
+
+    /// <summary>
+    /// Apply cadence change based on card's Delivery property
+    /// Standard: +1, Commanding: +2, Measured: +0, Yielding: -1
+    /// </summary>
+    private void ApplyCadenceFromDelivery(CardInstance card, ConversationSession session)
+    {
+        int cadenceChange = card.ConversationCardTemplate.Delivery switch
+        {
+            DeliveryType.Standard => 1,
+            DeliveryType.Commanding => 2,
+            DeliveryType.Measured => 0,
+            DeliveryType.Yielding => -1,
+            _ => 1 // Default to Standard
+        };
+
+        session.Cadence = Math.Clamp(session.Cadence + cadenceChange, -10, 10);
+        Console.WriteLine($"[ConversationFacade] Delivery {card.ConversationCardTemplate.Delivery}: Cadence {(cadenceChange >= 0 ? "+" : "")}{cadenceChange} → {session.Cadence}");
+    }
 
     /// <summary>
     /// Process Cadence effects on LISTEN action - NEW REFACTORED SYSTEM
@@ -678,10 +701,14 @@ public class ConversationFacade
         // 2. Reset doubt to 0 (complete relief)
         session.CurrentDoubt = 0;
 
-        // 3. Reduce momentum by amount of doubt cleared (minimum 0)
+        // 3. Reduce MOMENTUM by amount of doubt cleared (minimum 0)
+        // CRITICAL: Understanding is NOT reduced - it persists through LISTEN
         session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);
+        Console.WriteLine($"[ConversationFacade] LISTEN cleared {doubtCleared} doubt, reduced Momentum by {doubtCleared}. Momentum: {session.CurrentMomentum}, Understanding: {session.CurrentUnderstanding} (preserved)");
 
-        // 4. Check and unlock tiers after momentum change
+        // 4. Check tier unlocks (uses Understanding, NOT Momentum)
+        // Tiers are based on Understanding thresholds (6/12/18), not Momentum
+        // Understanding is NOT reduced during LISTEN, so tiers stay unlocked
         session.CheckAndUnlockTiers();
 
         // 5. Convert positive cadence to doubt (CRITICAL: Check for conversation death)
@@ -866,13 +893,19 @@ public class ConversationFacade
             Console.WriteLine($"[Effect] Initiative {(projection.InitiativeChange > 0 ? "+" : "")}{projection.InitiativeChange} → {session.CurrentInitiative}");
         }
 
-        // Apply Momentum changes
+        // Apply Momentum changes (NO TIER UNLOCKS - that's Understanding's job)
         if (projection.MomentumChange != 0)
         {
             session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);
             Console.WriteLine($"[Effect] Momentum {(projection.MomentumChange > 0 ? "+" : "")}{projection.MomentumChange} → {session.CurrentMomentum}");
-            // Check tier unlocks after momentum change
-            session.CheckAndUnlockTiers();
+        }
+
+        // Apply Understanding changes (TRIGGERS TIER UNLOCKS)
+        if (projection.UnderstandingChange != 0)
+        {
+            session.AddUnderstanding(projection.UnderstandingChange);
+            Console.WriteLine($"[Effect] Understanding {(projection.UnderstandingChange > 0 ? "+" : "")}{projection.UnderstandingChange} → {session.CurrentUnderstanding}");
+            // Tier unlocks happen inside AddUnderstanding via CheckAndUnlockTiers()
         }
 
         // Apply Doubt changes
@@ -1170,7 +1203,7 @@ public class ConversationFacade
         // Map conversation types to their corresponding connection types
         return session.ConversationTypeId switch
         {
-            // Commerce removed - exchanges use separate Exchange system
+            // Diplomacy removed - exchanges use separate Exchange system
             "request" => ConnectionType.Trust, // Request bundles with promise cards
             "resolution" => ConnectionType.Trust,
             "delivery" => ConnectionType.Trust,

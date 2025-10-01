@@ -300,7 +300,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
         {
             return value switch
             {
-                "commerce" => "trade matters",
+                "diplomacy" => "trade matters",
                 _ => "this matter"
             };
         }

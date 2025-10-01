@@ -20,7 +20,7 @@ public class ExchangeRewardStructure
 
     /// <summary>
     /// Tokens granted by this exchange.
-    /// Key: ConnectionType (Trust/Commerce/Status/Shadow)
+    /// Key: ConnectionType (Trust/Diplomacy/Status/Shadow)
     /// Value: Number of tokens to grant
     /// </summary>
     public Dictionary<ConnectionType, int> Tokens { get; set; } = new Dictionary<ConnectionType, int>();

@@ -27,7 +27,7 @@ public class NPCGoalCardDTO
     public int InitiativeCost { get; set; }
 
     /// <summary>
-    /// Token type for this promise (Trust, Commerce, Status, Shadow)
+    /// Token type for this promise (Trust, Diplomacy, Status, Shadow)
     /// </summary>
     public string ConnectionType { get; set; }
 

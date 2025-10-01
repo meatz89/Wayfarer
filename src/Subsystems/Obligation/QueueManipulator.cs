@@ -530,13 +530,13 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             // Base algorithm: Position = MaxSize - (highest positive token) + (worst negative token penalty)
             calc.CalculatedPosition = calc.BasePosition - calc.HighestPositiveToken + calc.WorstNegativeTokenPenalty;
 
-            // Apply Commerce debt leverage override
-            calc.HasCommerceDebtOverride = calc.AllTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) &&
-                                          calc.AllTokens[ConnectionType.Commerce] <= -3;
+            // Apply Diplomacy debt leverage override
+            calc.HasDiplomacyDebtOverride = calc.AllTokens.Any(kvp => kvp.Key == ConnectionType.Diplomacy) &&
+                                          calc.AllTokens[ConnectionType.Diplomacy] <= -3;
 
-            if (calc.HasCommerceDebtOverride)
+            if (calc.HasDiplomacyDebtOverride)
             {
-                calc.FinalPosition = 2; // Commerce debt >= 3 forces position 2
+                calc.FinalPosition = 2; // Diplomacy debt >= 3 forces position 2
             }
             else
             {
@@ -784,8 +784,8 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
             if (HasActiveObligationWithNPC(senderId))
                 return LetterPositioningReason.Obligation;
 
-            if (allTokens.Any(kvp => kvp.Key == ConnectionType.Commerce) && allTokens[ConnectionType.Commerce] <= -3)
-                return LetterPositioningReason.CommerceDebt;
+            if (allTokens.Any(kvp => kvp.Key == ConnectionType.Diplomacy) && allTokens[ConnectionType.Diplomacy] <= -3)
+                return LetterPositioningReason.DiplomacyDebt;
 
             if (worstNegativeTokenPenalty > 0)
                 return LetterPositioningReason.PoorStanding;

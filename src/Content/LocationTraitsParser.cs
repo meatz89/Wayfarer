@@ -42,7 +42,7 @@ public static class LocationTraitsParser
             {
                 string trait = tag?.ToUpper() switch
                 {
-                    "COMMERCE" => "Commerce Hub",
+                    "COMMERCE" => "Diplomacy Hub",
                     "SOCIAL" => "Social Gathering",
                     "PUBLIC" => "Public Square",
                     "NOBLE" => "Noble District",

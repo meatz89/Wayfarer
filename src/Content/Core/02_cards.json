@@ -20,7 +20,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "insight_ask_question",
@@ -34,7 +37,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "insight_careful_analysis",
@@ -48,7 +54,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_notice_detail",
@@ -62,7 +71,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "insight_connect_evidence",
@@ -76,7 +88,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_cross_reference",
@@ -90,7 +105,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_identify_pattern",
@@ -104,7 +122,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_pattern_synthesis",
@@ -118,7 +139,10 @@
         "requiredStat": "Insight",
         "requiredStatements": 3,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_synthesize_information",
@@ -132,7 +156,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_reveal_implication",
@@ -146,7 +173,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_analytical_mastery",
@@ -160,7 +190,10 @@
         "requiredStat": "Insight",
         "requiredStatements": 5,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "insight_complete_understanding",
@@ -174,7 +207,10 @@
         "requiredStat": "Insight",
         "requiredStatements": 8,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "rapport_show_understanding",
@@ -188,7 +224,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_gentle_encouragement",
@@ -202,7 +241,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_empathetic_response",
@@ -216,7 +258,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_active_listening",
@@ -230,7 +275,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_reflect_emotions",
@@ -244,7 +292,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_find_common_ground",
@@ -258,7 +309,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_validate_feelings",
@@ -272,7 +326,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
       },
       {
         "id": "rapport_emotional_resonance",
@@ -286,7 +343,10 @@
         "requiredStat": "Rapport",
         "requiredStatements": 3,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_resonate",
@@ -300,7 +360,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "rapport_deep_understanding",
@@ -314,7 +377,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
       },
       {
         "id": "rapport_perfect_empathy",
@@ -328,7 +394,10 @@
         "requiredStat": "Rapport",
         "requiredStatements": 5,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
       },
       {
         "id": "rapport_transcendent_understanding",
@@ -342,7 +411,10 @@
         "requiredStat": "Rapport",
         "requiredStatements": 8,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "authority_state_firmly",
@@ -356,7 +428,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_challenge",
@@ -370,7 +445,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_direct_statement",
@@ -384,7 +462,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_assert_position",
@@ -398,7 +479,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_escalate_tension",
@@ -412,7 +496,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_pressure_point",
@@ -426,7 +513,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_direct_demand",
@@ -440,7 +530,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_calculated_pressure",
@@ -454,7 +547,10 @@
         "requiredStat": "Authority",
         "requiredStatements": 3,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_dominate",
@@ -468,7 +564,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_compelling_argument",
@@ -482,7 +581,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_unquestionable_authority",
@@ -496,7 +598,10 @@
         "requiredStat": "Authority",
         "requiredStatements": 5,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
         "id": "authority_absolute_authority",
@@ -510,175 +615,214 @@
         "requiredStat": "Authority",
         "requiredStatements": 8,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
       },
       {
-        "id": "commerce_reassure",
+        "id": "diplomacy_reassure",
         "title": "Reassure",
         "dialogueText": "Don't worry about that...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 1,
         "persistence": "Echo",
         "initiativeCost": 0,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_propose_alternative",
+        "id": "diplomacy_propose_alternative",
         "title": "Propose Alternative",
         "dialogueText": "What if we tried...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 1,
         "persistence": "Statement",
         "initiativeCost": 0,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_mitigate_risk",
+        "id": "diplomacy_mitigate_risk",
         "title": "Mitigate Risk",
         "dialogueText": "We can reduce the risk by...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 2,
         "persistence": "Echo",
         "initiativeCost": 1,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_address_concern",
+        "id": "diplomacy_address_concern",
         "title": "Address Concern",
         "dialogueText": "Let me address that concern directly...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 2,
         "persistence": "Echo",
         "initiativeCost": 1,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_trade_concession",
+        "id": "diplomacy_trade_concession",
         "title": "Trade Concession",
         "dialogueText": "I'm willing to compromise on...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 3,
         "persistence": "Echo",
         "initiativeCost": 3,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
-        "id": "commerce_calculate_risk",
+        "id": "diplomacy_calculate_risk",
         "title": "Calculate Risk",
         "dialogueText": "The risks are manageable...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 3,
         "persistence": "Statement",
         "initiativeCost": 3,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_find_middle_ground",
+        "id": "diplomacy_find_middle_ground",
         "title": "Find Middle Ground",
         "dialogueText": "We can both benefit if...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 4,
         "persistence": "Statement",
         "initiativeCost": 4,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_strategic_exchange",
+        "id": "diplomacy_strategic_exchange",
         "title": "Strategic Exchange",
         "dialogueText": "Every concession I've made builds toward mutual benefit...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 3,
         "persistence": "Echo",
         "initiativeCost": 3,
-        "requiredStat": "Commerce",
+        "requiredStat": "Diplomacy",
         "requiredStatements": 3,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_mitigate_crisis",
+        "id": "diplomacy_mitigate_crisis",
         "title": "Mitigate Crisis",
         "dialogueText": "Let's step back and address the real issues...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 5,
         "persistence": "Echo",
         "initiativeCost": 5,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_propose_terms",
+        "id": "diplomacy_propose_terms",
         "title": "Propose Terms",
         "dialogueText": "Here are my final terms...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 6,
         "persistence": "Statement",
         "initiativeCost": 6,
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_perfect_terms",
+        "id": "diplomacy_perfect_terms",
         "title": "Perfect Terms",
         "dialogueText": "Through careful negotiation, I've crafted terms that address every concern...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 6,
         "persistence": "Statement",
         "initiativeCost": 6,
-        "requiredStat": "Commerce",
+        "requiredStat": "Diplomacy",
         "requiredStatements": 5,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
-        "id": "commerce_perfect_agreement",
+        "id": "diplomacy_perfect_agreement",
         "title": "Perfect Agreement",
         "dialogueText": "We have reached perfect agreement...",
         "type": "Conversation",
-        "boundStat": "Commerce",
+        "boundStat": "Diplomacy",
         "depth": 8,
         "persistence": "Statement",
         "initiativeCost": 8,
-        "requiredStat": "Commerce",
+        "requiredStat": "Diplomacy",
         "requiredStatements": 8,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_feint",
@@ -692,7 +836,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "cunning_bait",
@@ -706,7 +853,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "cunning_quick_maneuver",
@@ -720,7 +870,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "cunning_subtle_maneuver",
@@ -734,7 +887,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_tactical_leverage",
@@ -748,7 +904,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_position_advantage",
@@ -762,7 +921,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_create_opening",
@@ -776,7 +938,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_perfect_leverage",
@@ -790,7 +955,10 @@
         "requiredStat": "Cunning",
         "requiredStatements": 3,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_convert_tension",
@@ -804,7 +972,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_exploit_opening",
@@ -818,7 +989,10 @@
         "requiredStat": null,
         "requiredStatements": 0,
         "effectVariant": "Base",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
       },
       {
         "id": "cunning_total_exploitation",
@@ -832,7 +1006,10 @@
         "requiredStat": "Cunning",
         "requiredStatements": 5,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       },
       {
         "id": "cunning_overwhelming_advantage",
@@ -846,7 +1023,10 @@
         "requiredStat": "Cunning",
         "requiredStatements": 8,
         "effectVariant": "Signature",
-        "personalityTypes": ["ALL"]
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
       }
     ],
     "cardDecks": [
@@ -867,12 +1047,12 @@
           "insight_notice_detail": 1,
           "insight_connect_evidence": 1,
           "insight_cross_reference": 1,
-          "commerce_reassure": 2,
-          "commerce_propose_alternative": 2,
-          "commerce_address_concern": 2,
-          "commerce_mitigate_risk": 2,
-          "commerce_trade_concession": 1,
-          "commerce_calculate_risk": 1,
+          "diplomacy_reassure": 2,
+          "diplomacy_propose_alternative": 2,
+          "diplomacy_address_concern": 2,
+          "diplomacy_mitigate_risk": 2,
+          "diplomacy_trade_concession": 1,
+          "diplomacy_calculate_risk": 1,
           "cunning_feint": 1,
           "cunning_subtle_maneuver": 1
         }
@@ -880,18 +1060,18 @@
       {
         "id": "deck_trade_negotiation",
         "cardCounts": {
-          "commerce_reassure": 1,
-          "commerce_propose_alternative": 1,
-          "commerce_mitigate_risk": 1,
-          "commerce_address_concern": 1,
-          "commerce_trade_concession": 1,
-          "commerce_calculate_risk": 1,
-          "commerce_find_middle_ground": 1,
-          "commerce_strategic_exchange": 1,
-          "commerce_mitigate_crisis": 1,
-          "commerce_propose_terms": 1,
-          "commerce_perfect_terms": 1,
-          "commerce_perfect_agreement": 1,
+          "diplomacy_reassure": 1,
+          "diplomacy_propose_alternative": 1,
+          "diplomacy_mitigate_risk": 1,
+          "diplomacy_address_concern": 1,
+          "diplomacy_trade_concession": 1,
+          "diplomacy_calculate_risk": 1,
+          "diplomacy_find_middle_ground": 1,
+          "diplomacy_strategic_exchange": 1,
+          "diplomacy_mitigate_crisis": 1,
+          "diplomacy_propose_terms": 1,
+          "diplomacy_perfect_terms": 1,
+          "diplomacy_perfect_agreement": 1,
           "insight_quick_scan": 1,
           "insight_ask_question": 1,
           "insight_careful_analysis": 1,
@@ -924,9 +1104,9 @@
           "authority_state_firmly": 1,
           "authority_direct_statement": 1,
           "authority_assert_position": 1,
-          "commerce_reassure": 1,
-          "commerce_propose_alternative": 1,
-          "commerce_address_concern": 1,
+          "diplomacy_reassure": 1,
+          "diplomacy_propose_alternative": 1,
+          "diplomacy_address_concern": 1,
           "cunning_feint": 1,
           "cunning_bait": 1,
           "cunning_subtle_maneuver": 1

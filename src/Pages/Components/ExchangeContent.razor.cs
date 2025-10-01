@@ -100,8 +100,8 @@ namespace Wayfarer.Pages.Components
             // Add time-specific status
             parts.Add($"{GetTimeBlockDisplay(Context.CurrentTimeBlock)} business period");
 
-            // Add merchant status if they have commerce tokens
-            if (GetCommerceTokens() > 0)
+            // Add merchant status if they have diplomacy tokens
+            if (GetDiplomacyTokens() > 0)
             {
                 parts.Add("Mercantile personality");
             }
@@ -110,26 +110,26 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Gets the number of commerce tokens with this NPC.
+        /// Gets the number of diplomacy tokens with this NPC.
         /// </summary>
-        protected int GetCommerceTokens()
+        protected int GetDiplomacyTokens()
         {
             if (Context?.NpcInfo?.TokenCounts == null)
                 return 0;
 
-            return Context.NpcInfo.TokenCounts.GetValueOrDefault(ConnectionType.Commerce, 0);
+            return Context.NpcInfo.TokenCounts.GetValueOrDefault(ConnectionType.Diplomacy, 0);
         }
 
         /// <summary>
-        /// Gets the discount description based on commerce tokens.
+        /// Gets the discount description based on diplomacy tokens.
         /// </summary>
         protected string GetDiscountDescription()
         {
-            int tokens = GetCommerceTokens();
+            int tokens = GetDiplomacyTokens();
             if (tokens <= 0)
                 return "No discount";
 
-            // 5% discount per commerce token
+            // 5% discount per diplomacy token
             int discount = Math.Min(tokens * 5, 25); // Cap at 25%
             return $"-{discount}% discount on all prices";
         }
@@ -356,7 +356,7 @@ namespace Wayfarer.Pages.Components
 
             List<string> parts = new List<string>();
 
-            // Apply commerce discount if applicable
+            // Apply diplomacy discount if applicable
             int discount = GetCommerceDiscount();
 
             foreach (ResourceAmount resource in exchange.Cost.Resources)
@@ -390,11 +390,11 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Gets the commerce discount percentage.
+        /// Gets the diplomacy discount percentage.
         /// </summary>
         protected int GetCommerceDiscount()
         {
-            int tokens = GetCommerceTokens();
+            int tokens = GetDiplomacyTokens();
             return Math.Min(tokens * 5, 25); // 5% per token, max 25%
         }
 

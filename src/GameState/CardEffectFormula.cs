@@ -115,7 +115,7 @@ public class CardEffectFormula
             ScalingSourceType.InsightStatements => session.GetStatementCount(PlayerStatType.Insight),
             ScalingSourceType.RapportStatements => session.GetStatementCount(PlayerStatType.Rapport),
             ScalingSourceType.AuthorityStatements => session.GetStatementCount(PlayerStatType.Authority),
-            ScalingSourceType.CommerceStatements => session.GetStatementCount(PlayerStatType.Commerce),
+            ScalingSourceType.DiplomacyStatements => session.GetStatementCount(PlayerStatType.Diplomacy),
             ScalingSourceType.CunningStatements => session.GetStatementCount(PlayerStatType.Cunning),
             _ => 0
         };

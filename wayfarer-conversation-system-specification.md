@@ -156,7 +156,7 @@ Stats only matter for their specific card types, not for starting bonuses.
 **How It Changes**:
 - Card effects add doubt (primarily Authority cards with "+X Doubt" costs)
 - Positive cadence refills doubt after LISTEN (see Cadence section)
-- Commerce cards reduce doubt
+- Diplomacy cards reduce doubt
 - LISTEN action clears ALL doubt temporarily
 - **Conversation ends immediately at 10 doubt**
 
@@ -200,7 +200,7 @@ Spoken Pile contains:
 - Insight Statements: 0
 - Rapport Statements: 0
 - Authority Statements: 0
-- Commerce Statements: 0
+- Diplomacy Statements: 0
 - Cunning Statements: 0
 ```
 
@@ -331,7 +331,7 @@ Draw pool still includes depths 1-6
 **Tier 2: Specialist Resources** (only specialists generate efficiently)
 - **Cards** (Insight specialty): Others might get +1 card occasionally, Insight gets +2-6
 - **Cadence** (Rapport specialty): Others rarely touch it, Rapport specializes in reduction
-- **Doubt** (Commerce specialty): Others rarely reduce it, Commerce specializes
+- **Doubt** (Diplomacy specialty): Others rarely reduce it, Diplomacy specializes
 
 **Efficiency Pattern by Depth**:
 ```
@@ -457,7 +457,7 @@ Effect: +12 Momentum, +4 Doubt, +3 Initiative
 (Specialist: +12M | Trade-off: +4D | Universal: +3I)
 ```
 
-#### Commerce → Doubt (Risk Mitigation)
+#### Diplomacy → Doubt (Risk Mitigation)
 
 **Thematic Identity**: Negotiation, risk management, tension relief
 
@@ -475,20 +475,20 @@ Effect: +12 Momentum, +4 Doubt, +3 Initiative
 
 **Example Cards**:
 ```
-"Address Concern" - Commerce Depth 2 (Foundation)
+"Address Concern" - Diplomacy Depth 2 (Foundation)
 Statement, 1 Initiative
 Effect: -1 Doubt, +1 Momentum
 (Specialist: -1D | Universal: +1M | No trade at depth 2)
 
-"Find Common Ground" - Commerce Depth 4 (Standard)
+"Find Common Ground" - Diplomacy Depth 4 (Standard)
 Statement, 4 Initiative
-Requirement: 3+ Commerce Statements in Spoken
+Requirement: 3+ Diplomacy Statements in Spoken
 Effect: -2 Doubt, +2 Momentum, Consume 2 Momentum
 (Specialist: -2D | Universal: +2M | Trade: Consume 2M)
 
-"Seal Agreement" - Commerce Depth 8 (Master)
+"Seal Agreement" - Diplomacy Depth 8 (Master)
 Statement, 8 Initiative
-Requirement: 8+ Commerce Statements in Spoken
+Requirement: 8+ Diplomacy Statements in Spoken
 Effect: Set Doubt to 0, +5 Momentum, Consume 4 Momentum
 (Specialist: Set D→0 | Universal: +5M | Trade: Consume 4M)
 ```
@@ -558,12 +558,12 @@ For each card in conversation deck:
 ```
 Current State:
 - Tier 2 unlocked (momentum 8, depths 1-4 baseline)
-- Player has Commerce 7 (+2 bonus)
+- Player has Diplomacy 7 (+2 bonus)
 
 Available Depths:
 - ANY card depths 1-4
 - COMMERCE cards depths 1-6
-- Commerce specialist can access Advanced Commerce cards earlier
+- Diplomacy specialist can access Advanced Diplomacy cards earlier
 ```
 
 **Strategic Implication**: Specialists maintain advantage even when struggling (low momentum), preserving character identity through mechanical benefit.
@@ -578,7 +578,7 @@ Every card has exactly these properties:
 
 ```
 1. Name (thematic, flavor)
-2. Stat Type (Insight/Rapport/Authority/Commerce/Cunning)
+2. Stat Type (Insight/Rapport/Authority/Diplomacy/Cunning)
 3. Depth (1-8, determines tier and power level)
 4. Persistence Type (Echo or Statement)
 5. Initiative Cost (varies by stat and depth)
@@ -608,7 +608,7 @@ Every card has exactly these properties:
 ```
 Cunning: 80% Echo (tactics are inherently repeatable)
 Rapport: 75% Echo (empathy techniques repeat)
-Commerce: 65% Echo (negotiation tools repeat)
+Diplomacy: 65% Echo (negotiation tools repeat)
 Insight: 60% Echo (analysis repeats, insights don't)
 Authority: 50% Echo (commands repeat, declarations don't)
 ```
@@ -651,7 +651,7 @@ Depth 5-6: 4-5 Initiative
 Depth 7-8: 6-7 Initiative
 ```
 
-**Commerce** (Moderate-Expensive - safety costs):
+**Diplomacy** (Moderate-Expensive - safety costs):
 ```
 Depth 1-2: 0-1 Initiative
 Depth 3-4: 3-4 Initiative
@@ -696,7 +696,7 @@ Use: Advanced tier, rewards/requires specific situations
 ```
 Exchange one resource for another
 Example: "Consume 3 Momentum: -5 Doubt"
-Use: Commerce cards primarily, various tiers
+Use: Diplomacy cards primarily, various tiers
 ```
 
 **Type E: State-Setting**
@@ -726,7 +726,7 @@ Spoken Pile Tracking:
 - Insight Statements in Spoken: 0
 - Rapport Statements in Spoken: 0
 - Authority Statements in Spoken: 0
-- Commerce Statements in Spoken: 0
+- Diplomacy Statements in Spoken: 0
 - Cunning Statements in Spoken: 0
 
 When Statement card played:
@@ -802,7 +802,7 @@ Turn 3-4: "Direct Demand" (Standard, requires 3+ Authority Statements)
 Verisimilitude: Demands require established authority
 Mechanical: Count reaches 5-6, doubt accumulating
 
-Turn 5: Commerce cards cleanse doubt
+Turn 5: Diplomacy cards cleanse doubt
 Verisimilitude: Must address concerns before continuing pressure
 Mechanical: Doubt reduced, momentum cost paid
 
@@ -1155,7 +1155,7 @@ Late (Turns 7+):
 
 ### Archetype 2: The Commander (Authority Specialist)
 
-**Build**: Authority 9 (+2 bonus), Commerce 7 (+2 bonus)
+**Build**: Authority 9 (+2 bonus), Diplomacy 7 (+2 bonus)
 
 **Philosophy**: "I establish dominance then compel action"
 
@@ -1169,7 +1169,7 @@ Early (Turns 1-3):
 - Doubt at 4-5 by turn 3
 
 Turn 3-4:
-- Play Commerce cards to cleanse doubt
+- Play Diplomacy cards to cleanse doubt
 - Trade momentum for safety
 - Continue Authority pressure
 
@@ -1178,7 +1178,7 @@ Mid (Turns 5-7):
 - Stat bonus gives access to Authority Advanced
 - Authority Statement count at 6-7
 - Burst → Cleanse → Burst pattern
-- Doubt management through Commerce
+- Doubt management through Diplomacy
 
 Late (Turn 8+):
 - Statement count reaches 8
@@ -1192,12 +1192,12 @@ Late (Turn 8+):
 **Strengths**:
 - Fastest momentum generation
 - Can hit Premium goals earlier than others
-- Stat bonuses in both Authority and Commerce
+- Stat bonuses in both Authority and Diplomacy
 - Clear win condition
 
 **Weaknesses**:
 - Generates significant doubt
-- Requires Commerce investment for safety
+- Requires Diplomacy investment for safety
 - High risk if misplayed
 - Expensive Initiative costs
 
@@ -1377,15 +1377,15 @@ Statement Counts: All 0
 
 **Tier 2 Re-Unlocks** (Momentum back to 6)
 
-**SPEAK: "Find Common Ground" (Commerce D4 Standard, requires 3+ Commerce Statements - DON'T HAVE)**
+**SPEAK: "Find Common Ground" (Diplomacy D4 Standard, requires 3+ Diplomacy Statements - DON'T HAVE)**
 - Cannot play yet, need Statement foundation first
 
-**SPEAK: "Address Concern" (Commerce D2, Statement)**
+**SPEAK: "Address Concern" (Diplomacy D2, Statement)**
 - Cost: 1 Initiative
 - Effect: -1 Doubt, +1 Momentum
-- Goes to Spoken: Commerce Statements = 1
+- Goes to Spoken: Diplomacy Statements = 1
 - Cadence: +1 (now 1)
-- State: M7, I6, D2, Cad1, Commerce:1
+- State: M7, I6, D2, Cad1, Diplomacy:1
 
 **SPEAK: "Create Opening" (Cunning D4 Standard, requires 3+ Cunning Statements)**
 - Have 1 Cunning Statement, need 2 more - CANNOT PLAY
@@ -1400,7 +1400,7 @@ Statement Counts: All 0
 **Turn 5** (skipping ahead):
 
 **State**: M10, I5, D4, Cad2, Tier 2 unlocked
-**Statement Counts**: Cunning:3, Authority:2, Commerce:2, Rapport:1, Insight:2
+**Statement Counts**: Cunning:3, Authority:2, Diplomacy:2, Rapport:1, Insight:2
 
 **SPEAK: "Create Opening" (Cunning D4, NOW PLAYABLE)**
 - Requires: 3+ Cunning Statements ✓ (have 3)
@@ -1419,7 +1419,7 @@ Statement Counts: All 0
 
 **Decision**: Continue building, player wants Premium
 
-**SPEAK: Commerce card to cleanse doubt**
+**SPEAK: Diplomacy card to cleanse doubt**
 - Effect: -2 Doubt
 - State: M12, I5, D2, Cad4
 
@@ -1455,7 +1455,7 @@ Statement Counts: All 0
 - Conversation Success!
 
 **Result**:
-- Tokens: +3 Commerce with Marcus
+- Tokens: +3 Diplomacy with Marcus
 - Payment: 12 coins (Premium reward)
 - XP: 15 cards played × 2 (Level 2 conversation) = 30 XP distributed
 - Time: 1 segment + 10 Statements = 11 segments
@@ -1498,7 +1498,7 @@ Each conversation type has a predefined deck with specific stat distribution:
 
 **Support Conversation**:
 ```
-Distribution: 45% Rapport, 25% Insight, 20% Commerce, 10% Other
+Distribution: 45% Rapport, 25% Insight, 20% Diplomacy, 10% Other
 Archetype: The Empath
 Foundation Density: 45% (very sustainable)
 Feels: Patient, forgiving, many safety nets
@@ -1506,7 +1506,7 @@ Feels: Patient, forgiving, many safety nets
 
 **Trade Negotiation**:
 ```
-Distribution: 30% Commerce, 30% Authority, 25% Rapport, 15% Other
+Distribution: 30% Diplomacy, 30% Authority, 25% Rapport, 15% Other
 Archetype: The Negotiator
 Foundation Density: 35% (balanced)
 Feels: Push/pull dynamic, risk and mitigation
@@ -1522,7 +1522,7 @@ Feels: Information-focused, requires conversion
 
 **Authority Challenge**:
 ```
-Distribution: 40% Authority, 30% Cunning, 20% Commerce, 10% Other
+Distribution: 40% Authority, 30% Cunning, 20% Diplomacy, 10% Other
 Archetype: The Commander
 Foundation Density: 30% (challenging)
 Feels: Aggressive, high stakes, dangerous
@@ -1665,6 +1665,6 @@ The Wayfarer conversation system creates strategic depth through three interlock
 2. **Stat Bonuses**: Character specialization provides mechanical advantages without exclusion
 3. **Statement Requirements**: Logical prerequisites ensure powerful plays feel earned
 
-Combined with the stat-to-resource mapping (Insight→Cards, Rapport→Cadence, Authority→Momentum, Commerce→Doubt, Cunning→Initiative), the system achieves perfect verisimilitude while maintaining deterministic, calculable outcomes.
+Combined with the stat-to-resource mapping (Insight→Cards, Rapport→Cadence, Authority→Momentum, Diplomacy→Doubt, Cunning→Initiative), the system achieves perfect verisimilitude while maintaining deterministic, calculable outcomes.
 
 Players must manage five distinct resources (Initiative, Momentum, Doubt, Cadence, Statements) toward clear goals, making impossible choices with perfect information every turn. This is conversation as strategic gameplay.

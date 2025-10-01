@@ -19,7 +19,7 @@ public enum SpotPropertyType
     // View properties
     ViewsMainEntrance,  // Enables authority observations
     ViewsBackAlley,     // Enables shadow observations
-    ViewsMarket,        // Enables commerce observations
+    ViewsMarket,        // Enables diplomacy observations
     ViewsTemple,        // Enables trust observations
 
     // Social properties
@@ -92,5 +92,5 @@ public enum SpotPropertyType
 
     // Functional properties
     Restful,        // Good for resting
-    Commerce        // Commerce hub (duplicate of Commercial, will consolidate)
+    Diplomacy        // Diplomacy hub (duplicate of Commercial, will consolidate)
 }

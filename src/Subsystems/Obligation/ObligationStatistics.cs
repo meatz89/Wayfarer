@@ -400,7 +400,7 @@ public class ObligationStatistics
         return new Dictionary<ConnectionType, int>
         {
             [ConnectionType.Trust] = 0,
-            [ConnectionType.Commerce] = 0,
+            [ConnectionType.Diplomacy] = 0,
             [ConnectionType.Status] = 0,
             [ConnectionType.Shadow] = 0
         };
@@ -412,7 +412,7 @@ public class ObligationStatistics
         return new Dictionary<ConnectionType, int>
         {
             [ConnectionType.Trust] = 0,
-            [ConnectionType.Commerce] = 0,
+            [ConnectionType.Diplomacy] = 0,
             [ConnectionType.Status] = 0,
             [ConnectionType.Shadow] = 0
         };

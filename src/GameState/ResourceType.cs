@@ -7,7 +7,7 @@ public enum ResourceType
     Health,
     Hunger,
     TrustToken,
-    CommerceToken,
+    DiplomacyToken,
     StatusToken,
     ShadowToken,
     Item,

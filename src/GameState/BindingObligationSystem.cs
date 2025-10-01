@@ -130,7 +130,7 @@ public class BindingObligationSystem
         int penalty = obligation.Type switch
         {
             ObligationType.Promise => -2,      // Breaking promises hurts trust
-            ObligationType.Debt => -1,         // Unpaid debts hurt commerce
+            ObligationType.Debt => -1,         // Unpaid debts hurt diplomacy
             ObligationType.Favor => -1,        // Unfulfilled favors hurt status
             ObligationType.Secret => -3,       // Betraying secrets is severe
             _ => -1
@@ -140,7 +140,7 @@ public class BindingObligationSystem
         ConnectionType tokenType = obligation.Type switch
         {
             ObligationType.Promise => ConnectionType.Trust,
-            ObligationType.Debt => ConnectionType.Commerce,
+            ObligationType.Debt => ConnectionType.Diplomacy,
             ObligationType.Favor => ConnectionType.Status,
             ObligationType.Secret => ConnectionType.Shadow,
             _ => ConnectionType.Trust

@@ -44,7 +44,7 @@ public class TokenMechanicsManager
             return new Dictionary<ConnectionType, int>
             {
                 [ConnectionType.Trust] = tokenEntry.Trust,
-                [ConnectionType.Commerce] = tokenEntry.Commerce,
+                [ConnectionType.Diplomacy] = tokenEntry.Diplomacy,
                 [ConnectionType.Status] = tokenEntry.Status,
                 [ConnectionType.Shadow] = tokenEntry.Shadow
             };
@@ -92,7 +92,7 @@ public class TokenMechanicsManager
             );
 
             // Check relationship milestones
-            int totalWithNPC = npcEntry.Trust + npcEntry.Commerce + npcEntry.Status + npcEntry.Shadow;
+            int totalWithNPC = npcEntry.Trust + npcEntry.Diplomacy + npcEntry.Status + npcEntry.Shadow;
             CheckRelationshipMilestone(npc, totalWithNPC);
 
             // Category service removed - letters created through conversation choices only

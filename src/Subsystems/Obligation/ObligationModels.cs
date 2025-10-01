@@ -146,7 +146,7 @@ namespace Wayfarer.Subsystems.ObligationSubsystem
         public int CalculatedPosition { get; set; }
         public int FinalPosition { get; set; }
         public bool HasActiveObligation { get; set; }
-        public bool HasCommerceDebtOverride { get; set; }
+        public bool HasDiplomacyDebtOverride { get; set; }
         public LetterPositioningReason PositioningReason { get; set; }
         public int LeverageBoost { get; set; }
     }

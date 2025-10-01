@@ -7,13 +7,13 @@ public enum ObligationEffect
 {
     // Entry Position Effects
     StatusPriority,         // Status letters enter at slot 3
-    CommercePriority,       // Commerce letters enter at slot 5
+    DiplomacyPriority,       // Diplomacy letters enter at slot 5
     TrustPriority,          // Trust letters enter at slot 7
 
     // Payment Bonuses
-    CommerceBonus,         // Commerce letters +10 coins
+    DiplomacyBonus,         // Diplomacy letters +10 coins
     ShadowTriplePay,       // Shadow letters pay triple
-    CommerceBonusPlus3,    // Commerce letters +3 coins bonus
+    DiplomacyBonusPlus3,    // Diplomacy letters +3 coins bonus
 
     // Deadline Extensions
     TrustFreeExtend,       // Trust letters can extend deadline free
@@ -24,13 +24,13 @@ public enum ObligationEffect
 
     // Queue Action Restrictions
     NoStatusRefusal,       // Cannot refuse status letters
-    NoCommercePurge,       // Cannot purge commerce letters
+    NoDiplomacyPurge,       // Cannot purge diplomacy letters
     TrustSkipDoubleCost,   // Skipping trust letters costs double
     CannotRefuseLetters,   // Cannot refuse any letters
 
     // Leverage Modifiers
     ShadowEqualsStatus,    // Shadow letters use Status base position (3)
-    MerchantRespect,       // Commerce letters with 5+ tokens get additional +1 position
+    MerchantRespect,       // Diplomacy letters with 5+ tokens get additional +1 position
     DebtSpiral,            // All negative token positions get additional -1
 
     // Dynamic Scaling Effects
@@ -104,12 +104,12 @@ public class StandingObligation
     {
         if (!AppliesTo(letter.TokenType)) return 0;
 
-        if (HasEffect(ObligationEffect.CommerceBonus) && letter.TokenType == ConnectionType.Commerce)
+        if (HasEffect(ObligationEffect.DiplomacyBonus) && letter.TokenType == ConnectionType.Diplomacy)
         {
             return 10; // Flat +10 bonus
         }
 
-        if (HasEffect(ObligationEffect.CommerceBonusPlus3) && letter.TokenType == ConnectionType.Commerce)
+        if (HasEffect(ObligationEffect.DiplomacyBonusPlus3) && letter.TokenType == ConnectionType.Diplomacy)
         {
             return 3; // Flat +3 bonus
         }
@@ -132,7 +132,7 @@ public class StandingObligation
             return Math.Min(3, defaultPosition); // Enter at slot 3 or higher
         }
 
-        if (HasEffect(ObligationEffect.CommercePriority) && letter.TokenType == ConnectionType.Commerce)
+        if (HasEffect(ObligationEffect.DiplomacyPriority) && letter.TokenType == ConnectionType.Diplomacy)
         {
             return Math.Min(5, defaultPosition); // Enter at slot 5 or higher
         }
@@ -179,8 +179,8 @@ public class StandingObligation
             return true; // Cannot refuse any letters
         }
 
-        if (actionType == "purge" && HasEffect(ObligationEffect.NoCommercePurge) &&
-            letter.TokenType == ConnectionType.Commerce)
+        if (actionType == "purge" && HasEffect(ObligationEffect.NoDiplomacyPurge) &&
+            letter.TokenType == ConnectionType.Diplomacy)
         {
             return true;
         }
@@ -291,16 +291,16 @@ public class StandingObligation
         return effect switch
         {
             ObligationEffect.StatusPriority => "Status letters enter at slot 3",
-            ObligationEffect.CommercePriority => "Commerce letters enter at slot 5",
+            ObligationEffect.DiplomacyPriority => "Diplomacy letters enter at slot 5",
             ObligationEffect.TrustPriority => "Trust letters enter at slot 7",
-            ObligationEffect.CommerceBonus => "Commerce letters +10 coins",
-            ObligationEffect.CommerceBonusPlus3 => "Commerce letters pay +3 coins bonus",
+            ObligationEffect.DiplomacyBonus => "Diplomacy letters +10 coins",
+            ObligationEffect.DiplomacyBonusPlus3 => "Diplomacy letters pay +3 coins bonus",
             ObligationEffect.ShadowTriplePay => "Shadow letters pay triple",
             ObligationEffect.TrustFreeExtend => "Trust letters extend deadline free",
             ObligationEffect.DeadlinePlus2Days => "Letters get +2 days to deadline",
             ObligationEffect.ShadowForced => "Forced shadow letter every 3 days",
             ObligationEffect.NoStatusRefusal => "Cannot refuse status letters",
-            ObligationEffect.NoCommercePurge => "Cannot purge commerce letters",
+            ObligationEffect.NoDiplomacyPurge => "Cannot purge diplomacy letters",
             ObligationEffect.TrustSkipDoubleCost => "Skipping trust letters costs double",
             ObligationEffect.CannotRefuseLetters => "Cannot refuse any letters",
             ObligationEffect.DynamicLeverageModifier => "Leverage scales with relationship",

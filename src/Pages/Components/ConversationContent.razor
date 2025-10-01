@@ -173,8 +173,8 @@
         <!-- Tier Unlock Display -->
         <div class="tier-display">
             <div class="tier-info">
-                <span class="tier-label">Unlocked Depths</span>
-                <span class="tier-value">1-@GetUnlockedMaxDepth()</span>
+                <span class="tier-label">Understanding: @GetCurrentUnderstanding() / 18</span>
+                <span class="tier-value">Unlocked Depths: 1-@GetUnlockedMaxDepth()</span>
                 <div class="tier-unlocks">
                     @for (int tier = 1; tier <= 4; tier++)
                     {
@@ -204,8 +204,8 @@
                         <span class="stat-value">@GetStatementCount("Authority")</span>
                     </div>
                     <div class="stat-count">
-                        <span class="stat-icon commerce">💰</span>
-                        <span class="stat-value">@GetStatementCount("Commerce")</span>
+                        <span class="stat-icon diplomacy">💰</span>
+                        <span class="stat-value">@GetStatementCount("Diplomacy")</span>
                     </div>
                     <div class="stat-count">
                         <span class="stat-icon cunning">🎭</span>

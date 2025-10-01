@@ -89,7 +89,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Trust) >= 3;
 
                 case "business_deal":
-                    return _tokenFacade.GetTokenCount(npcId, ConnectionType.Commerce) >= 4;
+                    return _tokenFacade.GetTokenCount(npcId, ConnectionType.Diplomacy) >= 4;
 
                 case "noble_invitation":
                     return _tokenFacade.GetTokenCount(npcId, ConnectionType.Status) >= 5;

@@ -64,7 +64,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
             string reasonText = reason switch
             {
                 LetterPositioningReason.Obligation => "standing obligation",
-                LetterPositioningReason.CommerceDebt => $"commerce debt (debt: {debt})",
+                LetterPositioningReason.DiplomacyDebt => $"diplomacy debt (debt: {debt})",
                 LetterPositioningReason.PoorStanding => $"poor standing (debt: {debt})",
                 LetterPositioningReason.GoodStanding => $"good relationship (strength: {strength})",
                 LetterPositioningReason.Neutral => "standard priority",
@@ -497,7 +497,7 @@ namespace Wayfarer.Subsystems.NarrativeSubsystem
                     $"\"You've proven yourself trustworthy,\" {npcName} says with appreciation.",
                     $"{npcName} nods gratefully. \"It's good to have someone reliable.\""
                 },
-                ConnectionType.Commerce => new[]
+                ConnectionType.Diplomacy => new[]
                 {
                     $"{npcName} nods approvingly. \"Good business, as always.\"",
                     $"\"Reliable couriers are worth their focus in gold,\" says {npcName}.",

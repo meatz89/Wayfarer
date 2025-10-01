@@ -274,7 +274,7 @@ Each NPC maintains four persistent decks, while the player brings their own conv
 - Represents the player's growing social skills and repertoire
 
 ### 5. Exchange Deck
-- Contains commerce/trade cards (mercantile NPCs)
+- Contains diplomacy/trade cards (mercantile NPCs)
 - Enables "Quick Exchange" conversations
 - Always 100% success rate (they're trades, not checks)
 
@@ -503,7 +503,7 @@ private static ConnectionType ParseConnectionType(string connectionTypeStr)
     return connectionTypeStr switch
     {
         "Trust" => ConnectionType.Trust,
-        "Commerce" => ConnectionType.Commerce,
+        "Diplomacy" => ConnectionType.Diplomacy,
         "Status" => ConnectionType.Status,
         "Shadow" => ConnectionType.Shadow,
         _ => throw new ArgumentException($"Unknown connection type: '{connectionTypeStr}'")

@@ -246,8 +246,8 @@ public static class NPCParser
         return connectionTypeStr.ToLower() switch
         {
             "trust" => ConnectionType.Trust,
-            "commerce" => ConnectionType.Commerce,
-            "trade" => ConnectionType.Commerce,
+            "diplomacy" => ConnectionType.Diplomacy,
+            "trade" => ConnectionType.Diplomacy,
             "status" => ConnectionType.Status,
             "noble" => ConnectionType.Status,
             "common" => ConnectionType.Trust,

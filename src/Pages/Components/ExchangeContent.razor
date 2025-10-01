@@ -30,12 +30,12 @@
                 <div class="npc-state">@GetNpcStatusLine()</div>
             </div>
 
-            <!-- Commerce Display (if NPC has commerce tokens) -->
-            @if (GetCommerceTokens() > 0)
+            <!-- Diplomacy Display (if NPC has diplomacy tokens) -->
+            @if (GetDiplomacyTokens() > 0)
             {
-                <div class="commerce-display">
-                    <span class="commerce-label">Commerce Connection</span>
-                    <span class="commerce-value">@GetCommerceTokens()</span>
+                <div class="diplomacy-display">
+                    <span class="diplomacy-label">Diplomacy Connection</span>
+                    <span class="diplomacy-value">@GetDiplomacyTokens()</span>
                     <span class="discount-effect">@GetDiscountDescription()</span>
                 </div>
             }

@@ -11,10 +11,10 @@ public enum LetterPositioningReason
     Obligation,
 
     /// <summary>
-    /// DeliveryObligation positioned due to Commerce debt >= 3 tokens
+    /// DeliveryObligation positioned due to Diplomacy debt >= 3 tokens
     /// Priority: Very High (position 2)
     /// </summary>
-    CommerceDebt,
+    DiplomacyDebt,
 
     /// <summary>
     /// DeliveryObligation positioned due to negative token balance (debt)

@@ -278,13 +278,15 @@ public class PlayerStats
     }
 
     /// <summary>
-    /// DELETED: GetHighestStatLevel() - Highest stat is not relevant for any game mechanics.
-    /// Stats only matter for their specific card types.
+    /// Get the level of the highest stat
+    /// CONVERSATION SYSTEM: Used to calculate starting Understanding/Momentum/Initiative
+    /// Starting Understanding = 2 + floor(highest_stat/3)
+    /// Starting Momentum = 2 + floor(highest_stat/3)
+    /// Starting Initiative = 3 + floor(highest_stat/3)
     /// </summary>
+    public int GetHighestLevel()
+    {
+        return _stats.Values.Max(s => s.Level);
+    }
 
-    /// <summary>
-    /// DELETED: GetHighestStatLevel() and GetPrimaryStat()
-    /// "Highest stat" and "primary stat" concepts violate design principles.
-    /// Stats only matter for their specific card types, not for global bonuses or identity.
-    /// </summary>
 }

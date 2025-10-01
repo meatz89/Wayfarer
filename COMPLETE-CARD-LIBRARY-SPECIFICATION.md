@@ -36,7 +36,7 @@ This document specifies the complete card library using a hybrid system where **
 | **Insight** | Cards (2-6 draw) | Momentum (+1-3), Initiative (+1-2) | Information-focused |
 | **Rapport** | Cadence (-1 to -3) | Momentum (+1-3), Initiative (+1-3) | Sustainable, lower momentum |
 | **Authority** | Momentum (+2-12) | Initiative (+1-2) | 2-3x faster momentum but generates Doubt |
-| **Commerce** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
+| **Diplomacy** | Doubt (-1 to -6) | Momentum (+1-3) | Often consumes Momentum to reduce Doubt |
 | **Cunning** | Initiative (+2-6) | Momentum (+1-3) | Enables long action chains |
 
 **Effect Pattern by Depth:**
@@ -733,7 +733,7 @@ Verisimilitude: Authority so overwhelming it ends debates
 
 **"Reassure" - Base**
 ```
-Commerce, Depth 1, Echo, 0 Initiative
+Diplomacy, Depth 1, Echo, 0 Initiative
 Requirement: None
 Effect: -1 Doubt
 Verisimilitude: Repeatable reassurance technique
@@ -741,7 +741,7 @@ Verisimilitude: Repeatable reassurance technique
 
 **"Propose Alternative" - Base**
 ```
-Commerce, Depth 1, Statement, 0 Initiative
+Diplomacy, Depth 1, Statement, 0 Initiative
 Requirement: None
 Effect: -1 Doubt, +1 Initiative
 Verisimilitude: Options reduce tension
@@ -749,7 +749,7 @@ Verisimilitude: Options reduce tension
 
 **"Mitigate Risk" - Base**
 ```
-Commerce, Depth 2, Echo, 1 Initiative
+Diplomacy, Depth 2, Echo, 1 Initiative
 Requirement: None
 Effect: -1 Doubt, +1 Initiative
 Verisimilitude: Ongoing risk management
@@ -757,7 +757,7 @@ Verisimilitude: Ongoing risk management
 
 **"Address Concern" - Base**
 ```
-Commerce, Depth 2, Statement, 1 Initiative
+Diplomacy, Depth 2, Statement, 1 Initiative
 Requirement: None
 Effect: -1 Doubt, +1 Momentum
 Verisimilitude: Basic risk mitigation
@@ -767,7 +767,7 @@ Verisimilitude: Basic risk mitigation
 
 **"Find Middle Ground" - Base**
 ```
-Commerce, Depth 4, Statement, 4 Initiative
+Diplomacy, Depth 4, Statement, 4 Initiative
 Requirement: None
 Effect: -2 Doubt, +3 Momentum, Consume 2 Momentum
 Verisimilitude: Compromise requires giving ground
@@ -775,7 +775,7 @@ Verisimilitude: Compromise requires giving ground
 
 **"Calculate Risk" - Base**
 ```
-Commerce, Depth 3, Statement, 3 Initiative
+Diplomacy, Depth 3, Statement, 3 Initiative
 Requirement: None
 Effect: -2 Doubt, +2 Momentum
 Verisimilitude: Understanding risks reduces them
@@ -783,7 +783,7 @@ Verisimilitude: Understanding risks reduces them
 
 **"Trade Concession" - Base**
 ```
-Commerce, Depth 3, Echo, 3 Initiative
+Diplomacy, Depth 3, Echo, 3 Initiative
 Requirement: None
 Effect: Reduce Doubt by 1 per 3 Momentum consumed (max -3, requires 9 Momentum)
 Verisimilitude: Trading progress for safety
@@ -791,8 +791,8 @@ Verisimilitude: Trading progress for safety
 
 **"Expert Negotiation" - Signature**
 ```
-Commerce, Depth 4, Statement, 4 Initiative
-Requirement: 3+ Commerce Statements
+Diplomacy, Depth 4, Statement, 4 Initiative
+Requirement: 3+ Diplomacy Statements
 Effect: -3 Doubt, +4 Momentum, Consume 2 Momentum
 Power Increase: +50% doubt reduction, +33% momentum
 Verisimilitude: Masterful compromise from negotiation expertise
@@ -800,8 +800,8 @@ Verisimilitude: Masterful compromise from negotiation expertise
 
 **"Strategic Exchange" - Signature**
 ```
-Commerce, Depth 3, Echo, 3 Initiative
-Requirement: 3+ Commerce Statements
+Diplomacy, Depth 3, Echo, 3 Initiative
+Requirement: 3+ Diplomacy Statements
 Effect: Reduce Doubt by 1 per 2 Momentum consumed (max -4, requires 8 Momentum)
 Power Increase: +33% efficiency, +33% max reduction
 Verisimilitude: Efficient trading from experience
@@ -811,7 +811,7 @@ Verisimilitude: Efficient trading from experience
 
 **"Propose Terms" - Base**
 ```
-Commerce, Depth 6, Statement, 6 Initiative
+Diplomacy, Depth 6, Statement, 6 Initiative
 Requirement: None
 Effect: -4 Doubt, +5 Momentum, Consume 3 Momentum
 Verisimilitude: Formal terms require foundation
@@ -819,7 +819,7 @@ Verisimilitude: Formal terms require foundation
 
 **"Strategic Concession" - Base**
 ```
-Commerce, Depth 5, Statement, 5 Initiative
+Diplomacy, Depth 5, Statement, 5 Initiative
 Requirement: None
 Effect: -3 Doubt, +4 Momentum, +2 Initiative, Consume 2 Momentum
 Verisimilitude: Strategic giving to gain
@@ -827,7 +827,7 @@ Verisimilitude: Strategic giving to gain
 
 **"Mitigate Crisis" - Base**
 ```
-Commerce, Depth 5, Echo, 5 Initiative
+Diplomacy, Depth 5, Echo, 5 Initiative
 Requirement: None
 Effect: Reduce Doubt by 1 per 2 Doubt (round down)
 Verisimilitude: Crisis management expertise
@@ -835,8 +835,8 @@ Verisimilitude: Crisis management expertise
 
 **"Perfect Terms" - Signature**
 ```
-Commerce, Depth 6, Statement, 6 Initiative
-Requirement: 5+ Commerce Statements
+Diplomacy, Depth 6, Statement, 6 Initiative
+Requirement: 5+ Diplomacy Statements
 Effect: -5 Doubt, +7 Momentum, +3 Initiative, Consume 3 Momentum
 Power Increase: +25% doubt reduction, +40% momentum, +3 initiative
 Verisimilitude: Ideal terms from comprehensive negotiation
@@ -844,8 +844,8 @@ Verisimilitude: Ideal terms from comprehensive negotiation
 
 **"Master Negotiator" - Signature**
 ```
-Commerce, Depth 5, Echo, 5 Initiative
-Requirement: 5+ Commerce Statements
+Diplomacy, Depth 5, Echo, 5 Initiative
+Requirement: 5+ Diplomacy Statements
 Effect: Reduce Doubt by 1 per CommerceStatement (max -6)
 Power Increase: Direct scaling with specialization
 Verisimilitude: Every negotiation builds expertise
@@ -855,7 +855,7 @@ Verisimilitude: Every negotiation builds expertise
 
 **"Seal Agreement" - Base**
 ```
-Commerce, Depth 8, Statement, 8 Initiative
+Diplomacy, Depth 8, Statement, 8 Initiative
 Requirement: None
 Effect: Set Doubt to 0, +8 Momentum, Consume 4 Momentum
 Verisimilitude: Final agreement removes all concerns
@@ -863,8 +863,8 @@ Verisimilitude: Final agreement removes all concerns
 
 **"Perfect Agreement" - Signature**
 ```
-Commerce, Depth 8, Statement, 8 Initiative
-Requirement: 8+ Commerce Statements
+Diplomacy, Depth 8, Statement, 8 Initiative
+Requirement: 8+ Diplomacy Statements
 Effect: Set Doubt to 0, +11 Momentum, +4 Initiative, Consume 4 Momentum
 Power Increase: +38% momentum, +4 initiative
 Verisimilitude: Flawless agreement from negotiation mastery
@@ -1062,7 +1062,7 @@ Verisimilitude: Absolute tactical superiority from complete setup
 ### Effect Formulas in CardEffectCatalog
 
 Each card's effect is derived from CardEffectCatalog based on:
-- `boundStat` (Insight/Rapport/Authority/Commerce/Cunning)
+- `boundStat` (Insight/Rapport/Authority/Diplomacy/Cunning)
 - `depth` (1-8)
 - `effectVariant` (Base, Enhanced, Scaling_X, etc.)
 
@@ -1088,7 +1088,7 @@ Statement Counts:
 Insight:   ████░ (5/8)
 Rapport:   ██░░░ (2/8)
 Authority: █░░░░ (1/8)
-Commerce:  ░░░░░ (0/8)
+Diplomacy:  ░░░░░ (0/8)
 Cunning:   ███░░ (3/8)
 ```
 

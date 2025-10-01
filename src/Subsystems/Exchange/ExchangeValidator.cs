@@ -248,7 +248,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
                 ResourceType.Health => playerResources.Health >= cost.Amount,
                 ResourceType.Hunger => true, // Hunger is usually a reward, not a cost
                 ResourceType.TrustToken => npcTokens.GetValueOrDefault(ConnectionType.Trust, 0) >= cost.Amount,
-                ResourceType.CommerceToken => npcTokens.GetValueOrDefault(ConnectionType.Commerce, 0) >= cost.Amount,
+                ResourceType.DiplomacyToken => npcTokens.GetValueOrDefault(ConnectionType.Diplomacy, 0) >= cost.Amount,
                 ResourceType.StatusToken => npcTokens.GetValueOrDefault(ConnectionType.Status, 0) >= cost.Amount,
                 ResourceType.ShadowToken => npcTokens.GetValueOrDefault(ConnectionType.Shadow, 0) >= cost.Amount,
                 _ => true

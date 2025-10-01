@@ -24,11 +24,11 @@ Elena, a young scribe at the Copper Kettle Tavern, desperately needs to refuse a
 This POC demonstrates how conversations are the primary gameplay loop. The player uses conversation type decks filtered by their stat depths against different NPC personality rules while developing their problem-solving methodologies (stats) through play. Success requires understanding how each personality transforms the basic conversation puzzle and how your developing stats open new card depths to problems.
 
 ### The Discovery
-Every seemingly inefficient action has purpose. Investigation unlocks critical observation cards. Building Commerce tokens with Marcus enables signature cards. Optional stranger encounters provide resources and stat development. The optimal time path emerges through system mastery, but different stat builds offer alternative approaches.
+Every seemingly inefficient action has purpose. Investigation unlocks critical observation cards. Building Diplomacy tokens with Marcus enables signature cards. Optional stranger encounters provide resources and stat development. The optimal time path emerges through system mastery, but different stat builds offer alternative approaches.
 
 ### Success Criteria
 - Build Market Square familiarity through investigation
-- Gain Commerce tokens to unlock Marcus's signature cards
+- Gain Diplomacy tokens to unlock Marcus's signature cards
 - Use observation cards to advance Elena's conversation
 - Optional: Develop stats through stranger encounters
 - Manage resources with precision
@@ -48,7 +48,7 @@ Every seemingly inefficient action has purpose. Investigation unlocks critical o
 - **Insight**: Level 1 (0/10 XP) - Analytical thinking
 - **Rapport**: Level 1 (0/10 XP) - Emotional connection  
 - **Authority**: Level 1 (0/10 XP) - Force of personality
-- **Commerce**: Level 1 (0/10 XP) - Mercantile thinking
+- **Diplomacy**: Level 1 (0/10 XP) - Mercantile thinking
 - **Cunning**: Level 1 (0/10 XP) - Indirect approaches
 
 ### All NPCs
@@ -142,24 +142,24 @@ Since all stats start at Level 1, players access only depth 1-2 cards:
 - Personality: MERCANTILE
 - Rule: "Highest Initiative cost card each turn gains double effect"
 - Starting Initiative: 0
-- Token Type: Commerce
+- Token Type: Diplomacy
 - **Conversation Level**: 2 (2 XP per card played)
 
 **Signature Cards**:
-- 1 token: "Marcus's Bargain" (Commerce card, depth 3)
-- 3 tokens: "Trade Knowledge" (Commerce card, depth 4)
-- 6 tokens: "Commercial Trust" (Commerce card, depth 5)
+- 1 token: "Marcus's Bargain" (Diplomacy card, depth 3)
+- 3 tokens: "Trade Knowledge" (Diplomacy card, depth 4)
+- 6 tokens: "Commercial Trust" (Diplomacy card, depth 5)
 - 10 tokens: "Marcus's Favor" (Authority card, depth 6)
 
 **Request**: Trade Letter to Warehouse
-- Basic (8 momentum): 5 coins, +1 Commerce token
-- Enhanced (12 momentum): 8 coins, +2 Commerce tokens
-- Premium (16 momentum): 12 coins, +3 Commerce tokens
+- Basic (8 momentum): 5 coins, +1 Diplomacy token
+- Enhanced (12 momentum): 8 coins, +2 Diplomacy tokens
+- Premium (16 momentum): 12 coins, +3 Diplomacy tokens
 
 **Exchange Options**:
 - Buy Food: 2 coins → -50 hunger
 - Buy Bread: 3 coins → bread item (weight 1)
-- Join Caravan: 10 coins → Noble Quarter transport (requires 2+ Commerce tokens)
+- Join Caravan: 10 coins → Noble Quarter transport (requires 2+ Diplomacy tokens)
 
 ### Lord Blackwood - The Noble
 
@@ -228,12 +228,12 @@ Optional conversations for resources and XP. Each stranger available once per ti
 **Stat-Gated Approaches** (Require Level 2+):
 - **Systematic Observation** (Insight 2+): +1 additional familiarity
 - **Local Inquiry** (Rapport 2+): Learn which NPCs want observations
-- **Purchase Information** (Commerce 2+): 2 coins per familiarity level
+- **Purchase Information** (Diplomacy 2+): 2 coins per familiarity level
 - **Note**: Authority and Cunning approaches not useful here
 
 **Observation Rewards**:
 - Familiarity 1: "Safe Passage Knowledge" (Insight card for Elena)
-- Familiarity 2: "Merchant Caravan Route" (Commerce card for Marcus)
+- Familiarity 2: "Merchant Caravan Route" (Diplomacy card for Marcus)
 
 ### Copper Kettle Tavern
 
@@ -258,7 +258,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - **Critical**: Provides momentum boost for Elena conversation
 
 ### Merchant Caravan Route  
-- **Stat**: Commerce
+- **Stat**: Diplomacy
 - **Depth**: 3
 - **Initiative Cost**: 3
 - **Effect**: Unlocks Marcus's caravan exchange option
@@ -284,7 +284,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 **Shadow Alley** (Cunning 2+)
 - Warehouse → Noble Quarter: 1 segment (new connection)
 
-**Merchant Road** (Commerce 2+)
+**Merchant Road** (Diplomacy 2+)
 - Any route: -10 minutes if carrying trade goods
 
 **Noble's Gate** (Authority 2+ OR Noble Permit)
@@ -312,7 +312,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Play highest Initiative cards for Mercantile bonus (double effect)
 - Use both observation cards when drawn
 - Build to 12 momentum for Enhanced goal
-- Receive: 8 coins, 2 Commerce tokens
+- Receive: 8 coins, 2 Diplomacy tokens
 - Accept trade letter (weight 1)
 - XP gained: ~8-12 to various stats
 - Time: 1 segment + ~2 Statements played
@@ -328,7 +328,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 **2:00 PM - Final Marcus Preparation** (Segment 1)
 - Buy food if needed (-2 coins, -50 hunger)
-- Unlock caravan with 2 Commerce tokens
+- Unlock caravan with 2 Diplomacy tokens
 - Buy caravan passage (-10 coins, have 5 remaining)
 
 **2:20 PM - Travel to Copper Kettle** (Segment 2)
@@ -371,9 +371,9 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - More coins available for resources
 - Authority cards risky with Elena's Devoted rule
 
-### Commerce Build (Natural from Marcus conversation)
-- Marcus conversation likely pushes Commerce toward Level 2
-- Access depth 3-4 Commerce cards
+### Diplomacy Build (Natural from Marcus conversation)
+- Marcus conversation likely pushes Diplomacy toward Level 2
+- Access depth 3-4 Diplomacy cards
 - Better Marcus conversation outcomes with Mercantile bonus
 - Merchant Road speeds up goods delivery
 
@@ -420,7 +420,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 1. **Investigation timing**: Morning quiet bonus maximized
 2. **Conversation management**: Build Initiative, manage Cadence, reach goals
-3. **Stat development**: Natural Commerce growth from Marcus
+3. **Stat development**: Natural Diplomacy growth from Marcus
 4. **Resource management**: Coins for caravan, food if needed
 5. **Weight management**: Never exceed capacity
 6. **Time efficiency**: 9 segments used, 4 buffer remaining
@@ -502,7 +502,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - **Insight**: Systematic patterns and connections
 - **Rapport**: Social information networks
 - **Authority**: Forced access to restricted areas
-- **Commerce**: Purchase information directly
+- **Diplomacy**: Purchase information directly
 - **Cunning**: Covert investigation without detection
 
 ### Personality Rules

@@ -501,8 +501,8 @@
     background: url('/images/icons/authority.png') center/contain no-repeat;
 }
 
-.stat-icon.commerce {
-    background: url('/images/icons/commerce.png') center/contain no-repeat;
+.stat-icon.diplomacy {
+    background: url('/images/icons/diplomacy.png') center/contain no-repeat;
 }
 
 /* Unavailable Path Tooltip */

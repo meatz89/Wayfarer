@@ -142,7 +142,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
         private bool IsTokenResource(ResourceType type)
         {
             return type == ResourceType.TrustToken ||
-                   type == ResourceType.CommerceToken ||
+                   type == ResourceType.DiplomacyToken ||
                    type == ResourceType.StatusToken ||
                    type == ResourceType.ShadowToken;
         }
@@ -152,7 +152,7 @@ namespace Wayfarer.Subsystems.ExchangeSubsystem
             return type switch
             {
                 ResourceType.TrustToken => ConnectionType.Trust,
-                ResourceType.CommerceToken => ConnectionType.Commerce,
+                ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
                 ResourceType.StatusToken => ConnectionType.Status,
                 ResourceType.ShadowToken => ConnectionType.Shadow,
                 _ => ConnectionType.None

@@ -73,7 +73,7 @@ Instead of players owning a personal conversation deck that levels up, each conv
 - Empathetic builders and doubt-reducing cards
 - Scaling cards that reward emotional investment
 
-**Trade Negotiation**: Heavy Commerce/Insight, zero Rapport
+**Trade Negotiation**: Heavy Diplomacy/Insight, zero Rapport
 - Business discussions and deals
 - Momentum-efficient builders
 - Cards for resource optimization
@@ -161,7 +161,7 @@ Each NPC has 5 unique signature cards that are mixed into the conversation based
 - **10-14 tokens**: 4 signature cards added
 - **15+ tokens**: All 5 signature cards added
 
-These cards are specific to that NPC, not generic token type cards. Marcus doesn't give "Commerce cards," he gives "Marcus's Bargain," "Silk Road Knowledge," and "Marcus's Favor." Elena gives "Elena's Trust," "Shared Burden," and "Elena's Hope." These cards mechanically represent the nature of your specific relationship and enhance the base conversation type deck.
+These cards are specific to that NPC, not generic token type cards. Marcus doesn't give "Diplomacy cards," he gives "Marcus's Bargain," "Silk Road Knowledge," and "Marcus's Favor." Elena gives "Elena's Trust," "Shared Burden," and "Elena's Hope." These cards mechanically represent the nature of your specific relationship and enhance the base conversation type deck.
 
 #### Personality Rules
 
@@ -204,7 +204,7 @@ To deliver out of order, burn tokens with EACH displaced NPC:
 
 Token type burned matches NPC personality:
 - Devoted: Trust tokens
-- Mercantile: Commerce tokens
+- Mercantile: Diplomacy tokens
 - Proud: Status tokens
 - Cunning: Shadow tokens
 
@@ -345,9 +345,9 @@ Certain paths require minimum stat levels:
 - "Checkpoint Bypass" - Requires Authority 3+
 - Walk through on reputation alone
 
-**Commerce Paths**:
-- "Merchant Caravan" - Requires Commerce 2+ OR 10 coins
-- "Trade Route" - Requires Commerce 3+
+**Diplomacy Paths**:
+- "Merchant Caravan" - Requires Diplomacy 2+ OR 10 coins
+- "Trade Route" - Requires Diplomacy 3+
 - Commercial reputation grants access
 
 **Cunning Paths**:
@@ -608,7 +608,7 @@ Every accepted obligation adds physical weight. "Deliver Elena's letter" adds 1 
 Strategic resources carried until needed. Bread weighs 1, removes 30 hunger when consumed. Medicine weighs 1, restores 20 health when used. Carrying these means accepting fewer obligations but having resources exactly when needed. The timing of consumption becomes critical.
 
 #### Tools
-Permanent equipment providing persistent benefits at weight cost. A crowbar weighs 2, enables "Forced Entry" path cards. A merchant ledger weighs 1, provides +1 starting Commerce momentum. A rope weighs 2, enables "Cliff Descent" paths. Tools never leave your satchel unless dropped, creating long-term capacity decisions.
+Permanent equipment providing persistent benefits at weight cost. A crowbar weighs 2, enables "Forced Entry" path cards. A merchant ledger weighs 1, provides +1 starting Diplomacy momentum. A rope weighs 2, enables "Cliff Descent" paths. Tools never leave your satchel unless dropped, creating long-term capacity decisions.
 
 #### Trade Goods
 Items with no immediate use but sellable at specific locations. Silk weighs 3, sells for 10 coins at Noble Quarter. Ore weighs 4, sells for 8 coins at Warehouse. Wine weighs 2, sells for 6 coins at Tavern. Finding these creates immediate decisions about profit versus capacity.
@@ -683,7 +683,7 @@ Time segments enable:
 - **Investigations** (1 segment): Build location familiarity
 - **Observations** (1 segment): Discover cards or items for NPCs
 - **Work** (4 segments/full block): Coins but time cost, scaled by hunger
-- **Quick Exchange** (0 segments): Simple commerce without conversation
+- **Quick Exchange** (0 segments): Simple diplomacy without conversation
 - **Travel** (varies by path): Physical movement between locations
 
 Work output scales with hunger:
@@ -768,7 +768,7 @@ Deadlines create cascading decisions:
 
 Four types, each with distinct identity:
 - **Trust**: Personal bonds (Devoted NPCs prefer)
-- **Commerce**: Professional dealings (Mercantile NPCs prefer)
+- **Diplomacy**: Professional dealings (Mercantile NPCs prefer)
 - **Status**: Social standing (Proud NPCs prefer)
 - **Shadow**: Shared secrets (Cunning NPCs prefer)
 
@@ -905,7 +905,7 @@ Investigation has multiple approaches unlocked by player stats:
 - Effect: Can investigate restricted spots without permits
 - Forces entry through commanding presence
 
-**Purchase Information** (Commerce 2+):
+**Purchase Information** (Diplomacy 2+):
 - Cost: 2 coins per familiarity level
 - Effect: Instant familiarity gain without time cost
 - Buying local knowledge directly
@@ -989,10 +989,10 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 - Rapport specializes in Cadence manipulation
 - Others rarely touch Cadence directly
 
-**Doubt** (Commerce Specialty):
+**Doubt** (Diplomacy Specialty):
 - Timer that ends conversation at 10 points
 - Increases through Cadence effects or card effects
-- Commerce specializes in Doubt reduction
+- Diplomacy specializes in Doubt reduction
 - Others rarely reduce Doubt (except by avoiding Cadence buildup)
 
 **Statements in Spoken** - Conversation History:
@@ -1015,7 +1015,7 @@ Each conversation type deck contains cards organized by depth (1-10):
 **Depth Access Mechanics**:
 Your stat level determines maximum accessible depth for that stat's cards:
 - **Rapport Level 3**: Can access Rapport cards up to Depth 3
-- **Commerce Level 5**: Can access Commerce cards up to Depth 5
+- **Diplomacy Level 5**: Can access Diplomacy cards up to Depth 5
 - **Authority Level 2**: Can access Authority cards up to Depth 2
 
 **Progressive Deck Composition**:
@@ -1083,7 +1083,7 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 - Foundation Example: "-1 Cadence, +1 Momentum, +1 Initiative" (0 Initiative)
 - Standard Example: "-2 Cadence, +2 Momentum, +2 Initiative" (2 Initiative cost)
 
-**Commerce** (Doubt Specialist):
+**Diplomacy** (Doubt Specialist):
 - **Specialist**: -1 to -6 Doubt (crisis management)
 - **Universal**: +1-3 Momentum
 - **Trade-off**: Often consumes Momentum to reduce Doubt
@@ -1092,7 +1092,7 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 
 **Cunning** (Initiative Specialist):
 - **Specialist**: +2-6 Initiative (enables longer action chains)
-- **Universal**: +1-3 Momentum (same rate as Rapport/Commerce)
+- **Universal**: +1-3 Momentum (same rate as Rapport/Diplomacy)
 - **Secondary**: Draw 1-2 cards occasionally
 - Foundation Example: "+2 Initiative, +1 Momentum" (0 Initiative)
 - Standard Example: "+4 Initiative, +2 Momentum, Draw 1 card" (2 Initiative cost)
@@ -1136,9 +1136,9 @@ Stats determine your conversational competencies and unlock deeper card options:
 - **Depth Access**: Your Authority level = maximum depth for Authority cards
 - **World Effects**: Unlocks demanding access to restricted areas
 
-**Commerce** - Negotiation and trade thinking
+**Diplomacy** - Negotiation and trade thinking
 - **Card Identity**: Resource conversion, efficient exchanges
-- **Depth Access**: Your Commerce level = maximum depth for Commerce cards
+- **Depth Access**: Your Diplomacy level = maximum depth for Diplomacy cards
 - **World Effects**: Unlocks purchasing information directly
 
 **Cunning** - Subtlety and indirect approach
@@ -1375,7 +1375,7 @@ To deliver out of order, burn tokens with EACH displaced NPC:
 
 Token type burned matches NPC personality preference:
 - Devoted NPCs: Trust tokens
-- Mercantile NPCs: Commerce tokens
+- Mercantile NPCs: Diplomacy tokens
 - Proud NPCs: Status tokens
 - Cunning NPCs: Shadow tokens
 
@@ -1630,7 +1630,7 @@ Exchange Card Structure:
 ### Token-Gated Exchanges
 
 Some exchange cards require minimum tokens to appear:
-- **Transport**: 2+ Commerce tokens → caravan available
+- **Transport**: 2+ Diplomacy tokens → caravan available
 - **Secret information**: 3+ Shadow tokens → special intel
 - **Noble introduction**: 5+ Status tokens → social access
 - **Temple blessing**: 4+ Trust tokens → spiritual services
@@ -1780,7 +1780,7 @@ Stories emerge from mechanical interaction, not scripting:
 
 **Building Power Through One NPC**:
 - Focus all deliveries to Marcus
-- Gain 10 Commerce tokens
+- Gain 10 Diplomacy tokens
 - Unlock 4 signature cards
 - Conversations become easier with more options
 - Can reliably reach Premium goals

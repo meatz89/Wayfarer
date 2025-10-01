@@ -24,7 +24,7 @@ public class NPCTokenEntry
 {
     public string NpcId { get; set; }
     public int Trust { get; set; }
-    public int Commerce { get; set; }
+    public int Diplomacy { get; set; }
     public int Status { get; set; }
     public int Shadow { get; set; }
 
@@ -33,7 +33,7 @@ public class NPCTokenEntry
         return type switch
         {
             ConnectionType.Trust => Trust,
-            ConnectionType.Commerce => Commerce,
+            ConnectionType.Diplomacy => Diplomacy,
             ConnectionType.Status => Status,
             ConnectionType.Shadow => Shadow,
             _ => 0
@@ -47,8 +47,8 @@ public class NPCTokenEntry
             case ConnectionType.Trust:
                 Trust = value;
                 break;
-            case ConnectionType.Commerce:
-                Commerce = value;
+            case ConnectionType.Diplomacy:
+                Diplomacy = value;
                 break;
             case ConnectionType.Status:
                 Status = value;
@@ -242,7 +242,7 @@ public static class ListBasedHelperExtensions
         return new Dictionary<ConnectionType, int>
         {
             [ConnectionType.Trust] = entry.Trust,
-            [ConnectionType.Commerce] = entry.Commerce,
+            [ConnectionType.Diplomacy] = entry.Diplomacy,
             [ConnectionType.Status] = entry.Status,
             [ConnectionType.Shadow] = entry.Shadow
         };

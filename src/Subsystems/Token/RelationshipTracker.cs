@@ -317,7 +317,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             float decayRate = type switch
             {
                 ConnectionType.Trust => 0.02f,    // Trust decays slowly
-                ConnectionType.Commerce => 0.01f, // Commerce is most stable
+                ConnectionType.Diplomacy => 0.01f, // Diplomacy is most stable
                 ConnectionType.Status => 0.04f,   // Status decays faster
                 ConnectionType.Shadow => 0.05f,   // Shadow decays fastest
                 _ => 0.02f

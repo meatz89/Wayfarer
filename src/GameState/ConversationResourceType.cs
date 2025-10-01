@@ -1,21 +1,24 @@
 /// <summary>
-/// The 5 core conversation resources that cards can manipulate.
-/// Each stat maps to one primary resource.
+/// The 6 core conversation resources that cards can manipulate.
+/// Each stat maps to one or two resources.
 /// </summary>
 public enum ConversationResourceType
 {
-    /// <summary>Initiative - Action economy within turn (Cunning stat)</summary>
+    /// <summary>Initiative - Action economy within turn (Cunning stat PRIMARY)</summary>
     Initiative,
 
-    /// <summary>Momentum - Goal progress (Authority stat)</summary>
+    /// <summary>Momentum - Goal progress (Authority stat PRIMARY)</summary>
     Momentum,
 
-    /// <summary>Doubt - Failure timer (Commerce stat reduces)</summary>
+    /// <summary>Doubt - Failure timer (Diplomacy stat reduces PRIMARY)</summary>
     Doubt,
 
-    /// <summary>Cadence - Conversation rhythm/balance (Rapport stat)</summary>
+    /// <summary>Cadence - Conversation rhythm/balance (via Delivery property, not effects)</summary>
     Cadence,
 
-    /// <summary>Cards - Information/options (Insight stat)</summary>
-    Cards
+    /// <summary>Cards - Information/options (Insight stat PRIMARY)</summary>
+    Cards,
+
+    /// <summary>Understanding - Sophistication/connection depth, unlocks tiers (Rapport stat PRIMARY)</summary>
+    Understanding
 }

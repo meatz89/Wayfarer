@@ -16,7 +16,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
         Systematic,    // Insight 2+: +1 familiarity
         LocalInquiry,  // Rapport 2+: Learn NPC preferences
         DemandAccess,  // Authority 2+: Access restricted spots
-        PurchaseInfo,  // Commerce 2+: Pay for familiarity
+        PurchaseInfo,  // Diplomacy 2+: Pay for familiarity
         CovertSearch   // Cunning 2+: No alerts
     }
 
@@ -503,7 +503,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             if (player.Stats.GetLevel(PlayerStatType.Authority) >= 2)
                 approaches.Add(InvestigationApproach.DemandAccess);
 
-            if (player.Stats.GetLevel(PlayerStatType.Commerce) >= 2)
+            if (player.Stats.GetLevel(PlayerStatType.Diplomacy) >= 2)
                 approaches.Add(InvestigationApproach.PurchaseInfo);
 
             if (player.Stats.GetLevel(PlayerStatType.Cunning) >= 2)
@@ -568,7 +568,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
             switch (approach)
             {
                 case InvestigationApproach.PurchaseInfo:
-                    // Commerce approach: pay coins for instant familiarity
+                    // Diplomacy approach: pay coins for instant familiarity
                     int currentFamiliarity = player.GetLocationFamiliarity(locationId);
                     int maxGain = location.MaxFamiliarity - currentFamiliarity;
                     coinCost = maxGain * 2; // 2 coins per familiarity level
@@ -598,7 +598,7 @@ namespace Wayfarer.Subsystems.LocationSubsystem
                     familiarityGain += 1;
                     break;
                 case InvestigationApproach.PurchaseInfo:
-                    // Commerce: instant familiarity gain to max
+                    // Diplomacy: instant familiarity gain to max
                     familiarityGain = location.MaxFamiliarity - currentFam;
                     break;
                 case InvestigationApproach.LocalInquiry:

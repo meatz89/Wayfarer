@@ -31,7 +31,7 @@ public class StandardContext : ConversationContextBase
         TargetTokenType = personality switch
         {
             PersonalityType.DEVOTED => ConnectionType.Trust,
-            PersonalityType.MERCANTILE => ConnectionType.Commerce,
+            PersonalityType.MERCANTILE => ConnectionType.Diplomacy,
             PersonalityType.PROUD => ConnectionType.Status,
             PersonalityType.CUNNING => ConnectionType.Shadow,
             PersonalityType.STEADFAST => ConnectionType.Trust,

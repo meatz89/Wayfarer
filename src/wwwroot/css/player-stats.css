@@ -65,8 +65,8 @@
     border-radius: 50%;
 }
 
-.stat-icon.commerce {
-    background-image: url('/icons/commerce.svg');
+.stat-icon.diplomacy {
+    background-image: url('/icons/diplomacy.svg');
     background-color: #d4a76a;
     border-radius: 50%;
 }
@@ -222,7 +222,7 @@
     border-left: 3px solid #8b4726;
 }
 
-.card-stat-indicator.stat-commerce {
+.card-stat-indicator.stat-diplomacy {
     border-left: 3px solid #d4a76a;
 }
 

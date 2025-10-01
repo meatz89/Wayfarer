@@ -71,7 +71,7 @@
             return ConversationContext?.ToLower() switch
             {
                 "help" => type == ConnectionType.Trust,
-                "negotiate" => type == ConnectionType.Commerce || type == ConnectionType.Status,
+                "negotiate" => type == ConnectionType.Diplomacy || type == ConnectionType.Status,
                 "investigate" => type == ConnectionType.Shadow || type == ConnectionType.Trust,
                 _ => value != 0 // Show non-zero values by default
             };
@@ -82,7 +82,7 @@
         {
             return NpcRole?.ToLower() switch
             {
-                "merchant" => type == ConnectionType.Commerce,
+                "merchant" => type == ConnectionType.Diplomacy,
                 "noble" => type == ConnectionType.Status,
                 "friend" => type == ConnectionType.Trust,
                 "informant" => type == ConnectionType.Shadow,
@@ -106,7 +106,7 @@
         var narrative = type switch
         {
             ConnectionType.Trust => GetTrustDescription(value),
-            ConnectionType.Commerce => GetCommerceDescription(value),
+            ConnectionType.Diplomacy => GetCommerceDescription(value),
             ConnectionType.Status => GetStatusDescription(value),
             ConnectionType.Shadow => GetShadowDescription(value),
             _ => ""
@@ -122,7 +122,7 @@
         var mechanic = type switch
         {
             ConnectionType.Trust => value >= 0 ? $"[+{value * 2}h deadline bonus]" : $"[Letters at position {Math.Max(2, 1 - value)}]",
-            ConnectionType.Commerce => $"[x{Math.Abs(value)} = Queue boost {(value > 0 ? "+" : "")}{value / 2}]",
+            ConnectionType.Diplomacy => $"[x{Math.Abs(value)} = Queue boost {(value > 0 ? "+" : "")}{value / 2}]",
             ConnectionType.Status => value >= 3 ? $"[Tier {value / 3} access]" : "[No tier access]",
             ConnectionType.Shadow => value > 0 ? $"[{value * 20}% info visible]" : "[Info hidden]",
             _ => $"[{value}]"
@@ -142,7 +142,7 @@
         var baseClass = type switch
         {
             ConnectionType.Trust => "token-icon token-icon--trust",
-            ConnectionType.Commerce => "token-icon token-icon--commerce",
+            ConnectionType.Diplomacy => "token-icon token-icon--diplomacy",
             ConnectionType.Status => "token-icon token-icon--status",
             ConnectionType.Shadow => "token-icon token-icon--shadow",
             _ => "token-icon"

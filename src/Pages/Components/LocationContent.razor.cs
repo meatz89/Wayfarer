@@ -809,7 +809,7 @@ namespace Wayfarer.Pages.Components
                 return type switch
                 {
                     "authority" => "Any→Guarded",
-                    "commerce" => "Guarded→Eager",
+                    "diplomacy" => "Guarded→Eager",
                     "social" => "Neutral→Open",
                     "secret" => "Any→Shadow",
                     _ => "Any→Neutral"
@@ -898,7 +898,7 @@ namespace Wayfarer.Pages.Components
                 InvestigationApproach.Systematic => player.Stats.GetLevel(PlayerStatType.Insight) >= 2,
                 InvestigationApproach.LocalInquiry => player.Stats.GetLevel(PlayerStatType.Rapport) >= 2,
                 InvestigationApproach.DemandAccess => player.Stats.GetLevel(PlayerStatType.Authority) >= 2,
-                InvestigationApproach.PurchaseInfo => player.Stats.GetLevel(PlayerStatType.Commerce) >= 2,
+                InvestigationApproach.PurchaseInfo => player.Stats.GetLevel(PlayerStatType.Diplomacy) >= 2,
                 InvestigationApproach.CovertSearch => player.Stats.GetLevel(PlayerStatType.Cunning) >= 2,
                 _ => false
             };
@@ -928,7 +928,7 @@ namespace Wayfarer.Pages.Components
                 InvestigationApproach.Systematic => "+1 familiarity bonus (Insight 2+)",
                 InvestigationApproach.LocalInquiry => "Learn NPC preferences (Rapport 2+)",
                 InvestigationApproach.DemandAccess => "Access restricted areas (Authority 2+)",
-                InvestigationApproach.PurchaseInfo => "Pay coins for information (Commerce 2+)",
+                InvestigationApproach.PurchaseInfo => "Pay coins for information (Diplomacy 2+)",
                 InvestigationApproach.CovertSearch => "Investigate without alerts (Cunning 2+)",
                 _ => "Unknown approach"
             };
@@ -942,7 +942,7 @@ namespace Wayfarer.Pages.Components
                 InvestigationApproach.Systematic => "Requires Insight Level 2",
                 InvestigationApproach.LocalInquiry => "Requires Rapport Level 2",
                 InvestigationApproach.DemandAccess => "Requires Authority Level 2",
-                InvestigationApproach.PurchaseInfo => "Requires Commerce Level 2",
+                InvestigationApproach.PurchaseInfo => "Requires Diplomacy Level 2",
                 InvestigationApproach.CovertSearch => "Requires Cunning Level 2",
                 _ => "Unknown requirement"
             };
@@ -991,7 +991,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "Insight",
                 PlayerStatType.Rapport => "Rapport",
                 PlayerStatType.Authority => "Authority",
-                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Diplomacy => "Diplomacy",
                 PlayerStatType.Cunning => "Cunning",
                 _ => stat.ToString()
             };

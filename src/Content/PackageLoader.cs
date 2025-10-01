@@ -318,7 +318,7 @@ public class PackageLoader
                 // Store for later application
                 NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().NPCTokens.GetNPCTokenEntry(kvp.Key);
                 tokenEntry.Trust = kvp.Value.Trust;
-                tokenEntry.Commerce = kvp.Value.Commerce;
+                tokenEntry.Diplomacy = kvp.Value.Diplomacy;
                 tokenEntry.Status = kvp.Value.Status;
                 tokenEntry.Shadow = kvp.Value.Shadow;
             }

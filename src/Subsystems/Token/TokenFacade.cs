@@ -321,7 +321,7 @@ namespace Wayfarer.Subsystems.TokenSubsystem
             return new TokenSummary
             {
                 TotalTrust = GetTotalTokensOfType(ConnectionType.Trust),
-                TotalCommerce = GetTotalTokensOfType(ConnectionType.Commerce),
+                TotalCommerce = GetTotalTokensOfType(ConnectionType.Diplomacy),
                 TotalStatus = GetTotalTokensOfType(ConnectionType.Status),
                 TotalShadow = GetTotalTokensOfType(ConnectionType.Shadow),
                 NPCsWithRelationships = GetNPCsWithTokens().Count,

@@ -84,7 +84,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "Insight",
                 PlayerStatType.Rapport => "Rapport",
                 PlayerStatType.Authority => "Authority",
-                PlayerStatType.Commerce => "Commerce",
+                PlayerStatType.Diplomacy => "Diplomacy",
                 PlayerStatType.Cunning => "Cunning",
                 _ => statType.ToString()
             };
@@ -97,7 +97,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "Analytical intelligence and observation",
                 PlayerStatType.Rapport => "Emotional intelligence and empathy",
                 PlayerStatType.Authority => "Leadership and persuasion",
-                PlayerStatType.Commerce => "Negotiation and trade",
+                PlayerStatType.Diplomacy => "Negotiation and trade",
                 PlayerStatType.Cunning => "Subtlety and indirection",
                 _ => ""
             };
@@ -110,7 +110,7 @@ namespace Wayfarer.Pages.Components
                 PlayerStatType.Insight => "insight",
                 PlayerStatType.Rapport => "rapport",
                 PlayerStatType.Authority => "authority",
-                PlayerStatType.Commerce => "commerce",
+                PlayerStatType.Diplomacy => "diplomacy",
                 PlayerStatType.Cunning => "cunning",
                 _ => "default"
             };
