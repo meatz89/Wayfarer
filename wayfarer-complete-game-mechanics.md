@@ -1083,11 +1083,13 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 
 **Depth 1-2 Foundation (Steamworld Quest-Inspired)**
 
-Foundation cards follow the "Strike" pattern from Steamworld Quest - simultaneously productive (Momentum) AND enabling (Initiative):
+Foundation cards follow the "Strike" pattern from Steamworld Quest - ONE singular effect PLUS Initiative generation as a card property:
 
-- **Type A "Strike"** (most common, 60% of Foundation): `+2 Momentum, +1 Initiative, +stat flavor`
-- **Type B "Setup"** (tactical, 20% of Foundation): `+1 Momentum, +2 Initiative, +stat flavor`
-- **Type C "Specialist"** (rare, 20% of Foundation): Pure stat specialty effect
+- **Initiative Generation**: ALL Foundation cards generate +1 Initiative when played (Cunning generates +3)
+- **Singular Effect**: Each card has ONE effect - +2 Momentum OR Draw 2 cards OR +2 Understanding OR -1 Doubt
+- **0 Initiative Cost**: Foundation cards are free to play
+
+This mirrors Steamworld's Strike cards: ONE effect (damage) + ONE property (generates steam)
 
 **Depth 3-4 Standard**
 - Initiative: 2-4
@@ -1103,44 +1105,40 @@ Foundation cards follow the "Strike" pattern from Steamworld Quest - simultaneou
 
 **CRITICAL DESIGN PRINCIPLE (Steamworld Quest-Inspired):**
 
-Foundation tier (depth 1-2) cards across ALL stats follow the "Strike" pattern:
-- **All Foundation cards generate Momentum** (+1 to +3 per play)
-- **All Foundation cards enable future plays** (+1 to +2 Initiative per play)
-- **Stat flavor is secondary** at Foundation tier
+Foundation tier (depth 1-2) cards follow Steamworld Quest's pattern:
+- **Each card has ONE singular effect** (never compound)
+- **Initiative generation is a card property** (not part of the effect)
+- **All Foundation cards generate +1 Initiative** when played (Cunning generates +3)
+- **0 Initiative cost** to play
 
-This ensures every Foundation play feels productive (progress toward goals) AND enabling (sets up combos).
+This ensures every Foundation play feels productive (singular effect) AND enabling (Initiative property).
 
 **Authority** (Momentum Specialist):
-- **Specialist**: +2-12 Momentum (highest Momentum generation)
-- **Foundation Strike**: "+2 Momentum, +1 Initiative" (0 Initiative cost)
-- **Foundation Specialist**: "+3 Momentum" (pure power, 0 Initiative cost)
-- **Standard Example**: "+5 Momentum, +1 Initiative, +1 Understanding" (3 Initiative cost)
+- **Foundation**: "+2 Momentum" effect + +1 Initiative property (0 Initiative cost)
+- **Standard Example**: "+5 Momentum" effect (3 Initiative cost, compound effects allowed at higher tiers)
+- **Specialist**: Highest Momentum generation (+2-12)
 
 **Insight** (Cards Specialist):
-- **Specialist**: Draw 2-6 cards (card advantage)
-- **Foundation Strike**: "+2 Momentum, +1 Initiative, Draw 1 card" (0 Initiative cost)
-- **Foundation Specialist**: "Draw 2 cards" (pure card advantage, 0 Initiative cost)
-- **Standard Example**: "Draw 3 cards, +1 Understanding" (3 Initiative cost)
+- **Foundation**: "Draw 2 cards" effect + +1 Initiative property (0 Initiative cost)
+- **Standard Example**: "Draw 3 cards" effect (3 Initiative cost)
+- **Specialist**: Highest card draw (2-6 cards)
 
 **Rapport** (Understanding Specialist):
-- **Specialist**: +2-10 Understanding (unlocks tiers)
-- **Foundation Strike**: "+2 Momentum, +1 Initiative, +1 Understanding" (0 Initiative cost)
-- **Foundation Specialist**: "+2 Understanding" (pure depth building, 0 Initiative cost)
-- **Standard Example**: "+4 Understanding, +1 Initiative, +1 Momentum" (2 Initiative cost)
+- **Foundation**: "+2 Understanding" effect + +1 Initiative property (0 Initiative cost)
+- **Standard Example**: "+4 Understanding" effect (2 Initiative cost)
+- **Specialist**: Highest Understanding generation (+2-10)
 
 **Diplomacy** (Doubt Specialist):
-- **Specialist**: -1 to -6 Doubt (crisis management)
-- **Foundation Strike**: "+2 Momentum, +1 Initiative, -1 Doubt" (0 Initiative cost)
-- **Foundation Specialist**: "-1 Doubt" (pure safety, 0 Initiative cost)
-- **Standard Example**: "-2 Doubt, +2 Understanding, Consume 2 Momentum" (4 Initiative cost)
+- **Foundation**: "-1 Doubt" effect + +1 Initiative property (0 Initiative cost)
+- **Standard Example**: "-2 Doubt" effect (4 Initiative cost)
+- **Specialist**: Doubt reduction and crisis management (-1 to -6 Doubt)
 
 **Cunning** (Initiative Specialist):
-- **Specialist**: +2-10 Initiative (highest Initiative generation)
-- **Foundation Strike**: "+2 Momentum, +1 Initiative" (0 Initiative cost)
-- **Foundation Specialist**: "+3 Initiative" (pure setup, 0 Initiative cost)
-- **Standard Example**: "+4 Initiative, +2 Understanding, +1 Momentum" (2 Initiative cost)
+- **Foundation**: "No effect" (0 effect) + +3 Initiative property (0 Initiative cost)
+- **Standard Example**: "+4 Initiative" effect (2 Initiative cost)
+- **Specialist**: Highest Initiative generation (generates +3 at Foundation, +4-10 at higher tiers)
 
-**KEY INSIGHT (Steamworld Pattern)**: Foundation tier is NOT hyper-specialized. Every Foundation card across all stats generates Momentum+Initiative to create a satisfying self-sustaining gameplay loop. Specialization emerges at Standard tier (depth 3-4) and above.
+**KEY INSIGHT (Steamworld Pattern)**: Each card has ONE singular effect. Initiative generation is a PROPERTY of Foundation tier cards, not part of their effect formula. Like Steamworld's Strike cards that have ONE effect (damage) + ONE property (generates steam).
 
 #### Card Persistence Types
 
