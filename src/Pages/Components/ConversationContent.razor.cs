@@ -1091,8 +1091,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetDeckCount()
         {
-            // TODO: Get actual count when deck tracking is implemented
-            return 12; // Fallback value matching mockup
+            return Session?.Deck?.RemainingDeckCards ?? 0;
         }
 
         /// <summary>
@@ -1100,8 +1099,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetSpokenCount()
         {
-            // TODO: Get actual count when pile tracking is implemented
-            return 4; // Fallback value matching mockup
+            return Session?.Deck?.SpokenPileCount ?? 0;
         }
 
         /// <summary>
@@ -1109,8 +1107,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetMindCount()
         {
-            var handCards = ConversationFacade?.GetHandCards();
-            return handCards?.Count ?? 5; // Fallback value matching mockup
+            return Session?.Deck?.HandSize ?? 0;
         }
 
         /// <summary>
