@@ -96,7 +96,8 @@ public class CategoricalEffectResolver
             EndsConversation = false
         };
 
-        var effects = new List<string>();
+        var effectsOnly = new List<string>();  // Card effects only (for card display)
+        var allChanges = new List<string>();   // All resource changes (for SPEAK preview)
 
         // STEAMWORLD QUEST PATTERN: Apply InitiativeGeneration FIRST (card property, not effect)
         // Foundation cards generate Initiative when played (like Strike cards generate steam)
@@ -104,7 +105,8 @@ public class CategoricalEffectResolver
         if (initiativeGen > 0)
         {
             result.InitiativeChange += initiativeGen;
-            effects.Add($"+{initiativeGen} Initiative");
+            // Add to allChanges for SPEAK preview, but NOT to effectsOnly (it's a property, not effect)
+            allChanges.Add($"+{initiativeGen} Initiative");
         }
 
         // Use EffectFormula system for singular card effect
@@ -122,17 +124,21 @@ public class CategoricalEffectResolver
             {
                 foreach (var subFormula in formula.CompoundEffects)
                 {
-                    ApplyFormulaToResult(subFormula, session, result, effects);
+                    ApplyFormulaToResult(subFormula, session, result, effectsOnly);
                 }
             }
         }
         else
         {
-            ApplyFormulaToResult(formula, session, result, effects);
+            ApplyFormulaToResult(formula, session, result, effectsOnly);
         }
 
-        // Build final description
-        result.EffectDescription = effects.Any() ? string.Join(", ", effects) : "No effect";
+        // Add effects to allChanges
+        allChanges.AddRange(effectsOnly);
+
+        // Build descriptions
+        result.EffectOnlyDescription = effectsOnly.Any() ? string.Join(", ", effectsOnly) : "No effect";
+        result.EffectDescription = allChanges.Any() ? string.Join(", ", allChanges) : "No effect";
 
         return result;
     }
@@ -198,6 +204,7 @@ public class CardEffectResult
     public int CardsToDraw { get; set; } // Number of cards to draw
     public List<CardInstance> CardsToAdd { get; set; }
     public bool EndsConversation { get; set; }
-    public string EffectDescription { get; set; }
+    public string EffectOnlyDescription { get; set; } // Card effect formula only (excludes Initiative generation property)
+    public string EffectDescription { get; set; } // All resource changes (includes Initiative generation for SPEAK preview)
 }
 

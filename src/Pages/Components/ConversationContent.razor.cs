@@ -848,12 +848,17 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get card effect description         /// </summary>
+        /// Get card effect description (effect formula only, excludes Initiative generation property)
+        /// </summary>
         protected string GetCardEffectDescription(CardInstance card)
         {
             if (card?.ConversationCardTemplate == null) return "";
 
-            return GetSuccessEffectDescription(card);
+            // PROJECTION PRINCIPLE: Get effect projection
+            CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
+
+            // Use EffectOnlyDescription for card display (excludes Initiative generation)
+            return projection.EffectOnlyDescription?.Replace(", +", " +").Replace("Promise made, ", "") ?? "";
         }
 
         // ===== NEW 4-RESOURCE SYSTEM METHODS =====
