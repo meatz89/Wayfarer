@@ -930,16 +930,16 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get display name for card depth tier
+        /// Get display name for card depth tier with Understanding unlock threshold
         /// </summary>
         protected string GetDepthDisplayName(CardInstance card)
         {
             string depthClass = GetCardDepthClass(card);
             return depthClass switch
             {
-                "depth-foundation" => "Foundation",
-                "depth-standard" => "Standard",
-                "depth-decisive" => "Decisive",
+                "depth-foundation" => "Foundation (Unlocks at Understanding 0)",
+                "depth-standard" => "Standard (Unlocks at Understanding 6)",
+                "depth-decisive" => "Decisive (Unlocks at Understanding 12)",
                 _ => "Unknown"
             };
         }
