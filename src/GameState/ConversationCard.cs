@@ -14,12 +14,12 @@ public class ConversationCard
     // Categorical properties that define behavior through context
     public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
+    public ConversationalMove Move { get; init; } = ConversationalMove.Remark;
 
 
     // New 5-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
-    public int InitiativeGeneration { get; init; } = 0; // How much Initiative this card generates when played (Foundation tier property)
     public DeliveryType Delivery { get; init; } = DeliveryType.Standard; // NEW: How this card affects Cadence when spoken
 
     // Formula-based effect system (replaces old explicit effect properties)
@@ -93,6 +93,24 @@ public class ConversationCard
             <= 6 => "Standard",
             _ => "Decisive"
         };
+    }
+
+    /// <summary>
+    /// Get Initiative generation based on conversational move type.
+    /// Remarks and Observations (simple conversation moves) generate Initiative.
+    /// Arguments (complex developed points) cost Initiative instead of generating it.
+    /// This is a categorical effect of the move type, not an explicit property.
+    /// </summary>
+    public int GetInitiativeGeneration()
+    {
+        // Only simple moves (Remark/Observation) generate Initiative (Arguments cost Initiative instead)
+        if (Move == ConversationalMove.Argument) return 0;
+
+        // Cunning specializes in Initiative generation
+        if (BoundStat == PlayerStatType.Cunning) return 3;
+
+        // All other simple moves generate +1 Initiative
+        return BoundStat.HasValue ? 1 : 0;
     }
 
     /// <summary>

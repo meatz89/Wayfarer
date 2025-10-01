@@ -99,13 +99,14 @@ public class CategoricalEffectResolver
         var effectsOnly = new List<string>();  // Card effects only (for card display)
         var allChanges = new List<string>();   // All resource changes (for SPEAK preview)
 
-        // STEAMWORLD QUEST PATTERN: Apply InitiativeGeneration FIRST (card property, not effect)
-        // Foundation cards generate Initiative when played (like Strike cards generate steam)
-        int initiativeGen = card.ConversationCardTemplate?.InitiativeGeneration ?? 0;
+        // STEAMWORLD QUEST PATTERN: Derive Initiative generation from tier
+        // Foundation tier (depth 1-2) generates Initiative (like Strike/Upgrade cards generate steam)
+        // This is a CATEGORICAL EFFECT of the tier, not an explicit property
+        int initiativeGen = card.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
         if (initiativeGen > 0)
         {
             result.InitiativeChange += initiativeGen;
-            // Add to allChanges for SPEAK preview, but NOT to effectsOnly (it's a property, not effect)
+            // Add to allChanges for SPEAK preview, but NOT to effectsOnly (it's a tier effect, not card effect)
             allChanges.Add($"+{initiativeGen} Initiative");
         }
 

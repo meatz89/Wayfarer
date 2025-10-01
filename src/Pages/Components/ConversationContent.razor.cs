@@ -1035,11 +1035,12 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get Initiative generation amount for Foundation cards (Steamworld Quest pattern)
+        /// Get Initiative generation amount for Foundation cards (Steamworld Quest pattern).
+        /// This is derived categorically from the card's tier (depth), not stored as a property.
         /// </summary>
         protected int GetCardInitiativeGeneration(CardInstance card)
         {
-            return card?.ConversationCardTemplate?.InitiativeGeneration ?? 0;
+            return card?.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
         }
 
         /// <summary>

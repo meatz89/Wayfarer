@@ -80,16 +80,10 @@ public static class ConversationCardParser
             initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
         }
 
-        // DERIVE Initiative Generation from depth tier (Steamworld Quest pattern)
-        // Foundation cards (depth 1-2) generate Initiative when played (like Strike cards generate steam)
-        // Standard+ cards (depth 3+) cost Initiative instead
-        int initiativeGeneration = 0;
-        if ((int)depth <= 2 && boundStat.HasValue) // Foundation tier
-        {
-            // Cunning specializes in Initiative generation (+3)
-            // All other Foundation cards generate +1 Initiative
-            initiativeGeneration = boundStat.Value == PlayerStatType.Cunning ? 3 : 1;
-        }
+        // NOTE: Initiative Generation is NOT stored as a property!
+        // It's derived categorically from Depth tier via GetInitiativeGeneration() method
+        // Foundation tier (depth 1-2) generates Initiative (like Strike/Upgrade in Steamworld Quest)
+        // Standard+ tier (depth 3+) costs Initiative to play (like Skill in Steamworld Quest)
 
         // Parse persistence from JSON (this is a categorical property)
         PersistenceType persistence = PersistenceType.Statement; // Default
@@ -289,6 +283,12 @@ public static class ConversationCardParser
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
+        // DERIVE conversational move type from depth and effect formula
+        // Remark: Foundation tier (depth 1-2) + Momentum generation
+        // Observation: Foundation tier (depth 1-2) + other effects
+        // Argument: Standard+ tier (depth 3+) requires conversational buildup
+        ConversationalMove move = DetermineConversationalMove(depth, effectFormula);
+
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
         {
@@ -298,13 +298,13 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
-            InitiativeGeneration = initiativeGeneration, // Steamworld Quest pattern: Foundation cards generate Initiative
             Delivery = delivery, // NEW: How this card affects Cadence when spoken
             // Formula-based effect system
             EffectFormula = effectFormula,
             // OLD: ScalingEffect, EffectInitiative, etc. (deprecated, removed)
             Persistence = persistence,
             SuccessType = successType,
+            Move = move, // Conversational move: Remark/Observation/Argument
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueText = dto.DialogueText,
             VerbPhrase = "",
@@ -451,6 +451,48 @@ public static class ConversationCardParser
         }
 
         return SuccessEffectType.None;
+    }
+
+    /// <summary>
+    /// Determine conversational move type based on depth tier and effect formula.
+    /// Remark = Foundation tier Momentum building (simple pointed statements)
+    /// Observation = Foundation tier support (asking, understanding, reassuring)
+    /// Argument = Standard+ tier (complex developed points requiring buildup)
+    /// </summary>
+    private static ConversationalMove DetermineConversationalMove(CardDepth depth, CardEffectFormula effectFormula)
+    {
+        // Standard+ tier (depth 3+) = Argument (complex points requiring conversational buildup)
+        if ((int)depth >= 3)
+        {
+            return ConversationalMove.Argument;
+        }
+
+        // Foundation tier (depth 1-2) - check if Momentum building (Remark) or support (Observation)
+        if (GeneratesMomentum(effectFormula))
+        {
+            return ConversationalMove.Remark;
+        }
+
+        return ConversationalMove.Observation;
+    }
+
+    /// <summary>
+    /// Check if a card effect formula generates Momentum (for Remark determination)
+    /// </summary>
+    private static bool GeneratesMomentum(CardEffectFormula formula)
+    {
+        if (formula == null) return false;
+
+        // Check if top-level effect generates Momentum
+        if (formula.TargetResource == ConversationResourceType.Momentum) return true;
+
+        // Recursively check compound effects
+        if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
+        {
+            return formula.CompoundEffects.Any(e => GeneratesMomentum(e));
+        }
+
+        return false;
     }
 
     /// <summary>

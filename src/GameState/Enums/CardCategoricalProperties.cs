@@ -63,6 +63,31 @@ public enum SuccessEffectType
 
 
 /// <summary>
+/// Conversational moves - natural categories of what you say.
+/// Remark = Simple pointed statement (Momentum building)
+/// Observation = Simple supportive comment (questions, understanding, reassurance)
+/// Argument = Complex developed point (requires conversational buildup)
+/// Determines Initiative generation behavior categorically.
+/// </summary>
+public enum ConversationalMove
+{
+    /// <summary>
+    /// Remark: Simple pointed statement that presses the conversation forward (generates Initiative)
+    /// </summary>
+    Remark,
+
+    /// <summary>
+    /// Observation: Simple supportive comment - asking, noticing, understanding, reassuring (generates Initiative)
+    /// </summary>
+    Observation,
+
+    /// <summary>
+    /// Argument: Complex developed point requiring conversational buildup (costs Initiative, no generation)
+    /// </summary>
+    Argument
+}
+
+/// <summary>
 /// Scaling formula for card effects based on visible game state
 /// </summary>
 public class ScalingFormula
