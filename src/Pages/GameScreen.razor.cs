@@ -525,8 +525,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected int GetTotalSegmentsInPeriod()
     {
-        // Each time period always has 4 segments
-        return 4;
+        return GameFacade?.GetSegmentsInCurrentPeriod() ?? 4;
     }
 
     protected string GetStaminaDisplay()

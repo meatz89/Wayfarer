@@ -79,6 +79,14 @@ public static class ConversationCardParser
         // Parse effects from new structure and determine success type
         SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
 
+        // VALIDATION: Cards with draw effects MUST be Statement persistence
+        if (successType == SuccessEffectType.Threading && persistence != PersistenceType.Statement)
+        {
+            throw new InvalidOperationException(
+                $"DRAW EFFECT PERSISTENCE VIOLATION: Card '{dto.Id}' has draw cards effect (Threading) but persistence is '{persistence}'. " +
+                $"Cards with draw effects MUST be Statement persistence, not Echo. This ensures draw effects have narrative weight.");
+        }
+
         // Parse card type from DTO type field - MUST be defined early as it's used in validation
         CardType cardType = string.IsNullOrEmpty(dto.Type) ? CardType.Conversation : dto.Type.ToLower() switch
         {

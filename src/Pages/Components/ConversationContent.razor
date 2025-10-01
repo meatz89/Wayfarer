@@ -335,21 +335,6 @@
                                     @GetCardEffectDescription(convCard)
                                 </div>
 
-                                <!-- Alternative costs -->
-                                @if (HasAlternativeCosts(convCard))
-                                {
-                                    <div class="alternative-costs">
-                                        <div class="alt-cost-header">Alternative Costs:</div>
-                                        @foreach (var altCost in GetAvailableAlternativeCosts(convCard))
-                                        {
-                                            <div class="alt-cost-option @(CanAffordAlternativeCost(convCard, altCost) ? "" : "disabled")"
-                                                 @onclick="() => PlayCardWithAltCost(convCard, altCost)">
-                                                @GetAlternativeCostDescription(altCost)
-                                            </div>
-                                        }
-                                    </div>
-                                }
-
                                 <!-- Impulse warning -->
                             </div>
                         </div>

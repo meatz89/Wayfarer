@@ -944,95 +944,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        /// <summary>
-        /// Check if card has alternative costs available
-        /// </summary>
-        protected bool HasAlternativeCosts(CardInstance card)
-        {
-            // TODO: Implement when alternative costs are added to card templates
-            // For now, simulate some cards having alternatives based on Initiative cost
-            return GetCardInitiativeCost(card) >= 6; // High-cost cards might have alternatives
-        }
-
-        /// <summary>
-        /// Get available alternative costs for a card
-        /// </summary>
-        protected List<AlternativeCost> GetAvailableAlternativeCosts(CardInstance card)
-        {
-            if (!HasAlternativeCosts(card)) return new List<AlternativeCost>();
-
-            // TODO: Get from card template when alternative costs are implemented
-            // For now, create mock alternative costs
-            var alternatives = new List<AlternativeCost>();
-            int baseCost = GetCardInitiativeCost(card);
-
-            if (baseCost >= 6)
-            {
-                alternatives.Add(new AlternativeCost
-                {
-                    Condition = "High Cadence",
-                    ReducedInitiativeCost = baseCost - 2,
-                    MomentumCost = 0,
-                    Description = $"{baseCost - 2} Initiative if Cadence ≥ 5"
-                });
-            }
-
-            if (baseCost >= 8)
-            {
-                alternatives.Add(new AlternativeCost
-                {
-                    Condition = "High Doubt",
-                    ReducedInitiativeCost = baseCost / 2,
-                    MomentumCost = 3,
-                    Description = $"{baseCost / 2} Initiative + 3 Momentum if Doubt ≥ 7"
-                });
-            }
-
-            return alternatives;
-        }
-
-        /// <summary>
-        /// Check if player can afford alternative cost
-        /// </summary>
-        protected bool CanAffordAlternativeCost(CardInstance card, AlternativeCost altCost)
-        {
-            // Check Initiative requirement
-            if (GetCurrentInitiative() < altCost.ReducedInitiativeCost)
-                return false;
-
-            // Check Momentum requirement
-            if (GetCurrentMomentum() < altCost.MomentumCost)
-                return false;
-
-            // Check condition requirements
-            return altCost.Condition switch
-            {
-                "High Cadence" => GetCurrentCadence() >= 3, // Corrected for -5 to +5 range
-                "High Doubt" => (Session?.CurrentDoubt ?? 0) >= 7,
-                _ => true
-            };
-        }
-
-        /// <summary>
-        /// Get description text for alternative cost
-        /// </summary>
-        protected string GetAlternativeCostDescription(AlternativeCost altCost)
-        {
-            return altCost.Description ?? $"{altCost.ReducedInitiativeCost} Initiative";
-        }
-
-        /// <summary>
-        /// Play card with alternative cost
-        /// </summary>
-        protected async Task PlayCardWithAltCost(CardInstance card, AlternativeCost altCost)
-        {
-            if (!CanAffordAlternativeCost(card, altCost)) return;
-
-            // TODO: Implement alternative cost payment in ConversationFacade
-            // For now, treat as regular card play
-            SelectedCard = card;
-            await ExecuteSpeak();
-        }
 
         // ===== NEW MOCKUP-SPECIFIC HELPER METHODS =====
 
@@ -1287,16 +1198,5 @@ namespace Wayfarer.Pages.Components
                 _ => trait.ToString()
             };
         }
-    }
-
-    /// <summary>
-    /// Alternative cost structure for high-cost cards
-    /// </summary>
-    public class AlternativeCost
-    {
-        public string Condition { get; set; } = "";
-        public int ReducedInitiativeCost { get; set; }
-        public int MomentumCost { get; set; }
-        public string Description { get; set; } = "";
     }
 }

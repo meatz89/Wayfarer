@@ -376,6 +376,11 @@ public class GameFacade
         return _timeFacade.GetFormattedTimeDisplay();
     }
 
+    public int GetSegmentsInCurrentPeriod()
+    {
+        return _timeFacade.GetSegmentsInCurrentPeriod();
+    }
+
 
     // ========== TRAVEL OPERATIONS ==========
 

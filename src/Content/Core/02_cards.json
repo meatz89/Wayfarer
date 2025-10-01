@@ -15,7 +15,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 1,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -29,7 +29,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 1,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -43,7 +43,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 2,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -71,7 +71,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 3,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -85,7 +85,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 3,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -99,7 +99,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 4,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -113,7 +113,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 3,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
@@ -127,7 +127,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 5,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
@@ -155,7 +155,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 5,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
@@ -169,7 +169,7 @@
         "type": "Conversation",
         "boundStat": "Insight",
         "depth": 8,
-        "persistence": "Echo",
+        "persistence": "Statement",
         "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"

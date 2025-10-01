@@ -75,9 +75,10 @@ namespace Wayfarer.Subsystems.TravelSubsystem
                 return time;
             }
 
-            // No fallback - route must be defined
-            Console.WriteLine($"[TravelTimeCalculator] Warning: No travel time defined for {fromLocationId} -> {toLocationId}");
-            return 4; // Default to 4 segments if not found
+            // Route must be defined - undefined routes are a content error
+            throw new InvalidOperationException(
+                $"[TravelTimeCalculator] UNDEFINED ROUTE: No travel time defined for {fromLocationId} -> {toLocationId}. " +
+                $"All valid routes must be defined in the TravelTimes dictionary.");
         }
 
         /// <summary>
