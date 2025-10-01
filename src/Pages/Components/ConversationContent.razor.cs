@@ -937,9 +937,9 @@ namespace Wayfarer.Pages.Components
             string depthClass = GetCardDepthClass(card);
             return depthClass switch
             {
-                "depth-foundation" => "Foundation (Unlocks at Understanding 0)",
-                "depth-standard" => "Standard (Unlocks at Understanding 6)",
-                "depth-decisive" => "Decisive (Unlocks at Understanding 12)",
+                "depth-foundation" => $"Foundation (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(1)})",
+                "depth-standard" => $"Standard (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(2)})",
+                "depth-decisive" => $"Decisive (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(3)})",
                 _ => "Unknown"
             };
         }
@@ -1047,7 +1047,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get current Understanding from session (unlocks tiers at 6/12/18)
+        /// Get current Understanding from session
         /// </summary>
         protected int GetCurrentUnderstanding()
         {
@@ -1056,12 +1056,13 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Get Understanding as percentage (0-100%) for resource bar display
+        /// Calculated based on the maximum tier unlock threshold
         /// </summary>
         protected double GetUnderstandingPercentage()
         {
             int understanding = GetCurrentUnderstanding();
-            // Max Understanding of 18 for tier 4 unlock
-            return Math.Min(100, (understanding / 18.0) * 100);
+            int maxUnderstanding = GetMaxUnderstanding();
+            return Math.Min(100, (understanding / (double)maxUnderstanding) * 100);
         }
 
         /// <summary>
@@ -1225,6 +1226,17 @@ namespace Wayfarer.Pages.Components
         protected int GetTierUnlockThreshold(int tier)
         {
             return ConversationSession.GetTierUnlockThreshold(tier);
+        }
+
+        protected ConversationTier[] GetAllTiers()
+        {
+            return ConversationTier.AllTiers;
+        }
+
+        protected int GetMaxUnderstanding()
+        {
+            // Get the maximum Understanding threshold from the highest tier
+            return ConversationTier.AllTiers.Max(t => t.UnderstandingThreshold);
         }
 
         // Statement count methods

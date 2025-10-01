@@ -477,7 +477,7 @@ public class SessionCardDeck
     /// <summary>
     /// Check if a card can be accessed based on unlocked tiers and stat specialization bonuses
     /// Tier system: Tier 1 (depths 1-2), Tier 2 (depths 3-4), Tier 3 (depths 5-6), Tier 4 (depths 7-8)
-    /// Tiers unlock at momentum 6/12/18 and persist once unlocked
+    /// Tiers unlock at Understanding thresholds (0/6/12/18) and persist once unlocked
     /// </summary>
     private bool CanAccessCard(ConversationCard card, ConversationSession session, PlayerStats playerStats)
     {
