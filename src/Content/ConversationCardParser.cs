@@ -134,8 +134,17 @@ public static class ConversationCardParser
             }
         }
 
-        // Parse effect variant (used for both formula selection and statement requirements)
-        string effectVariant = dto.EffectVariant ?? "Base";
+        // Parse effect variant enum (type-safe)
+        CardEffectVariant effectVariant = CardEffectVariant.Base;
+        if (!string.IsNullOrEmpty(dto.EffectVariant))
+        {
+            if (!Enum.TryParse<CardEffectVariant>(dto.EffectVariant, true, out effectVariant))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID EFFECT VARIANT: Card '{dto.Id}' has invalid effectVariant '{dto.EffectVariant}'. " +
+                    $"Valid values: Base, Strike, Setup, Specialist, Signature, Advanced");
+            }
+        }
 
         // DERIVE Statement requirements deterministically from effectVariant
         // Signature variants require statements, Base variants do not
@@ -143,7 +152,7 @@ public static class ConversationCardParser
         PlayerStatType? requiredStat = null;
         int requiredStatements = 0;
 
-        if (effectVariant == "Signature" && boundStat.HasValue)
+        if (effectVariant == CardEffectVariant.Signature && boundStat.HasValue)
         {
             // Signature cards require statements of their own stat
             requiredStat = boundStat.Value;
@@ -219,25 +228,15 @@ public static class ConversationCardParser
 
         if (cardType == CardType.Conversation && boundStat.HasValue)
         {
-            // Get effect formula from catalog based on boundStat + depth + variant
-            if (effectVariant == "Base")
-            {
-                // Get first (default) variant
-                var variants = CardEffectCatalog.GetEffectVariants(boundStat.Value, (int)depth);
-                effectFormula = variants.FirstOrDefault();
-            }
-            else
-            {
-                // Get specific variant by name
-                effectFormula = CardEffectCatalog.GetEffectByVariantName(boundStat.Value, (int)depth, effectVariant);
-            }
+            // Get effect formula from catalog using type-safe enum
+            effectFormula = CardEffectCatalog.GetEffectByVariant(boundStat.Value, (int)depth, effectVariant);
 
             if (effectFormula == null)
             {
-                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant '{effectVariant}'!");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant {effectVariant}!");
             }
 
-            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using formula: {effectFormula}");
+            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {effectVariant} formula: {effectFormula}");
         }
 
         // Parse Delivery property (NEW: Controls cadence on SPEAK)
