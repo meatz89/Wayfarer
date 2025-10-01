@@ -38,10 +38,15 @@ public static class ConversationCardParser
     public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null, string customId = null)
     {
         // Parse token type from connection type
-        ConnectionType tokenType = ConnectionType.Trust;
+        ConnectionType tokenType = ConnectionType.Trust; // Default
         if (!string.IsNullOrEmpty(dto.ConnectionType))
         {
-            Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType);
+            if (!Enum.TryParse<ConnectionType>(dto.ConnectionType, true, out tokenType))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID CONNECTION TYPE: Card '{dto.Id}' has invalid connectionType '{dto.ConnectionType}'. " +
+                    $"Valid values: None, Trust, Diplomacy, Status, Shadow");
+            }
         }
 
         // Parse depth (required for template derivation)
@@ -59,6 +64,12 @@ public static class ConversationCardParser
             {
                 boundStat = statType;
             }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"INVALID BOUND STAT: Card '{dto.Id}' has invalid boundStat '{dto.BoundStat}'. " +
+                    $"Valid values: Insight, Rapport, Authority, Diplomacy, Cunning");
+            }
         }
 
         // DERIVE Initiative Cost deterministically from boundStat + depth
@@ -70,10 +81,15 @@ public static class ConversationCardParser
         }
 
         // Parse persistence from JSON (this is a categorical property)
-        PersistenceType persistence = PersistenceType.Statement;
+        PersistenceType persistence = PersistenceType.Statement; // Default
         if (!string.IsNullOrEmpty(dto.Persistence))
         {
-            Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
+            if (!Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID PERSISTENCE TYPE: Card '{dto.Id}' has invalid persistence '{dto.Persistence}'. " +
+                    $"Valid values: Statement, Echo");
+            }
         }
 
         // Parse effects from new structure and determine success type
@@ -88,17 +104,25 @@ public static class ConversationCardParser
         }
 
         // Parse card type from DTO type field - MUST be defined early as it's used in validation
-        CardType cardType = string.IsNullOrEmpty(dto.Type) ? CardType.Conversation : dto.Type.ToLower() switch
+        CardType cardType = CardType.Conversation; // Default
+        if (!string.IsNullOrEmpty(dto.Type))
         {
-            "letter" => CardType.Letter,
-            "promise" => CardType.Promise,
-            "burdengoal" => CardType.Letter,
-            "observation" => CardType.Observation,
-            "request" => CardType.Conversation, // Request cards are conversation cards
-            "exchange" => CardType.Conversation, // Exchange cards are conversation cards
-            "normal" => CardType.Conversation,
-            _ => CardType.Conversation
-        };
+            // Try direct enum parse first
+            if (!Enum.TryParse<CardType>(dto.Type, true, out cardType))
+            {
+                // Handle legacy/alternative naming
+                cardType = dto.Type.ToLower() switch
+                {
+                    "burdengoal" => CardType.Burden,
+                    "request" => CardType.Conversation,
+                    "exchange" => CardType.Conversation,
+                    "normal" => CardType.Conversation,
+                    _ => throw new InvalidOperationException(
+                        $"INVALID CARD TYPE: Card '{dto.Id}' has invalid type '{dto.Type}'. " +
+                        $"Valid values: Conversation, Letter, Promise, Burden, Observation")
+                };
+            }
+        }
 
         // Validate momentum threshold for goal cards
         if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.Letter)
@@ -240,13 +264,14 @@ public static class ConversationCardParser
         }
 
         // Parse Delivery property (NEW: Controls cadence on SPEAK)
-        DeliveryType delivery = DeliveryType.Standard; // Default to Standard
+        DeliveryType delivery = DeliveryType.Standard; // Default
         if (!string.IsNullOrEmpty(dto.Delivery))
         {
             if (!Enum.TryParse<DeliveryType>(dto.Delivery, true, out delivery))
             {
-                Console.WriteLine($"[ConversationCardParser] WARNING: Invalid delivery '{dto.Delivery}' for card '{dto.Id}'. Using Standard.");
-                delivery = DeliveryType.Standard;
+                throw new InvalidOperationException(
+                    $"INVALID DELIVERY TYPE: Card '{dto.Id}' has invalid delivery '{dto.Delivery}'. " +
+                    $"Valid values: Standard, Commanding, Measured, Yielding");
             }
         }
 
