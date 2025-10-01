@@ -374,6 +374,14 @@
     transform: translateX(5px);
 }
 
+/* Selected card state - persists after click */
+.card.selected:not(.disabled) {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(5px);
+    box-shadow: 0 0 8px rgba(166, 139, 111, 0.5);
+}
+
 .card.disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -495,6 +503,36 @@
 
 .card-persistence.echo {
     background: #5a7a8a;
+}
+
+/* Delivery flag - shows Cadence effect on SPEAK */
+.card-delivery {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #faf4ea;
+}
+
+/* Delivery type colors (Cadence effects) */
+.delivery-commanding {
+    background: #d4704a; /* Orange/red - aggressive +2 Cadence */
+}
+
+.delivery-standard {
+    background: #7a8b5a; /* Green/neutral - standard +1 Cadence */
+}
+
+.delivery-measured {
+    background: #5a7a8a; /* Blue - thoughtful +0 Cadence */
+}
+
+.delivery-yielding {
+    background: #8b7a5a; /* Brown - deferential -1 Cadence */
 }
 
 .stat-badge {

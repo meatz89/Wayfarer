@@ -176,12 +176,18 @@
                 <span class="tier-label">Understanding: @GetCurrentUnderstanding() / 18</span>
                 <span class="tier-value">Unlocked Depths: 1-@GetUnlockedMaxDepth()</span>
                 <div class="tier-unlocks">
-                    @for (int tier = 1; tier <= 4; tier++)
-                    {
-                        <span class="tier-badge @(IsTierUnlocked(tier) ? "unlocked" : "locked")">
-                            Tier @tier (@(tier * 2 - 1)-@(tier * 2))
-                        </span>
-                    }
+                    <span class="tier-badge @(IsTierUnlocked(1) ? "unlocked" : "locked")">
+                        TIER 1 (1-2)<br/><small>Understanding 0</small>
+                    </span>
+                    <span class="tier-badge @(IsTierUnlocked(2) ? "unlocked" : "locked")">
+                        TIER 2 (3-4)<br/><small>Understanding 6</small>
+                    </span>
+                    <span class="tier-badge @(IsTierUnlocked(3) ? "unlocked" : "locked")">
+                        TIER 3 (5-6)<br/><small>Understanding 12</small>
+                    </span>
+                    <span class="tier-badge @(IsTierUnlocked(4) ? "unlocked" : "locked")">
+                        TIER 4 (7-8)<br/><small>Understanding 18</small>
+                    </span>
                 </div>
             </div>
         </div>
@@ -329,9 +335,12 @@
                         else
                     {
                         <!-- Card (matching mockup exactly) -->
-                        <div class="card @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "")"
+                        <div class="card @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
                             <span class="card-persistence">@GetCardPersistenceType(convCard)</span>
+                            <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK: @GetCardDeliveryCadenceEffect(convCard)">
+                                @GetCardDelivery(convCard)
+                            </span>
                             <div class="card-content">
                                 <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
 

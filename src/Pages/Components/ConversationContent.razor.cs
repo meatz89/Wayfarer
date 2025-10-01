@@ -1175,6 +1175,42 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
+        // Delivery display methods
+        /// <summary>
+        /// Get card delivery type (how it affects Cadence on SPEAK)
+        /// </summary>
+        protected string GetCardDelivery(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Delivery == null) return "Standard";
+            return card.ConversationCardTemplate.Delivery.ToString();
+        }
+
+        /// <summary>
+        /// Get card delivery CSS class for colored flag display
+        /// </summary>
+        protected string GetCardDeliveryClass(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Delivery == null) return "delivery-standard";
+            return $"delivery-{card.ConversationCardTemplate.Delivery.ToString().ToLower()}";
+        }
+
+        /// <summary>
+        /// Get card delivery effect text (Cadence change)
+        /// </summary>
+        protected string GetCardDeliveryCadenceEffect(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Delivery == null) return "+1";
+
+            return card.ConversationCardTemplate.Delivery switch
+            {
+                DeliveryType.Commanding => "+2",
+                DeliveryType.Standard => "+1",
+                DeliveryType.Measured => "+0",
+                DeliveryType.Yielding => "-1",
+                _ => "+1"
+            };
+        }
+
         // Tier unlock system methods
         protected int GetUnlockedMaxDepth()
         {
