@@ -92,17 +92,14 @@ Every card has:
   - Scaled increase ("+1 Momentum per 2 Statements")
   - Flat decrease ("-2 Doubt")
 
-### Foundation Cards Available at Level 1
+### Foundation Cards Available at Level 1 (Steamworld Quest Pattern)
 Since all stats start at Level 1, players access only depth 1-2 cards:
 
-**Depth 1 (0 Initiative Cost) - Builders**:
-- Generate Initiative to enable higher-cost cards
-- Provide small momentum gains
-- Create conversation foundation
-
-**Depth 2 (0-2 Initiative Cost) - Early Options**:
-- Small effects requiring minimal setup
-- Begin building toward requirements
+**Depth 1-2 (0 Initiative Cost) - Foundation Tier**:
+- **Initiative Property**: ALL Foundation cards generate +1 Initiative when played (Cunning generates +3)
+- **Singular Effect**: Each card has ONE effect - +2 Momentum OR Draw 2 cards OR +2 Understanding OR -1 Doubt
+- This mirrors Steamworld Quest's Strike cards: ONE effect + ONE property (generates steam/Initiative)
+- Create conversation foundation through repeated plays
 
 ## NPCs
 
@@ -463,7 +460,7 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ### Card Depth Architecture
 
-- **Depth 1-2**: Foundation (0 Initiative, generate Initiative)
+- **Depth 1-2**: Foundation (0 Initiative cost, generates +1 Initiative via card property, +3 for Cunning)
 - **Depth 3-4**: Standard (0-4 Initiative cost)
 - **Depth 5-6**: Advanced (2-6 Initiative cost)
 - **Depth 7-8**: Powerful (4-8 Initiative cost)
