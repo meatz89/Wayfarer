@@ -55,33 +55,77 @@ public static class CardEffectCatalog
 
     /// <summary>
     /// Get a specific effect variant by enum.
-    /// Type-safe variant selection for card effects.
+    /// Type-safe variant selection for card effects using CORE categorical properties:
+    /// - ConversationalMove (Remark/Observation/Argument) determines effect category
+    /// - BoundStat determines resource specialty
+    /// - Depth determines magnitude
+    ///
+    /// CRITICAL RULES:
+    /// - Remark ALWAYS generates Momentum (pressing conversational points)
+    /// - Observation generates stat specialty resource (cards, understanding, -doubt)
+    /// - Argument uses complex compound effects
     /// </summary>
-    public static CardEffectFormula GetEffectByVariant(PlayerStatType stat, int depth, CardEffectVariant variant)
+    public static CardEffectFormula GetEffectByVariant(ConversationalMove move, PlayerStatType stat, int depth, CardEffectVariant variant)
     {
+        // CONVERSATIONAL MOVE determines the effect category
+        return move switch
+        {
+            ConversationalMove.Remark => GetRemarkEffect(stat, depth, variant),
+            ConversationalMove.Observation => GetObservationEffect(stat, depth, variant),
+            ConversationalMove.Argument => GetArgumentEffect(stat, depth, variant),
+            _ => throw new InvalidOperationException($"Unknown conversational move: {move}")
+        };
+    }
+
+    /// <summary>
+    /// Remark effects - ALWAYS Momentum generation (pressing conversational points)
+    /// </summary>
+    private static CardEffectFormula GetRemarkEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    {
+        // Remarks ALWAYS build Momentum regardless of stat
+        // This is the "pressing points forward" conversational move
+        return new CardEffectFormula
+        {
+            FormulaType = EffectFormulaType.Fixed,
+            TargetResource = ConversationResourceType.Momentum,
+            BaseValue = depth switch
+            {
+                1 or 2 => 2,  // Foundation
+                3 or 4 => 5,  // Standard
+                5 or 6 => 8,  // Advanced
+                _ => 12       // Master
+            }
+        };
+    }
+
+    /// <summary>
+    /// Observation effects - Stat specialty resources (cards, understanding, -doubt)
+    /// </summary>
+    private static CardEffectFormula GetObservationEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    {
+        // Observations use the stat's specialty effect
+        var variants = GetEffectVariants(stat, depth);
+        return variants.FirstOrDefault() ?? throw new InvalidOperationException($"No effect found for {stat} depth {depth}");
+    }
+
+    /// <summary>
+    /// Argument effects - Complex compound effects for developed points
+    /// </summary>
+    private static CardEffectFormula GetArgumentEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    {
+        // Arguments MUST use compound effects - no fallbacks
         var variants = GetEffectVariants(stat, depth);
 
-        // Foundation tier (depth 1-2) uses Steamworld-inspired Strike/Setup/Specialist pattern
-        if (depth <= 2)
+        var compoundVariant = variants.FirstOrDefault(v => v.FormulaType == EffectFormulaType.Compound);
+
+        if (compoundVariant == null)
         {
-            return variant switch
-            {
-                CardEffectVariant.Strike => variants.ElementAtOrDefault(1) ?? variants.FirstOrDefault(),     // Type A - Momentum+Initiative
-                CardEffectVariant.Setup => variants.ElementAtOrDefault(2) ?? variants.FirstOrDefault(),      // Type B - Initiative heavy
-                CardEffectVariant.Specialist => variants.ElementAtOrDefault(0) ?? variants.FirstOrDefault(), // Type C - Stat specialty
-                CardEffectVariant.Base => variants.ElementAtOrDefault(1) ?? variants.FirstOrDefault(),       // Default to Strike for Foundation
-                CardEffectVariant.Signature => variants.LastOrDefault() ?? variants.FirstOrDefault(),        // Signature if exists
-                _ => variants.FirstOrDefault()
-            };
+            throw new InvalidOperationException(
+                $"ARGUMENT CARD REQUIRES COMPOUND EFFECT: No compound effect found for {stat} depth {depth}. " +
+                $"Arguments are complex developed points and MUST have compound effects.");
         }
 
-        // Higher tiers: Base = first variant, Signature = last variant, Advanced = middle
-        return variant switch
-        {
-            CardEffectVariant.Signature => variants.LastOrDefault() ?? variants.FirstOrDefault(),
-            CardEffectVariant.Advanced => variants.ElementAtOrDefault(1) ?? variants.FirstOrDefault(),
-            _ => variants.FirstOrDefault()
-        };
+        return compoundVariant;
     }
 
     private static string GetVariantName(CardEffectFormula formula)

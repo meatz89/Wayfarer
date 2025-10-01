@@ -80,10 +80,9 @@ public static class ConversationCardParser
             initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
         }
 
-        // NOTE: Initiative Generation is NOT stored as a property!
-        // It's derived categorically from Depth tier via GetInitiativeGeneration() method
-        // Foundation tier (depth 1-2) generates Initiative (like Strike/Upgrade in Steamworld Quest)
-        // Standard+ tier (depth 3+) costs Initiative to play (like Skill in Steamworld Quest)
+        // NOTE: Initiative Generation is derived from ConversationalMove via GetInitiativeGeneration() method
+        // Remark/Observation (simple conversational moves) generate Initiative
+        // Argument (complex developed points) costs Initiative instead of generating it
 
         // Parse persistence from JSON (this is a categorical property)
         PersistenceType persistence = PersistenceType.Statement; // Default
@@ -95,6 +94,21 @@ public static class ConversationCardParser
                     $"INVALID PERSISTENCE TYPE: Card '{dto.Id}' has invalid persistence '{dto.Persistence}'. " +
                     $"Valid values: Statement, Echo");
             }
+        }
+
+        // Parse conversational move from JSON (CORE categorical property - REQUIRED)
+        if (string.IsNullOrEmpty(dto.ConversationalMove))
+        {
+            throw new InvalidOperationException(
+                $"MISSING CONVERSATIONAL MOVE: Card '{dto.Id}' must have 'conversationalMove' property. " +
+                $"Valid values: Remark, Observation, Argument");
+        }
+
+        if (!Enum.TryParse<ConversationalMove>(dto.ConversationalMove, true, out ConversationalMove move))
+        {
+            throw new InvalidOperationException(
+                $"INVALID CONVERSATIONAL MOVE: Card '{dto.Id}' has invalid conversationalMove '{dto.ConversationalMove}'. " +
+                $"Valid values: Remark, Observation, Argument");
         }
 
         // Parse effects from new structure and determine success type
@@ -257,15 +271,15 @@ public static class ConversationCardParser
 
         if (cardType == CardType.Conversation && boundStat.HasValue)
         {
-            // Get effect formula from catalog using type-safe enum
-            effectFormula = CardEffectCatalog.GetEffectByVariant(boundStat.Value, (int)depth, effectVariant);
+            // Get effect formula from catalog using CORE categorical properties
+            effectFormula = CardEffectCatalog.GetEffectByVariant(move, boundStat.Value, (int)depth, effectVariant);
 
             if (effectFormula == null)
             {
-                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant {effectVariant}!");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move} stat {boundStat.Value} depth {(int)depth} variant {effectVariant}!");
             }
 
-            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {effectVariant} formula: {effectFormula}");
+            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move}/{effectVariant} formula: {effectFormula}");
         }
 
         // Parse Delivery property (NEW: Controls cadence on SPEAK)
@@ -282,12 +296,6 @@ public static class ConversationCardParser
 
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
-
-        // DERIVE conversational move type from depth and effect formula
-        // Remark: Foundation tier (depth 1-2) + Momentum generation
-        // Observation: Foundation tier (depth 1-2) + other effects
-        // Argument: Standard+ tier (depth 3+) requires conversational buildup
-        ConversationalMove move = DetermineConversationalMove(depth, effectFormula);
 
         // Create ConversationCard with all properties in initializer
         return new ConversationCard
@@ -454,48 +462,6 @@ public static class ConversationCardParser
     }
 
     /// <summary>
-    /// Determine conversational move type based on depth tier and effect formula.
-    /// Remark = Foundation tier Momentum building (simple pointed statements)
-    /// Observation = Foundation tier support (asking, understanding, reassuring)
-    /// Argument = Standard+ tier (complex developed points requiring buildup)
-    /// </summary>
-    private static ConversationalMove DetermineConversationalMove(CardDepth depth, CardEffectFormula effectFormula)
-    {
-        // Standard+ tier (depth 3+) = Argument (complex points requiring conversational buildup)
-        if ((int)depth >= 3)
-        {
-            return ConversationalMove.Argument;
-        }
-
-        // Foundation tier (depth 1-2) - check if Momentum building (Remark) or support (Observation)
-        if (GeneratesMomentum(effectFormula))
-        {
-            return ConversationalMove.Remark;
-        }
-
-        return ConversationalMove.Observation;
-    }
-
-    /// <summary>
-    /// Check if a card effect formula generates Momentum (for Remark determination)
-    /// </summary>
-    private static bool GeneratesMomentum(CardEffectFormula formula)
-    {
-        if (formula == null) return false;
-
-        // Check if top-level effect generates Momentum
-        if (formula.TargetResource == ConversationResourceType.Momentum) return true;
-
-        // Recursively check compound effects
-        if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
-        {
-            return formula.CompoundEffects.Any(e => GeneratesMomentum(e));
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Derive traits automatically based on card's effect formula.
     /// Traits are NEVER defined in JSON - they are derived from categorical properties.
     /// </summary>
@@ -559,6 +525,7 @@ public class ConversationCardDTO
     // Categorical properties - define behavior through context
     public string Persistence { get; set; } // Echo/Statement
     public string SuccessType { get; set; } // Strike/Soothe/Threading/DoubleMomentum/Atmospheric/Focusing/Promising/Advancing/None
+    public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
 
     // Personality targeting - which NPCs can use this card
     public List<string> PersonalityTypes { get; set; }
