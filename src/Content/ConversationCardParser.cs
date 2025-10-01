@@ -80,6 +80,17 @@ public static class ConversationCardParser
             initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
         }
 
+        // DERIVE Initiative Generation from depth tier (Steamworld Quest pattern)
+        // Foundation cards (depth 1-2) generate Initiative when played (like Strike cards generate steam)
+        // Standard+ cards (depth 3+) cost Initiative instead
+        int initiativeGeneration = 0;
+        if ((int)depth <= 2 && boundStat.HasValue) // Foundation tier
+        {
+            // Cunning specializes in Initiative generation (+3)
+            // All other Foundation cards generate +1 Initiative
+            initiativeGeneration = boundStat.Value == PlayerStatType.Cunning ? 3 : 1;
+        }
+
         // Parse persistence from JSON (this is a categorical property)
         PersistenceType persistence = PersistenceType.Statement; // Default
         if (!string.IsNullOrEmpty(dto.Persistence))
@@ -287,6 +298,7 @@ public static class ConversationCardParser
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
+            InitiativeGeneration = initiativeGeneration, // Steamworld Quest pattern: Foundation cards generate Initiative
             Delivery = delivery, // NEW: How this card affects Cadence when spoken
             // Formula-based effect system
             EffectFormula = effectFormula,

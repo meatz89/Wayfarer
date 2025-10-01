@@ -1030,6 +1030,14 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get Initiative generation amount for Foundation cards (Steamworld Quest pattern)
+        /// </summary>
+        protected int GetCardInitiativeGeneration(CardInstance card)
+        {
+            return card?.ConversationCardTemplate?.InitiativeGeneration ?? 0;
+        }
+
+        /// <summary>
         /// Get tooltip explaining persistence type effects
         /// </summary>
         protected string GetPersistenceTooltip(CardInstance card)

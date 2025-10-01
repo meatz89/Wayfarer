@@ -19,6 +19,7 @@ public class ConversationCard
     // New 5-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
+    public int InitiativeGeneration { get; init; } = 0; // How much Initiative this card generates when played (Foundation tier property)
     public DeliveryType Delivery { get; init; } = DeliveryType.Standard; // NEW: How this card affects Cadence when spoken
 
     // Formula-based effect system (replaces old explicit effect properties)

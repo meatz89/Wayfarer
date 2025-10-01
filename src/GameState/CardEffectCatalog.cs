@@ -109,69 +109,15 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Steamworld-inspired Strike/Setup/Specialist pattern
-            1 => new List<CardEffectFormula>
+            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
+            1 or 2 => new List<CardEffectFormula>
             {
-                // Type C - Specialist: Draw 2 cards (pure card advantage)
+                // Insight Foundation: Draw 2 cards (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Cards,
                     BaseValue = 2
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative, Draw 1 card (productive + enabling)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative, Draw 1 card (enabling focused)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 1 }
-                    }
-                }
-            },
-            2 => new List<CardEffectFormula>
-            {
-                // Type C - Specialist: Draw 2 cards (pure card advantage)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Cards,
-                    BaseValue = 2
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative, Draw 1 card (productive + enabling)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative, Draw 1 card (enabling focused)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 1 }
-                    }
                 }
             },
 
@@ -273,37 +219,15 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Steamworld-inspired Strike/Setup/Specialist pattern
+            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
             1 or 2 => new List<CardEffectFormula>
             {
-                // Type C - Specialist: +2 Understanding (pure depth building)
+                // Rapport Foundation: +2 Understanding (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Understanding,
                     BaseValue = 2
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative, +1 Understanding (productive + enabling)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative, +1 Understanding (enabling focused)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 }
-                    }
                 }
             },
 
@@ -375,35 +299,15 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Steamworld-inspired Strike/Setup/Specialist pattern
+            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
             1 or 2 => new List<CardEffectFormula>
             {
-                // Type C - Specialist: +3 Momentum (pure commanding power)
+                // Authority Foundation: +2 Momentum (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Momentum,
-                    BaseValue = 3
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative (balanced productive + enabling)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative (enabling with some progress)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 }
-                    }
+                    BaseValue = 2
                 }
             },
 
@@ -469,36 +373,15 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Steamworld-inspired Strike/Setup/Specialist pattern
+            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
             1 or 2 => new List<CardEffectFormula>
             {
-                // Type C - Specialist: -1 Doubt (pure crisis management)
+                // Diplomacy Foundation: -1 Doubt (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Doubt,
                     BaseValue = -1
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative, -1 Doubt (productive + enabling + safe)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Doubt, BaseValue = -1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative (enabling with minimal progress)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 }
-                    }
                 }
             },
 
@@ -564,35 +447,17 @@ public static class CardEffectCatalog
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Steamworld-inspired Strike/Setup/Specialist pattern
+            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
+            // NOTE: Cunning Foundation cards have NO effect formula - they ONLY generate Initiative via property
+            // This makes them pure "steam generators" in Steamworld Quest terms
             1 or 2 => new List<CardEffectFormula>
             {
-                // Type C - Specialist: +3 Initiative (pure tactical setup)
+                // Cunning Foundation: No effect (pure Initiative generation via card property)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
                     TargetResource = ConversationResourceType.Initiative,
-                    BaseValue = 3
-                },
-                // Type A - Strike: +2 Momentum, +1 Initiative (productive + enabling)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 }
-                    }
-                },
-                // Type B - Setup: +1 Momentum, +2 Initiative (enabling with minimal progress)
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 }
-                    }
+                    BaseValue = 0  // Effect is 0, actual Initiative comes from InitiativeGeneration property
                 }
             },
 

@@ -98,7 +98,16 @@ public class CategoricalEffectResolver
 
         var effects = new List<string>();
 
-        // Use EffectFormula system
+        // STEAMWORLD QUEST PATTERN: Apply InitiativeGeneration FIRST (card property, not effect)
+        // Foundation cards generate Initiative when played (like Strike cards generate steam)
+        int initiativeGen = card.ConversationCardTemplate?.InitiativeGeneration ?? 0;
+        if (initiativeGen > 0)
+        {
+            result.InitiativeChange += initiativeGen;
+            effects.Add($"+{initiativeGen} Initiative");
+        }
+
+        // Use EffectFormula system for singular card effect
         CardEffectFormula formula = card.ConversationCardTemplate?.EffectFormula;
         if (formula == null)
         {

@@ -348,6 +348,12 @@
                                 <div class="card-top-row">
                                     <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
                                     <div class="card-flags">
+                                        @if (GetCardInitiativeGeneration(convCard) > 0)
+                                        {
+                                            <span class="card-initiative-gen" title="Generates Initiative when played (Foundation tier)">
+                                                +@GetCardInitiativeGeneration(convCard)
+                                            </span>
+                                        }
                                         <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK">
                                             @GetCardDelivery(convCard) (@GetCardDeliveryCadenceEffect(convCard))
                                         </span>
