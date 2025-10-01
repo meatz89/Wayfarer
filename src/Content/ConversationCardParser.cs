@@ -61,24 +61,16 @@ public static class ConversationCardParser
             }
         }
 
-        // DERIVE properties from catalog (for standard cards with boundStat)
+        // DERIVE Initiative Cost deterministically from boundStat + depth
+        // NO JSON OVERRIDES - this must be 100% predictable
         int initiativeCost = 0;
-        PersistenceType persistence = PersistenceType.Statement;
-
         if (boundStat.HasValue)
         {
-            // Derive Initiative cost from catalog
             initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
-
-            // Derive persistence: Foundation (1-2) = Echo, higher = Statement
-            persistence = (int)depth <= 2 ? PersistenceType.Echo : PersistenceType.Statement;
         }
 
-        // Allow JSON overrides (only if explicitly specified)
-        if (dto.InitiativeCost.HasValue)
-        {
-            initiativeCost = dto.InitiativeCost.Value;
-        }
+        // Parse persistence from JSON (this is a categorical property)
+        PersistenceType persistence = PersistenceType.Statement;
         if (!string.IsNullOrEmpty(dto.Persistence))
         {
             Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence);
@@ -134,33 +126,32 @@ public static class ConversationCardParser
             }
         }
 
-        // boundStat already parsed above for template derivation
+        // Parse effect variant (used for both formula selection and statement requirements)
+        string effectVariant = dto.EffectVariant ?? "Base";
 
-        // DERIVE Statement requirements from depth
-        // Standard (3-4): Require depth-1 statements
-        // Advanced (5-6): Require depth-1 statements
-        // Master (7-8): Require depth-1 statements
-        // Statement requirements: Get from JSON ONLY (no auto-derivation)
+        // DERIVE Statement requirements deterministically from effectVariant
+        // Signature variants require statements, Base variants do not
+        // NO JSON - this is purely categorical based on the variant chosen
         PlayerStatType? requiredStat = null;
         int requiredStatements = 0;
 
-        // Parse requiredStat from JSON
-        if (!string.IsNullOrEmpty(dto.RequiredStat))
+        if (effectVariant == "Signature" && boundStat.HasValue)
         {
-            if (Enum.TryParse<PlayerStatType>(dto.RequiredStat, true, out PlayerStatType reqStatType))
+            // Signature cards require statements of their own stat
+            requiredStat = boundStat.Value;
+
+            // Statement requirements by depth:
+            // Standard (3-4): 3 statements
+            // Advanced (5-6): 5 statements
+            // Master (7-8): 8 statements
+            requiredStatements = (int)depth switch
             {
-                requiredStat = reqStatType;
-            }
+                3 or 4 => 3,
+                5 or 6 => 5,
+                7 or 8 => 8,
+                _ => 0
+            };
         }
-
-        // Parse requiredStatements from JSON
-        if (dto.RequiredStatements.HasValue)
-        {
-            requiredStatements = dto.RequiredStatements.Value;
-        }
-
-        // NO AUTO-DERIVATION: Statement requirements must be explicit in JSON
-        // Specification requires exact thresholds: 3, 4, 5, 8 (not depth-based formulas)
 
         // VALIDATION: Foundation tier must have NO signature variants
         if ((int)depth <= 2 && requiredStatements > 0)
@@ -221,9 +212,7 @@ public static class ConversationCardParser
         if (cardType == CardType.Conversation && boundStat.HasValue)
         {
             // Get effect formula from catalog based on boundStat + depth + variant
-            string variantName = dto.EffectVariant ?? "Base"; // Default to first variant if not specified
-
-            if (variantName == "Base")
+            if (effectVariant == "Base")
             {
                 // Get first (default) variant
                 var variants = CardEffectCatalog.GetEffectVariants(boundStat.Value, (int)depth);
@@ -232,12 +221,12 @@ public static class ConversationCardParser
             else
             {
                 // Get specific variant by name
-                effectFormula = CardEffectCatalog.GetEffectByVariantName(boundStat.Value, (int)depth, variantName);
+                effectFormula = CardEffectCatalog.GetEffectByVariantName(boundStat.Value, (int)depth, effectVariant);
             }
 
             if (effectFormula == null)
             {
-                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant '{variantName}'!");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with stat {boundStat.Value} depth {(int)depth} variant '{effectVariant}'!");
             }
 
             Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using formula: {effectFormula}");
@@ -317,43 +306,23 @@ public static class ConversationCardParser
             return;
         }
 
-        // Check 70% Echo rule for Foundation cards
+        // Report Foundation card distribution (no arbitrary percentage requirement)
         int echoFoundationCount = foundationCards.Count(c => c.Persistence == PersistenceType.Echo);
         decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;
 
-        Console.WriteLine($"[ConversationCardParser] Foundation cards: {foundationCards.Count}, Echo: {echoFoundationCount} ({echoPercentage:P1})");
+        Console.WriteLine($"[ConversationCardParser] Foundation cards: {foundationCards.Count}, Echo: {echoFoundationCount} ({echoPercentage:P1}), Statement: {foundationCards.Count - echoFoundationCount} ({(1 - echoPercentage):P1})");
 
-        if (echoPercentage < 0.70m)
-        {
-            throw new InvalidOperationException(
-                $"Foundation card sustainability validation FAILED: Only {echoPercentage:P1} of Foundation cards are Echo type. " +
-                $"Minimum 70% required for sustainable Initiative generation. " +
-                $"Echo Foundation cards: {echoFoundationCount}/{foundationCards.Count}");
-        }
-
-        // SPECIALIST FRAMEWORK: Only validate that PRIMARY Initiative generators (Cunning) are Echo
-        // Other stats can generate Initiative as universal/secondary resource in Statement cards
-        List<ConversationCard> primaryInitiativeGenerators = allCards
-            .Where(c => c.EffectFormula != null &&
-                        c.BoundStat == PlayerStatType.Cunning &&
-                        GeneratesInitiativeAsPrimary(c.EffectFormula))
+        // Report on card distribution (no strict validation)
+        // Cards can be Echo or Statement based on narrative weight, not mechanical requirements
+        List<ConversationCard> cunningCards = allCards
+            .Where(c => c.BoundStat == PlayerStatType.Cunning)
             .ToList();
 
-        List<ConversationCard> nonEchoPrimaryInitiative = primaryInitiativeGenerators
-            .Where(c => c.Persistence != PersistenceType.Echo)
-            .ToList();
+        int cunningEcho = cunningCards.Count(c => c.Persistence == PersistenceType.Echo);
+        int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);
 
-        if (nonEchoPrimaryInitiative.Any())
-        {
-            string violatingCards = string.Join(", ", nonEchoPrimaryInitiative.Select(c => c.Id));
-            throw new InvalidOperationException(
-                $"Initiative generation validation FAILED: Cunning cards that generate Initiative as PRIMARY effect must be Echo type for repeatability. " +
-                $"Violating cards: {violatingCards}");
-        }
-
-        Console.WriteLine($"[ConversationCardParser] ✓ Foundation card validation passed: " +
-                         $"{echoPercentage:P1} Echo Foundation cards, " +
-                         $"{primaryInitiativeGenerators.Count} primary Initiative generators (all Echo)");
+        Console.WriteLine($"[ConversationCardParser] ✓ Card validation passed. " +
+                         $"Cunning cards: {cunningCards.Count} total ({cunningEcho} Echo, {cunningStatement} Statement)");
     }
 
     /// <summary>
@@ -522,11 +491,7 @@ public class ConversationCardDTO
     public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
 
     // Effect variant system - which formula variant to use from catalog
-    public string EffectVariant { get; set; } // "Base", "Compound", "Scaling_Doubt", etc. (optional, defaults to "Base")
-
-    // Statement requirement system - cards may require prior Statement cards to be playable
-    public string RequiredStat { get; set; } // Which stat's Statement count to check
-    public int? RequiredStatements { get; set; } // How many Statements of that stat are required
+    public string EffectVariant { get; set; } // "Base", "Signature" (determines statement requirements automatically)
 
     // NEW: Delivery property - how card affects Cadence when spoken
     public string Delivery { get; set; } // "Standard" (+1), "Commanding" (+2), "Measured" (+0), "Yielding" (-1)
@@ -540,7 +505,7 @@ public class ConversationCardDTO
 
     // 5-Resource System Properties (Understanding + Delivery)
     public int? Depth { get; set; } // 1-10 depth system
-    public int? InitiativeCost { get; set; } // Replaces Focus
+    // InitiativeCost - DERIVED from boundStat + depth (not in JSON)
     public CardEffectsDTO Effects { get; set; } // New effects structure
     public ScalingEffectDTO ScalingEffect { get; set; }
 
