@@ -1212,5 +1212,18 @@ namespace Wayfarer.Pages.Components
                 _ => trait.ToString()
             };
         }
+
+        // ConversationalMove display methods
+        protected string GetCardMove(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Move == null) return "Remark";
+            return card.ConversationCardTemplate.Move.ToString();
+        }
+
+        protected string GetCardMoveClass(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Move == null) return "move-remark";
+            return $"move-{card.ConversationCardTemplate.Move.ToString().ToLower()}";
+        }
     }
 }

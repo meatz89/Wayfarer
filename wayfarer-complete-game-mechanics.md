@@ -661,14 +661,21 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 
 ### Initiative Economy Integration
 
-**Initiative Generation Through Builder/Spender**:
-- **Foundation Cards** (Depth 1-2, 0 Initiative cost): Generate 1-3 Initiative
-- **Standard Cards** (Depth 3-6, 3-5 Initiative cost): Core effects, no generation
-- **Decisive Cards** (Depth 7-10, 6-12 Initiative cost): Powerful effects requiring setup
-- **Base Initiative**: Starts at 3-6 based on stat levels, refreshes to base on LISTEN
+**Initiative Generation Through ConversationalMove Types**:
+- **Observations** (Foundation tier, 0 Initiative cost):
+  - Cunning Observations generate +3 Initiative
+  - Other stat Observations generate +1 Initiative (or their specialty resource)
+- **Remarks** (Authority Foundation tier, 0 Initiative cost): Generate +2 Momentum
+- **Arguments** (Depth 3+, 3-12 Initiative cost): Cost Initiative for compound effects
+- **Base Initiative**: Starts at 0 (must be generated from zero)
+
+**Initiative Generation is Derived from ConversationalMove**:
+- Remarks and Observations generate Initiative (+1 base, +3 for Cunning)
+- Arguments cost Initiative instead of generating it
+- The move type determines whether a card builds or spends Initiative
 
 **Resource Identity Separation**:
-- **Initiative**: Action economy for playing cards
+- **Initiative**: Action economy for playing cards (starts at 0, must generate)
 - **Momentum**: Progress toward conversation goals (8/12/16 thresholds)
 - **Doubt**: Timer (ends at 10) and conversation pressure
 - **Cadence**: Conversation balance affecting LISTEN (-5 to +10)
@@ -1046,12 +1053,14 @@ Conversations use a tier system that unlocks progressively deeper card options b
 ### Stat-Gated Depth System
 
 **Card Depth Architecture**:
-Each conversation type deck contains cards organized by depth (1-10):
-- **Depth 1-2**: Foundation cards (0 Initiative cost, generate Initiative)
-- **Depth 3-4**: Standard cards (0-4 Initiative cost)
-- **Depth 5-6**: Advanced cards (2-6 Initiative cost)
-- **Depth 7-8**: Powerful cards (4-8 Initiative cost)
-- **Depth 9-10**: Master cards (7-12 Initiative cost)
+Each conversation type deck contains cards organized by depth (1-10) with ConversationalMove determining effect category:
+- **Depth 1-2**: Foundation cards (0 Initiative cost)
+  - **Remarks** (Authority): Always generate Momentum
+  - **Observations** (Other stats): Generate stat specialty resources
+- **Depth 3-4**: Standard Arguments (3-5 Initiative cost, compound effects)
+- **Depth 5-6**: Advanced Arguments (5-8 Initiative cost, compound effects)
+- **Depth 7-8**: Powerful Arguments (7-10 Initiative cost, compound effects)
+- **Depth 9-10**: Master Arguments (9-12 Initiative cost, compound effects)
 
 **Depth Access Mechanics**:
 Your stat level determines maximum accessible depth for that stat's cards:
@@ -1081,64 +1090,75 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 
 #### Example Card Structures
 
-**Depth 1-2 Foundation (Steamworld Quest-Inspired)**
+**Depth 1-2 Foundation - ConversationalMove System**
 
-Foundation cards follow the "Strike" pattern from Steamworld Quest - ONE singular effect PLUS Initiative generation as a card property:
+Foundation cards are categorized by their ConversationalMove type (Remark or Observation):
 
-- **Initiative Generation**: ALL Foundation cards generate +1 Initiative when played (Cunning generates +3)
-- **Singular Effect**: Each card has ONE effect - +2 Momentum OR Draw 2 cards OR +2 Understanding OR -1 Doubt
+- **Remarks** (Authority depth 1-2): ALWAYS generate Momentum (+2 Foundation tier)
+  - Simple pointed statements pushing conversation forward
+  - Effect determined by the move type, not just the stat
+  - Examples: "This is how it is...", "I challenge that assumption..."
+
+- **Observations** (All other stats depth 1-2): Generate stat specialty resources
+  - Simple supportive comments for understanding and connection
+  - Cards for Insight, Understanding for Rapport, -Doubt for Diplomacy, Initiative for Cunning
+  - Examples: "Let me take a quick look...", "I understand what you mean..."
+
 - **0 Initiative Cost**: Foundation cards are free to play
 
-This mirrors Steamworld's Strike cards: ONE effect (damage) + ONE property (generates steam)
+The ConversationalMove property defines the card's effect category, replacing generic "Strike" patterns with contextually appropriate conversational actions.
 
-**Depth 3-4 Standard**
-- Initiative: 2-4
-- Requirement: 3-5+ Statements in Spoken
-- Effect: Higher Momentum/resource generation
+**Depth 3+ Standard/Advanced/Master - Arguments**
 
-**Depth 5-8 Advanced/Master**
-- Initiative: 4-8
-- Cost: May consume Momentum
-- Effect: Powerful multi-resource effects
+All cards at depth 3 and higher are categorized as Arguments:
 
-#### The Five Stats as Specialists with Universal Access
+- **Arguments** (Complex developed points):
+  - Requires conversational buildup to access
+  - MUST use compound effects (no single-resource effects allowed at depth 3+)
+  - Costs Initiative instead of generating it
+  - Examples: "These pieces fit together...", "Everything we've discussed reveals..."
 
-**CRITICAL DESIGN PRINCIPLE (Steamworld Quest-Inspired):**
+- **Initiative Costs**: 3-5 for Standard, 5-8 for Advanced, 8-12 for Master
+- **Requirements**: May require Statements in Spoken or other conditions
+- **Effects**: Compound formulas from catalog (determined by ConversationalMove + BoundStat + Depth)
 
-Foundation tier (depth 1-2) cards follow Steamworld Quest's pattern:
-- **Each card has ONE singular effect** (never compound)
-- **Initiative generation is a card property** (not part of the effect)
-- **All Foundation cards generate +1 Initiative** when played (Cunning generates +3)
-- **0 Initiative cost** to play
+#### The Five Stats and ConversationalMove Categories
 
-This ensures every Foundation play feels productive (singular effect) AND enabling (Initiative property).
+**CRITICAL DESIGN PRINCIPLE:**
 
-**Authority** (Momentum Specialist):
-- **Foundation**: "+2 Momentum" effect + +1 Initiative property (0 Initiative cost)
-- **Standard Example**: "+5 Momentum" effect (3 Initiative cost, compound effects allowed at higher tiers)
-- **Specialist**: Highest Momentum generation (+2-12)
+The ConversationalMove system categorizes cards by their conversational purpose, with effects determined by Move Type + BoundStat + Depth:
 
-**Insight** (Cards Specialist):
-- **Foundation**: "Draw 2 cards" effect + +1 Initiative property (0 Initiative cost)
-- **Standard Example**: "Draw 3 cards" effect (3 Initiative cost)
-- **Specialist**: Highest card draw (2-6 cards)
+**Authority** (Remark Specialist):
+- **Foundation (Depth 1-2)**: Remark move → Always generates Momentum (+2)
+  - Simple pointed statements: "This is how it is..."
+- **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
+  - Complex developed points: "Based on everything we've discussed..."
 
-**Rapport** (Understanding Specialist):
-- **Foundation**: "+2 Understanding" effect + +1 Initiative property (0 Initiative cost)
-- **Standard Example**: "+4 Understanding" effect (2 Initiative cost)
-- **Specialist**: Highest Understanding generation (+2-10)
+**Insight** (Observation Specialist - Cards):
+- **Foundation (Depth 1-2)**: Observation move → Generates Cards (+2)
+  - Noticing and analyzing: "Let me take a quick look..."
+- **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
+  - Analytical synthesis: "These pieces fit together..."
 
-**Diplomacy** (Doubt Specialist):
-- **Foundation**: "-1 Doubt" effect + +1 Initiative property (0 Initiative cost)
-- **Standard Example**: "-2 Doubt" effect (4 Initiative cost)
-- **Specialist**: Doubt reduction and crisis management (-1 to -6 Doubt)
+**Rapport** (Observation Specialist - Understanding):
+- **Foundation (Depth 1-2)**: Observation move → Generates Understanding (+2)
+  - Empathetic connection: "I understand what you mean..."
+- **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
+  - Deep emotional insight: "Everything you've shared reveals..."
 
-**Cunning** (Initiative Specialist):
-- **Foundation**: "No effect" (0 effect) + +3 Initiative property (0 Initiative cost)
-- **Standard Example**: "+4 Initiative" effect (2 Initiative cost)
-- **Specialist**: Highest Initiative generation (generates +3 at Foundation, +4-10 at higher tiers)
+**Diplomacy** (Observation Specialist - Doubt Reduction):
+- **Foundation (Depth 1-2)**: Observation move → Reduces Doubt (-1)
+  - Reassuring responses: "Don't worry about that..."
+- **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
+  - Diplomatic resolution: "We can find common ground here..."
 
-**KEY INSIGHT (Steamworld Pattern)**: Each card has ONE singular effect. Initiative generation is a PROPERTY of Foundation tier cards, not part of their effect formula. Like Steamworld's Strike cards that have ONE effect (damage) + ONE property (generates steam).
+**Cunning** (Observation Specialist - Initiative):
+- **Foundation (Depth 1-2)**: Observation move → Generates Initiative (+1, +3 for Cunning cards)
+  - Subtle positioning: "Interesting perspective..."
+- **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
+  - Strategic maneuvering: "If we consider the implications..."
+
+**KEY INSIGHT**: ConversationalMove (Remark/Observation/Argument) is the CORE categorical property that determines effect type. BoundStat determines which specialty the card uses. Depth determines power level and compound complexity.
 
 #### Card Persistence Types
 
@@ -1357,29 +1377,29 @@ Based on momentum thresholds achieved:
 
 ## Conversation Card Architecture
 
-### Builder/Spender Dynamic
+### Builder/Spender Dynamic Through ConversationalMove
 
-The core tactical loop requires using Foundation cards to generate Initiative from zero, enabling all other cards:
+The core tactical loop uses ConversationalMove types to manage Initiative and effects:
 
-#### Foundation Cards (Depth 1-2)
-- **Cost**: 0 Initiative
-- **Effect**: Generate 1-3 Initiative
-- **Purpose**: Essential starting point - nothing else playable without Initiative
-- **Example**: "Active Listening" - 0 Initiative, +2 Initiative
+#### Foundation Cards (Depth 1-2) - Remarks and Observations
+- **Cost**: 0 Initiative (always free to play)
+- **Remarks** (Authority depth 1-2): Generate Momentum to advance conversation
+- **Observations** (All other stats depth 1-2): Generate stat specialty resources
+  - Insight: Cards
+  - Rapport: Understanding
+  - Diplomacy: -Doubt
+  - Cunning: Initiative
+- **Purpose**: Essential starting point - build resources from zero
+- **Example**: "Active Listening" (Cunning Observation) - 0 Initiative cost, generates +3 Initiative
 
-#### Standard Cards (Depth 3-6)
-- **Cost**: 0-6 Initiative (overlapping ranges)
-- **Effect**: Core momentum and resource effects
-- **Purpose**: Primary conversation tools with varying costs
-- **Example**: "Thoughtful Response" - 4 Initiative, +5 Momentum
+#### Standard/Advanced Cards (Depth 3-10) - Arguments
+- **Cost**: 3-12 Initiative (requires buildup through Foundation plays)
+- **Effect**: Compound effects determined by ConversationalMove + BoundStat + Depth
+- **Purpose**: Powerful conversation tools requiring Initiative investment
+- **Arguments Cost Initiative**: Unlike Observations which generate resources, Arguments spend Initiative for compound effects
+- **Example**: "Thoughtful Analysis" (Insight Argument depth 5) - 5 Initiative cost, compound effect from catalog
 
-#### Decisive Cards (Depth 7-10)
-- **Cost**: 4-12 Initiative (requires significant buildup)
-- **Effect**: Powerful conversation-defining effects
-- **Purpose**: Win conditions requiring multi-turn setup
-- **Example**: "Perfect Understanding" - 10 Initiative, +12 Momentum
-
-Note that depths overlap in Initiative costs - a depth 8 card might cost only 4 Initiative if it's a simple effect, while a depth 4 card might cost 4 Initiative if it's complex. Depth gates variety and options, not raw power.
+The ConversationalMove system creates natural builder (Observations/Remarks) to spender (Arguments) progression. Foundation tier builds resources, Standard+ tier spends Initiative for complex effects.
 
 ### Scaling Through Visible State
 
@@ -1847,11 +1867,11 @@ Stories emerge from mechanical interaction, not scripting:
 
 ## Core Innovation Summary
 
-The refined conversation system creates strategic depth through resource management:
+The ConversationalMove system creates strategic depth through categorized conversational actions:
 
-### Initiative as Action Economy
+### ConversationalMove as Core Mechanic
 
-The builder/spender dynamic means you can't simply play your best cards. Foundation cards generate the Initiative needed for powerful effects, creating multi-turn planning and setup/payoff moments.
+The Remark/Observation/Argument system replaces generic builder/spender with contextually appropriate conversational moves. Remarks push conversation forward (Momentum), Observations notice and connect (specialty resources), Arguments develop complex points (compound effects). The move type determines the card's fundamental nature, not just the stat.
 
 ### Stats as Depth Gates
 

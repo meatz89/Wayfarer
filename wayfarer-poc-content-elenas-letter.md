@@ -92,14 +92,19 @@ Every card has:
   - Scaled increase ("+1 Momentum per 2 Statements")
   - Flat decrease ("-2 Doubt")
 
-### Foundation Cards Available at Level 1 (Steamworld Quest Pattern)
+### Foundation Cards Available at Level 1 (ConversationalMove System)
 Since all stats start at Level 1, players access only depth 1-2 cards:
 
 **Depth 1-2 (0 Initiative Cost) - Foundation Tier**:
-- **Initiative Property**: ALL Foundation cards generate +1 Initiative when played (Cunning generates +3)
-- **Singular Effect**: Each card has ONE effect - +2 Momentum OR Draw 2 cards OR +2 Understanding OR -1 Doubt
-- This mirrors Steamworld Quest's Strike cards: ONE effect + ONE property (generates steam/Initiative)
-- Create conversation foundation through repeated plays
+- **Remarks** (Authority depth 1-2): Always generate Momentum (+2)
+  - Simple pointed statements pushing conversation forward
+- **Observations** (Other stats depth 1-2): Generate stat specialty resources
+  - Insight: Cards (+2)
+  - Rapport: Understanding (+2)
+  - Diplomacy: -Doubt (-1)
+  - Cunning: Initiative (+1 base, +3 for Cunning cards)
+- ConversationalMove (Remark/Observation) determines the effect category
+- Create conversation foundation through contextually appropriate moves
 
 ## NPCs
 
@@ -460,11 +465,13 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ### Card Depth Architecture
 
-- **Depth 1-2**: Foundation (0 Initiative cost, generates +1 Initiative via card property, +3 for Cunning)
-- **Depth 3-4**: Standard (0-4 Initiative cost)
-- **Depth 5-6**: Advanced (2-6 Initiative cost)
-- **Depth 7-8**: Powerful (4-8 Initiative cost)
-- **Depth 9-10**: Master (7-12 Initiative cost)
+- **Depth 1-2**: Foundation - Remarks and Observations (0 Initiative cost)
+  - Remarks (Authority): Always generate Momentum
+  - Observations (Other stats): Generate specialty resources or Initiative
+- **Depth 3-4**: Standard Arguments (3-5 Initiative cost, compound effects)
+- **Depth 5-6**: Advanced Arguments (5-8 Initiative cost, compound effects)
+- **Depth 7-8**: Powerful Arguments (7-10 Initiative cost, compound effects)
+- **Depth 9-10**: Master Arguments (9-12 Initiative cost, compound effects)
 
 ### Stat Progression
 - **Level 1**: Access depths 1-2
@@ -513,12 +520,12 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 This POC demonstrates the complete Wayfarer experience:
 
-1. **Conversations drive everything**: Initiative management and Cadence balance create tactical depth
+1. **ConversationalMove system drives everything**: Remarks, Observations, and Arguments create contextually appropriate conversational flow
 2. **Stats are methodologies**: Unlock deeper card access as you develop
 3. **Strangers provide options**: Optional grinding for resources and XP
 4. **Stats gate content**: Higher stats unlock new solutions
 5. **Multiple builds work**: Time-optimal path exists but alternatives viable
 6. **Every choice matters**: Resource management shapes outcomes
-7. **Personality rules transform gameplay**: Same cards, different puzzle
+7. **Personality rules transform gameplay**: Same move types, different puzzle
 
-The scenario takes 30-45 minutes and teaches all core mechanics. Players finish understanding that success requires both tactical resource management (Initiative building, Cadence balance, momentum goals) and strategic character development through stat progression and depth access.
+The scenario takes 30-45 minutes and teaches all core mechanics. Players finish understanding that success requires both tactical conversational moves (Remarks for Momentum, Observations for resources, Arguments for compound effects) and strategic character development through stat progression and depth access.

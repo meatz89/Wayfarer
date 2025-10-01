@@ -579,15 +579,26 @@
     background: #5a7a8a;
 }
 
-/* Initiative Generation badge - Steamworld Quest pattern (Foundation cards) */
-.card-initiative-gen {
+/* ConversationalMove badges - Core categorical property display */
+.card-move {
     padding: 2px 6px;
     border-radius: 2px;
     font-size: 8px;
     font-weight: bold;
-    background: #f4c542; /* Gold - Initiative generation */
-    color: #2a2419;
+    color: #faf4ea;
     white-space: nowrap;
+}
+
+.card-move.move-remark {
+    background: #8b4726; /* Authority brown - pressing points */
+}
+
+.card-move.move-observation {
+    background: #5a7a8a; /* Insight blue - supportive comments */
+}
+
+.card-move.move-argument {
+    background: #7a5a8a; /* Purple - complex developed points */
 }
 
 .card-top-row {
