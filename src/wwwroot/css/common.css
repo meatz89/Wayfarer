@@ -79,7 +79,6 @@ body {
 
 .segment-dot.current {
     border-color: #d4a76a;
-    animation: pulse 2s infinite;
 }
 
 .segment-counter {

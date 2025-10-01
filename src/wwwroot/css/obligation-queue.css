@@ -407,7 +407,6 @@
 .letter-card.critical {
     border-color: #d4543e;
     border-width: 3px;
-    animation: pulse-border 2s infinite;
 }
 
 .letter-card.very-urgent {
@@ -415,8 +414,3 @@
     border-width: 2px;
 }
 
-@keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(212, 84, 62, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(212, 84, 62, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(212, 84, 62, 0); }
-}

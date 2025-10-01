@@ -538,7 +538,6 @@
 
 .segment-progress .segment-dot.current {
     background: #d4a76a;
-    animation: pulse 2s infinite;
 }
 
 /* Encounter Preview */

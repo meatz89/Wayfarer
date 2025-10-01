@@ -1122,6 +1122,21 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get tooltip explaining persistence type effects
+        /// </summary>
+        protected string GetPersistenceTooltip(CardInstance card)
+        {
+            if (card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo)
+            {
+                return "Echo: Repeatable card that doesn't count toward statement requirements";
+            }
+            else
+            {
+                return "Statement: Counts toward unlocking signature cards for this stat";
+            }
+        }
+
+        /// <summary>
         /// Get card depth level from JSON data
         /// </summary>
         protected int GetCardDepth(CardInstance card)

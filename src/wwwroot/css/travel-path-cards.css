@@ -465,7 +465,6 @@
     border-color: #8b4726;
     color: #8b4726;
     position: relative;
-    animation: pulse-warning 2s infinite;
 }
 
 .stat-requirement.unmet .current-level {
@@ -530,15 +529,6 @@
     opacity: 1;
 }
 
-@keyframes pulse-warning {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(139, 71, 37, 0);
-    }
-    50% {
-        box-shadow: 0 0 0 3px rgba(139, 71, 37, 0.2);
-    }
-}
-
 /* Encounter Warning */
 .encounter-warning {
     display: inline-block;
@@ -555,7 +545,6 @@
     padding: 15px;
     background: #e8dcc4;
     text-align: center;
-    border-top: 2px solid #a68b6f;
 }
 
 .action-choices {

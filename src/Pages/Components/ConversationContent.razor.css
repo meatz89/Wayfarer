@@ -275,6 +275,46 @@
     border-top-color: #2c241a;
 }
 
+.card-effects-tooltip {
+    text-align: left;
+    white-space: normal;
+    min-width: 200px;
+}
+
+.tooltip-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #d4a76a;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #5c4a3a;
+    padding-bottom: 4px;
+}
+
+.tooltip-section {
+    margin-bottom: 8px;
+}
+
+.tooltip-section:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-section strong {
+    color: #d4a76a;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.tooltip-section ul {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 10px;
+}
+
+.tooltip-section li {
+    margin: 2px 0;
+}
+
 /* Initiative Display */
 .initiative-display {
     background: #3d3429;
@@ -426,10 +466,18 @@
     color: #5c4a3a;
 }
 
-.card-initiative {
+.card-initiative-group {
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+.initiative-label {
+    font-size: 8px;
+    text-transform: uppercase;
+    color: #7a6250;
+    font-weight: bold;
+    letter-spacing: 0.3px;
 }
 
 .initiative-cost {
@@ -442,6 +490,34 @@
     line-height: 22px;
     font-weight: bold;
     font-size: 12px;
+}
+
+/* Delivery flag - in card-top-row next to stat badge */
+.card-delivery {
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #faf4ea;
+    white-space: nowrap;
+}
+
+/* Delivery type colors */
+.card-delivery.delivery-commanding {
+    background: #d4704a; /* Orange/red - aggressive +2 Cadence */
+}
+
+.card-delivery.delivery-standard {
+    background: #7a8b5a; /* Green/neutral - standard +1 Cadence */
+}
+
+.card-delivery.delivery-measured {
+    background: #5a7a8a; /* Blue - thoughtful +0 Cadence */
+}
+
+.card-delivery.delivery-yielding {
+    background: #8b7a5a; /* Brown - deferential -1 Cadence */
 }
 
 .card-depth {
@@ -489,9 +565,6 @@
 }
 
 .card-persistence {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     padding: 2px 6px;
     border-radius: 2px;
     font-size: 8px;
@@ -499,40 +572,25 @@
     font-weight: bold;
     background: #7a8b5a;
     color: #faf4ea;
+    white-space: nowrap;
 }
 
 .card-persistence.echo {
     background: #5a7a8a;
 }
 
-/* Delivery flag - shows Cadence effect on SPEAK */
-.card-delivery {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 2px 6px;
-    border-radius: 2px;
-    font-size: 8px;
-    text-transform: uppercase;
-    font-weight: bold;
-    color: #faf4ea;
+.card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
 }
 
-/* Delivery type colors (Cadence effects) */
-.delivery-commanding {
-    background: #d4704a; /* Orange/red - aggressive +2 Cadence */
-}
-
-.delivery-standard {
-    background: #7a8b5a; /* Green/neutral - standard +1 Cadence */
-}
-
-.delivery-measured {
-    background: #5a7a8a; /* Blue - thoughtful +0 Cadence */
-}
-
-.delivery-yielding {
-    background: #8b7a5a; /* Brown - deferential -1 Cadence */
+.card-flags {
+    display: flex;
+    gap: 6px;
+    align-items: center;
 }
 
 .stat-badge {
@@ -542,7 +600,6 @@
     font-size: 10px;
     font-weight: bold;
     text-transform: uppercase;
-    margin-bottom: 6px;
 }
 
 .stat-badge.insight {

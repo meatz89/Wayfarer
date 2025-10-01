@@ -131,13 +131,42 @@
                          @onclick="ExecuteListen"
                          disabled="@(IsGeneratingNarrative || IsProcessing)">
                         LISTEN
-                        <div class="tooltip">Effects: Cadence -2, Draw @(Session?.GetDrawCount() ?? 3) cards</div>
+                        <div class="tooltip card-effects-tooltip">
+                            <div class="tooltip-title">Listen</div>
+                            <div class="tooltip-section">
+                                <strong>Effects:</strong>
+                                <ul>
+                                    <li>Cadence: -2</li>
+                                    <li>Draw @(Session?.GetDrawCount() ?? 3) cards</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <div class="action-button primary @(SelectedCard == null || IsGeneratingNarrative || IsProcessing ? "disabled" : "")"
                          @onclick="ExecuteSpeak"
                          disabled="@(SelectedCard == null || IsGeneratingNarrative || IsProcessing)">
                         SPEAK
-                        <div class="tooltip">Effects: Cadence +1, Play a card from Mind</div>
+                        @if (SelectedCard != null)
+                        {
+                            <div class="tooltip card-effects-tooltip">
+                                <div class="tooltip-title">@GetProperCardName(SelectedCard)</div>
+                                <div class="tooltip-section">
+                                    <strong>Costs:</strong>
+                                    <ul>
+                                        <li>Initiative: @GetCardInitiativeCost(SelectedCard)</li>
+                                        <li>Cadence: @GetCardDeliveryCadenceEffect(SelectedCard)</li>
+                                    </ul>
+                                </div>
+                                <div class="tooltip-section">
+                                    <strong>Effects:</strong>
+                                    <div>@GetCardEffectDescription(SelectedCard)</div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="tooltip">Select a card to see effects</div>
+                        }
                     </div>
                 }
                 else
@@ -174,7 +203,6 @@
         <div class="tier-display">
             <div class="tier-info">
                 <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
-                <span class="tier-value">Unlocked Depths: 1-@GetUnlockedMaxDepth()</span>
                 <div class="tier-unlocks">
                     @foreach (var tier in GetAllTiers())
                     {
@@ -331,12 +359,16 @@
                         <!-- Card (matching mockup exactly) -->
                         <div class="card @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            <span class="card-persistence">@GetCardPersistenceType(convCard)</span>
-                            <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK: @GetCardDeliveryCadenceEffect(convCard)">
-                                @GetCardDelivery(convCard)
-                            </span>
                             <div class="card-content">
-                                <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
+                                <div class="card-top-row">
+                                    <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
+                                    <div class="card-flags">
+                                        <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK">
+                                            @GetCardDelivery(convCard) (@GetCardDeliveryCadenceEffect(convCard))
+                                        </span>
+                                        <span class="card-persistence" title="@GetPersistenceTooltip(convCard)">@GetCardPersistenceType(convCard)</span>
+                                    </div>
+                                </div>
 
                                 @* Card Traits Display *@
                                 @if (convCard.ConversationCardTemplate.Traits != null && convCard.ConversationCardTemplate.Traits.Any())
@@ -353,7 +385,8 @@
 
                                 <div class="card-header">
                                     <div class="card-name">@GetProperCardName(convCard)</div>
-                                    <div class="card-initiative">
+                                    <div class="card-initiative-group">
+                                        <div class="initiative-label">INITIATIVE</div>
                                         <div class="initiative-cost">@GetCardInitiativeCost(convCard)</div>
                                     </div>
                                 </div>
