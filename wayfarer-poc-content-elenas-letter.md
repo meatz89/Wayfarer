@@ -448,10 +448,10 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Reduced by cards that consume momentum
 
 **Cadence** - Conversation Balance:
-- Range: -5 to +5
+- Range: -10 to +10
 - Always starts at 0
 - SPEAK action: +1 Cadence
-- LISTEN action: -2 Cadence
+- LISTEN action: -1 Cadence
 - Positive Cadence: +1 Doubt per point on LISTEN
 - Negative Cadence: +1 card draw per point on LISTEN
 

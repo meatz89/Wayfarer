@@ -679,7 +679,7 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 **Daily Allocation**: 24 segments (6 blocks × 4 segments each)
 
 Time segments enable:
-- **Conversations** (1 segment + doubt depth): Access to letters and tokens
+- **Conversations** (1 segment + Statements in Spoken): Access to letters and tokens
 - **Investigations** (1 segment): Build location familiarity
 - **Observations** (1 segment): Discover cards or items for NPCs
 - **Work** (4 segments/full block): Coins but time cost, scaled by hunger
@@ -713,7 +713,7 @@ Time advances through:
 - **Travel**: Path cards cost segments directly
 - **Investigation**: 1 segment per action
 - **Work**: Full block advancement (4 segments)
-- **Conversation**: 1 segment base + doubt depth
+- **Conversation**: 1 segment base + Statements in Spoken
 - **Observation**: 1 segment when available
 
 Deadlines create cascading decisions:
@@ -817,7 +817,7 @@ Four types, each with distinct identity:
 - **Strategic Role**: Victory condition and consumable resource
 
 #### Cadence
-- **Range**: -5 to +5
+- **Range**: -10 to +10
 - **Always starts at 0**
 - **Changes**:
   - Each SPEAK action: +1 Cadence
@@ -835,6 +835,16 @@ Four types, each with distinct identity:
 - **Effect**: Conversation ends at 10 Doubt
 - **Reduction**: Through card effects that consume momentum
 - **Strategic Role**: Timer creating urgency and punishing conversation dominance
+
+#### Understanding
+- **Range**: 0 to unlimited
+- **Starting Value**: 0
+- **Accumulation**: Through card effects (specific cards generate Understanding)
+- **Effect**: Unlocks conversation tiers at thresholds, enabling access to deeper card depths
+- **Persistence**: Persists through LISTEN actions and throughout conversation
+- **Tier Unlocking**: Tier 1 always available, higher tiers unlock at specific Understanding thresholds
+- **Resets**: After conversation ends
+- **Strategic Role**: Progressive unlocking of sophisticated conversation options, rewards building depth over rushing
 
 ## Time Segment System
 
@@ -864,7 +874,7 @@ Time replaces abstract attention with concrete segments representing actual dura
 - Choosing path cards during travel
 
 **One Segment Actions** represent meaningful time:
-- Standard conversations (base cost + doubt depth)
+- Standard conversations (base cost + Statements in Spoken)
 - Investigation at any spot
 - Observation when available
 - Each segment of travel based on path cards
@@ -982,8 +992,8 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 - Others might get +1 card occasionally as secondary effect
 
 **Cadence** (Rapport Specialty):
-- Conversation Balance (-5 to +5)
-- +1 per SPEAK action, -2 per LISTEN action
+- Conversation Balance (-10 to +10)
+- +1 per SPEAK action, -1 per LISTEN action
 - Positive Cadence: +1 Doubt per point on LISTEN
 - Negative Cadence: +1 card draw per point on LISTEN
 - Rapport specializes in Cadence manipulation
@@ -1001,6 +1011,37 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 - Enables requirements for powerful cards
 - Determines conversation time cost (1 segment + Statements)
 - Represents accumulated conversation foundation
+
+**Understanding** - Conversation Depth Progression:
+- Accumulated sophistication and connection depth
+- Starts at 0 and increases through conversation
+- Persists through LISTEN actions (unlike other resources)
+- Unlocks conversation tiers at specific thresholds
+- Tiers determine maximum accessible card depths
+- Never decreases once earned
+- Creates progressive unlocking of deeper conversation options within a single conversation
+
+### Tier Unlock System
+
+Conversations use a tier system that unlocks progressively deeper card options based on accumulated Understanding:
+
+**Tier Structure**:
+- **Tier 1** (Understanding 0+): Depths 1-2 accessible (always unlocked)
+- **Tier 2** (Understanding threshold): Depths 3-4 accessible
+- **Tier 3** (Understanding threshold): Depths 5-6 accessible
+- **Tier 4** (Understanding threshold): Depths 7-8 accessible
+
+**Understanding Accumulation**:
+- Earned through playing cards with Understanding effects
+- Accumulates throughout the conversation
+- Persists between LISTEN actions
+- Once a tier unlocks, it remains unlocked for the rest of that conversation
+- Resets to 0 when conversation ends
+
+**Interaction with Stats**:
+- Your stat level determines which cards you can USE at a given depth
+- Understanding/Tiers determine which depths are AVAILABLE to draw from
+- Both systems work together: High stats + High Understanding = Access to powerful cards
 
 ### Stat-Gated Depth System
 
@@ -1830,12 +1871,13 @@ The balance between speaking and listening isn't just thematic - it mechanically
 
 ### Clear Resource Separation
 
-Five resources, five purposes, no overlap:
+Six resources, six purposes, no overlap:
 - Initiative: Action economy
 - Momentum: Progress track
 - Doubt: Timer
 - Cadence: Balance
 - Statements: Scaling
+- Understanding: Tier unlocking
 
 This is character progression through conversational mastery, not statistical advancement.
 
@@ -1857,7 +1899,7 @@ This is character progression through conversational mastery, not statistical ad
 - Depth 9-10: 9-12 Initiative
 
 **Cadence System**:
-- Range: -5 to +10
+- Range: -10 to +10
 - SPEAK action: +1 Cadence
 - LISTEN action: -1 Cadence
 - Cadence ≥ 6: +1 Doubt per point above 5 on LISTEN
@@ -1917,7 +1959,7 @@ This is character progression through conversational mastery, not statistical ad
 
 **Time per Day**: 24 segments (6 blocks × 4 segments)
 
-**Conversation Time**: 1 segment + accumulated doubt
+**Conversation Time**: 1 segment + Statements in Spoken
 
 **Hunger Increase**: +20 per time block
 
