@@ -256,17 +256,17 @@ public static class CardEffectCatalog
 
     // ==================== RAPPORT (UNDERSTANDING) ====================
     // PRIMARY: Understanding (+2/4/6/10)
-    // SECONDARY: Initiative, Momentum
-    // STEAMWORLD PATTERN: Foundation includes Type A (Strike) variants with Momentum+Initiative
+    // SECONDARY: Momentum (NOT Initiative - Initiative comes from ConversationalMove only!)
+    // CRITICAL: Arguments (depth 3+) COST Initiative, they never generate it
 
     private static List<CardEffectFormula> GetRapportEffects(int depth)
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
+            // Foundation (Depth 1-2) - Singular effect only
+            // Rapport Observations: +2 Understanding (Initiative generation comes from ConversationalMove.Observation)
             1 or 2 => new List<CardEffectFormula>
             {
-                // Rapport Foundation: +2 Understanding (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
@@ -275,57 +275,45 @@ public static class CardEffectCatalog
                 }
             },
 
-            // Standard (Depth 3-4) - Understanding +4, Initiative +1, Momentum +1
+            // Standard (Depth 3-4) - Compound: Understanding +4, Momentum +1
+            // Rapport Arguments: Understanding + Momentum (NO Initiative - Arguments COST Initiative!)
             3 or 4 => new List<CardEffectFormula>
             {
-                // Pure specialist: +4 Understanding
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Understanding,
-                    BaseValue = 4
-                },
-                // Specialist + both secondaries: +4 Understanding, +1 Initiative, +1 Momentum
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 }
                     }
                 }
             },
 
-            // Advanced (Depth 5-6) - Understanding +6, Initiative +2, Momentum +2
+            // Advanced (Depth 5-6) - Compound: Understanding +6, Momentum +3
             5 or 6 => new List<CardEffectFormula>
             {
-                // Specialist + both secondaries: +6 Understanding, +2 Initiative, +2 Momentum
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 6 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 4 }
                     }
                 }
             },
 
-            // Master (Depth 7-8) - Understanding +10, Initiative +3, Momentum +3
+            // Master (Depth 7-8) - Compound: Understanding +10, Momentum +5
             7 or 8 => new List<CardEffectFormula>
             {
-                // Specialist + both secondaries: +10 Understanding, +3 Initiative, +3 Momentum
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 10 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 6 }
                     }
                 }
             },
@@ -337,16 +325,17 @@ public static class CardEffectCatalog
     // ==================== AUTHORITY (MOMENTUM + UNDERSTANDING) ====================
     // PRIMARY: Momentum (+2/5/8/12)
     // SECONDARY: Understanding, +Doubt trade-off
-    // STEAMWORLD PATTERN: Authority is naturally Strike-focused (already generates Momentum)
+    // CRITICAL: Authority Remarks generate Momentum PLUS Initiative from ConversationalMove.Remark
+    // Arguments generate Momentum + Understanding but NO Initiative (Arguments COST Initiative!)
 
     private static List<CardEffectFormula> GetAuthorityEffects(int depth)
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
+            // Foundation (Depth 1-2) - Singular Momentum effect
+            // Authority Remarks: +2 Momentum (Initiative generation comes from ConversationalMove.Remark)
             1 or 2 => new List<CardEffectFormula>
             {
-                // Authority Foundation: +2 Momentum (SINGULAR EFFECT)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
@@ -355,50 +344,45 @@ public static class CardEffectCatalog
                 }
             },
 
-            // Standard (Depth 3-4) - Momentum +5, Understanding +1, Initiative +1
+            // Standard (Depth 3-4) - Compound: Momentum +5, Understanding +2
+            // Authority Arguments: Momentum + Understanding (NO Initiative - Arguments COST Initiative!)
             3 or 4 => new List<CardEffectFormula>
             {
-                // Specialist + secondaries: +5 Momentum, +1 Understanding, +1 Initiative
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 5 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 1 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 }
                     }
                 }
             },
 
-            // Advanced (Depth 5-6) - Momentum +8, Understanding +1, Initiative +2
+            // Advanced (Depth 5-6) - Compound: Momentum +8, Understanding +3
             5 or 6 => new List<CardEffectFormula>
             {
-                // Specialist + secondaries: +8 Momentum, +1 Understanding, +2 Initiative
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 8 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 }
                     }
                 }
             },
 
-            // Master (Depth 7-8) - Momentum +12, Understanding +2, Initiative +3
+            // Master (Depth 7-8) - Compound: Momentum +12, Understanding +4
             7 or 8 => new List<CardEffectFormula>
             {
-                // Specialist + secondaries: +12 Momentum, +2 Understanding, +3 Initiative
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 12 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 }
                     }
                 }
             },
@@ -481,83 +465,71 @@ public static class CardEffectCatalog
         };
     }
 
-    // ==================== CUNNING (INITIATIVE + UNDERSTANDING) ====================
-    // PRIMARY: Initiative (+2-10)
-    // SECONDARY: Understanding, Momentum
-    // SPECIAL: +Cadence at Advanced/Master tiers
-    // STEAMWORLD PATTERN: Cunning is naturally Setup-focused (generates Initiative)
+    // ==================== CUNNING (INITIATIVE SPECIALIST) ====================
+    // CRITICAL: Cunning's Initiative comes from ConversationalMove (Observations generate 3 Initiative!)
+    // PRIMARY EFFECT: Understanding, Momentum, Cadence (NO Initiative in effects!)
+    // Cunning Arguments provide tactical positioning effects: Understanding + Momentum + Cadence
+    // Foundation Observations have NO card effect - pure Initiative generation from ConversationalMove
 
     private static List<CardEffectFormula> GetCunningEffects(int depth)
     {
         return depth switch
         {
-            // Foundation (Depth 1-2) - Singular effect only (Initiative comes from card property)
-            // NOTE: Cunning Foundation cards have NO effect formula - they ONLY generate Initiative via property
-            // This makes them pure "steam generators" in Steamworld Quest terms
+            // Foundation (Depth 1-2) - NO card effect (pure Initiative from ConversationalMove.Observation)
+            // Cunning Observations generate 3 Initiative from GetInitiativeGeneration() - that's their ONLY purpose
+            // Use Understanding +0 as a no-op placeholder since parser requires a formula
             1 or 2 => new List<CardEffectFormula>
             {
-                // Cunning Foundation: No effect (pure Initiative generation via card property)
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Initiative,
-                    BaseValue = 0  // Effect is 0, actual Initiative comes from InitiativeGeneration property
+                    TargetResource = ConversationResourceType.Understanding,
+                    BaseValue = 0  // Cunning Foundation has NO effect - Initiative comes from ConversationalMove only
                 }
             },
 
-            // Standard (Depth 3-4) - Initiative +4, Understanding +2
+            // Standard (Depth 3-4) - Compound: Understanding +3, Momentum +3, Cadence +1
+            // Cunning Arguments: Tactical positioning (NO Initiative - Arguments COST Initiative!)
             3 or 4 => new List<CardEffectFormula>
             {
-                // Pure specialist: +4 Initiative
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Initiative,
-                    BaseValue = 4
-                },
-                // Specialist + Understanding + Momentum: +4 Initiative, +2 Understanding, +1 Momentum
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 1 }
-                    }
-                }
-            },
-
-            // Advanced (Depth 5-6) - Initiative +6, Understanding +3, +Cadence SPECIAL
-            5 or 6 => new List<CardEffectFormula>
-            {
-                // Specialist + Understanding + Momentum + Cadence: +6 Initiative, +3 Understanding, +2 Momentum, +1 Cadence
-                new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Compound,
-                    CompoundEffects = new List<CardEffectFormula>
-                    {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 6 },
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 3 },
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 1 }
                     }
                 }
             },
 
-            // Master (Depth 7-8) - Initiative +10, Understanding +4, +Cadence SPECIAL
-            7 or 8 => new List<CardEffectFormula>
+            // Advanced (Depth 5-6) - Compound: Understanding +4, Momentum +4, Cadence +2
+            5 or 6 => new List<CardEffectFormula>
             {
-                // Specialist + Understanding + Momentum + Cadence: +10 Initiative, +4 Understanding, +3 Momentum, +2 Cadence
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Initiative, BaseValue = 10 },
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 4 },
                         new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 2 }
+                    }
+                }
+            },
+
+            // Master (Depth 7-8) - Compound: Understanding +6, Momentum +6, Cadence +3
+            7 or 8 => new List<CardEffectFormula>
+            {
+                new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Compound,
+                    CompoundEffects = new List<CardEffectFormula>
+                    {
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 3 }
                     }
                 }
             },

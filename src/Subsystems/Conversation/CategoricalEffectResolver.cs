@@ -97,18 +97,11 @@ public class CategoricalEffectResolver
         };
 
         var effectsOnly = new List<string>();  // Card effects only (for card display)
-        var allChanges = new List<string>();   // All resource changes (for SPEAK preview)
 
-        // STEAMWORLD QUEST PATTERN: Derive Initiative generation from tier
-        // Foundation tier (depth 1-2) generates Initiative (like Strike/Upgrade cards generate steam)
-        // This is a CATEGORICAL EFFECT of the tier, not an explicit property
-        int initiativeGen = card.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
-        if (initiativeGen > 0)
-        {
-            result.InitiativeChange += initiativeGen;
-            // Add to allChanges for SPEAK preview, but NOT to effectsOnly (it's a tier effect, not card effect)
-            allChanges.Add($"+{initiativeGen} Initiative");
-        }
+        // CRITICAL: Initiative is NEVER a card effect
+        // Initiative generation comes ONLY from ConversationalMove type (Remark/Observation)
+        // Arguments COST Initiative, they never generate it
+        // NO card effect should ever modify Initiative
 
         // Use EffectFormula system for singular card effect
         CardEffectFormula formula = card.ConversationCardTemplate?.EffectFormula;
@@ -134,12 +127,9 @@ public class CategoricalEffectResolver
             ApplyFormulaToResult(formula, session, result, effectsOnly);
         }
 
-        // Add effects to allChanges
-        allChanges.AddRange(effectsOnly);
-
-        // Build descriptions
+        // Build descriptions - both are the same now (no Initiative generation to add)
         result.EffectOnlyDescription = effectsOnly.Any() ? string.Join(", ", effectsOnly) : "No effect";
-        result.EffectDescription = allChanges.Any() ? string.Join(", ", allChanges) : "No effect";
+        result.EffectDescription = effectsOnly.Any() ? string.Join(", ", effectsOnly) : "No effect";
 
         return result;
     }
@@ -153,10 +143,11 @@ public class CategoricalEffectResolver
         switch (formula.TargetResource)
         {
             case ConversationResourceType.Initiative:
-                result.InitiativeChange += effectValue;
-                if (effectValue != 0)
-                    effects.Add(effectValue > 0 ? $"+{effectValue} Initiative" : $"{effectValue} Initiative");
-                break;
+                // CRITICAL ERROR: Initiative should NEVER be a card effect target
+                // Initiative comes ONLY from ConversationalMove (Remark/Observation generate, Arguments cost)
+                throw new InvalidOperationException(
+                    $"INVALID CARD EFFECT: Card '{result.Card?.ConversationCardTemplate?.Id}' has Initiative as effect target. " +
+                    $"Initiative is NOT a card effect - it's a categorical property of ConversationalMove.");
 
             case ConversationResourceType.Momentum:
                 result.MomentumChange += effectValue;
