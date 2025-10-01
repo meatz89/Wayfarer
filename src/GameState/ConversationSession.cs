@@ -109,6 +109,15 @@ public class ConversationSession
         return baseDraw + cadenceBonus;
     }
 
+    /// <summary>
+    /// Get the cadence effect of LISTEN action for UI display
+    /// Single source of truth for LISTEN cadence mechanics
+    /// </summary>
+    public int GetListenCadenceEffect()
+    {
+        return -1; // LISTEN reduces cadence by 1
+    }
+
     // NEW: Initiative system methods (replacing Focus methods)
     public int GetCurrentInitiative() => CurrentInitiative;
 

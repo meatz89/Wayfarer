@@ -136,7 +136,7 @@
                             <div class="tooltip-section">
                                 <strong>Effects:</strong>
                                 <ul>
-                                    <li>Cadence: -1</li>
+                                    <li>Cadence: @(Session?.GetListenCadenceEffect() ?? -1)</li>
                                     <li>Draw @(Session?.GetDrawCount() ?? 3) cards</li>
                                 </ul>
                             </div>
