@@ -1222,6 +1222,11 @@ namespace Wayfarer.Pages.Components
             return Session?.UnlockedTiers?.Contains(tier) ?? (tier == 1);
         }
 
+        protected int GetTierUnlockThreshold(int tier)
+        {
+            return ConversationSession.GetTierUnlockThreshold(tier);
+        }
+
         // Statement count methods
         protected int GetStatementCount(string statName)
         {

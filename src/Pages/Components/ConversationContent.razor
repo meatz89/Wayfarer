@@ -177,16 +177,16 @@
                 <span class="tier-value">Unlocked Depths: 1-@GetUnlockedMaxDepth()</span>
                 <div class="tier-unlocks">
                     <span class="tier-badge @(IsTierUnlocked(1) ? "unlocked" : "locked")">
-                        TIER 1 (1-2)<br/><small>Understanding 0</small>
+                        TIER 1 (1-2)<br/><small>Understanding @GetTierUnlockThreshold(1)</small>
                     </span>
                     <span class="tier-badge @(IsTierUnlocked(2) ? "unlocked" : "locked")">
-                        TIER 2 (3-4)<br/><small>Understanding 6</small>
+                        TIER 2 (3-4)<br/><small>Understanding @GetTierUnlockThreshold(2)</small>
                     </span>
                     <span class="tier-badge @(IsTierUnlocked(3) ? "unlocked" : "locked")">
-                        TIER 3 (5-6)<br/><small>Understanding 12</small>
+                        TIER 3 (5-6)<br/><small>Understanding @GetTierUnlockThreshold(3)</small>
                     </span>
                     <span class="tier-badge @(IsTierUnlocked(4) ? "unlocked" : "locked")">
-                        TIER 4 (7-8)<br/><small>Understanding 18</small>
+                        TIER 4 (7-8)<br/><small>Understanding @GetTierUnlockThreshold(4)</small>
                     </span>
                 </div>
             </div>

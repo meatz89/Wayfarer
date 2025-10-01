@@ -185,8 +185,24 @@ public class ConversationSession
     }
 
     /// <summary>
+    /// Get the Understanding threshold required to unlock a specific tier
+    /// Tier 1 = 0 (always unlocked), Tier 2 = 6, Tier 3 = 12, Tier 4 = 18
+    /// SINGLE SOURCE OF TRUTH for tier unlock thresholds
+    /// </summary>
+    public static int GetTierUnlockThreshold(int tier)
+    {
+        return tier switch
+        {
+            1 => 0,   // Tier 1 always unlocked
+            2 => 6,   // Tier 2 unlocks at Understanding 6
+            3 => 12,  // Tier 3 unlocks at Understanding 12
+            4 => 18,  // Tier 4 unlocks at Understanding 18
+            _ => 0
+        };
+    }
+
+    /// <summary>
     /// Check current UNDERSTANDING and unlock tiers at thresholds
-    /// Understanding 6+ unlocks Tier 2, 12+ unlocks Tier 3, 18+ unlocks Tier 4
     /// Tiers persist once unlocked (never lock again)
     /// CRITICAL: Uses Understanding (not Momentum) for tier unlocking
     /// </summary>
@@ -194,25 +210,18 @@ public class ConversationSession
     {
         bool tiersChanged = false;
 
-        if (CurrentUnderstanding >= 6 && !UnlockedTiers.Contains(2))
+        // Check each tier using the centralized threshold logic
+        for (int tier = 2; tier <= 4; tier++)
         {
-            UnlockedTiers.Add(2);
-            tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 2 UNLOCKED at understanding {CurrentUnderstanding}! Depths 3-4 now accessible.");
-        }
-
-        if (CurrentUnderstanding >= 12 && !UnlockedTiers.Contains(3))
-        {
-            UnlockedTiers.Add(3);
-            tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 3 UNLOCKED at understanding {CurrentUnderstanding}! Depths 5-6 now accessible.");
-        }
-
-        if (CurrentUnderstanding >= 18 && !UnlockedTiers.Contains(4))
-        {
-            UnlockedTiers.Add(4);
-            tiersChanged = true;
-            Console.WriteLine($"[ConversationSession] TIER 4 UNLOCKED at understanding {CurrentUnderstanding}! Depths 7-8 now accessible.");
+            int threshold = GetTierUnlockThreshold(tier);
+            if (CurrentUnderstanding >= threshold && !UnlockedTiers.Contains(tier))
+            {
+                UnlockedTiers.Add(tier);
+                tiersChanged = true;
+                int minDepth = (tier - 1) * 2 + 1;
+                int maxDepth = tier * 2;
+                Console.WriteLine($"[ConversationSession] TIER {tier} UNLOCKED at understanding {CurrentUnderstanding}! Depths {minDepth}-{maxDepth} now accessible.");
+            }
         }
 
         if (tiersChanged)
