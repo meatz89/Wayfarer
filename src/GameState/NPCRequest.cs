@@ -46,20 +46,6 @@ public class NPCRequest
     public RequestStatus Status { get; set; } = RequestStatus.Available;
 
     /// <summary>
-    /// Request card IDs with different rapport thresholds offering varying rewards
-    /// Each card represents a different level of commitment to the request
-    /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
-    /// </summary>
-    public List<string> RequestCardIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Promise card IDs that force queue position 1 and burn tokens for instant rapport
-    /// These represent immediate action at the cost of other relationships
-    /// Cards are stored by ID only - actual cards are in GameWorld.AllCardDefinitions
-    /// </summary>
-    public List<string> PromiseCardIds { get; set; } = new List<string>();
-
-    /// <summary>
     /// Momentum thresholds for tiered rewards (used by stranger conversations)
     /// </summary>
     public List<int> MomentumThresholds { get; set; } = new List<int>();
@@ -88,63 +74,6 @@ public class NPCRequest
     public void Complete()
     {
         Status = RequestStatus.Completed;
-    }
-
-    /// <summary>
-    /// Get all cards associated with this request (both request and promise cards)
-    /// Resolves card IDs to actual cards from GameWorld
-    /// </summary>
-    public List<ConversationCard> GetAllCards(GameWorld gameWorld)
-    {
-        List<ConversationCard> allCards = new List<ConversationCard>();
-
-        // Resolve request card IDs
-        foreach (string cardId in RequestCardIds)
-        {
-            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
-            if (entry != null)
-                allCards.Add(entry.Card);
-        }
-
-        // Resolve promise card IDs
-        foreach (string cardId in PromiseCardIds)
-        {
-            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
-            if (entry != null)
-                allCards.Add(entry.Card);
-        }
-
-        return allCards;
-    }
-
-    /// <summary>
-    /// Get request cards by resolving IDs from GameWorld
-    /// </summary>
-    public List<ConversationCard> GetRequestCards(GameWorld gameWorld)
-    {
-        List<ConversationCard> cards = new List<ConversationCard>();
-        foreach (string cardId in RequestCardIds)
-        {
-            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
-            if (entry != null)
-                cards.Add(entry.Card);
-        }
-        return cards;
-    }
-
-    /// <summary>
-    /// Get promise cards by resolving IDs from GameWorld
-    /// </summary>
-    public List<ConversationCard> GetPromiseCards(GameWorld gameWorld)
-    {
-        List<ConversationCard> cards = new List<ConversationCard>();
-        foreach (string cardId in PromiseCardIds)
-        {
-            CardDefinitionEntry? entry = gameWorld.AllCardDefinitions.FindById(cardId);
-            if (entry != null)
-                cards.Add(entry.Card);
-        }
-        return cards;
     }
 }
 
@@ -190,6 +119,7 @@ public class RequestReward
 public class NPCRequestGoal
 {
     public string Id { get; set; }
+    public string CardId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int MomentumThreshold { get; set; }

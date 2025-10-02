@@ -78,13 +78,6 @@ public class ConversationDeckBuilder
             deck.AddRequestCard(requestCard);
         }
 
-        // Process promise cards and add them to the main deck
-        List<CardInstance> promiseCardInstances = CreatePromiseCardInstances(request, npc);
-        foreach (CardInstance promiseCard in promiseCardInstances)
-        {
-            deck.AddCard(promiseCard); // Promise cards go in main deck for shuffling
-        }
-
         // Shuffle the deck after all cards have been added
         deck.ShuffleDeckPile();
 
@@ -186,45 +179,31 @@ public class ConversationDeckBuilder
 
 
     /// <summary>
-    /// Create request card instances with proper rapport thresholds
+    /// Create request card instances from request goals
     /// </summary>
     private List<CardInstance> CreateRequestCardInstances(NPCRequest request, NPC npc)
     {
         List<CardInstance> requestCards = new List<CardInstance>();
 
-        foreach (string requestCardId in request.RequestCardIds)
+        // Load cards from goals (goals define the request cards)
+        foreach (NPCRequestGoal goal in request.Goals)
         {
-            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(requestCardId);
+            // Find the card created from this goal (CardId was set during parsing)
+            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(goal.CardId);
             if (cardEntry == null)
             {
-                Console.WriteLine($"[ConversationDeckBuilder] Warning: Request card ID '{requestCardId}' not found");
+                Console.WriteLine($"[ConversationDeckBuilder] ERROR: Goal card '{goal.CardId}' not found in AllCardDefinitions. This should never happen - cards are created during NPC parsing.");
                 continue;
             }
-            ConversationCard requestCard = cardEntry.Card;
+            ConversationCard goalCard = cardEntry.Card;
 
-            ConversationCard burdenGoalTemplate = new ConversationCard
-            {
-                Id = requestCard.Id,
-                Title = requestCard.Title,
-                InitiativeCost = requestCard.InitiativeCost,
-                TokenType = requestCard.TokenType,
-                Persistence = requestCard.Persistence,
-                SuccessType = requestCard.SuccessType,
-                DialogueText = requestCard.DialogueText,
-                VerbPhrase = requestCard.VerbPhrase,
-                PersonalityTypes = requestCard.PersonalityTypes,
-                LevelBonuses = requestCard.LevelBonuses,
-                MinimumTokensRequired = requestCard.MinimumTokensRequired,
-                MomentumThreshold = requestCard.MomentumThreshold,
-                CardType = CardType.Letter
-            };
-
-            CardInstance instance = new CardInstance(burdenGoalTemplate, npc.ID);
+            // Create instance from the goal card
+            CardInstance instance = new CardInstance(goalCard, npc.ID);
 
             // Store context for momentum threshold and request tracking
             instance.Context = new CardContext
             {
-                MomentumThreshold = requestCard.MomentumThreshold,
+                MomentumThreshold = goal.MomentumThreshold,
                 RequestId = request.Id
             };
 
@@ -232,33 +211,10 @@ public class ConversationDeckBuilder
             instance.IsPlayable = false;
 
             requestCards.Add(instance);
+            Console.WriteLine($"[ConversationDeckBuilder] Added request card '{goalCard.Title}' (threshold: {goal.MomentumThreshold}) to request pile");
         }
 
         return requestCards;
-    }
-
-    /// <summary>
-    /// Create promise card instances
-    /// </summary>
-    private List<CardInstance> CreatePromiseCardInstances(NPCRequest request, NPC npc)
-    {
-        List<CardInstance> promiseCards = new List<CardInstance>();
-
-        foreach (string promiseCardId in request.PromiseCardIds)
-        {
-            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(promiseCardId);
-            if (cardEntry == null)
-            {
-                Console.WriteLine($"[ConversationDeckBuilder] Warning: Promise card ID '{promiseCardId}' not found");
-                continue;
-            }
-            ConversationCard promiseCard = cardEntry.Card;
-
-            CardInstance instance = new CardInstance(promiseCard, npc.ID);
-            promiseCards.Add(instance);
-        }
-
-        return promiseCards;
     }
 
     /// <summary>

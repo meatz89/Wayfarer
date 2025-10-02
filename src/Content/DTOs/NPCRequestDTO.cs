@@ -11,8 +11,6 @@ public class NPCRequestDTO
     public string Description { get; set; }
     public string NpcRequestText { get; set; }
     public string ConversationTypeId { get; set; } // REQUIRED: Must specify which conversation type to use
-    public List<string> RequestCards { get; set; } = new List<string>();
-    public List<string> PromiseCards { get; set; } = new List<string>();
     public List<NPCRequestGoalDTO> Goals { get; set; } = new List<NPCRequestGoalDTO>();
 }
 

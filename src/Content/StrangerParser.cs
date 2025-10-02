@@ -64,9 +64,6 @@ public static class StrangerParser
             Description = dto.Description ?? "",
             ConversationTypeId = dto.ConversationTypeId ?? "", // Pass through EXACTLY - no mapping!
             Status = RequestStatus.Available,
-            // Don't populate RequestCardIds or PromiseCardIds - cards come from conversation type deck
-            RequestCardIds = new List<string>(),
-            PromiseCardIds = new List<string>(),
             MomentumThresholds = new List<int>(dto.MomentumThresholds ?? new List<int>()),
             Rewards = ConvertRewards(dto.Rewards)
         };

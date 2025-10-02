@@ -662,8 +662,7 @@ public class PackageLoader
                 List<NPCRequest> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
 
                 int totalPreservedCards = preservedExchangeCards.Count +
-                                        preservedObservationCards.Count + preservedBurdenCards.Count +
-                                        preservedRequests.SelectMany(r => r.PromiseCardIds).Count();
+                                        preservedObservationCards.Count + preservedBurdenCards.Count;
 
                 Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
                 Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
@@ -681,7 +680,7 @@ public class PackageLoader
                 }
 
                 // Create new NPC from DTO
-                NPC npc = NPCParser.ConvertDTOToNPC(dto);
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
 
                 // Restore preserved cards to the new NPC's persistent decks
                 if (preservedExchangeCards.Any())
@@ -721,7 +720,7 @@ public class PackageLoader
             else
             {
                 // No skeleton to replace, just create new NPC normally
-                NPC npc = NPCParser.ConvertDTOToNPC(dto);
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
                 _gameWorld.NPCs.Add(npc);
                 _gameWorld.WorldState.NPCs.Add(npc);
             }
@@ -1080,63 +1079,9 @@ public class PackageLoader
                         Status = RequestStatus.Available
                     };
 
-                    // Validate request card IDs - these are REQUIRED for the request to function
-                    if (requestDto.RequestCards != null)
-                    {
-                        foreach (string cardId in requestDto.RequestCards)
-                        {
-                            if (_gameWorld.AllCardDefinitions.Any(c => c.CardId == cardId))
-                            {
-                                request.RequestCardIds.Add(cardId);
-                                Console.WriteLine($"[PackageLoader] Added request card ID '{cardId}' to request '{requestDto.Id}'");
-                            }
-                            else
-                            {
-                                // Request cards are critical - log warning for now
-                                Console.WriteLine($"[PackageLoader] Warning: Request card '{cardId}' not found in GameWorld.AllCardDefinitions");
-                                // throw PackageLoadException.CreateMissingDependency(
-                                //     _currentPackageId,
-                                //     "NPCRequest",
-                                //     requestDto.Id,
-                                //     $"request card '{cardId}'",
-                                //     $"Ensure card '{cardId}' is defined with type 'Request' in the cards section");
-                            }
-                        }
-                    }
-
-                    // Validate promise card IDs - these are also REQUIRED if specified
-                    if (requestDto.PromiseCards != null)
-                    {
-                        foreach (string cardId in requestDto.PromiseCards)
-                        {
-                            if (_gameWorld.AllCardDefinitions.Any(c => c.CardId == cardId))
-                            {
-                                request.PromiseCardIds.Add(cardId);
-                                Console.WriteLine($"[PackageLoader] Added promise card ID '{cardId}' to request '{requestDto.Id}'");
-                            }
-                            else
-                            {
-                                // Promise cards are critical - throw exception
-                                throw PackageLoadException.CreateMissingDependency(
-                                    _currentPackageId,
-                                    "NPCRequest",
-                                    requestDto.Id,
-                                    $"promise card '{cardId}'",
-                                    $"Ensure card '{cardId}' is defined with type 'Promise' in the cards section");
-                            }
-                        }
-                    }
-
-                    // Only add the request if it has at least one card
-                    if (request.RequestCardIds.Count > 0 || request.PromiseCardIds.Count > 0)
-                    {
-                        npc.Requests.Add(request);
-                        Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.RequestCardIds.Count} request card IDs and {request.PromiseCardIds.Count} promise card IDs");
-                    }
-                    else
-                    {
-                        validationErrors.Add($"Request '{requestDto.Id}' has no request or promise cards defined");
-                    }
+                    // Add request to NPC (cards are created from goals during NPC parsing)
+                    npc.Requests.Add(request);
+                    Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.Goals.Count} goals");
                 }
                 catch (PackageLoadException)
                 {

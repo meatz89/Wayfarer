@@ -113,49 +113,21 @@
                             <h4 class="request-header">@request.Name (@request.Status)</h4>
                             <div class="request-description">@request.Description</div>
                             
-                            @{
-                                var requestCards = NPCRepository.GetRequestCards(request);
-                            }
-                            @if (requestCards.Any())
+                            @if (request.Goals.Any())
                             {
-                                <h5>Request Cards (@requestCards.Count):</h5>
+                                <h5>Request Goals (@request.Goals.Count):</h5>
                                 <div class="card-list">
-                                    @foreach (var card in requestCards)
+                                    @foreach (var goal in request.Goals)
                                     {
                                         <div class="debug-card letter-card request-card">
                                             <div class="card-header">
-                                                <span class="card-id">@card.Id</span>
-                                                <span class="card-name">@(card.Title ?? card.Id)</span>
-                                                <span class="request-type-badge">REQUEST</span>
+                                                <span class="card-id">@goal.Id</span>
+                                                <span class="card-name">@goal.Name</span>
+                                                <span class="request-type-badge">GOAL</span>
                                             </div>
                                             <div class="card-properties">
-                                                <span>Momentum Required: @card.MomentumThreshold</span>
-                                                <span>Focus: @card.InitiativeCost</span>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            
-                            @{
-                                var promiseCards = NPCRepository.GetPromiseCards(request);
-                            }
-                            @if (promiseCards.Any())
-                            {
-                                <h5>Promise Cards (@promiseCards.Count):</h5>
-                                <div class="card-list">
-                                    @foreach (var card in promiseCards)
-                                    {
-                                        <div class="debug-card promise-card">
-                                            <div class="card-header">
-                                                <span class="card-id">@card.Id</span>
-                                                <span class="card-name">@(card.Title ?? card.Id)</span>
-                                                <span class="request-type-badge">PROMISE</span>
-                                            </div>
-                                            <div class="card-properties">
-                                                <span>Queue Position: @card.QueuePosition</span>
-                                                <span>Instant Momentum: @card.InstantMomentum per token</span>
-                                                <span>Focus: @card.InitiativeCost</span>
+                                                <span>Momentum Required: @goal.MomentumThreshold</span>
+                                                <span>Description: @goal.Description</span>
                                             </div>
                                         </div>
                                     }

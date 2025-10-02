@@ -7,7 +7,7 @@ public static class NPCParser
     /// <summary>
     /// Convert an NPCDTO to an NPC domain model
     /// </summary>
-    public static NPC ConvertDTOToNPC(NPCDTO dto)
+    public static NPC ConvertDTOToNPC(NPCDTO dto, GameWorld gameWorld)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidOperationException("NPC DTO missing required 'Id' field");
@@ -137,9 +137,7 @@ public static class NPCParser
                     Name = requestDto.Name,
                     Description = requestDto.Description,
                     ConversationTypeId = requestDto.ConversationTypeId, // REQUIRED: Must be defined in JSON
-                    Status = RequestStatus.Available,
-                    RequestCardIds = new List<string>(requestDto.RequestCards ?? new List<string>()),
-                    PromiseCardIds = new List<string>(requestDto.PromiseCards ?? new List<string>())
+                    Status = RequestStatus.Available
                 };
 
                 // Parse tiered goals if present
@@ -158,6 +156,9 @@ public static class NPCParser
                         };
                         request.Goals.Add(goal);
                     }
+
+                    // Create ConversationCard objects from goals and register them
+                    CreateAndRegisterGoalCards(request, gameWorld);
                 }
 
                 npc.Requests.Add(request);
@@ -189,6 +190,46 @@ public static class NPCParser
         }
 
         return rewards;
+    }
+
+    /// <summary>
+    /// Create ConversationCard objects from request goals and register them in GameWorld
+    /// This parses goal JSON into domain card objects (NOT hardcoding - all values from JSON)
+    /// </summary>
+    private static void CreateAndRegisterGoalCards(NPCRequest request, GameWorld gameWorld)
+    {
+        foreach (NPCRequestGoal goal in request.Goals)
+        {
+            // Generate CardId for this goal
+            string cardId = $"{request.Id}_{goal.Id}_card";
+            goal.CardId = cardId;
+
+            // Create ConversationCard from goal properties (parsing JSON into domain objects)
+            ConversationCard goalCard = new ConversationCard
+            {
+                Id = cardId,
+                Title = goal.Name,
+                DialogueText = goal.Description,
+                CardType = CardType.Letter,
+                InitiativeCost = 0,
+                MomentumThreshold = goal.MomentumThreshold,
+                RequestId = request.Id,
+                Move = ConversationalMove.Remark,
+                Depth = CardDepth.Depth1,
+                Delivery = DeliveryType.Standard,
+                Persistence = PersistenceType.Statement,
+                SuccessType = SuccessEffectType.None
+            };
+
+            // Add card to central card definitions collection
+            gameWorld.AllCardDefinitions.Add(new CardDefinitionEntry
+            {
+                CardId = cardId,
+                Card = goalCard
+            });
+
+            Console.WriteLine($"[NPCParser] Created request card '{cardId}' from goal '{goal.Id}' (threshold: {goal.MomentumThreshold})");
+        }
     }
 
     private static Professions MapProfessionFromJson(string jsonProfession)

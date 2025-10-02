@@ -33,8 +33,6 @@
             "conversationTypeId": "desperate_request",
             "name": "Urgent Letter Delivery",
             "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
-            "requestCards": ["elena_letter_request", "elena_safety_request"],
-            "promiseCards": ["elena_priority_promise"],
             "goals": [
               {
                 "id": "elena_basic_goal",
@@ -101,8 +99,7 @@
             "conversationTypeId": "trade_negotiation",
             "name": "Trade Opportunities",
             "description": "Marcus seeks profitable trading partners",
-            "requestCards": ["marcus_trade_request", "marcus_business_proposal"],
-            "promiseCards": []
+            "goals": []
           }
         ]
       },
