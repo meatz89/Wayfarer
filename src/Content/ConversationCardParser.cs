@@ -84,45 +84,7 @@ public static class ConversationCardParser
         // Remark/Observation (simple conversational moves) generate Initiative
         // Argument (complex developed points) costs Initiative instead of generating it
 
-        // Parse persistence from JSON (this is a categorical property)
-        PersistenceType persistence = PersistenceType.Statement; // Default
-        if (!string.IsNullOrEmpty(dto.Persistence))
-        {
-            if (!Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence))
-            {
-                throw new InvalidOperationException(
-                    $"INVALID PERSISTENCE TYPE: Card '{dto.Id}' has invalid persistence '{dto.Persistence}'. " +
-                    $"Valid values: Statement, Echo");
-            }
-        }
-
-        // Parse conversational move from JSON (CORE categorical property - REQUIRED)
-        if (string.IsNullOrEmpty(dto.ConversationalMove))
-        {
-            throw new InvalidOperationException(
-                $"MISSING CONVERSATIONAL MOVE: Card '{dto.Id}' must have 'conversationalMove' property. " +
-                $"Valid values: Remark, Observation, Argument");
-        }
-
-        if (!Enum.TryParse<ConversationalMove>(dto.ConversationalMove, true, out ConversationalMove move))
-        {
-            throw new InvalidOperationException(
-                $"INVALID CONVERSATIONAL MOVE: Card '{dto.Id}' has invalid conversationalMove '{dto.ConversationalMove}'. " +
-                $"Valid values: Remark, Observation, Argument");
-        }
-
-        // Parse effects from new structure and determine success type
-        SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
-
-        // VALIDATION: Cards with draw effects MUST be Statement persistence
-        if (successType == SuccessEffectType.Threading && persistence != PersistenceType.Statement)
-        {
-            throw new InvalidOperationException(
-                $"DRAW EFFECT PERSISTENCE VIOLATION: Card '{dto.Id}' has draw cards effect (Threading) but persistence is '{persistence}'. " +
-                $"Cards with draw effects MUST be Statement persistence, not Echo. This ensures draw effects have narrative weight.");
-        }
-
-        // Parse card type from DTO type field - MUST be defined early as it's used in validation
+        // CRITICAL: Parse card type FIRST - determines which other fields are required
         CardType cardType = CardType.Conversation; // Default
         if (!string.IsNullOrEmpty(dto.Type))
         {
@@ -141,6 +103,51 @@ public static class ConversationCardParser
                         $"Valid values: Conversation, Letter, Promise, Burden, Observation")
                 };
             }
+        }
+
+        // Parse persistence from JSON (this is a categorical property)
+        PersistenceType persistence = PersistenceType.Statement; // Default
+        if (!string.IsNullOrEmpty(dto.Persistence))
+        {
+            if (!Enum.TryParse<PersistenceType>(dto.Persistence, true, out persistence))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID PERSISTENCE TYPE: Card '{dto.Id}' has invalid persistence '{dto.Persistence}'. " +
+                    $"Valid values: Statement, Echo");
+            }
+        }
+
+        // Parse conversational move - ONLY required for Conversation cards
+        ConversationalMove? move = null;
+        if (cardType == CardType.Conversation)
+        {
+            // Conversation cards REQUIRE conversationalMove
+            if (string.IsNullOrEmpty(dto.ConversationalMove))
+            {
+                throw new InvalidOperationException(
+                    $"MISSING CONVERSATIONAL MOVE: Conversation card '{dto.Id}' must have 'conversationalMove' property. " +
+                    $"Valid values: Remark, Observation, Argument");
+            }
+
+            if (!Enum.TryParse<ConversationalMove>(dto.ConversationalMove, true, out ConversationalMove parsedMove))
+            {
+                throw new InvalidOperationException(
+                    $"INVALID CONVERSATIONAL MOVE: Card '{dto.Id}' has invalid conversationalMove '{dto.ConversationalMove}'. " +
+                    $"Valid values: Remark, Observation, Argument");
+            }
+            move = parsedMove;
+        }
+        // Letter/Promise/Burden cards don't have conversational moves (they're not part of conversation mechanics)
+
+        // Parse effects from new structure and determine success type
+        SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
+
+        // VALIDATION: Cards with draw effects MUST be Statement persistence
+        if (successType == SuccessEffectType.Threading && persistence != PersistenceType.Statement)
+        {
+            throw new InvalidOperationException(
+                $"DRAW EFFECT PERSISTENCE VIOLATION: Card '{dto.Id}' has draw cards effect (Threading) but persistence is '{persistence}'. " +
+                $"Cards with draw effects MUST be Statement persistence, not Echo. This ensures draw effects have narrative weight.");
         }
 
         // Validate momentum threshold for goal cards
@@ -209,14 +216,15 @@ public static class ConversationCardParser
         {
             // Get effect formula from catalog using ONLY categorical properties
             // Card ID hash determines if Foundation card gets specialty or Momentum effect
-            effectFormula = CardEffectCatalog.GetEffectFromCategoricalProperties(move, boundStat.Value, (int)depth, dto.Id);
+            // move must have value here (only Conversation cards enter this block, and they always have move set)
+            effectFormula = CardEffectCatalog.GetEffectFromCategoricalProperties(move.Value, boundStat.Value, (int)depth, dto.Id);
 
             if (effectFormula == null)
             {
-                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move} stat {boundStat.Value} depth {(int)depth}!");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move.Value} stat {boundStat.Value} depth {(int)depth}!");
             }
 
-            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move} formula: {effectFormula}");
+            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move.Value} formula: {effectFormula}");
         }
 
         // Parse Delivery property (NEW: Controls cadence on SPEAK)

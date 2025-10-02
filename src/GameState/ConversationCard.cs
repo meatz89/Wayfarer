@@ -14,7 +14,7 @@ public class ConversationCard
     // Categorical properties that define behavior through context
     public PersistenceType Persistence { get; init; } = PersistenceType.Statement;
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
-    public ConversationalMove Move { get; init; } = ConversationalMove.Remark;
+    public ConversationalMove? Move { get; init; } // Null for Letter/Promise/Burden cards (not part of conversation mechanics)
 
 
     // New 5-Resource System Properties
@@ -103,6 +103,9 @@ public class ConversationCard
     /// </summary>
     public int GetInitiativeGeneration()
     {
+        // Letter/Promise/Burden cards (Move == null) don't generate Initiative
+        if (!Move.HasValue) return 0;
+
         // Arguments never generate Initiative (they COST it instead)
         if (Move == ConversationalMove.Argument) return 0;
 

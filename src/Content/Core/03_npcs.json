@@ -36,6 +36,7 @@
             "goals": [
               {
                 "id": "elena_basic_goal",
+                "cardId": "elena_basic_delivery",
                 "name": "Letter Delivery",
                 "description": "Deliver Elena's letter to Lord Blackwood",
                 "momentumThreshold": 8,
@@ -47,6 +48,7 @@
               },
               {
                 "id": "elena_enhanced_goal",
+                "cardId": "elena_enhanced_delivery",
                 "name": "Letter + Safety Escort",
                 "description": "Deliver the letter and escort Elena to safety",
                 "momentumThreshold": 12,
@@ -59,6 +61,7 @@
               },
               {
                 "id": "elena_premium_goal",
+                "cardId": "elena_premium_delivery",
                 "name": "Complete Protection",
                 "description": "Letter delivery, safety escort, and additional protection services",
                 "momentumThreshold": 16,

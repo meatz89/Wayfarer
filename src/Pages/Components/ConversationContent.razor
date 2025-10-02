@@ -319,18 +319,25 @@
                     {
                         <div class="card promise @GetCardDepthClass(convCard) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
                              @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="card-depth-marker">@GetDepthDisplayName(convCard)</div>
-                            <div class="promise-threshold @((Session?.MomentumManager?.CurrentMomentum ?? 0) >= (convCard?.Context?.MomentumThreshold ?? 0) ? "promise-active" : "")">
-                                Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.MomentumManager?.CurrentMomentum ?? 0))
+                            @* Request cards don't show depth marker - they use momentum thresholds instead *@
+                            <div class="promise-threshold @((Session?.CurrentMomentum ?? 0) >= (convCard?.Context?.MomentumThreshold ?? 0) ? "promise-active" : "")">
+                                Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.CurrentMomentum ?? 0))
                             </div>
                             <div class="card-content">
                                 <!-- Top row: Stat badge -->
                                 <div class="card-top-row">
                                     <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat ?? PlayerStatType.Rapport))
-                                        @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
+                                        @if (convCard.ConversationCardTemplate.CardType == CardType.Letter)
                                         {
-                                            <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
+                                            <span>REQUEST</span>
+                                        }
+                                        else
+                                        {
+                                            <text>@GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat.Value))</text>
+                                            @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
+                                            {
+                                                <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
+                                            }
                                         }
                                     </div>
                                 </div>

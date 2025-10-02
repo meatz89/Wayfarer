@@ -171,8 +171,8 @@ namespace Wayfarer.Pages.Components
                     GenerateListenNarrative();
                 }
 
-                // Check for request cards becoming available
-                ConversationFacade.CheckAndMoveRequestCards();
+                // Request card activation already handled in backend ConversationFacade.ExecuteListen()
+                // No need to check again here - CheckGoalCardActivation uses correctly reduced momentum
 
                 // Refresh resource display
                 if (GameScreen != null)
@@ -742,14 +742,24 @@ namespace Wayfarer.Pages.Components
         {
             // Static UI: Return simple list of current hand cards
             var handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-            var displayCards = new List<CardDisplayInfo>();
 
-            foreach (var card in handCards)
+            // CRITICAL: Request cards MUST appear first (user requirement)
+            var sortedCards = handCards
+                .OrderBy(card =>
+                {
+                    CardType type = card.ConversationCardTemplate.CardType;
+                    // Request cards (Letter/Promise/Burden) get priority 0, others get priority 1
+                    return (type == CardType.Letter || type == CardType.Promise || type == CardType.Burden) ? 0 : 1;
+                })
+                .ToList();
+
+            var displayCards = new List<CardDisplayInfo>();
+            foreach (var card in sortedCards)
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
 
-            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards");
+            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards (request cards first)");
             return displayCards;
         }
 

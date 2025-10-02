@@ -185,15 +185,14 @@ public class ConversationDeckBuilder
     {
         List<CardInstance> requestCards = new List<CardInstance>();
 
-        // Load cards from goals (goals define the request cards)
+        // Load cards from goals (goals reference cards from 02_cards.json)
         foreach (NPCRequestGoal goal in request.Goals)
         {
-            // Find the card created from this goal (CardId was set during parsing)
+            // Find the card referenced by this goal (CardId references card in 02_cards.json)
             CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(goal.CardId);
             if (cardEntry == null)
             {
-                Console.WriteLine($"[ConversationDeckBuilder] ERROR: Goal card '{goal.CardId}' not found in AllCardDefinitions. This should never happen - cards are created during NPC parsing.");
-                continue;
+                throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in 02_cards.json and referenced in NPC goal.");
             }
             ConversationCard goalCard = cardEntry.Card;
 
