@@ -16,6 +16,7 @@ public class ConversationTurnResult
     public bool ExchangeAccepted { get; set; }
     public NarrativeOutput Narrative { get; set; }  // Full narrative output for this turn
     public string PersonalityViolation { get; set; }  // Message when personality rule is violated
+    public bool EndsConversation { get; set; }  // Request cards end conversation immediately
 
     public ConversationTurnResult()
     {

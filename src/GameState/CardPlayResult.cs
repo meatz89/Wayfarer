@@ -13,6 +13,7 @@ public class CardPlayResult
     public bool ManipulatedObligations { get; init; }
     public List<LetterNegotiationResult> LetterNegotiations { get; init; } = new List<LetterNegotiationResult>();
     public string PlayerNarrative { get; init; }  // What the player said through their card
+    public bool EndsConversation { get; init; }  // Request cards end conversation immediately
 
     public bool Success
     {

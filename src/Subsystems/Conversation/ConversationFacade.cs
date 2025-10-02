@@ -388,7 +388,8 @@ public class ConversationFacade
             NPCResponse = narrative.NPCDialogue,
             FlowChange = 0, // No flow             OldFlow = 0, // No flow             NewFlow = 0, // No flow             DoubtLevel = _currentSession.CurrentDoubt,
             CardPlayResult = playResult,
-            Narrative = narrative
+            Narrative = narrative,
+            EndsConversation = playResult.EndsConversation // Request cards end conversation
         };
 
         // Add turn to history
@@ -862,6 +863,11 @@ public class ConversationFacade
             ApplyProjectionToSession(projection, session);
         }
 
+        // Check if card ends conversation (Request, Promise, Burden cards)
+        bool endsConversation = selectedCard.ConversationCardTemplate.CardType == CardType.Request ||
+                                selectedCard.ConversationCardTemplate.CardType == CardType.Promise ||
+                                selectedCard.ConversationCardTemplate.CardType == CardType.Burden;
+
         // Create play result
         return new CardPlayResult
         {
@@ -876,7 +882,8 @@ public class ConversationFacade
                     SuccessChance = success ? 100 : 0
                 }
             },
-            MomentumGenerated = 0 // No flow
+            MomentumGenerated = 0, // No flow
+            EndsConversation = endsConversation // Request cards end conversation
         };
     }
 
@@ -1013,6 +1020,18 @@ public class ConversationFacade
     /// </summary>
     private bool ShouldEndConversation(ConversationSession session)
     {
+        // End if request card was played (request cards end conversation immediately)
+        if (session.TurnHistory != null && session.TurnHistory.Any())
+        {
+            ConversationTurn lastTurn = session.TurnHistory.Last();
+            if (lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Request ||
+                lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Promise ||
+                lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Burden)
+            {
+                return true;
+            }
+        }
+
         // End if doubt at maximum (10 pips filled)
         if (session.CurrentDoubt >= session.MaxDoubt)
             return true;
@@ -1449,6 +1468,99 @@ public class ConversationFacade
         foreach (CardInstance card in playedCards)
         {
             Console.WriteLine($"[ConversationFacade] Processing card {card.ConversationCardTemplate.Title}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
+
+            // Handle request card completion (Request, Promise, Burden)
+            if (card.ConversationCardTemplate.CardType == CardType.Request ||
+                card.ConversationCardTemplate.CardType == CardType.Promise ||
+                card.ConversationCardTemplate.CardType == CardType.Burden)
+            {
+                NPCRequest request = _currentSession.NPC.GetRequestById(_currentSession.RequestId);
+                if (request == null)
+                {
+                    Console.WriteLine($"[HandleSpecialCardEffects] WARNING: Request '{_currentSession.RequestId}' not found for NPC '{_currentSession.NPC.Name}'");
+                    continue;
+                }
+
+                // Find matching goal by card ID
+                NPCRequestGoal goal = request.Goals.FirstOrDefault(g => g.CardId == card.ConversationCardTemplate.Id);
+                if (goal == null)
+                {
+                    Console.WriteLine($"[HandleSpecialCardEffects] WARNING: No goal found for card '{card.ConversationCardTemplate.Id}'");
+                    continue;
+                }
+
+                Player player = _gameWorld.GetPlayer();
+
+                // GRANT COINS
+                if (goal.Rewards.Coins.HasValue)
+                {
+                    player.Coins += goal.Rewards.Coins.Value;
+                    _messageSystem.AddSystemMessage($"Received {goal.Rewards.Coins.Value} coins", SystemMessageTypes.Success);
+                }
+
+                // GRANT TOKENS (using existing AddTokensToNPC)
+                if (goal.Rewards.Tokens != null && goal.Rewards.Tokens.Any())
+                {
+                    foreach (var tokenEntry in goal.Rewards.Tokens)
+                    {
+                        ConnectionType tokenType = Enum.Parse<ConnectionType>(tokenEntry.Key);
+                        _tokenManager.AddTokensToNPC(tokenType, tokenEntry.Value, _currentSession.NPC.ID);
+                        _messageSystem.AddSystemMessage($"Gained {tokenEntry.Value} {tokenEntry.Key} with {_currentSession.NPC.Name}", SystemMessageTypes.Success);
+                    }
+                }
+
+                // GRANT LETTER (create DeliveryObligation like CreateUrgentLetter does)
+                if (!string.IsNullOrEmpty(goal.Rewards.LetterId))
+                {
+                    // Find recipient (first other NPC)
+                    List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != _currentSession.NPC.ID).ToList();
+                    NPC recipient = otherNpcs.FirstOrDefault();
+
+                    if (recipient != null)
+                    {
+                        DeliveryObligation letter = new DeliveryObligation
+                        {
+                            Id = goal.Rewards.LetterId,  // Use reward letterId as obligation ID
+                            SenderId = _currentSession.NPC.ID,
+                            SenderName = _currentSession.NPC.Name,
+                            RecipientId = recipient.ID,
+                            RecipientName = recipient.Name,
+                            TokenType = ConnectionType.Trust,
+                            Stakes = StakeType.REPUTATION,
+                            DeadlineInSegments = 72, // 3 days default
+                            Payment = 10, // Default payment
+                            Tier = TierLevel.T1,
+                            EmotionalFocus = EmotionalFocus.MEDIUM,
+                            Description = $"Letter from {_currentSession.NPC.Name} ({goal.Name})"
+                        };
+
+                        _queueManager.AddObligation(letter);  // Uses existing ObligationQueueManager method
+                        _messageSystem.AddSystemMessage("Received letter delivery obligation", SystemMessageTypes.Info);
+                    }
+                }
+
+                // GRANT OBLIGATION (standalone obligation string - use as standing obligation)
+                if (!string.IsNullOrEmpty(goal.Rewards.Obligation))
+                {
+                    // Obligations appear to be strings representing obligation names/types
+                    // Add as system message for now - proper obligation system unclear
+                    _messageSystem.AddSystemMessage($"New obligation: {goal.Rewards.Obligation}", SystemMessageTypes.Info);
+                    Console.WriteLine($"[HandleSpecialCardEffects] TODO: Grant obligation '{goal.Rewards.Obligation}'");
+                }
+
+                // GRANT ITEM (using existing Inventory.AddItem)
+                if (!string.IsNullOrEmpty(goal.Rewards.Item))
+                {
+                    player.Inventory.AddItem(goal.Rewards.Item);
+                    _messageSystem.AddSystemMessage($"Received item: {goal.Rewards.Item}", SystemMessageTypes.Success);
+                }
+
+                // MARK REQUEST AS COMPLETED
+                request.Complete();
+                _messageSystem.AddSystemMessage($"Completed request: {goal.Name}", SystemMessageTypes.Success);
+
+                Console.WriteLine($"[HandleSpecialCardEffects] Request card '{card.ConversationCardTemplate.Id}' completed, granted rewards from goal '{goal.Id}'");
+            }
 
             // Handle exchange cards (exchanges use separate ExchangeCard system)
             if (card.Context?.ExchangeData != null)
