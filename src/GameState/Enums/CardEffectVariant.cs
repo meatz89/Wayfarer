@@ -7,10 +7,18 @@ public enum CardEffectVariant
 {
     /// <summary>
     /// Default base effect for the stat/depth combination.
-    /// At Foundation (depth 1-2): Maps to Strike pattern (+2 Momentum, +1 Initiative, +stat flavor)
+    /// At Foundation (depth 1-2): Generates stat specialty resource (+2 for specialists)
     /// At Standard+ (depth 3+): Uses first variant in catalog
     /// </summary>
     Base,
+
+    /// <summary>
+    /// Foundation Momentum variant: Generates Momentum +1 (universal access for non-specialists)
+    /// Used to implement "Specialist with Universal Access" model where ALL stats can generate Momentum.
+    /// Authority specializes with +2, other stats provide universal access with +1.
+    /// Distribution: ~30% of non-Authority Foundation cards use this variant.
+    /// </summary>
+    Momentum,
 
     /// <summary>
     /// Foundation Type A: Strike pattern (+2 Momentum, +1 Initiative, +stat flavor)

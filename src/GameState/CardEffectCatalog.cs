@@ -54,33 +54,37 @@ public static class CardEffectCatalog
     }
 
     /// <summary>
-    /// Get a specific effect variant by enum.
-    /// Type-safe variant selection for card effects using CORE categorical properties:
-    /// - ConversationalMove (Remark/Observation/Argument) determines effect category
-    /// - BoundStat determines resource specialty
-    /// - Depth determines magnitude
+    /// Get effect formula from ONLY categorical properties (no JSON variant needed).
+    /// Effect determined by: ConversationalMove + BoundStat + Depth + Card ID
     ///
-    /// CRITICAL RULES:
+    /// CRITICAL: Specialization through card distribution:
+    /// - Card ID hash determines if Foundation card gets specialty or Momentum effect
+    /// - ~50% of Foundation cards per stat get Momentum (universal access)
+    /// - ~50% get specialty resource (Understanding/Cards/-Doubt)
+    /// - Authority always gets Momentum (specialist)
+    ///
+    /// RULES:
     /// - Remark ALWAYS generates Momentum (pressing conversational points)
-    /// - Observation generates stat specialty resource (cards, understanding, -doubt)
+    /// - Observation generates EITHER specialty resource OR Momentum based on card ID
     /// - Argument uses complex compound effects
     /// </summary>
-    public static CardEffectFormula GetEffectByVariant(ConversationalMove move, PlayerStatType stat, int depth, CardEffectVariant variant)
+    public static CardEffectFormula GetEffectFromCategoricalProperties(ConversationalMove move, PlayerStatType stat, int depth, string cardId)
     {
         // CONVERSATIONAL MOVE determines the effect category
         return move switch
         {
-            ConversationalMove.Remark => GetRemarkEffect(stat, depth, variant),
-            ConversationalMove.Observation => GetObservationEffect(stat, depth, variant),
-            ConversationalMove.Argument => GetArgumentEffect(stat, depth, variant),
+            ConversationalMove.Remark => GetRemarkEffect(stat, depth),
+            ConversationalMove.Observation => GetObservationEffect(stat, depth, cardId),
+            ConversationalMove.Argument => GetArgumentEffect(stat, depth),
             _ => throw new InvalidOperationException($"Unknown conversational move: {move}")
         };
     }
 
     /// <summary>
     /// Remark effects - ALWAYS Momentum generation (pressing conversational points)
+    /// Authority specializes in Momentum through Remarks (+2 at Foundation)
     /// </summary>
-    private static CardEffectFormula GetRemarkEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    private static CardEffectFormula GetRemarkEffect(PlayerStatType stat, int depth)
     {
         // Remarks ALWAYS build Momentum regardless of stat
         // This is the "pressing points forward" conversational move
@@ -90,7 +94,7 @@ public static class CardEffectCatalog
             TargetResource = ConversationResourceType.Momentum,
             BaseValue = depth switch
             {
-                1 or 2 => 2,  // Foundation
+                1 or 2 => 2,  // Foundation: Authority specialist bonus
                 3 or 4 => 5,  // Standard
                 5 or 6 => 8,  // Advanced
                 _ => 12       // Master
@@ -100,18 +104,59 @@ public static class CardEffectCatalog
 
     /// <summary>
     /// Observation effects - Stat specialty resources (cards, understanding, -doubt)
+    ///
+    /// CRITICAL: Supports "Specialist with Universal Access" model through card ID hash:
+    /// - Certain card IDs generate Momentum +1 (universal access for non-specialists)
+    /// - Others generate specialty resource (+2 for specialists)
+    ///
+    /// Foundation cards (depth 1-2) ONLY have single effects (no compounds).
+    /// Specialization achieved through:
+    /// 1. Effect Bonus: Specialists get +2, non-specialists get +1 (2x multiplier)
+    /// 2. Card Distribution: ~50% specialty, ~50% Momentum (determined by card ID hash)
     /// </summary>
-    private static CardEffectFormula GetObservationEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    private static CardEffectFormula GetObservationEffect(PlayerStatType stat, int depth, string cardId)
     {
-        // Observations use the stat's specialty effect
+        // For Foundation tier (depth 1-2), use card ID to determine if Momentum variant
+        if (depth <= 2)
+        {
+            // Deterministic hash: specific card IDs generate Momentum for universal access
+            // This achieves ~50% distribution between specialty and Momentum
+            if (ShouldGenerateMomentum(cardId))
+            {
+                return new CardEffectFormula
+                {
+                    FormulaType = EffectFormulaType.Fixed,
+                    TargetResource = ConversationResourceType.Momentum,
+                    BaseValue = 1  // Non-specialists get +1 Momentum (Authority gets +2 as specialist)
+                };
+            }
+        }
+
+        // Otherwise use the stat's specialty effect (specialty variant or higher depths)
         var variants = GetEffectVariants(stat, depth);
         return variants.FirstOrDefault() ?? throw new InvalidOperationException($"No effect found for {stat} depth {depth}");
     }
 
     /// <summary>
+    /// Deterministic function to decide if a Foundation card should generate Momentum.
+    /// Based on card ID suffix/pattern to achieve ~50% distribution.
+    /// </summary>
+    private static bool ShouldGenerateMomentum(string cardId)
+    {
+        // Cards with specific suffixes generate Momentum (universal access)
+        // This is deterministic based on card naming convention
+        return cardId.Contains("encouragement") ||
+               cardId.Contains("response") ||
+               cardId.Contains("question") ||
+               cardId.Contains("detail") ||
+               cardId.Contains("alternative") ||
+               cardId.Contains("maneuver");
+    }
+
+    /// <summary>
     /// Argument effects - Complex compound effects for developed points
     /// </summary>
-    private static CardEffectFormula GetArgumentEffect(PlayerStatType stat, int depth, CardEffectVariant variant)
+    private static CardEffectFormula GetArgumentEffect(PlayerStatType stat, int depth)
     {
         // Arguments MUST use compound effects - no fallbacks
         var variants = GetEffectVariants(stat, depth);

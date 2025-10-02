@@ -972,7 +972,18 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 
 ### The Five Core Resources
 
-**IMPORTANT REFINEMENT**: Resources use a **Specialist with Universal Access** model, NOT hard exclusivity. Each stat SPECIALIZES in one resource (2-3x efficiency) but can ACCESS other universal resources at weaker rates.
+**IMPORTANT REFINEMENT**: Resources use a **Specialist with Universal Access** model through card distribution and effect bonuses. Each stat SPECIALIZES in one resource (2x efficiency + more cards) but can ACCESS other universal resources at weaker rates.
+
+**CRITICAL: How Specialization Works**:
+1. **Effect Bonus**: Specialists get +2 for their resource, non-specialists get +1 (2x multiplier)
+2. **Card Distribution**: Specialists have MORE cards generating their resource (~100% for specialists, ~30% for non-specialists)
+3. **Single Effects**: Foundation cards (depth 1-2) have ONLY ONE effect (no compounds)
+4. **Effect Variants**: Cards use effectVariant property to determine which resource they generate
+
+**Example - Momentum Specialization**:
+- Authority Foundation: ALL cards generate Momentum +2 (100% coverage, specialist bonus)
+- Rapport Foundation: ~70% generate Understanding +2 (specialty), ~30% generate Momentum +1 (universal)
+- Result: Authority generates ~3x more Momentum than Rapport (2x per card × 3x more cards)
 
 #### Universal Resources (All Stats Can Generate)
 
@@ -980,14 +991,16 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 - Determines how many cards can be played in sequence
 - Starts at 0 (must be built from nothing)
 - Accumulates and persists between LISTEN actions
-- **Cunning specializes** (2-3x generation), but ALL stats provide some Initiative
+- ALL Remarks/Observations generate Initiative +1 uniformly (from ConversationalMove)
+- **Cunning specializes through card count**: More Observation cards in deck, not higher values
 - Creates builder/spender dynamic where you must generate before spending
 
 **Momentum** - Progress Toward Goals:
 - Victory track toward conversation objectives
 - Goal thresholds: Basic (8), Enhanced (12), Premium (16)
 - Can be consumed by card costs for powerful effects
-- **Authority specializes** (2-3x generation), but ALL stats provide some Momentum
+- **Authority specializes** (Momentum +2 per card, 100% Momentum cards)
+- **Other stats provide some Momentum** (Momentum +1 per card, ~30% Momentum variant cards)
 - CRITICAL: Every conversation deck MUST generate Momentum to reach goals
 - Verisimilitude: In real conversations, all approaches advance progress, not just commands
 
@@ -1128,34 +1141,43 @@ All cards at depth 3 and higher are categorized as Arguments:
 
 The ConversationalMove system categorizes cards by their conversational purpose, with effects determined by Move Type + BoundStat + Depth:
 
-**Authority** (Remark Specialist):
-- **Foundation (Depth 1-2)**: Remark move → Always generates Momentum (+2)
+**Authority** (Remark Specialist - Momentum):
+- **Foundation (Depth 1-2)**: Remark move → Generates Momentum (+2 specialist bonus)
   - Simple pointed statements: "This is how it is..."
+  - effectVariant="Base": ALL Authority Foundation cards generate Momentum (100% coverage)
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Complex developed points: "Based on everything we've discussed..."
 
 **Insight** (Observation Specialist - Cards):
-- **Foundation (Depth 1-2)**: Observation move → Generates Cards (+2)
+- **Foundation (Depth 1-2)**: Observation move → Card draw
+  - effectVariant="Base": Generates Cards +2 (Insight specialty, ~70% of cards)
+  - effectVariant="Momentum": Generates Momentum +1 (universal access, ~30% of cards)
   - Noticing and analyzing: "Let me take a quick look..."
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Analytical synthesis: "These pieces fit together..."
 
 **Rapport** (Observation Specialist - Understanding):
-- **Foundation (Depth 1-2)**: Observation move → Generates Understanding (+2)
+- **Foundation (Depth 1-2)**: Observation move → Resource generation
+  - effectVariant="Base": Generates Understanding +2 (Rapport specialty, ~70% of cards)
+  - effectVariant="Momentum": Generates Momentum +1 (universal access, ~30% of cards)
   - Empathetic connection: "I understand what you mean..."
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Deep emotional insight: "Everything you've shared reveals..."
 
 **Diplomacy** (Observation Specialist - Doubt Reduction):
-- **Foundation (Depth 1-2)**: Observation move → Reduces Doubt (-1)
+- **Foundation (Depth 1-2)**: Observation move → Doubt management
+  - effectVariant="Base": Reduces Doubt -1 (Diplomacy specialty, ~70% of cards)
+  - effectVariant="Momentum": Generates Momentum +1 (universal access, ~30% of cards)
   - Reassuring responses: "Don't worry about that..."
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Diplomatic resolution: "We can find common ground here..."
 
 **Cunning** (Observation Specialist - Initiative):
-- **Foundation (Depth 1-2)**: Observation move → Generates Initiative (+1)
+- **Foundation (Depth 1-2)**: Observation move → Initiative generation
+  - effectVariant="Base": Generates Initiative +1 ONLY (Cunning specialty, ~70% of cards)
+  - effectVariant="Momentum": Generates Momentum +1 (universal access, ~30% of cards)
+  - Note: ALL Observations generate Initiative +1 from ConversationalMove; Cunning specializes through card count
   - Subtle positioning: "Interesting perspective..."
-  - Specialization: Cunning has MORE Observation cards in deck, not higher values
 - **Standard+ (Depth 3+)**: Argument move → Compound effects from catalog
   - Strategic maneuvering: "If we consider the implications..."
 
@@ -1384,14 +1406,18 @@ The core tactical loop uses ConversationalMove types to manage Initiative and ef
 
 #### Foundation Cards (Depth 1-2) - Remarks and Observations
 - **Cost**: 0 Initiative (always free to play)
-- **Remarks** (Authority depth 1-2): Generate Momentum to advance conversation
-- **Observations** (All other stats depth 1-2): Generate stat specialty resources
-  - Insight: Cards
-  - Rapport: Understanding
-  - Diplomacy: -Doubt
-  - Cunning: Initiative
+- **Single Effects ONLY**: Foundation cards generate ONE resource only (no compounds)
+- **Effect Variants**: Cards use effectVariant property to determine resource:
+  - effectVariant="Base": Generates stat specialty resource (+2 for specialists, +1 for Initiative)
+  - effectVariant="Momentum": Generates Momentum +1 (universal access for non-specialists)
+- **Authority Remarks**: ALL generate Momentum +2 (100% specialist coverage)
+- **Other Stat Observations**: Mix of specialty and Momentum variants
+  - ~70% effectVariant="Base": Specialty resource (Understanding/Cards/-Doubt/Initiative)
+  - ~30% effectVariant="Momentum": Momentum +1 (universal access)
 - **Purpose**: Essential starting point - build resources from zero
-- **Example**: "Active Listening" (Cunning Observation) - 0 Initiative cost, generates +1 Initiative
+- **Specialization**: Through card distribution (100% vs 30%) and effect bonus (+2 vs +1)
+- **Example**: "Show Understanding" (Rapport Observation) - effectVariant="Base", generates Understanding +2
+- **Example**: "Build Connection" (Rapport Observation) - effectVariant="Momentum", generates Momentum +1
 
 #### Standard/Advanced Cards (Depth 3-10) - Arguments
 - **Cost**: 3-12 Initiative (requires buildup through Foundation plays)

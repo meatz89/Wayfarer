@@ -17,7 +17,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -32,7 +31,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -47,7 +45,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -62,7 +59,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -77,7 +73,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -92,7 +87,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -107,7 +101,6 @@
         "depth": 4,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -122,7 +115,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -137,7 +129,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -152,7 +143,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -167,7 +157,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -182,7 +171,6 @@
         "depth": 8,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -197,7 +185,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -212,7 +199,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -227,7 +213,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -242,7 +227,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -257,7 +241,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -272,7 +255,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -287,7 +269,6 @@
         "depth": 4,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -302,7 +283,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -317,7 +297,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -332,7 +311,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -347,7 +325,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -362,7 +339,6 @@
         "depth": 8,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -377,7 +353,6 @@
         "depth": 1,
         "conversationalMove": "Remark",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -392,7 +367,6 @@
         "depth": 1,
         "conversationalMove": "Remark",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -407,7 +381,6 @@
         "depth": 2,
         "conversationalMove": "Remark",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -422,7 +395,6 @@
         "depth": 2,
         "conversationalMove": "Remark",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -437,7 +409,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -452,7 +423,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -467,7 +437,6 @@
         "depth": 4,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -482,7 +451,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -497,7 +465,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -512,7 +479,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -527,7 +493,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -542,7 +507,6 @@
         "depth": 8,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -557,7 +521,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -572,7 +535,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -587,7 +549,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -602,7 +563,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -617,7 +577,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -632,7 +591,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -647,7 +605,6 @@
         "depth": 4,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -662,7 +619,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -677,7 +633,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -692,7 +647,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -707,7 +661,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -722,7 +675,6 @@
         "depth": 8,
         "conversationalMove": "Argument",
         "persistence": "Statement",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -737,7 +689,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -752,7 +703,6 @@
         "depth": 1,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -767,7 +717,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -782,7 +731,6 @@
         "depth": 2,
         "conversationalMove": "Observation",
         "persistence": "Statement",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -797,7 +745,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -812,7 +759,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -827,7 +773,6 @@
         "depth": 4,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -842,7 +787,6 @@
         "depth": 3,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -857,7 +801,6 @@
         "depth": 5,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -872,7 +815,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Base",
         "personalityTypes": [
           "ALL"
         ],
@@ -887,7 +829,6 @@
         "depth": 6,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],
@@ -902,7 +843,6 @@
         "depth": 8,
         "conversationalMove": "Argument",
         "persistence": "Echo",
-        "effectVariant": "Signature",
         "personalityTypes": [
           "ALL"
         ],

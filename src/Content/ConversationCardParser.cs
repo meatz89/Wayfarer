@@ -177,78 +177,14 @@ public static class ConversationCardParser
             }
         }
 
-        // Parse effect variant enum (type-safe)
-        CardEffectVariant effectVariant = CardEffectVariant.Base;
-        if (!string.IsNullOrEmpty(dto.EffectVariant))
-        {
-            if (!Enum.TryParse<CardEffectVariant>(dto.EffectVariant, true, out effectVariant))
-            {
-                throw new InvalidOperationException(
-                    $"INVALID EFFECT VARIANT: Card '{dto.Id}' has invalid effectVariant '{dto.EffectVariant}'. " +
-                    $"Valid values: Base, Strike, Setup, Specialist, Signature, Advanced");
-            }
-        }
+        // DELETED: effectVariant parsing - effects now derived ENTIRELY from categorical properties
+        // Effect determined by: ConversationalMove + BoundStat + Depth + Card Order
+        // NO JSON property needed - purely categorical derivation
 
-        // DERIVE Statement requirements deterministically from effectVariant
-        // Signature variants require statements, Base variants do not
-        // NO JSON - this is purely categorical based on the variant chosen
+        // DELETED: Statement requirements (signature system removed)
+        // Cards are now purely categorical - no signature variants
         PlayerStatType? requiredStat = null;
         int requiredStatements = 0;
-
-        if (effectVariant == CardEffectVariant.Signature && boundStat.HasValue)
-        {
-            // Signature cards require statements of their own stat
-            requiredStat = boundStat.Value;
-
-            // Statement requirements by depth:
-            // Standard (3-4): 3 statements
-            // Advanced (5-6): 5 statements
-            // Master (7-8): 8 statements
-            requiredStatements = (int)depth switch
-            {
-                3 or 4 => 3,
-                5 or 6 => 5,
-                7 or 8 => 8,
-                _ => 0
-            };
-        }
-
-        // VALIDATION: Foundation tier must have NO signature variants
-        if ((int)depth <= 2 && requiredStatements > 0)
-        {
-            throw new InvalidOperationException(
-                $"FOUNDATION SIGNATURE VIOLATION: Card '{dto.Id}' (depth {(int)depth}) cannot have Statement requirements. " +
-                $"Foundation tier (depths 1-2) must be 100% base cards accessible to all players. " +
-                $"Signature variants must start at Standard tier (depth 3+).");
-        }
-
-        // VALIDATION: Signature cards must start at Standard tier (depth 3+)
-        if (requiredStatements > 0 && (int)depth < 3)
-        {
-            throw new InvalidOperationException(
-                $"SIGNATURE DEPTH VIOLATION: Card '{dto.Id}' has Statement requirements but is depth {(int)depth}. " +
-                $"Signature variants must be depth 3 or higher.");
-        }
-
-        // VALIDATION: Statement requirements must match valid thresholds
-        if (requiredStatements > 0)
-        {
-            var validThresholds = new[] { 3, 4, 5, 8 };
-            if (!validThresholds.Contains(requiredStatements))
-            {
-                throw new InvalidOperationException(
-                    $"INVALID STATEMENT REQUIREMENT: Card '{dto.Id}' requires {requiredStatements} statements. " +
-                    $"Valid thresholds are: 3 (Standard), 4 (Standard), 5 (Advanced), 8 (Master).");
-            }
-        }
-
-        // VALIDATION: RequiredStat must match BoundStat for signature variants
-        if (requiredStatements > 0 && requiredStat.HasValue && boundStat.HasValue && requiredStat.Value != boundStat.Value)
-        {
-            throw new InvalidOperationException(
-                $"SIGNATURE STAT MISMATCH: Card '{dto.Id}' requires {requiredStat.Value} statements but is bound to {boundStat.Value}. " +
-                $"Signature cards must require statements of their own stat.");
-        }
 
         // Parse token requirements (for signature cards)
         Dictionary<string, int> tokenRequirements = new Dictionary<string, int>();
@@ -271,15 +207,16 @@ public static class ConversationCardParser
 
         if (cardType == CardType.Conversation && boundStat.HasValue)
         {
-            // Get effect formula from catalog using CORE categorical properties
-            effectFormula = CardEffectCatalog.GetEffectByVariant(move, boundStat.Value, (int)depth, effectVariant);
+            // Get effect formula from catalog using ONLY categorical properties
+            // Card ID hash determines if Foundation card gets specialty or Momentum effect
+            effectFormula = CardEffectCatalog.GetEffectFromCategoricalProperties(move, boundStat.Value, (int)depth, dto.Id);
 
             if (effectFormula == null)
             {
-                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move} stat {boundStat.Value} depth {(int)depth} variant {effectVariant}!");
+                throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move} stat {boundStat.Value} depth {(int)depth}!");
             }
 
-            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move}/{effectVariant} formula: {effectFormula}");
+            Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move} formula: {effectFormula}");
         }
 
         // Parse Delivery property (NEW: Controls cadence on SPEAK)
