@@ -208,20 +208,35 @@ Token type burned matches NPC personality:
 - Proud: Status tokens
 - Cunning: Shadow tokens
 
-#### Request Card Terms (Fixed)
+#### Request Card Mechanics (Deterministic)
 
-When playing a request card:
-- **Success**: Accept obligation with predetermined terms
-- **Failure**: No obligation, add burden card to relationship
+Request cards become playable when conversation momentum reaches the card's threshold. Playing a request card:
+- **Grants immediate rewards** from the NPC (coins, tokens, items)
+- **Creates delivery obligation** (letter) if `letterId` present in rewards
+  - Letter properties currently hardcoded (recipient: first other NPC, deadline: 72 segments, payment: 10 coins)
+- **Ends conversation immediately** (no further cards playable)
 
-Request cards no longer involve negotiation - terms are fixed based on the request type:
-- Letter requests: Specific deadline, position, payment, and weight
-- Meeting requests: Fixed time and location
-- Resolution requests: Clear existing burden cards
+Request cards use deterministic thresholds (no success/failure rolls):
+- Basic tier (8 momentum): Standard immediate rewards
+- Priority tier (12 momentum): Enhanced immediate rewards
+- Immediate tier (16 momentum): Premium immediate rewards
 
-Personality influences which requests are available:
-- Proud NPCs offer urgent, high-position requests
-- Mercantile NPCs focus on profitable exchanges
+**JSON Structure for Request Rewards:**
+```json
+"rewards": {
+  "coins": 25,                    // Immediate coins from NPC
+  "tokens": {"Trust": 2},         // Immediate token rewards
+  "letterId": "elena_letter",     // Creates delivery (properties hardcoded)
+  "item": "noble_permit",         // Optional item
+  "obligation": "standing_debt"   // Optional standing obligation
+}
+```
+
+**Note:** Letter delivery properties are currently hardcoded in implementation. See "Request Card Rewards and Delivery Obligations" section for details.
+
+Personality influences which requests are available and immediate rewards:
+- Proud NPCs offer high coin rewards
+- Mercantile NPCs balance coins and tokens
 
 #### Strategic Queue Patterns
 
@@ -662,17 +677,41 @@ Finding valuable trade goods forces immediate choice. Drop current obligations f
 ### Initiative Economy Integration
 
 **Initiative Generation Through ConversationalMove Types**:
-- **Observations** (Foundation tier, 0 Initiative cost): Generate +1 Initiative
-- **Remarks** (Foundation tier, 0 Initiative cost): Generate +1 Initiative
-- **Arguments** (Depth 3+, 3-12 Initiative cost): Cost Initiative for compound effects (0 generation)
-- **Base Initiative**: Starts at 0 (must be generated from zero)
-- **Cunning Specialization**: Cunning has MORE Observation/Remark cards in deck composition (not higher values per card)
 
-**Initiative Generation is Derived from ConversationalMove**:
-- ALL Remarks and Observations generate +1 Initiative uniformly (no stat multipliers)
-- Arguments cost Initiative instead of generating it (0 generation)
-- The move type determines whether a card builds or spends Initiative
-- Specialization comes from deck composition (quantity of cards), not hidden multipliers
+ConversationalMove is a **categorical property** that determines Initiative behavior:
+- **Remarks** and **Observations**: Generate +1 Initiative (base property of the move type)
+- **Arguments**: Cost Initiative (0-12 based on depth), never generate Initiative
+
+**CRITICAL: Two-Layer Resource Generation**:
+
+Foundation cards (depth 1-2) generate resources through TWO mechanisms:
+
+1. **Base Property from ConversationalMove** (uniform across all stats):
+   - Remark → +1 Initiative
+   - Observation → +1 Initiative
+   - This is NOT a card effect, it's a categorical property
+
+2. **Card Effect** (stat-dependent, ADDITIONAL to Initiative):
+   - Remarks (Authority only) → +2 Momentum
+   - Observations (all other stats) → +2 to specialty resource:
+     * Insight → +2 Cards
+     * Rapport → +2 Understanding
+     * Diplomacy → -2 Doubt
+     * Cunning → +3 Initiative (stacks with base +1 for total +4)
+
+**Example - Playing an Authority Remark Card**:
+- Player receives: +1 Initiative (from ConversationalMove) + +2 Momentum (from card effect)
+- Two separate resources, two separate mechanics
+
+**Example - Playing a Rapport Observation Card**:
+- Player receives: +1 Initiative (from ConversationalMove) + +2 Understanding (from card effect)
+- Initiative comes from move type, Understanding comes from card effect
+
+**Cunning Specialization in Initiative**:
+- Base: +1 Initiative (like all Observations)
+- Effect: +3 Initiative (specialty bonus)
+- Total: +4 Initiative per card
+- Plus MORE Observation cards in deck composition
 
 **Resource Identity Separation**:
 - **Initiative**: Action economy for playing cards (starts at 0, must generate)
@@ -991,8 +1030,8 @@ The conversation system represents the primary gameplay loop using Initiative-ba
 - Determines how many cards can be played in sequence
 - Starts at 0 (must be built from nothing)
 - Accumulates and persists between LISTEN actions
-- ALL Remarks/Observations generate Initiative +1 uniformly (from ConversationalMove)
-- **Cunning specializes through card count**: More Observation cards in deck, not higher values
+- Generated by ConversationalMove property: Remarks/Observations → +1 Initiative base (see "Initiative Generation Through ConversationalMove Types" for complete explanation)
+- **Cunning specializes** through card effect (+3 Initiative per card) AND more Observation cards in deck
 - Creates builder/spender dynamic where you must generate before spending
 
 **Momentum** - Progress Toward Goals:
@@ -1105,16 +1144,18 @@ No branches, no choices, no "or" conditions. Complete determinism and perfect in
 
 **Depth 1-2 Foundation - ConversationalMove System**
 
-Foundation cards are categorized by their ConversationalMove type (Remark or Observation):
+Foundation cards are categorized by their ConversationalMove type (Remark or Observation).
 
-- **Remarks** (Authority depth 1-2): ALWAYS generate Momentum (+2 Foundation tier)
+See "Initiative Generation Through ConversationalMove Types" for complete mechanics.
+
+**Quick Reference**:
+- **Remarks** (Authority depth 1-2): +1 Initiative (from move type) + +2 Momentum (from card effect)
   - Simple pointed statements pushing conversation forward
-  - Effect determined by the move type, not just the stat
   - Examples: "This is how it is...", "I challenge that assumption..."
 
-- **Observations** (All other stats depth 1-2): Generate stat specialty resources
-  - Simple supportive comments for understanding and connection
-  - Cards for Insight, Understanding for Rapport, -Doubt for Diplomacy, Initiative for Cunning
+- **Observations** (All other stats depth 1-2): +1 Initiative (from move type) + +2 to specialty resource (from card effect)
+  - Simple supportive comments - asking, noticing, understanding
+  - Insight → Cards, Rapport → Understanding, Diplomacy → -Doubt, Cunning → +3 Initiative (total +4)
   - Examples: "Let me take a quick look...", "I understand what you mean..."
 
 - **0 Initiative Cost**: Foundation cards are free to play
@@ -1483,31 +1524,51 @@ Promise cards create unique interaction between conversation and queue systems:
 - Can solve queue problems while in conversation
 - Creates visible sacrifice (narrative emergence)
 
-### Fixed Request Terms
+### Request Card Rewards and Delivery Obligations
 
-Request cards have predetermined, non-negotiable terms:
+Request cards grant predetermined, non-negotiable rewards and create delivery obligations:
 
-**Letter Requests**:
-- Deadline: 1-24 hours (based on urgency)
-- Position: 1-10 (based on NPC pride)
-- Payment: 0-20 coins (based on value)
-- Weight: 1-6 (based on package size)
+**Immediate Rewards** (granted when request card played):
+- **Coins**: 0-50 (upfront payment for accepting request)
+- **Tokens**: 0-5 of appropriate type (Trust/Diplomacy/Status/Shadow)
+- **Items**: Permits, tools, consumables (optional)
+- **Obligations**: Standalone obligation strings (standing obligations)
 
-**Meeting Requests**:
-- Time: Specific time block
-- Location: Specific spot
-- Duration: 1-2 time segments
+**Delivery Obligation Creation**:
+When `letterId` is present in rewards, creates a DeliveryObligation with:
+- **Recipient**: First available NPC (excluding sender) - *currently hardcoded*
+- **Deadline**: 72 segments (3 days) - *currently hardcoded*
+- **Payment**: 10 coins - *currently hardcoded*
+- **Weight**: 1 (light letter) - *currently hardcoded*
 
-**Resolution Requests**:
-- Target: Clear burden cards
-- Difficulty: Scales with burden count
-- Reward: Relationship reset
+**Request Card Tiers**:
+- **Basic (8 momentum)**: Standard immediate rewards
+- **Priority (12 momentum)**: Enhanced immediate rewards
+- **Immediate (16 momentum)**: Premium immediate rewards
 
-Personality influences available requests:
-- Proud NPCs: Urgent, high-position, heavy requests
-- Devoted NPCs: Personal, low-payment, light requests
-- Mercantile NPCs: Profitable, flexible, varied weight
-- Cunning NPCs: Complex, multi-step requests
+**Current JSON Structure**:
+```json
+"goals": [{
+  "id": "elena_basic_delivery",
+  "cardId": "elena_basic_letter",
+  "momentumThreshold": 8,
+  "rewards": {
+    "coins": 25,                    // Immediate coins granted
+    "tokens": {"Trust": 1},         // Immediate token rewards
+    "letterId": "elena_letter",     // Creates delivery obligation (properties hardcoded)
+    "item": "noble_permit",         // Optional item reward
+    "obligation": "make_amends"     // Optional standing obligation
+  }
+}]
+```
+
+**Note:** Letter delivery properties (recipient, deadline, payment, weight) are currently hardcoded in implementation. Configurable letter properties are a planned future enhancement.
+
+Personality influences immediate reward structure:
+- Proud NPCs: High upfront coins
+- Devoted NPCs: Token rewards over coins
+- Mercantile NPCs: Balanced coins and tokens
+- Cunning NPCs: Item rewards
 
 ### Weight and Queue Integration
 
@@ -1521,6 +1582,78 @@ Strategic patterns emerge:
 - **Light Load Strategy**: Many small deliveries per trip
 - **Heavy Commitment**: One major obligation for maximum profit
 - **Mixed Approach**: Balance obligations with tools and consumables
+
+## Implementation Notes and Future Enhancements
+
+### Configurable Letter Properties (Planned)
+
+**Current Limitation:**
+Letter delivery obligations created from request cards have hardcoded properties:
+- Recipient: First available NPC (excluding sender)
+- Deadline: 72 segments (3 days)
+- Payment: 10 coins
+- Weight: 1 (light)
+
+**Planned Enhancement:**
+Add `LetterConfig` structure to `NPCRequestRewards` allowing per-tier configuration:
+
+```csharp
+public class LetterConfig
+{
+    public string Id { get; set; }              // Letter obligation ID
+    public string RecipientId { get; set; }     // Target NPC for delivery
+    public int DeadlineSegments { get; set; }   // Configurable deadline
+    public int Payment { get; set; }            // Configurable delivery payment
+    public int Weight { get; set; }             // Configurable letter weight
+    public StakeType Stakes { get; set; }       // Stakes/urgency level
+    public EmotionalFocus Focus { get; set; }   // Narrative weight
+}
+```
+
+**JSON Structure (Planned):**
+```json
+"rewards": {
+  "coins": 25,
+  "tokens": {"Trust": 1},
+  "letter": {
+    "id": "elena_urgent_letter",
+    "recipientId": "lord_blackwood",
+    "deadline": 20,
+    "payment": 15,
+    "weight": 1,
+    "stakes": "REPUTATION",
+    "focus": "HIGH"
+  }
+}
+```
+
+**Design Rationale:**
+- Enables tiered requests with escalating urgency
+- Allows narrative-specific letter targets (e.g., Elena's letter to Lord Blackwood)
+- Supports balanced reward distribution (immediate vs delivery payment)
+- Maintains verisimilitude (different requests have different deliverables)
+
+**Implementation Impact:**
+- Update `NPCRequestRewards` class
+- Modify `ConversationFacade.HandleSpecialCardEffects()` to parse letter config
+- Update `NPCParser` to validate recipient IDs
+- Add JSON schema documentation
+
+### Observation Card Enhancement (Future)
+
+**Current Implementation:**
+Observation cards have fixed properties:
+- Initiative cost: 1 (hardcoded in constructor)
+- Effects: Text-based, parsed at runtime
+- No stat/depth properties
+
+**Potential Enhancement:**
+Add configurable properties to `ObservationCardDTO`:
+- Stat binding (for narrative flavor, not mechanical filtering)
+- Effect formulas (structured like regular card effects)
+- Initiative cost variation
+
+**Note:** This enhancement is low priority as the current simple system works well for location-based discoveries.
 
 ## Resource Conversion Chains
 

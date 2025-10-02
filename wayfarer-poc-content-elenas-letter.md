@@ -126,10 +126,22 @@ Since all stats start at Level 1, players access only depth 1-2 cards:
 - 10 tokens: "Emotional Bond" (Rapport card, depth 6)
 
 **Request**: Elena's Letter
-- Available at 8 momentum
-- Basic (8 momentum): Letter weight 1, deadline 5 PM
-- Enhanced (12 momentum): Priority letter weight 2, +1 Trust token
-- Premium (16 momentum): Legal documents weight 3, +2 Trust tokens
+
+Request cards become playable when momentum reaches threshold. Playing creates delivery obligation:
+
+- **Basic Request Card** (8 momentum):
+  - Immediate rewards: None (urgent favor)
+  - Delivery obligation: Letter created with hardcoded properties (recipient: first other NPC, deadline: 72 segments, payment: 10 coins, weight: 1)
+
+- **Enhanced Request Card** (12 momentum):
+  - Immediate rewards: +1 Trust token
+  - Delivery obligation: Letter created with hardcoded properties (same as basic)
+
+- **Premium Request Card** (16 momentum):
+  - Immediate rewards: +2 Trust tokens
+  - Delivery obligation: Letter created with hardcoded properties (same as basic)
+
+**Note:** Current implementation does not support configurable letter properties per tier. All tiers create same delivery obligation (recipient/deadline/payment/weight are hardcoded). This is a known limitation.
 
 **Conversation Mechanics with Elena**:
 - Devoted personality means card effects that increase Doubt add +2 instead of +1
@@ -154,9 +166,22 @@ Since all stats start at Level 1, players access only depth 1-2 cards:
 - 10 tokens: "Marcus's Favor" (Authority card, depth 6)
 
 **Request**: Trade Letter to Warehouse
-- Basic (8 momentum): 5 coins, +1 Diplomacy token
-- Enhanced (12 momentum): 8 coins, +2 Diplomacy tokens
-- Premium (16 momentum): 12 coins, +3 Diplomacy tokens
+
+Request cards become playable when momentum reaches threshold. Playing grants immediate rewards and creates delivery obligation:
+
+- **Basic Request Card** (8 momentum):
+  - Immediate rewards: 5 coins, +1 Diplomacy token
+  - Delivery obligation: Letter created with hardcoded properties (recipient: first other NPC, deadline: 72 segments, payment: 10 coins, weight: 1)
+
+- **Enhanced Request Card** (12 momentum):
+  - Immediate rewards: 8 coins, +2 Diplomacy tokens
+  - Delivery obligation: Letter created with hardcoded properties (same as basic)
+
+- **Premium Request Card** (16 momentum):
+  - Immediate rewards: 12 coins, +3 Diplomacy tokens
+  - Delivery obligation: Letter created with hardcoded properties (same as basic)
+
+**Note:** Delivery properties are currently hardcoded and don't vary by tier. The immediate rewards scale with tier, but the delivery obligation properties are identical across all tiers.
 
 **Exchange Options**:
 - Buy Food: 2 coins → -50 hunger
@@ -252,19 +277,26 @@ Optional conversations for resources and XP. Each stranger available once per ti
 
 ## Observation Cards
 
-### Safe Passage Knowledge
-- **Stat**: Insight
-- **Depth**: 3
-- **Initiative Cost**: 2
-- **Effect**: +4 Momentum
-- **Critical**: Provides momentum boost for Elena conversation
+Observation cards are earned from location investigation and added to specific NPC conversation decks. They are simpler than regular conversation cards with fixed properties:
 
-### Merchant Caravan Route  
-- **Stat**: Diplomacy
-- **Depth**: 3
-- **Initiative Cost**: 3
-- **Effect**: Unlocks Marcus's caravan exchange option
-- **Value**: Alternative to expensive permit
+- **Card Type**: Observation (separate from regular conversation cards)
+- **Initiative Cost**: 1 (fixed for all observation cards)
+- **Persistence**: Statement (goes to Spoken pile, counts for Statement requirements)
+- **Unique Effects**: Special conversation effects or atmosphere changes
+
+### Safe Passage Knowledge
+- **Source**: Market Square familiarity level 1
+- **Target NPC**: Elena
+- **Effect**: "Momentum +4" (provides significant momentum boost)
+- **Critical**: Key card for reaching Elena's request thresholds efficiently
+
+### Merchant Caravan Route
+- **Source**: Market Square familiarity level 2
+- **Target NPC**: Marcus
+- **Effect**: "Unlocks Marcus's caravan exchange option"
+- **Value**: Enables Noble Quarter transport without expensive noble permit
+
+**Note:** Observation cards don't have traditional stat/depth properties like regular conversation cards. They're generated from location discoveries and have text-based effects.
 
 ## Routes and Travel
 
@@ -314,14 +346,15 @@ Optional conversations for resources and XP. Each stranger available once per ti
 - Play highest Initiative cards for Mercantile bonus (double effect)
 - Use both observation cards when drawn
 - Build to 12 momentum for Enhanced goal
-- Receive: 8 coins, 2 Diplomacy tokens
-- Accept trade letter (weight 1)
+- **Play Enhanced Request Card:**
+  - Immediate rewards: 8 coins, 2 Diplomacy tokens
+  - Creates delivery obligation with hardcoded properties (recipient: first other NPC, payment: 10 coins on delivery, deadline: 72 segments, weight: 1)
 - XP gained: ~8-12 to various stats
 - Time: 1 segment + ~2 Statements played
 
 **12:40 PM - Quick Travel** (Segment 4)
-- To Warehouse District: 1 segment
-- Deliver Marcus's letter: +7 coins (total: 15)
+- Travel to recipient location (determined by first other NPC)
+- Deliver letter: +10 coins (hardcoded payment, total: 18)
 
 **1:00 PM - Return to Market Square** (End of block)
 - 1 segment travel
