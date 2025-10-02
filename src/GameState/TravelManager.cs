@@ -33,6 +33,9 @@ public class TravelManager
         Player player = _gameWorld.GetPlayer();
         int startingStamina = GetDerivedStamina(player);
 
+        // Track route as known
+        player.AddKnownRoute(route);
+
         TravelSession session = new TravelSession
         {
             RouteId = routeId,
@@ -653,14 +656,30 @@ public class TravelManager
         RouteOption route = GetRoute(session.RouteId);
         if (route == null) return;
 
+        Player player = _gameWorld.GetPlayer();
+
         // Move player to destination
         LocationSpot targetSpot = _gameWorld.WorldState.locationSpots
             .FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
 
         if (targetSpot != null)
         {
-            _gameWorld.GetPlayer().CurrentLocationSpot = targetSpot;
+            player.CurrentLocationSpot = targetSpot;
+
+            // Track location discovery
+            string locationId = targetSpot.LocationId;
+            if (!player.DiscoveredLocationIds.Contains(locationId))
+            {
+                player.DiscoveredLocationIds.Add(locationId);
+            }
+
+            // Increment location familiarity (max 3)
+            int currentFamiliarity = player.GetLocationFamiliarity(locationId);
+            player.SetLocationFamiliarity(locationId, Math.Min(3, currentFamiliarity + 1));
         }
+
+        // Increase route familiarity (max 5)
+        player.IncreaseRouteFamiliarity(session.RouteId, 1);
 
         // Apply travel time to game world
         _timeManager.AdvanceSegments(session.SegmentsElapsed);

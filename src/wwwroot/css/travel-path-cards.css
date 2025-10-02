@@ -553,33 +553,7 @@
     gap: 30px;
 }
 
-.action-button {
-    padding: 12px 35px;
-    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
-    border: 2px solid #a68b6f;
-    border-radius: 4px;
-    color: #5c4a3a;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    min-width: 180px;
-}
-
-.action-button:hover:not(.disabled) {
-    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
-    border-color: #8b7355;
-    transform: translateY(-2px);
-}
-
-.action-button.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.action-button.disabled:hover {
-    transform: none;
-}
+/* .action-button moved to common.css */
 
 .action-details {
     font-size: 11px;

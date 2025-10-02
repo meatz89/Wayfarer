@@ -204,6 +204,164 @@ body {
 }
 
 /* ==========================================
+   SHARED BUTTON STYLES
+   ========================================== */
+
+/* Journal Button */
+.journal-button-container {
+    position: fixed;
+    top: 180px;
+    right: 20px;
+    z-index: 900;
+}
+
+.journal-btn {
+    padding: 10px 20px;
+    background: linear-gradient(to bottom, #8b7355, #7b6345);
+    color: #faf4ea;
+    border: 2px solid #6b5345;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.journal-btn:hover {
+    background: linear-gradient(to bottom, #9b8365, #8b7355);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Back Button - Shared across screens */
+.back-button {
+    padding: 12px 30px;
+    background: linear-gradient(to bottom, #8b7355, #7b6345);
+    color: #faf4ea;
+    border: 2px solid #6b5345;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.back-button:hover {
+    background: linear-gradient(to bottom, #9b8365, #8b7355);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Action Button - Shared across screens */
+.action-button {
+    padding: 12px 35px;
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    border: 2px solid #a68b6f;
+    border-radius: 4px;
+    color: #5c4a3a;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 180px;
+}
+
+.action-button:hover:not(.disabled) {
+    background: linear-gradient(to bottom, #faf4ea, #f9f3e9);
+    border-color: #8b7355;
+    transform: translateY(-2px);
+}
+
+.action-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-button.disabled:hover {
+    transform: none;
+}
+
+/* ==========================================
+   SHARED STATE COMPONENTS
+   ========================================== */
+
+/* State Label & Name - Used in conversation and travel */
+.state-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+}
+
+.state-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #8b4726;
+}
+
+/* ==========================================
+   SHARED ATMOSPHERE STYLES
+   ========================================== */
+
+/* Atmosphere-specific color schemes */
+.atmosphere-neutral {
+    opacity: 0.6;
+}
+
+.atmosphere-prepared {
+    border-color: #2e8b57;
+    background: linear-gradient(135deg, #e6f5ed, #c8e6d3);
+}
+
+.atmosphere-receptive {
+    border-color: #4169e1;
+    background: linear-gradient(135deg, #e6eef9, #c8d9f3);
+}
+
+.atmosphere-focused {
+    border-color: #ff8c00;
+    background: linear-gradient(135deg, #fff4e6, #ffe4c8);
+}
+
+.atmosphere-patient {
+    border-color: #9370db;
+    background: linear-gradient(135deg, #f2ecfb, #e3d3f5);
+}
+
+.atmosphere-volatile {
+    border-color: #dc143c;
+    background: linear-gradient(135deg, #fbe6ea, #f5c8d0);
+}
+
+.atmosphere-final {
+    border-color: #8b0000;
+    background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
+}
+
+.atmosphere-informed {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, #fffacd, #fff4a3);
+}
+
+.atmosphere-exposed {
+    border-color: #ff1493;
+    background: linear-gradient(135deg, #ffeef7, #ffc8e3);
+}
+
+.atmosphere-synchronized {
+    border-color: #00ced1;
+    background: linear-gradient(135deg, #e6feff, #c8f3f4);
+}
+
+.atmosphere-pressured {
+    border-color: #b22222;
+    background: linear-gradient(135deg, #f5e0e0, #e6c0c0);
+}
+
+/* ==========================================
    ANIMATIONS
    ========================================== */
 @keyframes pulse {

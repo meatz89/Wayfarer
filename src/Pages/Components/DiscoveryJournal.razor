@@ -1,0 +1,67 @@
+@inherits DiscoveryJournalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="discovery-journal">
+    <div class="journal-header">
+        <h2>Discovery Journal</h2>
+        <button class="close-btn" @onclick="CloseJournal">✕</button>
+    </div>
+
+    <div class="journal-content">
+        <!-- Locations Section -->
+        <div class="journal-section">
+            <h3>Locations Discovered (@GetDiscoveredLocationCount()/@GetTotalLocationCount())</h3>
+            <div class="location-list">
+                @foreach (var location in GetDiscoveredLocations())
+                {
+                    <div class="location-entry">
+                        <div class="location-name">@location.Name</div>
+                        <div class="familiarity-bar">
+                            <span class="familiarity-label">Familiarity: @GetFamiliarity(location.Id)/@location.MaxFamiliarity</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @GetFamiliarityPercent(location.Id, location.MaxFamiliarity)%"></div>
+                            </div>
+                        </div>
+                        @if (GetFamiliarity(location.Id) >= location.MaxFamiliarity)
+                        {
+                            <span class="complete-badge">✓ Fully Explored</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Observations Section -->
+        <div class="journal-section">
+            <h3>Observations Collected (@GetCollectedObservationCount())</h3>
+            <div class="observation-list">
+                @foreach (var obs in GetCollectedObservations())
+                {
+                    <div class="observation-entry">
+                        <div class="observation-name">@obs</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Routes Section -->
+        <div class="journal-section">
+            <h3>Routes Explored (@GetExploredRouteCount())</h3>
+            <div class="route-list">
+                @foreach (var route in GetKnownRoutes())
+                {
+                    <div class="route-entry">
+                        <div class="route-path">@route.OriginName → @route.DestinationName</div>
+                        <div class="route-familiarity">
+                            Familiarity: @GetRouteFamiliarity(route.Id)/5
+                            @if (GetRouteFamiliarity(route.Id) >= 5)
+                            {
+                                <span class="mastered-badge">★ Mastered</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

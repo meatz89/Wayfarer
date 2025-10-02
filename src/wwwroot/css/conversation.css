@@ -84,17 +84,7 @@ body {
     gap: 12px;
 }
 
-.state-label {
-    font-size: 11px;
-    color: #7a6250;
-    text-transform: uppercase;
-}
-
-.state-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #8b4726;
-}
+/* .state-label and .state-name moved to common.css */
 
 .state-effects {
     font-size: 11px;
@@ -102,61 +92,7 @@ body {
 }
 
 /* === ATMOSPHERE EFFECTS === */
-
-/* Atmosphere-specific color schemes */
-.atmosphere-neutral {
-    opacity: 0.6;
-}
-
-.atmosphere-prepared {
-    border-color: #2e8b57;
-    background: linear-gradient(135deg, #e6f5ed, #c8e6d3);
-}
-
-.atmosphere-receptive {
-    border-color: #4169e1;
-    background: linear-gradient(135deg, #e6eef9, #c8d9f3);
-}
-
-.atmosphere-focused {
-    border-color: #ff8c00;
-    background: linear-gradient(135deg, #fff4e6, #ffe4c8);
-}
-
-.atmosphere-patient {
-    border-color: #9370db;
-    background: linear-gradient(135deg, #f2ecfb, #e3d3f5);
-}
-
-.atmosphere-volatile {
-    border-color: #dc143c;
-    background: linear-gradient(135deg, #fbe6ea, #f5c8d0);
-}
-
-.atmosphere-final {
-    border-color: #8b0000;
-    background: linear-gradient(135deg, #f5e6e6, #e6c8c8);
-}
-
-.atmosphere-informed {
-    border-color: #ffd700;
-    background: linear-gradient(135deg, #fffacd, #fff4a3);
-}
-
-.atmosphere-exposed {
-    border-color: #ff1493;
-    background: linear-gradient(135deg, #ffeef7, #ffc8e3);
-}
-
-.atmosphere-synchronized {
-    border-color: #00ced1;
-    background: linear-gradient(135deg, #e6feff, #c8f3f4);
-}
-
-.atmosphere-pressured {
-    border-color: #b22222;
-    background: linear-gradient(135deg, #f5e0e0, #e6c0c0);
-}
+/* Moved to common.css to avoid duplication */
 
 /* === GLOBAL RESOURCE COMPONENTS (USED BY OTHER SCREENS) === */
 

@@ -1,6 +1,7 @@
 @inherits ConversationContentBase
 
 @namespace Wayfarer.Pages.Components
+@using Wayfarer.Services
 
 @* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, etc.) are rendered INSIDE GameScreen's game-container.
    They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
@@ -52,7 +53,9 @@
         <!-- Core Resources Display (matching mockup exactly) -->
         <div class="resources-display">
             <div class="resource-item">
-                <div class="resource-label">Momentum</div>
+                <GameTooltip Content="@TooltipContentProvider.Get("Momentum")" Position="top">
+                    <div class="resource-label">Momentum</div>
+                </GameTooltip>
                 <div class="resource-value">@(Session?.CurrentMomentum ?? 0)</div>
                 <div class="resource-bar">
                     <div class="resource-fill" style="width: @GetMomentumPercentage()%;"></div>
@@ -70,7 +73,9 @@
                 <span class="cadence-label">Speak Heavy</span>
             </div>
             <div class="resource-item">
-                <div class="resource-label">Doubt</div>
+                <GameTooltip Content="@TooltipContentProvider.Get("Doubt")" Position="top">
+                    <div class="resource-label">Doubt</div>
+                </GameTooltip>
                 <div class="resource-value">@(Session?.CurrentDoubt ?? 0)</div>
                 <div class="resource-bar">
                     <div class="resource-fill doubt-fill" style="width: @GetDoubtPercentage()%;"></div>
@@ -196,7 +201,9 @@
         <!-- Initiative Display (with glowing orbs matching mockup) -->
         <div class="initiative-display">
             <div class="initiative-counter">
-                <span class="initiative-label">Initiative</span>
+                <GameTooltip Content="@TooltipContentProvider.Get("Initiative")" Position="right">
+                    <span class="initiative-label">Initiative</span>
+                </GameTooltip>
                 <span class="initiative-value">@GetCurrentInitiative()</span>
                 <div class="initiative-dots">
                     @* Show dots up to max Initiative for this conversation type *@
@@ -211,7 +218,9 @@
         <!-- Tier Unlock Display -->
         <div class="tier-display">
             <div class="tier-info">
-                <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
+                <GameTooltip Content="@TooltipContentProvider.Get("Understanding")" Position="right">
+                    <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
+                </GameTooltip>
                 <div class="tier-unlocks">
                     @foreach (var tier in GetAllTiers())
                     {

@@ -98,17 +98,7 @@
     gap: 12px;
 }
 
-.state-label {
-    font-size: 11px;
-    color: #7a6250;
-    text-transform: uppercase;
-}
-
-.state-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #8b4726;
-}
+/* .state-label and .state-name moved to common.css */
 
 /* Resources Bar */
 .resources-preview {
@@ -417,26 +407,7 @@
     opacity: 0.9;
 }
 
-/* Back Button */
-.back-button {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 24px;
-    background: #8b7355;
-    color: #faf4ea;
-    border: 1px solid #6b5345;
-    border-radius: 4px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.back-button:hover {
-    background: #9b8365;
-    transform: translateX(-50%) translateY(-2px);
-}
+/* .back-button moved to common.css */
 
 /* No Routes Message */
 .no-routes {

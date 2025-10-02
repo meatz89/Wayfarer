@@ -559,6 +559,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         return 0;
     }
+
+    // Discovery Journal
+    protected bool _showJournal = false;
+
+    protected void ToggleJournal()
+    {
+        _showJournal = !_showJournal;
+        StateHasChanged();
+    }
 }
 
 public enum ScreenMode

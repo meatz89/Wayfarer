@@ -384,24 +384,7 @@
     text-align: center;
 }
 
-.back-button {
-    padding: 12px 30px;
-    background: linear-gradient(to bottom, #8b6b47, #7a5a36);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.back-button:hover {
-    background: linear-gradient(to bottom, #7a5a36, #6a4a26);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
+/* .back-button moved to common.css */
 
 /* Urgency Classes */
 .letter-card.critical {

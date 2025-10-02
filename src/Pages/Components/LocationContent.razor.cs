@@ -226,9 +226,9 @@ namespace Wayfarer.Pages.Components
                 ActiveObligations = new List<DeliveryObligation>();
             }
 
-            // Get available investigation approaches based on player stats
-            AvailableInvestigationApproaches = GameFacade.GetAvailableInvestigationApproaches();
-            Console.WriteLine($"[LocationContent] Got {AvailableInvestigationApproaches.Count} investigation approaches available");
+            // Get ALL investigation approaches (show locked ones with requirements)
+            AvailableInvestigationApproaches = Enum.GetValues<InvestigationApproach>().ToList();
+            Console.WriteLine($"[LocationContent] Showing all {AvailableInvestigationApproaches.Count} investigation approaches");
 
             // Get available work actions at this location
             AvailableWorkActions.Clear();
