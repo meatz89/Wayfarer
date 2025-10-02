@@ -182,14 +182,17 @@
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10); // 10 weight capacity
 
-        Coins = 5;
+        // HIGHLANDER PRINCIPLE: Delete hardcoded defaults
+        // ALL values set by ApplyInitialConfiguration from JSON
+        // These are minimal defaults ONLY for safety
+        Coins = 0;
         Level = 1;
         CurrentXP = 0;
         XPToNextLevel = 100;
 
-        // Set max values that match initial values
-        MaxHealth = 10; // Set reasonable default for MaxHealth
-        MaxHunger = 100; // Maximum hunger before starvation
+        // JSON will set these via ApplyInitialConfiguration
+        MaxHealth = 100;
+        MaxHunger = 100;
 
         // Skill cards removed - using letter queue system
 

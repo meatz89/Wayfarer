@@ -45,27 +45,8 @@ public class PersonalityRuleEnforcer
         return true;
     }
 
-    /// <summary>
-    /// Modify the success rate of a card based on personality rules (UPDATED FOR INITIATIVE)
-    /// Mercantile: Highest Initiative card each turn gains +30% success (not highest Focus)
-    /// </summary>
-    public int ModifySuccessRate(CardInstance card, int baseSuccessRate)
-    {
-        if (_modifier.Type == PersonalityModifierType.HighestFocusBonus)
-        {
-            // Mercantile: Highest Initiative card each turn gains +30% success (UPDATED: Focus → Initiative)
-            int cardInitiative = GetCardInitiativeCost(card);
-            if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)
-            {
-                int bonusPercent = _modifier.Parameters.ContainsKey("bonusPercent")
-                    ? _modifier.Parameters["bonusPercent"]
-                    : 30;
-                return Math.Min(100, baseSuccessRate + bonusPercent);
-            }
-        }
-
-        return baseSuccessRate;
-    }
+    // DELETED: ModifySuccessRate() - Success rates don't exist in deterministic card system
+    // MERCANTILE bonus now implemented in ModifyMomentumChange() as +3 Momentum
 
     /// <summary>
     /// Get Initiative cost for a card
@@ -77,7 +58,8 @@ public class PersonalityRuleEnforcer
 
     /// <summary>
     /// Modify momentum change based on personality rules (UPDATED FOR 4-RESOURCE SYSTEM)
-    /// Devoted: Doubt increases by +1 additional on failure
+    /// Mercantile: Highest Initiative card gains +3 Momentum
+    /// Devoted: Momentum losses doubled
     /// Cunning: Playing same Initiative as previous card costs -2 momentum
     /// Steadfast: All momentum changes capped at ±2
     /// </summary>
@@ -87,6 +69,18 @@ public class PersonalityRuleEnforcer
 
         switch (_modifier.Type)
         {
+            case PersonalityModifierType.HighestFocusBonus:
+                // Mercantile: Highest Initiative card gains +3 Momentum
+                int cardInitiative = GetCardInitiativeCost(card);
+                if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)
+                {
+                    int momentumBonus = _modifier.Parameters.ContainsKey("momentumBonus")
+                        ? _modifier.Parameters["momentumBonus"]
+                        : 3;
+                    modifiedChange += momentumBonus;
+                }
+                break;
+
             case PersonalityModifierType.MomentumLossDoubled:
                 // Devoted: When momentum would decrease, decrease it twice
                 if (baseMomentumChange < 0)
@@ -99,10 +93,10 @@ public class PersonalityRuleEnforcer
                 break;
 
             case PersonalityModifierType.RepeatFocusPenalty:
-                // Cunning: Playing same Initiative as previous card costs -2 momentum (UPDATED: Focus → Initiative)
-                int cardInitiative = GetCardInitiativeCost(card);
+                // Cunning: Playing same Initiative as previous card costs -2 momentum
+                int cunningCardInitiative = GetCardInitiativeCost(card);
                 int lastInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : -1;
-                if (lastInitiative != -1 && cardInitiative == lastInitiative)
+                if (lastInitiative != -1 && cunningCardInitiative == lastInitiative)
                 {
                     int penalty = _modifier.Parameters.ContainsKey("penalty")
                         ? _modifier.Parameters["penalty"]
@@ -112,7 +106,7 @@ public class PersonalityRuleEnforcer
                 break;
 
             case PersonalityModifierType.RapportChangeCap:
-                // Steadfast: All momentum changes capped at ±2 (UPDATED: rapport → momentum)
+                // Steadfast: All momentum changes capped at ±2
                 int cap = _modifier.Parameters.ContainsKey("cap")
                     ? _modifier.Parameters["cap"]
                     : 2;
@@ -161,14 +155,18 @@ public class PersonalityRuleEnforcer
     }
 
     /// <summary>
-    /// Get a description of the active personality rule - UPDATED FOR INITIATIVE
+    /// Get a description of the active personality rule
     /// </summary>
     public string GetRuleDescription()
     {
         return _modifier.Type switch
         {
-            PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending Initiative order",             PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled, +1 doubt on failure",             PersonalityModifierType.HighestFocusBonus => "Mercantile: Your highest Initiative card gains +30% success",             PersonalityModifierType.RepeatFocusPenalty => "Cunning: Playing same Initiative as previous costs -2 momentum", // UPDATED: focus → Initiative, rapport → momentum
-            PersonalityModifierType.RapportChangeCap => "Steadfast: All momentum changes capped at ±2",             _ => ""
+            PersonalityModifierType.AscendingFocusRequired => "Proud: Cards must be played in ascending Initiative order",
+            PersonalityModifierType.MomentumLossDoubled => "Devoted: All momentum losses doubled, +1 doubt on failure",
+            PersonalityModifierType.HighestFocusBonus => "Mercantile: Highest Initiative card gains +3 Momentum",
+            PersonalityModifierType.RepeatFocusPenalty => "Cunning: Repeat Initiative costs -2 Momentum",
+            PersonalityModifierType.RapportChangeCap => "Steadfast: All Momentum changes capped at ±2",
+            _ => ""
         };
     }
 

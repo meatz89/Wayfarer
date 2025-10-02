@@ -36,7 +36,7 @@ public class PersonalityModifier
 
             case PersonalityType.MERCANTILE:
                 modifier.Type = PersonalityModifierType.HighestFocusBonus;
-                modifier.Parameters["bonusPercent"] = 30; // +30% success rate
+                modifier.Parameters["momentumBonus"] = 3; // +3 Momentum bonus
                 break;
 
             case PersonalityType.CUNNING:
