@@ -113,6 +113,17 @@ public class CategoricalEffectResolver
         CardEffectFormula formula = card.ConversationCardTemplate?.EffectFormula;
         if (formula == null)
         {
+            // Request/Promise/Burden cards don't use EffectFormula - they complete goals
+            if (card.ConversationCardTemplate.CardType == CardType.Request ||
+                card.ConversationCardTemplate.CardType == CardType.Promise ||
+                card.ConversationCardTemplate.CardType == CardType.Burden)
+            {
+                result.EffectDescription = "Complete request";
+                result.EffectOnlyDescription = "Complete request";
+                result.EndsConversation = true;
+                return result;
+            }
+
             result.EffectDescription = "No effect formula";
             return result;
         }

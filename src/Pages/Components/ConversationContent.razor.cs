@@ -820,8 +820,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardStatClass(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
+            // Request cards use CardType for styling (categorical property set at parse time)
+            if (card?.ConversationCardTemplate?.CardType == CardType.Request)
+                return card.ConversationCardTemplate.CardType.ToString().ToLower(); // "request"
 
+            // Conversation cards use BoundStat for styling
+            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
             return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
         }
 

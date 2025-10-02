@@ -448,6 +448,10 @@
     border-left: 5px solid #6a5a8a;
 }
 
+.card.request {
+    border-left: 5px solid #d4af37; /* Gold color for request cards */
+}
+
 /* Card Layout */
 .card-content {
     padding: 12px;
@@ -647,6 +651,11 @@
 .stat-badge.cunning {
     background: #6a5a8a;
     color: #faf4ea;
+}
+
+.stat-badge.request {
+    background: #d4af37; /* Gold background for request badge */
+    color: #2c1810; /* Dark brown text for contrast */
 }
 
 /* Tier Display */
