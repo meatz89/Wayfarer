@@ -1,7 +1,7 @@
 public enum CardType
 {
     Conversation,  // Standard conversation cards (default)
-    Letter,        // Goal cards that create obligations AND letter items when accepted
+    Request,       // Request cards that complete NPC goals and end conversations
     Promise,       // Goal cards that create/modify obligations WITHOUT letter items (including queue manipulation)
     Burden,        // Goal cards that enable "Make Amends" conversations to remove burdens
     Observation    // Observation cards from location discoveries

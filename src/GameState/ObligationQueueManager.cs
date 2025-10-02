@@ -2695,7 +2695,7 @@ public class ObligationQueueManager
         ConversationCard burdenCard = new ConversationCard
         {
             Id = $"burden_{npcId}_{Guid.NewGuid()}",
-            CardType = CardType.Letter,  // Burden cards use BurdenGoal type
+            CardType = CardType.Request,  // Burden cards use BurdenGoal type
             Title = $"Past betrayal weighs on {npc.Name}'s mind",
             TokenType = tokenType,
             Persistence = PersistenceType.Statement,  // Burdens persist

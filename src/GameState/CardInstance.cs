@@ -63,7 +63,7 @@ public class CardInstance
         }
 
         // Add special classes for request cards
-        if (ConversationCardTemplate.CardType == CardType.Letter || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Letter)
+        if (ConversationCardTemplate.CardType == CardType.Request || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Request)
         {
             classes.Add("card-request");
             if (!IsPlayable)
@@ -80,7 +80,7 @@ public class CardInstance
     public ConnectionState? SuccessState => null;
     public ConnectionState? FailureState => null;
     public int BaseFlow => 1;
-    public bool CanDeliverLetter => ConversationCardTemplate.CardType == CardType.Letter || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Letter;
+    public bool CanDeliverLetter => ConversationCardTemplate.CardType == CardType.Request || ConversationCardTemplate.CardType == CardType.Promise || ConversationCardTemplate.CardType == CardType.Request;
     public string DeliveryObligationId => "";
     public string ObservationSource => "";
     // Exchange detection - exchanges are now separate ExchangeCard entities, not ConversationCards

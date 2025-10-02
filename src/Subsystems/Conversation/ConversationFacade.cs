@@ -532,7 +532,7 @@ public class ConversationFacade
                     Description = "Deliver a letter from your queue",
                     TokenType = ConnectionType.None,
                     MomentumThreshold = 0,
-                    CardType = CardType.Letter
+                    CardType = CardType.Request
                 });
             }
         }
@@ -587,7 +587,7 @@ public class ConversationFacade
 
         // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
+        if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -795,7 +795,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request cards - their playability is based on momentum thresholds
-            if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
+            if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
             {
                 continue;
             }
@@ -1054,9 +1054,9 @@ public class ConversationFacade
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
         bool requestAchieved = session.Deck.SpokenCards.Any(c =>
-            c.ConversationCardTemplate.CardType == CardType.Letter ||
+            c.ConversationCardTemplate.CardType == CardType.Request ||
             c.ConversationCardTemplate.CardType == CardType.Promise ||
-            c.ConversationCardTemplate.CardType == CardType.Letter);
+            c.ConversationCardTemplate.CardType == CardType.Request);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1370,7 +1370,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
-            if ((card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
+            if ((card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1396,7 +1396,7 @@ public class ConversationFacade
     {
         // This is called at conversation start - just check for goal card presence
         bool hasRequestCard = session.Deck.HandCards
-            .Any(c => c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise || c.ConversationCardTemplate.CardType == CardType.Letter);
+            .Any(c => c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise || c.ConversationCardTemplate.CardType == CardType.Request);
 
         if (hasRequestCard)
         {
@@ -1415,7 +1415,7 @@ public class ConversationFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not Initiative
-            if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
+            if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
             {
                 continue; // Don't modify request card playability here
             }

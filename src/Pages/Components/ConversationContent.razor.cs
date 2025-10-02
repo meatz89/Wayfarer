@@ -92,7 +92,7 @@ namespace Wayfarer.Pages.Components
         protected string GetCardNarrativeClass(CardInstance card)
         {
             // Request cards don't use narrative styling (no TEMPLATE badge needed)
-            if (card?.ConversationCardTemplate?.CardType == CardType.Letter)
+            if (card?.ConversationCardTemplate?.CardType == CardType.Request)
                 return "";
 
             // Check if this specific card has AI-generated narrative
@@ -233,7 +233,7 @@ namespace Wayfarer.Pages.Components
 
                 // Check for conversation end (promise card success, etc.)
                 bool wasSuccessful = turnResult.CardPlayResult.Results?.FirstOrDefault()?.Success ?? false;
-                bool isPromiseCard = playedCard.ConversationCardTemplate.CardType == CardType.Letter || playedCard.ConversationCardTemplate.CardType == CardType.Promise;
+                bool isPromiseCard = playedCard.ConversationCardTemplate.CardType == CardType.Request || playedCard.ConversationCardTemplate.CardType == CardType.Promise;
 
                 if (isPromiseCard && wasSuccessful)
                 {
@@ -701,7 +701,7 @@ namespace Wayfarer.Pages.Components
             if (handCards == null) return new List<CardInstance>();
 
             return handCards
-                .Where(c => (c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise)) // Request cards have Opening property
+                .Where(c => (c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise)) // Request cards have Opening property
                 .ToList();
         }
 
@@ -710,7 +710,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
         {
-            return cards.Where(c => (c.ConversationCardTemplate.CardType == CardType.Letter || c.ConversationCardTemplate.CardType == CardType.Promise)).ToList();
+            return cards.Where(c => (c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise)).ToList();
         }
 
         /// <summary>
@@ -753,7 +753,7 @@ namespace Wayfarer.Pages.Components
                 {
                     CardType type = card.ConversationCardTemplate.CardType;
                     // Request cards (Letter/Promise/Burden) get priority 0, others get priority 1
-                    return (type == CardType.Letter || type == CardType.Promise || type == CardType.Burden) ? 0 : 1;
+                    return (type == CardType.Request || type == CardType.Promise || type == CardType.Burden) ? 0 : 1;
                 })
                 .ToList();
 

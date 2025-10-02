@@ -64,8 +64,8 @@ public class CategoricalEffectResolver
     /// </summary>
     public bool CheckCardSuccess(CardInstance card, ConversationSession session)
     {
-        // Goal cards (Letters, Promises) always succeed if momentum threshold is met
-        if (card.ConversationCardTemplate.CardType == CardType.Letter || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Letter)
+        // Goal cards (Requests, Promises) always succeed if momentum threshold is met
+        if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Burden)
         {
             return session.CurrentMomentum >= card.ConversationCardTemplate.MomentumThreshold;
         }

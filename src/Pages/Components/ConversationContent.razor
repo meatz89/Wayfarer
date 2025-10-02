@@ -316,12 +316,12 @@
                     var convCard = displayCard.Card;
 
                     <!-- Card (matching mockup exactly) - promise class adds different background for Letter cards -->
-                    <div class="card @(convCard.ConversationCardTemplate.CardType == CardType.Letter ? "promise" : "") @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
+                    <div class="card @(convCard.ConversationCardTemplate.CardType == CardType.Request ? "promise" : "") @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
                          @onclick="() => ToggleCardSelection(convCard)">
                             <div class="card-content">
                                 <div class="card-top-row">
                                     <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @if (convCard.ConversationCardTemplate.CardType == CardType.Letter)
+                                        @if (convCard.ConversationCardTemplate.CardType == CardType.Request)
                                         {
                                             <span>REQUEST</span>
                                         }

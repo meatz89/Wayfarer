@@ -95,12 +95,12 @@ public static class ConversationCardParser
                 cardType = dto.Type.ToLower() switch
                 {
                     "burdengoal" => CardType.Burden,
-                    "request" => CardType.Conversation,
+                    "letter" => CardType.Request,  // Legacy alias
                     "exchange" => CardType.Conversation,
                     "normal" => CardType.Conversation,
                     _ => throw new InvalidOperationException(
                         $"INVALID CARD TYPE: Card '{dto.Id}' has invalid type '{dto.Type}'. " +
-                        $"Valid values: Conversation, Letter, Promise, Burden, Observation")
+                        $"Valid values: Conversation, Request, Promise, Burden, Observation")
                 };
             }
         }
@@ -137,7 +137,7 @@ public static class ConversationCardParser
             }
             move = parsedMove;
         }
-        // Letter/Promise/Burden cards don't have conversational moves (they're not part of conversation mechanics)
+        // Request/Promise/Burden cards don't have conversational moves (they're not part of conversation mechanics)
 
         // Parse effects from new structure and determine success type
         SuccessEffectType successType = DetermineSuccessTypeFromEffects(dto.Effects);
@@ -151,7 +151,7 @@ public static class ConversationCardParser
         }
 
         // Validate momentum threshold for goal cards
-        if (cardType == CardType.Letter || cardType == CardType.Promise || cardType == CardType.Letter)
+        if (cardType == CardType.Request || cardType == CardType.Promise || cardType == CardType.Request)
         {
             if (!dto.MomentumThreshold.HasValue)
             {
