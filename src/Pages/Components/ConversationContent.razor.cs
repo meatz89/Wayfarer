@@ -231,17 +231,11 @@ namespace Wayfarer.Pages.Components
                     LastNarrative = "Your words have an effect.";
                 }
 
-                // Check for conversation end (promise card success, etc.)
-                bool wasSuccessful = turnResult.CardPlayResult.Results?.FirstOrDefault()?.Success ?? false;
-                bool isPromiseCard = playedCard.ConversationCardTemplate.CardType == CardType.Request || playedCard.ConversationCardTemplate.CardType == CardType.Promise;
-
-                if (isPromiseCard && wasSuccessful)
+                // Check if backend signals conversation should end (request cards, etc.)
+                if (turnResult.EndsConversation)
                 {
                     IsConversationEnded = true;
-                    EndReason = $"Success! {GetSuccessEffectDescription(playedCard)}";
-                    LastNarrative = "Your words have the desired effect. The conversation concludes successfully.";
-                    StateHasChanged();
-                    return;
+                    EndReason = "Request completed";
                 }
 
                 SelectedCard = null;
@@ -467,6 +461,9 @@ namespace Wayfarer.Pages.Components
         protected bool CanSelectCard(CardInstance card)
         {
             if (Session == null || card == null) return false;
+
+            // Cards not selectable when conversation has ended
+            if (IsConversationEnded) return false;
 
             // UI MUST ONLY ASK BACKEND - NO GAME LOGIC IN UI
             return GameFacade.CanPlayCard(card, Session);
