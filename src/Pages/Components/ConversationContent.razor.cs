@@ -91,6 +91,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardNarrativeClass(CardInstance card)
         {
+            // Request cards don't use narrative styling (no TEMPLATE badge needed)
+            if (card?.ConversationCardTemplate?.CardType == CardType.Letter)
+                return "";
+
             // Check if this specific card has AI-generated narrative
             if (card != null && CurrentCardNarratives != null)
             {

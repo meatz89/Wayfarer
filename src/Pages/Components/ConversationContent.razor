@@ -315,16 +315,10 @@
                 {
                     var convCard = displayCard.Card;
 
-                    @if (convCard.ConversationCardTemplate.CardType == CardType.Letter || convCard.ConversationCardTemplate.CardType == CardType.Letter)
-                    {
-                        <div class="card promise @GetCardDepthClass(convCard) @GetCardNarrativeClass(convCard) @(CanSelectCard(convCard) ? "" : "disabled")"
-                             @onclick="() => ToggleCardSelection(convCard)">
-                            @* Request cards don't show depth marker - they use momentum thresholds instead *@
-                            <div class="promise-threshold @((Session?.CurrentMomentum ?? 0) >= (convCard?.Context?.MomentumThreshold ?? 0) ? "promise-active" : "")">
-                                Requires @(convCard?.Context?.MomentumThreshold ?? 0)+ Momentum (Currently: @(Session?.CurrentMomentum ?? 0))
-                            </div>
+                    <!-- Card (matching mockup exactly) - promise class adds different background for Letter cards -->
+                    <div class="card @(convCard.ConversationCardTemplate.CardType == CardType.Letter ? "promise" : "") @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
+                         @onclick="() => ToggleCardSelection(convCard)">
                             <div class="card-content">
-                                <!-- Top row: Stat badge -->
                                 <div class="card-top-row">
                                     <div class="stat-badge @GetCardStatClass(convCard)">
                                         @if (convCard.ConversationCardTemplate.CardType == CardType.Letter)
@@ -333,45 +327,9 @@
                                         }
                                         else
                                         {
-                                            <text>@GetCardStatName(convCard) Lv @(GameFacade.GetPlayerStats().GetLevel(convCard.ConversationCardTemplate.BoundStat.Value))</text>
-                                            @if (!string.IsNullOrEmpty((ConversationFacade?.GetCardStatBonus(convCard) ?? "")))
-                                            {
-                                                <span class="stat-bonus">@(ConversationFacade?.GetCardStatBonus(convCard) ?? "")</span>
-                                            }
+                                            <text>@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</text>
                                         }
                                     </div>
-                                </div>
-
-                                <!-- Card header: Name and Focus cost -->
-                                <div class="card-header">
-                                    <div class="card-name">
-                                        @GetProperCardName(convCard)
-                                    </div>
-                                    <div class="card-initiative">@GetCardInitiativeCost(convCard)</div>
-                                </div>
-
-                                <!-- Card dialogue text -->
-                                <div class="card-text @GetNarrativeClass()">
-                                    "@GetProperCardDialogue(convCard)"
-                                </div>
-
-                                <!-- Effect description -->
-                                <div class="card-effect">
-                                    @GetCardEffectDescription(convCard)
-                                </div>
-
-                                <!-- Impulse warning -->
-                            </div>
-                        </div>
-                    }
-                        else
-                    {
-                        <!-- Card (matching mockup exactly) -->
-                        <div class="card @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
-                             @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="card-content">
-                                <div class="card-top-row">
-                                    <div class="stat-badge @GetCardStatClass(convCard)">@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</div>
                                     <div class="card-flags">
                                         <span class="card-move @GetCardMoveClass(convCard)" title="Conversational move type">
                                             @GetCardMove(convCard)
@@ -424,7 +382,6 @@
                             </div>
                         </div>
                     }
-                }
             </div>
     </div>
     </div>

@@ -266,6 +266,7 @@ public class SessionCardDeck
             int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             requestPile.Remove(card);
+            card.IsPlayable = true; // NOW playable - threshold met
             mindPile.Add(card);
             Console.WriteLine($"[SessionCardDeck] Request card {card.ConversationCardTemplate.Id} moved to mind (momentum {currentMomentum})");
             movedCards.Add(card);
