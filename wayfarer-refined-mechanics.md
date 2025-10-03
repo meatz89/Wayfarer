@@ -310,7 +310,6 @@ Key moments creating memorable peaks:
 - Token threshold scenes (5, 10, 15 tokens)
 - Location first-visit vignettes
 - Major mystery reveals
-- Seasonal or calendar events
 
 Same for all players, no branching. Creates structure in slice-of-life flow.
 
@@ -321,7 +320,6 @@ Everything adapting to exact game state:
 - Investigation narration building on history
 - NPC reactions to your choices and discoveries
 - Travel descriptions showing familiarity
-- Work scenes showing community integration
 
 Makes mechanical choices feel personal without inventing consequences.
 

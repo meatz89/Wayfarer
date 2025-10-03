@@ -196,7 +196,6 @@ When you investigate matters:
 - Time of day affects visibility and witnesses
 - Weather conditions change accessibility
 - NPC schedules determine who might observe
-- Seasonal factors affect environment
 
 ### Investigation Rewards
 
@@ -260,7 +259,6 @@ Weather and conditions affecting travel:
 - Rain making paths slippery or impassable
 - Cold requiring warm clothing
 - Darkness limiting visibility and safety
-- Seasonal changes altering route accessibility
 - Time of day affecting safety and witnesses
 
 **Equipment Requirements:**
@@ -315,7 +313,7 @@ Gather information:
 - Talk to NPCs who know the area
 - Learn about hazards and requirements
 - Discover hidden paths or shortcuts
-- Understand seasonal/weather factors
+- Understand weather factors
 
 Acquire equipment:
 - Purchase or craft needed tools
@@ -488,7 +486,6 @@ Memorable moments identical for all players:
 - NPC introduction scenes (first meeting)
 - Location first-visit vignettes (atmospheric establishment)
 - Relationship milestone scenes (at relationship thresholds)
-- Seasonal events (calendar-based)
 - High-difficulty investigation discoveries (lore payoffs)
 
 **Purpose:** Create identity, establish tone, provide structural peaks in slice-of-life flow.
@@ -632,7 +629,6 @@ NPCs have lives beyond player:
 - Requests reflect their actual needs
 - Conversations reference their activities
 - World events proceed regardless
-- Seasonal changes affect everyone
 - Player is participant, not center
 
 This maintains immersion and verisimilitude.
@@ -645,7 +641,6 @@ Content structured as modular packages:
 - Core game foundation
 - Expansion locations and NPCs
 - AI-generated contextual content
-- Seasonal event packages
 
 ### Skeleton System
 
