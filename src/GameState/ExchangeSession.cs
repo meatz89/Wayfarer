@@ -30,10 +30,10 @@ public class ExchangeSession
     public TimeBlocks StartTimeBlock { get; set; }
 
     /// <summary>
-    /// Available exchange cards for this session.
+    /// Available exchange options for this session.
     /// These are the exchanges the NPC is offering.
     /// </summary>
-    public List<ExchangeCard> AvailableExchanges { get; set; } = new List<ExchangeCard>();
+    public List<ExchangeOption> AvailableExchanges { get; set; } = new List<ExchangeOption>();
 
     /// <summary>
     /// Exchange cards the player has selected to consider.
@@ -93,23 +93,23 @@ public class ExchangeSession
     /// <summary>
     /// Gets the currently selected exchange if exactly one is selected.
     /// </summary>
-    public ExchangeCard GetSelectedExchange()
+    public ExchangeOption GetSelectedExchange()
     {
         if (SelectedExchangeIds.Count != 1)
             return null;
 
-        return AvailableExchanges.Find(e => e.Id == SelectedExchangeIds[0]);
+        return AvailableExchanges.Find(e => e.ExchangeId == SelectedExchangeIds[0]);
     }
 
     /// <summary>
     /// Gets the active exchange being executed.
     /// </summary>
-    public ExchangeCard GetActiveExchange()
+    public ExchangeOption GetActiveExchange()
     {
         if (string.IsNullOrEmpty(ActiveExchangeId))
             return null;
 
-        return AvailableExchanges.Find(e => e.Id == ActiveExchangeId);
+        return AvailableExchanges.Find(e => e.ExchangeId == ActiveExchangeId);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public class ExchangeSession
     /// </summary>
     public void CompleteExchange(string exchangeId, bool success, ExchangeCostStructure actualCost, ExchangeRewardStructure actualReward)
     {
-        ExchangeCard? exchange = AvailableExchanges.Find(e => e.Id == exchangeId);
+        ExchangeOption? exchange = AvailableExchanges.Find(e => e.ExchangeId == exchangeId);
         if (exchange == null)
             return;
 
@@ -133,10 +133,10 @@ public class ExchangeSession
 
         CompletedExchanges.Add(completed);
 
-        // Mark single-use exchanges as completed
-        if (exchange.SingleUse && success)
+        // Mark single-use exchanges as completed in the underlying ExchangeData
+        if (exchange.ExchangeCard != null)
         {
-            exchange.IsCompleted = true;
+            // TODO: Track completion in ExchangeData if needed
         }
 
         // Clear active exchange

@@ -645,9 +645,9 @@ public class ConversationFacade
         try
         {
             // Cast exchangeData to ExchangeData type
-            if (exchangeData is not ExchangeData exchange)
+            if (exchangeData is not ExchangeCard exchange)
             {
-                throw new ArgumentException("exchangeData must be of type ExchangeData");
+                throw new ArgumentException("exchangeData must be of type ExchangeCard");
             }
 
             // Delegate to the exchange handler

@@ -23,7 +23,7 @@ public class ExchangeValidator
     /// Validate if an exchange can be performed
     /// </summary>
     public ExchangeValidationResult ValidateExchange(
-        ExchangeData exchange,
+        ExchangeCard exchange,
         NPC npc,
         PlayerResourceState playerResources,
         Dictionary<ConnectionType, int> npcTokens,
@@ -106,10 +106,10 @@ public class ExchangeValidator
     /// <summary>
     /// Check if player can afford the exchange costs
     /// </summary>
-    public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
+    public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
     {
 
-        foreach (ResourceAmount cost in exchange.Costs)
+        foreach (ResourceAmount cost in exchange.GetCostAsList())
         {
             if (!CanAffordResource(cost, playerResources, npcTokens))
             {
@@ -123,7 +123,7 @@ public class ExchangeValidator
     /// <summary>
     /// Check visibility requirements (minimum relationship to even see the exchange)
     /// </summary>
-    private bool CheckVisibilityRequirements(ExchangeData exchange, NPC npc, RelationshipTier relationshipTier)
+    private bool CheckVisibilityRequirements(ExchangeCard exchange, NPC npc, RelationshipTier relationshipTier)
     {
         // Check if exchange requires minimum relationship
         if (exchange.MinimumRelationshipTier > 0)
@@ -134,13 +134,8 @@ public class ExchangeValidator
             }
         }
 
-        // Check if exchange is still available (not exhausted)
-        if (exchange.IsUnique && exchange.TimesUsed > 0)
-        {
-            return false;
-        }
-
-        if (exchange.MaxUses > 0 && exchange.TimesUsed >= exchange.MaxUses)
+        // Check if exchange is exhausted
+        if (exchange.IsExhausted())
         {
             return false;
         }
@@ -151,7 +146,7 @@ public class ExchangeValidator
     /// <summary>
     /// Check if exchange is available at current location
     /// </summary>
-    private bool CheckDomainRequirements(ExchangeData exchange, List<string> currentSpotDomains)
+    private bool CheckDomainRequirements(ExchangeCard exchange, List<string> currentSpotDomains)
     {
         if (exchange.RequiredDomains == null || !exchange.RequiredDomains.Any())
         {
@@ -166,42 +161,50 @@ public class ExchangeValidator
     /// <summary>
     /// Check if exchange is available at current time
     /// </summary>
-    private bool CheckTimeRequirements(ExchangeData exchange)
+    private bool CheckTimeRequirements(ExchangeCard exchange)
     {
-        if (exchange.TimeRestrictions == null || !exchange.TimeRestrictions.Any())
+        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
         {
             return true; // No time restrictions
         }
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return exchange.TimeRestrictions.Contains(currentTime);
+        return exchange.AvailableTimeBlocks.Contains(currentTime);
     }
 
     /// <summary>
     /// Check if player has required tokens with NPC
     /// </summary>
-    private bool CheckTokenRequirements(ExchangeData exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
+    private bool CheckTokenRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
     {
-        if (!exchange.RequiredTokenType.HasValue || exchange.MinimumTokensRequired <= 0)
+        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
         {
             return true; // No token requirements
         }
 
-        int currentTokens = npcTokens.GetValueOrDefault(exchange.RequiredTokenType.Value, 0);
-        return currentTokens >= exchange.MinimumTokensRequired;
+        foreach (KeyValuePair<ConnectionType, int> requirement in exchange.Cost.TokenRequirements)
+        {
+            int currentTokens = npcTokens.GetValueOrDefault(requirement.Key, 0);
+            if (currentTokens < requirement.Value)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
     /// Check if player has required items
     /// </summary>
-    private bool CheckItemRequirements(ExchangeData exchange, PlayerResourceState playerResources)
+    private bool CheckItemRequirements(ExchangeCard exchange, PlayerResourceState playerResources)
     {
-        if (exchange.RequiredItems == null || !exchange.RequiredItems.Any())
+        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
         {
             return true; // No item requirements
         }
 
-        foreach (string itemId in exchange.RequiredItems)
+        foreach (string itemId in exchange.Cost.RequiredItemIds)
         {
             Player player = _gameWorld.GetPlayer();
             if (!player.Inventory.HasItem(itemId))
@@ -216,7 +219,7 @@ public class ExchangeValidator
     /// <summary>
     /// Check NPC-specific state requirements
     /// </summary>
-    private bool CheckNPCStateRequirements(ExchangeData exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
+    private bool CheckNPCStateRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
     {
         // Patience system removed - all NPCs always have patience
 
@@ -269,35 +272,36 @@ public class ExchangeValidator
 
     // Message generation helpers
 
-    private string GetTimeRestrictionMessage(ExchangeData exchange)
+    private string GetTimeRestrictionMessage(ExchangeCard exchange)
     {
-        if (exchange.TimeRestrictions == null || !exchange.TimeRestrictions.Any())
+        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
         {
             return "Not available at this time";
         }
 
-        string availableTimes = string.Join(", ", exchange.TimeRestrictions.Select(t => t.ToString()));
+        string availableTimes = string.Join(", ", exchange.AvailableTimeBlocks.Select(t => t.ToString()));
         return $"Only available during: {availableTimes}";
     }
 
-    private string GetTokenRequirementMessage(ExchangeData exchange)
+    private string GetTokenRequirementMessage(ExchangeCard exchange)
     {
-        if (!exchange.RequiredTokenType.HasValue)
+        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
         {
             return "Insufficient relationship";
         }
 
-        return $"Requires {exchange.MinimumTokensRequired} {exchange.RequiredTokenType} tokens";
+        KeyValuePair<ConnectionType, int> firstRequirement = exchange.Cost.TokenRequirements.First();
+        return $"Requires {firstRequirement.Value} {firstRequirement.Key} tokens";
     }
 
-    private string GetItemRequirementMessage(ExchangeData exchange)
+    private string GetItemRequirementMessage(ExchangeCard exchange)
     {
-        if (exchange.RequiredItems == null || !exchange.RequiredItems.Any())
+        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
         {
             return "Missing required items";
         }
 
-        return $"Requires: {string.Join(", ", exchange.RequiredItems)}";
+        return $"Requires: {string.Join(", ", exchange.Cost.RequiredItemIds)}";
     }
 }
 

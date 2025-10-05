@@ -75,7 +75,7 @@ public class ExchangeFacade
         }
 
         // Get exchanges from NPC's inventory
-        List<ExchangeData> npcExchanges = _inventory.GetNPCExchanges(npcId);
+        List<ExchangeCard> npcExchanges = _inventory.GetNPCExchanges(npcId);
 
         // Get player's current location for domain validation
         Player player = _gameWorld.GetPlayer();
@@ -90,7 +90,7 @@ public class ExchangeFacade
         // Validate each exchange
         List<ExchangeOption> validExchanges = new List<ExchangeOption>();
 
-        foreach (ExchangeData exchange in npcExchanges)
+        foreach (ExchangeCard exchange in npcExchanges)
         {
             // Check if exchange is valid in current context
             ExchangeValidationResult validation = _validator.ValidateExchange(
@@ -106,12 +106,12 @@ public class ExchangeFacade
                 validExchanges.Add(new ExchangeOption
                 {
                     ExchangeId = exchange.Id,
-                    Name = exchange.ExchangeName ?? "Trade",
+                    Name = exchange.Name ?? "Trade",
                     Description = exchange.Description ?? FormatExchangeDescription(exchange),
-                    Cost = FormatCost(exchange.Costs),
-                    Reward = FormatReward(exchange.Rewards),
+                    Cost = FormatCost(exchange.GetCostAsList()),
+                    Reward = FormatReward(exchange.GetRewardAsList()),
                     CanAfford = validation.CanAfford,
-                    ExchangeData = exchange,
+                    ExchangeCard = exchange,
                     ValidationResult = new global::ExchangeValidationResult
                     {
                         IsValid = validation.IsValid,
@@ -144,11 +144,11 @@ public class ExchangeFacade
 
         // Get exchange data
         Console.WriteLine($"[ExchangeFacade] Attempting to get exchange - NpcId: '{npcId}', ExchangeId: '{exchangeId}'");
-        ExchangeData? exchange = _inventory.GetExchange(npcId, exchangeId);
+        ExchangeCard? exchange = _inventory.GetExchange(npcId, exchangeId);
         if (exchange == null)
         {
             Console.WriteLine($"[ExchangeFacade] Exchange not found! Available NPCs: {string.Join(", ", _inventory.GetNPCsWithExchanges())}");
-            List<ExchangeData> availableExchanges = _inventory.GetNPCExchanges(npcId);
+            List<ExchangeCard> availableExchanges = _inventory.GetNPCExchanges(npcId);
             Console.WriteLine($"[ExchangeFacade] Available exchanges for '{npcId}': {string.Join(", ", availableExchanges.Select(e => e.Id))}");
             return new ExchangeResult
             {
@@ -189,8 +189,8 @@ public class ExchangeFacade
         {
             _inventory.RecordExchange(npcId, exchangeId);
 
-            // Check if this was a unique exchange
-            if (exchange.IsUnique)
+            // Check if this was a single-use exchange
+            if (exchange.SingleUse)
             {
                 _inventory.RemoveExchange(npcId, exchangeId);
             }
@@ -202,7 +202,7 @@ public class ExchangeFacade
     /// <summary>
     /// Check if player can afford an exchange
     /// </summary>
-    public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
+    public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources)
     {
         // Need to get npcTokens to call validator properly
         // This method should be updated to accept additional parameters
@@ -240,7 +240,7 @@ public class ExchangeFacade
     /// <summary>
     /// Add an exchange to an NPC's inventory (for dynamic exchanges)
     /// </summary>
-    public void AddExchangeToNPC(string npcId, ExchangeData exchange)
+    public void AddExchangeToNPC(string npcId, ExchangeCard exchange)
     {
         _inventory.AddExchange(npcId, exchange);
     }
@@ -256,32 +256,39 @@ public class ExchangeFacade
     /// <summary>
     /// Get exchange requirements for display
     /// </summary>
-    public ExchangeRequirements GetExchangeRequirements(ExchangeData exchange)
+    public ExchangeRequirements GetExchangeRequirements(ExchangeCard exchange)
     {
+        // Get first token requirement if exists
+        ConnectionType? firstTokenType = exchange.Cost?.TokenRequirements?.Keys.FirstOrDefault();
+        int minimumTokens = exchange.Cost?.TokenRequirements?.Values.FirstOrDefault() ?? 0;
+
         return new ExchangeRequirements
         {
-            MinimumTokens = exchange.MinimumTokensRequired,
-            RequiredTokenType = exchange.RequiredTokenType,
+            MinimumTokens = minimumTokens,
+            RequiredTokenType = firstTokenType,
             RequiredDomains = exchange.RequiredDomains,
-            RequiredItems = exchange.RequiredItems,
-            TimeRestrictions = exchange.TimeRestrictions
+            RequiredItems = exchange.Cost?.RequiredItemIds?.ToList() ?? new List<string>(),
+            TimeRestrictions = exchange.AvailableTimeBlocks
         };
     }
 
     // Helper methods
 
-    private string FormatExchangeDescription(ExchangeData exchange)
+    private string FormatExchangeDescription(ExchangeCard exchange)
     {
         List<string> parts = new List<string>();
 
-        if (exchange.Costs.Any())
+        List<ResourceAmount> costs = exchange.GetCostAsList();
+        List<ResourceAmount> rewards = exchange.GetRewardAsList();
+
+        if (costs.Any())
         {
-            parts.Add($"Pay: {FormatCost(exchange.Costs)}");
+            parts.Add($"Pay: {FormatCost(costs)}");
         }
 
-        if (exchange.Rewards.Any())
+        if (rewards.Any())
         {
-            parts.Add($"Receive: {FormatReward(exchange.Rewards)}");
+            parts.Add($"Receive: {FormatReward(rewards)}");
         }
 
         return string.Join(" → ", parts);

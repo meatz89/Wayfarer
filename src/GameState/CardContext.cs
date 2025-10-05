@@ -2,7 +2,7 @@
 // Card context for special behaviors
 public class CardContext
 {
-    public ExchangeData ExchangeData { get; set; }
+    public ExchangeCard ExchangeData { get; set; }
     public PromiseCardData PromiseData { get; set; }
     public bool GeneratesLetterOnSuccess { get; set; }
     public int MomentumThreshold { get; set; } // For request/promise cards

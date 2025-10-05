@@ -837,9 +837,6 @@ public class GameFacade
             return null;
         }
 
-        // Convert ExchangeOptions to ExchangeCards
-        List<ExchangeCard> exchangeCards = availableExchanges.Select(option => ConvertToExchangeCard(option)).ToList();
-
         // Create exchange session through ExchangeFacade
         ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
         if (session == null)
@@ -871,7 +868,7 @@ public class GameFacade
             {
                 NpcId = npcId,
                 LocationId = currentSpot?.SpotID ?? "",
-                AvailableExchanges = exchangeCards
+                AvailableExchanges = availableExchanges
             }
         };
 
@@ -1128,41 +1125,8 @@ public class GameFacade
     /// </summary>
     private ExchangeCard ConvertToExchangeCard(ExchangeOption option)
     {
-        ExchangeData? exchangeData = option.ExchangeData;
-
-        // Build token requirements from ExchangeData
-        Dictionary<ConnectionType, int> tokenRequirements = new Dictionary<ConnectionType, int>();
-        if (exchangeData?.RequiredTokenType != null && exchangeData.MinimumTokensRequired > 0)
-        {
-            tokenRequirements[exchangeData.RequiredTokenType.Value] = exchangeData.MinimumTokensRequired;
-        }
-
-        return new ExchangeCard
-        {
-            Id = option.ExchangeId,
-            Name = option.Name,
-            Description = option.Description,
-            ExchangeType = ExchangeType.Purchase,  // Default type since ExchangeData doesn't have this
-            NpcId = "",  // Will be set by the calling context
-            Cost = new ExchangeCostStructure
-            {
-                Resources = exchangeData?.Costs ?? new List<ResourceAmount>(),
-                TokenRequirements = tokenRequirements,
-                RequiredItemIds = exchangeData?.RequiredItems ?? new List<string>()
-            },
-            Reward = new ExchangeRewardStructure
-            {
-                Resources = exchangeData?.Rewards ?? new List<ResourceAmount>(),
-                ItemIds = new List<string>(),  // ExchangeData doesn't have RewardItems
-                Tokens = new Dictionary<ConnectionType, int>()  // ExchangeData doesn't have TokenRewards
-            },
-            SingleUse = exchangeData?.IsUnique ?? false,
-            IsCompleted = false,
-            SuccessRate = 100,  // ExchangeData doesn't have SuccessRate
-            FailurePenalty = null,  // ExchangeData doesn't have FailurePenalty
-            RequiredLocationId = null,  // ExchangeData doesn't have RequiredLocation
-            AvailableTimeBlocks = exchangeData?.TimeRestrictions ?? new List<TimeBlocks>()
-        };
+        // ExchangeOption already wraps the ExchangeCard - just return it
+        return option.ExchangeCard;
     }
 
     // ============================================

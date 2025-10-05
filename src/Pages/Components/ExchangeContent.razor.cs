@@ -159,7 +159,7 @@ namespace Wayfarer.Pages.Components
         protected string GenerateNpcGreeting()
         {
             string npcName = Context?.NpcInfo?.Name ?? "The merchant";
-            bool hasQueue = Context?.Session?.AvailableExchanges?.Any(e => e.ExchangeType == ExchangeType.Service) ?? false;
+            bool hasQueue = Context?.Session?.AvailableExchanges?.Any(e => e.ExchangeCard?.ExchangeType == ExchangeType.Service) ?? false;
 
             if (hasQueue)
             {

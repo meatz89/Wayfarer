@@ -56,7 +56,8 @@ public class ExchangeContext
             return new List<ExchangeCard>();
 
         return Session.AvailableExchanges
-            .Where(e => e.IsAvailable(LocationInfo?.LocationId, CurrentTimeBlock))
+            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo?.LocationId, CurrentTimeBlock))
+            .Select(e => e.ExchangeCard)
             .ToList();
     }
 
@@ -124,7 +125,8 @@ public class ExchangeContext
     /// </summary>
     public ExchangePreview GetExchangePreview(string exchangeId)
     {
-        ExchangeCard? exchange = Session?.AvailableExchanges?.Find(e => e.Id == exchangeId);
+        ExchangeOption? option = Session?.AvailableExchanges?.Find(e => e.ExchangeId == exchangeId);
+        ExchangeCard? exchange = option?.ExchangeCard;
         if (exchange == null)
             return null;
 

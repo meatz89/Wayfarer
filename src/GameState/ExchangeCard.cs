@@ -92,6 +92,99 @@ public class ExchangeCard
     /// </summary>
     public List<TimeBlocks> AvailableTimeBlocks { get; set; } = new List<TimeBlocks>();
 
+    // VALIDATION REQUIREMENTS
+
+    /// <summary>
+    /// Domain tags required for this exchange (e.g., "market", "tavern").
+    /// Empty list means no domain restrictions.
+    /// </summary>
+    public List<string> RequiredDomains { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Minimum relationship tier required to access this exchange.
+    /// 0 means no relationship requirement.
+    /// </summary>
+    public int MinimumRelationshipTier { get; set; }
+
+    /// <summary>
+    /// Connection state required for this exchange (e.g., must be TRUSTING).
+    /// Null means no specific state required.
+    /// </summary>
+    public ConnectionState? RequiredConnectionState { get; set; }
+
+    /// <summary>
+    /// Whether this exchange requires patience from the NPC.
+    /// If true and NPC has no patience, exchange is unavailable.
+    /// </summary>
+    public bool RequiresPatience { get; set; }
+
+    // EXCHANGE EFFECTS
+
+    /// <summary>
+    /// Exchange ID that becomes unlocked after completing this exchange.
+    /// Null means no exchange is unlocked.
+    /// </summary>
+    public string UnlocksExchangeId { get; set; }
+
+    /// <summary>
+    /// Story event ID that triggers when this exchange completes.
+    /// Null means no story event.
+    /// </summary>
+    public string TriggerEvent { get; set; }
+
+    /// <summary>
+    /// Whether completing this exchange affects the relationship state.
+    /// </summary>
+    public bool AffectsRelationship { get; set; }
+
+    /// <summary>
+    /// Relationship flow modifier applied when exchange completes.
+    /// Positive values improve relationship, negative values harm it.
+    /// </summary>
+    public int FlowModifier { get; set; }
+
+    /// <summary>
+    /// Connection state that results from completing this exchange.
+    /// Null means no state change.
+    /// </summary>
+    public ConnectionState? ConnectionStateChange { get; set; }
+
+    /// <summary>
+    /// Whether this exchange consumes NPC patience.
+    /// </summary>
+    public bool ConsumesPatience { get; set; }
+
+    /// <summary>
+    /// Amount of patience consumed by this exchange.
+    /// Only relevant if ConsumesPatience is true.
+    /// </summary>
+    public int PatienceCost { get; set; }
+
+    /// <summary>
+    /// Whether this exchange advances time.
+    /// </summary>
+    public bool AdvancesTime { get; set; }
+
+    /// <summary>
+    /// Number of hours to advance time when exchange completes.
+    /// Only relevant if AdvancesTime is true.
+    /// </summary>
+    public int TimeAdvancementHours { get; set; }
+
+    // RUNTIME TRACKING
+
+    /// <summary>
+    /// Number of times this exchange has been used.
+    /// Tracked per save game.
+    /// </summary>
+    public int TimesUsed { get; set; }
+
+    /// <summary>
+    /// Maximum number of times this exchange can be used.
+    /// 0 or negative means unlimited uses (unless SingleUse is true).
+    /// </summary>
+    public int MaxUses { get; set; }
+
     /// <summary>
     /// Checks if this exchange is currently available.
     /// Does not check if player can afford it, only availability.
@@ -132,5 +225,73 @@ public class ExchangeCard
     public bool IsRisky()
     {
         return SuccessRate < 100;
+    }
+
+    /// <summary>
+    /// Gets cost resources as a flat list.
+    /// </summary>
+    public List<ResourceAmount> GetCostAsList()
+    {
+        return Cost?.Resources ?? new List<ResourceAmount>();
+    }
+
+    /// <summary>
+    /// Gets reward resources as a flat list.
+    /// </summary>
+    public List<ResourceAmount> GetRewardAsList()
+    {
+        return Reward?.Resources ?? new List<ResourceAmount>();
+    }
+
+    /// <summary>
+    /// Gets item rewards granted by this exchange.
+    /// </summary>
+    public List<string> GetItemRewards()
+    {
+        return Reward?.ItemIds ?? new List<string>();
+    }
+
+    /// <summary>
+    /// Checks if player can afford this exchange.
+    /// </summary>
+    public bool CanAfford(PlayerResourceState playerResources)
+    {
+        return Cost?.CanAfford(playerResources) ?? true;
+    }
+
+    /// <summary>
+    /// Gets narrative description of the exchange.
+    /// </summary>
+    public string GetNarrativeContext()
+    {
+        string costDesc = Cost?.GetDescription() ?? "Nothing";
+        string rewardDesc = Reward?.GetDescription() ?? "Nothing";
+        return $"Trading {costDesc} for {rewardDesc}";
+    }
+
+    /// <summary>
+    /// Checks if this exchange has been exhausted (can no longer be used).
+    /// </summary>
+    public bool IsExhausted()
+    {
+        if (SingleUse && IsCompleted)
+            return true;
+
+        if (MaxUses > 0 && TimesUsed >= MaxUses)
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Records that this exchange was used once.
+    /// </summary>
+    public void RecordUse()
+    {
+        TimesUsed++;
+        if (SingleUse)
+        {
+            IsCompleted = true;
+        }
     }
 }

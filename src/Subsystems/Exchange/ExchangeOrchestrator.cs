@@ -32,7 +32,7 @@ public class ExchangeOrchestrator
     /// <summary>
     /// Create a new exchange session with an NPC
     /// </summary>
-    public ExchangeSession CreateSession(NPC npc, List<ExchangeCard> availableExchanges)
+    public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
     {
         // End any existing session with this NPC
         if (_activeSessions.ContainsKey(npc.ID))
@@ -98,18 +98,14 @@ public class ExchangeOrchestrator
     /// <summary>
     /// Check if exchange should trigger special events
     /// </summary>
-    public void CheckExchangeTriggers(ExchangeData exchange, NPC npc)
+    public void CheckExchangeTriggers(ExchangeCard exchange, NPC npc)
     {
-        // Check for relationship milestones
-        if (exchange.GrantsTokens)
+        // Check for relationship milestones from token rewards
+        if (exchange.Reward?.Tokens != null)
         {
-            foreach (ResourceAmount reward in exchange.Rewards)
+            foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
             {
-                if (IsTokenResource(reward.Type))
-                {
-                    ConnectionType tokenType = MapResourceToToken(reward.Type);
-                    CheckRelationshipMilestone(npc.ID, tokenType, reward.Amount);
-                }
+                CheckRelationshipMilestone(npc.ID, tokenReward.Key, tokenReward.Value);
             }
         }
 
@@ -138,26 +134,6 @@ public class ExchangeOrchestrator
     }
 
     // Helper methods
-
-    private bool IsTokenResource(ResourceType type)
-    {
-        return type == ResourceType.TrustToken ||
-               type == ResourceType.DiplomacyToken ||
-               type == ResourceType.StatusToken ||
-               type == ResourceType.ShadowToken;
-    }
-
-    private ConnectionType MapResourceToToken(ResourceType type)
-    {
-        return type switch
-        {
-            ResourceType.TrustToken => ConnectionType.Trust,
-            ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
-            ResourceType.StatusToken => ConnectionType.Status,
-            ResourceType.ShadowToken => ConnectionType.Shadow,
-            _ => ConnectionType.None
-        };
-    }
 
     private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
     {

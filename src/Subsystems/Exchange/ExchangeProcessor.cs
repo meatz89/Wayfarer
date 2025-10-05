@@ -26,13 +26,13 @@ public class ExchangeProcessor
     /// <summary>
     /// Prepare exchange operation data for GameFacade to execute
     /// </summary>
-    public ExchangeOperationData PrepareExchangeOperation(ExchangeData exchange, NPC npc, PlayerResourceState playerResources)
+    public ExchangeOperationData PrepareExchangeOperation(ExchangeCard exchange, NPC npc, PlayerResourceState playerResources)
     {
         return new ExchangeOperationData
         {
-            Costs = exchange.Costs,
-            Rewards = exchange.Rewards,
-            ItemRewards = exchange.ItemRewards,
+            Costs = exchange.GetCostAsList(),
+            Rewards = exchange.GetRewardAsList(),
+            ItemRewards = exchange.GetItemRewards(),
             AdvancesTime = ShouldAdvanceTime(exchange),
             TimeAdvancementHours = CalculateTimeAdvancement(exchange),
             AffectsRelationship = exchange.AffectsRelationship,
@@ -43,7 +43,7 @@ public class ExchangeProcessor
             TriggerEvent = exchange.TriggerEvent,
             NPCId = npc.ID,
             ExchangeId = exchange.Id,
-            IsUnique = exchange.IsUnique,
+            IsUnique = exchange.SingleUse,
             ConnectionStateChange = exchange.ConnectionStateChange
         };
     }
@@ -52,7 +52,7 @@ public class ExchangeProcessor
     /// <summary>
     /// Check if exchange should advance time
     /// </summary>
-    private bool ShouldAdvanceTime(ExchangeData exchange)
+    private bool ShouldAdvanceTime(ExchangeCard exchange)
     {
         // Exchanges advance time based on their configuration
         return exchange.AdvancesTime;
@@ -61,7 +61,7 @@ public class ExchangeProcessor
     /// <summary>
     /// Calculate how much time to advance
     /// </summary>
-    private int CalculateTimeAdvancement(ExchangeData exchange)
+    private int CalculateTimeAdvancement(ExchangeCard exchange)
     {
         if (exchange.TimeAdvancementHours > 0)
         {

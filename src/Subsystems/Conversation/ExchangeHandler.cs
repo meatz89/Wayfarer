@@ -25,13 +25,13 @@ public class ExchangeHandler
     /// <summary>
     /// Execute an exchange with an NPC
     /// </summary>
-    public bool ExecuteExchange(ExchangeData exchange, NPC npc, Player player, PlayerResourceState playerResources)
+    public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources)
     {
-        Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.ExchangeName ?? "NULL"}");
+        Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.Name ?? "NULL"}");
         if (exchange != null)
         {
-            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.Costs.Select(c => $"{c.Type}={c.Amount}"))}");
-            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.Rewards.Select(r => $"{r.Type}={r.Amount}"))}");
+            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.GetCostAsList().Select(c => $"{c.Type}={c.Amount}"))}");
+            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.GetRewardAsList().Select(r => $"{r.Type}={r.Amount}"))}");
             Console.WriteLine($"[ExchangeHandler] Player Resources: Coins={playerResources.Coins}, Health={playerResources.Health}");
         }
 
@@ -70,16 +70,17 @@ public class ExchangeHandler
             _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
         }
 
-        Console.WriteLine($"[ExchangeHandler] Successfully completed exchange {exchange.ExchangeName}");
+        Console.WriteLine($"[ExchangeHandler] Successfully completed exchange {exchange.Name}");
+        exchange.RecordUse();
         return true;
     }
 
     /// <summary>
     /// Validate if player can afford exchange
     /// </summary>
-    public bool CanAffordExchange(ExchangeData exchange, PlayerResourceState playerResources)
+    public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources)
     {
-        return exchange.CanAfford(playerResources, _tokenManager);
+        return exchange.CanAfford(playerResources);
     }
 
     /// <summary>
@@ -106,19 +107,17 @@ public class ExchangeHandler
             if (!CheckTokenRequirements(card, npc))
                 continue;
 
-            // Convert ExchangeCard to ExchangeData for compatibility
-            ExchangeData exchange = ConvertToExchangeData(card);
-            bool canAfford = CanAffordExchange(exchange, playerResources);
+            bool canAfford = CanAffordExchange(card, playerResources);
 
             exchanges.Add(new ExchangeOption
             {
                 ExchangeId = card.Id,
-                Name = card.Name ?? GetExchangeName(exchange),
+                Name = card.Name ?? GetExchangeName(card),
                 Description = card.Description,
-                Cost = FormatCost(exchange.GetCostAsList()),
-                Reward = FormatReward(exchange.GetRewardAsList()),
+                Cost = FormatCost(card.GetCostAsList()),
+                Reward = FormatReward(card.GetRewardAsList()),
                 CanAfford = canAfford,
-                ExchangeData = exchange
+                ExchangeCard = card
             });
         }
 
@@ -128,9 +127,9 @@ public class ExchangeHandler
     /// <summary>
     /// Apply exchange costs to player
     /// </summary>
-    private bool ApplyCosts(ExchangeData exchange, Player player, NPC npc)
+    private bool ApplyCosts(ExchangeCard exchange, Player player, NPC npc)
     {
-        foreach (ResourceAmount cost in exchange.Costs)
+        foreach (ResourceAmount cost in exchange.GetCostAsList())
         {
             switch (cost.Type)
             {
@@ -175,9 +174,9 @@ public class ExchangeHandler
     /// <summary>
     /// Apply exchange rewards to player
     /// </summary>
-    private void ApplyRewards(ExchangeData exchange, Player player, NPC npc)
+    private void ApplyRewards(ExchangeCard exchange, Player player, NPC npc)
     {
-        foreach (ResourceAmount reward in exchange.Rewards)
+        foreach (ResourceAmount reward in exchange.GetRewardAsList())
         {
             switch (reward.Type)
             {
@@ -215,34 +214,6 @@ public class ExchangeHandler
     }
 
     /// <summary>
-    /// Convert ExchangeCard to ExchangeData for compatibility
-    /// </summary>
-    private ExchangeData ConvertToExchangeData(ExchangeCard card)
-    {
-        ExchangeData data = new ExchangeData
-        {
-            ExchangeName = card.Name,
-            TemplateId = card.Id,
-            Costs = new List<ResourceAmount>(),
-            Rewards = new List<ResourceAmount>()
-        };
-
-        // Convert cost structure - copy resource list
-        if (card.Cost?.Resources != null)
-        {
-            data.Costs = new List<ResourceAmount>(card.Cost.Resources);
-        }
-
-        // Convert reward structure - copy resource list
-        if (card.Reward?.Resources != null)
-        {
-            data.Rewards = new List<ResourceAmount>(card.Reward.Resources);
-        }
-
-        return data;
-    }
-
-    /// <summary>
     /// Check if player has the minimum required tokens for a gated exchange
     /// </summary>
     private bool CheckTokenRequirements(ExchangeCard card, NPC npc)
@@ -269,12 +240,12 @@ public class ExchangeHandler
     /// <summary>
     /// Get friendly name for exchange
     /// </summary>
-    private string GetExchangeName(ExchangeData exchange)
+    private string GetExchangeName(ExchangeCard exchange)
     {
-        if (!string.IsNullOrEmpty(exchange.ExchangeName))
-            return exchange.ExchangeName;
+        if (!string.IsNullOrEmpty(exchange.Name))
+            return exchange.Name;
 
-        return exchange.TemplateId switch
+        return exchange.Id switch
         {
             "food_exchange" => "bought travel provisions",
             "healing_exchange" => "received healing",
@@ -290,10 +261,9 @@ public class ExchangeHandler
     /// <summary>
     /// Check if exchange should advance time
     /// </summary>
-    private bool ShouldAdvanceTime(ExchangeData exchange)
+    private bool ShouldAdvanceTime(ExchangeCard exchange)
     {
-        // Simple work exchanges advance time
-        return false;
+        return exchange.AdvancesTime;
     }
 
     /// <summary>
@@ -335,7 +305,7 @@ public class ExchangeHandler
 }
 
 /// <summary>
-/// Represents an available exchange option
+/// Represents an available exchange option (DTO for UI display)
 /// </summary>
 public class ExchangeOption
 {
@@ -345,7 +315,7 @@ public class ExchangeOption
     public string Cost { get; set; }
     public string Reward { get; set; }
     public bool CanAfford { get; set; }
-    public ExchangeData ExchangeData { get; set; }
+    public ExchangeCard ExchangeCard { get; set; }
     public ExchangeValidationResult ValidationResult { get; set; }
 }
 

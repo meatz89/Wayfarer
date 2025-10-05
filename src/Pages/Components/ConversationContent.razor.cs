@@ -542,9 +542,9 @@ namespace Wayfarer.Pages.Components
         protected string GetSuccessEffect(CardInstance card)
         {
             // For exchange cards, show the reward
-            if (card.Context?.ExchangeData?.Rewards != null)
+            if (card.Context?.ExchangeData?.Reward?.Resources != null)
             {
-                return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Rewards)}";
+                return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Reward.Resources)}";
             }
 
             // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects (no SuccessType check)

@@ -140,33 +140,32 @@ public static class ConversationContextFactory
         }
     }
 
-    private static ExchangeData ConvertExchangeDTO(ExchangeDTO dto)
+    private static ExchangeCard ConvertExchangeDTO(ExchangeDTO dto)
     {
-        ExchangeData exchangeData = new ExchangeData
+        ExchangeCard exchangeCard = new ExchangeCard
         {
             Id = dto.Id,
             Name = dto.Name,
-            ExchangeName = dto.Name,
             Description = "",
-            Costs = new List<ResourceAmount>(),
-            Rewards = new List<ResourceAmount>()
+            Cost = new ExchangeCostStructure(),
+            Reward = new ExchangeRewardStructure()
         };
 
         // Convert costs
         ResourceType? costType = ParseResourceType(dto.GiveCurrency);
         if (costType.HasValue)
         {
-            exchangeData.Costs.Add(new ResourceAmount(costType.Value, dto.GiveAmount));
+            exchangeCard.Cost.Resources.Add(new ResourceAmount(costType.Value, dto.GiveAmount));
         }
 
         // Convert rewards
         ResourceType? rewardType = ParseResourceType(dto.ReceiveCurrency);
         if (rewardType.HasValue)
         {
-            exchangeData.Rewards.Add(new ResourceAmount(rewardType.Value, dto.ReceiveAmount));
+            exchangeCard.Reward.Resources.Add(new ResourceAmount(rewardType.Value, dto.ReceiveAmount));
         }
 
-        return exchangeData;
+        return exchangeCard;
     }
 
     // REMOVED: ConvertExchangeCard deleted - exchange conversion handled in Exchange subsystem

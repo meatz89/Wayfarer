@@ -11,7 +11,7 @@ public class ExchangeInventory
     private readonly GameWorld _gameWorld;
 
     // NPC ID -> List of available exchanges
-    private Dictionary<string, List<ExchangeData>> _npcExchanges;
+    private Dictionary<string, List<ExchangeCard>> _npcExchanges;
 
     // NPC ID -> Exchange history
     private Dictionary<string, List<ExchangeHistoryEntry>> _exchangeHistory;
@@ -22,7 +22,7 @@ public class ExchangeInventory
     public ExchangeInventory(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _npcExchanges = new Dictionary<string, List<ExchangeData>>();
+        _npcExchanges = new Dictionary<string, List<ExchangeCard>>();
         _exchangeHistory = new Dictionary<string, List<ExchangeHistoryEntry>>();
         _usedUniqueExchanges = new HashSet<string>();
     }
@@ -37,7 +37,7 @@ public class ExchangeInventory
         // Load exchanges from NPC exchange decks
         foreach (NPC npc in gameWorld.NPCs)
         {
-            List<ExchangeData> npcExchangeList = new List<ExchangeData>();
+            List<ExchangeCard> npcExchangeList = new List<ExchangeCard>();
 
             // Check if NPC has exchange deck in GameWorld
             NPCExchangeCardEntry? exchangeEntry = gameWorld.NPCExchangeCards.FindById(npc.ID.ToLower());
@@ -45,12 +45,7 @@ public class ExchangeInventory
             {
                 foreach (ExchangeCard card in exchangeEntry.ExchangeCards)
                 {
-                    // Convert ExchangeCard to ExchangeData
-                    ExchangeData exchangeData = ConvertExchangeCardToData(card);
-                    if (exchangeData != null)
-                    {
-                        npcExchangeList.Add(exchangeData);
-                    }
+                    npcExchangeList.Add(card);
                 }
             }
 
@@ -59,14 +54,10 @@ public class ExchangeInventory
             {
                 foreach (ExchangeCard card in npc.ExchangeDeck)
                 {
-                    ExchangeData exchangeData = ConvertExchangeCardToData(card);
-                    if (exchangeData != null)
+                    // Avoid duplicates
+                    if (!npcExchangeList.Any(e => e.Id == card.Id))
                     {
-                        // Avoid duplicates
-                        if (!npcExchangeList.Any(e => e.Id == exchangeData.Id))
-                        {
-                            npcExchangeList.Add(exchangeData);
-                        }
+                        npcExchangeList.Add(card);
                     }
                 }
             }
@@ -82,24 +73,24 @@ public class ExchangeInventory
     /// <summary>
     /// Get all exchanges for an NPC
     /// </summary>
-    public List<ExchangeData> GetNPCExchanges(string npcId)
+    public List<ExchangeCard> GetNPCExchanges(string npcId)
     {
-        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeData> exchanges))
+        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeCard> exchanges))
         {
             // Filter out used unique exchanges
             return exchanges.Where(e => !IsExchangeExhausted(e)).ToList();
         }
-        return new List<ExchangeData>();
+        return new List<ExchangeCard>();
     }
 
     /// <summary>
     /// Get a specific exchange by ID
     /// </summary>
-    public ExchangeData GetExchange(string npcId, string exchangeId)
+    public ExchangeCard GetExchange(string npcId, string exchangeId)
     {
-        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeData> exchanges))
+        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeCard> exchanges))
         {
-            ExchangeData exchange = exchanges.FirstOrDefault(e => e.Id == exchangeId);
+            ExchangeCard exchange = exchanges.FirstOrDefault(e => e.Id == exchangeId);
             if (exchange != null && !IsExchangeExhausted(exchange))
             {
                 return exchange;
@@ -111,11 +102,11 @@ public class ExchangeInventory
     /// <summary>
     /// Add an exchange to an NPC's inventory
     /// </summary>
-    public void AddExchange(string npcId, ExchangeData exchange)
+    public void AddExchange(string npcId, ExchangeCard exchange)
     {
         if (!_npcExchanges.ContainsKey(npcId))
         {
-            _npcExchanges[npcId] = new List<ExchangeData>();
+            _npcExchanges[npcId] = new List<ExchangeCard>();
         }
 
         // Ensure exchange has an ID
@@ -125,7 +116,7 @@ public class ExchangeInventory
         }
 
         _npcExchanges[npcId].Add(exchange);
-        Console.WriteLine($"[ExchangeInventory] Added exchange {exchange.ExchangeName} to NPC {npcId}");
+        Console.WriteLine($"[ExchangeInventory] Added exchange {exchange.Name} to NPC {npcId}");
     }
 
     /// <summary>
@@ -133,7 +124,7 @@ public class ExchangeInventory
     /// </summary>
     public void RemoveExchange(string npcId, string exchangeId)
     {
-        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeData> exchanges))
+        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeCard> exchanges))
         {
             exchanges.RemoveAll(e => e.Id == exchangeId);
 
@@ -156,8 +147,8 @@ public class ExchangeInventory
         }
 
         // Get exchange details
-        ExchangeData exchange = GetExchange(npcId, exchangeId);
-        string exchangeName = exchange?.ExchangeName ?? exchangeId;
+        ExchangeCard exchange = GetExchange(npcId, exchangeId);
+        string exchangeName = exchange?.Name ?? exchangeId;
 
         // Create history entry
         ExchangeHistoryEntry entry = new ExchangeHistoryEntry
@@ -175,14 +166,10 @@ public class ExchangeInventory
         // Update exchange usage count
         if (exchange != null)
         {
-            // Exchange completed - mark as used if single use
-            if (exchange.SingleUse)
-            {
-                exchange.IsAvailable = false;
-            }
-            ;
+            // Record use (increments TimesUsed, marks IsCompleted for SingleUse)
+            exchange.RecordUse();
 
-            // Mark unique exchanges as used
+            // Mark unique exchanges as used for fast lookup
             if (exchange.SingleUse)
             {
                 _usedUniqueExchanges.Add(exchangeId);
@@ -207,58 +194,10 @@ public class ExchangeInventory
     /// <summary>
     /// Check if an exchange has been exhausted
     /// </summary>
-    private bool IsExchangeExhausted(ExchangeData exchange)
+    private bool IsExchangeExhausted(ExchangeCard exchange)
     {
-        // Check if unique exchange has been used
-        if (exchange.SingleUse && _usedUniqueExchanges.Contains(exchange.Id))
-        {
-            return true;
-        }
-
-        // Check if exchange is still available
-        if (!exchange.IsAvailable)
-        {
-            return true;
-        }
-
-        return false;
+        return exchange.IsExhausted();
     }
-
-    /// <summary>
-    /// Convert ExchangeCard to ExchangeData
-    /// </summary>
-    private ExchangeData ConvertExchangeCardToData(ExchangeCard card)
-    {
-        if (card == null) return null;
-
-        ExchangeData data = new ExchangeData
-        {
-            Id = card.Id,
-            ExchangeName = card.Name,
-            Name = card.Name,
-            Description = card.Description,
-            TemplateId = card.Id,
-            Costs = new List<ResourceAmount>(),
-            Rewards = new List<ResourceAmount>(),
-            SingleUse = card.SingleUse,
-            IsAvailable = !card.IsCompleted
-        };
-
-        // Convert cost structure - copy resource list
-        if (card.Cost?.Resources != null)
-        {
-            data.Costs = new List<ResourceAmount>(card.Cost.Resources);
-        }
-
-        // Convert reward structure - copy resource list
-        if (card.Reward?.Resources != null)
-        {
-            data.Rewards = new List<ResourceAmount>(card.Reward.Resources);
-        }
-
-        return data;
-    }
-
 
     /// <summary>
     /// Get statistics about exchanges
@@ -304,7 +243,7 @@ public class ExchangeInventory
     /// </summary>
     public bool HasExchange(string npcId, string exchangeId)
     {
-        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeData> exchanges))
+        if (_npcExchanges.TryGetValue(npcId, out List<ExchangeCard> exchanges))
         {
             return exchanges.Any(e => e.Id == exchangeId && !IsExchangeExhausted(e));
         }
