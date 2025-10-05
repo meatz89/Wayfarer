@@ -22,6 +22,13 @@ public class ConversationCard
     public int InitiativeCost { get; init; } = 0;
     public DeliveryType Delivery { get; init; } = DeliveryType.Standard; // NEW: How this card affects Cadence when spoken
 
+    // Universal card properties (apply across ALL tactical systems - Social, Mental, Physical)
+    public RiskLevel RiskLevel { get; init; } = RiskLevel.Cautious;
+    public Visibility Visibility { get; init; } = Visibility.Moderate;
+    public ExertionLevel ExertionLevel { get; init; } = ExertionLevel.Light;
+    public MethodType MethodType { get; init; } = MethodType.Direct;
+    public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
+
     // Formula-based effect system (replaces old explicit effect properties)
     public CardEffectFormula EffectFormula { get; init; }
 
@@ -72,6 +79,9 @@ public class ConversationCard
     // NPC-specific targeting for signature cards
     public string NpcSpecific { get; init; }
 
+    // V2 Investigation System - Knowledge gained when card is played
+    public IReadOnlyList<string> KnowledgeGranted { get; init; } = new List<string>();
+    public IReadOnlyList<string> SecretsGranted { get; init; } = new List<string>();
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(ConversationSession session = null)

@@ -60,6 +60,13 @@ public class Item
     // Token types this equipment enables (e.g., Fine Clothes enables Noble token generation)
     public List<ConnectionType> EnablesTokenGeneration { get; set; } = new List<ConnectionType>();
 
+    // Equipment Category System - Categories this equipment provides for tactical card requirements
+    public List<EquipmentCategory> ProvidedEquipmentCategories { get; set; } = new List<EquipmentCategory>();
+
+    // Equipment Durability System - Physical engagements can degrade equipment
+    public int Durability { get; set; } = 100;
+    public int MaxDurability { get; set; } = 100;
+    public bool IsDegraded => Durability < MaxDurability;
 
     public string InitiativeCostDescription => InitiativeCost switch
     {

@@ -26,4 +26,7 @@ public class ItemDTO
     // Token types this equipment enables (e.g., ["Noble"] for Fine Clothes)
     public List<string> EnablesTokenGeneration { get; set; } = new List<string>();
 
+    // Actions this equipment enables (e.g., ["Climbing"] for rope, ["Lockpicking"] for lockpicks)
+    public List<string> EnabledActions { get; set; } = new List<string>();
+
 }

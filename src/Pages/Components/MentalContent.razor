@@ -1,0 +1,159 @@
+@inherits MentalContentBase
+
+@namespace Wayfarer.Pages.Components
+@using Wayfarer.Pages.Components.Shared
+
+@if (Session != null)
+{
+    <div class="mental-content">
+        <!-- Location context bar -->
+        <div class="location-context">
+            <span>
+                Investigation: @Session.InvestigationId
+            </span>
+        </div>
+
+        <!-- Investigation Bar -->
+        <div class="investigation-bar">
+            <div class="investigation-info">
+                <div class="investigation-name">Mental Investigation</div>
+                <div class="investigation-status">
+                    Phase @Session.CurrentPhaseIndex | Tier @GetCurrentTier()
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Resources Display -->
+        <div class="resources-display">
+            <ResourceBar Label="Progress"
+                         CurrentValue="@Session.CurrentProgress"
+                         MaxValue="20"
+                         BarType="progress"
+                         ShowMaxValue="true" />
+
+            <RhythmScale LeftLabel="Overcautious"
+                         RightLabel="Reckless"
+                         CurrentValue="@Session.ObserveActBalance"
+                         MinValue="-10"
+                         MaxValue="10" />
+
+            <ResourceBar Label="Exposure"
+                         CurrentValue="@Session.CurrentExposure"
+                         MaxValue="10"
+                         BarType="consequence"
+                         ShowMaxValue="true" />
+        </div>
+
+        <!-- Goal Thresholds Display -->
+        <div class="goals-section">
+            <div class="goals-container">
+                <div class="goal-card @(Session.CurrentProgress >= 10 ? "achievable" : "")">
+                    <div class="goal-threshold">10</div>
+                    <div class="goal-name">Partial Understanding</div>
+                    <div class="goal-reward">1 Clue</div>
+                </div>
+                <div class="goal-card @(Session.CurrentProgress >= 20 ? "achievable active" : "")">
+                    <div class="goal-threshold">20</div>
+                    <div class="goal-name">Full Investigation</div>
+                    <div class="goal-reward">Complete + Knowledge</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            @if (!string.IsNullOrEmpty(LastNarrative))
+            {
+                <div class="narrative-text">
+                    @LastNarrative
+                </div>
+            }
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-display">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Hand:</span>
+                    <span class="pile-number">@GetHandCount()</span>
+                </div>
+            </div>
+            <div class="action-section">
+                <div class="action-button @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                     @onclick="ExecuteObserve"
+                     disabled="@(SelectedCard == null || IsProcessing)">
+                    OBSERVE
+                    @if (SelectedCard != null)
+                    {
+                        <div class="tooltip card-effects-tooltip">
+                            <div class="tooltip-title">Observe</div>
+                            <div class="tooltip-section">
+                                <strong>Effects:</strong>
+                                <ul>
+                                    <li>Balance: -1 (toward Overcautious)</li>
+                                    <li>Play selected card</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                     @onclick="ExecuteAct"
+                     disabled="@(SelectedCard == null || IsProcessing)">
+                    ACT
+                    @if (SelectedCard != null)
+                    {
+                        <div class="tooltip card-effects-tooltip">
+                            <div class="tooltip-title">Act</div>
+                            <div class="tooltip-section">
+                                <strong>Effects:</strong>
+                                <ul>
+                                    <li>Balance: +1 (toward Reckless)</li>
+                                    <li>Play selected card</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Session.CurrentProgress >= 20 || Session.CurrentExposure >= 10)
+                {
+                    <div class="action-button"
+                         @onclick="EndInvestigation">
+                        END INVESTIGATION
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Hand Display -->
+        <div class="hand-display">
+            @if (Hand != null && Hand.Any())
+            {
+                foreach (var card in Hand)
+                {
+                    <TacticalCard Card="@card"
+                                  IsSelected="@(SelectedCard == card)"
+                                  IsSelectable="true"
+                                  OnCardClick="@(() => SelectCard(card))" />
+                }
+            }
+            else
+            {
+                <div class="empty-hand">No cards in hand</div>
+            }
+        </div>
+
+        @if (IsProcessing)
+        {
+            <div class="processing-overlay">
+                <div class="spinner"></div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="no-session">
+        <p>No active mental investigation session</p>
+    </div>
+}

@@ -1,0 +1,19 @@
+@namespace Wayfarer.Pages.Components.Shared
+@inherits ResourceBarBase
+
+<div class="resource-item">
+    @if (!string.IsNullOrEmpty(TooltipContent))
+    {
+        <GameTooltip Content="@TooltipContent" Position="top">
+            <div class="resource-label">@Label</div>
+        </GameTooltip>
+    }
+    else
+    {
+        <div class="resource-label">@Label</div>
+    }
+    <div class="resource-value">@CurrentValue @(ShowMaxValue ? $"/ {MaxValue}" : "")</div>
+    <div class="resource-bar">
+        <div class="resource-fill @BarTypeClass" style="width: @PercentageWidth%;"></div>
+    </div>
+</div>

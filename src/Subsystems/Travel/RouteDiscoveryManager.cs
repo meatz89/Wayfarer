@@ -2,114 +2,111 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Subsystems.TravelSubsystem
+/// <summary>
+/// Manages route discovery mechanics and exploration.
+/// </summary>
+public class RouteDiscoveryManager
 {
-    /// <summary>
-    /// Manages route discovery mechanics and exploration.
-    /// </summary>
-    public class RouteDiscoveryManager
+    private readonly RouteManager _routeManager;
+    private readonly GameWorld _gameWorld;
+    private readonly MessageSystem _messageSystem;
+
+    public RouteDiscoveryManager(
+        RouteManager routeManager,
+        GameWorld gameWorld,
+        MessageSystem messageSystem)
     {
-        private readonly RouteManager _routeManager;
-        private readonly GameWorld _gameWorld;
-        private readonly MessageSystem _messageSystem;
+        _routeManager = routeManager;
+        _gameWorld = gameWorld;
+        _messageSystem = messageSystem;
+    }
 
-        public RouteDiscoveryManager(
-            RouteManager routeManager,
-            GameWorld gameWorld,
-            MessageSystem messageSystem)
+    /// <summary>
+    /// Attempt to discover a new route.
+    /// </summary>
+    public bool AttemptRouteDiscovery(string fromLocationId, string toLocationId)
+    {
+        // Check if route exists
+        RouteOption route = _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
+        if (route == null)
         {
-            _routeManager = routeManager;
-            _gameWorld = gameWorld;
-            _messageSystem = messageSystem;
-        }
-
-        /// <summary>
-        /// Attempt to discover a new route.
-        /// </summary>
-        public bool AttemptRouteDiscovery(string fromLocationId, string toLocationId)
-        {
-            // Check if route exists
-            RouteOption route = _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
-            if (route == null)
-            {
-                _messageSystem.AddSystemMessage(
-                    "No route exists between these locations.",
-                    SystemMessageTypes.Warning);
-                return false;
-            }
-
-            // Check if already discovered
-            if (_routeManager.IsRouteDiscovered(route.Id))
-            {
-                _messageSystem.AddSystemMessage(
-                    "You already know this route.",
-                    SystemMessageTypes.Info);
-                return false;
-            }
-
-            // Discover the route
-            _routeManager.DiscoverRoute(route.Id);
-
             _messageSystem.AddSystemMessage(
-                $"🗺️ Discovered new route: {route.Name}",
-                SystemMessageTypes.Success);
-
-            return true;
+                "No route exists between these locations.",
+                SystemMessageTypes.Warning);
+            return false;
         }
 
-        /// <summary>
-        /// Get all undiscovered routes from current location.
-        /// </summary>
-        public List<RouteOption> GetUndiscoveredRoutesFromCurrentLocation()
+        // Check if already discovered
+        if (_routeManager.IsRouteDiscovered(route.Id))
         {
-            List<RouteOption> allRoutes = _routeManager.GetAvailableRoutesFromCurrentLocation();
-            return allRoutes.Where(r => !_routeManager.IsRouteDiscovered(r.Id)).ToList();
+            _messageSystem.AddSystemMessage(
+                "You already know this route.",
+                SystemMessageTypes.Info);
+            return false;
         }
 
-        /// <summary>
-        /// Get discovery progress statistics.
-        /// </summary>
-        public DiscoveryProgressInfo GetDiscoveryProgress()
+        // Discover the route
+        _routeManager.DiscoverRoute(route.Id);
+
+        _messageSystem.AddSystemMessage(
+            $"🗺️ Discovered new route: {route.Name}",
+            SystemMessageTypes.Success);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Get all undiscovered routes from current location.
+    /// </summary>
+    public List<RouteOption> GetUndiscoveredRoutesFromCurrentLocation()
+    {
+        List<RouteOption> allRoutes = _routeManager.GetAvailableRoutesFromCurrentLocation();
+        return allRoutes.Where(r => !_routeManager.IsRouteDiscovered(r.Id)).ToList();
+    }
+
+    /// <summary>
+    /// Get discovery progress statistics.
+    /// </summary>
+    public DiscoveryProgressInfo GetDiscoveryProgress()
+    {
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = player.CurrentLocationSpot?.LocationId;
+        if (currentLocationId == null)
         {
-            Player player = _gameWorld.GetPlayer();
-            string currentLocationId = player.CurrentLocationSpot?.LocationId;
-            if (currentLocationId == null)
-            {
-                return new DiscoveryProgressInfo(0, 0);
-            }
-
-            List<RouteOption> allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
-            int discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
-
-            return new DiscoveryProgressInfo(discoveredCount, allRoutes.Count);
+            return new DiscoveryProgressInfo(0, 0);
         }
 
-        /// <summary>
-        /// Discover all basic routes (called during game initialization).
-        /// </summary>
-        public void DiscoverBasicRoutes()
+        List<RouteOption> allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
+        int discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
+
+        return new DiscoveryProgressInfo(discoveredCount, allRoutes.Count);
+    }
+
+    /// <summary>
+    /// Discover all basic routes (called during game initialization).
+    /// </summary>
+    public void DiscoverBasicRoutes()
+    {
+        // Basic routes that are always known
+        List<string> basicRouteIds = new List<string>
         {
-            // Basic routes that are always known
-            List<string> basicRouteIds = new List<string>
-            {
-                "your_room_to_market_square",
-                "market_square_to_your_room"
-            };
+            "your_room_to_market_square",
+            "market_square_to_your_room"
+        };
 
-            foreach (string routeId in basicRouteIds)
-            {
-                _routeManager.DiscoverRoute(routeId);
-            }
-
-            Console.WriteLine("[RouteDiscoveryManager] Basic routes discovered");
-        }
-
-        /// <summary>
-        /// Check if player can explore from current location.
-        /// </summary>
-        public bool CanExploreFromCurrentLocation()
+        foreach (string routeId in basicRouteIds)
         {
-            return GetUndiscoveredRoutesFromCurrentLocation().Any();
+            _routeManager.DiscoverRoute(routeId);
         }
+
+        Console.WriteLine("[RouteDiscoveryManager] Basic routes discovered");
+    }
+
+    /// <summary>
+    /// Check if player can explore from current location.
+    /// </summary>
+    public bool CanExploreFromCurrentLocation()
+    {
+        return GetUndiscoveredRoutesFromCurrentLocation().Any();
     }
 }

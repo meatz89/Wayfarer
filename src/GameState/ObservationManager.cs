@@ -396,7 +396,7 @@ public class ObservationManager
     /// <summary>
     /// Create a conversation card from an observation card reward
     /// </summary>
-    private ConversationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
+    public ConversationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
     {
         // Parse the effect string to determine categorical effect type
         SuccessEffectType successType = ParseObservationEffectType(cardReward.Effect);

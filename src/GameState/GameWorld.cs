@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,12 +85,39 @@ public class GameWorld
     public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
+    // Mental cards for investigation system
+    public List<MentalCardEntry> MentalCards { get; set; } = new List<MentalCardEntry>();
+    // Physical cards for physical challenge system
+    public List<PhysicalCardEntry> PhysicalCards { get; set; } = new List<PhysicalCardEntry>();
+
+    // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
+
+    // Social system (Conversation)
+    public Dictionary<string, SocialEngagementType> SocialEngagementTypes { get; private set; } = new Dictionary<string, SocialEngagementType>();
+    public Dictionary<string, ConversationEngagementDeck> ConversationEngagementDecks { get; private set; } = new Dictionary<string, ConversationEngagementDeck>();
+
+    // Mental system (Investigation)
+    public Dictionary<string, MentalEngagementType> MentalEngagementTypes { get; private set; } = new Dictionary<string, MentalEngagementType>();
+    public Dictionary<string, MentalEngagementDeck> MentalEngagementDecks { get; private set; } = new Dictionary<string, MentalEngagementDeck>();
+
+    // Physical system (Challenges)
+    public Dictionary<string, PhysicalEngagementType> PhysicalEngagementTypes { get; private set; } = new Dictionary<string, PhysicalEngagementType>();
+    public Dictionary<string, PhysicalEngagementDeck> PhysicalEngagementDecks { get; private set; } = new Dictionary<string, PhysicalEngagementDeck>();
 
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
 
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
+
+    // V2 Card-Based Investigation System
+    public Dictionary<string, InvestigationTemplate> InvestigationTemplates { get; private set; } = new Dictionary<string, InvestigationTemplate>();
+    // DELETED: InvestigationCard - will be replaced with MentalCard in Phase 1
+    // public Dictionary<string, InvestigationCard> InvestigationCards { get; private set; } = new Dictionary<string, InvestigationCard>();
+
+    // Travel System
+    public Dictionary<string, List<RouteImprovement>> RouteImprovements { get; private set; } = new Dictionary<string, List<RouteImprovement>>();
+    public List<TravelObstacle> TravelObstacles { get; private set; } = new List<TravelObstacle>();
 
     // Initialization data - stored in GameWorld, not passed between phases
     // This eliminates the need for SharedData dictionary

@@ -2,110 +2,107 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Subsystems.TravelSubsystem
+/// <summary>
+/// Manages route operations and availability.
+/// </summary>
+public class RouteManager
 {
-    /// <summary>
-    /// Manages route operations and availability.
-    /// </summary>
-    public class RouteManager
+    private readonly RouteRepository _routeRepository;
+    private readonly GameWorld _gameWorld;
+
+    public RouteManager(RouteRepository routeRepository, GameWorld gameWorld)
     {
-        private readonly RouteRepository _routeRepository;
-        private readonly GameWorld _gameWorld;
+        _routeRepository = routeRepository;
+        _gameWorld = gameWorld;
+    }
 
-        public RouteManager(RouteRepository routeRepository, GameWorld gameWorld)
+    /// <summary>
+    /// Get all routes from a specific location.
+    /// </summary>
+    public List<RouteOption> GetRoutesFromLocation(string locationId)
+    {
+        return _routeRepository.GetRoutesFromLocation(locationId).ToList();
+    }
+
+    /// <summary>
+    /// Get a specific route between two locations.
+    /// </summary>
+    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    {
+        List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
+        // RouteOption uses DestinationLocationSpot to track where it goes
+        // We need to find routes that go to any spot in the target location
+        return routes.FirstOrDefault(r =>
         {
-            _routeRepository = routeRepository;
-            _gameWorld = gameWorld;
+            // Get the destination spot and check if it belongs to the target location
+            LocationSpot destSpot = _gameWorld.GetSpot(r.DestinationLocationSpot);
+            return destSpot?.LocationId == toLocationId;
+        });
+    }
+
+    /// <summary>
+    /// Check if a route exists between two locations.
+    /// </summary>
+    public bool RouteExists(string fromLocationId, string toLocationId)
+    {
+        return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
+    }
+
+    /// <summary>
+    /// Get all available routes from current location.
+    /// </summary>
+    public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
+    {
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = player.CurrentLocationSpot?.LocationId;
+        if (currentLocationId == null)
+        {
+            return new List<RouteOption>();
+        }
+        return GetRoutesFromLocation(currentLocationId);
+    }
+
+    /// <summary>
+    /// Check if player has discovered a specific route.
+    /// </summary>
+    public bool IsRouteDiscovered(string routeId)
+    {
+        Player player = _gameWorld.GetPlayer();
+        return player.DiscoveredRoutes?.Contains(routeId) ?? false;
+    }
+
+    /// <summary>
+    /// Mark a route as discovered by the player.
+    /// </summary>
+    public void DiscoverRoute(string routeId)
+    {
+        Player player = _gameWorld.GetPlayer();
+        if (player.DiscoveredRoutes == null)
+        {
+            player.DiscoveredRoutes = new List<string>();
         }
 
-        /// <summary>
-        /// Get all routes from a specific location.
-        /// </summary>
-        public List<RouteOption> GetRoutesFromLocation(string locationId)
+        if (!player.DiscoveredRoutes.Contains(routeId))
         {
-            return _routeRepository.GetRoutesFromLocation(locationId).ToList();
+            player.DiscoveredRoutes.Add(routeId);
+            Console.WriteLine($"[RouteManager] Player discovered route: {routeId}");
+        }
+    }
+
+    /// <summary>
+    /// Get all discovered routes for the player.
+    /// </summary>
+    public List<RouteOption> GetDiscoveredRoutes()
+    {
+        Player player = _gameWorld.GetPlayer();
+        if (player.DiscoveredRoutes == null || !player.DiscoveredRoutes.Any())
+        {
+            return new List<RouteOption>();
         }
 
-        /// <summary>
-        /// Get a specific route between two locations.
-        /// </summary>
-        public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
-        {
-            List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
-            // RouteOption uses DestinationLocationSpot to track where it goes
-            // We need to find routes that go to any spot in the target location
-            return routes.FirstOrDefault(r =>
-            {
-                // Get the destination spot and check if it belongs to the target location
-                LocationSpot destSpot = _gameWorld.GetSpot(r.DestinationLocationSpot);
-                return destSpot?.LocationId == toLocationId;
-            });
-        }
-
-        /// <summary>
-        /// Check if a route exists between two locations.
-        /// </summary>
-        public bool RouteExists(string fromLocationId, string toLocationId)
-        {
-            return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
-        }
-
-        /// <summary>
-        /// Get all available routes from current location.
-        /// </summary>
-        public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
-        {
-            Player player = _gameWorld.GetPlayer();
-            string currentLocationId = player.CurrentLocationSpot?.LocationId;
-            if (currentLocationId == null)
-            {
-                return new List<RouteOption>();
-            }
-            return GetRoutesFromLocation(currentLocationId);
-        }
-
-        /// <summary>
-        /// Check if player has discovered a specific route.
-        /// </summary>
-        public bool IsRouteDiscovered(string routeId)
-        {
-            Player player = _gameWorld.GetPlayer();
-            return player.DiscoveredRoutes?.Contains(routeId) ?? false;
-        }
-
-        /// <summary>
-        /// Mark a route as discovered by the player.
-        /// </summary>
-        public void DiscoverRoute(string routeId)
-        {
-            Player player = _gameWorld.GetPlayer();
-            if (player.DiscoveredRoutes == null)
-            {
-                player.DiscoveredRoutes = new List<string>();
-            }
-
-            if (!player.DiscoveredRoutes.Contains(routeId))
-            {
-                player.DiscoveredRoutes.Add(routeId);
-                Console.WriteLine($"[RouteManager] Player discovered route: {routeId}");
-            }
-        }
-
-        /// <summary>
-        /// Get all discovered routes for the player.
-        /// </summary>
-        public List<RouteOption> GetDiscoveredRoutes()
-        {
-            Player player = _gameWorld.GetPlayer();
-            if (player.DiscoveredRoutes == null || !player.DiscoveredRoutes.Any())
-            {
-                return new List<RouteOption>();
-            }
-
-            return player.DiscoveredRoutes
-                .Select(routeId => _routeRepository.GetRouteById(routeId))
-                .Where(route => route != null)
-                .ToList();
-        }
+        return player.DiscoveredRoutes
+            .Select(routeId => _routeRepository.GetRouteById(routeId))
+            .Where(route => route != null)
+            .ToList();
     }
 }

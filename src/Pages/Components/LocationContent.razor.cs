@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Wayfarer.Subsystems.LocationSubsystem;
 
 namespace Wayfarer.Pages.Components
 {
@@ -94,9 +93,9 @@ namespace Wayfarer.Pages.Components
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
                             RequestId = conversationOption.RequestId,
-                            ConversationTypeId = conversationOption.ConversationTypeId,
+                            ConversationTypeId = conversationOption.EngagementTypeId,
                             GoalCardId = conversationOption.GoalCardId,
-                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ConversationTypeId),
+                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.EngagementTypeId),
                             Description = conversationOption.Description,
                             IsAvailable = true
                         };
@@ -197,7 +196,7 @@ namespace Wayfarer.Pages.Components
             {
                 try
                 {
-                    Subsystems.LocationSubsystem.LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
+                    LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
                     if (locationActionManager != null)
                     {
                         List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(location, spot);
@@ -213,7 +212,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Get active obligations from the queue manager
-            Subsystems.ObligationSubsystem.ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
+            ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
             if (queueManager != null)
             {
                 DeliveryObligation[] obligations = queueManager.GetActiveObligations();
@@ -342,6 +341,8 @@ namespace Wayfarer.Pages.Components
                     Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
                 }
             }
+            // Investigation action type - handled by InvestigationActivity orchestrator
+            // UI integration for Investigation strategic activity not yet implemented
             else if (action.ActionType == "investigate")
             {
                 await InvestigateLocation();
@@ -569,7 +570,7 @@ namespace Wayfarer.Pages.Components
         protected bool HasUrgentLetter(string npcId)
         {
             // Check if NPC has urgent letter in queue position 1
-            Subsystems.ObligationSubsystem.ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
+            ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
             if (queueManager == null) return false;
 
             DeliveryObligation[] obligations = queueManager.GetActiveObligations();

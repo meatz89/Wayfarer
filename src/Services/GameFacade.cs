@@ -2,14 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Wayfarer.Subsystems.ExchangeSubsystem;
-using Wayfarer.Subsystems.LocationSubsystem;
-using Wayfarer.Subsystems.NarrativeSubsystem;
-using Wayfarer.Subsystems.ObligationSubsystem;
-using Wayfarer.Subsystems.ResourceSubsystem;
-using Wayfarer.Subsystems.TimeSubsystem;
-using Wayfarer.Subsystems.TokenSubsystem;
-using Wayfarer.Subsystems.TravelSubsystem;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -28,7 +20,10 @@ public class GameFacade
     private readonly TravelFacade _travelFacade;
     private readonly TokenFacade _tokenFacade;
     private readonly NarrativeFacade _narrativeFacade;
-    private readonly Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade _exchangeFacade;
+    private readonly ExchangeFacade _exchangeFacade;
+    private readonly ObstacleFacade _obstacleFacade;
+    private readonly MentalFacade _mentalFacade;
+    private readonly PhysicalFacade _physicalFacade;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -41,7 +36,10 @@ public class GameFacade
         TravelFacade travelFacade,
         TokenFacade tokenFacade,
         NarrativeFacade narrativeFacade,
-        Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade exchangeFacade)
+        ExchangeFacade exchangeFacade,
+        ObstacleFacade obstacleFacade,
+        MentalFacade mentalFacade,
+        PhysicalFacade physicalFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -54,6 +52,9 @@ public class GameFacade
         _tokenFacade = tokenFacade;
         _narrativeFacade = narrativeFacade;
         _exchangeFacade = exchangeFacade;
+        _obstacleFacade = obstacleFacade;
+        _mentalFacade = mentalFacade;
+        _physicalFacade = physicalFacade;
     }
 
     // ========== CORE GAME STATE ==========
@@ -231,18 +232,16 @@ public class GameFacade
 
         // Get the first available request (strangers have single request)
         NPCRequest request = stranger.GetAvailableRequests().FirstOrDefault();
-        if (request == null || string.IsNullOrEmpty(request.ConversationTypeId))
+        if (request == null || string.IsNullOrEmpty(request.EngagementTypeId))
         {
             return null;
         }
 
-        // Get conversation type
-        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
-        if (typeEntry == null)
+        // THREE PARALLEL SYSTEMS: Get Social engagement type
+        if (!_gameWorld.SocialEngagementTypes.TryGetValue(request.EngagementTypeId, out SocialEngagementType engagementType))
         {
             return null;
         }
-        ConversationTypeDefinition conversationType = typeEntry.Definition;
 
         // Mark stranger as encountered
         stranger.MarkAsEncountered();
@@ -253,7 +252,7 @@ public class GameFacade
             IsValid = true,
             Npc = stranger,
             NpcId = stranger.ID,
-            ConversationTypeId = conversationType.Id,
+            ConversationTypeId = engagementType.Id,  // Using SocialEngagementType
             RequestId = request.Id,
             RequestText = request.Description,
             InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
@@ -268,10 +267,10 @@ public class GameFacade
         foreach (NPC stranger in _gameWorld.GetAllStrangers())
         {
             NPCRequest request = stranger.GetRequestById(requestId);
-            if (request != null && !string.IsNullOrEmpty(request.ConversationTypeId))
+            if (request != null && !string.IsNullOrEmpty(request.EngagementTypeId))
             {
-                ConversationTypeEntry? convTypeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
-                if (convTypeEntry != null)
+                // THREE PARALLEL SYSTEMS: Check if Social engagement type exists
+                if (_gameWorld.SocialEngagementTypes.ContainsKey(request.EngagementTypeId))
                 {
                     return true; // No attention cost check needed
                 }
@@ -349,7 +348,7 @@ public class GameFacade
         foreach (NPC npc in npcs)
         {
             List<ConversationOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
-            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ConversationTypeId).Distinct().ToList();
+            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.EngagementTypeId).Distinct().ToList();
 
             options.Add(new NPCConversationOptions
             {
@@ -655,6 +654,154 @@ public class GameFacade
         return _conversationFacade.EndConversation();
     }
 
+    // ========== MENTAL TACTICAL SYSTEM OPERATIONS ==========
+
+    public MentalFacade GetMentalFacade() => _mentalFacade;
+
+    /// <summary>
+    /// Start a new Mental tactical session with specified engagement type
+    /// Strategic-Tactical Integration Point
+    /// </summary>
+    public MentalSession StartMentalSession(string engagementTypeId)
+    {
+        if (_mentalFacade == null)
+            throw new InvalidOperationException("MentalFacade not available");
+
+        if (_mentalFacade.IsSessionActive())
+            throw new InvalidOperationException("Mental session already active");
+
+        if (!_gameWorld.MentalEngagementTypes.TryGetValue(engagementTypeId, out MentalEngagementType engagementType))
+            throw new InvalidOperationException($"MentalEngagementType {engagementTypeId} not found");
+
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = player.CurrentLocationSpot?.LocationId;
+
+        // Build deck with signature deck knowledge cards in starting hand
+        (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
+            .BuildDeckWithStartingHand(engagementType, currentLocationId, player);
+
+        return _mentalFacade.StartSession(engagementType, deck, startingHand, currentLocationId);
+    }
+
+    /// <summary>
+    /// Execute observe action in current Mental investigation
+    /// </summary>
+    public async Task<MentalTurnResult> ExecuteObserve(CardInstance card)
+    {
+        if (_mentalFacade == null)
+            throw new InvalidOperationException("MentalFacade not available");
+
+        if (!_mentalFacade.IsSessionActive())
+            throw new InvalidOperationException("No active mental session");
+
+        return await _mentalFacade.ExecuteObserve(card);
+    }
+
+    /// <summary>
+    /// Execute act action in current Mental investigation
+    /// </summary>
+    public async Task<MentalTurnResult> ExecuteAct(CardInstance card)
+    {
+        if (_mentalFacade == null)
+            throw new InvalidOperationException("MentalFacade not available");
+
+        if (!_mentalFacade.IsSessionActive())
+            throw new InvalidOperationException("No active mental session");
+
+        return await _mentalFacade.ExecuteAct(card);
+    }
+
+    /// <summary>
+    /// End the current mental investigation and return the outcome
+    /// </summary>
+    public MentalOutcome EndMentalSession()
+    {
+        if (_mentalFacade == null) return null;
+        return _mentalFacade.EndSession();
+    }
+
+    /// <summary>
+    /// Check if a mental session is currently active
+    /// </summary>
+    public bool IsMentalSessionActive()
+    {
+        return _mentalFacade?.IsSessionActive() ?? false;
+    }
+
+    // ========== PHYSICAL TACTICAL SYSTEM OPERATIONS ==========
+
+    public PhysicalFacade GetPhysicalFacade() => _physicalFacade;
+
+    /// <summary>
+    /// Start a new Physical tactical session with specified engagement type
+    /// Strategic-Tactical Integration Point
+    /// </summary>
+    public PhysicalSession StartPhysicalSession(string engagementTypeId)
+    {
+        if (_physicalFacade == null)
+            throw new InvalidOperationException("PhysicalFacade not available");
+
+        if (_physicalFacade.IsSessionActive())
+            throw new InvalidOperationException("Physical session already active");
+
+        if (!_gameWorld.PhysicalEngagementTypes.TryGetValue(engagementTypeId, out PhysicalEngagementType engagementType))
+            throw new InvalidOperationException($"PhysicalEngagementType {engagementTypeId} not found");
+
+        Player player = _gameWorld.GetPlayer();
+        string currentLocationId = player.CurrentLocationSpot?.LocationId;
+
+        // Build deck with signature deck knowledge cards in starting hand
+        (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
+            .BuildDeckWithStartingHand(engagementType, currentLocationId, player);
+
+        return _physicalFacade.StartSession(engagementType, deck, startingHand, currentLocationId);
+    }
+
+    /// <summary>
+    /// Execute assess action in current Physical challenge
+    /// </summary>
+    public async Task<PhysicalTurnResult> ExecuteAssess(CardInstance card)
+    {
+        if (_physicalFacade == null)
+            throw new InvalidOperationException("PhysicalFacade not available");
+
+        if (!_physicalFacade.IsSessionActive())
+            throw new InvalidOperationException("No active physical session");
+
+        return await _physicalFacade.ExecuteAssess(card);
+    }
+
+    /// <summary>
+    /// Execute execute action in current Physical challenge
+    /// </summary>
+    public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
+    {
+        if (_physicalFacade == null)
+            throw new InvalidOperationException("PhysicalFacade not available");
+
+        if (!_physicalFacade.IsSessionActive())
+            throw new InvalidOperationException("No active physical session");
+
+        return await _physicalFacade.ExecuteExecute(card);
+    }
+
+    /// <summary>
+    /// End the current physical challenge and return the outcome
+    /// </summary>
+    public PhysicalOutcome EndPhysicalSession()
+    {
+        if (_physicalFacade == null) return null;
+        return _physicalFacade.EndSession();
+    }
+
+    /// <summary>
+    /// Check if a physical session is currently active
+    /// </summary>
+    public bool IsPhysicalSessionActive()
+    {
+        return _physicalFacade?.IsSessionActive() ?? false;
+    }
+
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)
     {
         // Get NPC
@@ -694,7 +841,7 @@ public class GameFacade
         List<ExchangeCard> exchangeCards = availableExchanges.Select(option => ConvertToExchangeCard(option)).ToList();
 
         // Create exchange session through ExchangeFacade
-        Wayfarer.Subsystems.ExchangeSubsystem.ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
+        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
         if (session == null)
         {
             _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
@@ -1330,6 +1477,53 @@ public class GameFacade
         _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Success);
 
         return result;
+    }
+
+    // ========== V2 CARD-BASED INVESTIGATION SYSTEM ==========
+
+    // DELETED: Investigation system - wrong architecture
+    // Will be replaced with InvestigationActivity orchestrator in Phase 3
+
+    public List<InvestigationTemplate> GetAvailableInvestigations()
+    {
+        // V3 Investigation: Investigations are now card-based and triggered separately
+        // Return all available investigation templates for now (filtering logic TBD)
+        return _gameWorld.InvestigationTemplates.Values.ToList();
+    }
+
+    // ========== V2 OBSTACLE SYSTEM (KEPT) ==========
+
+    /// <summary>
+    /// Create an obstacle context for UI rendering (V2)
+    /// </summary>
+    public async Task<ObstacleContext> CreateObstacleContext(string obstacleId, RouteOption route = null)
+    {
+        return await _obstacleFacade.CreateObstacleContext(obstacleId, route);
+    }
+
+    /// <summary>
+    /// Attempt an obstacle with a specific approach (V2)
+    /// </summary>
+    public async Task<ObstacleAttemptResult> AttemptObstacle(string obstacleId, string approachId, RouteOption route = null)
+    {
+        return await _obstacleFacade.AttemptObstacle(obstacleId, approachId, route);
+    }
+
+    /// <summary>
+    /// Get route by ID (V2 Travel Integration)
+    /// </summary>
+    public RouteOption GetRouteById(string routeId)
+    {
+        return _travelFacade.GetAvailableRoutesFromCurrentLocation()
+            .FirstOrDefault(r => r.Id == routeId);
+    }
+
+    /// <summary>
+    /// Check for obstacles on a route (V2 Travel Integration)
+    /// </summary>
+    public TravelObstacle CheckForObstacle(RouteOption route)
+    {
+        return _obstacleFacade.CheckForObstacle(route);
     }
 
 }

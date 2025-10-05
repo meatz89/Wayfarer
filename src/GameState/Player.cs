@@ -44,6 +44,7 @@
     public bool IsInitialized { get; set; } = false;
 
     public PlayerStats Stats { get; private set; } = new();
+    public PlayerKnowledge Knowledge { get; private set; } = new PlayerKnowledge();
 
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
@@ -91,6 +92,15 @@
 
     // Observation tracking - IDs of observation cards collected
     public List<string> CollectedObservations { get; set; } = new List<string>();
+
+    // V2 Investigation System - Completed investigations tracking
+    public List<string> CompletedInvestigations { get; set; } = new List<string>();
+
+    // Persistent injury cards for Physical tactical system
+    public List<string> InjuryCardIds { get; set; } = new List<string>();
+
+    // Reputation system - Physical success builds reputation affecting Social and Physical engagements
+    public int Reputation { get; set; } = 0;
 
     public void AddKnownRoute(RouteOption route)
     {
@@ -387,12 +397,24 @@
         return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
+    public void AddKnownLocation(string locationId)
+    {
+        if (!DiscoveredLocationIds.Contains(locationId))
+        {
+            DiscoveredLocationIds.Add(locationId);
+        }
+    }
+
+    public void AddKnownLocationSpot(string spotId)
+    {
+        if (!LocationActionAvailability.Contains(spotId))
+        {
+            LocationActionAvailability.Add(spotId);
+        }
+    }
+
 }
 
-/// <summary>
-/// Wrapper class for NPC connections that allows token manipulation.
-/// CONTENT EFFICIENT: Works with existing token system.
-/// </summary>
 public class NPCConnection
 {
     private readonly Player _player;
@@ -413,34 +435,8 @@ public class NPCConnection
 
     public void AdjustValue(int amount)
     {
-        // Get current value and adjust it
         int currentValue = _player.NPCTokens.GetTokenCount(_npcId, _tokenType);
         int newValue = Math.Max(0, currentValue + amount);
-
-        // Set the new value
         _player.NPCTokens.SetTokenCount(_npcId, _tokenType, newValue);
-
-        // Tokens are purely relational - no global count
-    }
-}
-
-// Extension methods for Player
-public static class PlayerExtensions
-{
-    public static void AddKnownLocation(this Player player, string locationId)
-    {
-        if (!player.DiscoveredLocationIds.Contains(locationId))
-        {
-            player.DiscoveredLocationIds.Add(locationId);
-        }
-    }
-
-    public static void AddKnownLocationSpot(this Player player, string spotId)
-    {
-        // Track location spots in the LocationActionAvailability set
-        if (!player.LocationActionAvailability.Contains(spotId))
-        {
-            player.LocationActionAvailability.Add(spotId);
-        }
     }
 }

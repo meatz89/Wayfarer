@@ -247,7 +247,13 @@ Conversations flow organically until natural endpoint. They have no fixed length
 
 **Doubt** represents the NPC's patience wearing thin or losing interest. As Doubt accumulates, the conversation moves toward breakdown. Reaching Doubt 10 ends the conversation as failure. The NPC becomes harder to talk to afterward through burden cards added to their signature deck.
 
-**Cadence** tracks the balance between speaking and listening. Starts at 0. Speaking increases Cadence (+1), Listening decreases Cadence (-2). High Cadence (speaking too much without listening) increases Doubt generation when you speak. Low Cadence (listening too much) grants bonus cards when you Listen. This forces rhythm - you can't spam powerful cards without cost.
+**Cadence** tracks the balance between speaking and listening using a **DUAL BALANCE SYSTEM** (parallel to Mental/Physical). Starts at 0. Balance changes from TWO sources:
+1. **Action Type Balance:** Listening (draw action) = -2, Speaking (play action) = +1
+2. **Card Delivery Balance:** Gentle cards = -1, Forceful cards = +1, Blunt cards = +2, Standard cards = 0
+
+These combine: Playing a Forceful card (+1) while Listening (-2) results in -1 net balance change. Playing a Gentle card (-1) while Speaking (+1) results in 0 net balance change.
+
+High positive Cadence (speaking too much with forceful delivery) increases Doubt generation dramatically. Low negative Cadence (listening too much with gentle approaches) grants bonus cards when you Listen but wastes conversational momentum. Rhythm management is critical.
 
 **Statements** tracks conversation history as count of cards played. Some powerful Decisive cards require minimum Statements count (e.g., "requires 4+ statements"), representing conversational context needed for sophisticated moves. This creates sequencing requirements.
 
@@ -291,7 +297,13 @@ Mental challenges have player-controlled pacing within deadline constraints. You
 
 **Exposure** represents how much you've disturbed the location or drawn attention. Physical actions make noise, repeated observations look suspicious, aggressive approaches leave evidence. Reaching Exposure 10 triggers consequences - someone notices, structure becomes dangerous, or you must deal with social confrontation.
 
-**Observe/Act Balance** tracks investigation rhythm. Starts at 0. Acting increases balance (+1), Observing decreases balance (-2). High balance (acting too much without observing) increases Exposure generation and risk of mistakes. Low balance (observing too much without acting) wastes time and Attention. Optimal play alternates between observation and action.
+**Observe/Act Balance** tracks investigation rhythm using a **DUAL BALANCE SYSTEM**. Starts at 0. Balance changes from TWO sources:
+1. **Action Type Balance:** Observing (draw action) = -2, Acting (play action) = +1
+2. **Card Method Balance:** Careful cards = -1, Bold cards = +1, Reckless cards = +2, Standard cards = 0
+
+These combine: Playing a Bold card (+1) while Observing (-2) results in -1 net balance change. Playing a Careful card (-1) while Acting (+1) results in 0 net balance change.
+
+High positive balance (acting too much with aggressive methods) increases Exposure generation significantly. Low negative balance (observing too much with careful methods) wastes time and Attention. Optimal play alternates between observation and action while varying card methods to control rhythm.
 
 **Clue Types** represent specific understanding accumulated. Cards generate different clue types: Structural (physical knowledge), Historical (documented facts), Environmental (contextual information), Social (behavioral patterns), Hidden (secrets discovered). Some later-phase engagement types require specific clue combinations, not just total Progress. This creates investigation depth beyond single number optimization.
 
@@ -335,7 +347,13 @@ Physical challenges demand immediate resolution. Once engaged, retreat is diffic
 
 **Danger** represents accumulating risk of injury or failure consequences. Physical challenges directly threaten health and stamina. As Danger accumulates, probability of negative outcomes increases. Reaching Danger 10 triggers consequences: injury cards added to player deck, health/stamina loss, or forced defeat.
 
-**Commitment** tracks Assess vs Execute rhythm. Starts at 0. Executing increases Commitment (+1), Assessing decreases Commitment (-2). High Commitment (too much execution without assessment) increases Danger generation significantly. Low Commitment (too much hesitation) wastes stamina through prolonged exertion. Balance required.
+**Commitment** tracks Assess vs Execute rhythm using a **DUAL BALANCE SYSTEM**. Starts at 0. Balance changes from TWO sources:
+1. **Action Type Balance:** Assessing (draw action) = -2, Executing (play action) = +1
+2. **Card Approach Balance:** Methodical cards = -1, Aggressive cards = +1, Reckless cards = +2, Standard cards = 0
+
+These combine: Playing an Aggressive card (+1) while Assessing (-2) results in -1 net balance change. Playing a Methodical card (-1) while Executing (+1) results in 0 net balance change.
+
+High positive Commitment (too much execution with aggressive approaches) increases Danger generation massively. Low negative Commitment (too much hesitation with methodical approaches) wastes stamina through prolonged exertion. Balance required for survival.
 
 **Approach History** tracks physical tactics attempted as count of Execute actions taken. Some powerful Decisive cards require minimum Approach History (e.g., "requires 3+ approaches"), representing learning opponent/situation through engagement. This creates dynamic where you build understanding through action.
 
@@ -355,6 +373,244 @@ Physical cards bind to all five stats based on tactical approach:
 - Rapport: Sensing timing, intuitive reactions, reading body language
 - Diplomacy: Measured approach, conserving energy, seeking compromise
 - Cunning: Dirty fighting, exploiting environment, underhanded tactics
+
+---
+
+## The Projection Principle: Perfect Information Architecture
+
+All three tactical systems (Social, Mental, Physical) share a unified architectural pattern for card effect resolution: **the Projection Principle**. This pattern ensures perfect information for players, single source of truth for effect calculations, and consistent implementation across all tactical systems.
+
+### Core Concept
+
+The Projection Principle enforces separation between **calculating** what will happen and **applying** those changes to game state.
+
+**Wrong (Direct Apply):**
+```
+Card played → Effects directly modify session state → UI shows results
+```
+
+**Right (Projection Pattern):**
+```
+Card selected → EffectResolver projects outcome → UI shows projection →
+Player confirms → Facade applies projection → UI shows results
+```
+
+This separation provides:
+- **Perfect Information:** Players see exact outcomes before committing
+- **Deterministic Gameplay:** No hidden calculations or surprise results
+- **Single Source of Truth:** Effect calculations live in EffectResolver only
+- **Visual Novel Compatibility:** "Will happen" matches visual novel choice-preview flow
+
+### Implementation Pattern
+
+All three tactical facades (ConversationFacade, MentalFacade, PhysicalFacade) implement the same pattern:
+
+**Step 1: Projection Generation**
+
+The EffectResolver calculates what WOULD happen if card is played, without modifying any state:
+
+```csharp
+// Social System
+CardEffectResult projection = _effectResolver.ProcessSuccessEffect(card, session);
+
+// Mental System
+MentalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, session, player);
+
+// Physical System
+PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, session, player);
+```
+
+**Step 2: Projection Display (UI Layer)**
+
+UI receives projection and displays exact outcomes to player BEFORE committing. This is critical for visual novel flow - the player must see "this choice will result in..." before the choice executes.
+
+**Step 3: Projection Application**
+
+Facade applies projection to session state ONLY after player confirmation:
+
+```csharp
+// ALL facades use this pattern
+ApplyProjectionToSession(projection, session, player);
+```
+
+The `ApplyProjectionToSession()` method is the ONLY place where projections become reality. This ensures:
+- State changes happen exactly once
+- All changes come from projections (no scattered state modifications)
+- Easy to trace where state changes occur (single method)
+
+### Projection Result Types
+
+Each tactical system has its own projection result type mirroring its resource structure:
+
+**Social: CardEffectResult**
+- InitiativeChange (builder resource)
+- MomentumChange (victory resource)
+- DoubtChange (consequence resource)
+- CadenceChange (rhythm resource)
+- UnderstandingChange (persistent progress)
+- CardsToDraw, CardsToAdd, EndsConversation
+- EffectDescription (for UI display)
+
+**Mental: MentalCardEffectResult**
+- AttentionChange (builder resource)
+- ProgressChange (victory resource)
+- ExposureChange (consequence resource)
+- BalanceChange (rhythm resource)
+- UnderstandingChange (persistent progress)
+- HealthCost, StaminaCost, CoinsCost (strategic costs)
+- CardsToDraw, EndsSession
+- EffectDescription (for UI display)
+
+**Physical: PhysicalCardEffectResult**
+- PositionChange (builder resource)
+- BreakthroughChange (victory resource)
+- DangerChange (consequence resource)
+- BalanceChange (rhythm resource)
+- ReadinessChange (persistent progress)
+- HealthCost, StaminaCost, CoinsCost (strategic costs)
+- CardsToDraw, EndsSession
+- EffectDescription (for UI display)
+
+### EffectResolver: Pure Projection Function
+
+EffectResolvers are pure projection functions. They:
+- **Never modify state directly** - only return projections
+- **Have no side effects** - safe to call for preview without consequences
+- **Are deterministic** - same inputs always produce same projections
+- **Encapsulate all effect logic** - single source of truth for calculations
+
+Example from MentalEffectResolver:
+
+```csharp
+public MentalCardEffectResult ProjectCardEffects(CardInstance card, MentalSession session, Player player)
+{
+    MentalCardEffectResult result = new MentalCardEffectResult { /* initialize */ };
+
+    // Calculate builder resource
+    result.AttentionChange -= template.AttentionCost;
+    result.AttentionChange += template.GetAttentionGeneration();
+
+    // Calculate balance effects
+    result.BalanceChange = template.Method switch {
+        Method.Careful => -1,
+        Method.Standard => 0,
+        Method.Bold => 1,
+        Method.Reckless => 2
+    };
+
+    // Calculate victory/consequence resources
+    result.ProgressChange = template.Effects?.Progress ?? 0;
+    result.ExposureChange = template.Effects?.Exposure ?? 0;
+
+    // Balance affects consequence: high balance increases risk
+    int projectedBalance = session.ObserveActBalance + result.BalanceChange;
+    if (projectedBalance > 5) {
+        result.ExposureChange += 1;
+    }
+
+    // Strategic costs
+    if (template.Costs != null) {
+        result.HealthCost = template.Costs.Health;
+        result.StaminaCost = template.Costs.Stamina;
+        result.CoinsCost = template.Costs.Coins;
+    }
+
+    // Session end detection
+    int projectedProgress = session.CurrentProgress + result.ProgressChange;
+    int projectedExposure = session.CurrentExposure + result.ExposureChange;
+    result.EndsSession = projectedProgress >= 20 || projectedExposure >= 10;
+
+    return result;  // RETURNS projection, never modifies session
+}
+```
+
+### ApplyProjectionToSession: Single Point of State Mutation
+
+Each facade implements `ApplyProjectionToSession()` as the ONLY method that modifies tactical session state:
+
+```csharp
+private void ApplyProjectionToSession(MentalCardEffectResult projection, MentalSession session, Player player)
+{
+    // Builder resource
+    session.CurrentAttention += projection.AttentionChange;
+    if (session.CurrentAttention > session.MaxAttention)
+        session.CurrentAttention = session.MaxAttention;
+
+    // Victory resource
+    if (projection.ProgressChange != 0)
+        session.CurrentProgress += projection.ProgressChange;
+
+    // Consequence resource
+    if (projection.ExposureChange != 0)
+        session.CurrentExposure += projection.ExposureChange;
+
+    // Balance resource
+    if (projection.BalanceChange != 0)
+        session.ObserveActBalance += projection.BalanceChange;
+
+    // Strategic costs
+    if (projection.HealthCost > 0)
+        player.Health -= projection.HealthCost;
+    if (projection.StaminaCost > 0)
+        player.Stamina -= projection.StaminaCost;
+    if (projection.CoinsCost > 0)
+        player.Coins -= projection.CoinsCost;
+}
+```
+
+This pattern ensures:
+- State changes are atomic and complete
+- No scattered `session.CurrentX += Y` throughout codebase
+- Easy debugging - set breakpoint in one method
+- Impossible to have projection/reality mismatch
+
+### HIGHLANDER Enforcement
+
+The Projection Principle is enforced via HIGHLANDER ("one concept, one implementation"):
+
+**There is ONE projection pattern used identically across ALL three tactical systems.**
+
+Any deviation from this pattern breaks architectural consistency and violates HIGHLANDER. The Mental and Physical systems MUST replicate the exact pattern from the Social system (ConversationFacade).
+
+Wrong approaches that violate HIGHLANDER:
+- ❌ Mental system calculates effects inline in Execute method (different from Social)
+- ❌ Physical system directly modifies session state (different from Mental/Social)
+- ❌ One system uses Task<object> while others use specific result types
+- ❌ Some systems project while others directly apply
+
+Correct approach:
+- ✅ ALL systems: EffectResolver.Project() → returns typed result → Facade.ApplyProjection()
+- ✅ ALL systems: Same method names (ProjectCardEffects, ApplyProjectionToSession)
+- ✅ ALL systems: Same architectural flow (project → display → confirm → apply)
+
+### Visual Novel Constraint Satisfaction
+
+The Projection Principle satisfies the Visual Novel Constraint through "Will Happen" semantics:
+
+**Visual Novel Flow:**
+1. Player sees situation description
+2. Player sees available choices
+3. **Player sees preview of choice consequences** ← Projection shown here
+4. Player confirms choice
+5. Result plays out (exactly matching preview)
+6. Next situation appears
+
+The projection system enables step 3 - showing exact consequences before committing. This is critical for visual novel feel. Players must never experience "I chose X expecting Y but got Z instead."
+
+UI Implementation:
+```csharp
+// Get projection
+var projection = effectResolver.ProjectCardEffects(card, session, player);
+
+// Display projection to player BEFORE executing
+DisplayProjection(projection);
+// "Playing this card will: +2 Progress, +1 Exposure, -3 Health"
+
+// Only after player confirms:
+await ExecuteCard(card);  // Now applies projection
+```
+
+This creates the visual novel experience: informed choice with deterministic outcomes, presented narratively but mechanically precise.
 
 ---
 

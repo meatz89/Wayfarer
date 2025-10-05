@@ -1,4 +1,3 @@
-namespace Wayfarer.Subsystems.TokenSubsystem;
 
 /// <summary>
 /// Manages core token operations - adding, spending, and tracking tokens with NPCs.

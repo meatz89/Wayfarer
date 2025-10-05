@@ -1,0 +1,118 @@
+{
+  "physicalCards": [
+    {
+      "id": "physical_climb_carefully",
+      "name": "Climb Carefully",
+      "description": "Take your time and find secure handholds.",
+      "depth": 1,
+      "boundStat": "Authority",
+      "approach": "Standard",
+      "techniqueType": "Strength",
+      "costs": {
+        "stamina": 1,
+        "health": 0,
+        "time": 1,
+        "coins": 0
+      },
+      "requirements": {
+        "stats": {}
+      },
+      "effects": {
+        "progress": 3,
+        "danger": 1
+      }
+    },
+    {
+      "id": "physical_sprint_forward",
+      "name": "Sprint Forward",
+      "description": "Use speed to overcome the obstacle.",
+      "depth": 1,
+      "boundStat": "Diplomacy",
+      "approach": "Standard",
+      "techniqueType": "Agility",
+      "costs": {
+        "stamina": 2,
+        "health": 0,
+        "time": 1,
+        "coins": 0
+      },
+      "requirements": {
+        "stats": {}
+      },
+      "effects": {
+        "progress": 5,
+        "danger": 2
+      }
+    },
+    {
+      "id": "physical_leverage_tool",
+      "name": "Leverage a Tool",
+      "description": "Use equipment to make the task easier.",
+      "depth": 1,
+      "boundStat": "Insight",
+      "approach": "Standard",
+      "techniqueType": "Technique",
+      "costs": {
+        "stamina": 0,
+        "health": 0,
+        "time": 1,
+        "coins": 0
+      },
+      "requirements": {
+        "stats": {}
+      },
+      "effects": {
+        "progress": 4,
+        "danger": 0
+      }
+    },
+    {
+      "id": "physical_brute_force",
+      "name": "Brute Force",
+      "description": "Overcome through raw physical power.",
+      "depth": 2,
+      "boundStat": "Authority",
+      "approach": "Standard",
+      "techniqueType": "Strength",
+      "costs": {
+        "stamina": 3,
+        "health": 1,
+        "time": 1,
+        "coins": 0
+      },
+      "requirements": {
+        "stats": {
+          "Authority": 2
+        }
+      },
+      "effects": {
+        "progress": 7,
+        "danger": 3
+      }
+    },
+    {
+      "id": "physical_precise_movement",
+      "name": "Precise Movement",
+      "description": "Execute with perfect timing and coordination.",
+      "depth": 2,
+      "boundStat": "Diplomacy",
+      "approach": "Standard",
+      "techniqueType": "Precision",
+      "costs": {
+        "stamina": 1,
+        "health": 0,
+        "time": 1,
+        "coins": 0
+      },
+      "requirements": {
+        "stats": {
+          "Diplomacy": 2
+        }
+      },
+      "effects": {
+        "progress": 6,
+        "danger": 1
+      }
+    }
+  ]
+}

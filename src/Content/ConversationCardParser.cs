@@ -269,7 +269,9 @@ public static class ConversationCardParser
             Traits = traits, // Use derived traits (includes auto-assigned traits)
             LevelBonuses = levelBonuses,
             TokenRequirements = tokenRequirements,
-            NpcSpecific = npcSpecific
+            NpcSpecific = npcSpecific,
+            KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>(),
+            SecretsGranted = dto.SecretsGranted ?? new List<string>()
         };
     }
 
@@ -508,6 +510,10 @@ public class ConversationCardDTO
 
     // NPC-specific targeting for signature cards
     public string NpcSpecific { get; set; }
+
+    // V2 Investigation System - Knowledge gained when card is played
+    public List<string> KnowledgeGranted { get; set; }
+    public List<string> SecretsGranted { get; set; }
 }
 
 /// <summary>

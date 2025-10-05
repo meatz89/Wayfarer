@@ -76,7 +76,10 @@ public class NPC
     // NPC DECK ARCHITECTURE
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
     public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
-    public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts 
+    public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts
+
+    // Signature Deck System - Knowledge cards earned through successful engagements
+    public SignatureDeck SignatureDeck { get; set; } 
 
     // Requests system - Multiple requests, each with multiple cards at different rapport thresholds
     public List<NPCRequest> Requests { get; set; } = new List<NPCRequest>();

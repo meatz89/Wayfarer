@@ -35,30 +35,62 @@ public class ConversationDeckBuilder
             throw new ArgumentException($"Request {requestId} not found for NPC {npc.ID}");
         }
 
-        // Get conversation type from request
-        ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
-        if (typeEntry == null)
+        // THREE PARALLEL SYSTEMS: Get Social engagement type and conversation deck
+        if (!_gameWorld.SocialEngagementTypes.TryGetValue(request.EngagementTypeId, out SocialEngagementType engagementType))
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation type '{request.ConversationTypeId}' not found. Request must have valid conversation type.");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Social engagement type '{request.EngagementTypeId}' not found in GameWorld.SocialEngagementTypes");
         }
-        ConversationTypeDefinition conversationType = typeEntry.Definition;
 
-        // Get card deck for this conversation type
-        CardDeckDefinitionEntry? deckEntry = _gameWorld.CardDecks.FindById(conversationType.DeckId);
-        if (deckEntry == null)
+        if (!_gameWorld.ConversationEngagementDecks.TryGetValue(engagementType.DeckId, out ConversationEngagementDeck deckDefinition))
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Card deck '{conversationType.DeckId}' not found. Conversation type must reference valid deck.");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{engagementType.DeckId}' not found in GameWorld.ConversationEngagementDecks");
         }
-        CardDeckDefinition cardDeck = deckEntry.Definition;
 
-        // Create card instances using depth distribution filtering
-        List<CardInstance> deckInstances = CreateInstancesWithDepthDistribution(cardDeck.CardIds, conversationType.Distribution, npc.ID);
+        // Build card instances from engagement deck (no depth distribution - deck has explicit card list)
+        List<CardInstance> deckInstances = deckDefinition.BuildCardInstances(_gameWorld);
+
+        // Equipment category filtering: Remove cards requiring equipment player doesn't have (parallel to Mental/Physical)
+        Player player = _gameWorld.GetPlayer();
+        List<EquipmentCategory> playerEquipmentCategories = GetPlayerEquipmentCategories(player);
+        deckInstances = deckInstances.Where(instance =>
+        {
+            ConversationCard template = instance.ConversationCardTemplate;
+            if (template == null) return false;
+
+            if (template.EquipmentCategory != EquipmentCategory.None)
+            {
+                if (!playerEquipmentCategories.Contains(template.EquipmentCategory))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }).ToList();
 
         // Filter signature cards based on token requirements
         deckInstances = FilterSignatureCardsByTokenRequirements(deckInstances, npc);
 
         // Create session deck
         SessionCardDeck deck = SessionCardDeck.CreateFromInstances(deckInstances, sessionId);
+
+        // Add NPC signature deck knowledge cards to STARTING HAND (parallel to Mental/Physical)
+        if (npc.SignatureDeck != null)
+        {
+            List<SignatureKnowledgeCard> knowledgeCards = npc.SignatureDeck.GetCardsForTacticalType(TacticalSystemType.Social);
+            foreach (SignatureKnowledgeCard sigCard in knowledgeCards)
+            {
+                CardDefinitionEntry knowledgeEntry = _gameWorld.AllCardDefinitions
+                    .FirstOrDefault(e => e.Card?.Id == sigCard.CardId);
+
+                if (knowledgeEntry?.Card != null)
+                {
+                    CardInstance knowledgeInstance = new CardInstance(knowledgeEntry.Card, "signature_knowledge");
+                    deck.AddCardToMind(knowledgeInstance);
+                    Console.WriteLine($"[ConversationDeckBuilder] Added signature knowledge card '{sigCard.CardId}' to starting hand from NPC '{npc.ID}'");
+                }
+            }
+        }
 
         // Add observation cards if provided
         if (observationCards != null && observationCards.Any())
@@ -265,6 +297,23 @@ public class ConversationDeckBuilder
         }
 
         return tokens;
+    }
+
+    /// <summary>
+    /// Get equipment categories provided by player's current items (parallel to Mental/Physical)
+    /// </summary>
+    private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
+    {
+        List<EquipmentCategory> categories = new List<EquipmentCategory>();
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            Item item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+            if (item?.ProvidedEquipmentCategories != null)
+            {
+                categories.AddRange(item.ProvidedEquipmentCategories);
+            }
+        }
+        return categories.Distinct().ToList();
     }
 
 }

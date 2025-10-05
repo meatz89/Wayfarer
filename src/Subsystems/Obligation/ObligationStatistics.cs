@@ -1,4 +1,3 @@
-namespace Wayfarer.Subsystems.ObligationSubsystem;
 
 /// <summary>
 /// Provides comprehensive analytics and reporting for the obligation system.
@@ -474,13 +473,13 @@ public class ObligationStatistics
         return Math.Max(0, Math.Min(1, successRate + tokenBonus + tokenPenalty));
     }
 
-    private RiskLevel DetermineRiskLevel(RelationshipHealth health)
+    private ObligationRiskLevel DetermineRiskLevel(RelationshipHealth health)
     {
-        if (health.TotalNegativeTokens < -5) return RiskLevel.High;
-        if (health.ExpiredCount > health.DeliveredCount) return RiskLevel.High;
-        if (health.ReliabilityScore < 0.3) return RiskLevel.High;
-        if (health.ReliabilityScore < 0.6) return RiskLevel.Medium;
-        return RiskLevel.Low;
+        if (health.TotalNegativeTokens < -5) return ObligationRiskLevel.High;
+        if (health.ExpiredCount > health.DeliveredCount) return ObligationRiskLevel.High;
+        if (health.ReliabilityScore < 0.3) return ObligationRiskLevel.High;
+        if (health.ReliabilityScore < 0.6) return ObligationRiskLevel.Medium;
+        return ObligationRiskLevel.Low;
     }
 
     private ConnectionType GetPrimaryConnectionType(NPC npc)
@@ -627,7 +626,7 @@ public class RelationshipHealth
     public int ExpiredCount { get; set; }
     public int SkippedCount { get; set; }
     public double ReliabilityScore { get; set; }
-    public RiskLevel RiskLevel { get; set; }
+    public ObligationRiskLevel RiskLevel { get; set; }
 }
 
 public class NPCPerformanceMetric
@@ -663,7 +662,7 @@ public class ObligationTrends
     public List<string> MostProblematicNPCs { get; set; } = new List<string>();
 }
 
-public enum RiskLevel
+public enum ObligationRiskLevel
 {
     Low,
     Medium,

@@ -1,0 +1,13 @@
+@namespace Wayfarer.Pages.Components.Shared
+@inherits RhythmScaleBase
+
+<div class="cadence-container">
+    <span class="cadence-label">@LeftLabel</span>
+    <div class="cadence-scale">
+        @for (int i = MinValue; i <= MaxValue; i++)
+        {
+            <div class="cadence-segment @GetSegmentClass(i) @(i == CurrentValue ? "current" : "")"></div>
+        }
+    </div>
+    <span class="cadence-label">@RightLabel</span>
+</div>

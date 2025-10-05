@@ -1,206 +1,7 @@
-/* BLAZOR CSS ISOLATION: All styles scoped ONLY to ConversationContent component */
-/* Exact CSS from conversation-screen.html mockup to prevent conflicts */
+/* BLAZOR CSS ISOLATION: Conversation-specific styles only */
+/* Shared card system styles moved to card-system-shared.css (HIGHLANDER) */
 
-/* NPC Bar */
-.npc-bar {
-    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
-    padding: 15px 20px;
-    border-bottom: 2px solid #a68b6f;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.npc-info {
-    flex: 1;
-}
-
-.npc-name {
-    color: #5c4a3a;
-    font-size: 22px;
-    font-weight: normal;
-}
-
-.npc-status {
-    font-size: 12px;
-    color: #7a6250;
-    margin-top: 2px;
-}
-
-.personality-rule {
-    padding: 8px 12px;
-    background: #8b4726;
-    color: #faf4ea;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Core Resources Display */
-.resources-display {
-    background: #3d3429;
-    padding: 10px 20px;
-    border-bottom: 1px solid #5c4a3a;
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-}
-
-.resource-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.resource-label {
-    font-size: 10px;
-    color: #8b7355;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-
-.resource-value {
-    font-size: 24px;
-    font-weight: bold;
-    color: #d4a76a;
-}
-
-.resource-bar {
-    width: 120px;
-    height: 6px;
-    background: #2c241a;
-    border: 1px solid #5c4a3a;
-    border-radius: 3px;
-    margin-top: 4px;
-    overflow: hidden;
-}
-
-.resource-fill {
-    height: 100%;
-    background: #7a8b5a;
-    transition: width 0.3s ease;
-}
-
-.doubt-fill {
-    background: #d4704a;
-}
-
-.understanding-fill {
-    background: #5a7a8a;
-}
-
-/* Cadence Display */
-.cadence-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.cadence-scale {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 0 20px;
-}
-
-.cadence-segment {
-    width: 30px;
-    height: 20px;
-    border: 1px solid #5c4a3a;
-    background: #3d3429;
-}
-
-.cadence-segment.negative {
-    background: #5a7a8a;
-}
-
-.cadence-segment.neutral {
-    background: #7a8b5a;
-}
-
-.cadence-segment.positive {
-    background: #d4a76a;
-}
-
-.cadence-segment.high {
-    background: #d4704a;
-}
-
-.cadence-segment.current {
-    border: 2px solid #faf4ea;
-    box-shadow: 0 0 8px rgba(250, 244, 234, 0.5);
-}
-
-.cadence-label {
-    font-size: 11px;
-    color: #8b7355;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-/* Goals Section */
-.goals-section {
-    background: #e8dcc4;
-    padding: 10px 15px;
-    border-bottom: 2px solid #a68b6f;
-}
-
-.goals-container {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-.goal-card {
-    background: #faf4ea;
-    border: 2px solid #c4a684;
-    border-radius: 4px;
-    padding: 10px;
-    min-width: 150px;
-    text-align: center;
-    transition: all 0.2s;
-}
-
-.goal-card.achievable {
-    border-color: #7a8b5a;
-    background: #f4f9e9;
-}
-
-.goal-card.active {
-    border-color: #d4a76a;
-    transform: scale(1.05);
-}
-
-.goal-threshold {
-    font-size: 18px;
-    font-weight: bold;
-    color: #5c4a3a;
-    margin-bottom: 4px;
-}
-
-.goal-name {
-    font-size: 11px;
-    color: #7a6250;
-    margin-bottom: 4px;
-}
-
-.goal-reward {
-    font-size: 10px;
-    color: #5a7a3a;
-    font-weight: bold;
-}
-
-/* Narrative Section */
-.narrative-section {
-    padding: 20px;
-    background: #f4e8d0;
-    border-bottom: 2px solid #a68b6f;
-}
-
+/* CONVERSATION-SPECIFIC: NPC Dialogue (not used by investigations) */
 .npc-dialogue {
     padding: 15px;
     background: #faf4ea;
@@ -211,70 +12,7 @@
     font-style: italic;
 }
 
-/* Action Section */
-.action-display {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #a68b6f;
-}
-
-.action-section {
-    padding: 12px;
-    background: #e8dcc4;
-    text-align: center;
-    position: relative;
-}
-
-.action-button {
-    padding: 10px 35px;
-    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
-    border: 2px solid #a68b6f;
-    border-radius: 4px;
-    color: #5c4a3a;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-block;
-    margin: 0 15px;
-    position: relative;
-}
-
-.action-button:hover .tooltip {
-    display: block;
-}
-
-.action-button.primary {
-    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
-    color: #faf4ea;
-    border-color: #5a6a3a;
-}
-
-.tooltip {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2c241a;
-    color: #e8dcc4;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    margin-bottom: 5px;
-    z-index: 100;
-}
-
-.tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: #2c241a;
-}
-
+/* CONVERSATION-SPECIFIC: Tooltip extensions for card effects */
 .card-effects-tooltip {
     text-align: left;
     white-space: normal;
@@ -315,188 +53,12 @@
     margin: 2px 0;
 }
 
-/* Initiative Display */
-.initiative-display {
-    background: #3d3429;
-    padding: 15px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    border-bottom: 2px solid #5c4a3a;
-}
-
-.initiative-counter {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.initiative-label {
-    font-size: 14px;
-    color: #e8dcc4;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.initiative-value {
-    font-size: 36px;
-    font-weight: bold;
-    color: #d4a76a;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.initiative-dots {
-    display: flex;
-    gap: 4px;
-}
-
-.initiative-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid #8b7355;
-    background: #2c241a;
-}
-
-.initiative-dot.available {
-    background: #d4a76a;
-    box-shadow: 0 0 4px rgba(212, 167, 106, 0.5);
-}
-
-/* Pile Counters */
-.pile-display {
-    display: flex;
-    gap: 20px;
-    font-size: 12px;
-    color: #8b7355;
-    margin: 12px;
-}
-
-.pile-count {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.pile-number {
-    color: #d4a76a;
-    font-weight: bold;
-}
-
-/* Cards Section */
-.cards-section {
-    padding: 15px;
-    background: #f4e8d0;
-}
-
-.card-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.card {
-    background: #faf4ea;
-    border: 2px solid #c4a684;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.card:hover:not(.disabled) {
-    background: #fefaf0;
-    border-color: #a68b6f;
-    transform: translateX(5px);
-}
-
-/* Selected card state - persists after click */
-.card.selected:not(.disabled) {
-    background: #fefaf0;
-    border-color: #a68b6f;
-    transform: translateX(5px);
-    box-shadow: 0 0 8px rgba(166, 139, 111, 0.5);
-}
-
-.card.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* Stat Colors */
-.card.insight {
-    border-left: 5px solid #5a7a8a;
-}
-
-.card.rapport {
-    border-left: 5px solid #7a8b5a;
-}
-
-.card.authority {
-    border-left: 5px solid #8b4726;
-}
-
-.card.diplomacy {
-    border-left: 5px solid #d4a76a;
-}
-
-.card.cunning {
-    border-left: 5px solid #6a5a8a;
-}
-
+/* CONVERSATION-SPECIFIC: Request cards (conversations only) */
 .card.request {
-    border-left: 5px solid #d4af37; /* Gold color for request cards */
+    border-left: 5px solid #d4af37;
 }
 
-/* Card Layout */
-.card-content {
-    padding: 12px;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-.card-name {
-    font-size: 13px;
-    font-weight: bold;
-    color: #5c4a3a;
-}
-
-.card-initiative-group {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.initiative-label {
-    font-size: 8px;
-    text-transform: uppercase;
-    color: #7a6250;
-    font-weight: bold;
-    letter-spacing: 0.3px;
-}
-
-.initiative-cost {
-    width: 22px;
-    height: 22px;
-    background: #5c4a3a;
-    color: #faf4ea;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 22px;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-/* Delivery flag - in card-top-row next to stat badge */
+/* CONVERSATION-SPECIFIC: Delivery type badges (how card affects Cadence) */
 .card-delivery {
     padding: 2px 6px;
     border-radius: 2px;
@@ -507,67 +69,23 @@
     white-space: nowrap;
 }
 
-/* Delivery type colors */
 .card-delivery.delivery-commanding {
-    background: #d4704a; /* Orange/red - aggressive +2 Cadence */
+    background: #d4704a;
 }
 
 .card-delivery.delivery-standard {
-    background: #7a8b5a; /* Green/neutral - standard +1 Cadence */
+    background: #7a8b5a;
 }
 
 .card-delivery.delivery-measured {
-    background: #5a7a8a; /* Blue - thoughtful +0 Cadence */
+    background: #5a7a8a;
 }
 
 .card-delivery.delivery-yielding {
-    background: #8b7a5a; /* Brown - deferential -1 Cadence */
+    background: #8b7a5a;
 }
 
-.card-depth {
-    font-size: 9px;
-    color: #7a6250;
-    text-transform: uppercase;
-}
-
-.card-text {
-    font-size: 12px;
-    line-height: 1.4;
-    color: #2c241a;
-    font-style: italic;
-    margin-bottom: 8px;
-}
-
-.card-requirement {
-    font-size: 11px;
-    color: #8b4726;
-    font-weight: bold;
-    padding: 4px 8px;
-    background: #f9f3e9;
-    border: 1px solid #d4c5a0;
-    border-radius: 2px;
-    margin-bottom: 6px;
-}
-
-.card-cost {
-    font-size: 11px;
-    color: #d4704a;
-    font-weight: bold;
-    padding: 4px 8px;
-    background: #fff4e6;
-    border: 1px solid #d4a76a;
-    border-radius: 2px;
-    margin-bottom: 6px;
-}
-
-.card-effect {
-    font-size: 12px;
-    color: #5a7a3a;
-    font-weight: bold;
-    padding-top: 8px;
-    border-top: 1px solid #e8dcc4;
-}
-
+/* CONVERSATION-SPECIFIC: Persistence type badges (Statement vs Echo) */
 .card-persistence {
     padding: 2px 6px;
     border-radius: 2px;
@@ -583,7 +101,7 @@
     background: #5a7a8a;
 }
 
-/* ConversationalMove badges - Core categorical property display */
+/* CONVERSATION-SPECIFIC: ConversationalMove badges (Remark/Observation/Argument) */
 .card-move {
     padding: 2px 6px;
     border-radius: 2px;
@@ -594,71 +112,24 @@
 }
 
 .card-move.move-remark {
-    background: #8b4726; /* Authority brown - pressing points */
+    background: #8b4726;
 }
 
 .card-move.move-observation {
-    background: #5a7a8a; /* Insight blue - supportive comments */
+    background: #5a7a8a;
 }
 
 .card-move.move-argument {
-    background: #7a5a8a; /* Purple - complex developed points */
+    background: #7a5a8a;
 }
 
-.card-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    gap: 8px;
-}
-
-.card-flags {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.stat-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.stat-badge.insight {
-    background: #5a7a8a;
-    color: #faf4ea;
-}
-
-.stat-badge.rapport {
-    background: #7a8b5a;
-    color: #faf4ea;
-}
-
-.stat-badge.authority {
-    background: #8b4726;
-    color: #faf4ea;
-}
-
-.stat-badge.diplomacy {
-    background: #d4a76a;
-    color: #2c241a;
-}
-
-.stat-badge.cunning {
-    background: #6a5a8a;
-    color: #faf4ea;
-}
-
+/* CONVERSATION-SPECIFIC: Request card badge variant */
 .stat-badge.request {
-    background: #d4af37; /* Gold background for request badge */
-    color: #2c1810; /* Dark brown text for contrast */
+    background: #d4af37;
+    color: #2c1810;
 }
 
-/* Tier Display */
+/* CONVERSATION-SPECIFIC: Tier Display (Understanding-based unlocks) */
 .tier-display {
     background: #f9f3e9;
     padding: 10px 20px;
@@ -714,7 +185,7 @@
     opacity: 0.5;
 }
 
-/* Statement Display */
+/* CONVERSATION-SPECIFIC: Statement Display (per-stat tracking) */
 .statement-display {
     background: #f4e8d0;
     padding: 10px 20px;
@@ -756,7 +227,7 @@
     color: #5c4a3a;
 }
 
-/* Card Traits Display */
+/* CONVERSATION-SPECIFIC: Card Traits (SuppressSpeakCadence, etc.) */
 .card-traits {
     display: flex;
     flex-wrap: wrap;
@@ -785,7 +256,6 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Specific trait types */
 .card-trait.trait-suppressspeakcadence {
     background: #6a7a5a;
     border-color: #5a6a4a;

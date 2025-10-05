@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for card deck definitions loaded from JSON
+/// DTO for Conversation system card deck definitions loaded from JSON
 /// Each deck contains card IDs with their counts
+/// SEPARATE from EngagementTypeDeck (which is for Mental/Physical/Social tactical systems)
 /// </summary>
 public class CardDeckDTO
 {

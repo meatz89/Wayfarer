@@ -1,0 +1,62 @@
+@namespace Wayfarer.Pages.Components.Shared
+@inherits TacticalCardBase
+
+<div class="card @GetCardStatClass() @(IsObservationExpired() || !IsSelectable ? "disabled" : "") @(IsSelected ? "selected" : "")"
+     @onclick="HandleClick">
+    <div class="card-content">
+        <div class="card-top-row">
+            <div class="stat-badge @GetCardStatClass()">
+                @if (Card.ConversationCardTemplate.CardType == CardType.Request)
+                {
+                    <span>REQUEST</span>
+                }
+                else
+                {
+                    <text>@GetCardStatName() Depth @GetCardDepth()</text>
+                }
+            </div>
+            <div class="card-flags">
+                @SystemSpecificBadges
+            </div>
+        </div>
+
+        @* Card Traits Display *@
+        @if (Card.ConversationCardTemplate.Traits != null && Card.ConversationCardTemplate.Traits.Any())
+        {
+            <div class="card-traits">
+                @foreach (var trait in Card.ConversationCardTemplate.Traits)
+                {
+                    <div class="card-trait @GetTraitClass(trait)" title="@GetTraitTooltip(trait)">
+                        @GetTraitDisplayName(trait)
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="card-header">
+            <div class="card-name">@GetCardName()</div>
+            <div class="card-initiative-group">
+                <div class="initiative-label">INITIATIVE</div>
+                <div class="initiative-cost">@GetCardInitiativeCost()</div>
+            </div>
+        </div>
+        <div class="card-text">
+            "@GetCardDialogue()"
+        </div>
+        @if (HasCardRequirement())
+        {
+            <div class="card-requirement">
+                @GetCardRequirement()
+            </div>
+        }
+        @if (HasCardCost())
+        {
+            <div class="card-cost">
+                @GetCardCost()
+            </div>
+        }
+        <div class="card-effect">
+            Effect: @GetCardEffectDescription()
+        </div>
+    </div>
+</div>

@@ -75,6 +75,15 @@ public class Location
     // Work System - Available work actions at this location
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
+    // Tactical Goals - Mental and Physical challenges available at this location
+    public List<LocationGoal> Goals { get; set; } = new List<LocationGoal>();
+
+    // Signature Deck System - Knowledge cards earned through successful engagements at this location
+    public SignatureDeck SignatureDeck { get; set; }
+
+    // Location Exposure System - Mental debt that persists across investigations
+    public int Exposure { get; set; } = 0;
+
     public Location(string id, string name)
     {
         Id = id;

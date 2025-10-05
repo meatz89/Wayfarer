@@ -71,9 +71,14 @@ public class LocationAction
     public int Priority { get; set; } = 100;
 
     /// <summary>
-    /// Action type for special handling (e.g., "travel", "work", "rest")
+    /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
     /// </summary>
     public string ActionType { get; set; } = "";
+
+    /// <summary>
+    /// Investigation ID if this action launches an investigation (V2)
+    /// </summary>
+    public string InvestigationId { get; set; }
 
     /// <summary>
     /// Check if this action matches a given spot's properties

@@ -1,7 +1,6 @@
 @inherits ConversationContentBase
 
 @namespace Wayfarer.Pages.Components
-@using Wayfarer.Services
 
 @* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, etc.) are rendered INSIDE GameScreen's game-container.
    They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
@@ -52,35 +51,25 @@
 
         <!-- Core Resources Display (matching mockup exactly) -->
         <div class="resources-display">
-            <div class="resource-item">
-                <GameTooltip Content="@TooltipContentProvider.Get("Momentum")" Position="top">
-                    <div class="resource-label">Momentum</div>
-                </GameTooltip>
-                <div class="resource-value">@(Session?.CurrentMomentum ?? 0)</div>
-                <div class="resource-bar">
-                    <div class="resource-fill" style="width: @GetMomentumPercentage()%;"></div>
-                </div>
-            </div>
-            <div class="cadence-container">
-                <span class="cadence-label">Listen Heavy</span>
-                <div class="cadence-scale">
-                    @* Fixed cadence range: -5 to +5 (11 segments total) *@
-                    @for (int i = -5; i <= 5; i++)
-                    {
-                        <div class="cadence-segment @GetCadenceSegmentClass(i) @(GetCurrentCadence() == i ? "current" : "")"></div>
-                    }
-                </div>
-                <span class="cadence-label">Speak Heavy</span>
-            </div>
-            <div class="resource-item">
-                <GameTooltip Content="@TooltipContentProvider.Get("Doubt")" Position="top">
-                    <div class="resource-label">Doubt</div>
-                </GameTooltip>
-                <div class="resource-value">@(Session?.CurrentDoubt ?? 0)</div>
-                <div class="resource-bar">
-                    <div class="resource-fill doubt-fill" style="width: @GetDoubtPercentage()%;"></div>
-                </div>
-            </div>
+            <ResourceBar Label="Momentum"
+                         CurrentValue="@(Session?.CurrentMomentum ?? 0)"
+                         MaxValue="16"
+                         BarType="progress"
+                         TooltipContent="@TooltipContentProvider.Get("Momentum")"
+                         ShowMaxValue="false" />
+
+            <RhythmScale LeftLabel="Listen Heavy"
+                         RightLabel="Speak Heavy"
+                         CurrentValue="@GetCurrentCadence()"
+                         MinValue="-5"
+                         MaxValue="5" />
+
+            <ResourceBar Label="Doubt"
+                         CurrentValue="@(Session?.CurrentDoubt ?? 0)"
+                         MaxValue="@(Session?.MaxDoubt ?? 10)"
+                         BarType="consequence"
+                         TooltipContent="@TooltipContentProvider.Get("Doubt")"
+                         ShowMaxValue="false" />
         </div>
 
         <!-- Goal Thresholds Display (matching mockup) -->
@@ -199,21 +188,10 @@
         </div>
 
         <!-- Initiative Display (with glowing orbs matching mockup) -->
-        <div class="initiative-display">
-            <div class="initiative-counter">
-                <GameTooltip Content="@TooltipContentProvider.Get("Initiative")" Position="right">
-                    <span class="initiative-label">Initiative</span>
-                </GameTooltip>
-                <span class="initiative-value">@GetCurrentInitiative()</span>
-                <div class="initiative-dots">
-                    @* Show dots up to max Initiative for this conversation type *@
-                    @for (int i = 1; i <= GetMaxInitiative(); i++)
-                    {
-                        <span class="initiative-dot @(i <= GetCurrentInitiative() ? "available" : "")"></span>
-                    }
-                </div>
-            </div>
-        </div>
+        <ActionEconomyDisplay Label="Initiative"
+                              CurrentValue="@GetCurrentInitiative()"
+                              MaxValue="@GetMaxInitiative()"
+                              TooltipContent="@TooltipContentProvider.Get("Initiative")" />
 
         <!-- Tier Unlock Display -->
         <div class="tier-display">
@@ -315,73 +293,23 @@
                 {
                     var convCard = displayCard.Card;
 
-                    <!-- Card (matching mockup exactly) - request class adds different background for Request cards -->
-                    <div class="card @(convCard.ConversationCardTemplate.CardType == CardType.Request ? "request" : "") @GetCardStatClass(convCard) @(IsObservationExpired(convCard) || !CanSelectCard(convCard) ? "disabled" : "") @(SelectedCard == convCard ? "selected" : "")"
-                         @onclick="() => ToggleCardSelection(convCard)">
-                            <div class="card-content">
-                                <div class="card-top-row">
-                                    <div class="stat-badge @GetCardStatClass(convCard)">
-                                        @if (convCard.ConversationCardTemplate.CardType == CardType.Request)
-                                        {
-                                            <span>REQUEST</span>
-                                        }
-                                        else
-                                        {
-                                            <text>@GetCardStatName(convCard) Depth @GetCardDepth(convCard)</text>
-                                        }
-                                    </div>
-                                    <div class="card-flags">
-                                        <span class="card-move @GetCardMoveClass(convCard)" title="Conversational move type">
-                                            @GetCardMove(convCard)
-                                        </span>
-                                        <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK">
-                                            @GetCardDelivery(convCard) (@GetCardDeliveryCadenceEffect(convCard))
-                                        </span>
-                                        <span class="card-persistence" title="@GetPersistenceTooltip(convCard)">@GetCardPersistenceType(convCard)</span>
-                                    </div>
-                                </div>
-
-                                @* Card Traits Display *@
-                                @if (convCard.ConversationCardTemplate.Traits != null && convCard.ConversationCardTemplate.Traits.Any())
-                                {
-                                    <div class="card-traits">
-                                        @foreach (var trait in convCard.ConversationCardTemplate.Traits)
-                                        {
-                                            <div class="card-trait @GetTraitClass(trait)" title="@GetTraitTooltip(trait)">
-                                                @GetTraitDisplayName(trait)
-                                            </div>
-                                        }
-                                    </div>
-                                }
-
-                                <div class="card-header">
-                                    <div class="card-name">@GetProperCardName(convCard)</div>
-                                    <div class="card-initiative-group">
-                                        <div class="initiative-label">INITIATIVE</div>
-                                        <div class="initiative-cost">@GetCardInitiativeCost(convCard)</div>
-                                    </div>
-                                </div>
-                                <div class="card-text">
-                                    "@GetProperCardDialogue(convCard)"
-                                </div>
-                                @if (HasCardRequirement(convCard))
-                                {
-                                    <div class="card-requirement">
-                                        @GetCardRequirement(convCard)
-                                    </div>
-                                }
-                                @if (HasCardCost(convCard))
-                                {
-                                    <div class="card-cost">
-                                        @GetCardCost(convCard)
-                                    </div>
-                                }
-                                <div class="card-effect">
-                                    Effect: @GetCardEffectDescription(convCard)
-                                </div>
-                            </div>
-                        </div>
-                    }
+                    <TacticalCard Card="@convCard"
+                                  IsSelected="@(SelectedCard?.InstanceId == convCard.InstanceId)"
+                                  IsSelectable="@CanSelectCard(convCard)"
+                                  OnCardClick="@(() => ToggleCardSelection(convCard))"
+                                  CardNarratives="@CurrentCardNarratives"
+                                  Session="@Session">
+                        <SystemSpecificBadges>
+                            <span class="card-move @GetCardMoveClass(convCard)" title="Conversational move type">
+                                @GetCardMove(convCard)
+                            </span>
+                            <span class="card-delivery @GetCardDeliveryClass(convCard)" title="Cadence effect on SPEAK">
+                                @GetCardDelivery(convCard) (@GetCardDeliveryCadenceEffect(convCard))
+                            </span>
+                            <span class="card-persistence" title="@GetPersistenceTooltip(convCard)">@GetCardPersistenceType(convCard)</span>
+                        </SystemSpecificBadges>
+                    </TacticalCard>
+                }
             </div>
     </div>
     </div>

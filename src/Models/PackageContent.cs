@@ -154,4 +154,38 @@ public class PackageContent
     /// Listen draw counts per connection state for conversation mechanics
     /// </summary>
     public Dictionary<string, int> ListenDrawCounts { get; set; }
+
+    /// <summary>
+    /// Investigation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
+    /// </summary>
+    // public List<Wayfarer.Content.DTOs.InvestigationCardDTO> InvestigationCards { get; set; }
+
+    /// <summary>
+    /// Investigation templates - strategic multi-phase activities that orchestrate tactical systems
+    /// V3: Now using InvestigationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
+    /// </summary>
+    public List<InvestigationDTO> Investigations { get; set; }
+
+    /// <summary>
+    /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
+    /// </summary>
+    public List<TravelObstacleDTO> TravelObstacles { get; set; }
+
+    /// <summary>
+    /// Mental cards for investigation system - parallel to conversation cards for mental tactical challenges
+    /// </summary>
+    public List<MentalCardDTO> MentalCards { get; set; }
+
+    /// <summary>
+    /// Physical cards for physical challenge system - parallel to mental cards for physical tactical challenges
+    /// </summary>
+    public List<PhysicalCardDTO> PhysicalCards { get; set; }
+
+    // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
+    public List<SocialEngagementTypeDTO> SocialEngagementTypes { get; set; } = new List<SocialEngagementTypeDTO>();
+    public List<ConversationEngagementDeckDTO> ConversationEngagementDecks { get; set; } = new List<ConversationEngagementDeckDTO>();
+    public List<MentalEngagementTypeDTO> MentalEngagementTypes { get; set; } = new List<MentalEngagementTypeDTO>();
+    public List<MentalEngagementDeckDTO> MentalEngagementDecks { get; set; } = new List<MentalEngagementDeckDTO>();
+    public List<PhysicalEngagementTypeDTO> PhysicalEngagementTypes { get; set; } = new List<PhysicalEngagementTypeDTO>();
+    public List<PhysicalEngagementDeckDTO> PhysicalEngagementDecks { get; set; } = new List<PhysicalEngagementDeckDTO>();
 }

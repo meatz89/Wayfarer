@@ -1,5 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-// Card decks
+/// <summary>
+/// Card deck for conversation system
+/// Manages collection of conversation cards with draw mechanics
+/// SEPARATE from EngagementTypeDeck (which is for tactical systems)
+/// </summary>
 public class CardDeck
 {
     protected List<ConversationCard> cards = new();
@@ -38,7 +45,7 @@ public class CardDeck
         }
         if (!available.Any()) return null;
 
-        ConversationCard card = available[0]; // Deterministic: always take first available card
+        ConversationCard card = available[0];
         drawnCardIds.Add(card.Id);
         return card;
     }
@@ -79,9 +86,6 @@ public class CardDeck
         return HasCards();
     }
 
-    /// <summary>
-    /// Remove a specific card from the deck
-    /// </summary>
     public void RemoveCard(ConversationCard card)
     {
         cards.Remove(card);

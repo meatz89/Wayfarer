@@ -205,6 +205,24 @@ public class TokenUnlockEntry
 }
 
 /// <summary>
+/// Helper class for mental card entries (replaces Dictionary<string, MentalCard>)
+/// </summary>
+public class MentalCardEntry
+{
+    public string CardId { get; set; }
+    public MentalCard Card { get; set; }
+}
+
+/// <summary>
+/// Helper class for physical card entries (replaces Dictionary<string, PhysicalCard>)
+/// </summary>
+public class PhysicalCardEntry
+{
+    public string CardId { get; set; }
+    public PhysicalCard Card { get; set; }
+}
+
+/// <summary>
 /// Extension methods to make List-based lookups as easy as Dictionary lookups
 /// </summary>
 public static class ListBasedHelperExtensions
@@ -496,6 +514,44 @@ public static class ListBasedHelperExtensions
         else
         {
             decks.Add(new CardDeckDefinitionEntry { DeckId = deckId, Definition = definition });
+        }
+    }
+
+    // MentalCardEntry helpers
+    public static MentalCard GetMentalCard(this List<MentalCardEntry> cards, string cardId)
+    {
+        return cards.FindById(cardId)?.Card;
+    }
+
+    public static void AddOrUpdateCard(this List<MentalCardEntry> cards, string cardId, MentalCard card)
+    {
+        MentalCardEntry existing = cards.FindById(cardId);
+        if (existing != null)
+        {
+            existing.Card = card;
+        }
+        else
+        {
+            cards.Add(new MentalCardEntry { CardId = cardId, Card = card });
+        }
+    }
+
+    // PhysicalCardEntry helpers
+    public static PhysicalCard GetPhysicalCard(this List<PhysicalCardEntry> cards, string cardId)
+    {
+        return cards.FindById(cardId)?.Card;
+    }
+
+    public static void AddOrUpdateCard(this List<PhysicalCardEntry> cards, string cardId, PhysicalCard card)
+    {
+        PhysicalCardEntry existing = cards.FindById(cardId);
+        if (existing != null)
+        {
+            existing.Card = card;
+        }
+        else
+        {
+            cards.Add(new PhysicalCardEntry { CardId = cardId, Card = card });
         }
     }
 }

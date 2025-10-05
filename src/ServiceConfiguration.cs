@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
@@ -48,6 +48,15 @@ public static class ServiceConfiguration
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
+        // General game services (not investigation-specific)
+        services.AddSingleton<KnowledgeService>();
+
+        // V3 Card-Based Investigation System - DELETED (wrong architecture)
+        // Investigation is strategic activity, not tactical system
+        // Mental/Physical facades will be added in refactor
+        services.AddSingleton<TravelObstacleService>();
+        services.AddSingleton<ObstacleFacade>();
+
         services.AddTimeSystem();
 
         // Managers that depend on TimeManager
@@ -64,6 +73,21 @@ public static class ServiceConfiguration
         services.AddSingleton<ConversationDeckBuilder>();
         services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<ConversationFacade>();
+        services.AddSingleton<MentalFacade>();
+        services.AddSingleton<PhysicalFacade>();
+
+        // Mental services
+        services.AddSingleton<MentalEffectResolver>();
+        services.AddSingleton<MentalNarrativeService>();
+        services.AddSingleton<MentalDeckBuilder>();
+
+        // Physical services
+        services.AddSingleton<PhysicalEffectResolver>();
+        services.AddSingleton<PhysicalNarrativeService>();
+        services.AddSingleton<PhysicalDeckBuilder>();
+
+        // Investigation Activity - Strategic orchestrator for multi-phase investigations
+        services.AddSingleton<InvestigationActivity>();
 
         // NPC deck initialization handled directly in PackageLoader
 
@@ -123,71 +147,71 @@ public static class ServiceConfiguration
         services.AddScoped<TimeImpactCalculator>();
 
         // Location Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationManager>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationSpotManager>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.MovementValidator>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.NPCLocationTracker>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationActionManager>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationFacade>();
+        services.AddSingleton<LocationManager>();
+        services.AddSingleton<LocationSpotManager>();
+        services.AddSingleton<MovementValidator>();
+        services.AddSingleton<NPCLocationTracker>();
+        services.AddSingleton<LocationActionManager>();
+        services.AddSingleton<LocationNarrativeGenerator>();
+        services.AddSingleton<LocationFacade>();
 
         // Obligation Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DeliveryManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.MeetingManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.QueueManipulator>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DisplacementCalculator>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.DeadlineTracker>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationStatistics>();
-        services.AddSingleton<Wayfarer.Subsystems.ObligationSubsystem.ObligationFacade>();
+        services.AddSingleton<DeliveryManager>();
+        services.AddSingleton<MeetingManager>();
+        services.AddSingleton<QueueManipulator>();
+        services.AddSingleton<DisplacementCalculator>();
+        services.AddSingleton<DeadlineTracker>();
+        services.AddSingleton<ObligationStatistics>();
+        services.AddSingleton<ObligationFacade>();
 
         // Resource Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.CoinManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HealthManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.HungerManager>();
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceCalculator>();
-        services.AddSingleton<Wayfarer.Subsystems.ResourceSubsystem.ResourceFacade>();
+        services.AddSingleton<CoinManager>();
+        services.AddSingleton<HealthManager>();
+        services.AddSingleton<HungerManager>();
+        services.AddSingleton<ResourceCalculator>();
+        services.AddSingleton<ResourceFacade>();
 
         // Time Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeBlockCalculator>();
-        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeProgressionManager>();
-        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeDisplayFormatter>();
-        services.AddSingleton<Wayfarer.Subsystems.TimeSubsystem.TimeFacade>();
+        services.AddSingleton<TimeBlockCalculator>();
+        services.AddSingleton<TimeProgressionManager>();
+        services.AddSingleton<TimeDisplayFormatter>();
+        services.AddSingleton<TimeFacade>();
 
         // Travel Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.RouteManager>();
-        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.RouteDiscoveryManager>();
-        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.PermitValidator>();
-        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelTimeCalculator>();
-        services.AddSingleton<Wayfarer.Subsystems.TravelSubsystem.TravelFacade>();
+        services.AddSingleton<RouteManager>();
+        services.AddSingleton<RouteDiscoveryManager>();
+        services.AddSingleton<PermitValidator>();
+        services.AddSingleton<TravelTimeCalculator>();
+        services.AddSingleton<TravelFacade>();
 
         // Market Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketSubsystemManager>();
-        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.PriceManager>();
-        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.ArbitrageCalculator>();
-        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketStateTracker>();
-        services.AddSingleton<Wayfarer.Subsystems.MarketSubsystem.MarketFacade>();
+        services.AddSingleton<MarketSubsystemManager>();
+        services.AddSingleton<PriceManager>();
+        services.AddSingleton<ArbitrageCalculator>();
+        services.AddSingleton<MarketStateTracker>();
+        services.AddSingleton<MarketFacade>();
 
         // Exchange Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeValidator>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeProcessor>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeInventory>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeOrchestrator>();
-        services.AddSingleton<Wayfarer.Subsystems.ExchangeSubsystem.ExchangeFacade>();
+        services.AddSingleton<ExchangeValidator>();
+        services.AddSingleton<ExchangeProcessor>();
+        services.AddSingleton<ExchangeInventory>();
+        services.AddSingleton<ExchangeOrchestrator>();
+        services.AddSingleton<ExchangeFacade>();
 
         // Token Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.ConnectionTokenManager>();
-        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenEffectProcessor>();
-        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenUnlockManager>();
-        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.RelationshipTracker>();
-        services.AddSingleton<Wayfarer.Subsystems.TokenSubsystem.TokenFacade>();
+        services.AddSingleton<ConnectionTokenManager>();
+        services.AddSingleton<TokenEffectProcessor>();
+        services.AddSingleton<TokenUnlockManager>();
+        services.AddSingleton<RelationshipTracker>();
+        services.AddSingleton<TokenFacade>();
 
         // Narrative Subsystem
-        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.ObservationManagerWrapper>();
+        services.AddSingleton<ObservationManagerWrapper>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<NarrativeService>();
-        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.NarrativeRenderer>();
-        services.AddSingleton<Wayfarer.Subsystems.LocationSubsystem.LocationNarrativeGenerator>();
-        services.AddSingleton<Wayfarer.Subsystems.NarrativeSubsystem.NarrativeFacade>();
+        services.AddSingleton<NarrativeRenderer>();
+        services.AddSingleton<LocationNarrativeGenerator>();
+        services.AddSingleton<NarrativeFacade>();
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();

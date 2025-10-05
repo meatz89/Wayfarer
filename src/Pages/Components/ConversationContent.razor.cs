@@ -528,21 +528,6 @@ namespace Wayfarer.Pages.Components
             return status;
         }
 
-        protected string GetProperCardDialogue(CardInstance card)
-        {
-            // First check for AI-generated narrative
-            if (CurrentCardNarratives != null && card != null)
-            {
-                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.ConversationCardTemplate.Id);
-                if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
-                    return cardNarrative.NarrativeText;
-            }
-
-            // Use DialogueText property - this is what the player says
-            return card.ConversationCardTemplate.DialogueText ?? "";
-        }
-
-
         protected string GetCardName(CardInstance card)
         {
             // Use the card's title - all cards must have titles from JSON
@@ -588,18 +573,6 @@ namespace Wayfarer.Pages.Components
             await OnConversationEnd.InvokeAsync();
         }
 
-        /// <summary>
-        /// Process letter negotiations and add resulting obligations to the player's queue
-        /// </summary>
-
-        /// <summary>
-        /// Check if observation card is expired (should show as unplayable)
-        /// </summary>
-        protected bool IsObservationExpired(CardInstance card)
-        {
-            return card.ConversationCardTemplate.CardType == CardType.Observation &&
-                   card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
-        }
 
         /// <summary>
         /// Get the location context data for display in the location bar
@@ -810,57 +783,10 @@ namespace Wayfarer.Pages.Components
             return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
         }
 
-        // ===== NEW UI UPDATE METHODS =====
-
-        /// <summary>
-        /// Returns CSS class name for card stat badges (lowercase stat name)
-        /// </summary>
-        protected string GetCardStatClass(CardInstance card)
-        {
-            // Request cards use CardType for styling (categorical property set at parse time)
-            if (card?.ConversationCardTemplate?.CardType == CardType.Request)
-                return card.ConversationCardTemplate.CardType.ToString().ToLower(); // "request"
-
-            // Conversation cards use BoundStat for styling
-            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
-            return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
-        }
-
-        /// <summary>
-        /// Returns the stat type as a lowercase string for applying stat-based color classes
-        /// </summary>
-        protected string GetCardStatColorClass(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
-
-            return card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
-        }
-
-        /// <summary>
-        /// Returns proper display name for card's bound stat
-        /// </summary>
-        protected string GetCardStatName(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate?.BoundStat == null) return "";
-
-            return GetStatDisplayName(card.ConversationCardTemplate.BoundStat.Value);
-        }
-
-        /// <summary>
-        /// Get display name for a stat type
-        /// </summary>
-        private string GetStatDisplayName(PlayerStatType stat)
-        {
-            return stat switch
-            {
-                PlayerStatType.Insight => "Insight",
-                PlayerStatType.Rapport => "Rapport",
-                PlayerStatType.Authority => "Authority",
-                PlayerStatType.Diplomacy => "Diplomacy",
-                PlayerStatType.Cunning => "Cunning",
-                _ => stat.ToString()
-            };
-        }
+        // NOTE: Card display methods (GetCardStatClass, GetCardStatName, GetCardDepth,
+        // GetTraitClass, GetTraitDisplayName, GetTraitTooltip,
+        // HasCardRequirement, GetCardRequirement, HasCardCost, GetCardCost)
+        // are now in TacticalCard.razor.cs shared component
 
         /// <summary>
         /// Get card effect description (effect formula only, excludes Initiative generation property)
@@ -869,11 +795,8 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.ConversationCardTemplate == null) return "";
 
-            // PROJECTION PRINCIPLE: Get effect projection
-            CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
-
-            // Use EffectOnlyDescription for card display (excludes Initiative generation)
-            return projection.EffectOnlyDescription?.Replace(", +", " +").Replace("Promise made, ", "") ?? "";
+            // Placeholder until effect resolver is implemented
+            return "Effect description placeholder";
         }
 
         // ===== NEW 4-RESOURCE SYSTEM METHODS =====
@@ -930,40 +853,6 @@ namespace Wayfarer.Pages.Components
             // FIXED: Always use InitiativeCost from template (0 is a valid cost for Foundation cards!)
             return card.ConversationCardTemplate.InitiativeCost;
         }
-
-        /// <summary>
-        /// Get CSS class for card depth (Foundation/Standard/Decisive)
-        /// </summary>
-        protected string GetCardDepthClass(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate == null) return "depth-foundation";
-
-            // TODO: Get from card template when depth is added
-            // For now, determine based on Initiative cost
-            int initiativeCost = GetCardInitiativeCost(card);
-            return initiativeCost switch
-            {
-                0 or 1 or 2 => "depth-foundation",
-                3 or 4 or 5 => "depth-standard",
-                _ => "depth-decisive"
-            };
-        }
-
-        /// <summary>
-        /// Get display name for card depth tier with Understanding unlock threshold
-        /// </summary>
-        protected string GetDepthDisplayName(CardInstance card)
-        {
-            string depthClass = GetCardDepthClass(card);
-            return depthClass switch
-            {
-                "depth-foundation" => $"Foundation (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(1)})",
-                "depth-standard" => $"Standard (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(2)})",
-                "depth-decisive" => $"Decisive (Unlocks at Understanding {ConversationSession.GetTierUnlockThreshold(3)})",
-                _ => "Unknown"
-            };
-        }
-
 
         // ===== NEW MOCKUP-SPECIFIC HELPER METHODS =====
 
@@ -1073,60 +962,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        /// <summary>
-        /// Get card depth level from JSON data
-        /// </summary>
-        protected int GetCardDepth(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate?.Depth == null) return 1;
-            return (int)card.ConversationCardTemplate.Depth;
-        }
-
-        /// <summary>
-        /// Check if card has Statement requirement constraints
-        /// </summary>
-        protected bool HasCardRequirement(CardInstance card)
-        {
-            if (card?.ConversationCardTemplate == null) return false;
-
-            return card.ConversationCardTemplate.RequiredStat.HasValue
-                && card.ConversationCardTemplate.RequiredStatements > 0;
-        }
-
-        /// <summary>
-        /// Get card requirement text showing Statement requirements
-        /// </summary>
-        protected string GetCardRequirement(CardInstance card)
-        {
-            if (!HasCardRequirement(card) || Session == null) return "";
-
-            var reqStat = card.ConversationCardTemplate.RequiredStat.Value;
-            var reqCount = card.ConversationCardTemplate.RequiredStatements;
-            var currentCount = Session.GetStatementCount(reqStat);
-
-            bool requirementMet = currentCount >= reqCount;
-            string status = requirementMet ? "✓" : "✗";
-
-            return $"{status} Requires {reqCount} {reqStat} Statements (Current: {currentCount})";
-        }
-
-        /// <summary>
-        /// Check if card has additional resource costs - DELEGATE TO BACKEND
-        /// </summary>
-        protected bool HasCardCost(CardInstance card)
-        {
-            // Backend methods don't exist yet - return safe fallback
-            return false;
-        }
-
-        /// <summary>
-        /// Get card additional cost text - DELEGATE TO BACKEND
-        /// </summary>
-        protected string GetCardCost(CardInstance card)
-        {
-            // Backend methods don't exist yet - return safe fallback
-            return "";
-        }
 
         // Delivery display methods
         /// <summary>
@@ -1204,29 +1039,6 @@ namespace Wayfarer.Pages.Components
             return 0;
         }
 
-        // Card trait display methods
-        protected string GetTraitClass(CardTrait trait)
-        {
-            return $"trait-{trait.ToString().ToLower()}";
-        }
-
-        protected string GetTraitDisplayName(CardTrait trait)
-        {
-            return trait switch
-            {
-                CardTrait.SuppressSpeakCadence => "Persistent Effect",
-                _ => trait.ToString()
-            };
-        }
-
-        protected string GetTraitTooltip(CardTrait trait)
-        {
-            return trait switch
-            {
-                CardTrait.SuppressSpeakCadence => "This card's Cadence effect is not reduced by playing it (SPEAK action doesn't counter the effect)",
-                _ => trait.ToString()
-            };
-        }
 
         // ConversationalMove display methods
         protected string GetCardMove(CardInstance card)

@@ -1,0 +1,74 @@
+{
+  "engagementTypes": [
+    {
+      "id": "mental_location_survey",
+      "name": "Location Survey",
+      "systemType": "Mental",
+      "deckId": "deck_mental_location_survey",
+      "victoryThreshold": 10,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "mental_detailed_investigation",
+      "name": "Detailed Investigation",
+      "systemType": "Mental",
+      "deckId": "deck_mental_detailed_investigation",
+      "victoryThreshold": 20,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "physical_obstacle_basic",
+      "name": "Basic Obstacle",
+      "systemType": "Physical",
+      "deckId": "deck_physical_obstacle_basic",
+      "victoryThreshold": 10,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "physical_obstacle_challenging",
+      "name": "Challenging Obstacle",
+      "systemType": "Physical",
+      "deckId": "deck_physical_obstacle_challenging",
+      "victoryThreshold": 20,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "social_casual_chat",
+      "name": "Casual Chat",
+      "systemType": "Social",
+      "deckId": "deck_social_casual_chat",
+      "victoryThreshold": 10,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "social_desperate_request",
+      "name": "Desperate Request",
+      "systemType": "Social",
+      "deckId": "deck_social_desperate_request",
+      "victoryThreshold": 15,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    },
+    {
+      "id": "social_professional_conversation",
+      "name": "Professional Conversation",
+      "systemType": "Social",
+      "deckId": "deck_social_professional_conversation",
+      "victoryThreshold": 12,
+      "dangerThreshold": 10,
+      "initialHandSize": 5,
+      "maxHandSize": 7
+    }
+  ]
+}

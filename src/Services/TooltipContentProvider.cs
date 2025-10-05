@@ -1,4 +1,3 @@
-namespace Wayfarer.Services;
 
 /// <summary>
 /// Provides tooltip definitions for all game terms.

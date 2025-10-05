@@ -2,147 +2,144 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Subsystems.TravelSubsystem
+/// <summary>
+/// Validates access permits and travel restrictions.
+/// </summary>
+public class PermitValidator
 {
-    /// <summary>
-    /// Validates access permits and travel restrictions.
-    /// </summary>
-    public class PermitValidator
+    private readonly GameWorld _gameWorld;
+    private readonly ItemRepository _itemRepository;
+
+    public PermitValidator(
+        GameWorld gameWorld,
+        ItemRepository itemRepository)
     {
-        private readonly GameWorld _gameWorld;
-        private readonly ItemRepository _itemRepository;
+        _gameWorld = gameWorld;
+        _itemRepository = itemRepository;
+    }
 
-        public PermitValidator(
-            GameWorld gameWorld,
-            ItemRepository itemRepository)
+    /// <summary>
+    /// Check if player has required permit for a route.
+    /// </summary>
+    public bool HasRequiredPermit(RouteOption route)
+    {
+        // RouteOption has AccessRequirement (singular), not AccessRequirements (plural)
+        if (route.AccessRequirement == null)
         {
-            _gameWorld = gameWorld;
-            _itemRepository = itemRepository;
+            return true; // No permits required
         }
 
-        /// <summary>
-        /// Check if player has required permit for a route.
-        /// </summary>
-        public bool HasRequiredPermit(RouteOption route)
+        Player player = _gameWorld.GetPlayer();
+
+        // Check if permit has been received (using HasReceivedPermit flag)
+        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
         {
-            // RouteOption has AccessRequirement (singular), not AccessRequirements (plural)
-            if (route.AccessRequirement == null)
-            {
-                return true; // No permits required
-            }
-
-            Player player = _gameWorld.GetPlayer();
-
-            // Check if permit has been received (using HasReceivedPermit flag)
-            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
-            {
-                return false; // Permit letter required but not received
-            }
-
-            // Check if player has required items
-            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-            {
-                bool hasRequiredItem = route.AccessRequirement.RequiredItemIds
-                    .Any(itemId => player.Inventory.GetAllItems().Contains(itemId));
-                if (!hasRequiredItem)
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return false; // Permit letter required but not received
         }
 
-        /// <summary>
-        /// Get missing permits for a route.
-        /// </summary>
-        public List<string> GetMissingPermits(RouteOption route)
+        // Check if player has required items
+        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
         {
-            List<string> missingPermits = new List<string>();
-
-            if (route.AccessRequirement == null)
+            bool hasRequiredItem = route.AccessRequirement.RequiredItemIds
+                .Any(itemId => player.Inventory.GetAllItems().Contains(itemId));
+            if (!hasRequiredItem)
             {
-                return missingPermits;
+                return false;
             }
+        }
 
-            // Check if permit has not been received
-            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
-            {
-                string permitName = route.AccessRequirement.Name ?? "Travel Permit";
-                missingPermits.Add(permitName);
-            }
+        return true;
+    }
 
-            // Check for missing required items
-            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-            {
-                Player player = _gameWorld.GetPlayer();
-                foreach (string itemId in route.AccessRequirement.RequiredItemIds)
-                {
-                    if (!player.Inventory.GetAllItems().Contains(itemId))
-                    {
-                        Item item = _itemRepository.GetItemById(itemId);
-                        missingPermits.Add(item?.Name ?? itemId);
-                    }
-                }
-            }
+    /// <summary>
+    /// Get missing permits for a route.
+    /// </summary>
+    public List<string> GetMissingPermits(RouteOption route)
+    {
+        List<string> missingPermits = new List<string>();
 
+        if (route.AccessRequirement == null)
+        {
             return missingPermits;
         }
 
-        /// <summary>
-        /// Check if a location requires special access.
-        /// </summary>
-        public bool LocationRequiresSpecialAccess(string locationId)
+        // Check if permit has not been received
+        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
         {
-            // Certain locations always require permits
-            List<string> restrictedLocations = new List<string>
-            {
-                "noble_district",
-                "merchant_guild",
-                "royal_palace"
-            };
-
-            return restrictedLocations.Contains(locationId);
+            string permitName = route.AccessRequirement.Name ?? "Travel Permit";
+            missingPermits.Add(permitName);
         }
 
-        /// <summary>
-        /// Validate transport method compatibility with route.
-        /// </summary>
-        public bool IsTransportCompatible(RouteOption route, TravelMethods transportMethod)
+        // Check for missing required items
+        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
         {
-            // RouteOption has a Method property that defines what transport it uses
-            // For now, we'll check if the transport method matches the route's method
-            return route.Method == transportMethod || transportMethod == TravelMethods.Walking;
-        }
-
-        /// <summary>
-        /// Get access requirement description for UI.
-        /// </summary>
-        public string GetAccessRequirementDescription(RouteOption route)
-        {
-            if (route.AccessRequirement == null)
+            Player player = _gameWorld.GetPlayer();
+            foreach (string itemId in route.AccessRequirement.RequiredItemIds)
             {
-                return "No special requirements";
-            }
-
-            List<string> descriptions = new List<string>();
-
-            if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
-            {
-                string permitName = route.AccessRequirement.Name ?? "Special Permit";
-                descriptions.Add($"Requires: {permitName}");
-            }
-
-            if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-            {
-                foreach (string itemId in route.AccessRequirement.RequiredItemIds)
+                if (!player.Inventory.GetAllItems().Contains(itemId))
                 {
                     Item item = _itemRepository.GetItemById(itemId);
-                    descriptions.Add($"Requires: {item?.Name ?? itemId}");
+                    missingPermits.Add(item?.Name ?? itemId);
                 }
             }
-
-            return string.Join(", ", descriptions);
         }
+
+        return missingPermits;
+    }
+
+    /// <summary>
+    /// Check if a location requires special access.
+    /// </summary>
+    public bool LocationRequiresSpecialAccess(string locationId)
+    {
+        // Certain locations always require permits
+        List<string> restrictedLocations = new List<string>
+        {
+            "noble_district",
+            "merchant_guild",
+            "royal_palace"
+        };
+
+        return restrictedLocations.Contains(locationId);
+    }
+
+    /// <summary>
+    /// Validate transport method compatibility with route.
+    /// </summary>
+    public bool IsTransportCompatible(RouteOption route, TravelMethods transportMethod)
+    {
+        // RouteOption has a Method property that defines what transport it uses
+        // For now, we'll check if the transport method matches the route's method
+        return route.Method == transportMethod || transportMethod == TravelMethods.Walking;
+    }
+
+    /// <summary>
+    /// Get access requirement description for UI.
+    /// </summary>
+    public string GetAccessRequirementDescription(RouteOption route)
+    {
+        if (route.AccessRequirement == null)
+        {
+            return "No special requirements";
+        }
+
+        List<string> descriptions = new List<string>();
+
+        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
+        {
+            string permitName = route.AccessRequirement.Name ?? "Special Permit";
+            descriptions.Add($"Requires: {permitName}");
+        }
+
+        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
+        {
+            foreach (string itemId in route.AccessRequirement.RequiredItemIds)
+            {
+                Item item = _itemRepository.GetItemById(itemId);
+                descriptions.Add($"Requires: {item?.Name ?? itemId}");
+            }
+        }
+
+        return string.Join(", ", descriptions);
     }
 }

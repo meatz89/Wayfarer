@@ -5,7 +5,7 @@ using System.Text.Json;
 public static class ItemParser
 {
     /// <summary>
-    /// Convert an ItemDTO to an Item domain model
+    /// Convert an ItemDTO to an Item domain model (or Equipment if it has EnabledActions)
     /// </summary>
     public static Item ConvertDTOToItem(ItemDTO dto)
     {
@@ -62,6 +62,12 @@ public static class ItemParser
                     item.EnablesTokenGeneration.Add(connectionType);
                 }
             }
+        }
+
+        // If EnabledActions present, convert to Equipment
+        if (dto.EnabledActions != null && dto.EnabledActions.Count > 0)
+        {
+            return Equipment.FromItem(item, dto.EnabledActions);
         }
 
         return item;

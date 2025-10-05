@@ -69,6 +69,11 @@ public class ExchangeSession
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
+    /// Alias for StartedAt for backward compatibility.
+    /// </summary>
+    public DateTime StartTime { get => StartedAt; set => StartedAt = value; }
+
+    /// <summary>
     /// Timestamp when the session ended (if ended).
     /// </summary>
     public DateTime? EndedAt { get; set; }

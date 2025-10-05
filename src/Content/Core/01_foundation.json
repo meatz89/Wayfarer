@@ -153,6 +153,28 @@
         "travelHubSpotId": "warehouse_entrance",
         "baseFamiliarity": 0,
         "maxFamiliarity": 3
+      },
+      {
+        "id": "old_mill",
+        "name": "The Old Mill",
+        "description": "An abandoned mill on the hillside, silent waterwheel rusted in place. Once the heart of Elena's family prosperity, now holding only secrets.",
+        "districtId": "market_district",
+        "tier": 2,
+        "locationType": "Ruin",
+        "travelHubSpotId": "mill_entrance",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
+      },
+      {
+        "id": "aldric_farm",
+        "name": "Aldric's Farm",
+        "description": "A modest farmstead beyond the creek, where Farmer Aldric tends his fields and livestock. The smell of honest work and good earth.",
+        "districtId": "market_district",
+        "tier": 1,
+        "locationType": "Settlement",
+        "travelHubSpotId": "farmhouse",
+        "baseFamiliarity": 0,
+        "maxFamiliarity": 3
       }
     ],
     "spots": [
@@ -317,6 +339,81 @@
           ]
         },
         "canInvestigate": false
+      },
+      {
+        "id": "fountain_plaza",
+        "locationId": "market_square",
+        "name": "Fountain Plaza",
+        "description": "The open plaza surrounding the central fountain, where townspeople gather",
+        "properties": {
+          "base": [
+            "social"
+          ],
+          "morning": [
+            "quiet"
+          ],
+          "afternoon": [
+            "busy"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "quiet": 2,
+          "busy": 1,
+          "default": 1
+        }
+      },
+      {
+        "id": "elder_bench",
+        "locationId": "market_square",
+        "name": "Elder's Bench",
+        "description": "A worn wooden bench where the village elders sit and watch the world pass by",
+        "properties": {
+          "base": [
+            "social"
+          ],
+          "all": [
+            "quiet"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "mill_entrance",
+        "locationId": "old_mill",
+        "name": "Mill Entrance",
+        "description": "The front of the abandoned mill, boards covering the main door",
+        "properties": {
+          "base": [
+            "investigation"
+          ],
+          "all": [
+            "quiet",
+            "isolated",
+            "crossroads"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
+      {
+        "id": "farmhouse",
+        "locationId": "aldric_farm",
+        "name": "Farmhouse",
+        "description": "Aldric's simple but well-maintained farmhouse",
+        "properties": {
+          "base": [
+            "settlement"
+          ],
+          "all": [
+            "quiet",
+            "rustic",
+            "crossroads"
+          ]
+        },
+        "canInvestigate": false
       }
     ],
     "locationActions": [
@@ -334,6 +431,23 @@
         "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
         "requiredProperties": [],
         "optionalProperties": ["Quiet", "Busy"],
+        "excludedProperties": []
+      },
+      {
+        "id": "investigate_old_mill",
+        "name": "Investigate the Mill's Secrets",
+        "description": "Begin a thorough investigation of the abandoned mill. This will take time and preparation, but may reveal important truths about Elena's family.",
+        "actionType": "investigation",
+        "investigationId": "old_mill_mystery",
+        "icon": "🔍",
+        "priority": 100,
+        "cost": {
+          "segments": 0
+        },
+        "timeRequired": 0,
+        "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
+        "requiredProperties": ["investigation"],
+        "optionalProperties": [],
         "excludedProperties": []
       }
     ]

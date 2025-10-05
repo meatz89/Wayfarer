@@ -1,0 +1,61 @@
+using System.Collections.Generic;
+
+/// <summary>
+/// DTO for Physical Card (parallel to MentalCardDTO)
+/// </summary>
+public class PhysicalCardDTO
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+
+    public string Type { get; set; } = "Physical";
+    public int Depth { get; set; }
+    public string BoundStat { get; set; }
+    public List<string> Tags { get; set; } = new List<string>();
+
+    // Physical-specific properties
+    public int PositionCost { get; set; } = 0;
+    public string Approach { get; set; } = "Standard";
+    public string Category { get; set; }  // PhysicalCategory: Aggressive/Defensive/Tactical/Evasive/Endurance
+
+    // Universal costs/requirements/effects
+    public PhysicalCardCostsDTO Costs { get; set; }
+    public PhysicalCardRequirementsDTO Requirements { get; set; }
+    public PhysicalCardEffectsDTO Effects { get; set; }
+    public PhysicalCardDangerDTO Danger { get; set; }
+}
+
+public class PhysicalCardCostsDTO
+{
+    public int Stamina { get; set; } = 0;
+    public int Health { get; set; } = 0;
+    public int Time { get; set; } = 1;
+    public int Coins { get; set; } = 0;
+}
+
+public class PhysicalCardRequirementsDTO
+{
+    public string EquipmentCategory { get; set; }  // Categorical equipment requirement (None/Climbing/Mechanical/etc.)
+    public List<string> Equipment { get; set; } = new List<string>();  // Legacy - use EquipmentCategory instead
+    public List<string> Knowledge { get; set; } = new List<string>();
+    public List<string> Discoveries { get; set; } = new List<string>();
+    public Dictionary<string, int> Stats { get; set; } = new Dictionary<string, int>();
+    public int MinStamina { get; set; } = 0;
+    public int MinHealth { get; set; } = 0;
+}
+
+public class PhysicalCardEffectsDTO
+{
+    public int Progress { get; set; } = 0;
+    public int Danger { get; set; } = 0;
+    public List<string> Discoveries { get; set; } = new List<string>();
+}
+
+public class PhysicalCardDangerDTO
+{
+    public string Type { get; set; }
+    public int Probability { get; set; }
+    public string Severity { get; set; }
+    public DangerEffectDTO Effect { get; set; }
+}

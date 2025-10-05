@@ -136,7 +136,8 @@ public static class NPCParser
                     Id = requestDto.Id,
                     Name = requestDto.Name,
                     Description = requestDto.Description,
-                    ConversationTypeId = requestDto.ConversationTypeId, // REQUIRED: Must be defined in JSON
+                    SystemType = TacticalSystemType.Social,  // NPCRequests default to Social system
+                    EngagementTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new EngagementTypeId
                     Status = RequestStatus.Available
                 };
 
@@ -211,6 +212,9 @@ public static class NPCParser
             "Noble" => Professions.Noble,
             "Smuggler" => Professions.Agent,
             "Information_Broker" => Professions.Information_Broker,
+            "Miller's Daughter" => Professions.Craftsman,
+            "Village Elder" => Professions.Noble,
+            "Farmer" => Professions.Craftsman,
             _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
         };
     }

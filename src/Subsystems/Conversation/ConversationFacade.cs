@@ -1,5 +1,4 @@
 
-using Wayfarer.Subsystems.ObligationSubsystem;
 
 /// <summary>
 /// Public API for the Conversation subsystem.
@@ -21,6 +20,7 @@ public class ConversationFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly DisplacementCalculator _displacementCalculator;
+    private readonly KnowledgeService _knowledgeService;
 
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
@@ -38,7 +38,8 @@ public class ConversationFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        DisplacementCalculator displacementCalculator)
+        DisplacementCalculator displacementCalculator,
+        KnowledgeService knowledgeService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
@@ -52,6 +53,7 @@ public class ConversationFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
+        _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
     }
 
     /// <summary>
@@ -115,7 +117,7 @@ public class ConversationFacade
         {
             NPC = npc,
             RequestId = requestId,
-            ConversationTypeId = request.ConversationTypeId,
+            EngagementTypeId = request.EngagementTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -355,6 +357,16 @@ public class ConversationFacade
             player.Stats.AddXP(selectedCard.ConversationCardTemplate.BoundStat.Value, xpAmount);
         }
 
+        // 7b. Grant Knowledge and Secrets (V2 Investigation System)
+        foreach (string knowledge in selectedCard.ConversationCardTemplate.KnowledgeGranted)
+        {
+            _knowledgeService.GrantKnowledge(player, knowledge);
+        }
+        foreach (string secret in selectedCard.ConversationCardTemplate.SecretsGranted)
+        {
+            _knowledgeService.GrantSecret(player, secret);
+        }
+
         // 8. Record card played for personality tracking
         _personalityEnforcer?.OnCardPlayed(selectedCard);
 
@@ -442,7 +454,7 @@ public class ConversationFacade
 
         // Create typed context based on request's conversation type
         ConversationContextBase context = ConversationContextFactory.CreateContext(
-            request.ConversationTypeId,
+            request.EngagementTypeId,
             npc,
             session,
             observationCards,
@@ -489,22 +501,22 @@ public class ConversationFacade
             foreach (NPCRequest request in availableRequests)
             {
                 // CRITICAL: All requests MUST have valid conversation types defined in JSON
-                if (string.IsNullOrEmpty(request.ConversationTypeId))
+                if (string.IsNullOrEmpty(request.EngagementTypeId))
                 {
                     throw new InvalidOperationException($"NPCRequest '{request.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
                 }
 
                 // Verify the conversation type actually exists
-                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ConversationTypeId);
+                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.EngagementTypeId);
                 if (typeEntry == null)
                 {
-                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.ConversationTypeId}' which does not exist in JSON. All conversation types must be defined.");
+                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.EngagementTypeId}' which does not exist in JSON. All conversation types must be defined.");
                 }
 
                 options.Add(new ConversationOption
                 {
                     RequestId = request.Id, // Store the actual request ID
-                    ConversationTypeId = request.ConversationTypeId, // Use the actual conversation type from JSON
+                    EngagementTypeId = request.EngagementTypeId, // Use the actual conversation type from JSON
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
                     Description = request.Description,
@@ -527,7 +539,7 @@ public class ConversationFacade
                 // Delivery doesn't need a goal card from RequestDeck
                 options.Add(new ConversationOption
                 {
-                    ConversationTypeId = "delivery",
+                    EngagementTypeId = "delivery",
                     GoalCardId = null,
                     DisplayName = "Deliver Letter",
                     Description = "Deliver a letter from your queue",
@@ -666,22 +678,32 @@ public class ConversationFacade
     #region 5-Resource System Helper Methods (Understanding + Delivery)
 
     /// <summary>
-    /// Apply cadence change based on card's Delivery property
+    /// Apply cadence change using DUAL BALANCE SYSTEM
+    /// DUAL BALANCE: Action type (SPEAK = +1) + Card Delivery property
     /// Standard: +1, Commanding: +2, Measured: +0, Yielding: -1
+    /// Total: SPEAK (+1) + Delivery = combined Cadence change
     /// </summary>
     private void ApplyCadenceFromDelivery(CardInstance card, ConversationSession session)
     {
-        int cadenceChange = card.ConversationCardTemplate.Delivery switch
+        // DUAL BALANCE SYSTEM:
+        // 1. Action-based balance (SPEAK action)
+        int actionBalance = +1; // SPEAK action always +1
+
+        // 2. Delivery-based balance (card property)
+        int deliveryBalance = card.ConversationCardTemplate.Delivery switch
         {
-            DeliveryType.Standard => 1,
-            DeliveryType.Commanding => 2,
-            DeliveryType.Measured => 0,
             DeliveryType.Yielding => -1,
-            _ => 1 // Default to Standard
+            DeliveryType.Measured => 0,
+            DeliveryType.Standard => +1,
+            DeliveryType.Commanding => +2,
+            _ => +1 // Default to Standard
         };
 
-        session.Cadence = Math.Clamp(session.Cadence + cadenceChange, -10, 10);
-        Console.WriteLine($"[ConversationFacade] Delivery {card.ConversationCardTemplate.Delivery}: Cadence {(cadenceChange >= 0 ? "+" : "")}{cadenceChange} → {session.Cadence}");
+        // Combine both balance effects
+        int totalCadenceChange = actionBalance + deliveryBalance;
+
+        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);
+        Console.WriteLine($"[ConversationFacade] SPEAK action (+{actionBalance}) + Delivery {card.ConversationCardTemplate.Delivery} ({(deliveryBalance >= 0 ? "+" : "")}{deliveryBalance}) = Cadence {(totalCadenceChange >= 0 ? "+" : "")}{totalCadenceChange} → {session.Cadence}");
     }
 
     /// <summary>
@@ -733,11 +755,14 @@ public class ConversationFacade
     }
 
     /// <summary>
-    /// Reduce cadence AFTER card draw (step 7 of LISTEN sequence)
+    /// Apply LISTEN action-type balance AFTER card draw (step 7 of LISTEN sequence)
+    /// DUAL BALANCE: LISTEN action = -2 cadence (action-type balance, no card played so no Delivery)
     /// </summary>
     private void ReduceCadenceAfterDraw(ConversationSession session)
     {
-        session.Cadence = Math.Max(-10, session.Cadence - 1);
+        // DUAL BALANCE SYSTEM: LISTEN action contributes -2 to Cadence
+        session.Cadence = Math.Max(-10, session.Cadence - 2);
+        Console.WriteLine($"[ConversationFacade] LISTEN action: Cadence -2 → {session.Cadence}");
     }
 
     /// <summary>
@@ -1220,7 +1245,7 @@ public class ConversationFacade
     private ConnectionType DetermineConnectionTypeFromConversation(ConversationSession session)
     {
         // Map conversation types to their corresponding connection types
-        return session.ConversationTypeId switch
+        return session.EngagementTypeId switch
         {
             // Diplomacy removed - exchanges use separate Exchange system
             "request" => ConnectionType.Trust, // Request bundles with promise cards
@@ -1542,10 +1567,7 @@ public class ConversationFacade
                 // GRANT OBLIGATION (standalone obligation string - use as standing obligation)
                 if (!string.IsNullOrEmpty(goal.Rewards.Obligation))
                 {
-                    // Obligations appear to be strings representing obligation names/types
-                    // Add as system message for now - proper obligation system unclear
                     _messageSystem.AddSystemMessage($"New obligation: {goal.Rewards.Obligation}", SystemMessageTypes.Info);
-                    Console.WriteLine($"[HandleSpecialCardEffects] TODO: Grant obligation '{goal.Rewards.Obligation}'");
                 }
 
                 // GRANT ITEM (using existing Inventory.AddItem)

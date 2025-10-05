@@ -1,0 +1,91 @@
+{
+  "engagementTypeDecks": [
+    {
+      "id": "deck_mental_location_survey",
+      "name": "Location Survey Deck",
+      "systemType": "Mental",
+      "cardIds": [
+        "mental_examine_scene",
+        "mental_search_thoroughly",
+        "mental_interview_witness",
+        "mental_deduce_pattern",
+        "mental_trust_instinct"
+      ]
+    },
+    {
+      "id": "deck_mental_detailed_investigation",
+      "name": "Detailed Investigation Deck",
+      "systemType": "Mental",
+      "cardIds": [
+        "mental_examine_scene",
+        "mental_search_thoroughly",
+        "mental_interview_witness",
+        "mental_deduce_pattern",
+        "mental_trust_instinct"
+      ]
+    },
+    {
+      "id": "deck_physical_obstacle_basic",
+      "name": "Basic Obstacle Deck",
+      "systemType": "Physical",
+      "cardIds": [
+        "physical_climb_carefully",
+        "physical_sprint_forward",
+        "physical_leverage_tool",
+        "physical_brute_force",
+        "physical_precise_movement"
+      ]
+    },
+    {
+      "id": "deck_physical_obstacle_challenging",
+      "name": "Challenging Obstacle Deck",
+      "systemType": "Physical",
+      "cardIds": [
+        "physical_climb_carefully",
+        "physical_sprint_forward",
+        "physical_leverage_tool",
+        "physical_brute_force",
+        "physical_precise_movement"
+      ]
+    },
+    {
+      "id": "deck_social_casual_chat",
+      "name": "Casual Chat Deck",
+      "systemType": "Social",
+      "cardIds": [
+        "insight_quick_scan",
+        "insight_ask_question",
+        "rapport_casual_greeting",
+        "rapport_light_question",
+        "cunning_read_mood",
+        "cunning_gauge_interest"
+      ]
+    },
+    {
+      "id": "deck_social_desperate_request",
+      "name": "Desperate Request Deck",
+      "systemType": "Social",
+      "cardIds": [
+        "authority_direct_statement",
+        "authority_assert_position",
+        "diplomacy_find_common_ground",
+        "diplomacy_offer_compromise",
+        "rapport_share_concern",
+        "rapport_express_urgency"
+      ]
+    },
+    {
+      "id": "deck_social_professional_conversation",
+      "name": "Professional Conversation Deck",
+      "systemType": "Social",
+      "cardIds": [
+        "insight_careful_analysis",
+        "insight_notice_detail",
+        "authority_direct_statement",
+        "authority_set_boundary",
+        "diplomacy_find_common_ground",
+        "diplomacy_propose_solution"
+      ]
+    }
+  ]
+}

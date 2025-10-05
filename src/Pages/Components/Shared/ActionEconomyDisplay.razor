@@ -1,0 +1,24 @@
+@namespace Wayfarer.Pages.Components.Shared
+@inherits ActionEconomyDisplayBase
+
+<div class="initiative-display">
+    <div class="initiative-counter">
+        @if (!string.IsNullOrEmpty(TooltipContent))
+        {
+            <GameTooltip Content="@TooltipContent" Position="right">
+                <span class="initiative-label">@Label</span>
+            </GameTooltip>
+        }
+        else
+        {
+            <span class="initiative-label">@Label</span>
+        }
+        <span class="initiative-value">@CurrentValue</span>
+        <div class="initiative-dots">
+            @for (int i = 1; i <= MaxValue; i++)
+            {
+                <span class="initiative-dot @(i <= CurrentValue ? "available" : "")"></span>
+            }
+        </div>
+    </div>
+</div>

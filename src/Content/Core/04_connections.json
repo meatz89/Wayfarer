@@ -571,6 +571,34 @@
             "eventCollectionId": "noble_carriage_events"
           }
         ]
+      },
+      {
+        "id": "market_square_to_old_mill",
+        "name": "Hillside Path to the Mill",
+        "originLocationId": "market_square",
+        "originSpotId": "central_fountain",
+        "destinationLocationId": "old_mill",
+        "destinationSpotId": "mill_entrance",
+        "travelTimeSegments": 3,
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "A steep climb up the hillside to the abandoned mill overlooking the valley",
+        "startingStamina": 4,
+        "segments": []
+      },
+      {
+        "id": "market_square_to_aldric_farm",
+        "name": "Creek Path to Aldric's Farm",
+        "originLocationId": "market_square",
+        "originSpotId": "central_fountain",
+        "destinationLocationId": "aldric_farm",
+        "destinationSpotId": "farmhouse",
+        "travelTimeSegments": 4,
+        "coinCost": 0,
+        "permitRequired": null,
+        "description": "The path beyond the creek to Farmer Aldric's lands",
+        "startingStamina": 5,
+        "segments": []
       }
     ]
   }

@@ -146,6 +146,18 @@ public class PackageLoader
         LoadConversationTypesAndDecks(package.Content.ConversationTypes, package.Content.CardDecks, allowSkeletons);
         LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
         LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
+        LoadMentalCards(package.Content.MentalCards, allowSkeletons);
+        LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
+        // THREE PARALLEL TACTICAL SYSTEMS
+        LoadSocialEngagementTypes(package.Content.SocialEngagementTypes, allowSkeletons);
+        LoadConversationEngagementDecks(package.Content.ConversationEngagementDecks, allowSkeletons);
+        LoadMentalEngagementTypes(package.Content.MentalEngagementTypes, allowSkeletons);
+        LoadMentalEngagementDecks(package.Content.MentalEngagementDecks, allowSkeletons);
+        LoadPhysicalEngagementTypes(package.Content.PhysicalEngagementTypes, allowSkeletons);
+        LoadPhysicalEngagementDecks(package.Content.PhysicalEngagementDecks, allowSkeletons);
+
+        // 3.5 Investigation Templates (strategic multi-phase activities)
+        LoadInvestigations(package.Content.Investigations, allowSkeletons);
 
         // 4. NPCs (reference locations, spots, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -172,6 +184,9 @@ public class PackageLoader
         List<PathCardEntry> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
+
+        // 9. V2 Investigation and Travel Systems
+        LoadTravelObstacles(package.Content.TravelObstacles, allowSkeletons);
     }
 
 
@@ -534,6 +549,137 @@ public class PackageLoader
             _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
             Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
         }
+    }
+
+    private void LoadMentalCards(List<MentalCardDTO> mentalCards, bool allowSkeletons)
+    {
+        if (mentalCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading mental cards...");
+        MentalCardParser parser = new MentalCardParser();
+        foreach (MentalCardDTO dto in mentalCards)
+        {
+            MentalCard card = parser.ParseCard(dto);
+            _gameWorld.MentalCards.AddOrUpdateCard(card.Id, card);
+            Console.WriteLine($"[PackageLoader] Loaded mental card '{card.Id}': {card.Name} (Depth {card.Depth})");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading mental cards. Total: {_gameWorld.MentalCards.Count}");
+    }
+
+    private void LoadPhysicalCards(List<PhysicalCardDTO> physicalCards, bool allowSkeletons)
+    {
+        if (physicalCards == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading physical cards...");
+        PhysicalCardParser parser = new PhysicalCardParser();
+        foreach (PhysicalCardDTO dto in physicalCards)
+        {
+            PhysicalCard card = parser.ParseCard(dto);
+            _gameWorld.PhysicalCards.AddOrUpdateCard(card.Id, card);
+            Console.WriteLine($"[PackageLoader] Loaded physical card '{card.Id}': {card.Name} (Depth {card.Depth})");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading physical cards. Total: {_gameWorld.PhysicalCards.Count}");
+    }
+
+    // THREE PARALLEL TACTICAL SYSTEMS - SEPARATE LOADERS
+
+    private void LoadSocialEngagementTypes(List<SocialEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    {
+        if (engagementTypes == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading social engagement types...");
+        foreach (SocialEngagementTypeDTO dto in engagementTypes)
+        {
+            SocialEngagementType engagementType = dto.ToDomain();
+            _gameWorld.SocialEngagementTypes[engagementType.Id] = engagementType;
+            Console.WriteLine($"[PackageLoader] Loaded social engagement type '{engagementType.Id}': {engagementType.Name}");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading social engagement types. Total: {_gameWorld.SocialEngagementTypes.Count}");
+    }
+
+    private void LoadConversationEngagementDecks(List<ConversationEngagementDeckDTO> decks, bool allowSkeletons)
+    {
+        if (decks == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading conversation engagement decks...");
+        foreach (ConversationEngagementDeckDTO dto in decks)
+        {
+            ConversationEngagementDeck deck = dto.ToDomain();
+            _gameWorld.ConversationEngagementDecks[deck.Id] = deck;
+            Console.WriteLine($"[PackageLoader] Loaded conversation deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading conversation engagement decks. Total: {_gameWorld.ConversationEngagementDecks.Count}");
+    }
+
+    private void LoadMentalEngagementTypes(List<MentalEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    {
+        if (engagementTypes == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading mental engagement types...");
+        foreach (MentalEngagementTypeDTO dto in engagementTypes)
+        {
+            MentalEngagementType engagementType = dto.ToDomain();
+            _gameWorld.MentalEngagementTypes[engagementType.Id] = engagementType;
+            Console.WriteLine($"[PackageLoader] Loaded mental engagement type '{engagementType.Id}': {engagementType.Name}");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading mental engagement types. Total: {_gameWorld.MentalEngagementTypes.Count}");
+    }
+
+    private void LoadMentalEngagementDecks(List<MentalEngagementDeckDTO> decks, bool allowSkeletons)
+    {
+        if (decks == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading mental engagement decks...");
+        foreach (MentalEngagementDeckDTO dto in decks)
+        {
+            MentalEngagementDeck deck = dto.ToDomain();
+            _gameWorld.MentalEngagementDecks[deck.Id] = deck;
+            Console.WriteLine($"[PackageLoader] Loaded mental deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading mental engagement decks. Total: {_gameWorld.MentalEngagementDecks.Count}");
+    }
+
+    private void LoadPhysicalEngagementTypes(List<PhysicalEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    {
+        if (engagementTypes == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading physical engagement types...");
+        foreach (PhysicalEngagementTypeDTO dto in engagementTypes)
+        {
+            PhysicalEngagementType engagementType = dto.ToDomain();
+            _gameWorld.PhysicalEngagementTypes[engagementType.Id] = engagementType;
+            Console.WriteLine($"[PackageLoader] Loaded physical engagement type '{engagementType.Id}': {engagementType.Name}");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading physical engagement types. Total: {_gameWorld.PhysicalEngagementTypes.Count}");
+    }
+
+    private void LoadPhysicalEngagementDecks(List<PhysicalEngagementDeckDTO> decks, bool allowSkeletons)
+    {
+        if (decks == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading physical engagement decks...");
+        foreach (PhysicalEngagementDeckDTO dto in decks)
+        {
+            PhysicalEngagementDeck deck = dto.ToDomain();
+            _gameWorld.PhysicalEngagementDecks[deck.Id] = deck;
+            Console.WriteLine($"[PackageLoader] Loaded physical deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading physical engagement decks. Total: {_gameWorld.PhysicalEngagementDecks.Count}");
+    }
+
+    private void LoadInvestigations(List<InvestigationDTO> investigations, bool allowSkeletons)
+    {
+        if (investigations == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading investigation templates...");
+        InvestigationParser parser = new InvestigationParser();
+        foreach (InvestigationDTO dto in investigations)
+        {
+            InvestigationTemplate template = parser.ParseInvestigation(dto);
+            _gameWorld.InvestigationTemplates[template.Id] = template;
+            Console.WriteLine($"[PackageLoader] Loaded investigation '{template.Id}': {template.Name} ({template.Phases.Count} phases)");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.InvestigationTemplates.Count}");
     }
 
 
@@ -1373,7 +1519,8 @@ public class PackageLoader
             Availability = dto.Availability ?? new List<string>(),
             Icon = dto.Icon ?? "[WORK]",
             Priority = dto.Priority,
-            ActionType = dto.ActionType ?? ""
+            ActionType = dto.ActionType ?? "",
+            InvestigationId = dto.InvestigationId
         };
 
         // Parse required properties
@@ -1739,6 +1886,24 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.locations.Count} locations and {routeSpotIds.Count} route spots.");
+    }
+
+
+    private void LoadTravelObstacles(List<TravelObstacleDTO> obstacleDtos, bool allowSkeletons)
+    {
+        if (obstacleDtos == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading {obstacleDtos.Count} travel obstacles...");
+
+        TravelObstacleParser parser = new TravelObstacleParser();
+        foreach (TravelObstacleDTO dto in obstacleDtos)
+        {
+            TravelObstacle obstacle = parser.ParseTravelObstacle(dto);
+            _gameWorld.TravelObstacles.Add(obstacle);
+            Console.WriteLine($"[PackageLoader] Loaded travel obstacle '{obstacle.Id}': {obstacle.Name} ({obstacle.Type}) with {obstacle.Approaches.Count} approaches");
+        }
+
+        Console.WriteLine($"[PackageLoader] Completed loading travel obstacles. Total: {_gameWorld.TravelObstacles.Count}");
     }
 
 }

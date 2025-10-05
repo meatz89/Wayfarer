@@ -12,9 +12,9 @@ public class ConversationOption
     public string RequestId { get; set; }
 
     /// <summary>
-    /// The conversation type ID from the request
+    /// THREE PARALLEL SYSTEMS: The engagement type ID from the request (Social system)
     /// </summary>
-    public string ConversationTypeId { get; set; }
+    public string EngagementTypeId { get; set; }
 
     /// <summary>
     /// The specific card ID from the NPC's requests that will be used as the goal card

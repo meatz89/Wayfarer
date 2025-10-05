@@ -56,6 +56,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     // Navigation State
     protected ConversationContextBase CurrentConversationContext { get; set; }
     protected ExchangeContext CurrentExchangeContext { get; set; }
+    protected ObstacleContext CurrentObstacleContext { get; set; }
+    public MentalSession MentalSession { get; set; }
+    public PhysicalSession PhysicalSession { get; set; }
     protected int PendingLetterCount { get; set; }
     public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
@@ -425,7 +428,22 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task HandleTravelRoute(string routeId)
     {
         Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
-        // Execute travel via intent system
+
+        // V2 OBSTACLE SYSTEM: Check for obstacles before travel
+        RouteOption route = GameFacade.GetRouteById(routeId);
+        if (route != null)
+        {
+            TravelObstacle obstacle = GameFacade.CheckForObstacle(route);
+            if (obstacle != null)
+            {
+                Console.WriteLine($"[GameScreen] Obstacle encountered: {obstacle.Id}");
+                // Start obstacle encounter instead of completing travel
+                await StartObstacle(obstacle.Id, route);
+                return; // Don't execute travel yet - wait for obstacle resolution
+            }
+        }
+
+        // No obstacle - execute travel via intent system
         TravelIntent travelIntent = new TravelIntent(routeId);
         await GameFacade.ProcessIntent(travelIntent);
 
@@ -438,6 +456,63 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
 
         await NavigateToScreen(ScreenMode.Location);
+    }
+
+    public async Task StartObstacle(string obstacleId, RouteOption route = null)
+    {
+        Console.WriteLine($"[GameScreen] Starting obstacle: {obstacleId}");
+        CurrentObstacleContext = await GameFacade.CreateObstacleContext(obstacleId, route);
+
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentObstacleContext != null)
+        {
+            CurrentScreen = ScreenMode.Obstacle;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            Console.WriteLine("[GameScreen] Failed to create obstacle context");
+        }
+    }
+
+    protected async Task HandleObstacleEnd(bool success)
+    {
+        Console.WriteLine($"[GameScreen] Obstacle ended - Success: {success}");
+
+        // If obstacle was successfully overcome, complete the pending travel
+        if (success && CurrentObstacleContext?.Route != null)
+        {
+            string routeId = CurrentObstacleContext.Route.Id;
+            Console.WriteLine($"[GameScreen] Completing travel after obstacle success: {routeId}");
+
+            // Clear obstacle context before travel
+            CurrentObstacleContext = null;
+
+            // Execute travel via intent system
+            TravelIntent travelIntent = new TravelIntent(routeId);
+            await GameFacade.ProcessIntent(travelIntent);
+
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
+
+            await NavigateToScreen(ScreenMode.Location);
+        }
+        else
+        {
+            // Failed obstacle or no route - just return to location
+            Console.WriteLine("[GameScreen] Obstacle failed or no route - returning to location");
+            CurrentObstacleContext = null;
+
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
+
+            await NavigateToScreen(ScreenMode.Location);
+        }
     }
 
     protected string GetCurrentLocation()
@@ -577,7 +652,8 @@ public enum ScreenMode
     Exchange,
     ObligationQueue,
     Travel,
-    DeckViewer // Dev mode screen for viewing NPC decks
+    DeckViewer, // Dev mode screen for viewing NPC decks
+    Obstacle // V2 Travel Obstacles
 }
 
 public class ScreenContext

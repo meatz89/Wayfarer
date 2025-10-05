@@ -350,12 +350,3 @@ public class ExchangeOption
 }
 
 /// <summary>
-/// Result of exchange validation (moved from Exchange subsystem for now)
-/// </summary>
-public class ExchangeValidationResult
-{
-    public bool IsValid { get; set; }
-    public bool IsVisible { get; set; }
-    public string ValidationMessage { get; set; }
-    public string RequirementDetails { get; set; }
-}

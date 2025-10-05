@@ -9,6 +9,8 @@ public class CardInstance
 
     // Template reference - single source of truth for card properties
     public ConversationCard ConversationCardTemplate { get; init; }
+    public MentalCard MentalCardTemplate { get; init; }
+    public PhysicalCard PhysicalCardTemplate { get; init; }
 
 
     // Categorical properties that define behavior through context
@@ -101,6 +103,26 @@ public class CardInstance
     {
         ConversationCardTemplate = template;
         SourceContext = sourceContext;
+    }
+
+    public CardInstance(MentalCard template, string sourceContext = null)
+    {
+        MentalCardTemplate = template;
+        SourceContext = sourceContext;
+    }
+
+    public CardInstance(PhysicalCard template, string sourceContext = null)
+    {
+        PhysicalCardTemplate = template;
+        SourceContext = sourceContext;
+    }
+
+    public CardType GetCardType()
+    {
+        if (ConversationCardTemplate != null) return CardType.Conversation;
+        if (MentalCardTemplate != null) return CardType.Mental;
+        if (PhysicalCardTemplate != null) return CardType.Physical;
+        return CardType.Conversation;
     }
 
     // Removed - now using GameRules.CardProgression.GetLevelFromXp()

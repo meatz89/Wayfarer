@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-namespace Wayfarer.Pages;
 
 // Simple ViewModels for UI data transfer - no business logic
 // All content comes from JSON or mechanical states

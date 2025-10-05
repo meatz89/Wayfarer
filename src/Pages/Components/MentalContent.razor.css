@@ -1,0 +1,194 @@
+/* BLAZOR CSS ISOLATION: Mental investigation-specific styles only */
+/* Shared card system styles moved to card-system-shared.css (HIGHLANDER) */
+
+/* MENTAL-SPECIFIC: Tooltip extensions for card effects */
+.card-effects-tooltip {
+    text-align: left;
+    white-space: normal;
+    min-width: 200px;
+}
+
+.tooltip-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #d4a76a;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #5c4a3a;
+    padding-bottom: 4px;
+}
+
+.tooltip-section {
+    margin-bottom: 8px;
+}
+
+.tooltip-section:last-child {
+    margin-bottom: 0;
+}
+
+.tooltip-section strong {
+    color: #d4a76a;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.tooltip-section ul {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 10px;
+}
+
+.tooltip-section li {
+    margin: 2px 0;
+}
+
+/* MENTAL-SPECIFIC: Method type badges (how card affects Balance) */
+.card-method {
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #faf4ea;
+    white-space: nowrap;
+}
+
+.card-method.method-reckless {
+    background: #d4704a;
+}
+
+.card-method.method-bold {
+    background: #d4a76a;
+}
+
+.card-method.method-standard {
+    background: #7a8b5a;
+}
+
+.card-method.method-careful {
+    background: #5a7a8a;
+}
+
+/* MENTAL-SPECIFIC: ClueType badges (Physical/Testimonial/Deductive/Intuitive) */
+.card-clue-type {
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+    font-weight: bold;
+    color: #faf4ea;
+    white-space: nowrap;
+}
+
+.card-clue-type.clue-physical {
+    background: #8b4726;
+}
+
+.card-clue-type.clue-testimonial {
+    background: #7a8b5a;
+}
+
+.card-clue-type.clue-deductive {
+    background: #5a7a8a;
+}
+
+.card-clue-type.clue-intuitive {
+    background: #6a5a8a;
+}
+
+/* MENTAL-SPECIFIC: Tier Display (Understanding-based unlocks) */
+.tier-display {
+    background: #f9f3e9;
+    padding: 10px 20px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.tier-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.tier-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.tier-value {
+    font-size: 16px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.tier-unlocks {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.tier-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+}
+
+.tier-badge.unlocked {
+    background: #7a8b5a;
+    color: #faf4ea;
+    border-color: #6a7b4a;
+}
+
+.tier-badge.locked {
+    background: #e8dcc4;
+    color: #a68b6f;
+    border-color: #c4a684;
+    opacity: 0.5;
+}
+
+/* MENTAL-SPECIFIC: Clue Type Display (per-type tracking) */
+.statement-display {
+    background: #f4e8d0;
+    padding: 10px 20px;
+    border-bottom: 1px solid #d4c5a0;
+}
+
+.statement-counts {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.statement-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.statement-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.stat-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.stat-count .stat-icon {
+    font-size: 16px;
+}
+
+.stat-count .stat-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}

@@ -1,0 +1,159 @@
+@inherits PhysicalContentBase
+
+@namespace Wayfarer.Pages.Components
+@using Wayfarer.Pages.Components.Shared
+
+@if (Session != null)
+{
+    <div class="physical-content">
+        <!-- Location context bar -->
+        <div class="location-context">
+            <span>
+                Challenge: @Session.ChallengeId
+            </span>
+        </div>
+
+        <!-- Challenge Bar -->
+        <div class="challenge-bar">
+            <div class="challenge-info">
+                <div class="challenge-name">Physical Challenge</div>
+                <div class="challenge-status">
+                    Phase @Session.CurrentPhaseIndex | Tier @GetCurrentTier()
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Resources Display -->
+        <div class="resources-display">
+            <ResourceBar Label="Breakthrough"
+                         CurrentValue="@Session.CurrentBreakthrough"
+                         MaxValue="20"
+                         BarType="progress"
+                         ShowMaxValue="true" />
+
+            <RhythmScale LeftLabel="Overcautious"
+                         RightLabel="Reckless"
+                         CurrentValue="@Session.Commitment"
+                         MinValue="-10"
+                         MaxValue="10" />
+
+            <ResourceBar Label="Danger"
+                         CurrentValue="@Session.CurrentDanger"
+                         MaxValue="@Session.MaxDanger"
+                         BarType="consequence"
+                         ShowMaxValue="true" />
+        </div>
+
+        <!-- Goal Thresholds Display -->
+        <div class="goals-section">
+            <div class="goals-container">
+                <div class="goal-card @(Session.CurrentBreakthrough >= 10 ? "achievable" : "")">
+                    <div class="goal-threshold">10</div>
+                    <div class="goal-name">Partial Progress</div>
+                    <div class="goal-reward">Continue</div>
+                </div>
+                <div class="goal-card @(Session.CurrentBreakthrough >= 20 ? "achievable active" : "")">
+                    <div class="goal-threshold">20</div>
+                    <div class="goal-name">Challenge Complete</div>
+                    <div class="goal-reward">Success + Reward</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="narrative-section">
+            @if (!string.IsNullOrEmpty(LastNarrative))
+            {
+                <div class="narrative-text">
+                    @LastNarrative
+                </div>
+            }
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-display">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Hand:</span>
+                    <span class="pile-number">@GetHandCount()</span>
+                </div>
+            </div>
+            <div class="action-section">
+                <div class="action-button @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                     @onclick="ExecuteAssess"
+                     disabled="@(SelectedCard == null || IsProcessing)">
+                    ASSESS
+                    @if (SelectedCard != null)
+                    {
+                        <div class="tooltip card-effects-tooltip">
+                            <div class="tooltip-title">Assess</div>
+                            <div class="tooltip-section">
+                                <strong>Effects:</strong>
+                                <ul>
+                                    <li>Balance: -1 (toward Overcautious)</li>
+                                    <li>Play selected card</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                     @onclick="ExecuteExecute"
+                     disabled="@(SelectedCard == null || IsProcessing)">
+                    EXECUTE
+                    @if (SelectedCard != null)
+                    {
+                        <div class="tooltip card-effects-tooltip">
+                            <div class="tooltip-title">Execute</div>
+                            <div class="tooltip-section">
+                                <strong>Effects:</strong>
+                                <ul>
+                                    <li>Balance: +1 (toward Reckless)</li>
+                                    <li>Play selected card</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (Session.CurrentBreakthrough >= 20 || Session.CurrentDanger >= Session.MaxDanger)
+                {
+                    <div class="action-button"
+                         @onclick="EndChallenge">
+                        END CHALLENGE
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Hand Display -->
+        <div class="hand-display">
+            @if (Hand != null && Hand.Any())
+            {
+                foreach (var card in Hand)
+                {
+                    <TacticalCard Card="@card"
+                                  IsSelected="@(SelectedCard == card)"
+                                  IsSelectable="true"
+                                  OnCardClick="@(() => SelectCard(card))" />
+                }
+            }
+            else
+            {
+                <div class="empty-hand">No cards in hand</div>
+            }
+        </div>
+
+        @if (IsProcessing)
+        {
+            <div class="processing-overlay">
+                <div class="spinner"></div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="no-session">
+        <p>No active physical challenge session</p>
+    </div>
+}

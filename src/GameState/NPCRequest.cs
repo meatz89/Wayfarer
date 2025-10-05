@@ -26,9 +26,15 @@ public class NPCRequest
     public string NpcRequestText { get; set; }
 
     /// <summary>
-    /// The conversation type ID this request uses (e.g., "desperate_request", "trade_negotiation")
+    /// THREE PARALLEL SYSTEMS - which tactical system this request uses (default Social for NPCs)
     /// </summary>
-    public string ConversationTypeId { get; set; }
+    public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
+
+    /// <summary>
+    /// The engagement type ID this request uses (ID within SystemType collection)
+    /// Replaces ConversationTypeId - now supports all three systems
+    /// </summary>
+    public string EngagementTypeId { get; set; }
 
     /// <summary>
     /// Category that must match the conversation type's category

@@ -62,7 +62,8 @@ public static class StrangerParser
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
             Description = dto.Description ?? "",
-            ConversationTypeId = dto.ConversationTypeId ?? "", // Pass through EXACTLY - no mapping!
+            SystemType = TacticalSystemType.Social,  // Strangers use Social system
+            EngagementTypeId = dto.ConversationTypeId ?? "",  // Map old ConversationTypeId to new EngagementTypeId
             Status = RequestStatus.Available,
             MomentumThresholds = new List<int>(dto.MomentumThresholds ?? new List<int>()),
             Rewards = ConvertRewards(dto.Rewards)

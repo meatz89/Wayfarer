@@ -12,71 +12,96 @@
       {
         "id": "elena",
         "name": "Elena",
-        "level": 3,
-        "profession": "Scribe",
-        "locationId": "copper_kettle_tavern",
-        "spotId": "corner_table",
-        "description": "Clutching her sealed letter, eyes darting to the door with each sound",
-        "personality": "Desperate about Lord Blackwood's marriage proposal - he leaves at sunset",
+        "level": 2,
+        "profession": "Miller's Daughter",
+        "locationId": "market_square",
+        "spotId": "fountain_plaza",
+        "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. She carries a sealed package destined for Farmer Aldric.",
+        "personality": "Determined but burdened by family secrets. Her family's old mill holds mysteries she's not ready to confront alone.",
         "personalityType": "DEVOTED",
         "letterTokenTypes": [
           "Trust"
         ],
-        "currentState": "DISCONNECTED",
+        "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0
         },
-        "conversationDifficulty": 3,
+        "conversationDifficulty": 2,
         "requests": [
           {
-            "id": "elena_urgent_letter_request",
+            "id": "elena_aldric_delivery",
             "conversationTypeId": "desperate_request",
-            "name": "Urgent Letter Delivery",
-            "description": "Elena needs her letter delivered to Lord Blackwood before sunset",
+            "name": "Delivery to Farmer Aldric",
+            "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek. She'll pay well, and there might be more to this errand than meets the eye.",
             "goals": [
               {
-                "id": "elena_basic_goal",
-                "cardId": "elena_basic_delivery",
-                "name": "Letter Delivery",
-                "description": "Deliver Elena's letter to Lord Blackwood",
+                "id": "elena_basic_delivery",
+                "cardId": "elena_basic_delivery_card",
+                "name": "Simple Delivery",
+                "description": "Deliver the package to Aldric",
                 "momentumThreshold": 8,
                 "weight": 1,
                 "rewards": {
-                  "coins": 25,
-                  "letterId": "elena_urgent_letter"
+                  "coins": 20,
+                  "obligationId": "delivery_to_aldric"
                 }
               },
               {
-                "id": "elena_enhanced_goal",
-                "cardId": "elena_enhanced_delivery",
-                "name": "Letter + Safety Escort",
-                "description": "Deliver the letter and escort Elena to safety",
+                "id": "elena_investigate_offer",
+                "cardId": "elena_investigate_card",
+                "name": "Delivery + Investigation Offer",
+                "description": "Deliver the package and Elena shares something about the old mill",
                 "momentumThreshold": 12,
                 "weight": 2,
                 "rewards": {
-                  "coins": 35,
-                  "letterId": "elena_urgent_letter",
-                  "obligation": "elena_safety_escort"
-                }
-              },
-              {
-                "id": "elena_premium_goal",
-                "cardId": "elena_premium_delivery",
-                "name": "Complete Protection",
-                "description": "Letter delivery, safety escort, and additional protection services",
-                "momentumThreshold": 16,
-                "weight": 3,
-                "rewards": {
-                  "coins": 50,
-                  "letterId": "elena_urgent_letter",
-                  "obligation": "elena_safety_escort",
-                  "item": "elena_gratitude_token",
-                  "tokens": {"Trust": 2}
+                  "coins": 25,
+                  "obligationId": "delivery_to_aldric",
+                  "knowledge": ["mill_has_secrets"]
                 }
               }
             ]
           }
         ]
+      },
+      {
+        "id": "martha",
+        "name": "Martha",
+        "level": 4,
+        "profession": "Village Elder",
+        "locationId": "market_square",
+        "spotId": "elder_bench",
+        "description": "An elderly woman with sharp eyes who remembers when the old mill still turned. She knows every family's history in these parts.",
+        "personality": "Wise and observant. She sees more than she says, but shares knowledge with those who earn her trust.",
+        "personalityType": "STEADFAST",
+        "letterTokenTypes": [
+          "Insight"
+        ],
+        "currentState": "NEUTRAL",
+        "initialTokens": {
+          "Insight": 0
+        },
+        "conversationDifficulty": 3,
+        "requests": []
+      },
+      {
+        "id": "aldric",
+        "name": "Farmer Aldric",
+        "level": 1,
+        "profession": "Farmer",
+        "locationId": "aldric_farm",
+        "spotId": "farmhouse",
+        "description": "A weathered farmer who tends his fields beyond the creek. He knew Elena's family before tragedy struck.",
+        "personality": "Simple and direct. A man of few words but honest dealings.",
+        "personalityType": "STEADFAST",
+        "letterTokenTypes": [
+          "Trust"
+        ],
+        "currentState": "NEUTRAL",
+        "initialTokens": {
+          "Trust": 0
+        },
+        "conversationDifficulty": 1,
+        "requests": []
       },
       {
         "id": "marcus",
