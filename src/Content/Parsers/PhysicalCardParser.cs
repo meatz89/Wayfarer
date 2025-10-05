@@ -10,8 +10,12 @@ public class PhysicalCardParser
 {
     public PhysicalCard ParseCard(PhysicalCardDTO dto)
     {
+        // Parse categorical properties from DTO
         Approach approach = ParseApproach(dto.Approach);
         PhysicalCategory category = ParseCategory(dto.Category);
+        RiskLevel riskLevel = ParseRiskLevel(dto.RiskLevel);
+        ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
+        MethodType methodType = ParseMethodType(dto.MethodType);
 
         // PARSER CATALOG INTEGRATION: Auto-derive values from categorical properties if not specified in JSON
         int positionCost = dto.PositionCost > 0
@@ -45,10 +49,19 @@ public class PhysicalCardParser
             CardType = CardType.Physical,
             Depth = dto.Depth,
             BoundStat = ParseStat(dto.BoundStat),
-            Tags = dto.Tags ?? new List<string>(),
             PositionCost = positionCost,
             Approach = approach,
             Category = category,
+
+            // Universal card properties
+            RiskLevel = riskLevel,
+            ExertionLevel = exertionLevel,
+            MethodType = methodType,
+
+            // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG (calculated ONCE at parse time)
+            StaminaCost = PhysicalCardEffectCatalog.GetStaminaCost(approach, dto.Depth, exertionLevel),
+            DirectHealthCost = PhysicalCardEffectCatalog.GetHealthCost(approach, riskLevel, dto.Depth),
+            CoinCost = PhysicalCardEffectCatalog.GetCoinCost(category, dto.Depth),
 
             // Simple requirement properties - parser calculates costs/effects from categorical properties via PhysicalCardEffectCatalog
             EquipmentCategory = equipmentCategory,
@@ -80,5 +93,26 @@ public class PhysicalCardParser
         return Enum.TryParse<PhysicalCategory>(categoryString, out PhysicalCategory category)
             ? category
             : PhysicalCategory.Aggressive;
+    }
+
+    private RiskLevel ParseRiskLevel(string riskString)
+    {
+        return Enum.TryParse<RiskLevel>(riskString, out RiskLevel risk)
+            ? risk
+            : RiskLevel.Cautious;
+    }
+
+    private ExertionLevel ParseExertionLevel(string exertionString)
+    {
+        return Enum.TryParse<ExertionLevel>(exertionString, out ExertionLevel exertion)
+            ? exertion
+            : ExertionLevel.Light;
+    }
+
+    private MethodType ParseMethodType(string methodTypeString)
+    {
+        return Enum.TryParse<MethodType>(methodTypeString, out MethodType methodType)
+            ? methodType
+            : MethodType.Direct;
     }
 }

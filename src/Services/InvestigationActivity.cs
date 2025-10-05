@@ -87,10 +87,31 @@ public class InvestigationActivity
         switch (phase.SystemType)
         {
             case TacticalSystemType.Social:
-                // Spawn conversation session
-                // ASSUMPTION: Phase has NPC ID and Request ID in CardDeckIds or separate property
-                // For now, throw NotImplementedException until we clarify how Social phases work
-                throw new NotImplementedException("Social phase spawning requires NPC and Request ID - architecture TBD");
+                // THREE PARALLEL SYSTEMS: Social phases use NPC and Request
+                if (string.IsNullOrEmpty(phase.NpcId) || string.IsNullOrEmpty(phase.RequestId))
+                {
+                    throw new InvalidOperationException($"[InvestigationActivity] Social phase '{phase.Id}' missing NpcId or RequestId");
+                }
+
+                // Get NPC from GameWorld
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == phase.NpcId);
+                if (npc == null)
+                {
+                    throw new InvalidOperationException($"[InvestigationActivity] NPC '{phase.NpcId}' not found for Social phase '{phase.Id}'");
+                }
+
+                // Get Request from NPC
+                NPCRequest request = npc.GetRequestById(phase.RequestId);
+                if (request == null)
+                {
+                    throw new InvalidOperationException($"[InvestigationActivity] Request '{phase.RequestId}' not found on NPC '{phase.NpcId}' for phase '{phase.Id}'");
+                }
+
+                // Start conversation using ConversationFacade (parallel to Mental/Physical spawning)
+                // Note: ConversationFacade.StartConversation handles building deck from engagement type
+                ConversationSession socialSession = _conversationFacade.StartConversation(phase.NpcId, phase.RequestId);
+                _currentSessionId = socialSession.SessionId;
+                break;
 
             case TacticalSystemType.Mental:
                 // THREE PARALLEL SYSTEMS: Look up Mental engagement type

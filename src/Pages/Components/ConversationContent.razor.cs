@@ -794,9 +794,11 @@ namespace Wayfarer.Pages.Components
         protected string GetCardEffectDescription(CardInstance card)
         {
             if (card?.ConversationCardTemplate == null) return "";
+            if (Session == null) return "";
 
-            // Placeholder until effect resolver is implemented
-            return "Effect description placeholder";
+            // Use effect resolver to get projection with effect description
+            CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
+            return projection.EffectOnlyDescription ?? "";
         }
 
         // ===== NEW 4-RESOURCE SYSTEM METHODS =====

@@ -80,4 +80,78 @@ public static class PhysicalCardEffectCatalog
 
         return Math.Max(0, baseDanger + modifier);
     }
+
+    // ==================== STRATEGIC RESOURCE COSTS ====================
+    // Parallel to effect derivation - costs derived from categorical properties
+    // NO Tags, NO string matching, NO hardcoding
+
+    /// <summary>
+    /// Get stamina cost from categorical properties
+    /// ExertionLevel is primary driver, Approach/Depth provide modifiers
+    /// PARSER-BASED ARCHITECTURE: Costs calculated once at parse time
+    /// </summary>
+    public static int GetStaminaCost(Approach approach, int depth, ExertionLevel exertion)
+    {
+        int baseCost = exertion switch
+        {
+            ExertionLevel.Minimal => 0,
+            ExertionLevel.Light => 1,
+            ExertionLevel.Moderate => 2,
+            ExertionLevel.Heavy => 3,
+            ExertionLevel.Extreme => 5,
+            _ => 1
+        };
+
+        // Approach modifier - Methodical conserves stamina, Reckless burns it
+        int approachModifier = approach switch
+        {
+            Approach.Methodical => -1,   // Methodical approach reduces exertion
+            Approach.Standard => 0,
+            Approach.Aggressive => 0,
+            Approach.Reckless => 1,      // Reckless burns stamina
+            _ => 0
+        };
+
+        // Depth scaling - higher complexity requires more stamina
+        int depthScaling = depth / 3;
+
+        return Math.Max(0, baseCost + approachModifier + depthScaling);
+    }
+
+    /// <summary>
+    /// Get health cost from categorical properties
+    /// Direct health costs are RARE - most health loss from Danger threshold
+    /// Only Reckless + Dangerous combinations cause direct health loss
+    /// </summary>
+    public static int GetHealthCost(Approach approach, RiskLevel risk, int depth)
+    {
+        // Reckless physical actions in dangerous situations cause direct health loss
+        if (approach == Approach.Reckless && risk == RiskLevel.Dangerous)
+        {
+            return 1 + (depth / 4); // Scales slowly with depth
+        }
+
+        // Very high risk at high depth
+        if (risk == RiskLevel.Dangerous && depth >= 6)
+        {
+            return 1;
+        }
+
+        return 0; // Default: no direct health cost
+    }
+
+    /// <summary>
+    /// Get coin cost from categorical properties
+    /// Only specific categories/contexts cost coins (equipment usage, etc.)
+    /// Most physical cards cost 0 coins
+    /// </summary>
+    public static int GetCoinCost(PhysicalCategory category, int depth)
+    {
+        // Tactical approaches might require special equipment/resources at high depth
+        return category switch
+        {
+            PhysicalCategory.Tactical when depth >= 5 => 1,
+            _ => 0
+        };
+    }
 }

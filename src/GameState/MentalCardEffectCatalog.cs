@@ -80,4 +80,78 @@ public static class MentalCardEffectCatalog
 
         return Math.Max(0, baseExposure + modifier);
     }
+
+    // ==================== STRATEGIC RESOURCE COSTS ====================
+    // Parallel to effect derivation - costs derived from categorical properties
+    // NO Tags, NO string matching, NO hardcoding
+
+    /// <summary>
+    /// Get stamina cost from categorical properties
+    /// ExertionLevel is primary driver, Method/Depth provide modifiers
+    /// PARSER-BASED ARCHITECTURE: Costs calculated once at parse time
+    /// </summary>
+    public static int GetStaminaCost(Method method, int depth, ExertionLevel exertion)
+    {
+        int baseCost = exertion switch
+        {
+            ExertionLevel.Minimal => 0,
+            ExertionLevel.Light => 1,
+            ExertionLevel.Moderate => 2,
+            ExertionLevel.Heavy => 3,
+            ExertionLevel.Extreme => 5,
+            _ => 1
+        };
+
+        // Method modifier - Careful conserves stamina, Reckless burns it
+        int methodModifier = method switch
+        {
+            Method.Careful => -1,    // Careful approach reduces exertion
+            Method.Standard => 0,
+            Method.Bold => 0,
+            Method.Reckless => 1,    // Reckless burns stamina
+            _ => 0
+        };
+
+        // Depth scaling - higher complexity requires more stamina
+        int depthScaling = depth / 3;
+
+        return Math.Max(0, baseCost + methodModifier + depthScaling);
+    }
+
+    /// <summary>
+    /// Get health cost from categorical properties
+    /// Direct health costs are RARE - most health loss from Exposure threshold
+    /// Only Reckless + Dangerous combinations cause direct health loss
+    /// </summary>
+    public static int GetHealthCost(Method method, RiskLevel risk, int depth)
+    {
+        // Reckless investigation of dangerous situations causes direct health loss
+        if (method == Method.Reckless && risk == RiskLevel.Dangerous)
+        {
+            return 1 + (depth / 4); // Scales slowly with depth
+        }
+
+        // Very high risk at high depth
+        if (risk == RiskLevel.Dangerous && depth >= 6)
+        {
+            return 1;
+        }
+
+        return 0; // Default: no direct health cost
+    }
+
+    /// <summary>
+    /// Get coin cost from categorical properties
+    /// Only specific categories/contexts cost coins (bribes, payments, etc.)
+    /// Most mental cards cost 0 coins
+    /// </summary>
+    public static int GetCoinCost(MentalCategory category, int depth)
+    {
+        // Social investigations might require bribes/payments at high depth
+        return category switch
+        {
+            MentalCategory.Social when depth >= 5 => 1,
+            _ => 0
+        };
+    }
 }

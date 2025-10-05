@@ -16,7 +16,6 @@ public class PhysicalCard
     public CardTier Tier { get; init; }  // Foundation/Standard/Decisive - determines resource flow
     public int Depth { get; init; }
     public PlayerStatType BoundStat { get; init; }
-    public List<string> Tags { get; init; } = new List<string>();
 
     // Physical-specific tactical properties
     public int PositionCost { get; init; } = 0;  // Action economy cost
@@ -28,6 +27,11 @@ public class PhysicalCard
     public Visibility Visibility { get; init; } = Visibility.Moderate;
     public ExertionLevel ExertionLevel { get; init; } = ExertionLevel.Light;
     public MethodType MethodType { get; init; } = MethodType.Direct;
+
+    // Strategic resource costs (calculated at parse time from categorical properties via PhysicalCardEffectCatalog)
+    public int StaminaCost { get; init; } = 0;
+    public int DirectHealthCost { get; init; } = 0;
+    public int CoinCost { get; init; } = 0;
 
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;

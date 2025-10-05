@@ -673,4 +673,75 @@ public static class CardEffectCatalog
             _ => 60
         };
     }
+
+    // ==================== STRATEGIC RESOURCE COSTS ====================
+    // Parallel to effect derivation - costs derived from categorical properties
+    // NO Tags, NO string matching, NO hardcoding
+
+    /// <summary>
+    /// Get stamina cost from categorical properties
+    /// ExertionLevel is primary driver, ConversationalMove/Depth provide modifiers
+    /// PARSER-BASED ARCHITECTURE: Costs calculated once at parse time
+    /// Social cards represent mental/emotional exertion (stress, concentration)
+    /// </summary>
+    public static int GetStaminaCost(ConversationalMove move, int depth, ExertionLevel exertion)
+    {
+        int baseCost = exertion switch
+        {
+            ExertionLevel.Minimal => 0,
+            ExertionLevel.Light => 1,
+            ExertionLevel.Moderate => 2,
+            ExertionLevel.Heavy => 3,
+            ExertionLevel.Extreme => 5,
+            _ => 1
+        };
+
+        // ConversationalMove modifier - Arguments are mentally taxing
+        int moveModifier = move switch
+        {
+            ConversationalMove.Remark => 0,        // Standard conversational flow
+            ConversationalMove.Observation => -1,  // Observing conserves energy
+            ConversationalMove.Argument => 1,      // Arguments are exhausting
+            _ => 0
+        };
+
+        // Depth scaling - deeper conversations require more concentration
+        int depthScaling = depth / 3;
+
+        return Math.Max(0, baseCost + moveModifier + depthScaling);
+    }
+
+    /// <summary>
+    /// Get health cost from categorical properties
+    /// Direct health costs are RARE in Social system - most health loss from Doubt threshold
+    /// Only high-stress social situations (Argument + Dangerous) cause direct health loss
+    /// </summary>
+    public static int GetHealthCost(ConversationalMove move, RiskLevel risk, int depth)
+    {
+        // High-stress arguments in dangerous social situations cause health loss (emotional toll)
+        if (move == ConversationalMove.Argument && risk == RiskLevel.Dangerous)
+        {
+            return 1 + (depth / 4); // Scales slowly with depth
+        }
+
+        // Very high social risk at high depth
+        if (risk == RiskLevel.Dangerous && depth >= 6)
+        {
+            return 1;
+        }
+
+        return 0; // Default: no direct health cost
+    }
+
+    /// <summary>
+    /// Get coin cost from categorical properties
+    /// Social cards rarely cost coins directly (no bribes in conversation mechanics)
+    /// Most coin costs come from separate bribe/payment systems
+    /// </summary>
+    public static int GetCoinCost(ConversationalMove move, int depth)
+    {
+        // Social cards don't typically cost coins
+        // Bribes/payments are separate mechanics, not card costs
+        return 0;
+    }
 }

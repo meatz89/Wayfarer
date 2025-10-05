@@ -12,26 +12,21 @@ public class MentalCardDTO
     public string Type { get; set; } = "Mental";
     public int Depth { get; set; }
     public string BoundStat { get; set; }
-    public List<string> Tags { get; set; } = new List<string>();
 
     // Mental-specific properties
     public int AttentionCost { get; set; } = 0;
     public string Method { get; set; } = "Standard";
     public string Category { get; set; }  // MentalCategory: Analytical/Physical/Observational/Social/Synthesis
 
-    // Universal costs/requirements/effects
-    public MentalCardCostsDTO Costs { get; set; }
+    // Universal card properties (for catalog-based cost calculation)
+    public string RiskLevel { get; set; } = "Cautious";
+    public string ExertionLevel { get; set; } = "Light";
+    public string MethodType { get; set; } = "Direct";
+
+    // Requirements/effects
     public MentalCardRequirementsDTO Requirements { get; set; }
     public MentalCardEffectsDTO Effects { get; set; }
     public MentalCardDangerDTO Danger { get; set; }
-}
-
-public class MentalCardCostsDTO
-{
-    public int Stamina { get; set; } = 0;
-    public int Health { get; set; } = 0;
-    public int Time { get; set; } = 1;
-    public int Coins { get; set; } = 0;
 }
 
 public class MentalCardRequirementsDTO

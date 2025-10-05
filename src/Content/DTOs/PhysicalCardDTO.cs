@@ -12,26 +12,21 @@ public class PhysicalCardDTO
     public string Type { get; set; } = "Physical";
     public int Depth { get; set; }
     public string BoundStat { get; set; }
-    public List<string> Tags { get; set; } = new List<string>();
 
     // Physical-specific properties
     public int PositionCost { get; set; } = 0;
     public string Approach { get; set; } = "Standard";
     public string Category { get; set; }  // PhysicalCategory: Aggressive/Defensive/Tactical/Evasive/Endurance
 
-    // Universal costs/requirements/effects
-    public PhysicalCardCostsDTO Costs { get; set; }
+    // Universal card properties (for catalog-based cost calculation)
+    public string RiskLevel { get; set; } = "Cautious";
+    public string ExertionLevel { get; set; } = "Light";
+    public string MethodType { get; set; } = "Direct";
+
+    // Requirements/effects
     public PhysicalCardRequirementsDTO Requirements { get; set; }
     public PhysicalCardEffectsDTO Effects { get; set; }
     public PhysicalCardDangerDTO Danger { get; set; }
-}
-
-public class PhysicalCardCostsDTO
-{
-    public int Stamina { get; set; } = 0;
-    public int Health { get; set; } = 0;
-    public int Time { get; set; } = 1;
-    public int Coins { get; set; } = 0;
 }
 
 public class PhysicalCardRequirementsDTO

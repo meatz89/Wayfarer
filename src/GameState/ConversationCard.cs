@@ -29,6 +29,11 @@ public class ConversationCard
     public MethodType MethodType { get; init; } = MethodType.Direct;
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
 
+    // Strategic resource costs (calculated at parse time from categorical properties via CardEffectCatalog)
+    public int StaminaCost { get; init; } = 0;
+    public int DirectHealthCost { get; init; } = 0;
+    public int CoinCost { get; init; } = 0;
+
     // Formula-based effect system (replaces old explicit effect properties)
     public CardEffectFormula EffectFormula { get; init; }
 

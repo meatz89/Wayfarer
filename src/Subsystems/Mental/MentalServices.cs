@@ -97,11 +97,11 @@ public class MentalEffectResolver
             result.ExposureChange += 1;
         }
 
-        // Strategic resource costs - calculated from ExertionLevel categorical property
-        // TODO: Implement stamina/health/coins cost calculation formulas from ExertionLevel
-        result.HealthCost = 0;  // Placeholder
-        result.StaminaCost = 0;  // Placeholder
-        result.CoinsCost = 0;  // Placeholder
+        // Strategic resource costs - PRE-CALCULATED at parse time via MentalCardEffectCatalog
+        // Resolver just uses the values calculated during parsing (no runtime calculation)
+        result.StaminaCost = template.StaminaCost;
+        result.HealthCost = template.DirectHealthCost;
+        result.CoinsCost = template.CoinCost;
 
         // Session end detection: Check if this card would end session
         int projectedProgress = session.CurrentProgress + result.ProgressChange;

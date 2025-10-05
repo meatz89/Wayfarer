@@ -16,7 +16,13 @@ public class InvestigationPhase
     public TacticalSystemType SystemType { get; init; } // Which tactical system to spawn
 
     // THREE PARALLEL SYSTEMS: Which engagement type within that system
+    // For Mental/Physical: EngagementTypeId references MentalEngagementType or PhysicalEngagementType
+    // For Social: Use NpcId and RequestId instead (Social engagements are NPC-specific)
     public string EngagementTypeId { get; init; }
+
+    // Social phase properties (only used when SystemType == Social)
+    public string NpcId { get; init; } // Which NPC to engage with for Social phases
+    public string RequestId { get; init; } // Which Request to present for Social phases
 
     public List<string> CardDeckIds { get; init; } = new List<string>(); // Card IDs available in this phase
 

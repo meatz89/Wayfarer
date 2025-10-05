@@ -144,6 +144,16 @@ public class CategoricalEffectResolver
             ApplyFormulaToResult(formula, session, result, effectsOnly);
         }
 
+        // Strategic resource costs - PRE-CALCULATED at parse time via CardEffectCatalog
+        // THREE PARALLEL SYSTEMS: Resolver just uses the values calculated during parsing
+        ConversationCard template = card.ConversationCardTemplate;
+        if (template != null)
+        {
+            result.StaminaCost = template.StaminaCost;
+            result.HealthCost = template.DirectHealthCost;
+            result.CoinsCost = template.CoinCost;
+        }
+
         // Build descriptions - both are the same now (no Initiative generation to add)
         result.EffectOnlyDescription = effectsOnly.Any() ? string.Join(", ", effectsOnly) : "No effect";
         result.EffectDescription = effectsOnly.Any() ? string.Join(", ", effectsOnly) : "No effect";
@@ -197,23 +207,5 @@ public class CategoricalEffectResolver
                 break;
         }
     }
-}
-
-/// <summary>
-/// Result of processing a card effect - COMPLETE projection of all resource changes
-/// </summary>
-public class CardEffectResult
-{
-    public CardInstance Card { get; set; }
-    public int InitiativeChange { get; set; }
-    public int MomentumChange { get; set; }
-    public int DoubtChange { get; set; }
-    public int CadenceChange { get; set; } // Cadence resource tracking (rarely used - most cadence comes from Delivery)
-    public int UnderstandingChange { get; set; } // NEW: Understanding resource - unlocks tiers, persists through LISTEN
-    public int CardsToDraw { get; set; } // Number of cards to draw
-    public List<CardInstance> CardsToAdd { get; set; }
-    public bool EndsConversation { get; set; }
-    public string EffectOnlyDescription { get; set; } // Card effect formula only (excludes Initiative generation property)
-    public string EffectDescription { get; set; } // All resource changes (includes Initiative generation for SPEAK preview)
 }
 
