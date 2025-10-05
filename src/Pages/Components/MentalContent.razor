@@ -131,10 +131,17 @@
             {
                 foreach (var card in Hand)
                 {
-                    <TacticalCard Card="@card"
-                                  IsSelected="@(SelectedCard == card)"
-                                  IsSelectable="true"
-                                  OnCardClick="@(() => SelectCard(card))" />
+                    <MentalCard Card="@card"
+                                IsSelected="@(SelectedCard == card)"
+                                IsSelectable="true"
+                                Session="@Session"
+                                OnCardClick="@(() => SelectCard(card))">
+                        <SystemSpecificBadges>
+                            <span class="card-method" title="Mental approach">
+                                @card.MentalCardTemplate.Method
+                            </span>
+                        </SystemSpecificBadges>
+                    </MentalCard>
                 }
             }
             else

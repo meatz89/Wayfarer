@@ -11,6 +11,14 @@ namespace Wayfarer.Pages.Components
         [CascadingParameter] public GameScreen ParentScreen { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
 
+        /// <summary>
+        /// PROJECTION PRINCIPLE: The PhysicalEffectResolver is a pure projection function
+        /// that returns what WOULD happen without modifying state. Both UI (for preview)
+        /// and game logic (for execution) call the resolver to get projections.
+        /// Parallel to CategoricalEffectResolver in Conversation system.
+        /// </summary>
+        [Inject] protected PhysicalEffectResolver EffectResolver { get; set; }
+
         protected PhysicalSession Session => ParentScreen?.PhysicalSession;
         protected List<CardInstance> Hand => GameFacade?.IsPhysicalSessionActive() == true
             ? GameFacade.GetPhysicalFacade().GetHand()
@@ -138,6 +146,42 @@ namespace Wayfarer.Pages.Components
                 IsProcessing = false;
                 StateHasChanged();
             }
+        }
+
+        /// <summary>
+        /// PROJECTION PRINCIPLE: Get card effect preview for UI display
+        /// Uses Execute as default action type for preview (positive action)
+        /// Parallel to ConversationContent.GetCardEffect()
+        /// </summary>
+        protected string GetCardEffect(CardInstance card)
+        {
+            if (card?.PhysicalCardTemplate == null) return "";
+            if (Session == null) return "";
+            if (GameFacade == null) return "";
+
+            Player player = GameFacade.GetPlayer();
+
+            // PROJECTION: Get effect projection using Execute as default action (positive action for preview)
+            PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
+
+            return projection.EffectDescription;
+        }
+
+        /// <summary>
+        /// PROJECTION PRINCIPLE: Get effect-only description (for card tooltips)
+        /// Parallel to ConversationContent.GetCardEffectOnlyDescription()
+        /// </summary>
+        protected string GetCardEffectOnlyDescription(CardInstance card)
+        {
+            if (card?.PhysicalCardTemplate == null) return "";
+            if (Session == null) return "";
+            if (GameFacade == null) return "";
+
+            Player player = GameFacade.GetPlayer();
+
+            // Use Execute as default action type for preview
+            PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
+            return projection.EffectDescription ?? "";
         }
 
     }

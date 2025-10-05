@@ -293,12 +293,12 @@
                 {
                     var convCard = displayCard.Card;
 
-                    <TacticalCard Card="@convCard"
-                                  IsSelected="@(SelectedCard?.InstanceId == convCard.InstanceId)"
-                                  IsSelectable="@CanSelectCard(convCard)"
-                                  OnCardClick="@(() => ToggleCardSelection(convCard))"
-                                  CardNarratives="@CurrentCardNarratives"
-                                  Session="@Session">
+                    <SocialCard Card="@convCard"
+                                IsSelected="@(SelectedCard?.InstanceId == convCard.InstanceId)"
+                                IsSelectable="@CanSelectCard(convCard)"
+                                OnCardClick="@(() => ToggleCardSelection(convCard))"
+                                CardNarratives="@CurrentCardNarratives"
+                                Session="@Session">
                         <SystemSpecificBadges>
                             <span class="card-move @GetCardMoveClass(convCard)" title="Conversational move type">
                                 @GetCardMove(convCard)
@@ -308,7 +308,7 @@
                             </span>
                             <span class="card-persistence" title="@GetPersistenceTooltip(convCard)">@GetCardPersistenceType(convCard)</span>
                         </SystemSpecificBadges>
-                    </TacticalCard>
+                    </SocialCard>
                 }
             </div>
     </div>

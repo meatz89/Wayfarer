@@ -5,7 +5,12 @@ using System.Linq;
 
 namespace Wayfarer.Pages.Components.Shared
 {
-    public class TacticalCardBase : ComponentBase
+    /// <summary>
+    /// Social (Conversation) tactical card component
+    /// ONLY knows about ConversationCard - parallel to MentalCard and PhysicalCard
+    /// THREE PARALLEL SYSTEMS: Each card type has its own component with NO coupling
+    /// </summary>
+    public class SocialCardBase : ComponentBase
     {
         [Parameter] public CardInstance Card { get; set; }
         [Parameter] public bool IsSelected { get; set; }
@@ -14,9 +19,8 @@ namespace Wayfarer.Pages.Components.Shared
         [Parameter] public RenderFragment SystemSpecificBadges { get; set; }
         [Parameter] public List<CardNarrative> CardNarratives { get; set; }
 
+        // SOCIAL SYSTEM ONLY: ConversationSession and CategoricalEffectResolver
         [Inject] protected CategoricalEffectResolver EffectResolver { get; set; }
-
-        // ConversationSession for effect resolution
         [Parameter] public ConversationSession Session { get; set; }
 
         protected async Task HandleClick()
@@ -134,21 +138,21 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected bool HasCardCost()
         {
-            // Backend methods don't exist yet - return safe fallback
+            // Strategic costs shown in effect description
             return false;
         }
 
         protected string GetCardCost()
         {
-            // Backend methods don't exist yet - return safe fallback
             return "";
         }
 
         protected string GetCardEffectDescription()
         {
             if (Card?.ConversationCardTemplate == null) return "";
+            if (Session == null) return "";
 
-            // PROJECTION PRINCIPLE: Get effect projection
+            // PROJECTION PRINCIPLE: Get effect projection from resolver
             CardEffectResult projection = EffectResolver.ProcessSuccessEffect(Card, Session);
 
             // Use EffectOnlyDescription for card display (excludes Initiative generation)

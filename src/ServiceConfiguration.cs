@@ -76,6 +76,9 @@ public static class ServiceConfiguration
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
 
+        // Player exertion calculator for dynamic cost modifiers (required by Mental/Physical effect resolvers)
+        services.AddSingleton<PlayerExertionCalculator>();
+
         // Mental services
         services.AddSingleton<MentalEffectResolver>();
         services.AddSingleton<MentalNarrativeService>();

@@ -1,5 +1,5 @@
 @namespace Wayfarer.Pages.Components.Shared
-@inherits TacticalCardBase
+@inherits SocialCardBase
 
 <div class="card @GetCardStatClass() @(IsObservationExpired() || !IsSelectable ? "disabled" : "") @(IsSelected ? "selected" : "")"
      @onclick="HandleClick">

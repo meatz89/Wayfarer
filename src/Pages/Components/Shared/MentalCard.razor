@@ -1,0 +1,42 @@
+@namespace Wayfarer.Pages.Components.Shared
+@inherits MentalCardBase
+
+<div class="card @GetCardCategoryClass() @(!IsSelectable ? "disabled" : "") @(IsSelected ? "selected" : "")"
+     @onclick="HandleClick">
+    <div class="card-content">
+        <div class="card-top-row">
+            <div class="stat-badge @GetCardCategoryClass()">
+                <text>@GetCardCategoryName() Depth @GetCardDepth()</text>
+            </div>
+            <div class="card-flags">
+                @SystemSpecificBadges
+            </div>
+        </div>
+
+        <div class="card-header">
+            <div class="card-name">@GetCardName()</div>
+            <div class="card-initiative-group">
+                <div class="initiative-label">ATTENTION</div>
+                <div class="initiative-cost">@GetCardAttentionCost()</div>
+            </div>
+        </div>
+        <div class="card-text">
+            @GetCardDescription()
+        </div>
+        @if (HasEquipmentRequirement())
+        {
+            <div class="card-requirement">
+                @GetEquipmentRequirement()
+            </div>
+        }
+        @if (HasCardCost())
+        {
+            <div class="card-cost">
+                @GetCardCost()
+            </div>
+        }
+        <div class="card-effect">
+            Effect: @GetCardEffectDescription()
+        </div>
+    </div>
+</div>

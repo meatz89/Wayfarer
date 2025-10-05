@@ -11,6 +11,14 @@ namespace Wayfarer.Pages.Components
         [CascadingParameter] public GameScreen ParentScreen { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
 
+        /// <summary>
+        /// PROJECTION PRINCIPLE: The MentalEffectResolver is a pure projection function
+        /// that returns what WOULD happen without modifying state. Both UI (for preview)
+        /// and game logic (for execution) call the resolver to get projections.
+        /// Parallel to CategoricalEffectResolver in Conversation system.
+        /// </summary>
+        [Inject] protected MentalEffectResolver EffectResolver { get; set; }
+
         protected MentalSession Session => ParentScreen?.MentalSession;
         protected List<CardInstance> Hand => GameFacade?.IsMentalSessionActive() == true
             ? GameFacade.GetMentalFacade().GetHand()
@@ -138,6 +146,42 @@ namespace Wayfarer.Pages.Components
                 IsProcessing = false;
                 StateHasChanged();
             }
+        }
+
+        /// <summary>
+        /// PROJECTION PRINCIPLE: Get card effect preview for UI display
+        /// Uses Act as default action type for preview (positive action)
+        /// Parallel to ConversationContent.GetCardEffect()
+        /// </summary>
+        protected string GetCardEffect(CardInstance card)
+        {
+            if (card?.MentalCardTemplate == null) return "";
+            if (Session == null) return "";
+            if (GameFacade == null) return "";
+
+            Player player = GameFacade.GetPlayer();
+
+            // PROJECTION: Get effect projection using Act as default action (positive action for preview)
+            MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, MentalActionType.Act);
+
+            return projection.EffectDescription;
+        }
+
+        /// <summary>
+        /// PROJECTION PRINCIPLE: Get effect-only description (for card tooltips)
+        /// Parallel to ConversationContent.GetCardEffectOnlyDescription()
+        /// </summary>
+        protected string GetCardEffectOnlyDescription(CardInstance card)
+        {
+            if (card?.MentalCardTemplate == null) return "";
+            if (Session == null) return "";
+            if (GameFacade == null) return "";
+
+            Player player = GameFacade.GetPlayer();
+
+            // Use Act as default action type for preview
+            MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, MentalActionType.Act);
+            return projection.EffectDescription ?? "";
         }
 
     }
