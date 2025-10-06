@@ -107,7 +107,7 @@
                 <!-- Social Investigation Goals -->
                 @foreach (var goal in AvailableSocialGoals)
                 {
-                    <div class="goal-action-btn" @onclick="async () => await StartSocialGoal(goal)">
+                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
                         <div class="goal-system-badge social">Social</div>
                         <div class="goal-name">@goal.Name</div>
                         @if (!string.IsNullOrEmpty(goal.Description))
@@ -116,7 +116,14 @@
                         }
                         @if (!string.IsNullOrEmpty(goal.InvestigationId))
                         {
-                            <div class="goal-investigation-tag">Investigation Goal</div>
+                            @if (goal.IsIntroAction)
+                            {
+                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                            }
+                            else
+                            {
+                                <div class="goal-investigation-tag">Investigation Goal</div>
+                            }
                         }
                     </div>
                 }
@@ -124,7 +131,7 @@
                 <!-- Mental Investigation Goals -->
                 @foreach (var goal in AvailableMentalGoals)
                 {
-                    <div class="goal-action-btn" @onclick="async () => await StartMentalGoal(goal)">
+                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartMentalGoal(goal)">
                         <div class="goal-system-badge mental">Mental</div>
                         <div class="goal-name">@goal.Name</div>
                         @if (!string.IsNullOrEmpty(goal.Description))
@@ -133,7 +140,14 @@
                         }
                         @if (!string.IsNullOrEmpty(goal.InvestigationId))
                         {
-                            <div class="goal-investigation-tag">Investigation Goal</div>
+                            @if (goal.IsIntroAction)
+                            {
+                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                            }
+                            else
+                            {
+                                <div class="goal-investigation-tag">Investigation Goal</div>
+                            }
                         }
                     </div>
                 }
@@ -141,7 +155,7 @@
                 <!-- Physical Investigation Goals -->
                 @foreach (var goal in AvailablePhysicalGoals)
                 {
-                    <div class="goal-action-btn" @onclick="async () => await StartPhysicalGoal(goal)">
+                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartPhysicalGoal(goal)">
                         <div class="goal-system-badge physical">Physical</div>
                         <div class="goal-name">@goal.Name</div>
                         @if (!string.IsNullOrEmpty(goal.Description))
@@ -150,7 +164,14 @@
                         }
                         @if (!string.IsNullOrEmpty(goal.InvestigationId))
                         {
-                            <div class="goal-investigation-tag">Investigation Goal</div>
+                            @if (goal.IsIntroAction)
+                            {
+                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                            }
+                            else
+                            {
+                                <div class="goal-investigation-tag">Investigation Goal</div>
+                            }
                         }
                     </div>
                 }

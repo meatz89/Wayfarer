@@ -45,6 +45,12 @@ public class LocationGoal
     public string InvestigationId { get; set; }
 
     /// <summary>
+    /// Whether this goal is an investigation intro action
+    /// Intro actions move investigation from Discovered → Active when completed
+    /// </summary>
+    public bool IsIntroAction { get; set; } = false;
+
+    /// <summary>
     /// Prerequisites for this goal to be available
     /// </summary>
     public GoalRequirements Requirements { get; set; }

@@ -1,32 +1,71 @@
+using System;
+using System.Linq;
+
 /// <summary>
-/// Service for managing player knowledge and secrets
-/// NOT investigation-specific - used by conversations and other systems
+/// Knowledge Service - Domain Service for knowledge management
+/// Operates on GameWorld, doesn't store state
+/// Follows ARCHITECTURE.md principles: services operate on GameWorld single source of truth
 /// </summary>
 public class KnowledgeService
 {
-    public void GrantKnowledge(Player player, string knowledgeId)
+    private readonly GameWorld _gameWorld;
+    private readonly MessageSystem _messageSystem;
+
+    public KnowledgeService(GameWorld gameWorld, MessageSystem messageSystem)
     {
-        if (player?.Knowledge != null && !string.IsNullOrEmpty(knowledgeId))
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+    }
+
+    /// <summary>
+    /// Grant knowledge to player
+    /// Adds knowledge to player's knowledge collection if not already known
+    /// Triggers discovery evaluation for ConversationalDiscovery unlocks
+    /// </summary>
+    public void GrantKnowledge(string knowledgeId)
+    {
+        if (string.IsNullOrEmpty(knowledgeId))
+            return;
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Check if already known
+        if (player.Knowledge.HasKnowledge(knowledgeId))
         {
-            player.Knowledge.AddKnowledge(knowledgeId);
+            Console.WriteLine($"[KnowledgeService] Player already has knowledge '{knowledgeId}'");
+            return;
         }
+
+        // Grant knowledge
+        player.Knowledge.AddKnowledge(knowledgeId);
+
+        // Get knowledge display info from GameWorld
+        Knowledge knowledgeData = _gameWorld.Knowledge.GetValueOrDefault(knowledgeId);
+        string displayName = knowledgeData?.DisplayName ?? knowledgeId;
+
+        _messageSystem.AddSystemMessage(
+            $"Knowledge gained: {displayName}",
+            SystemMessageTypes.Info);
+
+        Console.WriteLine($"[KnowledgeService] Granted knowledge '{knowledgeId}' to player");
+
+        // Knowledge may unlock investigation discovery (ConversationalDiscovery trigger)
+        // Discovery evaluation happens externally in GameFacade after knowledge granted
     }
 
-    public void GrantSecret(Player player, string secretId)
+    /// <summary>
+    /// Check if player has specific knowledge
+    /// </summary>
+    public bool HasKnowledge(string knowledgeId)
     {
-        if (player?.Knowledge != null && !string.IsNullOrEmpty(secretId))
-        {
-            player.Knowledge.AddSecret(secretId);
-        }
+        return _gameWorld.GetPlayer().Knowledge.HasKnowledge(knowledgeId);
     }
 
-    public bool HasKnowledge(Player player, string knowledgeId)
+    /// <summary>
+    /// Get all knowledge IDs player has acquired
+    /// </summary>
+    public System.Collections.Generic.List<string> GetAllKnowledge()
     {
-        return player?.Knowledge?.HasKnowledge(knowledgeId) ?? false;
-    }
-
-    public bool KnowsSecret(Player player, string secretId)
-    {
-        return player?.Knowledge?.KnowsSecret(secretId) ?? false;
+        return _gameWorld.GetPlayer().Knowledge.GetAllKnowledge();
     }
 }

@@ -66,6 +66,9 @@ namespace Wayfarer.Pages.Components
 
         private async Task RefreshLocationData()
         {
+            // Evaluate investigation discovery when location refreshes
+            GameFacade.EvaluateInvestigationDiscovery();
+
             Location location = GameFacade.GetCurrentLocation();
             CurrentLocation = location;
             LocationSpot? spot = GameFacade.GetCurrentLocationSpot();

@@ -13,6 +13,13 @@ public class InvestigationDTO
     public List<string> PersonalityTypes { get; set; } = new List<string>(); // For hybrid
     public int ExposureThreshold { get; set; } // 6-12 typical
     public int TimeLimit { get; set; } = 0; // 0 = no hard limit, >0 = hard Time Segment cap
+
+    // NEW: Intro action for discovery system
+    public InvestigationIntroActionDTO Intro { get; set; }
+
+    // NEW: Color code for UI grouping
+    public string ColorCode { get; set; }
+
     public List<InvestigationPhaseDTO> Phases { get; set; } = new List<InvestigationPhaseDTO>();
     public List<InvestigationObservationRewardDTO> ObservationCardRewards { get; set; } = new List<InvestigationObservationRewardDTO>();
 }
@@ -26,6 +33,7 @@ public class InvestigationPhaseDTO
     public string Name { get; set; }
     public string Description { get; set; }
     public string Goal { get; set; }
+    public string OutcomeNarrative { get; set; }
     public int ProgressThreshold { get; set; }
     public string SystemType { get; set; } // "Social", "Mental", or "Physical"
     public string ChallengeTypeId { get; set; } // Engagement type ID for Mental/Physical, or conversation type for Social
@@ -47,7 +55,7 @@ public class InvestigationPhaseDTO
 /// </summary>
 public class PhaseRequirementsDTO
 {
-    public List<int> CompletedPhases { get; set; } = new List<int>();
+    public List<string> CompletedGoals { get; set; } = new List<string>();
     public Dictionary<string, int> DiscoveryQuantities { get; set; } = new Dictionary<string, int>();
     public List<string> SpecificDiscoveries { get; set; } = new List<string>();
     public List<string> Equipment { get; set; } = new List<string>();
@@ -61,6 +69,7 @@ public class PhaseCompletionRewardDTO
 {
     public string Narrative { get; set; }
     public List<string> DiscoveriesGranted { get; set; } = new List<string>();
+    public List<string> KnowledgeGranted { get; set; } = new List<string>();
     public string UnlocksPhaseId { get; set; }
 }
 
@@ -72,4 +81,36 @@ public class InvestigationObservationRewardDTO
     public string DiscoveryId { get; set; }
     public string NpcId { get; set; }
     public string CardId { get; set; }
+}
+
+/// <summary>
+/// DTO for Investigation Intro Action
+/// Defines discovery trigger and activation mechanics
+/// </summary>
+public class InvestigationIntroActionDTO
+{
+    public string TriggerType { get; set; } // "ImmediateVisibility", "EnvironmentalObservation", etc.
+    public InvestigationPrerequisitesDTO TriggerPrerequisites { get; set; }
+    public string ActionText { get; set; }
+    public string SystemType { get; set; } // "Mental", "Physical", "Social"
+    public string ChallengeTypeId { get; set; }
+    public string LocationId { get; set; }
+    public string SpotId { get; set; }
+    public string NpcId { get; set; }
+    public string RequestId { get; set; }
+    public string IntroNarrative { get; set; }
+}
+
+/// <summary>
+/// DTO for Investigation Prerequisites
+/// Used for both intro triggers and phase requirements
+/// </summary>
+public class InvestigationPrerequisitesDTO
+{
+    public string LocationId { get; set; }
+    public string SpotId { get; set; }
+    public int MinLocationFamiliarity { get; set; }
+    public List<string> RequiredKnowledge { get; set; } = new List<string>();
+    public List<string> RequiredItems { get; set; } = new List<string>();
+    public string RequiredObligation { get; set; }
 }

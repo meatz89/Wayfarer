@@ -158,6 +158,7 @@ public class PackageLoader
 
         // 3.5 Investigation Templates (strategic multi-phase activities)
         LoadInvestigations(package.Content.Investigations, allowSkeletons);
+        LoadKnowledge(package.Content.Knowledge, allowSkeletons);
 
         // 4. NPCs (reference locations, spots, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -324,18 +325,18 @@ public class PackageLoader
             }
         }
 
-        // Initialize investigation journal with all investigations as Pending
+        // Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
         Console.WriteLine("[PackageLoader] Initializing investigation journal...");
         Player player = _gameWorld.GetPlayer();
         if (player != null && player.InvestigationJournal != null)
         {
-            player.InvestigationJournal.PendingInvestigationIds.Clear();
+            player.InvestigationJournal.PotentialInvestigationIds.Clear();
             foreach (Investigation investigation in _gameWorld.Investigations)
             {
-                player.InvestigationJournal.PendingInvestigationIds.Add(investigation.Id);
+                player.InvestigationJournal.PotentialInvestigationIds.Add(investigation.Id);
                 Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
             }
-            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PendingInvestigationIds.Count} pending investigations");
+            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PotentialInvestigationIds.Count} potential investigations");
         }
 
         // Apply starting token relationships
@@ -696,6 +697,19 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.Investigations.Count}");
     }
 
+    private void LoadKnowledge(List<KnowledgeDTO> knowledgeList, bool allowSkeletons)
+    {
+        if (knowledgeList == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading knowledge definitions...");
+        foreach (KnowledgeDTO dto in knowledgeList)
+        {
+            Knowledge knowledge = KnowledgeParser.ParseKnowledge(dto);
+            _gameWorld.Knowledge.Add(knowledge.Id, knowledge);
+            Console.WriteLine($"[PackageLoader] Loaded knowledge '{knowledge.Id}': {knowledge.DisplayName}");
+        }
+        Console.WriteLine($"[PackageLoader] Completed loading knowledge. Total: {_gameWorld.Knowledge.Count}");
+    }
 
     private void LoadLocations(List<LocationDTO> locationDtos, bool allowSkeletons)
     {

@@ -24,6 +24,9 @@ public class GameFacade
     private readonly ObstacleFacade _obstacleFacade;
     private readonly MentalFacade _mentalFacade;
     private readonly PhysicalFacade _physicalFacade;
+    private readonly InvestigationActivity _investigationActivity;
+    private readonly InvestigationDiscoveryEvaluator _investigationDiscoveryEvaluator;
+    private readonly KnowledgeService _knowledgeService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -39,7 +42,10 @@ public class GameFacade
         ExchangeFacade exchangeFacade,
         ObstacleFacade obstacleFacade,
         MentalFacade mentalFacade,
-        PhysicalFacade physicalFacade)
+        PhysicalFacade physicalFacade,
+        InvestigationActivity investigationActivity,
+        InvestigationDiscoveryEvaluator investigationDiscoveryEvaluator,
+        KnowledgeService knowledgeService)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -55,6 +61,9 @@ public class GameFacade
         _obstacleFacade = obstacleFacade;
         _mentalFacade = mentalFacade;
         _physicalFacade = physicalFacade;
+        _investigationActivity = investigationActivity;
+        _investigationDiscoveryEvaluator = investigationDiscoveryEvaluator;
+        _knowledgeService = knowledgeService;
     }
 
     // ========== CORE GAME STATE ==========
@@ -1056,7 +1065,13 @@ public class GameFacade
     {
         if (letterData is DeliveryObligation obligation)
         {
-            _obligationFacade.AddLetterWithObligationEffects(obligation);
+            int queuePosition = _obligationFacade.AddLetterWithObligationEffects(obligation);
+
+            // Obligation acceptance may unlock investigation discovery (ObligationTriggered trigger type)
+            if (queuePosition > 0)
+            {
+                EvaluateInvestigationDiscovery();
+            }
         }
         else
         {
@@ -1443,16 +1458,59 @@ public class GameFacade
         return result;
     }
 
-    // ========== V2 CARD-BASED INVESTIGATION SYSTEM ==========
+    // ========== INVESTIGATION SYSTEM ==========
 
-    // DELETED: Investigation system - wrong architecture
-    // Will be replaced with InvestigationActivity orchestrator in Phase 3
+    /// <summary>
+    /// Evaluate and trigger investigation discovery based on current player state
+    /// Called when player moves to new location/spot, gains knowledge, items, or accepts obligations
+    /// Discovered investigations will have their intro goals added to the appropriate location
+    /// and discovery modals will be triggered via pending results
+    /// </summary>
+    public void EvaluateInvestigationDiscovery()
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Evaluate which investigations can be discovered
+        List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
+
+        // For each discovered investigation, trigger discovery flow
+        foreach (Investigation investigation in discoverable)
+        {
+            // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
+            LocationGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
+
+            // Add intro goal to the appropriate location
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == introGoal.SpotId.Split('_')[0]);
+            if (location != null)
+            {
+                if (location.Goals == null)
+                    location.Goals = new List<LocationGoal>();
+                location.Goals.Add(introGoal);
+            }
+
+            // Pending discovery result is now set in InvestigationActivity
+            // GameScreen will check for it and display the modal
+
+            // Only handle one discovery at a time for POC
+            break;
+        }
+    }
 
     public List<Investigation> GetAvailableInvestigations()
     {
-        // V3 Investigation: Investigations are now card-based and triggered separately
-        // Return all available investigation templates for now (filtering logic TBD)
         return _gameWorld.Investigations;
+    }
+
+    /// <summary>
+    /// Grant knowledge to player and evaluate investigation discovery
+    /// Knowledge may unlock ConversationalDiscovery investigations
+    /// </summary>
+    public void GrantKnowledge(string knowledgeId)
+    {
+        _knowledgeService.GrantKnowledge(knowledgeId);
+
+        // Knowledge may unlock investigation discovery (ConversationalDiscovery trigger)
+        EvaluateInvestigationDiscovery();
     }
 
     // ========== V2 OBSTACLE SYSTEM (KEPT) ==========

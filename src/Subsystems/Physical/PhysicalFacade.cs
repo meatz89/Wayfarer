@@ -331,6 +331,31 @@ public class PhysicalFacade
     /// </summary>
     private void CheckInvestigationProgress(string goalId, string investigationId)
     {
+        // Check if this is an intro action (Discovered → Active transition)
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation != null && goalId == $"{investigationId}_intro")
+        {
+            // This is intro completion - activate investigation
+            List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
+
+            // Add first goals to location
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.PhaseDefinitions[0].LocationId);
+            if (location != null && firstGoals.Count > 0)
+            {
+                if (location.Goals == null)
+                    location.Goals = new List<LocationGoal>();
+
+                foreach (LocationGoal goal in firstGoals)
+                {
+                    location.Goals.Add(goal);
+                }
+            }
+
+            Console.WriteLine($"[PhysicalFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+            return;
+        }
+
+        // Regular goal completion
         InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
 
         // Log progress for UI modal display (UI will handle modal)

@@ -105,6 +105,11 @@ namespace Wayfarer.Pages.Components
             return GameWorld.InvestigationJournal.CompletedInvestigationIds.ToList();
         }
 
+        protected List<string> GetDiscoveredInvestigationIds()
+        {
+            return GameWorld.InvestigationJournal.DiscoveredInvestigationIds.ToList();
+        }
+
         protected Investigation GetInvestigationById(string investigationId)
         {
             return GameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);

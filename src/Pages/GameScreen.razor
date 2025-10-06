@@ -80,6 +80,18 @@
         </div>
     }
 
+    <!-- Investigation Discovery Modal -->
+    @if (_showInvestigationDiscoveryModal && _investigationDiscoveryResult != null)
+    {
+        <div class="modal-overlay" @onclick="DismissInvestigationDiscovery">
+            <div class="modal-content" @onclick:stopPropagation>
+                <InvestigationDiscoveryModal Data="@_investigationDiscoveryResult"
+                                           OnBeginIntro="BeginInvestigationIntro"
+                                           OnDismiss="DismissInvestigationDiscovery" />
+            </div>
+        </div>
+    }
+
     <!-- Investigation Progress Modal -->
     @if (_showInvestigationProgressModal && _investigationProgressResult != null)
     {

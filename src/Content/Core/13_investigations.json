@@ -4,39 +4,65 @@
       "id": "waterwheel_mystery",
       "name": "The Waterwheel Mystery",
       "description": "Investigate why the Old Mill's waterwheel has stopped turning",
+      "colorCode": "#5a7a8b",
+      "intro": {
+        "triggerType": "ImmediateVisibility",
+        "triggerPrerequisites": {
+          "locationId": "old_mill",
+          "spotId": "courtyard"
+        },
+        "actionText": "Investigate the silent waterwheel",
+        "systemType": "Mental",
+        "challengeTypeId": "mental_challenge",
+        "locationId": "old_mill",
+        "spotId": "courtyard",
+        "introNarrative": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling. Something is clearly wrong—and someone needs to investigate."
+      },
       "personality": "SequentialSite",
       "exposureThreshold": 8,
       "timeLimit": 0,
       "phases": [
         {
           "id": "phase_1_examine",
-          "name": "Initial Examination",
+          "name": "Examine the broken gear mechanism",
           "description": "Carefully inspect the waterwheel mechanism to understand what went wrong",
-          "goal": "Examine the waterwheel mechanism",
+          "outcomeNarrative": "The gear teeth show clear marks of deliberate damage. This was no accident—someone wanted the mill to stop working. The scoring pattern suggests a chisel or similar tool, wielded with intent to disable but not destroy completely.",
           "progressThreshold": 10,
           "systemType": "Mental",
           "challengeTypeId": "mental_challenge",
           "locationId": "old_mill",
           "spotId": "courtyard",
-          "requirements": {
-            "knowledge": ["aldric_mentioned_waterwheel"]
+          "completionReward": {
+            "knowledgeGranted": ["waterwheel_sabotage_evidence"]
           }
         },
         {
           "id": "phase_2_question",
-          "name": "Question Miller",
+          "name": "Question Elena about who has access to tools",
           "description": "Speak with Elena about what she knows regarding the waterwheel failure",
-          "goal": "Ask about recent events",
+          "outcomeNarrative": "Elena mentions that only three people have regular access to the workshop tools: herself, her apprentice Aldric, and the mill's elderly caretaker. Her eyes dart away when mentioning Aldric.",
           "progressThreshold": 8,
           "systemType": "Social",
           "npcId": "elena",
           "requestId": "elena_investigate_offer",
           "challengeTypeId": "social_challenge",
+          "locationId": "old_mill",
+          "spotId": "main_hall",
           "requirements": {
-            "completedPhases": [0]
+            "completedGoals": ["phase_1_examine"],
+            "knowledge": ["waterwheel_sabotage_evidence"]
+          },
+          "completionReward": {
+            "knowledgeGranted": ["waterwheel_suspect_identified"]
           }
         }
       ],
+      "completionNarrative": "You've uncovered the truth behind the waterwheel's sabotage. The evidence points clearly to the culprit, and Elena now knows what happened to her mill.",
+      "completionRewards": {
+        "coins": 25,
+        "experience": 50,
+        "reputation": {"elena": 2}
+      },
       "observationCardRewards": []
     }
   ]

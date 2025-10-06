@@ -729,13 +729,24 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     // Investigation Modals
+    protected bool _showInvestigationDiscoveryModal = false;
     protected bool _showInvestigationProgressModal = false;
     protected bool _showInvestigationCompleteModal = false;
+    protected InvestigationDiscoveryResult _investigationDiscoveryResult;
     protected InvestigationProgressResult _investigationProgressResult;
     protected InvestigationCompleteResult _investigationCompleteResult;
 
     protected async Task CheckForInvestigationResults()
     {
+        InvestigationDiscoveryResult discoveryResult = InvestigationActivity.GetAndClearPendingDiscoveryResult();
+        if (discoveryResult != null)
+        {
+            _investigationDiscoveryResult = discoveryResult;
+            _showInvestigationDiscoveryModal = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
         InvestigationProgressResult progressResult = InvestigationActivity.GetAndClearPendingProgressResult();
         if (progressResult != null)
         {
@@ -767,6 +778,33 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showInvestigationCompleteModal = false;
         _investigationCompleteResult = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void ShowInvestigationDiscoveryModal(InvestigationDiscoveryResult discoveryResult)
+    {
+        _investigationDiscoveryResult = discoveryResult;
+        _showInvestigationDiscoveryModal = true;
+        StateHasChanged();
+    }
+
+    protected async Task BeginInvestigationIntro()
+    {
+        _showInvestigationDiscoveryModal = false;
+
+        string investigationId = _investigationDiscoveryResult.InvestigationId;
+        _investigationDiscoveryResult = null;
+
+        await InvokeAsync(StateHasChanged);
+
+        // Intro action will appear as a LocationGoal in the current location
+        // No additional action needed here - the intro goal was already added when discovered
+    }
+
+    protected async Task DismissInvestigationDiscovery()
+    {
+        _showInvestigationDiscoveryModal = false;
+        _investigationDiscoveryResult = null;
         await InvokeAsync(StateHasChanged);
     }
 }

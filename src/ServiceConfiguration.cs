@@ -48,9 +48,6 @@ public static class ServiceConfiguration
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        // General game services (not investigation-specific)
-        services.AddSingleton<KnowledgeService>();
-
         // V3 Card-Based Investigation System - DELETED (wrong architecture)
         // Investigation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
@@ -91,6 +88,8 @@ public static class ServiceConfiguration
 
         // Investigation Activity - Strategic orchestrator for multi-phase investigations
         services.AddSingleton<InvestigationActivity>();
+        services.AddSingleton<InvestigationDiscoveryEvaluator>();
+        services.AddSingleton<KnowledgeService>();
 
         // NPC deck initialization handled directly in PackageLoader
 

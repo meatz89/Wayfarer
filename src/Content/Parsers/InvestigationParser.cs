@@ -23,6 +23,8 @@ public class InvestigationParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
+            IntroAction = ParseIntroAction(dto.Intro),
+            ColorCode = dto.ColorCode,
             PhaseDefinitions = dto.Phases?.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() ?? new List<InvestigationPhaseDefinition>()
         };
     }
@@ -40,13 +42,25 @@ public class InvestigationParser
             Name = dto.Name,
             Description = dto.Description,
             Goal = dto.Goal,
+            OutcomeNarrative = dto.OutcomeNarrative,
             SystemType = systemType,
             ChallengeTypeId = dto.ChallengeTypeId,
             LocationId = dto.LocationId,
             SpotId = dto.SpotId,
             NpcId = dto.NpcId,
             RequestId = dto.RequestId,
-            Requirements = ParseRequirements(dto.Requirements)
+            Requirements = ParseRequirements(dto.Requirements),
+            CompletionReward = ParseCompletionReward(dto.CompletionReward)
+        };
+    }
+
+    private PhaseCompletionReward ParseCompletionReward(PhaseCompletionRewardDTO dto)
+    {
+        if (dto == null) return null;
+
+        return new PhaseCompletionReward
+        {
+            KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>()
         };
     }
 
@@ -89,25 +103,12 @@ public class InvestigationParser
     {
         if (dto == null) return new GoalRequirements();
 
-        GoalRequirements requirements = new GoalRequirements
+        return new GoalRequirements
         {
             RequiredKnowledge = dto.Knowledge ?? new List<string>(),
-            RequiredEquipment = dto.Equipment ?? new List<string>()
+            RequiredEquipment = dto.Equipment ?? new List<string>(),
+            CompletedGoals = dto.CompletedGoals ?? new List<string>()
         };
-
-        // Map CompletedPhases (phase indices) to CompletedGoals (goal IDs)
-        // This will be resolved at runtime by InvestigationActivity when creating goals
-        if (dto.CompletedPhases != null && dto.CompletedPhases.Any())
-        {
-            // Phase indices are stored as goal IDs like "investigation_id:phase_index"
-            // InvestigationActivity will resolve these to actual phase IDs
-            foreach (int phaseIndex in dto.CompletedPhases)
-            {
-                requirements.CompletedGoals.Add($"phase:{phaseIndex}");
-            }
-        }
-
-        return requirements;
     }
 
     private TacticalSystemType ParseSystemType(string systemTypeString)
@@ -115,5 +116,57 @@ public class InvestigationParser
         return Enum.TryParse<TacticalSystemType>(systemTypeString, out TacticalSystemType type)
             ? type
             : TacticalSystemType.Mental; // default
+    }
+
+    private InvestigationIntroAction ParseIntroAction(InvestigationIntroActionDTO dto)
+    {
+        if (dto == null) return null;
+
+        TacticalSystemType systemType = ParseSystemType(dto.SystemType);
+
+        // [Oracle] Validation: challengeTypeId must exist for intro action
+        if (!string.IsNullOrEmpty(dto.ChallengeTypeId))
+        {
+            ValidateChallengeTypeId(dto.ChallengeTypeId, systemType, "intro");
+        }
+
+        return new InvestigationIntroAction
+        {
+            TriggerType = ParseTriggerType(dto.TriggerType),
+            TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites),
+            ActionText = dto.ActionText,
+            SystemType = systemType,
+            ChallengeTypeId = dto.ChallengeTypeId,
+            LocationId = dto.LocationId,
+            SpotId = dto.SpotId,
+            NpcId = dto.NpcId,
+            RequestId = dto.RequestId,
+            IntroNarrative = dto.IntroNarrative
+        };
+    }
+
+    private DiscoveryTriggerType ParseTriggerType(string triggerTypeString)
+    {
+        if (string.IsNullOrEmpty(triggerTypeString))
+            return DiscoveryTriggerType.ImmediateVisibility; // default
+
+        return Enum.TryParse<DiscoveryTriggerType>(triggerTypeString, out DiscoveryTriggerType type)
+            ? type
+            : DiscoveryTriggerType.ImmediateVisibility;
+    }
+
+    private InvestigationPrerequisites ParseInvestigationPrerequisites(InvestigationPrerequisitesDTO dto)
+    {
+        if (dto == null) return new InvestigationPrerequisites();
+
+        return new InvestigationPrerequisites
+        {
+            LocationId = dto.LocationId,
+            SpotId = dto.SpotId,
+            MinLocationFamiliarity = dto.MinLocationFamiliarity,
+            RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
+            RequiredItems = dto.RequiredItems ?? new List<string>(),
+            RequiredObligation = dto.RequiredObligation
+        };
     }
 }

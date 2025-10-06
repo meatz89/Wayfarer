@@ -363,11 +363,11 @@ public class ConversationFacade
         // 7b. Grant Knowledge and Secrets (V2 Investigation System)
         foreach (string knowledge in selectedCard.ConversationCardTemplate.KnowledgeGranted)
         {
-            _knowledgeService.GrantKnowledge(player, knowledge);
+            _knowledgeService.GrantKnowledge(knowledge);
         }
         foreach (string secret in selectedCard.ConversationCardTemplate.SecretsGranted)
         {
-            _knowledgeService.GrantSecret(player, secret);
+            player.Knowledge.AddSecret(secret);
         }
 
         // 8. Record card played for personality tracking
@@ -1925,6 +1925,36 @@ public class ConversationFacade
     /// </summary>
     private void CheckInvestigationProgress(string npcId, string requestId)
     {
+        // First check if this is an intro action for a discovered investigation
+        foreach (string discoveredId in _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.ToList())
+        {
+            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == discoveredId);
+            if (investigation?.IntroAction != null &&
+                investigation.IntroAction.SystemType == TacticalSystemType.Social &&
+                investigation.IntroAction.NpcId == npcId &&
+                investigation.IntroAction.RequestId == requestId)
+            {
+                // This is intro completion - activate investigation
+                List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
+
+                // Add first goals to location
+                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.PhaseDefinitions[0].LocationId);
+                if (location != null && firstGoals.Count > 0)
+                {
+                    if (location.Goals == null)
+                        location.Goals = new List<LocationGoal>();
+
+                    foreach (LocationGoal goal in firstGoals)
+                    {
+                        location.Goals.Add(goal);
+                    }
+                }
+
+                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+                return;
+            }
+        }
+
         // Search active investigations for a phase matching this npcId + requestId
         foreach (ActiveInvestigation activeInv in _gameWorld.InvestigationJournal.ActiveInvestigations)
         {

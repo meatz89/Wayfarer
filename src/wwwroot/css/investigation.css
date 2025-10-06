@@ -431,3 +431,121 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
+
+/* Discovery Modal Styles */
+.discovery-header {
+    background: linear-gradient(to bottom, #5a7a8b, #7a9eb8);
+}
+
+.investigation-discovery-section {
+    background: white;
+    padding: 20px;
+    border-bottom: 2px solid #d4c5a0;
+}
+
+.discovery-narrative {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #3d3429;
+    font-style: italic;
+}
+
+.discovery-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.primary-action {
+    flex: 1;
+    max-width: 300px;
+}
+
+.secondary-action {
+    background: transparent;
+    color: #5c4a3a;
+    border: 2px solid #8b7355;
+    padding: 12px 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    font-family: 'Garamond', 'Georgia', serif;
+}
+
+.secondary-action:hover {
+    background: #8b7355;
+    color: #e8dcc4;
+    transform: translateY(-2px);
+}
+
+.dismiss-button {
+    flex: 1;
+    max-width: 200px;
+}
+
+/* Discovered Investigations Tab Styles */
+.discovered-card {
+    border-left: 4px solid #5a7a8b;
+}
+
+.discovered-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.discovered-icon {
+    font-size: 24px;
+    color: #5a7a8b;
+}
+
+.discovered-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #3d3429;
+}
+
+.discovered-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #5c4a3a;
+    margin-bottom: 15px;
+}
+
+.intro-action-hint {
+    background: #f0f8ff;
+    border: 1px solid #5a7a8b;
+    border-radius: 4px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hint-icon {
+    font-size: 18px;
+    color: #5a7a8b;
+    font-weight: bold;
+}
+
+.hint-text {
+    font-size: 13px;
+    color: #3d3429;
+    font-weight: bold;
+}
+
+/* Intro Action Visual Indicators */
+.intro-action {
+    border: 2px solid #5a7a8b !important;
+    box-shadow: 0 0 12px rgba(90, 122, 139, 0.3);
+}
+
+.intro-tag {
+    background: linear-gradient(135deg, #5a7a8b, #7a9eb8);
+    color: white;
+    font-weight: bold;
+}

@@ -1,0 +1,159 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Evaluates which investigations can be discovered based on game state
+/// STATELESS service - all state in GameWorld
+/// Follows ARCHITECTURE.md principles: service operates on GameWorld, doesn't store state
+/// </summary>
+public class InvestigationDiscoveryEvaluator
+{
+    private readonly GameWorld _gameWorld;
+
+    public InvestigationDiscoveryEvaluator(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+    }
+
+    /// <summary>
+    /// Evaluate all Potential investigations and return those ready to be discovered
+    /// Called on: location entry, knowledge gain, item acquisition, obligation acceptance
+    /// </summary>
+    public List<Investigation> EvaluateDiscoverableInvestigations(Player player)
+    {
+        List<Investigation> discoverable = new List<Investigation>();
+
+        foreach (string investigationId in _gameWorld.InvestigationJournal.PotentialInvestigationIds)
+        {
+            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+            if (investigation == null) continue;
+
+            // Skip if no intro action defined
+            if (investigation.IntroAction == null) continue;
+
+            if (IsTriggerConditionMet(investigation, player))
+            {
+                discoverable.Add(investigation);
+            }
+        }
+
+        return discoverable;
+    }
+
+    /// <summary>
+    /// Check if specific investigation's trigger condition is met
+    /// </summary>
+    private bool IsTriggerConditionMet(Investigation investigation, Player player)
+    {
+        InvestigationPrerequisites prereqs = investigation.IntroAction.TriggerPrerequisites;
+        if (prereqs == null) return true; // No prerequisites = always available
+
+        // Check prerequisites based on trigger type
+        return investigation.IntroAction.TriggerType switch
+        {
+            DiscoveryTriggerType.ImmediateVisibility => CheckImmediateVisibility(prereqs, player),
+            DiscoveryTriggerType.EnvironmentalObservation => CheckEnvironmentalObservation(prereqs, player),
+            DiscoveryTriggerType.ConversationalDiscovery => CheckConversationalDiscovery(prereqs, player),
+            DiscoveryTriggerType.ItemDiscovery => CheckItemDiscovery(prereqs, player),
+            DiscoveryTriggerType.ObligationTriggered => CheckObligationTriggered(prereqs, player),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// ImmediateVisibility: Player is at required location/spot
+    /// Prerequisites: locationId, optional spotId
+    /// </summary>
+    private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
+    {
+        // Check if player is at required location
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocationSpot?.LocationId != prereqs.LocationId)
+            return false;
+
+        // If spot specified, check if player is at that spot
+        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// EnvironmentalObservation: Player has explored location to sufficient familiarity
+    /// Prerequisites: locationId, minLocationFamiliarity
+    /// </summary>
+    private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
+    {
+        // Check if player is at required location
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocationSpot?.LocationId != prereqs.LocationId)
+            return false;
+
+        // Check location familiarity
+        if (prereqs.MinLocationFamiliarity > 0)
+        {
+            int familiarity = player.GetLocationFamiliarity(prereqs.LocationId);
+            if (familiarity < prereqs.MinLocationFamiliarity)
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// ConversationalDiscovery: Player has required knowledge from conversations
+    /// Prerequisites: requiredKnowledge list
+    /// </summary>
+    private bool CheckConversationalDiscovery(InvestigationPrerequisites prereqs, Player player)
+    {
+        // Check if player has all required knowledge
+        if (prereqs.RequiredKnowledge != null && prereqs.RequiredKnowledge.Any())
+        {
+            foreach (string knowledgeId in prereqs.RequiredKnowledge)
+            {
+                if (!player.Knowledge.HasKnowledge(knowledgeId))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// ItemDiscovery: Player has acquired required item
+    /// Prerequisites: requiredItems list
+    /// </summary>
+    private bool CheckItemDiscovery(InvestigationPrerequisites prereqs, Player player)
+    {
+        // Check if player has all required items
+        if (prereqs.RequiredItems != null && prereqs.RequiredItems.Any())
+        {
+            foreach (string itemId in prereqs.RequiredItems)
+            {
+                // TODO: Implement item checking when inventory system exists
+                // For now, return false if items required
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// ObligationTriggered: Player has accepted required obligation
+    /// Prerequisites: requiredObligation
+    /// </summary>
+    private bool CheckObligationTriggered(InvestigationPrerequisites prereqs, Player player)
+    {
+        // Check if player has accepted required obligation
+        if (!string.IsNullOrEmpty(prereqs.RequiredObligation))
+        {
+            bool hasObligation = player.StandingObligations
+                .Any(o => o.ID == prereqs.RequiredObligation);
+
+            if (!hasObligation)
+                return false;
+        }
+
+        return true;
+    }
+}

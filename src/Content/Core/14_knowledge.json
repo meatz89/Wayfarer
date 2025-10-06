@@ -1,0 +1,36 @@
+{
+  "knowledge": [
+    {
+      "id": "waterwheel_rumors",
+      "displayName": "Waterwheel Sabotage Rumors",
+      "description": "You've heard whispers about suspicious activity at the Old Mill. The waterwheel's sudden failure seems deliberate, not accidental.",
+      "investigationContext": "waterwheel_mystery",
+      "unlocksInvestigationIntros": ["waterwheel_mystery"],
+      "unlocksInvestigationGoals": []
+    },
+    {
+      "id": "mill_tool_access",
+      "displayName": "Mill Workshop Access",
+      "description": "You know which individuals have regular access to the mill's workshop tools. This knowledge could be crucial for determining who had the means to sabotage the waterwheel.",
+      "investigationContext": "waterwheel_mystery",
+      "unlocksInvestigationIntros": [],
+      "unlocksInvestigationGoals": ["phase_2_question"]
+    },
+    {
+      "id": "waterwheel_sabotage_evidence",
+      "displayName": "Waterwheel Sabotage Evidence",
+      "description": "You've examined the waterwheel mechanism and found clear evidence of deliberate damage. The gear teeth show scoring marks consistent with intentional sabotage using a chisel or similar tool.",
+      "investigationContext": "waterwheel_mystery",
+      "unlocksInvestigationIntros": [],
+      "unlocksInvestigationGoals": []
+    },
+    {
+      "id": "waterwheel_suspect_identified",
+      "displayName": "Waterwheel Suspect Identified",
+      "description": "Based on your investigation, you've identified a likely suspect in the waterwheel sabotage. Elena's reaction when mentioning her apprentice Aldric was telling.",
+      "investigationContext": "waterwheel_mystery",
+      "unlocksInvestigationIntros": [],
+      "unlocksInvestigationGoals": []
+    }
+  ]
+}

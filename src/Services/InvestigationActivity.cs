@@ -12,16 +12,31 @@ public class InvestigationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
+    private readonly KnowledgeService _knowledgeService;
 
+    private InvestigationDiscoveryResult _pendingDiscoveryResult;
     private InvestigationProgressResult _pendingProgressResult;
     private InvestigationCompleteResult _pendingCompleteResult;
 
     public InvestigationActivity(
         GameWorld gameWorld,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        KnowledgeService knowledgeService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
+    }
+
+    /// <summary>
+    /// Get and clear pending discovery result for UI modal display
+    /// Returns null if no result pending
+    /// </summary>
+    public InvestigationDiscoveryResult GetAndClearPendingDiscoveryResult()
+    {
+        InvestigationDiscoveryResult result = _pendingDiscoveryResult;
+        _pendingDiscoveryResult = null;
+        return result;
     }
 
     /// <summary>
@@ -59,8 +74,8 @@ public class InvestigationActivity
             throw new ArgumentException($"Investigation '{investigationId}' not found in GameWorld");
         }
 
-        // Remove from pending
-        _gameWorld.InvestigationJournal.PendingInvestigationIds.Remove(investigationId);
+        // Remove from potential (if still there, might already be in Discovered)
+        _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
 
         // Add to active
         ActiveInvestigation activeInvestigation = new ActiveInvestigation
@@ -124,6 +139,15 @@ public class InvestigationActivity
         if (!activeInv.CompletedGoalIds.Contains(goalId))
         {
             activeInv.CompletedGoalIds.Add(goalId);
+        }
+
+        // Grant knowledge from phase completion rewards
+        if (completedPhase.CompletionReward?.KnowledgeGranted != null)
+        {
+            foreach (string knowledgeId in completedPhase.CompletionReward.KnowledgeGranted)
+            {
+                _knowledgeService.GrantKnowledge(knowledgeId);
+            }
         }
 
         // Check for newly unlocked goals
@@ -288,6 +312,8 @@ public class InvestigationActivity
         if (requirements == null)
             return true;
 
+        Player player = _gameWorld.GetPlayer();
+
         // Check completed goals prerequisite
         if (requirements.CompletedGoals != null && requirements.CompletedGoals.Count > 0)
         {
@@ -301,12 +327,103 @@ public class InvestigationActivity
             }
         }
 
-        // TODO: Check other prerequisites when systems are ready
-        // - RequiredKnowledge
-        // - RequiredEquipment
+        // Check knowledge prerequisites
+        if (requirements.RequiredKnowledge != null && requirements.RequiredKnowledge.Count > 0)
+        {
+            foreach (string knowledgeId in requirements.RequiredKnowledge)
+            {
+                if (!player.Knowledge.HasKnowledge(knowledgeId))
+                    return false;
+            }
+        }
+
+        // Future: Check other prerequisites when systems are ready
+        // - RequiredEquipment (when inventory exists)
         // - RequiredStats
         // - MinimumLocationFamiliarity
 
         return true;
+    }
+
+    /// <summary>
+    /// Discover investigation - moves Potential → Discovered, spawns intro action
+    /// Returns LocationGoal for intro action to be added to location
+    /// Sets pending discovery result for UI modal display
+    /// </summary>
+    public LocationGoal DiscoverInvestigation(string investigationId)
+    {
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
+            throw new ArgumentException($"Investigation '{investigationId}' not found");
+
+        if (investigation.IntroAction == null)
+            throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action defined");
+
+        // Move Potential → Discovered
+        _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
+        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+
+        // Create intro action as LocationGoal
+        LocationGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
+
+        // Create discovery result for UI modal
+        InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
+        {
+            InvestigationId = investigationId,
+            InvestigationName = investigation.Name,
+            IntroNarrative = investigation.IntroAction.IntroNarrative,
+            IntroActionText = investigation.IntroAction.ActionText,
+            ColorCode = investigation.ColorCode
+        };
+        _pendingDiscoveryResult = discoveryResult;
+
+        _messageSystem.AddSystemMessage(
+            $"Investigation discovered: {investigation.Name}",
+            SystemMessageTypes.Info);
+
+        return introGoal;
+    }
+
+    /// <summary>
+    /// Complete intro action - moves Discovered → Active, spawns first goals
+    /// Called from tactical session completion (Mental/Physical/SocialFacade)
+    /// </summary>
+    public List<LocationGoal> CompleteIntroAction(string investigationId)
+    {
+        // Move Discovered → Active
+        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Remove(investigationId);
+
+        // Call existing ActivateInvestigation to create first goals
+        List<LocationGoal> firstGoals = ActivateInvestigation(investigationId);
+
+        _messageSystem.AddSystemMessage(
+            $"Investigation activated: {_gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId)?.Name}",
+            SystemMessageTypes.Success);
+
+        return firstGoals;
+    }
+
+    /// <summary>
+    /// Create intro action goal from investigation
+    /// </summary>
+    private LocationGoal CreateIntroGoalFromInvestigation(Investigation investigation)
+    {
+        InvestigationIntroAction intro = investigation.IntroAction;
+
+        return new LocationGoal
+        {
+            Id = $"{investigation.Id}_intro",
+            Name = intro.ActionText,
+            Description = $"Begin investigation: {investigation.Name}",
+            SystemType = intro.SystemType,
+            ChallengeTypeId = intro.ChallengeTypeId,
+            SpotId = intro.SpotId,
+            NpcId = intro.NpcId,
+            RequestId = intro.RequestId,
+            InvestigationId = investigation.Id,
+            IsIntroAction = true,  // Flag to identify intro actions
+            IsAvailable = true,
+            IsCompleted = false
+        };
     }
 }

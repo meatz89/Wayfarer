@@ -101,7 +101,7 @@ public class TravelObstacleService
 
         foreach (string knowledge in outcome.KnowledgeGained)
         {
-            _knowledgeService.GrantKnowledge(player, knowledge);
+            _knowledgeService.GrantKnowledge(knowledge);
             result.KnowledgeGained.Add(knowledge);
         }
 

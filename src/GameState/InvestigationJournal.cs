@@ -2,23 +2,33 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Investigation Journal - tracks player's investigation progress
-/// Investigations have three states: Pending, Active, Completed
+/// Investigations have four states: Potential → Discovered → Active → Completed
 /// </summary>
 public class InvestigationJournal
 {
     /// <summary>
-    /// Pending investigations - loaded from JSON but not yet activated by player
-    /// These are NOT displayed in UI until activated
+    /// Potential investigations - loaded from JSON but not yet discovered
+    /// Awaiting discovery trigger evaluation
+    /// NOT displayed in UI
     /// </summary>
-    public List<string> PendingInvestigationIds { get; set; } = new List<string>();
+    public List<string> PotentialInvestigationIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Active investigations - player has activated, goals are being created and evaluated
+    /// Discovered investigations - trigger fired, intro action available
+    /// Player can see these in journal but hasn't completed intro yet
+    /// Displayed in journal's "Discovered" tab
+    /// </summary>
+    public List<string> DiscoveredInvestigationIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Active investigations - intro completed, goals are being created and evaluated
+    /// Displayed in journal's "Active" tab
     /// </summary>
     public List<ActiveInvestigation> ActiveInvestigations { get; set; } = new List<ActiveInvestigation>();
 
     /// <summary>
-    /// Completed investigations - all goals finished
+    /// Completed investigations - all required goals finished
+    /// Displayed in journal's "Completed" tab
     /// </summary>
     public List<string> CompletedInvestigationIds { get; set; } = new List<string>();
 }

@@ -167,6 +167,12 @@ public class PackageContent
     public List<InvestigationDTO> Investigations { get; set; }
 
     /// <summary>
+    /// Knowledge definitions - structured discoveries that connect investigations and enhance conversations
+    /// Serves as connective tissue: unlocks investigations, unlocks goals, grants observation cards
+    /// </summary>
+    public List<KnowledgeDTO> Knowledge { get; set; }
+
+    /// <summary>
     /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
     /// </summary>
     public List<TravelObstacleDTO> TravelObstacles { get; set; }
