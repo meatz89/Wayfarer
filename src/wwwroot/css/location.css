@@ -608,6 +608,30 @@ body * {
     display: inline-block;
 }
 
+.action-card {
+    background: #f9f3e9;
+    border: 1px solid #c4a684;
+    border-radius: 4px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-card:hover {
+    background: #fff8f0;
+    border-color: #b89968;
+}
+
+.action-card.unavailable {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.action-card.unavailable:hover {
+    background: #f9f3e9;
+    border-color: #c4a684;
+}
+
 .action-name {
     font-size: 14px;
     color: #5c4a3a;

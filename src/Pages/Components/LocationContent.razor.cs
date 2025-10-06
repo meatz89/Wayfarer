@@ -259,18 +259,21 @@ namespace Wayfarer.Pages.Components
                     .Where(g => g.SystemType == TacticalSystemType.Social)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
                 AvailableMentalGoals = location.Goals
                     .Where(g => g.SystemType == TacticalSystemType.Mental)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
                 AvailablePhysicalGoals = location.Goals
                     .Where(g => g.SystemType == TacticalSystemType.Physical)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
                 Console.WriteLine($"[LocationContent] Got {AvailableSocialGoals.Count} Social, {AvailableMentalGoals.Count} Mental, and {AvailablePhysicalGoals.Count} Physical goals available");

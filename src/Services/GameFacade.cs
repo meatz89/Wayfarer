@@ -320,7 +320,15 @@ public class GameFacade
 
     public bool MoveToSpot(string spotName)
     {
-        return _locationFacade.MoveToSpot(spotName);
+        bool success = _locationFacade.MoveToSpot(spotName);
+
+        // Movement to new location may unlock investigation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
+        if (success)
+        {
+            EvaluateInvestigationDiscovery();
+        }
+
+        return success;
     }
 
     public LocationFacade GetLocationFacade()

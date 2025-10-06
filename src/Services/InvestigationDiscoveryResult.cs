@@ -11,4 +11,6 @@ public class InvestigationDiscoveryResult
     public string IntroNarrative { get; set; }
     public string IntroActionText { get; set; }
     public string ColorCode { get; set; }
+    public string LocationName { get; set; }
+    public string SpotName { get; set; }
 }

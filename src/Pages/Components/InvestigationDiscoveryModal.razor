@@ -12,6 +12,13 @@
 
     <div class="investigation-discovery-section">
         <div class="discovery-narrative">@Data.IntroNarrative</div>
+        @if (!string.IsNullOrEmpty(Data.LocationName))
+        {
+            <div class="location-hint">
+                <div class="hint-icon">→</div>
+                <div class="hint-text">Available at: <span class="location-highlight">@Data.LocationName - @Data.SpotName</span></div>
+            </div>
+        }
     </div>
 
     <div class="action-section discovery-actions">

@@ -366,6 +366,10 @@ public class InvestigationActivity
         // Create intro action as LocationGoal
         LocationGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
 
+        // Find location and spot names for display
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
+        LocationSpot spot = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId)?.Spot;
+
         // Create discovery result for UI modal
         InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
         {
@@ -373,7 +377,9 @@ public class InvestigationActivity
             InvestigationName = investigation.Name,
             IntroNarrative = investigation.IntroAction.IntroNarrative,
             IntroActionText = investigation.IntroAction.ActionText,
-            ColorCode = investigation.ColorCode
+            ColorCode = investigation.ColorCode,
+            LocationName = location?.Name ?? investigation.IntroAction.LocationId,
+            SpotName = spot?.Name ?? investigation.IntroAction.SpotId
         };
         _pendingDiscoveryResult = discoveryResult;
 

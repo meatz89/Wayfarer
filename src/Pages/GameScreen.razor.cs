@@ -795,16 +795,20 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string investigationId = _investigationDiscoveryResult.InvestigationId;
         _investigationDiscoveryResult = null;
 
-        await InvokeAsync(StateHasChanged);
+        // Auto-open journal to show discovered investigation
+        _showJournal = true;
 
-        // Intro action will appear as a LocationGoal in the current location
-        // No additional action needed here - the intro goal was already added when discovered
+        await InvokeAsync(StateHasChanged);
     }
 
     protected async Task DismissInvestigationDiscovery()
     {
         _showInvestigationDiscoveryModal = false;
         _investigationDiscoveryResult = null;
+
+        // Auto-open journal to show discovered investigation
+        _showJournal = true;
+
         await InvokeAsync(StateHasChanged);
     }
 }
