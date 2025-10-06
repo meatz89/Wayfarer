@@ -23,6 +23,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     [Inject] protected GameFacade GameFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
     [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
+    [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
 
     public GameScreenBase()
     {
@@ -419,7 +420,90 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
+        // Check for investigation results before returning to location
+        await CheckForInvestigationResults();
+
         // Special case: allow navigation from conversation when it ends properly
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task StartMentalSession(string engagementTypeId)
+    {
+        Console.WriteLine($"[GameScreen] Starting Mental session: {engagementTypeId}");
+
+        MentalSession = GameFacade.StartMentalSession(engagementTypeId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (MentalSession != null)
+        {
+            CurrentScreen = ScreenMode.Mental;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            Console.WriteLine("[GameScreen] Failed to start Mental session");
+        }
+    }
+
+    public async Task HandleMentalEnd()
+    {
+        Console.WriteLine("[GameScreen] Mental session ended");
+        MentalSession = null;
+
+        // Always refresh UI after mental session ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        // Check for investigation results before returning to location
+        await CheckForInvestigationResults();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task StartPhysicalSession(string engagementTypeId)
+    {
+        Console.WriteLine($"[GameScreen] Starting Physical session: {engagementTypeId}");
+
+        PhysicalSession = GameFacade.StartPhysicalSession(engagementTypeId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (PhysicalSession != null)
+        {
+            CurrentScreen = ScreenMode.Physical;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            Console.WriteLine("[GameScreen] Failed to start Physical session");
+        }
+    }
+
+    public async Task HandlePhysicalEnd()
+    {
+        Console.WriteLine("[GameScreen] Physical session ended");
+        PhysicalSession = null;
+
+        // Always refresh UI after physical session ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        // Check for investigation results before returning to location
+        await CheckForInvestigationResults();
+
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;
         await InvokeAsync(StateHasChanged);
@@ -643,6 +727,48 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         _showJournal = !_showJournal;
         StateHasChanged();
     }
+
+    // Investigation Modals
+    protected bool _showInvestigationProgressModal = false;
+    protected bool _showInvestigationCompleteModal = false;
+    protected InvestigationProgressResult _investigationProgressResult;
+    protected InvestigationCompleteResult _investigationCompleteResult;
+
+    protected async Task CheckForInvestigationResults()
+    {
+        InvestigationProgressResult progressResult = InvestigationActivity.GetAndClearPendingProgressResult();
+        if (progressResult != null)
+        {
+            _investigationProgressResult = progressResult;
+            _showInvestigationProgressModal = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        InvestigationCompleteResult completeResult = InvestigationActivity.GetAndClearPendingCompleteResult();
+        if (completeResult != null)
+        {
+            _investigationCompleteResult = completeResult;
+            _showInvestigationCompleteModal = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected async Task CloseInvestigationProgressModal()
+    {
+        _showInvestigationProgressModal = false;
+        _investigationProgressResult = null;
+        await InvokeAsync(StateHasChanged);
+
+        await CheckForInvestigationResults();
+    }
+
+    protected async Task CloseInvestigationCompleteModal()
+    {
+        _showInvestigationCompleteModal = false;
+        _investigationCompleteResult = null;
+        await InvokeAsync(StateHasChanged);
+    }
 }
 
 public enum ScreenMode
@@ -653,7 +779,9 @@ public enum ScreenMode
     ObligationQueue,
     Travel,
     DeckViewer, // Dev mode screen for viewing NPC decks
-    Obstacle // V2 Travel Obstacles
+    Obstacle, // V2 Travel Obstacles
+    Mental, // Mental tactical engagements (investigation/problem-solving)
+    Physical // Physical tactical engagements (challenges/obstacles)
 }
 
 public class ScreenContext

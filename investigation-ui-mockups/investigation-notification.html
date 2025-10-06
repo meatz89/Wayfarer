@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Investigation Progress</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .notification-container {
+            width: 100%;
+            max-width: 700px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Notification Header */
+        .notification-header {
+            background: linear-gradient(to bottom, #7a8b5a, #9eb87a);
+            color: white;
+            padding: 15px 20px;
+            border-bottom: 2px solid #5c7a4a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            font-size: 28px;
+        }
+
+        .notification-title {
+            flex: 1;
+        }
+
+        .notification-main-title {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .notification-subtitle {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-top: 2px;
+        }
+
+        /* Outcome Section */
+        .outcome-section {
+            background: white;
+            padding: 20px;
+            border-bottom: 2px solid #d4c5a0;
+        }
+
+        .outcome-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3d3429;
+            margin-bottom: 15px;
+        }
+
+        .goal-completed {
+            background: #f4e8d0;
+            border-left: 4px solid #7a8b5a;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+        }
+
+        .completed-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5c7a4a;
+            margin-bottom: 5px;
+        }
+
+        .completed-goal {
+            font-size: 15px;
+            color: #3d3429;
+            font-weight: bold;
+        }
+
+        /* New Leads Section */
+        .new-leads-section {
+            padding: 20px;
+            background: #fff4e6;
+        }
+
+        .new-leads-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .new-leads-icon {
+            font-size: 24px;
+        }
+
+        .new-leads-title {
+            font-size: 16px;
+            color: #8b5a26;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .leads-list {
+            background: white;
+            border: 1px solid #d4a76a;
+            border-radius: 4px;
+            padding: 12px;
+        }
+
+        .lead-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f4e8d0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .lead-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .lead-marker {
+            width: 8px;
+            height: 8px;
+            background: #d4a76a;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .lead-content {
+            flex: 1;
+        }
+
+        .lead-text {
+            font-size: 14px;
+            color: #3d3429;
+            margin-bottom: 4px;
+        }
+
+        .lead-location {
+            font-size: 12px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        /* Updated Progress */
+        .progress-section {
+            padding: 15px 20px;
+            background: #f9f3e9;
+            border-top: 2px solid #d4c5a0;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #7a6250;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e8dcc4;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7a8b5a, #9eb87a);
+            transition: width 0.6s ease-out;
+            animation: progressPulse 0.6s ease-out;
+        }
+
+        @keyframes progressPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #5c4a3a;
+            text-align: center;
+        }
+
+        /* Action Button */
+        .action-section {
+            padding: 20px;
+            background: #e8dcc4;
+            text-align: center;
+        }
+
+        .continue-button {
+            background: #5c4a3a;
+            color: #e8dcc4;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+            font-family: 'Garamond', 'Georgia', serif;
+        }
+
+        .continue-button:hover {
+            background: #7a6250;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-overlay">
+        <div class="notification-container">
+            <!-- Notification Header -->
+            <div class="notification-header">
+                <div class="notification-icon">🔍</div>
+                <div class="notification-title">
+                    <div class="notification-main-title">Investigation Progress</div>
+                    <div class="notification-subtitle">The Waterwheel Mystery</div>
+                </div>
+            </div>
+
+            <!-- Outcome Section -->
+            <div class="outcome-section">
+                <div class="outcome-text">
+                    The gear teeth show clear marks of deliberate damage. This was no accident—someone wanted the mill to stop working. The scoring pattern suggests a chisel or similar tool, wielded with intent to disable but not destroy completely.
+                </div>
+
+                <div class="goal-completed">
+                    <div class="completed-label">Goal Completed</div>
+                    <div class="completed-goal">Examined the broken gear mechanism</div>
+                </div>
+            </div>
+
+            <!-- New Leads Section -->
+            <div class="new-leads-section">
+                <div class="new-leads-header">
+                    <div class="new-leads-icon">✨</div>
+                    <div class="new-leads-title">New Leads Discovered</div>
+                </div>
+
+                <div class="leads-list">
+                    <div class="lead-item">
+                        <div class="lead-marker"></div>
+                        <div class="lead-content">
+                            <div class="lead-text">Compare tool marks with workshop equipment</div>
+                            <div class="lead-location">Available at: Old Mill - Workshop</div>
+                        </div>
+                    </div>
+
+                    <div class="lead-item">
+                        <div class="lead-marker"></div>
+                        <div class="lead-content">
+                            <div class="lead-text">Question Millard about who has access to tools</div>
+                            <div class="lead-location">Available at: Old Mill - Courtyard</div>
+                        </div>
+                    </div>
+
+                    <div class="lead-item">
+                        <div class="lead-marker"></div>
+                        <div class="lead-content">
+                            <div class="lead-text">Search the apprentice's quarters for evidence</div>
+                            <div class="lead-location">Available at: Apprentice's Quarters</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Updated Progress -->
+            <div class="progress-section">
+                <div class="progress-label">Investigation Progress: The Waterwheel Mystery</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+                <div class="progress-text">3 of 5 goals completed</div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="action-section">
+                <button class="continue-button">Continue Investigation</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

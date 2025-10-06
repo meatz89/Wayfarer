@@ -134,7 +134,7 @@ namespace Wayfarer.Pages.Components
                         : $"Challenge incomplete. Progress: {outcome.FinalProgress}, Danger: {outcome.FinalDanger}";
                 }
 
-                await ParentScreen.NavigateToScreen(ScreenMode.Location);
+                await ParentScreen.HandlePhysicalEnd();
             }
             catch (Exception ex)
             {

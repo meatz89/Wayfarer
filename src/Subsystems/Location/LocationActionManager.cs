@@ -42,7 +42,9 @@ public class LocationActionManager
         List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
         allActions.AddRange(dynamicActions);
         allActions.AddRange(generatedActions);
-
+        // Get goal actions from location.Goals (investigation goals)
+        List<LocationActionViewModel> goalActions = GetLocationGoalActions(location, spot);
+        allActions.AddRange(goalActions);
         return allActions;
     }
 
@@ -71,10 +73,12 @@ public class LocationActionManager
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
                 ActionType = action.ActionType ?? action.Id,
-                Title = $"{action.Icon} {action.Name}",
+                Title = action.Name,
                 Detail = action.Description,
                 Cost = GetCostDisplay(action.Cost),
-                IsAvailable = CanPerformAction(action)
+                IsAvailable = CanPerformAction(action),
+                EngagementType = action.EngagementType,
+                InvestigationLabel = null // Investigation system not yet integrated
             };
             actions.Add(viewModel);
         }
@@ -319,6 +323,105 @@ public class LocationActionManager
             "register" => new ActionCost(),
             _ => new ActionCost()
         };
+    }
+
+
+    /// <summary>
+    /// Get display name for tactical system type
+    /// </summary>
+    private string GetEngagementTypeDisplayName(TacticalSystemType systemType)
+    {
+        return systemType switch
+        {
+            TacticalSystemType.Mental => "Mental",
+            TacticalSystemType.Physical => "Physical",
+            TacticalSystemType.Social => "Conversation",
+            _ => systemType.ToString()
+        };
+    }
+    /// <summary>
+    /// Get goal actions from location.Goals (investigation goals)
+    /// </summary>
+    private List<LocationActionViewModel> GetLocationGoalActions(Location location, LocationSpot spot)
+    {
+        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+
+        if (location == null || location.Goals == null || location.Goals.Count == 0)
+            return actions;
+
+        Player player = _gameWorld.GetPlayer();
+        if (player == null) return actions;
+
+        foreach (LocationGoal goal in location.Goals)
+        {
+            if (goal.IsCompleted) continue;
+            if (!string.IsNullOrEmpty(goal.SpotId) && goal.SpotId != spot.SpotID) continue;
+            if (!EvaluateGoalPrerequisites(goal, player, location.Id)) continue;
+
+            string investigationLabel = null;
+            if (!string.IsNullOrEmpty(goal.InvestigationId))
+            {
+                Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == goal.InvestigationId);
+                if (investigation != null)
+                {
+                    investigationLabel = investigation.Name;
+                }
+            }
+
+            LocationActionViewModel action = new LocationActionViewModel
+            {
+                ActionType = $"goal_{goal.Id}",
+                Title = goal.Name,
+                Detail = goal.Description,
+                Cost = "1 segment",
+                EngagementType = GetEngagementTypeDisplayName(goal.SystemType),
+                InvestigationLabel = investigationLabel,
+                IsAvailable = true
+            };
+
+            actions.Add(action);
+        }
+
+        return actions;
+    }
+
+    /// <summary>
+    /// Evaluate goal prerequisites
+    /// </summary>
+    private bool EvaluateGoalPrerequisites(LocationGoal goal, Player player, string currentLocationId)
+    {
+        if (goal.Requirements == null) return true;
+
+        foreach (string knowledgeId in goal.Requirements.RequiredKnowledge)
+        {
+            if (!player.Knowledge.HasKnowledge(knowledgeId))
+                return false;
+        }
+
+        foreach (string equipmentId in goal.Requirements.RequiredEquipment)
+        {
+            if (!player.Inventory.HasItem(equipmentId))
+                return false;
+        }
+
+        if (goal.Requirements.MinimumLocationFamiliarity > 0)
+        {
+            int familiarity = player.GetLocationFamiliarity(currentLocationId);
+            if (familiarity < goal.Requirements.MinimumLocationFamiliarity)
+                return false;
+        }
+
+        foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
+        {
+            LocationGoal requiredGoal = _gameWorld.Locations
+                .SelectMany(loc => loc.Goals)
+                .FirstOrDefault(g => g.Id == requiredGoalId);
+
+            if (requiredGoal == null || !requiredGoal.IsCompleted)
+                return false;
+        }
+
+        return true;
     }
 }
 

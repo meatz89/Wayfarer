@@ -3,65 +3,182 @@
 
 <div class="discovery-journal">
     <div class="journal-header">
-        <h2>Discovery Journal</h2>
+        <h2>📖 Investigation Journal</h2>
         <button class="close-btn" @onclick="CloseJournal">✕</button>
     </div>
 
+    <!-- Tabs -->
+    <div class="journal-tabs">
+        <div class="journal-tab @(CurrentTab == "active" ? "active" : "")" @onclick='() => SelectTab("active")'>
+            Active Investigations
+        </div>
+        <div class="journal-tab @(CurrentTab == "completed" ? "active" : "")" @onclick='() => SelectTab("completed")'>
+            Completed
+        </div>
+        <div class="journal-tab @(CurrentTab == "discoveries" ? "active" : "")" @onclick='() => SelectTab("discoveries")'>
+            Discoveries
+        </div>
+    </div>
+
     <div class="journal-content">
-        <!-- Locations Section -->
-        <div class="journal-section">
-            <h3>Locations Discovered (@GetDiscoveredLocationCount()/@GetTotalLocationCount())</h3>
-            <div class="location-list">
-                @foreach (var location in GetDiscoveredLocations())
+        @if (CurrentTab == "active")
+        {
+            <!-- Active Investigations Tab -->
+            var activeInvestigations = GetActiveInvestigations();
+            @if (activeInvestigations.Any())
+            {
+                @foreach (var activeInv in activeInvestigations)
                 {
-                    <div class="location-entry">
-                        <div class="location-name">@location.Name</div>
-                        <div class="familiarity-bar">
-                            <span class="familiarity-label">Familiarity: @GetFamiliarity(location.Id)/@location.MaxFamiliarity</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: @GetFamiliarityPercent(location.Id, location.MaxFamiliarity)%"></div>
+                    Investigation inv = GetInvestigationById(activeInv.InvestigationId);
+                    if (inv != null)
+                    {
+                        <div class="investigation-card">
+                            <div class="investigation-header-row">
+                                <div class="investigation-title">@inv.Name</div>
+                                <div class="investigation-progress-label">@GetInvestigationProgress(activeInv)/@GetInvestigationTotalGoals(activeInv.InvestigationId) completed</div>
                             </div>
-                        </div>
-                        @if (GetFamiliarity(location.Id) >= location.MaxFamiliarity)
-                        {
-                            <span class="complete-badge">✓ Fully Explored</span>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
 
-        <!-- Observations Section -->
-        <div class="journal-section">
-            <h3>Observations Collected (@GetCollectedObservationCount())</h3>
-            <div class="observation-list">
-                @foreach (var obs in GetCollectedObservations())
-                {
-                    <div class="observation-entry">
-                        <div class="observation-name">@obs</div>
-                    </div>
-                }
-            </div>
-        </div>
+                            <div class="investigation-progress-bar">
+                                <div class="investigation-progress-fill" style="width: @GetInvestigationProgressPercent(activeInv)%"></div>
+                            </div>
 
-        <!-- Routes Section -->
-        <div class="journal-section">
-            <h3>Routes Explored (@GetExploredRouteCount())</h3>
-            <div class="route-list">
-                @foreach (var route in GetKnownRoutes())
-                {
-                    <div class="route-entry">
-                        <div class="route-path">@route.OriginName → @route.DestinationName</div>
-                        <div class="route-familiarity">
-                            Familiarity: @GetRouteFamiliarity(route.Id)/5
-                            @if (GetRouteFamiliarity(route.Id) >= 5)
+                            <div class="goal-list">
+                                @foreach (var completedPhase in GetCompletedPhases(activeInv))
+                                {
+                                    <div class="goal-item">
+                                        <div class="goal-status completed">✓</div>
+                                        <div class="goal-text completed">@completedPhase.Name</div>
+                                    </div>
+                                }
+                                @foreach (var activePhase in GetActivePhases(activeInv))
+                                {
+                                    <div class="goal-item">
+                                        <div class="goal-status active">→</div>
+                                        <div class="goal-text">@activePhase.Name</div>
+                                    </div>
+                                }
+                            </div>
+
+                            @{
+                                var locationCounts = GetRemainingGoalsByLocation(activeInv);
+                            }
+                            @if (locationCounts.Any())
                             {
-                                <span class="mastered-badge">★ Mastered</span>
+                                <div class="location-hints">
+                                    <div class="hints-title">Goals remaining at:</div>
+                                    <div class="location-list">
+                                        @foreach (var kvp in locationCounts)
+                                        {
+                                            <div class="location-tag">
+                                                @kvp.Key
+                                                <span class="location-count">@kvp.Value</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
                             }
                         </div>
-                    </div>
+                    }
                 }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-text">No active investigations</div>
+                </div>
+            }
+        }
+        else if (CurrentTab == "completed")
+        {
+            <!-- Completed Investigations Tab -->
+            var completedIds = GetCompletedInvestigationIds();
+            @if (completedIds.Any())
+            {
+                @foreach (string completedId in completedIds)
+                {
+                    Investigation inv = GetInvestigationById(completedId);
+                    if (inv != null)
+                    {
+                        <div class="investigation-card">
+                            <div class="completed-summary">
+                                <div class="completed-title">@inv.Name</div>
+                                @if (inv.CompletionRewards != null && inv.CompletionRewards.Coins > 0)
+                                {
+                                    <div class="completed-rewards">+@inv.CompletionRewards.Coins coins</div>
+                                }
+                            </div>
+                            <div class="completed-narrative">@inv.CompletionNarrative</div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">✨</div>
+                    <div class="empty-text">No completed investigations yet</div>
+                </div>
+            }
+        }
+        else if (CurrentTab == "discoveries")
+        {
+            <!-- Discoveries Tab (existing content) -->
+            <!-- Locations Section -->
+            <div class="journal-section">
+                <h3>Locations Discovered (@GetDiscoveredLocationCount()/@GetTotalLocationCount())</h3>
+                <div class="location-list">
+                    @foreach (var location in GetDiscoveredLocations())
+                    {
+                        <div class="location-entry">
+                            <div class="location-name">@location.Name</div>
+                            <div class="familiarity-bar">
+                                <span class="familiarity-label">Familiarity: @GetFamiliarity(location.Id)/@location.MaxFamiliarity</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @GetFamiliarityPercent(location.Id, location.MaxFamiliarity)%"></div>
+                                </div>
+                            </div>
+                            @if (GetFamiliarity(location.Id) >= location.MaxFamiliarity)
+                            {
+                                <span class="complete-badge">✓ Fully Explored</span>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
-        </div>
+
+            <!-- Observations Section -->
+            <div class="journal-section">
+                <h3>Observations Collected (@GetCollectedObservationCount())</h3>
+                <div class="observation-list">
+                    @foreach (var obs in GetCollectedObservations())
+                    {
+                        <div class="observation-entry">
+                            <div class="observation-name">@obs</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Routes Section -->
+            <div class="journal-section">
+                <h3>Routes Explored (@GetExploredRouteCount())</h3>
+                <div class="route-list">
+                    @foreach (var route in GetKnownRoutes())
+                    {
+                        <div class="route-entry">
+                            <div class="route-path">@route.OriginName → @route.DestinationName</div>
+                            <div class="route-familiarity">
+                                Familiarity: @GetRouteFamiliarity(route.Id)/5
+                                @if (GetRouteFamiliarity(route.Id) >= 5)
+                                {
+                                    <span class="mastered-badge">★ Mastered</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>

@@ -1448,11 +1448,11 @@ public class GameFacade
     // DELETED: Investigation system - wrong architecture
     // Will be replaced with InvestigationActivity orchestrator in Phase 3
 
-    public List<InvestigationTemplate> GetAvailableInvestigations()
+    public List<Investigation> GetAvailableInvestigations()
     {
         // V3 Investigation: Investigations are now card-based and triggered separately
         // Return all available investigation templates for now (filtering logic TBD)
-        return _gameWorld.InvestigationTemplates.Values.ToList();
+        return _gameWorld.Investigations;
     }
 
     // ========== V2 OBSTACLE SYSTEM (KEPT) ==========

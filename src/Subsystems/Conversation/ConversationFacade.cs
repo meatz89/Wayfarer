@@ -21,6 +21,7 @@ public class ConversationFacade
     private readonly MessageSystem _messageSystem;
     private readonly DisplacementCalculator _displacementCalculator;
     private readonly KnowledgeService _knowledgeService;
+    private readonly InvestigationActivity _investigationActivity;
 
     private ConversationSession _currentSession;
     private ConversationOutcome _lastOutcome;
@@ -39,7 +40,8 @@ public class ConversationFacade
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
         DisplacementCalculator displacementCalculator,
-        KnowledgeService knowledgeService)
+        KnowledgeService knowledgeService,
+        InvestigationActivity investigationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _exchangeHandler = exchangeHandler ?? throw new ArgumentNullException(nameof(exchangeHandler));
@@ -54,6 +56,7 @@ public class ConversationFacade
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
         _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
+        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
 
     /// <summary>
@@ -1582,6 +1585,9 @@ public class ConversationFacade
                 _messageSystem.AddSystemMessage($"Completed request: {goal.Name}", SystemMessageTypes.Success);
 
                 Console.WriteLine($"[HandleSpecialCardEffects] Request card '{card.ConversationCardTemplate.Id}' completed, granted rewards from goal '{goal.Id}'");
+
+                // CHECK FOR INVESTIGATION PROGRESS
+                CheckInvestigationProgress(_currentSession.NPC.ID, _currentSession.RequestId);
             }
 
             // Handle exchange cards (exchanges use separate ExchangeCard system)
@@ -1908,6 +1914,58 @@ public class ConversationFacade
         }
 
         return "";
+    }
+
+    #endregion
+
+    #region Investigation Integration
+
+    /// <summary>
+    /// Check if completed NPC request is part of an active investigation and trigger progress
+    /// </summary>
+    private void CheckInvestigationProgress(string npcId, string requestId)
+    {
+        // Search active investigations for a phase matching this npcId + requestId
+        foreach (ActiveInvestigation activeInv in _gameWorld.InvestigationJournal.ActiveInvestigations)
+        {
+            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == activeInv.InvestigationId);
+            if (investigation == null) continue;
+
+            // Find phase that matches this npcId + requestId
+            InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p =>
+                p.SystemType == TacticalSystemType.Social &&
+                p.NpcId == npcId &&
+                p.RequestId == requestId);
+
+            if (matchingPhase != null)
+            {
+                // This request is part of an investigation - mark goal as complete
+                InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(matchingPhase.Id, investigation.Id);
+
+                // Log progress for UI modal display (UI will handle modal)
+                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
+
+                if (progressResult.NewLeads != null && progressResult.NewLeads.Count > 0)
+                {
+                    foreach (NewLeadInfo lead in progressResult.NewLeads)
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"New lead unlocked: {lead.GoalName} at {lead.LocationName}",
+                            SystemMessageTypes.Info);
+                    }
+                }
+
+                // Check if investigation is now complete
+                InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigation.Id);
+                if (completeResult != null)
+                {
+                    // Investigation complete - UI will display completion modal
+                    Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' COMPLETE!");
+                }
+
+                break; // Found matching investigation, stop searching
+            }
+        }
     }
 
     #endregion

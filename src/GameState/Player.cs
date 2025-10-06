@@ -94,7 +94,8 @@
     public List<string> CollectedObservations { get; set; } = new List<string>();
 
     // V2 Investigation System - Completed investigations tracking
-    public List<string> CompletedInvestigations { get; set; } = new List<string>();
+    // V3 Investigation System - Journal tracks Pending/Active/Completed investigations
+    public InvestigationJournal InvestigationJournal { get; set; } = new InvestigationJournal();
 
     // Persistent injury cards for Physical tactical system
     public List<string> InjuryCardIds { get; set; } = new List<string>();
@@ -440,3 +441,4 @@ public class NPCConnection
         _player.NPCTokens.SetTokenCount(_npcId, _tokenType, newValue);
     }
 }
+

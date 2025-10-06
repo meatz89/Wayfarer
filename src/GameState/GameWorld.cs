@@ -111,7 +111,8 @@ public class GameWorld
     public DialogueTemplates DialogueTemplates { get; set; }
 
     // V2 Card-Based Investigation System
-    public Dictionary<string, InvestigationTemplate> InvestigationTemplates { get; private set; } = new Dictionary<string, InvestigationTemplate>();
+    public List<Investigation> Investigations { get; private set; } = new List<Investigation>();
+    public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
     // DELETED: InvestigationCard - will be replaced with MentalCard in Phase 1
     // public Dictionary<string, InvestigationCard> InvestigationCards { get; private set; } = new Dictionary<string, InvestigationCard>();
 

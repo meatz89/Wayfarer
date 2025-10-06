@@ -80,26 +80,6 @@
         </div>
     }
 
-    <!-- Investigation Progress Modal -->
-    @if (_showInvestigationProgressModal && _investigationProgressResult != null)
-    {
-        <div class="modal-overlay" @onclick="CloseInvestigationProgressModal">
-            <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationProgressModal Data="@_investigationProgressResult" OnClose="CloseInvestigationProgressModal" />
-            </div>
-        </div>
-    }
-
-    <!-- Investigation Complete Modal -->
-    @if (_showInvestigationCompleteModal && _investigationCompleteResult != null)
-    {
-        <div class="modal-overlay" @onclick="CloseInvestigationCompleteModal">
-            <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationCompleteModal Data="@_investigationCompleteResult" OnClose="CloseInvestigationCompleteModal" />
-            </div>
-        </div>
-    }
-
     <!-- Dynamic Content Area -->
     <CascadingValue Value="@this">
         <div @key="@($"{CurrentScreen}_{ContentVersion}")">
@@ -137,14 +117,6 @@
 
                 case ScreenMode.Obstacle:
                     <div>TODO: Implement ObstacleContent</div>
-                    break;
-
-                case ScreenMode.Mental:
-                    <MentalContent />
-                    break;
-
-                case ScreenMode.Physical:
-                    <PhysicalContent />
                     break;
 
                 default:

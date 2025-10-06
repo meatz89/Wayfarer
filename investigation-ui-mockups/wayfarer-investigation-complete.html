@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Investigation Complete</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #2a2520, #1a1612);
+            color: #2c241a;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 820px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #faf4ea;
+            box-shadow: 0 0 60px rgba(0,0,0,0.7);
+        }
+
+        /* Time Header */
+        .time-header {
+            background: linear-gradient(to bottom, #1a1612, #2c241a);
+            color: #e8dcc4;
+            padding: 15px 20px;
+            border-bottom: 3px solid #5c4a3a;
+        }
+
+        .day-display {
+            font-size: 11px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .time-segment-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .period-name {
+            font-size: 18px;
+            color: #d4a76a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .segment-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .segment-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #5c4a3a;
+            transition: all 0.3s;
+        }
+
+        .segment-dot.filled {
+            background: #d4a76a;
+            box-shadow: 0 0 6px rgba(212, 167, 106, 0.5);
+        }
+
+        .segment-dot.empty {
+            background: transparent;
+        }
+
+        .segment-dot.current {
+            border-color: #d4a76a;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .segment-counter {
+            font-size: 13px;
+            color: #8b7355;
+            margin-left: 10px;
+        }
+
+        /* Resources Bar */
+        .resources-bar {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 12px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 25px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-icon {
+            width: 22px;
+            height: 22px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 1px solid #5c4a3a;
+        }
+
+        .resource-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resource-label {
+            font-size: 10px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resource-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .journal-button {
+            background: #5c4a3a;
+            color: #d4a76a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Garamond', 'Georgia', serif;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .journal-button:hover {
+            background: #7a6250;
+            transform: translateY(-1px);
+        }
+
+        /* Completion Notification */
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .completion-box {
+            background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
+            border: 4px solid #d4a76a;
+            border-radius: 8px;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: celebrate 0.6s;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: scale(0.8) rotate(-5deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05) rotate(2deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .completion-header {
+            background: linear-gradient(135deg, #d4a76a, #b88a4a);
+            color: #1a1612;
+            padding: 20px;
+            border-bottom: 3px solid #8b6a3a;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .completion-icon {
+            font-size: 36px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .completion-title-area {
+            flex: 1;
+        }
+
+        .completion-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .completion-title {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .completion-content {
+            padding: 20px;
+        }
+
+        .outcome-narrative {
+            background: white;
+            border-left: 4px solid #d4a76a;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #5c4a3a;
+            font-style: italic;
+        }
+
+        .rewards-section {
+            background: linear-gradient(135deg, #fff9f0, #fef5e7);
+            border: 2px solid #d4a76a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .rewards-title {
+            font-size: 13px;
+            color: #8b6a3a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reward-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .reward-item {
+            background: white;
+            border: 1px solid #e8dcc4;
+            border-radius: 3px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reward-icon {
+            font-size: 20px;
+        }
+
+        .reward-details {
+            flex: 1;
+        }
+
+        .reward-name {
+            font-size: 12px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .reward-value {
+            font-size: 14px;
+            color: #d4a76a;
+            font-weight: bold;
+        }
+
+        .observation-rewards {
+            background: #f0f8ff;
+            border: 2px solid #7a8b9a;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .observation-title {
+            font-size: 13px;
+            color: #3a4a5a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .observation-card {
+            background: white;
+            border: 1px solid #c4d4e4;
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .observation-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .observation-card-title {
+            font-size: 13px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .observation-card-effect {
+            font-size: 11px;
+            color: #7a6250;
+            font-style: italic;
+        }
+
+        .continue-button {
+            background: linear-gradient(135deg, #d4a76a, #b88a4a);
+            color: #1a1612;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Garamond', 'Georgia', serif;
+            font-size: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .continue-button:hover {
+            background: linear-gradient(135deg, #b88a4a, #a07440);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Location Header */
+        .location-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            border-bottom: 2px solid #a68b6f;
+            padding: 15px 20px;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .location-name {
+            font-size: 24px;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .location-properties {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .property-tag {
+            font-size: 11px;
+            color: #7a6250;
+            padding: 3px 8px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Current Spot */
+        .current-spot {
+            background: #e8dcc4;
+            padding: 12px 20px;
+            border-bottom: 2px solid #c4a684;
+        }
+
+        .spot-name {
+            font-size: 16px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin: 20px 0 12px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #d4c5a0;
+        }
+
+        /* NPC Card */
+        .npc-card {
+            background: #f9f3e9;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .npc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .npc-name {
+            font-size: 16px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .npc-description {
+            font-size: 12px;
+            color: #7a6250;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .npc-state-change {
+            background: #fff9f0;
+            border: 1px solid #d4a76a;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 11px;
+            color: #8b6a3a;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        /* Action Items */
+        .action-item {
+            background: white;
+            border: 2px solid #d4c5a0;
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-item:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(3px);
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .action-icon {
+            font-size: 16px;
+        }
+
+        .action-text {
+            flex: 1;
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: 500;
+        }
+
+        .action-time {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #2c241a;
+            color: #d4a76a;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Completion Notification Overlay -->
+        <div class="notification-overlay" id="notification">
+            <div class="completion-box">
+                <div class="completion-header">
+                    <span class="completion-icon">✨</span>
+                    <div class="completion-title-area">
+                        <div class="completion-label">Investigation Solved</div>
+                        <div class="completion-title">The Waterwheel Mystery</div>
+                    </div>
+                </div>
+                <div class="completion-content">
+                    <div class="outcome-narrative">
+                        You present the evidence to Miller Aldric—the damaged gears bearing distinctive tool marks that match those in Petra's workshop, the metal filings that prove premeditation, and the timing that reveals opportunity. The apprentice confesses, tears streaming down her face. She sabotaged the wheel to delay a grain shipment to a rival mill where her brother works, hoping to secure his position. Aldric is furious but merciful, offering restitution work rather than involving the magistrate. The wheel will be repaired by week's end.
+                    </div>
+                    
+                    <div class="rewards-section">
+                        <div class="rewards-title">
+                            <span>💎</span>
+                            <span>Rewards Earned</span>
+                        </div>
+                        <div class="reward-grid">
+                            <div class="reward-item">
+                                <span class="reward-icon">💰</span>
+                                <div class="reward-details">
+                                    <div class="reward-name">Payment</div>
+                                    <div class="reward-value">+25 Coins</div>
+                                </div>
+                            </div>
+                            <div class="reward-item">
+                                <span class="reward-icon">⭐</span>
+                                <div class="reward-details">
+                                    <div class="reward-name">Reputation</div>
+                                    <div class="reward-value">+2 with Aldric</div>
+                                </div>
+                            </div>
+                            <div class="reward-item">
+                                <span class="reward-icon">🧩</span>
+                                <div class="reward-details">
+                                    <div class="reward-name">Deduction XP</div>
+                                    <div class="reward-value">+15 XP</div>
+                                </div>
+                            </div>
+                            <div class="reward-item">
+                                <span class="reward-icon">💬</span>
+                                <div class="reward-details">
+                                    <div class="reward-name">Empathy XP</div>
+                                    <div class="reward-value">+10 XP</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="observation-rewards">
+                        <div class="observation-title">
+                            <span>🎴</span>
+                            <span>Observation Cards Unlocked</span>
+                        </div>
+                        <div class="observation-card">
+                            <div class="observation-card-title">Sabotage at the Mill</div>
+                            <div class="observation-card-effect">Can use in conversations about industrial sabotage, family loyalty, or mercy vs justice</div>
+                        </div>
+                        <div class="observation-card">
+                            <div class="observation-card-title">Tool Mark Analysis</div>
+                            <div class="observation-card-effect">Can use when investigating mechanical damage or identifying craftsmen</div>
+                        </div>
+                    </div>
+
+                    <button class="continue-button" onclick="closeNotification()">Continue Your Journey</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Header -->
+        <div class="time-header">
+            <div class="day-display">Wednesday - Day 4 of Journey</div>
+            <div class="time-segment-display">
+                <div class="period-name">AFTERNOON</div>
+                <div class="segment-dots">
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot current"></div>
+                </div>
+                <div class="segment-counter">[3/4]</div>
+            </div>
+        </div>
+
+        <!-- Resources Bar -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Health</div>
+                        <div class="resource-value">10/10</div>
+                    </div>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">⚡</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Stamina</div>
+                        <div class="resource-value">6/12</div>
+                    </div>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Coins</div>
+                        <div class="resource-value">40</div>
+                    </div>
+                </div>
+            </div>
+            <button class="journal-button">📖 Journal</button>
+        </div>
+
+        <!-- Location Header -->
+        <div class="location-header">
+            <div class="location-path">
+                <span>Millbrook</span>
+                <span>→</span>
+                <span>Miller's District</span>
+                <span>→</span>
+                <span>Old Mill</span>
+                <span>→</span>
+                <span>Courtyard</span>
+            </div>
+            <div class="location-name">Old Mill</div>
+            <div class="location-properties">
+                <div class="property-tag">Quiet</div>
+                <div class="property-tag">Industrial</div>
+            </div>
+        </div>
+
+        <!-- Current Spot -->
+        <div class="current-spot">
+            <div class="spot-name">Courtyard</div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- NPCs Present -->
+            <div class="section-title">NPCs Present</div>
+
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Miller Aldric</div>
+                </div>
+                <div class="npc-description">The mill owner, relieved but exhausted from the ordeal</div>
+                <div class="npc-state-change">
+                    ✨ Aldric now trusts you with sensitive matters and speaks of you favorably to other merchants
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Discuss repair plans</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Ask about other work opportunities</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Petra the Apprentice</div>
+                </div>
+                <div class="npc-description">Ashamed but determined to make amends through hard work</div>
+                <div class="npc-state-change">
+                    ✨ Petra is grateful you advocated for mercy and will remember this kindness
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Offer words of encouragement</span>
+                        <span class="action-time">FREE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Here -->
+            <div class="section-title">Actions Here</div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">⚔️</span>
+                    <span class="action-text">Try the cellar door</span>
+                    <span class="action-time">1 seg</span>
+                </div>
+            </div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">⚡</span>
+                    <span class="action-text">Rest on the bench</span>
+                    <span class="action-time">FREE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeNotification() {
+            document.getElementById('notification').style.display = 'none';
+        }
+
+        // Close notification when clicking outside
+        document.getElementById('notification').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNotification();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -69,7 +69,10 @@
       "Bash(git log:*)",
       "Bash(rm:*)",
       "Bash(xargs:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6240\" dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6240\" dotnet run --no-build)",
+      "Bash(cat:*)",
+      "Bash(dos2unix:*)",
+      "Bash(unix2dos:*)"
     ],
     "deny": [],
     "ask": []

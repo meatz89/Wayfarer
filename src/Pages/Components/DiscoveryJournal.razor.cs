@@ -9,9 +9,17 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameWorld GameWorld { get; set; } = null!;
         [Parameter] public EventCallback OnClose { get; set; }
 
+        protected string CurrentTab { get; set; } = "active";
+
         protected async Task CloseJournal()
         {
             await OnClose.InvokeAsync();
+        }
+
+        protected void SelectTab(string tabName)
+        {
+            CurrentTab = tabName;
+            StateHasChanged();
         }
 
         protected int GetDiscoveredLocationCount()
@@ -85,6 +93,79 @@ namespace Wayfarer.Pages.Components
         protected int GetRouteFamiliarity(string routeId)
         {
             return GameWorld.GetPlayer().GetRouteFamiliarity(routeId);
+        }
+
+        protected List<ActiveInvestigation> GetActiveInvestigations()
+        {
+            return GameWorld.InvestigationJournal.ActiveInvestigations.ToList();
+        }
+
+        protected List<string> GetCompletedInvestigationIds()
+        {
+            return GameWorld.InvestigationJournal.CompletedInvestigationIds.ToList();
+        }
+
+        protected Investigation GetInvestigationById(string investigationId)
+        {
+            return GameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        }
+
+        protected int GetInvestigationProgress(ActiveInvestigation activeInv)
+        {
+            return activeInv.CompletedGoalIds.Count;
+        }
+
+        protected int GetInvestigationTotalGoals(string investigationId)
+        {
+            Investigation inv = GetInvestigationById(investigationId);
+            return inv?.PhaseDefinitions.Count ?? 0;
+        }
+
+        protected double GetInvestigationProgressPercent(ActiveInvestigation activeInv)
+        {
+            int total = GetInvestigationTotalGoals(activeInv.InvestigationId);
+            if (total == 0) return 0;
+            return ((double)activeInv.CompletedGoalIds.Count / total) * 100.0;
+        }
+
+        protected List<InvestigationPhaseDefinition> GetCompletedPhases(ActiveInvestigation activeInv)
+        {
+            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
+            if (inv == null) return new List<InvestigationPhaseDefinition>();
+
+            return inv.PhaseDefinitions
+                .Where(p => activeInv.CompletedGoalIds.Contains(p.Id))
+                .ToList();
+        }
+
+        protected List<InvestigationPhaseDefinition> GetActivePhases(ActiveInvestigation activeInv)
+        {
+            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
+            if (inv == null) return new List<InvestigationPhaseDefinition>();
+
+            return inv.PhaseDefinitions
+                .Where(p => !activeInv.CompletedGoalIds.Contains(p.Id))
+                .ToList();
+        }
+
+        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveInvestigation activeInv)
+        {
+            Dictionary<string, int> locationCounts = new Dictionary<string, int>();
+            List<InvestigationPhaseDefinition> activePhases = GetActivePhases(activeInv);
+
+            foreach (InvestigationPhaseDefinition phase in activePhases)
+            {
+                Location loc = GameWorld.Locations.FirstOrDefault(l => l.Id == phase.LocationId);
+                if (loc != null)
+                {
+                    string locationKey = $"{loc.Name} - {phase.SpotId}";
+                    if (!locationCounts.ContainsKey(locationKey))
+                        locationCounts[locationKey] = 0;
+                    locationCounts[locationKey]++;
+                }
+            }
+
+            return locationCounts;
         }
     }
 

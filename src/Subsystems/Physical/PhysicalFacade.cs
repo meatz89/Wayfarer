@@ -10,22 +10,27 @@ public class PhysicalFacade
     private readonly PhysicalNarrativeService _narrativeService;
     private readonly PhysicalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
+    private readonly InvestigationActivity _investigationActivity;
 
     private PhysicalSession _currentSession;
     private PhysicalSessionDeck _sessionDeck;
+    private string _currentGoalId; // Track which investigation goal this session is for
+    private string _currentInvestigationId; // Track which investigation this goal belongs to
 
     public PhysicalFacade(
         GameWorld gameWorld,
         PhysicalEffectResolver effectResolver,
         PhysicalNarrativeService narrativeService,
         PhysicalDeckBuilder deckBuilder,
-        TimeManager timeManager)
+        TimeManager timeManager,
+        InvestigationActivity investigationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
 
     public PhysicalSession GetCurrentSession() => _currentSession;
@@ -33,12 +38,16 @@ public class PhysicalFacade
     public List<CardInstance> GetHand() => _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
     public PhysicalDeckBuilder GetDeckBuilder() => _deckBuilder;
 
-    public PhysicalSession StartSession(PhysicalEngagementType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId)
+    public PhysicalSession StartSession(PhysicalEngagementType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
+
+        // Track investigation context
+        _currentGoalId = goalId;
+        _currentInvestigationId = investigationId;
 
         Player player = _gameWorld.GetPlayer();
 
@@ -262,23 +271,35 @@ public class PhysicalFacade
             return null;
         }
 
+        bool success = _currentSession.CurrentBreakthrough >= 20;
+
         PhysicalOutcome outcome = new PhysicalOutcome
         {
-            Success = _currentSession.CurrentBreakthrough >= 20,
+            Success = success,
             FinalProgress = _currentSession.CurrentBreakthrough,
             FinalDanger = _currentSession.CurrentDanger,
             EscapeCost = null
         };
 
+        // Check for investigation progress if this was an investigation goal
+        if (success && !string.IsNullOrEmpty(_currentGoalId) && !string.IsNullOrEmpty(_currentInvestigationId))
+        {
+            CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
+        }
+
         // Award Reputation on success (Reputation system)
         // Physical success builds reputation affecting future Social and Physical engagements
-        if (outcome.Success)
+        if (success)
         {
             Player player = _gameWorld.GetPlayer();
             int reputationGain = _currentSession.CurrentBreakthrough >= 20 ? 1 : 0;
             player.Reputation += reputationGain;
             Console.WriteLine($"[PhysicalFacade] Awarded {reputationGain} reputation for victory (total: {player.Reputation})");
         }
+
+        // Clear investigation context
+        _currentGoalId = null;
+        _currentInvestigationId = null;
 
         _currentSession = null;
         _sessionDeck?.Clear();
@@ -303,5 +324,24 @@ public class PhysicalFacade
         player.InjuryCardIds.Add("injury_physical_moderate");
 
         Console.WriteLine($"[PhysicalFacade] DANGER THRESHOLD: Took {healthDamage} health and {staminaDamage} stamina damage, gained injury card");
+    }
+
+    /// <summary>
+    /// Check for investigation progress when Physical goal completes
+    /// </summary>
+    private void CheckInvestigationProgress(string goalId, string investigationId)
+    {
+        InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
+
+        // Log progress for UI modal display (UI will handle modal)
+        Console.WriteLine($"[PhysicalFacade] Investigation progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
+
+        // Check if investigation is now complete
+        InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
+        if (completeResult != null)
+        {
+            // Investigation complete - UI will display completion modal
+            Console.WriteLine($"[PhysicalFacade] Investigation '{completeResult.InvestigationName}' COMPLETE!");
+        }
     }
 }

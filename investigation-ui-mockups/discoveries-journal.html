@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Investigation Discoveries</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #3d3429, #2e2720);
+            color: #2c241a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .journal-container {
+            width: 100%;
+            max-width: 900px;
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Journal Header */
+        .journal-header {
+            background: linear-gradient(to bottom, #2c241a, #3d3429);
+            color: #e8dcc4;
+            padding: 15px 20px;
+            border-bottom: 2px solid #5c4a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .journal-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-button {
+            background: #5c4a3a;
+            color: #e8dcc4;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .close-button:hover {
+            background: #7a6250;
+        }
+
+        /* Tabs */
+        .tabs {
+            background: #d4c5a0;
+            display: flex;
+            border-bottom: 2px solid #a68b6f;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5c4a3a;
+            border-right: 1px solid #a68b6f;
+            transition: all 0.2s;
+        }
+
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab.active {
+            background: #e8dcc4;
+            color: #2c241a;
+            font-weight: bold;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e0d5b8;
+        }
+
+        /* Content Area */
+        .journal-content {
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .discoveries-intro {
+            background: #fff4e6;
+            border: 1px solid #d4a76a;
+            border-radius: 4px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #8b5a26;
+            line-height: 1.5;
+        }
+
+        /* Investigation Group */
+        .investigation-group {
+            margin-bottom: 25px;
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #d4c5a0;
+        }
+
+        .group-icon {
+            font-size: 18px;
+        }
+
+        .group-title {
+            font-size: 16px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .group-count {
+            background: #d4c5a0;
+            color: #5c4a3a;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+        /* Observation Card */
+        .observation-card {
+            background: white;
+            border: 2px solid #d4c5a0;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .observation-card:hover {
+            border-color: #a68b6f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .observation-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #3d3429;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .card-type {
+            background: #e8dcc4;
+            color: #5c4a3a;
+            padding: 3px 8px;
+            border-radius: 2px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-description {
+            font-size: 13px;
+            color: #5c4a3a;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid #f4e8d0;
+        }
+
+        .card-usage {
+            font-size: 11px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .card-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #7a6250;
+        }
+
+        .stat-badge {
+            background: #f4e8d0;
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        /* Special Card Types */
+        .observation-card.knowledge {
+            border-color: #7a8b5a;
+        }
+
+        .observation-card.insight {
+            border-color: #8b7a5c;
+        }
+
+        .observation-card.connection {
+            border-color: #7a5c8b;
+        }
+
+        .card-type.knowledge {
+            background: #7a8b5a;
+            color: white;
+        }
+
+        .card-type.insight {
+            background: #8b7a5c;
+            color: white;
+        }
+
+        .card-type.connection {
+            background: #7a5c8b;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="journal-container">
+        <!-- Journal Header -->
+        <div class="journal-header">
+            <div class="journal-title">
+                📖 Investigation Journal
+            </div>
+            <button class="close-button">Close</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab">Active Investigations</div>
+            <div class="tab">Completed</div>
+            <div class="tab active">Discoveries</div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="journal-content">
+            <div class="discoveries-intro">
+                💡 These observation cards represent knowledge and insights gained from your investigations. Use them in conversations with NPCs to unlock new dialogue options, gain trust, or progress their personal goals.
+            </div>
+
+            <!-- Investigation Group 1 -->
+            <div class="investigation-group">
+                <div class="group-header">
+                    <div class="group-icon">🔧</div>
+                    <div class="group-title">The Waterwheel Mystery</div>
+                    <div class="group-count">3 cards</div>
+                </div>
+
+                <div class="observation-card knowledge">
+                    <div class="card-header">
+                        <div class="card-title">Mill Mechanics and Sabotage Patterns</div>
+                        <div class="card-type knowledge">Knowledge</div>
+                    </div>
+                    <div class="card-description">
+                        You understand how waterwheel mechanisms function and can recognize deliberate damage versus natural wear. The scoring patterns on gears reveal intent and tool types used.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Can be shared with engineers, mill workers, or investigators</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +2 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="observation-card insight">
+                    <div class="card-header">
+                        <div class="card-title">Labor Dispute Recognition</div>
+                        <div class="card-type insight">Insight</div>
+                    </div>
+                    <div class="card-description">
+                        Experience mediating conflicts between employers and workers teaches you to recognize simmering resentments before they escalate. Unpaid wages often manifest as subtle sabotage.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Useful when discussing workplace tensions or disputes</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +3 Initiative</span>
+                            <span class="stat-badge">📈 +1 Momentum</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="observation-card connection">
+                    <div class="card-header">
+                        <div class="card-title">Millard's Trust</div>
+                        <div class="card-type connection">Connection</div>
+                    </div>
+                    <div class="card-description">
+                        Millard views you as someone who solved his crisis fairly. He'll speak openly about mill operations and local workers, and may share information about other town matters.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Effective with Millard and those who respect his judgment</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +4 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investigation Group 2 -->
+            <div class="investigation-group">
+                <div class="group-header">
+                    <div class="group-icon">🏺</div>
+                    <div class="group-title">The Lost Heirloom</div>
+                    <div class="group-count">2 cards</div>
+                </div>
+
+                <div class="observation-card knowledge">
+                    <div class="card-header">
+                        <div class="card-title">Town Founding History</div>
+                        <div class="card-type knowledge">Knowledge</div>
+                    </div>
+                    <div class="card-description">
+                        You learned about the three founding families, the old trade routes, and how the town grew around the church. This historical context helps you understand current social dynamics and family relationships.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Valuable when discussing town history, family lineages, or property</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +2 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="observation-card connection">
+                    <div class="card-header">
+                        <div class="card-title">Family Gratitude</div>
+                        <div class="card-type connection">Connection</div>
+                    </div>
+                    <div class="card-description">
+                        The family whose heirloom you recovered holds significant social standing. Their endorsement carries weight in town matters and opens doors with the merchant class.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Use with merchants, town council, or social elite</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +3 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investigation Group 3 -->
+            <div class="investigation-group">
+                <div class="group-header">
+                    <div class="group-icon">💎</div>
+                    <div class="group-title">Strange Lights at Night</div>
+                    <div class="group-count">1 card</div>
+                </div>
+
+                <div class="observation-card knowledge">
+                    <div class="card-header">
+                        <div class="card-title">Mineral Deposits and Mining</div>
+                        <div class="card-type knowledge">Knowledge</div>
+                    </div>
+                    <div class="card-description">
+                        Your investigation taught you to recognize iron ore deposits and understand basic prospecting techniques. You can assess whether land might contain valuable minerals based on geological markers.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Useful with prospectors, landowners, or resource discussions</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +2 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investigation Group 4 -->
+            <div class="investigation-group">
+                <div class="group-header">
+                    <div class="group-icon">🌿</div>
+                    <div class="group-title">The Poisoned Well</div>
+                    <div class="group-count">2 cards</div>
+                </div>
+
+                <div class="observation-card knowledge">
+                    <div class="card-header">
+                        <div class="card-title">Water Quality Assessment</div>
+                        <div class="card-type knowledge">Knowledge</div>
+                    </div>
+                    <div class="card-description">
+                        You can now recognize signs of water contamination through smell, taste, and visual inspection. Understanding of upstream pollution sources and natural filtration helps identify water safety issues.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Relevant for health concerns, settlement planning, or environmental topics</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +2 Initiative</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="observation-card insight">
+                    <div class="card-header">
+                        <div class="card-title">Public Health Crisis Management</div>
+                        <div class="card-type insight">Insight</div>
+                    </div>
+                    <div class="card-description">
+                        Experience coordinating a town's response to contaminated water taught you how communities handle health emergencies. You understand the balance between panic prevention and necessary action.
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-usage">Useful in crisis situations or when advising on public welfare</div>
+                        <div class="card-stats">
+                            <span class="stat-badge">💬 +3 Initiative</span>
+                            <span class="stat-badge">📈 +1 Momentum</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

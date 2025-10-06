@@ -19,6 +19,16 @@ public class LocationGoal
     /// Which engagement type this goal spawns (ID within SystemType collection)
     /// </summary>
     public string EngagementTypeId { get; set; }
+    
+    /// <summary>
+    /// Spot ID where this goal is available (null = available at all spots in location)
+    /// </summary>
+    public string SpotId { get; set; }
+    /// <summary>
+    /// Investigation ID for UI grouping and label display
+    /// If set, this goal is part of an investigation
+    /// </summary>
+    public string InvestigationId { get; set; }
 
     /// <summary>
     /// Prerequisites for this goal to be available

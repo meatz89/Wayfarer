@@ -45,4 +45,9 @@ public class ConversationOption
     /// Whether this is a special type of card (Letter, Promise, etc.)
     /// </summary>
     public CardType CardType { get; set; }
+    
+    /// <summary>
+    /// Investigation ID if this conversation option is part of an active investigation
+    /// </summary>
+    public string InvestigationId { get; set; }
 }

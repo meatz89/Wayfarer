@@ -135,3 +135,227 @@
     max-height: 90vh;
     overflow: hidden;
 }
+
+/* Investigation Journal Tabs */
+.journal-tabs {
+    display: flex;
+    background: #2a2419;
+    border-bottom: 2px solid #7a6250;
+    margin: -24px -24px 24px -24px;
+}
+
+.journal-tab {
+    flex: 1;
+    padding: 12px 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b7355;
+    border-right: 1px solid #3a3020;
+    transition: all 0.2s;
+}
+
+.journal-tab:last-child {
+    border-right: none;
+}
+
+.journal-tab.active {
+    background: #3a3020;
+    color: #f4e4c1;
+    font-weight: bold;
+}
+
+.journal-tab:hover:not(.active) {
+    background: #3a3020;
+    color: #d4c4a1;
+}
+
+/* Investigation Cards */
+.investigation-card {
+    background: #2a2419;
+    border: 2px solid #3a3020;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.investigation-card:last-child {
+    margin-bottom: 0;
+}
+
+.investigation-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #3a3020;
+}
+
+.investigation-title {
+    font-size: 18px;
+    color: #f4e4c1;
+    font-weight: bold;
+}
+
+.investigation-progress-label {
+    font-size: 13px;
+    color: #8b7355;
+    background: #1a1410;
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+
+.investigation-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #1a1410;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.investigation-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #7a8b5a, #9eb87a);
+    transition: width 0.3s;
+}
+
+/* Goal List */
+.goal-list {
+    margin-bottom: 15px;
+}
+
+.goal-item {
+    padding: 8px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.goal-status {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #3a3020;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    background: #1a1410;
+}
+
+.goal-status.completed {
+    background: #7a8b5a;
+    border-color: #7a8b5a;
+    color: white;
+}
+
+.goal-status.active {
+    background: #d4a76a;
+    border-color: #d4a76a;
+    color: white;
+}
+
+.goal-text {
+    flex: 1;
+    font-size: 14px;
+    color: #d4c4a1;
+}
+
+.goal-text.completed {
+    color: #8b7355;
+    text-decoration: line-through;
+}
+
+/* Location Hints */
+.location-hints {
+    background: #1a1410;
+    border: 1px solid #3a3020;
+    border-radius: 3px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.hints-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b7355;
+    margin-bottom: 6px;
+}
+
+.location-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.location-tag {
+    font-size: 12px;
+    padding: 4px 8px;
+    background: #2a2419;
+    border: 1px solid #3a3020;
+    border-radius: 3px;
+    color: #d4c4a1;
+}
+
+.location-count {
+    background: #7a6250;
+    color: #f4e4c1;
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-left: 4px;
+    font-size: 10px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8b7355;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.empty-text {
+    font-size: 16px;
+    font-style: italic;
+}
+
+/* Completed Investigation Styles */
+.completed-summary {
+    background: #2a2419;
+    border: 1px solid #3a3020;
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.completed-title {
+    font-size: 15px;
+    color: #f4e4c1;
+    font-weight: bold;
+}
+
+.completed-rewards {
+    font-size: 12px;
+    color: #d4a76a;
+}
+
+.completed-narrative {
+    font-size: 14px;
+    color: #d4c4a1;
+    line-height: 1.6;
+    font-style: italic;
+}

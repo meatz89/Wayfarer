@@ -1,303 +1,310 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Strategic orchestrator for investigations - NOT a fourth tactical system
-/// Spawns tactical sessions (Social, Mental, Physical) across multiple phases
+/// Investigation service - provides operations for investigation lifecycle
+/// STATE-LESS: All state lives in GameWorld.InvestigationJournal
+/// Does NOT spawn tactical sessions - creates LocationGoals that existing goal system evaluates
 /// </summary>
 public class InvestigationActivity
 {
     private readonly GameWorld _gameWorld;
-    private readonly ConversationFacade _conversationFacade;
-    private readonly MentalFacade _mentalFacade;
-    private readonly PhysicalFacade _physicalFacade;
     private readonly MessageSystem _messageSystem;
 
-    // Current investigation state
-    private InvestigationTemplate _investigation;
-    private InvestigationProgress _progress;
-    private string _currentSessionId;
-    private string _locationId;  // Location where investigation is taking place
+    private InvestigationProgressResult _pendingProgressResult;
+    private InvestigationCompleteResult _pendingCompleteResult;
 
     public InvestigationActivity(
         GameWorld gameWorld,
-        ConversationFacade conversationFacade,
-        MentalFacade mentalFacade,
-        PhysicalFacade physicalFacade,
         MessageSystem messageSystem)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _conversationFacade = conversationFacade ?? throw new ArgumentNullException(nameof(conversationFacade));
-        _mentalFacade = mentalFacade ?? throw new ArgumentNullException(nameof(mentalFacade));
-        _physicalFacade = physicalFacade ?? throw new ArgumentNullException(nameof(physicalFacade));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
 
     /// <summary>
-    /// Start investigation - begins first phase
+    /// Get and clear pending progress result for UI modal display
+    /// Returns null if no result pending
     /// </summary>
-    public async Task StartInvestigation(string investigationId, string locationId)
+    public InvestigationProgressResult GetAndClearPendingProgressResult()
+    {
+        InvestigationProgressResult result = _pendingProgressResult;
+        _pendingProgressResult = null;
+        return result;
+    }
+
+    /// <summary>
+    /// Get and clear pending completion result for UI modal display
+    /// Returns null if no result pending
+    /// </summary>
+    public InvestigationCompleteResult GetAndClearPendingCompleteResult()
+    {
+        InvestigationCompleteResult result = _pendingCompleteResult;
+        _pendingCompleteResult = null;
+        return result;
+    }
+
+    /// <summary>
+    /// Activate investigation - creates LocationGoals from PhaseDefinitions
+    /// Moves investigation from Pending → Active in GameWorld.InvestigationJournal
+    /// </summary>
+    public List<LocationGoal> ActivateInvestigation(string investigationId)
     {
         // Load investigation template from GameWorld
-        _investigation = _gameWorld.InvestigationTemplates.TryGetValue(investigationId, out InvestigationTemplate template)
-            ? template
-            : null;
-
-        if (_investigation == null)
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
         {
-            throw new ArgumentException($"Investigation template '{investigationId}' not found in GameWorld");
+            throw new ArgumentException($"Investigation '{investigationId}' not found in GameWorld");
         }
 
-        _locationId = locationId;
+        // Remove from pending
+        _gameWorld.InvestigationJournal.PendingInvestigationIds.Remove(investigationId);
 
-        // Initialize progress tracker
-        _progress = new InvestigationProgress
+        // Add to active
+        ActiveInvestigation activeInvestigation = new ActiveInvestigation
         {
             InvestigationId = investigationId,
-            CurrentPhaseIndex = 0,
-            CompletedPhases = new System.Collections.Generic.List<int>(),
-            Discoveries = new System.Collections.Generic.Dictionary<DiscoveryType, System.Collections.Generic.List<string>>()
+            CompletedGoalIds = new List<string>()
+        };
+        _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
+
+        // Create goals from phase definitions
+        List<LocationGoal> createdGoals = new List<LocationGoal>();
+        foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
+        {
+            // Check if prerequisites met (initially only phases with no requirements)
+            if (ArePrerequisitesMet(phaseDef.Requirements))
+            {
+                LocationGoal goal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
+                createdGoals.Add(goal);
+            }
+        }
+
+        _messageSystem.AddSystemMessage(
+            $"Investigation activated: {investigation.Name}",
+            SystemMessageTypes.Info);
+
+        return createdGoals;
+    }
+
+    /// <summary>
+    /// Mark goal complete - checks for investigation progress
+    /// Returns InvestigationProgressResult for UI modal display
+    /// </summary>
+    public InvestigationProgressResult CompleteGoal(string goalId, string investigationId)
+    {
+        // Find active investigation
+        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
+            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+
+        if (activeInv == null)
+        {
+            throw new ArgumentException($"Investigation '{investigationId}' is not active");
+        }
+
+        // Load investigation template
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
+        {
+            throw new ArgumentException($"Investigation '{investigationId}' not found");
+        }
+
+        // Find completed phase definition
+        InvestigationPhaseDefinition completedPhase = investigation.PhaseDefinitions
+            .FirstOrDefault(p => p.Id == goalId);
+
+        if (completedPhase == null)
+        {
+            throw new ArgumentException($"Phase '{goalId}' not found in investigation '{investigationId}'");
+        }
+
+        // Mark goal as complete
+        if (!activeInv.CompletedGoalIds.Contains(goalId))
+        {
+            activeInv.CompletedGoalIds.Add(goalId);
+        }
+
+        // Check for newly unlocked goals
+        List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
+        foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
+        {
+            // Skip if already completed or already has goal created
+            if (activeInv.CompletedGoalIds.Contains(phaseDef.Id))
+                continue;
+
+            // Check if this phase's prerequisites are now met
+            if (ArePrerequisitesMet(phaseDef.Requirements, activeInv.CompletedGoalIds))
+            {
+                // Create new goal for newly unlocked phase
+                LocationGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
+
+                // Add to GameWorld locations
+                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == phaseDef.LocationId);
+                if (location != null)
+                {
+                    newLeads.Add(new NewLeadInfo
+                    {
+                        GoalName = phaseDef.Name,
+                        LocationName = location.Name,
+                        SpotName = phaseDef.SpotId
+                    });
+                }
+            }
+        }
+
+        // Build result for UI modal
+        InvestigationProgressResult result = new InvestigationProgressResult
+        {
+            InvestigationId = investigationId,
+            InvestigationName = investigation.Name,
+            CompletedGoalName = completedPhase.Name,
+            OutcomeNarrative = completedPhase.OutcomeNarrative,
+            NewLeads = newLeads,
+            CompletedGoalCount = activeInv.CompletedGoalIds.Count,
+            TotalGoalCount = investigation.PhaseDefinitions.Count
         };
 
-        // Start first phase
-        await StartCurrentPhase();
+        _pendingProgressResult = result;
 
-        _messageSystem.AddSystemMessage(
-            $"Investigation started: {_investigation.Name}",
-            SystemMessageTypes.Info);
+        return result;
     }
 
     /// <summary>
-    /// Start current phase based on progress.CurrentPhaseIndex
+    /// Check if investigation is complete - all goals done
+    /// Returns InvestigationCompleteResult if complete, null otherwise
     /// </summary>
-    private async Task StartCurrentPhase()
+    public InvestigationCompleteResult CheckInvestigationCompletion(string investigationId)
     {
-        if (_progress.CurrentPhaseIndex >= _investigation.Phases.Count)
+        // Find active investigation
+        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
+            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+
+        if (activeInv == null)
         {
-            throw new InvalidOperationException("No more phases to start - investigation should be complete");
+            return null; // Not active
         }
 
-        InvestigationPhase phase = _investigation.Phases[_progress.CurrentPhaseIndex];
+        // Load investigation template
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
+        {
+            return null;
+        }
+
+        // Check if all phases complete
+        if (activeInv.CompletedGoalIds.Count < investigation.PhaseDefinitions.Count)
+        {
+            return null; // Not yet complete
+        }
+
+        // Move from Active → Completed
+        _gameWorld.InvestigationJournal.ActiveInvestigations.Remove(activeInv);
+        _gameWorld.InvestigationJournal.CompletedInvestigationIds.Add(investigationId);
+
+        // Grant rewards
+        GrantInvestigationRewards(investigation);
+
+        // Build result for UI modal
+        InvestigationCompleteResult result = new InvestigationCompleteResult
+        {
+            InvestigationId = investigationId,
+            InvestigationName = investigation.Name,
+            CompletionNarrative = investigation.CompletionNarrative,
+            Rewards = investigation.CompletionRewards,
+            ObservationCards = investigation.ObservationCardRewards
+        };
+
+        _pendingCompleteResult = result;
 
         _messageSystem.AddSystemMessage(
-            $"Phase {_progress.CurrentPhaseIndex + 1}: {phase.Name}",
-            SystemMessageTypes.Info);
-
-        // Spawn appropriate tactical session based on phase system type
-        switch (phase.SystemType)
-        {
-            case TacticalSystemType.Social:
-                // THREE PARALLEL SYSTEMS: Social phases use NPC and Request
-                if (string.IsNullOrEmpty(phase.NpcId) || string.IsNullOrEmpty(phase.RequestId))
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Social phase '{phase.Id}' missing NpcId or RequestId");
-                }
-
-                // Get NPC from GameWorld
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == phase.NpcId);
-                if (npc == null)
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] NPC '{phase.NpcId}' not found for Social phase '{phase.Id}'");
-                }
-
-                // Get Request from NPC
-                NPCRequest request = npc.GetRequestById(phase.RequestId);
-                if (request == null)
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Request '{phase.RequestId}' not found on NPC '{phase.NpcId}' for phase '{phase.Id}'");
-                }
-
-                // Start conversation using ConversationFacade (parallel to Mental/Physical spawning)
-                // Note: ConversationFacade.StartConversation handles building deck from engagement type
-                ConversationSession socialSession = _conversationFacade.StartConversation(phase.NpcId, phase.RequestId);
-                _currentSessionId = socialSession.SessionId;
-                break;
-
-            case TacticalSystemType.Mental:
-                // THREE PARALLEL SYSTEMS: Look up Mental engagement type
-                if (!_gameWorld.MentalEngagementTypes.TryGetValue(phase.EngagementTypeId, out MentalEngagementType mentalEngagement))
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Mental engagement type '{phase.EngagementTypeId}' not found for phase '{phase.Id}'");
-                }
-
-                // Build deck from Mental engagement
-                if (!_gameWorld.MentalEngagementDecks.TryGetValue(mentalEngagement.DeckId, out MentalEngagementDeck mentalDeck))
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Mental deck '{mentalEngagement.DeckId}' not found");
-                }
-
-                List<CardInstance> mentalCards = mentalDeck.BuildCardInstances(_gameWorld);
-                MentalSession mentalSession = _mentalFacade.StartSession(mentalEngagement, mentalCards, new List<CardInstance>(), _locationId);
-                _currentSessionId = mentalSession.SessionId;
-                break;
-
-            case TacticalSystemType.Physical:
-                // THREE PARALLEL SYSTEMS: Look up Physical engagement type
-                if (!_gameWorld.PhysicalEngagementTypes.TryGetValue(phase.EngagementTypeId, out PhysicalEngagementType physicalEngagement))
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Physical engagement type '{phase.EngagementTypeId}' not found for phase '{phase.Id}'");
-                }
-
-                // Build deck from Physical engagement
-                if (!_gameWorld.PhysicalEngagementDecks.TryGetValue(physicalEngagement.DeckId, out PhysicalEngagementDeck physicalDeck))
-                {
-                    throw new InvalidOperationException($"[InvestigationActivity] Physical deck '{physicalEngagement.DeckId}' not found");
-                }
-
-                List<CardInstance> physicalCards = physicalDeck.BuildCardInstances(_gameWorld);
-                PhysicalSession physicalSession = _physicalFacade.StartSession(physicalEngagement, physicalCards, new List<CardInstance>(), _locationId);
-                _currentSessionId = physicalSession.SessionId;
-                break;
-
-            default:
-                throw new InvalidOperationException($"Unknown tactical system type: {phase.SystemType}");
-        }
-    }
-
-    /// <summary>
-    /// Handle phase completion - called by UI or tactical facades
-    /// </summary>
-    public async Task HandlePhaseComplete(string sessionId)
-    {
-        if (_currentSessionId != sessionId)
-        {
-            throw new ArgumentException($"Session ID mismatch: expected {_currentSessionId}, got {sessionId}");
-        }
-
-        // Mark current phase as complete
-        _progress.CompletedPhases.Add(_progress.CurrentPhaseIndex);
-
-        InvestigationPhase completedPhase = _investigation.Phases[_progress.CurrentPhaseIndex];
-
-        // Grant phase completion rewards
-        if (completedPhase.CompletionReward != null)
-        {
-            GrantPhaseRewards(completedPhase.CompletionReward);
-        }
-
-        // Increment phase index
-        _progress.CurrentPhaseIndex++;
-
-        // Check if investigation complete (all phases done)
-        if (_progress.CurrentPhaseIndex >= _investigation.Phases.Count)
-        {
-            await CompleteInvestigation();
-        }
-        else
-        {
-            // Start next phase
-            await StartCurrentPhase();
-        }
-    }
-
-    /// <summary>
-    /// Complete investigation - award knowledge, discoveries
-    /// </summary>
-    private async Task CompleteInvestigation()
-    {
-        _messageSystem.AddSystemMessage(
-            $"Investigation complete: {_investigation.Name}",
+            $"Investigation complete: {investigation.Name}",
             SystemMessageTypes.Success);
 
-        // Grant investigation-level rewards
-        Player player = _gameWorld.GetPlayer();
-
-        // Grant observation card rewards
-        if (_investigation.ObservationCardRewards != null)
-        {
-            foreach (InvestigationObservationReward reward in _investigation.ObservationCardRewards)
-            {
-                // Create observation card and assign to NPC
-                // ASSUMPTION: ObservationManager has method to create cards from IDs
-                _messageSystem.AddSystemMessage(
-                    $"New observation unlocked for {reward.NpcId}",
-                    SystemMessageTypes.Success);
-            }
-        }
-
-        // Clear investigation state
-        _investigation = null;
-        _progress = null;
-        _currentSessionId = null;
-
-        await Task.CompletedTask;
+        return result;
     }
 
     /// <summary>
-    /// Grant phase completion rewards
+    /// Grant investigation completion rewards
     /// </summary>
-    private void GrantPhaseRewards(PhaseCompletionReward reward)
+    private void GrantInvestigationRewards(Investigation investigation)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Grant discoveries
-        if (reward.DiscoveriesGranted != null)
+        if (investigation.CompletionRewards != null)
         {
-            foreach (string discoveryId in reward.DiscoveriesGranted)
+            // Grant coins
+            if (investigation.CompletionRewards.Coins > 0)
             {
-                // Add to progress discoveries
-                // ASSUMPTION: Discovery system tracks what player has discovered
+                player.Coins += investigation.CompletionRewards.Coins;
+            }
+
+            // Grant XP (TODO: Implement XP system when ready)
+            // Grant reputation (TODO: Implement reputation system when ready)
+        }
+
+        // Grant observation cards (TODO: Implement observation card creation when ready)
+        if (investigation.ObservationCardRewards != null)
+        {
+            foreach (ObservationCardReward reward in investigation.ObservationCardRewards)
+            {
                 _messageSystem.AddSystemMessage(
-                    $"Discovery: {discoveryId}",
+                    $"New observation unlocked for {reward.TargetNpcId}",
                     SystemMessageTypes.Success);
             }
         }
+    }
 
-        // Display narrative
-        if (!string.IsNullOrEmpty(reward.Narrative))
+    /// <summary>
+    /// Create LocationGoal from InvestigationPhaseDefinition
+    /// </summary>
+    private LocationGoal CreateGoalFromPhaseDefinition(InvestigationPhaseDefinition phaseDef, string investigationId)
+    {
+        LocationGoal goal = new LocationGoal
         {
-            _messageSystem.AddSystemMessage(
-                reward.Narrative,
-                SystemMessageTypes.Info);
+            Id = phaseDef.Id,
+            Name = phaseDef.Name,
+            Description = phaseDef.Description,
+            SystemType = phaseDef.SystemType,
+            EngagementTypeId = phaseDef.EngagementTypeId,
+            SpotId = phaseDef.SpotId,
+            InvestigationId = investigationId,
+            Requirements = phaseDef.Requirements,
+            IsAvailable = true,
+            IsCompleted = false
+        };
+
+        return goal;
+    }
+
+    /// <summary>
+    /// Check if prerequisites are met for a phase
+    /// </summary>
+    private bool ArePrerequisitesMet(GoalRequirements requirements, List<string> completedGoalIds = null)
+    {
+        if (requirements == null)
+            return true;
+
+        // Check completed goals prerequisite
+        if (requirements.CompletedGoals != null && requirements.CompletedGoals.Count > 0)
+        {
+            if (completedGoalIds == null)
+                return false;
+
+            foreach (string requiredGoalId in requirements.CompletedGoals)
+            {
+                if (!completedGoalIds.Contains(requiredGoalId))
+                    return false;
+            }
         }
+
+        // TODO: Check other prerequisites when systems are ready
+        // - RequiredKnowledge
+        // - RequiredEquipment
+        // - RequiredStats
+        // - MinimumLocationFamiliarity
+
+        return true;
     }
-
-    /// <summary>
-    /// Get current phase context
-    /// </summary>
-    public InvestigationPhase GetCurrentPhase()
-    {
-        if (_investigation == null || _progress == null)
-            return null;
-
-        if (_progress.CurrentPhaseIndex >= _investigation.Phases.Count)
-            return null;
-
-        return _investigation.Phases[_progress.CurrentPhaseIndex];
-    }
-
-    /// <summary>
-    /// Get current investigation progress
-    /// </summary>
-    public InvestigationProgress GetProgress()
-    {
-        return _progress;
-    }
-
-    /// <summary>
-    /// Check if investigation is active
-    /// </summary>
-    public bool IsInvestigationActive()
-    {
-        return _investigation != null && _progress != null;
-    }
-
-    /// <summary>
-    /// Get current session ID
-    /// </summary>
-    public string GetCurrentSessionId()
-    {
-        return _currentSessionId;
-    }
-}
-
-/// <summary>
-/// Player's progress through an investigation
-/// </summary>
-public class InvestigationProgress
-{
-    public string InvestigationId { get; set; }
-    public int CurrentPhaseIndex { get; set; } // Current phase (0-based)
-    public System.Collections.Generic.List<int> CompletedPhases { get; set; } = new System.Collections.Generic.List<int>();
-    public System.Collections.Generic.Dictionary<DiscoveryType, System.Collections.Generic.List<string>> Discoveries { get; set; } = new System.Collections.Generic.Dictionary<DiscoveryType, System.Collections.Generic.List<string>>();
 }

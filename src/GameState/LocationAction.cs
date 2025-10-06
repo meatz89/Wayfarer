@@ -74,6 +74,11 @@ public class LocationAction
     /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
     /// </summary>
     public string ActionType { get; set; } = "";
+    
+    /// <summary>
+    /// Engagement type for tactical system integration (Mental, Physical, Social, Conversation)
+    /// </summary>
+    public string EngagementType { get; set; } = "";
 
     /// <summary>
     /// Investigation ID if this action launches an investigation (V2)

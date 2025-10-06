@@ -134,7 +134,7 @@ namespace Wayfarer.Pages.Components
                         : $"Investigation incomplete. Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}";
                 }
 
-                await ParentScreen.NavigateToScreen(ScreenMode.Location);
+                await ParentScreen.HandleMentalEnd();
             }
             catch (Exception ex)
             {

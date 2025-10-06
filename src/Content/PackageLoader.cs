@@ -324,6 +324,20 @@ public class PackageLoader
             }
         }
 
+        // Initialize investigation journal with all investigations as Pending
+        Console.WriteLine("[PackageLoader] Initializing investigation journal...");
+        Player player = _gameWorld.GetPlayer();
+        if (player != null && player.InvestigationJournal != null)
+        {
+            player.InvestigationJournal.PendingInvestigationIds.Clear();
+            foreach (Investigation investigation in _gameWorld.Investigations)
+            {
+                player.InvestigationJournal.PendingInvestigationIds.Add(investigation.Id);
+                Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
+            }
+            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PendingInvestigationIds.Count} pending investigations");
+        }
+
         // Apply starting token relationships
         if (conditions.StartingTokens != null)
         {
@@ -675,11 +689,11 @@ public class PackageLoader
         InvestigationParser parser = new InvestigationParser();
         foreach (InvestigationDTO dto in investigations)
         {
-            InvestigationTemplate template = parser.ParseInvestigation(dto);
-            _gameWorld.InvestigationTemplates[template.Id] = template;
-            Console.WriteLine($"[PackageLoader] Loaded investigation '{template.Id}': {template.Name} ({template.Phases.Count} phases)");
+            Investigation investigation = parser.ParseInvestigation(dto);
+            _gameWorld.Investigations.Add(investigation);
+            Console.WriteLine($"[PackageLoader] Loaded investigation '{investigation.Id}': {investigation.Name} ({investigation.PhaseDefinitions.Count} phases)");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.InvestigationTemplates.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.Investigations.Count}");
     }
 
 

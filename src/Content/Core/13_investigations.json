@@ -1,0 +1,45 @@
+{
+  "investigationTemplates": [
+    {
+      "id": "waterwheel_mystery",
+      "name": "The Waterwheel Mystery",
+      "description": "Investigate why the Old Mill's waterwheel has stopped turning",
+      "personality": "SequentialSite",
+      "exposureThreshold": 8,
+      "timeLimit": 0,
+      "phases": [
+        {
+          "id": "phase_1_examine",
+          "name": "Initial Examination",
+          "description": "Carefully inspect the waterwheel mechanism to understand what went wrong",
+          "goal": "Examine the waterwheel mechanism",
+          "progressThreshold": 10,
+          "systemType": "Mental",
+          "engagementTypeId": "investigation",
+          "locationId": "old_mill",
+          "spotId": "courtyard",
+          "cardDeckIds": ["mental_basic"],
+          "requirements": {
+            "knowledge": ["aldric_mentioned_waterwheel"]
+          }
+        },
+        {
+          "id": "phase_2_question",
+          "name": "Question Miller",
+          "description": "Speak with Elena about what she knows regarding the waterwheel failure",
+          "goal": "Ask about recent events",
+          "progressThreshold": 8,
+          "systemType": "Social",
+          "npcId": "elena",
+          "requestId": "elena_investigate_offer",
+          "engagementTypeId": "friendly_chat",
+          "cardDeckIds": ["conversation_basic"],
+          "requirements": {
+            "completedPhases": [0]
+          }
+        }
+      ],
+      "observationCardRewards": []
+    }
+  ]
+}

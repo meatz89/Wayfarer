@@ -50,7 +50,9 @@ namespace Wayfarer.Pages.Components
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
         protected Location CurrentLocation { get; set; }
-        protected List<InvestigationApproach> AvailableInvestigationApproaches { get; set; } = new();
+        protected List<LocationGoal> AvailableSocialGoals { get; set; } = new();
+        protected List<LocationGoal> AvailableMentalGoals { get; set; } = new();
+        protected List<LocationGoal> AvailablePhysicalGoals { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -97,7 +99,9 @@ namespace Wayfarer.Pages.Components
                             GoalCardId = conversationOption.GoalCardId,
                             Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.EngagementTypeId),
                             Description = conversationOption.Description,
-                            IsAvailable = true
+                            IsAvailable = true,
+                            EngagementType = "Conversation",
+                            InvestigationLabel = null // Investigation system not yet integrated
                         };
                         options.Add(option);
                     }
@@ -115,6 +119,7 @@ namespace Wayfarer.Pages.Components
                         };
                         options.Add(exchangeOption);
                     }
+
 
                     // Get actual connection state using the same logic as conversations
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
@@ -225,10 +230,6 @@ namespace Wayfarer.Pages.Components
                 ActiveObligations = new List<DeliveryObligation>();
             }
 
-            // Get ALL investigation approaches (show locked ones with requirements)
-            AvailableInvestigationApproaches = Enum.GetValues<InvestigationApproach>().ToList();
-            Console.WriteLine($"[LocationContent] Showing all {AvailableInvestigationApproaches.Count} investigation approaches");
-
             // Get available work actions at this location
             AvailableWorkActions.Clear();
             if (location != null)
@@ -240,6 +241,36 @@ namespace Wayfarer.Pages.Components
                     AvailableWorkActions = workActions ?? new List<WorkAction>();
                     Console.WriteLine($"[LocationContent] Got {AvailableWorkActions.Count} work actions available");
                 }
+            }
+
+            // Get Social, Mental, and Physical investigation goals available at current spot
+            // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
+            AvailableSocialGoals.Clear();
+            AvailableMentalGoals.Clear();
+            AvailablePhysicalGoals.Clear();
+            if (location != null && CurrentSpot != null && location.Goals != null)
+            {
+                string currentSpotId = CurrentSpot.SpotID;
+
+                AvailableSocialGoals = location.Goals
+                    .Where(g => g.SystemType == TacticalSystemType.Social)
+                    .Where(g => g.IsAvailable && !g.IsCompleted)
+                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .ToList();
+
+                AvailableMentalGoals = location.Goals
+                    .Where(g => g.SystemType == TacticalSystemType.Mental)
+                    .Where(g => g.IsAvailable && !g.IsCompleted)
+                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .ToList();
+
+                AvailablePhysicalGoals = location.Goals
+                    .Where(g => g.SystemType == TacticalSystemType.Physical)
+                    .Where(g => g.IsAvailable && !g.IsCompleted)
+                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
+                    .ToList();
+
+                Console.WriteLine($"[LocationContent] Got {AvailableSocialGoals.Count} Social, {AvailableMentalGoals.Count} Mental, and {AvailablePhysicalGoals.Count} Physical goals available");
             }
         }
 
@@ -270,6 +301,48 @@ namespace Wayfarer.Pages.Components
             else
             {
                 Console.WriteLine($"[LocationContent] GameScreen not available for exchange with NPC '{npcId}'");
+            }
+        }
+
+        protected async Task StartSocialGoal(LocationGoal goal)
+        {
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartConversation(null, null);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for Social goal '{goal.Name}'");
+            }
+        }
+
+        protected async Task StartMentalGoal(LocationGoal goal)
+        {
+            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartMentalSession(goal.EngagementTypeId);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for Mental goal '{goal.Name}'");
+            }
+        }
+
+        protected async Task StartPhysicalGoal(LocationGoal goal)
+        {
+            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartPhysicalSession(goal.EngagementTypeId);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for Physical goal '{goal.Name}'");
             }
         }
 
@@ -997,6 +1070,31 @@ namespace Wayfarer.Pages.Components
                 _ => stat.ToString()
             };
         }
+
+        /// <summary>
+        /// Get investigation label color based on hash of investigation name.
+        /// Maps to predefined palette to ensure consistent colors across UI.
+        /// </summary>
+        protected string GetInvestigationColor(string investigationLabel)
+        {
+            if (string.IsNullOrEmpty(investigationLabel)) return "#8b5a26";
+
+            // Hash investigation name to palette index
+            int hash = investigationLabel.GetHashCode();
+            int paletteIndex = Math.Abs(hash) % 6;
+
+            return paletteIndex switch
+            {
+                0 => "#4a7c9e", // waterwheel blue
+                1 => "#7a9e5c", // missing-tools green
+                2 => "#9e6a4a", // missing-merchant brown
+                3 => "#8b5a7a", // purple variant
+                4 => "#7a8b5a", // olive variant
+                5 => "#9e7c4a", // gold variant
+                _ => "#8b5a26"  // default
+            };
+        }
+
     }
 
     // View Models
@@ -1030,6 +1128,8 @@ namespace Wayfarer.Pages.Components
         public string Description { get; set; }  // Full description of the conversation option
         public bool IsAvailable { get; set; }
         public bool IsExchange { get; set; } // True if this is an exchange, not a conversation
+        public string EngagementType { get; set; }
+        public string InvestigationLabel { get; set; }
     }
 
     public class LocationObservationViewModel

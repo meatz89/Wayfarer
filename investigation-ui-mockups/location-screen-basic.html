@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayfarer - Old Mill (Refined UI)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Garamond', 'Georgia', serif;
+            background: linear-gradient(to bottom, #2a2520, #1a1612);
+            color: #2c241a;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 820px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #faf4ea;
+            box-shadow: 0 0 60px rgba(0,0,0,0.7);
+        }
+
+        /* Time Segment Header */
+        .time-header {
+            background: linear-gradient(to bottom, #1a1612, #2c241a);
+            color: #e8dcc4;
+            padding: 15px 20px;
+            border-bottom: 3px solid #5c4a3a;
+        }
+
+        .day-display {
+            font-size: 11px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .time-segment-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .period-name {
+            font-size: 18px;
+            color: #d4a76a;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .segment-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .segment-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #5c4a3a;
+            transition: all 0.3s;
+        }
+
+        .segment-dot.filled {
+            background: #d4a76a;
+            box-shadow: 0 0 6px rgba(212, 167, 106, 0.5);
+        }
+
+        .segment-dot.empty {
+            background: transparent;
+        }
+
+        .segment-dot.current {
+            border-color: #d4a76a;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .segment-counter {
+            font-size: 13px;
+            color: #8b7355;
+            margin-left: 10px;
+        }
+
+        /* Resources Bar */
+        .resources-bar {
+            background: #2c241a;
+            color: #e8dcc4;
+            padding: 12px 20px;
+            border-bottom: 2px solid #3d3429;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resource-group {
+            display: flex;
+            gap: 25px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-icon {
+            width: 22px;
+            height: 22px;
+            background: #3d3429;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 1px solid #5c4a3a;
+        }
+
+        .resource-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resource-label {
+            font-size: 10px;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .resource-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #d4a76a;
+        }
+
+        .journal-button {
+            background: #5c4a3a;
+            color: #d4a76a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Garamond', 'Georgia', serif;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .journal-button:hover {
+            background: #7a6250;
+            transform: translateY(-1px);
+        }
+
+        .journal-button .badge {
+            display: inline-block;
+            background: #d4a76a;
+            color: #2c241a;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 11px;
+            line-height: 18px;
+            text-align: center;
+            margin-left: 6px;
+        }
+
+        /* Location Header */
+        .location-header {
+            background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+            border-bottom: 2px solid #a68b6f;
+            padding: 15px 20px;
+        }
+
+        .location-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .location-name {
+            font-size: 24px;
+            color: #5c4a3a;
+            margin-bottom: 8px;
+        }
+
+        .location-properties {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .property-tag {
+            font-size: 11px;
+            color: #7a6250;
+            padding: 3px 8px;
+            background: #faf4ea;
+            border: 1px solid #c4a684;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Current Spot */
+        .current-spot {
+            background: #e8dcc4;
+            padding: 12px 20px;
+            border-bottom: 2px solid #c4a684;
+        }
+
+        .spot-name {
+            font-size: 16px;
+            color: #5c4a3a;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .spot-traits {
+            display: flex;
+            gap: 6px;
+        }
+
+        .spot-trait {
+            font-size: 10px;
+            padding: 3px 6px;
+            background: #f4e8d0;
+            border: 1px solid #d4c5a0;
+            border-radius: 3px;
+            color: #7a6250;
+        }
+
+        /* AI Narrative */
+        .narrative-box {
+            background: white;
+            border-left: 4px solid #8b7355;
+            padding: 15px 20px;
+            margin: 15px 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #5c4a3a;
+            font-style: italic;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 0 20px 20px 20px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7a6250;
+            margin: 20px 0 12px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #d4c5a0;
+        }
+
+        /* NPC Card */
+        .npc-card {
+            background: #f9f3e9;
+            border: 2px solid #c4a684;
+            border-radius: 4px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .npc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .npc-name {
+            font-size: 16px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .npc-description {
+            font-size: 12px;
+            color: #7a6250;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        /* Action Items */
+        .action-item {
+            background: white;
+            border: 2px solid #d4c5a0;
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .action-item:hover {
+            background: #fefaf0;
+            border-color: #a68b6f;
+            transform: translateX(3px);
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .action-icon {
+            font-size: 16px;
+        }
+
+        .action-text {
+            flex: 1;
+            font-size: 14px;
+            color: #5c4a3a;
+            font-weight: 500;
+        }
+
+        .action-time {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: #2c241a;
+            color: #d4a76a;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .investigation-label {
+            font-size: 11px;
+            color: #5c4a3a;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .investigation-label.waterwheel {
+            background: rgba(65, 105, 225, 0.15);
+            color: #2d5aa0;
+            border: 1px solid rgba(65, 105, 225, 0.3);
+        }
+
+        .investigation-label.missing-tools {
+            background: rgba(34, 139, 34, 0.15);
+            color: #1e6b1e;
+            border: 1px solid rgba(34, 139, 34, 0.3);
+        }
+
+        /* Travel Section */
+        .travel-section {
+            margin-top: 20px;
+        }
+
+        .travel-action {
+            background: linear-gradient(135deg, #f4f9e9, #faf4ea);
+            border: 2px solid #7a8b5a;
+            border-radius: 4px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .travel-action:hover {
+            border-color: #5c6d42;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .travel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            color: #5c4a3a;
+            font-weight: bold;
+        }
+
+        .travel-destinations {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #d4c5a0;
+            font-size: 12px;
+            color: #7a6250;
+        }
+
+        /* Journal Panel */
+        .journal-panel {
+            background: linear-gradient(135deg, #2c241a, #3d3429);
+            border: 3px solid #5c4a3a;
+            border-radius: 6px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .journal-header {
+            background: #1a1612;
+            color: #d4a76a;
+            padding: 12px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #5c4a3a;
+        }
+
+        .journal-content {
+            padding: 15px;
+        }
+
+        .investigation-summary {
+            background: #faf4ea;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .investigation-summary:last-child {
+            margin-bottom: 0;
+        }
+
+        .investigation-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #5c4a3a;
+            margin-bottom: 6px;
+        }
+
+        .investigation-progress {
+            font-size: 11px;
+            color: #7a6250;
+            margin-bottom: 8px;
+        }
+
+        .investigation-locations {
+            font-size: 11px;
+            color: #8b7355;
+        }
+
+        .location-spot-link {
+            display: inline-block;
+            background: #e8dcc4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+            margin-top: 4px;
+        }
+
+        .location-spot-link:hover {
+            background: #d4c5a0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Time Header -->
+        <div class="time-header">
+            <div class="day-display">Wednesday - Day 4 of Journey</div>
+            <div class="time-segment-display">
+                <div class="period-name">MIDDAY</div>
+                <div class="segment-dots">
+                    <div class="segment-dot filled"></div>
+                    <div class="segment-dot current"></div>
+                    <div class="segment-dot empty"></div>
+                    <div class="segment-dot empty"></div>
+                </div>
+                <div class="segment-counter">[1/4]</div>
+            </div>
+        </div>
+
+        <!-- Resources Bar -->
+        <div class="resources-bar">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon">❤️</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Health</div>
+                        <div class="resource-value">10/10</div>
+                    </div>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">⚡</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Stamina</div>
+                        <div class="resource-value">8/12</div>
+                    </div>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon">💰</div>
+                    <div class="resource-info">
+                        <div class="resource-label">Coins</div>
+                        <div class="resource-value">15</div>
+                    </div>
+                </div>
+            </div>
+            <button class="journal-button" onclick="toggleJournal()">
+                📖 Journal<span class="badge">2</span>
+            </button>
+        </div>
+
+        <!-- Location Header -->
+        <div class="location-header">
+            <div class="location-path">
+                <span>Millbrook</span>
+                <span>→</span>
+                <span>Miller's District</span>
+                <span>→</span>
+                <span>Old Mill</span>
+                <span>→</span>
+                <span>Courtyard</span>
+            </div>
+            <div class="location-name">Old Mill</div>
+            <div class="location-properties">
+                <div class="property-tag">Quiet</div>
+                <div class="property-tag">Industrial</div>
+            </div>
+        </div>
+
+        <!-- Current Spot -->
+        <div class="current-spot">
+            <div class="spot-name">Courtyard</div>
+            <div class="spot-traits">
+                <div class="spot-trait">Central Hub</div>
+                <div class="spot-trait">Well-Lit</div>
+            </div>
+        </div>
+
+        <!-- AI Narrative -->
+        <div class="narrative-box">
+            The waterwheel stands silent against the afternoon sun. Miller Aldric sweeps grain dust from the courtyard stones, his movements methodical but weary. The familiar creak of the mechanism is conspicuously absent, replaced by an uneasy quiet broken only by the distant sound of the stream that should be turning the wheel.
+        </div>
+
+        <!-- Journal Panel (collapsible) -->
+        <div class="journal-panel" id="journalPanel" style="display: none;">
+            <div class="journal-header">Active Investigations</div>
+            <div class="journal-content">
+                <div class="investigation-summary">
+                    <div class="investigation-title">🔵 The Waterwheel Mystery</div>
+                    <div class="investigation-progress">Progress: 3 of 5 goals completed</div>
+                    <div class="investigation-locations">
+                        Goals remaining at:
+                        <span class="location-spot-link">Courtyard (1)</span>
+                        <span class="location-spot-link">Storage Room (1)</span>
+                    </div>
+                </div>
+                <div class="investigation-summary">
+                    <div class="investigation-title">🟢 The Missing Tools</div>
+                    <div class="investigation-progress">Progress: 1 of 3 goals completed</div>
+                    <div class="investigation-locations">
+                        Goals remaining at:
+                        <span class="location-spot-link">Courtyard (1)</span>
+                        <span class="location-spot-link">Workshop (1)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- NPCs Present -->
+            <div class="section-title">NPCs Present</div>
+
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Miller Aldric</div>
+                </div>
+                <div class="npc-description">The mill owner, troubled and weary from sleepless nights</div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Discuss his concerns</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Ask about recent events</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                    <span class="investigation-label waterwheel">The Waterwheel Mystery</span>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Show him the broken gear</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                    <span class="investigation-label waterwheel">The Waterwheel Mystery</span>
+                </div>
+            </div>
+
+            <div class="npc-card">
+                <div class="npc-header">
+                    <div class="npc-name">Petra the Apprentice</div>
+                </div>
+                <div class="npc-description">Young mill worker, nervous and avoiding eye contact</div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Ask about the tools</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                    <span class="investigation-label missing-tools">The Missing Tools</span>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-header">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Casual conversation</span>
+                        <span class="action-time">1 seg</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Here -->
+            <div class="section-title">Actions Here</div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">🧩</span>
+                    <span class="action-text">Examine the waterwheel mechanism</span>
+                    <span class="action-time">1 seg</span>
+                </div>
+                <span class="investigation-label waterwheel">The Waterwheel Mystery</span>
+            </div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">🧩</span>
+                    <span class="action-text">Search for footprints near the shed</span>
+                    <span class="action-time">1 seg</span>
+                </div>
+                <span class="investigation-label missing-tools">The Missing Tools</span>
+            </div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">⚔️</span>
+                    <span class="action-text">Try the cellar door</span>
+                    <span class="action-time">1 seg</span>
+                </div>
+            </div>
+
+            <div class="action-item">
+                <div class="action-header">
+                    <span class="action-icon">⚡</span>
+                    <span class="action-text">Rest on the bench</span>
+                    <span class="action-time">FREE</span>
+                </div>
+            </div>
+
+            <!-- Travel -->
+            <div class="travel-section">
+                <div class="section-title">Travel</div>
+                <div class="travel-action" onclick="alert('Travel modal would open here')">
+                    <div class="travel-header">
+                        <span>🗺️</span>
+                        <span>Travel to Another Location</span>
+                    </div>
+                    <div class="travel-destinations">
+                        Available: Storage Room (same location) • Town Square (1 segment) • Forest Path (2 segments)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleJournal() {
+            const panel = document.getElementById('journalPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
