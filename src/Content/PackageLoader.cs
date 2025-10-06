@@ -686,7 +686,7 @@ public class PackageLoader
         if (investigations == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading investigation templates...");
-        InvestigationParser parser = new InvestigationParser();
+        InvestigationParser parser = new InvestigationParser(_gameWorld);
         foreach (InvestigationDTO dto in investigations)
         {
             Investigation investigation = parser.ParseInvestigation(dto);

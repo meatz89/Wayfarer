@@ -38,7 +38,6 @@ public class InvestigationPhaseDTO
     public string NpcId { get; set; }
     public string RequestId { get; set; }
 
-    public List<string> CardDeckIds { get; set; } = new List<string>();
     public PhaseRequirementsDTO Requirements { get; set; } = new PhaseRequirementsDTO();
     public PhaseCompletionRewardDTO CompletionReward { get; set; }
 }

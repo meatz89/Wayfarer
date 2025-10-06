@@ -5,9 +5,17 @@ using System.Linq;
 /// <summary>
 /// Parser for Investigation definitions - converts DTOs to domain models
 /// Creates Investigation entities with phase definitions for goal spawning
+/// Validates challenge type IDs against GameWorld at parse time
 /// </summary>
 public class InvestigationParser
 {
+    private readonly GameWorld _gameWorld;
+
+    public InvestigationParser(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+    }
+
     public Investigation ParseInvestigation(InvestigationDTO dto)
     {
         return new Investigation
@@ -21,19 +29,59 @@ public class InvestigationParser
 
     private InvestigationPhaseDefinition ParsePhaseDefinition(InvestigationPhaseDTO dto, string investigationId)
     {
+        TacticalSystemType systemType = ParseSystemType(dto.SystemType);
+
+        // [Oracle] Validation: challengeTypeId must exist in GameWorld
+        ValidateChallengeTypeId(dto.ChallengeTypeId, systemType, dto.Id);
+
         return new InvestigationPhaseDefinition
         {
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             Goal = dto.Goal,
-            SystemType = ParseSystemType(dto.SystemType),
+            SystemType = systemType,
             ChallengeTypeId = dto.ChallengeTypeId,
             LocationId = dto.LocationId,
             SpotId = dto.SpotId,
             NpcId = dto.NpcId,
             RequestId = dto.RequestId,
             Requirements = ParseRequirements(dto.Requirements)
+        };
+    }
+
+    private void ValidateChallengeTypeId(string challengeTypeId, TacticalSystemType systemType, string phaseId)
+    {
+        if (string.IsNullOrEmpty(challengeTypeId))
+        {
+            throw new InvalidOperationException($"Investigation phase '{phaseId}' has no challengeTypeId specified");
+        }
+
+        bool exists = systemType switch
+        {
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeTypes.ContainsKey(challengeTypeId),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeTypes.ContainsKey(challengeTypeId),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeTypes.ContainsKey(challengeTypeId),
+            _ => throw new InvalidOperationException($"Unknown TacticalSystemType: {systemType}")
+        };
+
+        if (!exists)
+        {
+            throw new InvalidOperationException(
+                $"Investigation phase '{phaseId}' references {systemType} challenge type '{challengeTypeId}' which does not exist in GameWorld. " +
+                $"Available {systemType} challenge types: {string.Join(", ", GetAvailableChallengeTypeIds(systemType))}"
+            );
+        }
+    }
+
+    private IEnumerable<string> GetAvailableChallengeTypeIds(TacticalSystemType systemType)
+    {
+        return systemType switch
+        {
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeTypes.Keys,
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeTypes.Keys,
+            TacticalSystemType.Social => _gameWorld.SocialChallengeTypes.Keys,
+            _ => new List<string>()
         };
     }
 

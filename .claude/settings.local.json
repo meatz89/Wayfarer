@@ -73,7 +73,9 @@
       "Bash(cat:*)",
       "Bash(dos2unix:*)",
       "Bash(unix2dos:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6500\" timeout 15 dotnet run --no-build)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "ask": []

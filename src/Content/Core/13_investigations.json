@@ -15,10 +15,9 @@
           "goal": "Examine the waterwheel mechanism",
           "progressThreshold": 10,
           "systemType": "Mental",
-          "challengeTypeId": "investigation",
+          "challengeTypeId": "mental_challenge",
           "locationId": "old_mill",
           "spotId": "courtyard",
-          "cardDeckIds": ["mental_basic"],
           "requirements": {
             "knowledge": ["aldric_mentioned_waterwheel"]
           }
@@ -32,8 +31,7 @@
           "systemType": "Social",
           "npcId": "elena",
           "requestId": "elena_investigate_offer",
-          "challengeTypeId": "friendly_chat",
-          "cardDeckIds": ["conversation_basic"],
+          "challengeTypeId": "social_challenge",
           "requirements": {
             "completedPhases": [0]
           }
