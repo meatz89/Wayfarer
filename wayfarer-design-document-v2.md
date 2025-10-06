@@ -18,6 +18,45 @@ Low-fantasy historical CRPG with visual novel dialogue and resource management. 
 
 **Not included:** Modern concepts, checkpoints/guards, mountain passes, epic scope. **Focus:** Small timeframes (days), short distances (walking), actions spanning seconds/minutes like D&D sessions.
 
+## Strategic-Tactical Architecture
+
+Wayfarer operates on two distinct layers that separate decision-making from execution:
+
+### Strategic Layer
+The strategic layer handles **what** and **where** decisions:
+- **Location Selection**: Choose which location to visit from travel map
+- **Goal Selection**: Choose which investigation phase or NPC request to pursue
+- **Resource Planning**: Evaluate equipment, knowledge, and stat requirements
+- **Risk Assessment**: Consider danger levels, time limits, exposure thresholds
+
+Strategic decisions happen in safe spaces (taverns, towns, travel map) with perfect information. Players can see all requirements, evaluate all options, and make informed choices about which tactical challenges to attempt.
+
+### Tactical Layer
+The tactical layer handles **how** execution through three parallel challenge systems:
+
+**Mental Challenges** - Location-based investigations using observation and deduction
+**Physical Challenges** - Location-based obstacles using strength and precision
+**Social Challenges** - NPC-based conversations using rapport and persuasion
+
+Each system is a distinct tactical game with unique resources and action pairs, but all follow a common structural pattern:
+- **Builder Resource**: Primary progress toward victory (Progress, Breakthrough, Momentum)
+- **Threshold Resource**: Accumulating danger toward failure (Exposure, Danger, Doubt)
+- **Session Resource**: Limited spendable resource (Attention, Position, Initiative)
+- **Balance Tracker**: Bipolar scale affecting gameplay (ObserveActBalance, Commitment, Cadence)
+- **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
+- **Understanding**: Shared tier-unlocking resource across all three systems
+
+The systems are parallel implementations of the same architectural pattern, not identical mechanics with different theming.
+
+### Bridge: LocationGoals
+LocationGoals bridge the strategic and tactical layers. When a player selects an investigation phase or NPC request (strategic decision), the system spawns a LocationGoal at the specified location. Visiting that location reveals the goal as a card option, which when selected launches the appropriate tactical challenge (Mental, Physical, or Social).
+
+This architecture ensures:
+- **Clear Separation**: Strategic planning never mixes with tactical execution
+- **Perfect Information**: All requirements visible before committing to tactical challenge
+- **Architectural Consistency**: Three systems follow same structural pattern
+- **Mechanical Diversity**: Each system offers distinct tactical gameplay
+
 ## Three Core Loops
 
 ### Conversations (Primary Gameplay)
@@ -44,18 +83,35 @@ Simple quest log tracking active requests from NPCs. No complex management - obl
 
 **Purpose:** Drive player toward interesting content (dangerous routes, mysterious locations, challenging investigations).
 
-### Investigation & Travel (Active Challenges)
+### Investigation & Travel (Three Challenge Systems)
 
-Locations present mysteries requiring preparation, equipment, knowledge, and careful choices. Travel routes have real obstacles demanding resources and planning.
+Investigations are multi-phase mysteries resolved through Mental, Physical, and Social tactical challenges. Each phase spawns a LocationGoal at a specific location, bridging strategic planning to tactical execution.
 
-**Structure:**
-- Mysteries with multiple investigation steps
-- Each step presents choices with requirements
-- State persists - retreat and return prepared
-- Success unlocks deeper layers
-- Dangers are physical, environmental, and social
+**Three Challenge Types:**
+- **Mental Challenges**: Observation-based investigation at location spots (examine scenes, deduce patterns, search thoroughly)
+  - Resources: Progress (builder), Attention (session), Exposure (threshold), ObserveActBalance (balance)
+  - Actions: OBSERVE (cautious builder) / ACT (aggressive spender)
 
-**Purpose:** Core adventure gameplay. Preparation matters. Failure teaches. Discovery is earned through risk and effort.
+- **Physical Challenges**: Strength-based obstacles at location spots (climb carefully, leverage tools, precise movement)
+  - Resources: Breakthrough (builder), Position (session), Danger (threshold), Commitment (balance)
+  - Actions: ASSESS (cautious builder) / EXECUTE (aggressive spender)
+
+- **Social Challenges**: Rapport-based conversations with NPCs (build trust, gather information, persuade cooperation)
+  - Resources: Momentum (builder), Initiative (session), Doubt (threshold), Cadence (balance), Statements (history)
+  - Actions: SPEAK (advance conversation) / LISTEN (reset and draw)
+
+Each system is a distinct tactical game following the same architectural pattern: builder resource toward victory, threshold resource toward failure, session-scoped spender, balance tracker affecting gameplay, and binary action choice creating tactical rhythm.
+
+**Investigation Lifecycle:**
+1. **Discovery**: Triggered by observation, conversation, item discovery, or obligation
+2. **Phase Spawning**: Each phase creates LocationGoal at specified location with requirements
+3. **Strategic Planning**: Evaluate requirements (knowledge, equipment, stats, completed phases)
+4. **Tactical Execution**: Visit location, select goal card, complete Mental/Physical/Social challenge
+5. **Progression**: Victory grants discoveries, unlocks subsequent phases, builds toward completion
+
+**AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (locations, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
+
+**Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
 
 ## NPC System
 
@@ -96,132 +152,265 @@ These transform the conversation puzzle while maintaining core mechanics.
 
 ## Investigation System
 
-### Core Concept
+### Architecture Overview
 
-Investigation is active problem-solving with choices, requirements, costs, and consequences. Not passive familiarity grinding.
+Investigations are multi-phase mysteries that bridge strategic planning to tactical execution through three parallel challenge systems (Mental, Physical, Social). Each investigation consists of discrete phases resolved through card-based tactical challenges, with AI-generated content built from authored templates.
 
-### Structure
+### Investigation Lifecycle
 
-**Mysteries Have Layers:**
-Locations contain multi-step investigations. Each layer presents new challenges requiring different preparation. Early steps might be accessible, deeper steps demand equipment, knowledge, or physical capability.
+**1. Potential State**
+Investigation exists as template but not yet discovered by player. Waiting for trigger condition.
 
-**State Persistence:**
-Progress saves between visits. Discovered information remains. Partial exploration remembered. Can retreat, prepare, return to exactly where you left off.
+**2. Discovery Triggers (Five Types)**
 
-**Active Choices:**
-Each investigation step presents options:
-- Different approaches (stealth vs. direct, careful vs. quick)
-- Resource trade-offs (time vs. stamina, safety vs. information)
-- Risk assessment (guaranteed safe vs. potential danger)
-- Preparation checks (do you have needed equipment/knowledge?)
+**Immediate Visibility** - Investigation visible upon entering location
+- Obvious environmental features (collapsed bridge, abandoned waterwheel)
+- Public knowledge mysteries (town's water problem, missing merchant)
+- Location-inherent investigation opportunities
 
-### Investigation Phases
+**Environmental Observation** - Triggered by examining location features
+- Player examines specific location spot, reveals hidden investigation
+- "You notice something unusual about the mill mechanism..."
+- Requires player attention, rewards thorough exploration
 
-**Phase 1 - Approach:**
-How do you access the location? Choices might include:
-- Direct entry (visible, straightforward, might alert others)
-- Hidden entrance (requires knowledge from NPC)
-- Careful observation first (costs time, reveals information)
-- Wait for specific conditions (time of day, weather, NPC absence)
+**Conversational Discovery** - NPC dialogue reveals investigation existence
+- NPC mentions mystery during conversation
+- Grants observation card mentioning the investigation
+- Playing that card in subsequent conversation spawns investigation
 
-**Phase 2 - Initial Exploration:**
-What do you examine first? Each choice reveals different information:
-- Structural assessment (physical dangers, stability)
-- Environmental reading (lighting, temperature, hazards)
-- Social evidence (signs of recent activity, ownership)
-- Historical context (age, original purpose, changes over time)
+**Item Discovery** - Finding specific item triggers related investigation
+- Discover torn letter → spawns investigation about its sender
+- Find broken mechanism part → spawns investigation about sabotage
+- Physical evidence creates investigation context
 
-**Phase 3 - Deep Investigation:**
-Pursue specific leads based on initial findings. Requires:
-- Appropriate equipment (light sources, tools, safety gear)
-- Sufficient physical capability (health, stamina for exertion)
-- Relevant knowledge (from conversations, previous discoveries)
-- Careful decision-making (wrong choices trigger dangers)
+**Obligation-Triggered** - Accepting NPC request spawns investigation
+- Merchant asks you to investigate waterwheel
+- Investigation spawns when obligation accepted
+- Direct causal link between social commitment and investigation
 
-**Phase 4 - Resolution:**
-Extract discovered knowledge or items. Might involve:
-- Careful retrieval (avoid damage, maintain secrecy)
-- Confrontation with interested parties (if discovered)
-- Connecting clues to broader mysteries
-- Deciding what to do with knowledge gained
+**3. Active State**
+Investigation discovered, phases available based on requirements. Player can see phase structure, requirements, current progress. Investigation persists across sessions - partial progress retained, can retreat and return prepared.
 
-### Investigation Dangers
+**4. Completion**
+All required phases completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
 
-**Physical Hazards:**
-- Structural collapse in old buildings
-- Falls from heights without proper equipment
-- Environmental exposure (cold, darkness, getting lost)
-- Exhaustion from insufficient stamina reserves
-- Injury from navigating dangerous terrain
+### Phase Structure
 
-**Social Risks:**
-- Being observed investigating (creates suspicion)
-- Trespassing consequences (legal or social)
-- Discovering secrets others want hidden (makes enemies)
-- Being followed by interested parties
-- Alerting wrong people to valuable information
+Each investigation consists of 3-7 phases resolved sequentially or in parallel (based on requirements):
 
-**Resource Costs:**
-- Time segments consumed by investigation
-- Equipment degraded or consumed (light sources, tools)
-- Stamina depleted requiring rest
-- Health lost to hazards requiring recovery
-- Opportunities missed while investigating
+**Phase Definition:**
+- **System Type**: Mental, Physical, or Social challenge
+- **Challenge Type**: Specific challenge configuration (victory threshold, danger threshold, deck)
+- **Requirements**: Knowledge, equipment, stats, completed phases
+- **Location Assignment**: Where to find this phase (location + spot for Mental/Physical, NPC for Social)
+- **Progress Threshold**: Victory points needed to complete phase
+- **Completion Reward**: Discoveries granted, phases unlocked, narrative reveals
 
-### Investigation Requirements
+**Phase Requirements:**
+- **Completed Phases**: Must finish phases 1-3 before phase 4 unlocks
+- **Knowledge**: Must have discovered specific information ("mill_mechanism_broken")
+- **Equipment**: Must possess specific items ("rope", "crowbar")
+- **Stats**: Minimum Observation, Strength, Rapport thresholds
 
-**Knowledge:**
-Information from NPCs critical for success. Examples:
-- "The mill has a hidden entrance on the east side"
-- "Avoid the upper floor, the boards are rotten"
-- "The mechanism is dangerous unless you stabilize it first"
-- "Someone else has been investigating there recently"
+**Phase Spawning:**
+When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at location spots as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
 
-**Equipment:**
-Tools and supplies for specific challenges:
-- Rope for climbing or securing unstable areas
-- Light sources for darkness
-- Tools for clearing obstacles or accessing mechanisms
-- Warm clothing for cold/wet environments
-- Lockpicks or prying tools for sealed areas
+### Three Challenge Systems Detailed
 
-**Physical Capability:**
-Health and stamina thresholds for exertion:
-- Sufficient stamina for climbing, moving debris, sustained effort
-- Adequate health to withstand minor injuries
-- Physical strength for forcing open stuck doors/panels
+**Mental Challenges** - Observation-based investigation at location spots
 
-**Timing:**
-When you investigate matters:
-- Time of day affects visibility and witnesses
-- Weather conditions change accessibility
-- NPC schedules determine who might observe
+*Core Resources:*
+- **Progress** (builder): Built toward victory threshold (typically 10-20)
+- **Attention** (session resource): Spent on Act cards, limited pool (max 10), represents investigative focus
+- **Exposure** (threshold): Accumulates from reckless investigation, persists at location, failure at maximum
+- **ObserveActBalance** (balance): Tracks cautious (-10) vs reckless (+10) approach, affects penalties
+- **Understanding** (tier unlock): Persistent sophistication, unlocks higher card tiers
 
-### Investigation Rewards
+*Action Pair:*
+- **OBSERVE**: Play card cautiously, build Progress, shift balance toward overcautious
+- **ACT**: Play card aggressively, spend Attention, shift balance toward reckless, build Progress faster with more Exposure risk
 
-**Knowledge:**
-Information valuable for:
-- Understanding location history and significance
-- Connecting to NPC interests and concerns
-- Revealing related mysteries or locations
-- Providing conversation advantages (observation cards)
-- Opening new investigation opportunities
+*Victory Condition:* Reach Progress threshold before Exposure exceeds maximum
+*Example Phase:* "Examine the waterwheel mechanism" (Mental challenge, 15 Progress threshold, at Mill spot)
 
-**Physical Items:**
-Discovered objects with practical use:
-- Equipment useful for future challenges
-- Trade goods with value to specific NPCs
-- Documents proving claims or revealing secrets
-- Keys or permits enabling access elsewhere
-- Tools that enable new investigation approaches
+---
 
-**Access:**
-Successful investigation might unlock:
-- Safe routes through dangerous locations
-- Hidden paths connecting areas
-- Alternative approaches to challenges
-- Trust with NPCs impressed by discoveries
-- Deeper investigation layers previously hidden
+**Physical Challenges** - Strength-based obstacles at location spots
+
+*Core Resources:*
+- **Breakthrough** (builder): Built toward victory threshold (typically 10-20)
+- **Position** (session resource): Represents advantageous positioning, spent on Execute cards (max 10)
+- **Danger** (threshold): Accumulates from risky actions, failure at maximum
+- **Commitment** (balance): Tracks cautious (-10) vs decisive (+10) approach, affects card effectiveness
+- **Understanding** (tier unlock): Persistent capability, unlocks higher card tiers
+
+*Action Pair:*
+- **ASSESS**: Play card cautiously, build Breakthrough slowly, shift balance toward overcautious
+- **EXECUTE**: Play card decisively, spend Position, shift balance toward decisive, build Breakthrough faster with more Danger
+
+*Victory Condition:* Reach Breakthrough threshold before Danger exceeds maximum
+*Example Phase:* "Climb the damaged mill wheel" (Physical challenge, 15 Breakthrough threshold, at Mill spot)
+
+---
+
+**Social Challenges** - Rapport-based conversations with NPCs
+
+*Core Resources:*
+- **Momentum** (builder): Built toward victory threshold (typically 8-16), tracks conversation progress
+- **Initiative** (session resource): Conversation action economy, accumulated through Foundation cards, spent on higher-cost cards, persists through LISTEN
+- **Doubt** (threshold): NPC skepticism, accumulates through failed approaches and Cadence penalties, failure at maximum (10)
+- **Cadence** (balance): Tracks dominating (+10) vs deferential (-10) conversation style, creates Doubt penalties or card draw bonuses during LISTEN
+- **Statements** (history): Count of Statement cards played, creates conversation memory, determines time cost
+- **Understanding** (tier unlock): Persistent connection depth, unlocks higher card tiers
+
+*Action Pair:*
+- **SPEAK**: Play card from hand, advance conversation state, increment Cadence (+1)
+- **LISTEN**: Reset action, draw cards (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
+
+*Victory Condition:* Reach Momentum threshold before Doubt exceeds maximum
+*Additional Complexity:* Personality Rules (Proud, Devoted, Mercantile, Cunning, Steadfast) modify base mechanics per NPC
+*Example Phase:* "Question the mill owner about sabotage" (Social challenge, 12 Momentum threshold, targets Mill_Owner NPC)
+
+---
+
+**Common Architectural Pattern:**
+
+All three systems follow the same structure:
+- **Builder Resource** → Victory (Progress, Breakthrough, Momentum)
+- **Threshold Resource** → Failure (Exposure, Danger, Doubt)
+- **Session Resource** → Tactical spending (Attention, Position, Initiative)
+- **Balance Tracker** → Playstyle modifier (ObserveActBalance, Commitment, Cadence)
+- **Binary Action Choice** → Tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
+- **Understanding** → Persistent tier unlocking (shared across all three)
+
+The systems are **parallel implementations** with distinct resource names, thresholds, and gameplay rhythms. Social has the most complexity (5 resources + Personality Rules), Physical and Mental are more streamlined (4 resources each).
+
+### Knowledge System (Connective Tissue)
+
+Knowledge entries are structured discoveries that connect investigations, unlock phases, enhance conversations, and alter world state.
+
+**Knowledge Structure:**
+- **ID**: Unique identifier ("mill_sabotage_discovered")
+- **Display Name**: Player-visible label ("Sabotage Evidence")
+- **Description**: What player learned
+- **Investigation Context**: Which investigation granted this
+- **Unlock Effects**: Which phases/investigations this enables
+
+**Knowledge Functions:**
+
+**Phase Unlocking** - Knowledge gates investigation progression
+- Phase 3 requires knowledge from Phase 1 completion
+- Creates meaningful progression, prevents skipping ahead
+- Example: Can't question suspect until you've examined crime scene
+
+**Investigation Discovery** - Knowledge triggers new investigations
+- Discovering "broken_cog" knowledge spawns "Sabotage Mystery" investigation
+- Creates investigation chains and narrative continuity
+- Knowledge from one investigation opens doors to related mysteries
+
+**Conversation Enhancement** - Knowledge adds observation cards to NPC decks
+- Discover "mill_sabotage" → gain observation card about sabotage
+- Play that card in conversation with mill owner → special dialogue branch
+- Knowledge creates conversation opportunities and advantages
+
+**World State** - Knowledge alters NPC behavior and available options
+- NPCs react differently when you possess certain knowledge
+- Locations reveal additional options based on what you know
+- Knowledge creates emergent narrative consequences
+
+### AI-Generated Investigation Content
+
+Investigations use **template-driven generation** where designers author mechanical structure, AI generates specific content:
+
+**Authored Template (Designer):**
+```
+Investigation: Waterwheel Mystery
+- Phase 1: Mental challenge, 10 Progress, at [LOCATION], requires [EQUIPMENT]
+- Phase 2: Social challenge, 10 Progress, targets [NPC], requires Phase 1 complete
+- Phase 3: Physical challenge, 12 Progress, at [LOCATION], requires knowledge from Phase 2
+- Completion grants [KNOWLEDGE], unlocks [NEXT_INVESTIGATION]
+```
+
+**AI-Generated Content:**
+- **Specific locations**: Mill, Waterwheel Spot, Mill Owner's House
+- **Specific NPCs**: Mill Owner (Proud personality), Miller's Apprentice (Devoted)
+- **Narrative text**: Phase descriptions, completion narratives, discovery text
+- **Card text**: Challenge-specific card descriptions matching investigation theme
+- **Knowledge entries**: "mill_mechanism_damaged", "sabotage_evidence", "suspect_identified"
+
+**Generation Constraints:**
+- Must respect mechanical template structure (phase count, challenge types, thresholds)
+- Must create valid location/NPC references that exist in world
+- Must generate knowledge IDs used by subsequent phases
+- Must maintain narrative coherence across phases
+- Must balance difficulty progression (early phases easier than late phases)
+
+**Content Validation:**
+- Parser validates all references exist in GameWorld (locations, NPCs, challenge types)
+- [Oracle] principle: Fail at load time, not runtime
+- Clear error messages identify specific validation failures
+
+### Investigation Progression Examples
+
+**Example 1: Linear Investigation**
+```
+Waterwheel Mystery (5 phases, linear progression)
+├─ Phase 1: Observe waterwheel (Mental) → grants "mechanism_damaged"
+├─ Phase 2: Question mill owner (Social, requires Phase 1) → grants "owner_evasive"
+├─ Phase 3: Examine interior (Physical, requires "mechanism_damaged") → grants "sabotage_evidence"
+├─ Phase 4: Confront suspect (Social, requires Phase 3) → grants "confession"
+└─ Phase 5: Report findings (Social, requires Phase 4) → completes investigation
+```
+
+**Example 2: Branching Investigation**
+```
+Missing Merchant Mystery (6 phases, parallel paths)
+├─ Phase 1: Question townspeople (Social) → grants "last_seen_location"
+├─ Phase 2a: Search forest path (Mental, requires Phase 1)
+├─ Phase 2b: Search riverside (Mental, requires Phase 1)
+├─ Phase 3: Examine discovered evidence (Mental, requires 2a OR 2b) → grants "attack_evidence"
+├─ Phase 4: Track attackers (Physical, requires Phase 3) → grants "bandit_camp_location"
+└─ Phase 5: Confront bandits (Social, requires Phase 4) → completes investigation
+```
+
+**Example 3: Equipment-Gated Investigation**
+```
+Ancient Ruin Investigation (4 phases, equipment requirements)
+├─ Phase 1: Examine exterior (Mental) → grants "sealed_entrance"
+├─ Phase 2: Force entry (Physical, requires "crowbar" equipment) → grants "dark_interior"
+├─ Phase 3: Explore interior (Mental, requires "lantern" equipment + Phase 2) → grants "ancient_text"
+└─ Phase 4: Decipher inscriptions (Mental, requires "scholar_knowledge" + Phase 3) → completes
+```
+
+### Investigation UI Flow
+
+**Discovery Notification**
+Player discovers investigation → Modal appears with investigation name, description, initial phase visibility
+- "New Investigation: The Waterwheel Mystery"
+- "The waterwheel has stopped turning. The mill owner seems worried."
+- Shows Phase 1 requirements and location
+
+**Journal Integration**
+Investigation added to Journal's Investigations tab:
+- Shows all phases (locked/unlocked status)
+- Displays requirements for locked phases
+- Shows progress toward completion (2/5 phases complete)
+- Tracks discovered knowledge related to this investigation
+
+**Phase Completion**
+Complete tactical challenge → Return to location screen → Modal appears:
+- "Phase Complete: Examine Waterwheel"
+- Narrative text describing what you learned
+- Knowledge gained: "Mechanism Damaged"
+- New phases unlocked (if any)
+- Investigation progress updated in journal
+
+**Investigation Complete**
+Final phase complete → Modal appears:
+- "Investigation Complete: The Waterwheel Mystery"
+- Summary of discoveries
+- Rewards granted (knowledge, items, access)
+- Related investigations unlocked (if any)
 
 ## Travel System
 
@@ -453,17 +642,41 @@ Stats determine card depth access:
 
 Progression represents growing conversational competence and expanded repertoire.
 
-### Conversation Types
+### Social Challenge Types (Conversations)
 
-Each conversation type has fixed deck appropriate to context:
+Conversations are **Social Challenges** - the third and most complex parallel tactical system alongside Mental and Physical challenges. Social follows the same architectural pattern but adds significant mechanical depth.
 
-**Friendly Chat**: Casual relationship building
-**Desperate Request**: Empathy and support (no authority cards)
-**Trade Negotiation**: Business and deals (no rapport cards)
-**Information Gathering**: Questions and investigation
-**Authority Challenge**: Confrontation and power
+**Social Challenge Resources (Most Complex):**
+- **Momentum** (builder): Progress toward conversation goal (typically 8-16 threshold)
+- **Initiative** (session resource): Action economy currency, accumulated through Foundation cards, persists through LISTEN
+- **Doubt** (threshold): Failure condition at maximum (10), tracks NPC skepticism
+- **Cadence** (balance): Dominating vs deferential style (-10 to +10), creates Doubt penalties or card draw bonuses
+- **Statements** (history): Count of Statement cards played, determines time cost (1 segment + statements)
+- **Understanding** (tier unlock): Persistent connection depth (shared with Mental/Physical)
 
-Same NPC uses different decks based on situation. Marcus at shop: Trade. Marcus desperate: Request. This maintains verisimilitude.
+**Additional Social Complexity:**
+- **Personality Rules**: Each NPC has unique modifier (Proud, Devoted, Mercantile, Cunning, Steadfast) that fundamentally alters card play rules
+- **Token Mechanics**: Relationship tokens (Rapport, Trust, Commitment) unlock special conversation branches and affect momentum thresholds
+- **Connection Progression**: Conversations deepen NPC relationships through multi-stage connection system (Stranger → Acquaintance → Friend → Close Friend)
+- **Observation Cards**: Knowledge from investigations injects special cards into conversation decks
+- **Request Cards**: NPC-specific cards that drive conversation toward specific outcomes
+
+**SocialChallengeType Configuration:**
+Each SocialChallengeType defines:
+- **Deck ID**: Which card deck to use (investigation conversations, casual chats, negotiations, etc.)
+- **Victory Threshold**: Momentum needed to complete conversation successfully (8-16 typical)
+- **Danger Threshold**: Doubt limit before conversation failure (10 standard)
+- **Initial Hand Size**: Starting cards (typically 5)
+- **Max Hand Size**: Maximum hand capacity (typically 7)
+
+**Context-Specific Social Challenges:**
+- **Investigation Conversations**: Social phases of investigations (question witnesses, confront suspects)
+- **NPC Requests**: Conversations triggered by accepting obligations (deliveries, tasks)
+- **Relationship Building**: Casual conversations deepening NPC connections
+- **Information Gathering**: Conversations focused on discovering knowledge
+- **Negotiation**: Trade and deal-making conversations
+
+Social is the **most sophisticated** of the three tactical systems. Mental and Physical are streamlined (4 resources), Social has 5 resources plus Personality Rules, Token mechanics, and Connection progression. All three follow the same architectural pattern (builder/threshold/session/balance resources + binary actions), but Social implements the pattern with significantly more mechanical depth.
 
 ## Three-Layer Content Architecture
 
