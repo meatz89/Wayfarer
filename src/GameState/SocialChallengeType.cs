@@ -1,12 +1,12 @@
 /// <summary>
-/// Social engagement type definition
-/// Bridges strategic goals to tactical Social (conversation) system
+/// Social challenge type definition
+/// Bridges strategic goals to tactical Social challenge system
 /// </summary>
-public class SocialEngagementType
+public class SocialChallengeType
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string DeckId { get; set; }  // References ConversationEngagementDeck
+    public string DeckId { get; set; }  // References SocialChallengeDeck
 
     // Victory/Failure Thresholds
     public int VictoryThreshold { get; set; }  // Momentum needed

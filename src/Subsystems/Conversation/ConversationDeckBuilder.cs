@@ -36,14 +36,14 @@ public class ConversationDeckBuilder
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement type and conversation deck
-        if (!_gameWorld.SocialEngagementTypes.TryGetValue(request.EngagementTypeId, out SocialEngagementType engagementType))
+        if (!_gameWorld.SocialChallengeTypes.TryGetValue(request.ChallengeTypeId, out SocialChallengeType challengeType))
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Social engagement type '{request.EngagementTypeId}' not found in GameWorld.SocialEngagementTypes");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Social engagement type '{request.ChallengeTypeId}' not found in GameWorld.SocialChallengeTypes");
         }
 
-        if (!_gameWorld.ConversationEngagementDecks.TryGetValue(engagementType.DeckId, out ConversationEngagementDeck deckDefinition))
+        if (!_gameWorld.SocialChallengeDecks.TryGetValue(challengeType.DeckId, out SocialChallengeDeck deckDefinition))
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{engagementType.DeckId}' not found in GameWorld.ConversationEngagementDecks");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{challengeType.DeckId}' not found in GameWorld.SocialChallengeDecks");
         }
 
         // Build card instances from engagement deck (no depth distribution - deck has explicit card list)

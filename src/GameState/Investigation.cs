@@ -41,7 +41,7 @@ public class InvestigationPhaseDefinition
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
     
     public TacticalSystemType SystemType { get; set; }
-    public string EngagementTypeId { get; set; }
+    public string ChallengeTypeId { get; set; }
     
     // Location assignment (Mental/Physical goals)
     public string LocationId { get; set; }

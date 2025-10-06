@@ -93,16 +93,16 @@ public class GameWorld
     // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
 
     // Social system (Conversation)
-    public Dictionary<string, SocialEngagementType> SocialEngagementTypes { get; private set; } = new Dictionary<string, SocialEngagementType>();
-    public Dictionary<string, ConversationEngagementDeck> ConversationEngagementDecks { get; private set; } = new Dictionary<string, ConversationEngagementDeck>();
+    public Dictionary<string, SocialChallengeType> SocialChallengeTypes { get; private set; } = new Dictionary<string, SocialChallengeType>();
+    public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; private set; } = new Dictionary<string, SocialChallengeDeck>();
 
     // Mental system (Investigation)
-    public Dictionary<string, MentalEngagementType> MentalEngagementTypes { get; private set; } = new Dictionary<string, MentalEngagementType>();
-    public Dictionary<string, MentalEngagementDeck> MentalEngagementDecks { get; private set; } = new Dictionary<string, MentalEngagementDeck>();
+    public Dictionary<string, MentalChallengeType> MentalChallengeTypes { get; private set; } = new Dictionary<string, MentalChallengeType>();
+    public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; private set; } = new Dictionary<string, MentalChallengeDeck>();
 
     // Physical system (Challenges)
-    public Dictionary<string, PhysicalEngagementType> PhysicalEngagementTypes { get; private set; } = new Dictionary<string, PhysicalEngagementType>();
-    public Dictionary<string, PhysicalEngagementDeck> PhysicalEngagementDecks { get; private set; } = new Dictionary<string, PhysicalEngagementDeck>();
+    public Dictionary<string, PhysicalChallengeType> PhysicalChallengeTypes { get; private set; } = new Dictionary<string, PhysicalChallengeType>();
+    public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; private set; } = new Dictionary<string, PhysicalChallengeDeck>();
 
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();

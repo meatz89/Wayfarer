@@ -1,7 +1,7 @@
 /// <summary>
-/// DTO for loading MentalEngagementType from JSON
+/// DTO for loading MentalChallengeType from JSON
 /// </summary>
-public class MentalEngagementTypeDTO
+public class MentalChallengeTypeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -11,9 +11,9 @@ public class MentalEngagementTypeDTO
     public int InitialHandSize { get; set; } = 5;
     public int MaxHandSize { get; set; } = 7;
 
-    public MentalEngagementType ToDomain()
+    public MentalChallengeType ToDomain()
     {
-        return new MentalEngagementType
+        return new MentalChallengeType
         {
             Id = Id,
             Name = Name,

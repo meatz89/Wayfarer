@@ -38,7 +38,7 @@ public class PhysicalFacade
     public List<CardInstance> GetHand() => _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
     public PhysicalDeckBuilder GetDeckBuilder() => _deckBuilder;
 
-    public PhysicalSession StartSession(PhysicalEngagementType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
+    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
     {
         if (IsSessionActive())
         {

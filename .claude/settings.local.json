@@ -72,7 +72,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6240\" dotnet run --no-build)",
       "Bash(cat:*)",
       "Bash(dos2unix:*)",
-      "Bash(unix2dos:*)"
+      "Bash(unix2dos:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []

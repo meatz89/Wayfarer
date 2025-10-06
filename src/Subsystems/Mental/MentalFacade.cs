@@ -38,7 +38,7 @@ public class MentalFacade
     public List<CardInstance> GetHand() => _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
     public MentalDeckBuilder GetDeckBuilder() => _deckBuilder;
 
-    public MentalSession StartSession(MentalEngagementType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
+    public MentalSession StartSession(MentalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
     {
         if (IsSessionActive())
         {
@@ -288,7 +288,7 @@ public class MentalFacade
         // Persist exposure to location (Mental debt system)
         // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
         Location location = _gameWorld.Locations.FirstOrDefault(l =>
-            l.Goals != null && l.Goals.Any(g => g.EngagementTypeId == _currentSession.InvestigationId));
+            l.Goals != null && l.Goals.Any(g => g.ChallengeTypeId == _currentSession.InvestigationId));
 
         if (location != null)
         {

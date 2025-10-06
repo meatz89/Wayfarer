@@ -1,7 +1,7 @@
 /// <summary>
-/// DTO for loading SocialEngagementType from JSON
+/// DTO for loading SocialChallengeType from JSON
 /// </summary>
-public class SocialEngagementTypeDTO
+public class SocialChallengeTypeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -11,9 +11,9 @@ public class SocialEngagementTypeDTO
     public int InitialHandSize { get; set; } = 5;
     public int MaxHandSize { get; set; } = 7;
 
-    public SocialEngagementType ToDomain()
+    public SocialChallengeType ToDomain()
     {
-        return new SocialEngagementType
+        return new SocialChallengeType
         {
             Id = Id,
             Name = Name,

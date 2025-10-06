@@ -14,7 +14,7 @@ public class ConversationOption
     /// <summary>
     /// THREE PARALLEL SYSTEMS: The engagement type ID from the request (Social system)
     /// </summary>
-    public string EngagementTypeId { get; set; }
+    public string ChallengeTypeId { get; set; }
 
     /// <summary>
     /// The specific card ID from the NPC's requests that will be used as the goal card

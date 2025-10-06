@@ -28,7 +28,7 @@ public class InvestigationPhaseDTO
     public string Goal { get; set; }
     public int ProgressThreshold { get; set; }
     public string SystemType { get; set; } // "Social", "Mental", or "Physical"
-    public string EngagementTypeId { get; set; } // Engagement type ID for Mental/Physical, or conversation type for Social
+    public string ChallengeTypeId { get; set; } // Engagement type ID for Mental/Physical, or conversation type for Social
 
     // Location assignment (for Mental/Physical goals)
     public string LocationId { get; set; }

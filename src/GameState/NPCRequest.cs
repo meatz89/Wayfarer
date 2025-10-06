@@ -34,7 +34,7 @@ public class NPCRequest
     /// The engagement type ID this request uses (ID within SystemType collection)
     /// Replaces ConversationTypeId - now supports all three systems
     /// </summary>
-    public string EngagementTypeId { get; set; }
+    public string ChallengeTypeId { get; set; }
 
     /// <summary>
     /// Category that must match the conversation type's category

@@ -1,12 +1,12 @@
 /// <summary>
-/// Mental engagement type definition
-/// Bridges strategic goals to tactical Mental (investigation) system
+/// Mental challenge type definition
+/// Bridges strategic goals to tactical Mental challenge system
 /// </summary>
-public class MentalEngagementType
+public class MentalChallengeType
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string DeckId { get; set; }  // References MentalEngagementDeck
+    public string DeckId { get; set; }  // References MentalChallengeDeck
 
     // Victory/Failure Thresholds
     public int VictoryThreshold { get; set; }  // Progress needed

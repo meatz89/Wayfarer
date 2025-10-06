@@ -429,11 +429,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string engagementTypeId)
+    public async Task StartMentalSession(string challengeTypeId)
     {
-        Console.WriteLine($"[GameScreen] Starting Mental session: {engagementTypeId}");
+        Console.WriteLine($"[GameScreen] Starting Mental session: {challengeTypeId}");
 
-        MentalSession = GameFacade.StartMentalSession(engagementTypeId);
+        MentalSession = GameFacade.StartMentalSession(challengeTypeId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -469,11 +469,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string engagementTypeId)
+    public async Task StartPhysicalSession(string challengeTypeId)
     {
-        Console.WriteLine($"[GameScreen] Starting Physical session: {engagementTypeId}");
+        Console.WriteLine($"[GameScreen] Starting Physical session: {challengeTypeId}");
 
-        PhysicalSession = GameFacade.StartPhysicalSession(engagementTypeId);
+        PhysicalSession = GameFacade.StartPhysicalSession(challengeTypeId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();

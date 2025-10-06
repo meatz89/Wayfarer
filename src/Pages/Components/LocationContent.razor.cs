@@ -95,9 +95,9 @@ namespace Wayfarer.Pages.Components
                         ConversationOptionViewModel option = new ConversationOptionViewModel
                         {
                             RequestId = conversationOption.RequestId,
-                            ConversationTypeId = conversationOption.EngagementTypeId,
+                            ConversationTypeId = conversationOption.ChallengeTypeId,
                             GoalCardId = conversationOption.GoalCardId,
-                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.EngagementTypeId),
+                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ChallengeTypeId),
                             Description = conversationOption.Description,
                             IsAvailable = true,
                             EngagementType = "Conversation",
@@ -320,11 +320,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartMentalGoal(LocationGoal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartMentalSession(goal.EngagementTypeId);
+                await GameScreen.StartMentalSession(goal.ChallengeTypeId);
             }
             else
             {
@@ -334,11 +334,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartPhysicalGoal(LocationGoal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartPhysicalSession(goal.EngagementTypeId);
+                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId);
             }
             else
             {

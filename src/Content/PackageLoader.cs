@@ -149,12 +149,12 @@ public class PackageLoader
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
         // THREE PARALLEL TACTICAL SYSTEMS
-        LoadSocialEngagementTypes(package.Content.SocialEngagementTypes, allowSkeletons);
-        LoadConversationEngagementDecks(package.Content.ConversationEngagementDecks, allowSkeletons);
-        LoadMentalEngagementTypes(package.Content.MentalEngagementTypes, allowSkeletons);
-        LoadMentalEngagementDecks(package.Content.MentalEngagementDecks, allowSkeletons);
-        LoadPhysicalEngagementTypes(package.Content.PhysicalEngagementTypes, allowSkeletons);
-        LoadPhysicalEngagementDecks(package.Content.PhysicalEngagementDecks, allowSkeletons);
+        LoadSocialChallengeTypes(package.Content.SocialChallengeTypes, allowSkeletons);
+        LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, allowSkeletons);
+        LoadMentalChallengeTypes(package.Content.MentalChallengeTypes, allowSkeletons);
+        LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
+        LoadPhysicalChallengeTypes(package.Content.PhysicalChallengeTypes, allowSkeletons);
+        LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
 
         // 3.5 Investigation Templates (strategic multi-phase activities)
         LoadInvestigations(package.Content.Investigations, allowSkeletons);
@@ -597,88 +597,88 @@ public class PackageLoader
 
     // THREE PARALLEL TACTICAL SYSTEMS - SEPARATE LOADERS
 
-    private void LoadSocialEngagementTypes(List<SocialEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    private void LoadSocialChallengeTypes(List<SocialChallengeTypeDTO> challengeTypes, bool allowSkeletons)
     {
-        if (engagementTypes == null) return;
+        if (challengeTypes == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading social engagement types...");
-        foreach (SocialEngagementTypeDTO dto in engagementTypes)
+        foreach (SocialChallengeTypeDTO dto in challengeTypes)
         {
-            SocialEngagementType engagementType = dto.ToDomain();
-            _gameWorld.SocialEngagementTypes[engagementType.Id] = engagementType;
-            Console.WriteLine($"[PackageLoader] Loaded social engagement type '{engagementType.Id}': {engagementType.Name}");
+            SocialChallengeType challengeType = dto.ToDomain();
+            _gameWorld.SocialChallengeTypes[challengeType.Id] = challengeType;
+            Console.WriteLine($"[PackageLoader] Loaded social engagement type '{challengeType.Id}': {challengeType.Name}");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading social engagement types. Total: {_gameWorld.SocialEngagementTypes.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading social engagement types. Total: {_gameWorld.SocialChallengeTypes.Count}");
     }
 
-    private void LoadConversationEngagementDecks(List<ConversationEngagementDeckDTO> decks, bool allowSkeletons)
+    private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading conversation engagement decks...");
-        foreach (ConversationEngagementDeckDTO dto in decks)
+        foreach (SocialChallengeDeckDTO dto in decks)
         {
-            ConversationEngagementDeck deck = dto.ToDomain();
-            _gameWorld.ConversationEngagementDecks[deck.Id] = deck;
+            SocialChallengeDeck deck = dto.ToDomain();
+            _gameWorld.SocialChallengeDecks[deck.Id] = deck;
             Console.WriteLine($"[PackageLoader] Loaded conversation deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading conversation engagement decks. Total: {_gameWorld.ConversationEngagementDecks.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading conversation engagement decks. Total: {_gameWorld.SocialChallengeDecks.Count}");
     }
 
-    private void LoadMentalEngagementTypes(List<MentalEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    private void LoadMentalChallengeTypes(List<MentalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
     {
-        if (engagementTypes == null) return;
+        if (challengeTypes == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading mental engagement types...");
-        foreach (MentalEngagementTypeDTO dto in engagementTypes)
+        foreach (MentalChallengeTypeDTO dto in challengeTypes)
         {
-            MentalEngagementType engagementType = dto.ToDomain();
-            _gameWorld.MentalEngagementTypes[engagementType.Id] = engagementType;
-            Console.WriteLine($"[PackageLoader] Loaded mental engagement type '{engagementType.Id}': {engagementType.Name}");
+            MentalChallengeType challengeType = dto.ToDomain();
+            _gameWorld.MentalChallengeTypes[challengeType.Id] = challengeType;
+            Console.WriteLine($"[PackageLoader] Loaded mental engagement type '{challengeType.Id}': {challengeType.Name}");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading mental engagement types. Total: {_gameWorld.MentalEngagementTypes.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading mental engagement types. Total: {_gameWorld.MentalChallengeTypes.Count}");
     }
 
-    private void LoadMentalEngagementDecks(List<MentalEngagementDeckDTO> decks, bool allowSkeletons)
+    private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading mental engagement decks...");
-        foreach (MentalEngagementDeckDTO dto in decks)
+        foreach (MentalChallengeDeckDTO dto in decks)
         {
-            MentalEngagementDeck deck = dto.ToDomain();
-            _gameWorld.MentalEngagementDecks[deck.Id] = deck;
+            MentalChallengeDeck deck = dto.ToDomain();
+            _gameWorld.MentalChallengeDecks[deck.Id] = deck;
             Console.WriteLine($"[PackageLoader] Loaded mental deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading mental engagement decks. Total: {_gameWorld.MentalEngagementDecks.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading mental engagement decks. Total: {_gameWorld.MentalChallengeDecks.Count}");
     }
 
-    private void LoadPhysicalEngagementTypes(List<PhysicalEngagementTypeDTO> engagementTypes, bool allowSkeletons)
+    private void LoadPhysicalChallengeTypes(List<PhysicalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
     {
-        if (engagementTypes == null) return;
+        if (challengeTypes == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading physical engagement types...");
-        foreach (PhysicalEngagementTypeDTO dto in engagementTypes)
+        foreach (PhysicalChallengeTypeDTO dto in challengeTypes)
         {
-            PhysicalEngagementType engagementType = dto.ToDomain();
-            _gameWorld.PhysicalEngagementTypes[engagementType.Id] = engagementType;
-            Console.WriteLine($"[PackageLoader] Loaded physical engagement type '{engagementType.Id}': {engagementType.Name}");
+            PhysicalChallengeType challengeType = dto.ToDomain();
+            _gameWorld.PhysicalChallengeTypes[challengeType.Id] = challengeType;
+            Console.WriteLine($"[PackageLoader] Loaded physical engagement type '{challengeType.Id}': {challengeType.Name}");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading physical engagement types. Total: {_gameWorld.PhysicalEngagementTypes.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading physical engagement types. Total: {_gameWorld.PhysicalChallengeTypes.Count}");
     }
 
-    private void LoadPhysicalEngagementDecks(List<PhysicalEngagementDeckDTO> decks, bool allowSkeletons)
+    private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading physical engagement decks...");
-        foreach (PhysicalEngagementDeckDTO dto in decks)
+        foreach (PhysicalChallengeDeckDTO dto in decks)
         {
-            PhysicalEngagementDeck deck = dto.ToDomain();
-            _gameWorld.PhysicalEngagementDecks[deck.Id] = deck;
+            PhysicalChallengeDeck deck = dto.ToDomain();
+            _gameWorld.PhysicalChallengeDecks[deck.Id] = deck;
             Console.WriteLine($"[PackageLoader] Loaded physical deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading physical engagement decks. Total: {_gameWorld.PhysicalEngagementDecks.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading physical engagement decks. Total: {_gameWorld.PhysicalChallengeDecks.Count}");
     }
 
     private void LoadInvestigations(List<InvestigationDTO> investigations, bool allowSkeletons)

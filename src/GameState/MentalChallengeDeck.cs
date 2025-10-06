@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Deck definition for Mental tactical engagements
-/// Contains card IDs that appear in this specific investigation engagement
-/// Same card can appear in multiple engagement decks
+/// Deck definition for Mental tactical challenges
+/// Contains card IDs that appear in this specific mental challenge
+/// Same card can appear in multiple challenge decks
 /// </summary>
-public class MentalEngagementDeck
+public class MentalChallengeDeck
 {
     public string Id { get; set; }
     public string Name { get; set; }

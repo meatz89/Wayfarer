@@ -1,12 +1,12 @@
 /// <summary>
-/// Physical engagement type definition
-/// Bridges strategic goals to tactical Physical (challenge) system
+/// Physical challenge type definition
+/// Bridges strategic goals to tactical Physical challenge system
 /// </summary>
-public class PhysicalEngagementType
+public class PhysicalChallengeType
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string DeckId { get; set; }  // References PhysicalEngagementDeck
+    public string DeckId { get; set; }  // References PhysicalChallengeDeck
 
     // Victory/Failure Thresholds
     public int VictoryThreshold { get; set; }  // Breakthrough needed

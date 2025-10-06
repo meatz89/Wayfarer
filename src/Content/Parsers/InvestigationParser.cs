@@ -28,7 +28,7 @@ public class InvestigationParser
             Description = dto.Description,
             Goal = dto.Goal,
             SystemType = ParseSystemType(dto.SystemType),
-            EngagementTypeId = dto.EngagementTypeId,
+            ChallengeTypeId = dto.ChallengeTypeId,
             LocationId = dto.LocationId,
             SpotId = dto.SpotId,
             NpcId = dto.NpcId,

@@ -20,14 +20,14 @@ public class MentalDeckBuilder
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge cards)
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalEngagementType engagementType, string locationId, Player player)
+    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeType challengeType, string locationId, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
         // THREE PARALLEL SYSTEMS: Get Mental engagement deck from engagement type
-        if (!_gameWorld.MentalEngagementDecks.TryGetValue(engagementType.DeckId, out MentalEngagementDeck deckDefinition))
+        if (!_gameWorld.MentalChallengeDecks.TryGetValue(challengeType.DeckId, out MentalChallengeDeck deckDefinition))
         {
-            throw new InvalidOperationException($"[MentalDeckBuilder] Mental engagement deck '{engagementType.DeckId}' not found in GameWorld.MentalEngagementDecks");
+            throw new InvalidOperationException($"[MentalDeckBuilder] Mental engagement deck '{challengeType.DeckId}' not found in GameWorld.MentalChallengeDecks");
         }
 
         // Build card instances from engagement deck (parallel to ConversationDeckBuilder pattern)

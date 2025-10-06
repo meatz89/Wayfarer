@@ -7,7 +7,7 @@ public class ConversationSession
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public NPC NPC { get; set; }
     public string RequestId { get; set; }
-    public string EngagementTypeId { get; set; }  // THREE PARALLEL SYSTEMS: Social engagement type ID
+    public string ChallengeTypeId { get; set; }  // THREE PARALLEL SYSTEMS: Social engagement type ID
     // Connection State preserved but only for determining starting resources
     public ConnectionState CurrentState { get; set; }
     public ConnectionState InitialState { get; set; }
@@ -354,7 +354,7 @@ public class ConversationSession
         ConversationSession session = new ConversationSession
         {
             NPC = npc,
-            EngagementTypeId = conversationTypeId,
+            ChallengeTypeId = conversationTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             // Resources initialized to defaults

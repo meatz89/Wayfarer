@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for loading PhysicalEngagementDeck from JSON
+/// DTO for loading PhysicalChallengeDeck from JSON
 /// </summary>
-public class PhysicalEngagementDeckDTO
+public class PhysicalChallengeDeckDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public List<string> CardIds { get; set; } = new List<string>();
 
-    public PhysicalEngagementDeck ToDomain()
+    public PhysicalChallengeDeck ToDomain()
     {
-        return new PhysicalEngagementDeck
+        return new PhysicalChallengeDeck
         {
             Id = Id,
             Name = Name,

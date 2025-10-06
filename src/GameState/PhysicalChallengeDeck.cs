@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Deck definition for Physical tactical engagements
-/// Contains card IDs that appear in this specific physical challenge engagement
-/// Same card can appear in multiple engagement decks
+/// Deck definition for Physical tactical challenges
+/// Contains card IDs that appear in this specific physical challenge
+/// Same card can appear in multiple challenge decks
 /// </summary>
-public class PhysicalEngagementDeck
+public class PhysicalChallengeDeck
 {
     public string Id { get; set; }
     public string Name { get; set; }

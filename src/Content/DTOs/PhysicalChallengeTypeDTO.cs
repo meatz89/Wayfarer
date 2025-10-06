@@ -1,7 +1,7 @@
 /// <summary>
-/// DTO for loading PhysicalEngagementType from JSON
+/// DTO for loading PhysicalChallengeType from JSON
 /// </summary>
-public class PhysicalEngagementTypeDTO
+public class PhysicalChallengeTypeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -11,9 +11,9 @@ public class PhysicalEngagementTypeDTO
     public int InitialHandSize { get; set; } = 5;
     public int MaxHandSize { get; set; } = 7;
 
-    public PhysicalEngagementType ToDomain()
+    public PhysicalChallengeType ToDomain()
     {
-        return new PhysicalEngagementType
+        return new PhysicalChallengeType
         {
             Id = Id,
             Name = Name,

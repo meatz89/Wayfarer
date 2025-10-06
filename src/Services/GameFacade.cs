@@ -232,13 +232,13 @@ public class GameFacade
 
         // Get the first available request (strangers have single request)
         NPCRequest request = stranger.GetAvailableRequests().FirstOrDefault();
-        if (request == null || string.IsNullOrEmpty(request.EngagementTypeId))
+        if (request == null || string.IsNullOrEmpty(request.ChallengeTypeId))
         {
             return null;
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement type
-        if (!_gameWorld.SocialEngagementTypes.TryGetValue(request.EngagementTypeId, out SocialEngagementType engagementType))
+        if (!_gameWorld.SocialChallengeTypes.TryGetValue(request.ChallengeTypeId, out SocialChallengeType challengeType))
         {
             return null;
         }
@@ -252,7 +252,7 @@ public class GameFacade
             IsValid = true,
             Npc = stranger,
             NpcId = stranger.ID,
-            ConversationTypeId = engagementType.Id,  // Using SocialEngagementType
+            ConversationTypeId = challengeType.Id,  // Using SocialChallengeType
             RequestId = request.Id,
             RequestText = request.Description,
             InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
@@ -267,10 +267,10 @@ public class GameFacade
         foreach (NPC stranger in _gameWorld.GetAllStrangers())
         {
             NPCRequest request = stranger.GetRequestById(requestId);
-            if (request != null && !string.IsNullOrEmpty(request.EngagementTypeId))
+            if (request != null && !string.IsNullOrEmpty(request.ChallengeTypeId))
             {
                 // THREE PARALLEL SYSTEMS: Check if Social engagement type exists
-                if (_gameWorld.SocialEngagementTypes.ContainsKey(request.EngagementTypeId))
+                if (_gameWorld.SocialChallengeTypes.ContainsKey(request.ChallengeTypeId))
                 {
                     return true; // No attention cost check needed
                 }
@@ -348,7 +348,7 @@ public class GameFacade
         foreach (NPC npc in npcs)
         {
             List<ConversationOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
-            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.EngagementTypeId).Distinct().ToList();
+            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ChallengeTypeId).Distinct().ToList();
 
             options.Add(new NPCConversationOptions
             {
@@ -662,7 +662,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string engagementTypeId)
+    public MentalSession StartMentalSession(string challengeTypeId)
     {
         if (_mentalFacade == null)
             throw new InvalidOperationException("MentalFacade not available");
@@ -670,17 +670,17 @@ public class GameFacade
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        if (!_gameWorld.MentalEngagementTypes.TryGetValue(engagementTypeId, out MentalEngagementType engagementType))
-            throw new InvalidOperationException($"MentalEngagementType {engagementTypeId} not found");
+        if (!_gameWorld.MentalChallengeTypes.TryGetValue(challengeTypeId, out MentalChallengeType challengeType))
+            throw new InvalidOperationException($"MentalChallengeType {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
         string currentLocationId = player.CurrentLocationSpot?.LocationId;
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(engagementType, currentLocationId, player);
+            .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
 
-        return _mentalFacade.StartSession(engagementType, deck, startingHand, currentLocationId);
+        return _mentalFacade.StartSession(challengeType, deck, startingHand, currentLocationId);
     }
 
     /// <summary>
@@ -736,7 +736,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string engagementTypeId)
+    public PhysicalSession StartPhysicalSession(string challengeTypeId)
     {
         if (_physicalFacade == null)
             throw new InvalidOperationException("PhysicalFacade not available");
@@ -744,17 +744,17 @@ public class GameFacade
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        if (!_gameWorld.PhysicalEngagementTypes.TryGetValue(engagementTypeId, out PhysicalEngagementType engagementType))
-            throw new InvalidOperationException($"PhysicalEngagementType {engagementTypeId} not found");
+        if (!_gameWorld.PhysicalChallengeTypes.TryGetValue(challengeTypeId, out PhysicalChallengeType challengeType))
+            throw new InvalidOperationException($"PhysicalChallengeType {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
         string currentLocationId = player.CurrentLocationSpot?.LocationId;
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(engagementType, currentLocationId, player);
+            .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
 
-        return _physicalFacade.StartSession(engagementType, deck, startingHand, currentLocationId);
+        return _physicalFacade.StartSession(challengeType, deck, startingHand, currentLocationId);
     }
 
     /// <summary>

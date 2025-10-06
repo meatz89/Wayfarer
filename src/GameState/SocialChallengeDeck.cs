@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Deck definition for Social tactical engagements
-/// Contains card IDs that appear in this specific conversation engagement
-/// Same card can appear in multiple engagement decks
+/// Deck definition for Social tactical challenges
+/// Contains card IDs that appear in this specific social challenge
+/// Same card can appear in multiple challenge decks
 /// </summary>
-public class ConversationEngagementDeck
+public class SocialChallengeDeck
 {
     public string Id { get; set; }
     public string Name { get; set; }

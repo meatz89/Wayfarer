@@ -182,10 +182,10 @@ public class PackageContent
     public List<PhysicalCardDTO> PhysicalCards { get; set; }
 
     // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
-    public List<SocialEngagementTypeDTO> SocialEngagementTypes { get; set; } = new List<SocialEngagementTypeDTO>();
-    public List<ConversationEngagementDeckDTO> ConversationEngagementDecks { get; set; } = new List<ConversationEngagementDeckDTO>();
-    public List<MentalEngagementTypeDTO> MentalEngagementTypes { get; set; } = new List<MentalEngagementTypeDTO>();
-    public List<MentalEngagementDeckDTO> MentalEngagementDecks { get; set; } = new List<MentalEngagementDeckDTO>();
-    public List<PhysicalEngagementTypeDTO> PhysicalEngagementTypes { get; set; } = new List<PhysicalEngagementTypeDTO>();
-    public List<PhysicalEngagementDeckDTO> PhysicalEngagementDecks { get; set; } = new List<PhysicalEngagementDeckDTO>();
+    public List<SocialChallengeTypeDTO> SocialChallengeTypes { get; set; } = new List<SocialChallengeTypeDTO>();
+    public List<SocialChallengeDeckDTO> SocialChallengeDecks { get; set; } = new List<SocialChallengeDeckDTO>();
+    public List<MentalChallengeTypeDTO> MentalChallengeTypes { get; set; } = new List<MentalChallengeTypeDTO>();
+    public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
+    public List<PhysicalChallengeTypeDTO> PhysicalChallengeTypes { get; set; } = new List<PhysicalChallengeTypeDTO>();
+    public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
 }

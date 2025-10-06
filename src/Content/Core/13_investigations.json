@@ -15,7 +15,7 @@
           "goal": "Examine the waterwheel mechanism",
           "progressThreshold": 10,
           "systemType": "Mental",
-          "engagementTypeId": "investigation",
+          "challengeTypeId": "investigation",
           "locationId": "old_mill",
           "spotId": "courtyard",
           "cardDeckIds": ["mental_basic"],
@@ -32,7 +32,7 @@
           "systemType": "Social",
           "npcId": "elena",
           "requestId": "elena_investigate_offer",
-          "engagementTypeId": "friendly_chat",
+          "challengeTypeId": "friendly_chat",
           "cardDeckIds": ["conversation_basic"],
           "requirements": {
             "completedPhases": [0]

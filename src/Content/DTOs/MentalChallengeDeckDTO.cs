@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for loading MentalEngagementDeck from JSON
+/// DTO for loading MentalChallengeDeck from JSON
 /// </summary>
-public class MentalEngagementDeckDTO
+public class MentalChallengeDeckDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public List<string> CardIds { get; set; } = new List<string>();
 
-    public MentalEngagementDeck ToDomain()
+    public MentalChallengeDeck ToDomain()
     {
-        return new MentalEngagementDeck
+        return new MentalChallengeDeck
         {
             Id = Id,
             Name = Name,

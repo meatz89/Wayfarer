@@ -137,7 +137,7 @@ public static class NPCParser
                     Name = requestDto.Name,
                     Description = requestDto.Description,
                     SystemType = TacticalSystemType.Social,  // NPCRequests default to Social system
-                    EngagementTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new EngagementTypeId
+                    ChallengeTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new ChallengeTypeId
                     Status = RequestStatus.Available
                 };
 

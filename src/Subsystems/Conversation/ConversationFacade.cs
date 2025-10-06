@@ -120,7 +120,7 @@ public class ConversationFacade
         {
             NPC = npc,
             RequestId = requestId,
-            EngagementTypeId = request.EngagementTypeId,
+            ChallengeTypeId = request.ChallengeTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -457,7 +457,7 @@ public class ConversationFacade
 
         // Create typed context based on request's conversation type
         ConversationContextBase context = ConversationContextFactory.CreateContext(
-            request.EngagementTypeId,
+            request.ChallengeTypeId,
             npc,
             session,
             observationCards,
@@ -504,22 +504,22 @@ public class ConversationFacade
             foreach (NPCRequest request in availableRequests)
             {
                 // CRITICAL: All requests MUST have valid conversation types defined in JSON
-                if (string.IsNullOrEmpty(request.EngagementTypeId))
+                if (string.IsNullOrEmpty(request.ChallengeTypeId))
                 {
                     throw new InvalidOperationException($"NPCRequest '{request.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
                 }
 
                 // Verify the conversation type actually exists
-                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.EngagementTypeId);
+                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ChallengeTypeId);
                 if (typeEntry == null)
                 {
-                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.EngagementTypeId}' which does not exist in JSON. All conversation types must be defined.");
+                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.ChallengeTypeId}' which does not exist in JSON. All conversation types must be defined.");
                 }
 
                 options.Add(new ConversationOption
                 {
                     RequestId = request.Id, // Store the actual request ID
-                    EngagementTypeId = request.EngagementTypeId, // Use the actual conversation type from JSON
+                    ChallengeTypeId = request.ChallengeTypeId, // Use the actual conversation type from JSON
                     GoalCardId = request.Id, // Use request ID to identify which request
                     DisplayName = request.Name,
                     Description = request.Description,
@@ -542,7 +542,7 @@ public class ConversationFacade
                 // Delivery doesn't need a goal card from RequestDeck
                 options.Add(new ConversationOption
                 {
-                    EngagementTypeId = "delivery",
+                    ChallengeTypeId = "delivery",
                     GoalCardId = null,
                     DisplayName = "Deliver Letter",
                     Description = "Deliver a letter from your queue",
@@ -1248,7 +1248,7 @@ public class ConversationFacade
     private ConnectionType DetermineConnectionTypeFromConversation(ConversationSession session)
     {
         // Map conversation types to their corresponding connection types
-        return session.EngagementTypeId switch
+        return session.ChallengeTypeId switch
         {
             // Diplomacy removed - exchanges use separate Exchange system
             "request" => ConnectionType.Trust, // Request bundles with promise cards

@@ -267,7 +267,7 @@ public class InvestigationActivity
             Name = phaseDef.Name,
             Description = phaseDef.Description,
             SystemType = phaseDef.SystemType,
-            EngagementTypeId = phaseDef.EngagementTypeId,
+            ChallengeTypeId = phaseDef.ChallengeTypeId,
             SpotId = phaseDef.SpotId,
             NpcId = phaseDef.NpcId,
             RequestId = phaseDef.RequestId,
