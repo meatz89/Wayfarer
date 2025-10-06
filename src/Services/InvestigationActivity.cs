@@ -269,6 +269,8 @@ public class InvestigationActivity
             SystemType = phaseDef.SystemType,
             EngagementTypeId = phaseDef.EngagementTypeId,
             SpotId = phaseDef.SpotId,
+            NpcId = phaseDef.NpcId,
+            RequestId = phaseDef.RequestId,
             InvestigationId = investigationId,
             Requirements = phaseDef.Requirements,
             IsAvailable = true,

@@ -1409,3 +1409,72 @@ body * {
 }
 
 /* .back-button moved to common.css */
+/* Investigation Goal Action Buttons */
+.goal-action-btn {
+    background: #f9f3e9;
+    border: 2px solid #d4c5a0;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.goal-action-btn:hover {
+    background: #fff9ef;
+    border-color: #b88a4a;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.goal-system-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.goal-system-badge.social {
+    background: linear-gradient(to right, #7a8b5a, #9eb87a);
+    color: white;
+}
+
+.goal-system-badge.mental {
+    background: linear-gradient(to right, #5a7a8b, #7a9eb8);
+    color: white;
+}
+
+.goal-system-badge.physical {
+    background: linear-gradient(to right, #8b5a7a, #b87a9e);
+    color: white;
+}
+
+.goal-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c241a;
+    margin-bottom: 6px;
+}
+
+.goal-description {
+    font-size: 13px;
+    color: #5c4a3a;
+    margin-bottom: 6px;
+    font-style: italic;
+}
+
+.goal-investigation-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    background: #d4a76a;
+    color: white;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 3px;
+    margin-top: 6px;
+}

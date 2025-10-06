@@ -306,11 +306,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartSocialGoal(LocationGoal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with engagementTypeId: '{goal.EngagementTypeId}'");
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.RequestId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversation(null, null);
+                await GameScreen.StartConversation(goal.NpcId, goal.RequestId);
             }
             else
             {

@@ -22,8 +22,22 @@ public class LocationGoal
     
     /// <summary>
     /// Spot ID where this goal is available (null = available at all spots in location)
+    /// Mental/Physical use this
     /// </summary>
     public string SpotId { get; set; }
+
+    /// <summary>
+    /// NPC ID for Social system goals
+    /// Social goals target specific NPCs for investigation conversations
+    /// </summary>
+    public string NpcId { get; set; }
+
+    /// <summary>
+    /// Request ID for Social system goals
+    /// Links to NPCRequest for conversation content
+    /// </summary>
+    public string RequestId { get; set; }
+
     /// <summary>
     /// Investigation ID for UI grouping and label display
     /// If set, this goal is part of an investigation
