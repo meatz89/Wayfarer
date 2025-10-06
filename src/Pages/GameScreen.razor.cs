@@ -730,9 +730,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Investigation Modals
     protected bool _showInvestigationDiscoveryModal = false;
+    protected bool _showInvestigationActivationModal = false;
     protected bool _showInvestigationProgressModal = false;
     protected bool _showInvestigationCompleteModal = false;
     protected InvestigationDiscoveryResult _investigationDiscoveryResult;
+    protected InvestigationActivationResult _investigationActivationResult;
     protected InvestigationProgressResult _investigationProgressResult;
     protected InvestigationCompleteResult _investigationCompleteResult;
 
@@ -743,6 +745,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         {
             _investigationDiscoveryResult = discoveryResult;
             _showInvestigationDiscoveryModal = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        InvestigationActivationResult activationResult = InvestigationActivity.GetAndClearPendingActivationResult();
+        if (activationResult != null)
+        {
+            _investigationActivationResult = activationResult;
+            _showInvestigationActivationModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
@@ -763,6 +774,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             _showInvestigationCompleteModal = true;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    protected async Task CloseInvestigationActivationModal()
+    {
+        _showInvestigationActivationModal = false;
+        _investigationActivationResult = null;
+        await InvokeAsync(StateHasChanged);
+
+        await CheckForInvestigationResults();
     }
 
     protected async Task CloseInvestigationProgressModal()

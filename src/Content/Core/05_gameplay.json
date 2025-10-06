@@ -17,7 +17,7 @@
       "satchelCapacity": 10,
       "satchelWeight": 3
     },
-    "startingSpotId": "central_fountain",
+    "startingSpotId": "courtyard",
     "startingObligations": [
       {
         "id": "viktor_package",

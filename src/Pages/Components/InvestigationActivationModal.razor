@@ -1,0 +1,20 @@
+@inherits InvestigationActivationModalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="investigation-notification-container">
+    <div class="investigation-header activation-header">
+        <div class="investigation-icon">🔍</div>
+        <div class="investigation-title-section">
+            <div class="investigation-main-title">Investigation Activated</div>
+            <div class="investigation-subtitle">@Data.InvestigationName</div>
+        </div>
+    </div>
+
+    <div class="investigation-outcome-section">
+        <div class="outcome-text">@Data.IntroNarrative</div>
+    </div>
+
+    <div class="action-section">
+        <button class="continue-button primary-action" @onclick="CloseModal">Begin Investigation</button>
+    </div>
+</div>

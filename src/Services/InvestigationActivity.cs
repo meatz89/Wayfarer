@@ -15,6 +15,7 @@ public class InvestigationActivity
     private readonly KnowledgeService _knowledgeService;
 
     private InvestigationDiscoveryResult _pendingDiscoveryResult;
+    private InvestigationActivationResult _pendingActivationResult;
     private InvestigationProgressResult _pendingProgressResult;
     private InvestigationCompleteResult _pendingCompleteResult;
 
@@ -58,6 +59,17 @@ public class InvestigationActivity
     {
         InvestigationCompleteResult result = _pendingCompleteResult;
         _pendingCompleteResult = null;
+        return result;
+    }
+
+    /// <summary>
+    /// Get and clear pending activation result for UI modal display
+    /// Returns null if no result pending
+    /// </summary>
+    public InvestigationActivationResult GetAndClearPendingActivationResult()
+    {
+        InvestigationActivationResult result = _pendingActivationResult;
+        _pendingActivationResult = null;
         return result;
     }
 
@@ -402,8 +414,18 @@ public class InvestigationActivity
         // Call existing ActivateInvestigation to create first goals
         List<LocationGoal> firstGoals = ActivateInvestigation(investigationId);
 
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+
+        // Create activation result for UI modal
+        _pendingActivationResult = new InvestigationActivationResult
+        {
+            InvestigationId = investigationId,
+            InvestigationName = investigation?.Name ?? investigationId,
+            IntroNarrative = investigation?.IntroAction?.IntroNarrative ?? "Investigation activated."
+        };
+
         _messageSystem.AddSystemMessage(
-            $"Investigation activated: {_gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId)?.Name}",
+            $"Investigation activated: {investigation?.Name}",
             SystemMessageTypes.Success);
 
         return firstGoals;

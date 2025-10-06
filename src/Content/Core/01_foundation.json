@@ -399,6 +399,64 @@
         }
       },
       {
+        "id": "courtyard",
+        "locationId": "old_mill",
+        "name": "Mill Courtyard",
+        "description": "The outer courtyard where the great waterwheel stands silent, its rusted mechanism visible against the sky",
+        "properties": {
+          "base": [
+            "investigation",
+            "crossroads"
+          ],
+          "all": [
+            "quiet",
+            "isolated"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
+      {
+        "id": "main_hall",
+        "locationId": "old_mill",
+        "name": "Main Hall",
+        "description": "The mill's main grinding floor, machinery silent and dust-covered, shafts of light cutting through gaps in the roof",
+        "properties": {
+          "base": [
+            "investigation"
+          ],
+          "all": [
+            "quiet",
+            "indoor"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
+      {
+        "id": "workshop",
+        "locationId": "old_mill",
+        "name": "Workshop",
+        "description": "Tool racks and workbenches covered in a layer of neglect, but the organization speaks to careful hands that once worked here",
+        "properties": {
+          "base": [
+            "investigation"
+          ],
+          "all": [
+            "quiet",
+            "indoor"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
+      {
         "id": "farmhouse",
         "locationId": "aldric_farm",
         "name": "Farmhouse",

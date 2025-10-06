@@ -92,6 +92,16 @@
         </div>
     }
 
+    <!-- Investigation Activation Modal -->
+    @if (_showInvestigationActivationModal && _investigationActivationResult != null)
+    {
+        <div class="modal-overlay" @onclick="CloseInvestigationActivationModal">
+            <div class="modal-content" @onclick:stopPropagation>
+                <InvestigationActivationModal Data="@_investigationActivationResult" OnClose="CloseInvestigationActivationModal" />
+            </div>
+        </div>
+    }
+
     <!-- Investigation Progress Modal -->
     @if (_showInvestigationProgressModal && _investigationProgressResult != null)
     {
