@@ -465,8 +465,7 @@ public class SocialFacade
             _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
 
-        // Initialize type-specific data
-        SocialContextFactory.InitializeContextData(context, _gameWorld, _queueManager);
+        // Goal cards now handle domain logic - no context-specific initialization needed
 
         return context;
     }
