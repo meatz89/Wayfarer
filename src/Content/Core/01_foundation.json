@@ -42,9 +42,6 @@
         "name": "Mill Entrance",
         "description": "The front of the abandoned mill, boards covering the main door",
         "properties": {
-          "base": [
-            "investigation"
-          ],
           "all": [
             "quiet",
             "isolated"
@@ -62,7 +59,6 @@
         "description": "The outer courtyard where the great waterwheel stands silent, its rusted mechanism visible against the sky",
         "properties": {
           "base": [
-            "investigation",
             "crossroads"
           ],
           "all": [
@@ -81,12 +77,9 @@
         "name": "Main Hall",
         "description": "The mill's main grinding floor, machinery silent and dust-covered, shafts of light cutting through gaps in the roof",
         "properties": {
-          "base": [
-            "investigation"
-          ],
           "all": [
             "quiet",
-            "indoor"
+            "isolated"
           ]
         },
         "canInvestigate": true,
@@ -100,12 +93,9 @@
         "name": "Workshop",
         "description": "Tool racks and workbenches covered in a layer of neglect, but the organization speaks to careful hands that once worked here",
         "properties": {
-          "base": [
-            "investigation"
-          ],
           "all": [
             "quiet",
-            "indoor"
+            "isolated"
           ]
         },
         "canInvestigate": true,
