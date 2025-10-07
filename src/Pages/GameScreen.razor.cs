@@ -513,21 +513,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
 
-        // V2 OBSTACLE SYSTEM: Check for obstacles before travel
         RouteOption route = GameFacade.GetRouteById(routeId);
-        if (route != null)
-        {
-            TravelObstacle obstacle = GameFacade.CheckForObstacle(route);
-            if (obstacle != null)
-            {
-                Console.WriteLine($"[GameScreen] Obstacle encountered: {obstacle.Id}");
-                // Start obstacle encounter instead of completing travel
-                await StartObstacle(obstacle.Id, route);
-                return; // Don't execute travel yet - wait for obstacle resolution
-            }
-        }
 
-        // No obstacle - execute travel via intent system
         TravelIntent travelIntent = new TravelIntent(routeId);
         await GameFacade.ProcessIntent(travelIntent);
 
@@ -540,26 +527,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
 
         await NavigateToScreen(ScreenMode.Location);
-    }
-
-    public async Task StartObstacle(string obstacleId, RouteOption route = null)
-    {
-        Console.WriteLine($"[GameScreen] Starting obstacle: {obstacleId}");
-        CurrentObstacleContext = await GameFacade.CreateObstacleContext(obstacleId, route);
-
-        await RefreshResourceDisplay();
-        await RefreshTimeDisplay();
-
-        if (CurrentObstacleContext != null)
-        {
-            CurrentScreen = ScreenMode.Obstacle;
-            ContentVersion++;
-            await InvokeAsync(StateHasChanged);
-        }
-        else
-        {
-            Console.WriteLine("[GameScreen] Failed to create obstacle context");
-        }
     }
 
     protected async Task HandleObstacleEnd(bool success)
