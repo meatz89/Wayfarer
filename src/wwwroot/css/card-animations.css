@@ -20,7 +20,6 @@
 /* Grid layout for cards */
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
     padding: 10px;
 }

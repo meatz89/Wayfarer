@@ -363,7 +363,6 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
 
 .card-grid {
     display: flex;
-    flex-direction: column;
     gap: 10px;
     max-width: 1200px;
     margin: 0 auto;
