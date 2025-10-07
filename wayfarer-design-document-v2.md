@@ -676,7 +676,7 @@ Each SocialChallengeType defines:
 - **Information Gathering**: Conversations focused on discovering knowledge
 - **Negotiation**: Trade and deal-making conversations
 
-Social is the **most sophisticated** of the three tactical systems. Mental and Physical are streamlined (4 resources), Social has 5 resources plus Personality Rules, Token mechanics, and Connection progression. All three follow the same architectural pattern (builder/threshold/session/balance resources + binary actions), but Social implements the pattern with significantly more mechanical depth.
+All of the three tactical systems should privde the SAME depth. All three follow the same architectural pattern (builder/threshold/session/balance resources + binary actions).
 
 ## Three-Layer Content Architecture
 

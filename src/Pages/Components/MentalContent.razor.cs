@@ -29,6 +29,8 @@ namespace Wayfarer.Pages.Components
         protected CardInstance SelectedCard { get; set; }
         protected string LastNarrative { get; set; } = "";
         protected bool IsProcessing { get; set; } = false;
+        protected bool IsInvestigationEnded { get; set; } = false;
+        protected string EndReason { get; set; } = "";
 
         protected override void OnInitialized()
         {
@@ -145,10 +147,31 @@ namespace Wayfarer.Pages.Components
             {
                 var result = await GameFacade.ExecuteObserve(SelectedCard);
 
+                if (result == null)
+                {
+                    Console.WriteLine("[MentalContent] ExecuteObserve failed - null result");
+                    return;
+                }
+
                 if (result.Success)
                 {
                     LastNarrative = result.Narrative;
                     SelectedCard = null;
+
+                    // Refresh resource display after action
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+
+                    // Check if investigation should end
+                    if (Session != null && Session.ShouldEnd())
+                    {
+                        IsInvestigationEnded = true;
+                        EndReason = Session.CurrentProgress >= Session.VictoryThreshold
+                            ? "Investigation complete!"
+                            : "Maximum exposure reached";
+                    }
                 }
             }
             catch (Exception ex)
@@ -175,10 +198,31 @@ namespace Wayfarer.Pages.Components
             {
                 var result = await GameFacade.ExecuteAct(SelectedCard);
 
+                if (result == null)
+                {
+                    Console.WriteLine("[MentalContent] ExecuteAct failed - null result");
+                    return;
+                }
+
                 if (result.Success)
                 {
                     LastNarrative = result.Narrative;
                     SelectedCard = null;
+
+                    // Refresh resource display after action
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+
+                    // Check if investigation should end
+                    if (Session != null && Session.ShouldEnd())
+                    {
+                        IsInvestigationEnded = true;
+                        EndReason = Session.CurrentProgress >= Session.VictoryThreshold
+                            ? "Investigation complete!"
+                            : "Maximum exposure reached";
+                    }
                 }
             }
             catch (Exception ex)

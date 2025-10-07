@@ -29,6 +29,8 @@ namespace Wayfarer.Pages.Components
         protected CardInstance SelectedCard { get; set; }
         protected string LastNarrative { get; set; } = "";
         protected bool IsProcessing { get; set; } = false;
+        protected bool IsChallengeEnded { get; set; } = false;
+        protected string EndReason { get; set; } = "";
 
         protected override void OnInitialized()
         {
@@ -145,10 +147,31 @@ namespace Wayfarer.Pages.Components
             {
                 var result = await GameFacade.ExecuteAssess(SelectedCard);
 
+                if (result == null)
+                {
+                    Console.WriteLine("[PhysicalContent] ExecuteAssess failed - null result");
+                    return;
+                }
+
                 if (result.Success)
                 {
                     LastNarrative = result.Narrative;
                     SelectedCard = null;
+
+                    // Refresh resource display after action
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+
+                    // Check if challenge should end
+                    if (Session != null && Session.ShouldEnd())
+                    {
+                        IsChallengeEnded = true;
+                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
+                            ? "Challenge complete!"
+                            : "Maximum danger reached";
+                    }
                 }
             }
             catch (Exception ex)
@@ -175,10 +198,31 @@ namespace Wayfarer.Pages.Components
             {
                 var result = await GameFacade.ExecuteExecute(SelectedCard);
 
+                if (result == null)
+                {
+                    Console.WriteLine("[PhysicalContent] ExecuteExecute failed - null result");
+                    return;
+                }
+
                 if (result.Success)
                 {
                     LastNarrative = result.Narrative;
                     SelectedCard = null;
+
+                    // Refresh resource display after action
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+
+                    // Check if challenge should end
+                    if (Session != null && Session.ShouldEnd())
+                    {
+                        IsChallengeEnded = true;
+                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
+                            ? "Challenge complete!"
+                            : "Maximum danger reached";
+                    }
                 }
             }
             catch (Exception ex)
