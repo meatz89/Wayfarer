@@ -368,6 +368,8 @@ public class InvestigationActivity
     /// </summary>
     public LocationGoal DiscoverInvestigation(string investigationId)
     {
+        Console.WriteLine($"[InvestigationActivity] DiscoverInvestigation called for '{investigationId}'");
+
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation == null)
             throw new ArgumentException($"Investigation '{investigationId}' not found");
@@ -378,9 +380,11 @@ public class InvestigationActivity
         // Move Potential → Discovered
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
         _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+        Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
 
         // Create intro action as LocationGoal
         LocationGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
+        Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', SpotID='{introGoal.SpotId}'");
 
         // Derive location from spot (SpotId is globally unique)
         LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId);

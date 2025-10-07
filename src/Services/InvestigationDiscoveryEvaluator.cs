@@ -27,14 +27,31 @@ public class InvestigationDiscoveryEvaluator
         foreach (string investigationId in _gameWorld.InvestigationJournal.PotentialInvestigationIds)
         {
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-            if (investigation == null) continue;
+            if (investigation == null)
+            {
+                Console.WriteLine($"[InvestigationEvaluator] WARNING: Potential investigation '{investigationId}' not found in GameWorld");
+                continue;
+            }
+
+            Console.WriteLine($"[InvestigationEvaluator] Evaluating investigation '{investigation.Name}' (ID: {investigation.Id})");
 
             // Skip if no intro action defined
-            if (investigation.IntroAction == null) continue;
+            if (investigation.IntroAction == null)
+            {
+                Console.WriteLine($"[InvestigationEvaluator] Skipping '{investigation.Name}' - IntroAction is NULL");
+                continue;
+            }
+
+            Console.WriteLine($"[InvestigationEvaluator] '{investigation.Name}' has trigger type: {investigation.IntroAction.TriggerType}");
 
             if (IsTriggerConditionMet(investigation, player))
             {
+                Console.WriteLine($"[InvestigationEvaluator] ✓ Trigger condition MET for '{investigation.Name}'");
                 discoverable.Add(investigation);
+            }
+            else
+            {
+                Console.WriteLine($"[InvestigationEvaluator] ✗ Trigger condition NOT met for '{investigation.Name}'");
             }
         }
 
@@ -67,10 +84,16 @@ public class InvestigationDiscoveryEvaluator
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
     {
+        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required SpotID: '{prereqs.SpotId ?? "NULL"}', Player SpotID: '{player.CurrentLocationSpot?.SpotID ?? "NULL"}'");
+
         // Check if player is at required spot (SpotId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
+        {
+            Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required spot");
             return false;
+        }
 
+        Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility PASSED");
         return true;
     }
 

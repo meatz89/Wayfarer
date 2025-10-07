@@ -1358,13 +1358,17 @@ public class GameFacade
     public void EvaluateInvestigationDiscovery()
     {
         Player player = _gameWorld.GetPlayer();
+        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at spot: {player.CurrentLocationSpot?.SpotID ?? "NULL"}");
 
         // Evaluate which investigations can be discovered
         List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
+        Console.WriteLine($"[InvestigationDiscovery] Found {discoverable.Count} discoverable investigations");
 
         // For each discovered investigation, trigger discovery flow
         foreach (Investigation investigation in discoverable)
         {
+            Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
+
             // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
             LocationGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
 
@@ -1375,6 +1379,11 @@ public class GameFacade
                 if (spotEntry.Spot.Goals == null)
                     spotEntry.Spot.Goals = new List<LocationGoal>();
                 spotEntry.Spot.Goals.Add(introGoal);
+                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to spot '{spotEntry.Spot.SpotID}' ({spotEntry.Spot.Name})");
+            }
+            else
+            {
+                Console.WriteLine($"[InvestigationDiscovery] ERROR: Could not find spot '{investigation.IntroAction.SpotId}' to add intro goal!");
             }
 
             // Pending discovery result is now set in InvestigationActivity
