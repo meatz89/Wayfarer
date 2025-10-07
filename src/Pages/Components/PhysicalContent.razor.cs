@@ -53,6 +53,81 @@ namespace Wayfarer.Pages.Components
             return Hand?.Count ?? 0;
         }
 
+        // =============================================
+        // RESOURCE DISPLAY METHODS (Parallel to Social/Mental)
+        // =============================================
+
+        protected int GetCurrentBreakthrough()
+        {
+            return Session?.CurrentBreakthrough ?? 0;
+        }
+
+        protected int GetCurrentPosition()
+        {
+            return Session?.CurrentPosition ?? 0;
+        }
+
+        protected int GetMaxPosition()
+        {
+            return Session?.MaxPosition ?? 10;
+        }
+
+        protected int GetCurrentDanger()
+        {
+            return Session?.CurrentDanger ?? 0;
+        }
+
+        protected int GetMaxDanger()
+        {
+            return Session?.MaxDanger ?? 10;
+        }
+
+        protected int GetCurrentCommitment()
+        {
+            return Session?.Commitment ?? 0;
+        }
+
+        protected int GetBreakthroughPercentage()
+        {
+            if (Session == null || Session.VictoryThreshold <= 0) return 0;
+            return (int)((Session.CurrentBreakthrough / (double)Session.VictoryThreshold) * 100);
+        }
+
+        protected int GetDangerPercentage()
+        {
+            if (Session == null || Session.MaxDanger <= 0) return 0;
+            return (int)((Session.CurrentDanger / (double)Session.MaxDanger) * 100);
+        }
+
+        protected int GetCommitmentPosition()
+        {
+            // Returns position on -10 to +10 scale as 0-20 for UI display
+            int commitment = Session?.Commitment ?? 0;
+            return commitment + 10; // Convert -10..10 to 0..20
+        }
+
+        protected string GetCommitmentClass()
+        {
+            int commitment = Session?.Commitment ?? 0;
+            if (commitment < -5) return "hesitant";
+            if (commitment > 5) return "decisive";
+            return "balanced";
+        }
+
+        protected int GetDeckCount()
+        {
+            return GameFacade?.IsPhysicalSessionActive() == true
+                ? GameFacade.GetPhysicalFacade().GetDeckCount()
+                : 0;
+        }
+
+        protected int GetDiscardCount()
+        {
+            return GameFacade?.IsPhysicalSessionActive() == true
+                ? GameFacade.GetPhysicalFacade().GetDiscardCount()
+                : 0;
+        }
+
         protected void SelectCard(CardInstance card)
         {
             SelectedCard = (SelectedCard == card) ? null : card;
@@ -185,6 +260,415 @@ namespace Wayfarer.Pages.Components
             // Use Execute as default action type for preview
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
             return projection.EffectDescription ?? "";
+        }
+
+        // =============================================
+        // TIER UNLOCK SYSTEM (Parallel to Social/Mental)
+        // =============================================
+
+        protected int GetCurrentUnderstanding()
+        {
+            return Session?.CurrentUnderstanding ?? 0;
+        }
+
+        protected int GetMaxUnderstanding()
+        {
+            return 100; // Maximum Understanding value
+        }
+
+        protected int GetUnderstandingPercentage()
+        {
+            int max = GetMaxUnderstanding();
+            if (max <= 0) return 0;
+            return (int)((GetCurrentUnderstanding() / (double)max) * 100);
+        }
+
+        protected int GetUnlockedMaxDepth()
+        {
+            if (Session == null || Session.UnlockedTiers == null || !Session.UnlockedTiers.Any())
+                return 1;
+
+            return Session.UnlockedTiers.Max();
+        }
+
+        protected bool IsTierUnlocked(int tier)
+        {
+            return Session?.UnlockedTiers?.Contains(tier) ?? (tier == 1);
+        }
+
+        protected int GetTierUnlockThreshold(int tier)
+        {
+            // Simple tier threshold: 20 Understanding per tier (1=20, 2=40, 3=60, 4=80, 5=100)
+            // Physical uses simplified tier system compared to Social's complex tier cards
+            return tier * 20;
+        }
+
+        protected PhysicalTier[] GetAllTiers()
+        {
+            // Physical uses simplified tier system without tier card definitions
+            // Tiers unlock based solely on Understanding thresholds
+            return new PhysicalTier[0];
+        }
+
+        // =============================================
+        // CARD DISPLAY HELPERS (Parallel to Social/Mental)
+        // =============================================
+
+        protected string GetCardApproach(CardInstance card)
+        {
+            // Approach represents how card affects AssessExecuteBalance
+            // Reckless (extreme positive), Aggressive (positive), Standard (neutral), Methodical (negative)
+            if (card?.PhysicalCardTemplate == null) return "";
+
+            return card.PhysicalCardTemplate.Approach.ToString();
+        }
+
+        protected string GetCardApproachClass(CardInstance card)
+        {
+            string approach = GetCardApproach(card);
+            return $"card-approach approach-{approach.ToLower()}";
+        }
+
+        protected string GetCardCategory(CardInstance card)
+        {
+            // PhysicalCategory represents the type of physical action
+            return card?.PhysicalCardTemplate?.Category.ToString() ?? "Unknown";
+        }
+
+        protected string GetCardCategoryClass(CardInstance card)
+        {
+            string category = GetCardCategory(card);
+            return $"card-category category-{category.ToLower()}";
+        }
+
+        protected string GetCardPersistenceType(CardInstance card)
+        {
+            // Physical cards are all single-use techniques (no persistent tools yet)
+            return "Technique";
+        }
+
+        protected string GetPersistenceTooltip(CardInstance card)
+        {
+            return "This technique returns to your deck after playing";
+        }
+
+        // =============================================
+        // CARD VALIDATION & SELECTION
+        // =============================================
+
+        protected bool CanSelectCard(CardInstance card)
+        {
+            if (Session == null || card == null) return false;
+            if (IsProcessing) return false;
+
+            // Basic validation: check if player has enough Position to play card
+            int positionCost = card?.PhysicalCardTemplate?.PositionCost ?? 0;
+            return Session.CurrentPosition >= positionCost;
+        }
+
+        protected string GetCardCssClasses(CardInstance card)
+        {
+            if (card == null) return "card";
+
+            List<string> classes = new List<string> { "card" };
+
+            if (SelectedCard?.InstanceId == card.InstanceId)
+            {
+                classes.Add("selected");
+            }
+
+            return string.Join(" ", classes);
+        }
+
+        protected string GetCardName(CardInstance card)
+        {
+            return card?.PhysicalCardTemplate?.Name ?? "Unknown";
+        }
+
+        // =============================================
+        // DISCOVERY TRACKING SYSTEM
+        // =============================================
+
+        protected Dictionary<DiscoveryType, List<string>> GetDiscoveries()
+        {
+            return Session?.Discoveries ?? new Dictionary<DiscoveryType, List<string>>();
+        }
+
+        protected List<string> GetDiscoveriesOfType(DiscoveryType type)
+        {
+            if (Session?.Discoveries == null) return new List<string>();
+            return Session.Discoveries.TryGetValue(type, out List<string> discoveries)
+                ? discoveries
+                : new List<string>();
+        }
+
+        protected int GetTotalDiscoveryCount()
+        {
+            if (Session?.Discoveries == null) return 0;
+            return Session.Discoveries.Values.Sum(list => list.Count);
+        }
+
+        protected bool HasDiscoveries()
+        {
+            return GetTotalDiscoveryCount() > 0;
+        }
+
+        // =============================================
+        // PHASE & PROGRESSION DISPLAY
+        // =============================================
+
+        protected int GetCurrentPhase()
+        {
+            return Session?.CurrentPhaseIndex ?? 0;
+        }
+
+        protected int GetVictoryThreshold()
+        {
+            return Session?.VictoryThreshold ?? 20;
+        }
+
+        protected bool IsChallengeComplete()
+        {
+            if (Session == null) return false;
+            return Session.CurrentBreakthrough >= Session.VictoryThreshold;
+        }
+
+        protected bool IsChallengeFailed()
+        {
+            if (Session == null) return false;
+            return Session.CurrentDanger >= Session.MaxDanger;
+        }
+
+        protected string GetChallengeStatus()
+        {
+            if (IsChallengeComplete()) return "Complete";
+            if (IsChallengeFailed()) return "Failed";
+            return "Active";
+        }
+
+        protected int GetBreakthroughThreshold()
+        {
+            return Session?.VictoryThreshold ?? 20;
+        }
+
+        // =============================================
+        // COMMITMENT BALANCE STATE DISPLAY
+        // =============================================
+
+        protected string GetCommitmentState()
+        {
+            if (Session == null) return "Balanced";
+
+            if (Session.IsRecklessBalance()) return "Decisive";
+            if (Session.IsOvercautiousBalance()) return "Hesitant";
+            return "Balanced";
+        }
+
+        protected string GetCommitmentStateClass()
+        {
+            if (Session == null) return "balanced";
+
+            if (Session.IsRecklessBalance()) return "decisive";
+            if (Session.IsOvercautiousBalance()) return "hesitant";
+            return "balanced";
+        }
+
+        // =============================================
+        // CATEGORY TRACKING SYSTEM
+        // =============================================
+
+        protected int GetCategoryCount(PhysicalCategory category)
+        {
+            return Session?.GetCategoryCount(category) ?? 0;
+        }
+
+        protected Dictionary<PhysicalCategory, int> GetAllCategoryCounts()
+        {
+            return Session?.CategoryCounts ?? new Dictionary<PhysicalCategory, int>();
+        }
+
+        // =============================================
+        // APPROACH HISTORY TRACKING
+        // =============================================
+
+        protected int GetApproachHistory()
+        {
+            return Session?.ApproachHistory ?? 0;
+        }
+
+        // =============================================
+        // TIME & RESOURCE TRACKING
+        // =============================================
+
+        protected int GetTimeSegmentsSpent()
+        {
+            return Session?.TimeSegmentsSpent ?? 0;
+        }
+
+        protected int GetDrawCount()
+        {
+            return Session?.GetDrawCount() ?? 3;
+        }
+
+        // =============================================
+        // LOCATION CONTEXT (SHARED ACROSS ALL CHALLENGES)
+        // =============================================
+
+        protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
+        {
+            if (GameFacade == null) return ("Unknown Location", "", "");
+
+            Location currentLocation = GameFacade.GetCurrentLocation();
+            LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
+
+            if (currentLocation == null || currentSpot == null)
+                return ("Unknown Location", "", "");
+
+            string locationName = currentLocation.Name ?? "Unknown";
+            string spotName = currentSpot.Name ?? "Unknown";
+            string spotTraits = GetSpotTraits(currentSpot);
+
+            return (locationName, spotName, spotTraits);
+        }
+
+        private string GetSpotTraits(LocationSpot spot)
+        {
+            if (spot?.SpotProperties == null || !spot.SpotProperties.Any())
+                return "";
+
+            List<string> propertyDescriptions = new List<string>();
+
+            foreach (SpotPropertyType property in spot.SpotProperties)
+            {
+                string description = property.ToString();
+                propertyDescriptions.Add(description);
+            }
+
+            return string.Join(", ", propertyDescriptions);
+        }
+
+        // =============================================
+        // MANUAL CHALLENGE END
+        // =============================================
+
+        protected async Task ManuallyEndChallenge()
+        {
+            if (IsProcessing) return;
+
+            await OnChallengeEnd.InvokeAsync();
+        }
+
+        // =============================================
+        // CARD COST & RESOURCE DISPLAY
+        // =============================================
+
+        protected int GetCardPositionCost(CardInstance card)
+        {
+            return card?.PhysicalCardTemplate?.PositionCost ?? 0;
+        }
+
+        protected int GetCardPositionGeneration(CardInstance card)
+        {
+            // Foundation cards (Depth 1-2) generate +1 Position
+            if (card?.PhysicalCardTemplate == null) return 0;
+            return card.PhysicalCardTemplate.GetPositionGeneration();
+        }
+
+        protected bool IsFoundationCard(CardInstance card)
+        {
+            return card?.PhysicalCardTemplate?.Depth <= 2;
+        }
+
+        // =============================================
+        // CARD DISPLAY LIST
+        // =============================================
+
+        protected List<CardDisplayInfo> GetAllDisplayCards()
+        {
+            List<CardInstance> handCards = Hand ?? new List<CardInstance>();
+            List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
+
+            foreach (CardInstance card in handCards)
+            {
+                displayCards.Add(new CardDisplayInfo(card));
+            }
+
+            return displayCards;
+        }
+
+        protected int GetCardPosition(CardInstance card)
+        {
+            if (card == null || Hand == null) return -1;
+
+            for (int i = 0; i < Hand.Count; i++)
+            {
+                if (Hand[i].InstanceId == card.InstanceId)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // =============================================
+        // CHALLENGE STATUS DISPLAY
+        // =============================================
+
+        protected string GetChallengeStatusText()
+        {
+            if (Session == null) return "No active challenge";
+
+            int breakthrough = Session.CurrentBreakthrough;
+            int threshold = Session.VictoryThreshold;
+            int danger = Session.CurrentDanger;
+            int maxDanger = Session.MaxDanger;
+
+            return $"Breakthrough: {breakthrough}/{threshold} | Danger: {danger}/{maxDanger}";
+        }
+
+        protected bool ShouldShowVictoryIndicator()
+        {
+            return IsChallengeComplete();
+        }
+
+        protected bool ShouldShowFailureIndicator()
+        {
+            return IsChallengeFailed();
+        }
+
+        // =============================================
+        // POSITION ECONOMY DISPLAY
+        // =============================================
+
+        protected string GetPositionStatusClass()
+        {
+            int position = GetCurrentPosition();
+            int max = GetMaxPosition();
+
+            double percentage = max > 0 ? (position / (double)max) * 100 : 0;
+
+            if (percentage >= 80) return "position-high";
+            if (percentage >= 40) return "position-medium";
+            return "position-low";
+        }
+
+        protected bool CanAffordCard(CardInstance card)
+        {
+            int cost = GetCardPositionCost(card);
+            int current = GetCurrentPosition();
+            return current >= cost;
+        }
+
+        // =============================================
+        // COMMITMENT SCALE DISPLAY
+        // =============================================
+
+        protected string GetCommitmentSegmentClass(int segmentValue)
+        {
+            // Commitment scale: -10 (Hesitant) to +10 (Decisive)
+            if (segmentValue < -5) return "hesitant";
+            if (segmentValue > 5) return "decisive";
+            return "balanced";
         }
 
     }
