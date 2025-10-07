@@ -144,8 +144,7 @@ namespace Wayfarer.Pages.Components
             // Get available observations
             AvailableObservations.Clear();
             TakenObservations.Clear();
-            Console.WriteLine("[LocationContent] Getting observations from GameFacade...");
-
+            
             // Get taken observations
             List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
@@ -163,7 +162,6 @@ namespace Wayfarer.Pages.Components
                         Name = reward.ObservationCard.Name,
                         Type = reward.ObservationCard.Effect ?? "General"
                     }).ToList();
-                Console.WriteLine($"[LocationContent] Final AvailableObservations count: {AvailableObservations.Count}");
             }
             else
             {
@@ -219,33 +217,6 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Get active obligations from the queue manager
-            ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
-            if (queueManager != null)
-            {
-                DeliveryObligation[] obligations = queueManager.GetActiveObligations();
-                // Take only the first 3 for the preview panel
-                ActiveObligations = obligations?.Take(3) ?? new List<DeliveryObligation>();
-                Console.WriteLine($"[LocationContent] Got {ActiveObligations.Count()} obligations for display");
-            }
-            else
-            {
-                ActiveObligations = new List<DeliveryObligation>();
-            }
-
-            // Get available work actions at this location
-            AvailableWorkActions.Clear();
-            if (location != null)
-            {
-                LocationFacade locationFacade = GameFacade.GetLocationFacade();
-                if (locationFacade != null)
-                {
-                    List<WorkAction> workActions = locationFacade.GetAvailableWork(location.Id);
-                    AvailableWorkActions = workActions ?? new List<WorkAction>();
-                    Console.WriteLine($"[LocationContent] Got {AvailableWorkActions.Count} work actions available");
-                }
-            }
-
             // Get Social, Mental, and Physical investigation goals available at current spot
             // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
             // Goals are stored directly on Spot - Spots are the only entity that matters
@@ -279,7 +250,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartConversationWithRequest(string npcId, string requestId)
         {
-            Console.WriteLine($"[LocationContent] Starting conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
+            Console.WriteLine($"[LocationContent] Starting   conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
 
             if (GameScreen != null)
             {

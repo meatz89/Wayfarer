@@ -42,9 +42,7 @@ public class LocationActionManager
         List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
         allActions.AddRange(dynamicActions);
         allActions.AddRange(generatedActions);
-        // Get goal actions from location.Goals (investigation goals)
-        List<LocationActionViewModel> goalActions = GetLocationGoalActions(location, spot);
-        allActions.AddRange(goalActions);
+
         return allActions;
     }
 
@@ -338,51 +336,6 @@ public class LocationActionManager
             TacticalSystemType.Social => "Conversation",
             _ => systemType.ToString()
         };
-    }
-    /// <summary>
-    /// Get goal actions from spot.Goals (investigation goals)
-    /// Goals are stored directly on Spot - Spots are the only entity that matters
-    /// </summary>
-    private List<LocationActionViewModel> GetLocationGoalActions(Location location, LocationSpot spot)
-    {
-        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
-
-        if (spot == null || spot.Goals == null || spot.Goals.Count == 0)
-            return actions;
-
-        Player player = _gameWorld.GetPlayer();
-        if (player == null) return actions;
-
-        foreach (LocationGoal goal in spot.Goals)
-        {
-            if (goal.IsCompleted) continue;
-            if (!EvaluateGoalPrerequisites(goal, player, location.Id)) continue;
-
-            string investigationLabel = null;
-            if (!string.IsNullOrEmpty(goal.InvestigationId))
-            {
-                Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == goal.InvestigationId);
-                if (investigation != null)
-                {
-                    investigationLabel = investigation.Name;
-                }
-            }
-
-            LocationActionViewModel action = new LocationActionViewModel
-            {
-                ActionType = $"goal_{goal.Id}",
-                Title = goal.Name,
-                Detail = goal.Description,
-                Cost = "1 segment",
-                EngagementType = GetEngagementTypeDisplayName(goal.SystemType),
-                InvestigationLabel = investigationLabel,
-                IsAvailable = true
-            };
-
-            actions.Add(action);
-        }
-
-        return actions;
     }
 
     /// <summary>

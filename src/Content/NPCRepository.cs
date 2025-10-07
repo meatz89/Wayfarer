@@ -172,7 +172,7 @@ public class NPCRepository
         // Apply visibility filtering
         npcsAtSpot = FilterByVisibility(npcsAtSpot);
 
-        _debugLogger?.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}' (after visibility filtering): " +
+        _debugLogger?.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}': " +
             string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
 
         return npcsAtSpot;

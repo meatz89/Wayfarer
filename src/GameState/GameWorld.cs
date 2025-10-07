@@ -93,11 +93,11 @@ public class GameWorld
     public Dictionary<string, SocialChallengeType> SocialChallengeTypes { get; private set; } = new Dictionary<string, SocialChallengeType>();
     public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; private set; } = new Dictionary<string, SocialChallengeDeck>();
 
-    // Mental system (Investigation)
+    // Mental system
     public Dictionary<string, MentalChallengeType> MentalChallengeTypes { get; private set; } = new Dictionary<string, MentalChallengeType>();
     public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; private set; } = new Dictionary<string, MentalChallengeDeck>();
 
-    // Physical system (Challenges)
+    // Physical system
     public Dictionary<string, PhysicalChallengeType> PhysicalChallengeTypes { get; private set; } = new Dictionary<string, PhysicalChallengeType>();
     public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; private set; } = new Dictionary<string, PhysicalChallengeDeck>();
 
@@ -107,7 +107,6 @@ public class GameWorld
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
 
-    // V2 Card-Based Investigation System
     public List<Investigation> Investigations { get; private set; } = new List<Investigation>();
     public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
     public Dictionary<string, Knowledge> Knowledge { get; private set; } = new Dictionary<string, Knowledge>();

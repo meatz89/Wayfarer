@@ -46,13 +46,10 @@ public class ObligationQueueManager
     public DeliveryObligation[] GetActiveObligations()
     {
         Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[GetActiveObligations] Player has {player.ObligationQueue.Length} queue slots");
 
         DeliveryObligation[] activeObligations = player.ObligationQueue
             .Where(o => o != null)
             .ToArray();
-
-        Console.WriteLine($"[GetActiveObligations] Found {activeObligations.Length} non-null obligations");
 
         foreach (DeliveryObligation obligation in activeObligations)
         {

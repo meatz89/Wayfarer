@@ -1657,17 +1657,16 @@ public class PackageLoader
     private void InitializeInvestigationJournal()
     {
         Console.WriteLine("[PackageLoader] Initializing investigation journal...");
-        Player player = _gameWorld.GetPlayer();
-        if (player != null && player.InvestigationJournal != null)
+
+        InvestigationJournal investigationJournal = _gameWorld.InvestigationJournal;
+
+        investigationJournal.PotentialInvestigationIds.Clear();
+        foreach (Investigation investigation in _gameWorld.Investigations)
         {
-            player.InvestigationJournal.PotentialInvestigationIds.Clear();
-            foreach (Investigation investigation in _gameWorld.Investigations)
-            {
-                player.InvestigationJournal.PotentialInvestigationIds.Add(investigation.Id);
-                Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
-            }
-            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PotentialInvestigationIds.Count} potential investigations");
+            investigationJournal.PotentialInvestigationIds.Add(investigation.Id);
+            Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
         }
+        Console.WriteLine($"[PackageLoader] Investigation journal initialized with {investigationJournal.PotentialInvestigationIds.Count} potential investigations");
     }
 
     /// <summary>

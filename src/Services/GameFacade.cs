@@ -1024,14 +1024,6 @@ public class GameFacade
         return _gameWorld.WorldState.Districts.FirstOrDefault(d => d.Id == districtId);
     }
 
-    /// <summary>
-    /// Converts an ExchangeOption from the ExchangeFacade to an ExchangeCard for the UI
-    /// </summary>
-    private ExchangeCard ConvertToExchangeCard(ExchangeOption option)
-    {
-        // ExchangeOption already wraps the ExchangeCard - just return it
-        return option.ExchangeCard;
-    }
 
     // ============================================
     // DEBUG COMMANDS
@@ -1198,155 +1190,6 @@ public class GameFacade
         _messageSystem.AddSystemMessage($"Teleported to {location.Name} - {spot.Name}", SystemMessageTypes.Success);
     }
 
-    // ========== EXCHANGE ORCHESTRATION ==========
-
-    /// <summary>
-    /// Execute an exchange using proper facade orchestration
-    /// </summary>
-    public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId)
-    {
-        // Collect all data needed for exchange
-        PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
-        TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
-        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
-        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
-
-        // Execute exchange through facade (this returns operation data)
-        ExchangeResult result = await _exchangeFacade.ExecuteExchange(npcId, exchangeId, playerResources, npcTokens, relationshipTier);
-
-        if (!result.Success || result.OperationData == null)
-        {
-            return result;
-        }
-
-        // Now orchestrate the actual execution using the operation data
-        ExchangeOperationData operation = result.OperationData;
-
-        // Apply costs through appropriate facades
-        foreach (ResourceAmount cost in operation.Costs)
-        {
-            switch (cost.Type)
-            {
-                case ResourceType.Coins:
-                    if (!_resourceFacade.SpendCoins(cost.Amount, $"Exchange with {npcId}"))
-                    {
-                        result.Success = false;
-                        result.Message = "Failed to spend coins";
-                        return result;
-                    }
-                    break;
-
-                case ResourceType.Health:
-                    _resourceFacade.TakeDamage(cost.Amount, $"Exchange with {npcId}");
-                    break;
-
-
-                case ResourceType.TrustToken:
-                case ResourceType.DiplomacyToken:
-                case ResourceType.StatusToken:
-                case ResourceType.ShadowToken:
-                    ConnectionType tokenType = cost.Type switch
-                    {
-                        ResourceType.TrustToken => ConnectionType.Trust,
-                        ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
-                        ResourceType.StatusToken => ConnectionType.Status,
-                        ResourceType.ShadowToken => ConnectionType.Shadow,
-                        _ => ConnectionType.Trust
-                    };
-                    if (!_tokenFacade.SpendTokensWithNPC(tokenType, cost.Amount, npcId))
-                    {
-                        result.Success = false;
-                        result.Message = $"Failed to spend {tokenType} tokens";
-                        return result;
-                    }
-                    break;
-
-                case ResourceType.Item:
-                    if (!string.IsNullOrEmpty(cost.ItemId))
-                    {
-                        if (!_resourceFacade.RemoveItem(cost.ItemId))
-                        {
-                            result.Success = false;
-                            result.Message = $"Failed to remove item {cost.ItemId}";
-                            return result;
-                        }
-                    }
-                    break;
-            }
-        }
-
-        // Apply rewards through appropriate facades
-        foreach (ResourceAmount reward in operation.Rewards)
-        {
-            switch (reward.Type)
-            {
-                case ResourceType.Coins:
-                    _resourceFacade.AddCoins(reward.Amount, $"Exchange with {npcId}");
-                    break;
-
-                case ResourceType.Health:
-                    _resourceFacade.Heal(reward.Amount, $"Exchange with {npcId}");
-                    break;
-
-                case ResourceType.Hunger:
-                    _resourceFacade.DecreaseHunger(reward.Amount, $"Exchange with {npcId}");
-                    break;
-
-                case ResourceType.TrustToken:
-                case ResourceType.DiplomacyToken:
-                case ResourceType.StatusToken:
-                case ResourceType.ShadowToken:
-                    ConnectionType tokenType = reward.Type switch
-                    {
-                        ResourceType.TrustToken => ConnectionType.Trust,
-                        ResourceType.DiplomacyToken => ConnectionType.Diplomacy,
-                        ResourceType.StatusToken => ConnectionType.Status,
-                        ResourceType.ShadowToken => ConnectionType.Shadow,
-                        _ => ConnectionType.Trust
-                    };
-                    _tokenFacade.AddTokensToNPC(tokenType, reward.Amount, npcId);
-                    break;
-            }
-        }
-
-        // Apply item rewards
-        foreach (string itemId in operation.ItemRewards)
-        {
-            _resourceFacade.AddItem(itemId);
-        }
-
-        // Handle side effects
-        if (operation.AdvancesTime)
-        {
-            _timeFacade.AdvanceSegments(operation.TimeAdvancementHours);
-            _messageSystem.AddSystemMessage($"Time passes... ({operation.TimeAdvancementHours} segment(s))", SystemMessageTypes.Info);
-        }
-
-        if (operation.AffectsRelationship)
-        {
-            NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-            if (npc != null)
-            {
-                npc.RelationshipFlow += operation.FlowModifier;
-                _messageSystem.AddSystemMessage($"Relationship with {npc.Name} {(operation.FlowModifier > 0 ? "improved" : "worsened")}", SystemMessageTypes.Info);
-            }
-        }
-
-
-        // Mark exchange as used if unique
-        if (operation.IsUnique)
-        {
-            _exchangeFacade.RemoveExchangeFromNPC(operation.NPCId, operation.ExchangeId);
-        }
-
-        // Update result with what was actually applied
-        result.Success = true;
-        result.Message = $"Exchange completed successfully";
-        _messageSystem.AddSystemMessage(result.Message, SystemMessageTypes.Success);
-
-        return result;
-    }
-
     // ========== INVESTIGATION SYSTEM ==========
 
     /// <summary>
@@ -1394,41 +1237,6 @@ public class GameFacade
         }
     }
 
-    public List<Investigation> GetAvailableInvestigations()
-    {
-        return _gameWorld.Investigations;
-    }
-
-    /// <summary>
-    /// Grant knowledge to player and evaluate investigation discovery
-    /// Knowledge may unlock ConversationalDiscovery investigations
-    /// </summary>
-    public void GrantKnowledge(string knowledgeId)
-    {
-        _knowledgeService.GrantKnowledge(knowledgeId);
-
-        // Knowledge may unlock investigation discovery (ConversationalDiscovery trigger)
-        EvaluateInvestigationDiscovery();
-    }
-
-    // ========== V2 OBSTACLE SYSTEM (KEPT) ==========
-
-    /// <summary>
-    /// Create an obstacle context for UI rendering (V2)
-    /// </summary>
-    public async Task<ObstacleContext> CreateObstacleContext(string obstacleId, RouteOption route = null)
-    {
-        return await _obstacleFacade.CreateObstacleContext(obstacleId, route);
-    }
-
-    /// <summary>
-    /// Attempt an obstacle with a specific approach (V2)
-    /// </summary>
-    public async Task<ObstacleAttemptResult> AttemptObstacle(string obstacleId, string approachId, RouteOption route = null)
-    {
-        return await _obstacleFacade.AttemptObstacle(obstacleId, approachId, route);
-    }
-
     /// <summary>
     /// Get route by ID (V2 Travel Integration)
     /// </summary>
@@ -1436,14 +1244,6 @@ public class GameFacade
     {
         return _travelFacade.GetAvailableRoutesFromCurrentLocation()
             .FirstOrDefault(r => r.Id == routeId);
-    }
-
-    /// <summary>
-    /// Check for obstacles on a route (V2 Travel Integration)
-    /// </summary>
-    public TravelObstacle CheckForObstacle(RouteOption route)
-    {
-        return _obstacleFacade.CheckForObstacle(route);
     }
 
 }

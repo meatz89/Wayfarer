@@ -93,10 +93,6 @@
     // Observation tracking - IDs of observation cards collected
     public List<string> CollectedObservations { get; set; } = new List<string>();
 
-    // V2 Investigation System - Completed investigations tracking
-    // V3 Investigation System - Journal tracks Pending/Active/Completed investigations
-    public InvestigationJournal InvestigationJournal { get; set; } = new InvestigationJournal();
-
     // Persistent injury cards for Physical tactical system
     public List<string> InjuryCardIds { get; set; } = new List<string>();
 
