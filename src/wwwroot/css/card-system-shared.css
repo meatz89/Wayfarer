@@ -116,60 +116,60 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
     background: #5a7a8a;
 }
 
-/* ===== RHYTHM TRACKER (Cadence / Balance) ===== */
+/* ===== CADENCE TRACKER (Cadence / Balance) ===== */
 
-.rhythm-container {
+.cadence-container {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
 }
 
-.rhythm-scale {
+.cadence-scale {
     display: flex;
     align-items: center;
     gap: 2px;
     padding: 0 20px;
 }
 
-.rhythm-segment {
+.cadence-segment {
     width: 30px;
     height: 20px;
     border: 1px solid #5c4a3a;
     background: #3d3429;
 }
 
-.rhythm-segment.negative {
+.cadence-segment.negative {
     background: #5a7a8a;
 }
 
-.rhythm-segment.neutral {
+.cadence-segment.neutral {
     background: #7a8b5a;
 }
 
-.rhythm-segment.positive {
+.cadence-segment.positive {
     background: #d4a76a;
 }
 
-.rhythm-segment.extreme {
+.cadence-segment.extreme {
     background: #d4704a;
 }
 
-.rhythm-segment.current {
+.cadence-segment.current {
     border: 2px solid #faf4ea;
     box-shadow: 0 0 8px rgba(250, 244, 234, 0.5);
 }
 
-.rhythm-label {
+.cadence-label {
     font-size: 11px;
     color: #8b7355;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
-/* ===== ACTION ECONOMY DISPLAY (Initiative / Attention) ===== */
+/* ===== INITIATIVE DISPLAY (Initiative / Attention) ===== */
 
-.action-economy-display {
+.initiative-display {
     background: #3d3429;
     padding: 15px;
     display: flex;
@@ -179,32 +179,32 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
     border-bottom: 2px solid #5c4a3a;
 }
 
-.action-economy-counter {
+.initiative-counter {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.action-economy-label {
+.initiative-label {
     font-size: 14px;
     color: #e8dcc4;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.action-economy-value {
+.initiative-value {
     font-size: 36px;
     font-weight: bold;
     color: #d4a76a;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.action-economy-dots {
+.initiative-dots {
     display: flex;
     gap: 4px;
 }
 
-.action-economy-dot {
+.initiative-dot {
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -212,7 +212,7 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
     background: #2c241a;
 }
 
-.action-economy-dot.available {
+.initiative-dot.available {
     background: #d4a76a;
     box-shadow: 0 0 4px rgba(212, 167, 106, 0.5);
 }
@@ -290,20 +290,6 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
 
 /* ===== ACTION SECTION (LISTEN/SPEAK or OBSERVE/ACT) ===== */
 
-.primary-actions {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #a68b6f;
-}
-
-.action-slot {
-    padding: 12px;
-    background: #e8dcc4;
-    text-align: center;
-    position: relative;
-    flex: 1;
-}
-
 .action-button {
     padding: 10px 35px;
     background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
@@ -326,11 +312,6 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
     background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
     color: #faf4ea;
     border-color: #5a6a3a;
-}
-
-.action-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 /* ===== PILE COUNTERS ===== */

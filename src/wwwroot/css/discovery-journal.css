@@ -71,7 +71,7 @@
     border: 1px solid #3a3020;
 }
 
-.location-name, .observation-name, .route-path {
+.observation-name, .route-path {
     color: #f4e4c1;
     font-weight: bold;
     margin-bottom: 8px;

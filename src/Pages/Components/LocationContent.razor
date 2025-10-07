@@ -2,13 +2,6 @@
 
 @namespace Wayfarer.Pages.Components
 
-<!-- Simple Resource Display -->
-<div class="resources-display">
-    Health: @GameWorld?.GetPlayer()?.Health/@GameWorld?.GetPlayer()?.MaxHealth
-    Stamina: @GameWorld?.GetPlayer()?.Stamina/@GameWorld?.GetPlayer()?.MaxStamina
-    Coins: @GameWorld?.GetPlayer()?.Coins
-</div>
-
 @if (CurrentSpot != null)
 {
 
