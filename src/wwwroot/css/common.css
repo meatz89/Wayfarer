@@ -248,6 +248,9 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-self: center;
+    margin: 20px;
 }
 
 .back-button:hover {

@@ -1,7 +1,7 @@
 {
   "challengeDecks": [
     {
-      "id": "deck_mental_challenge",
+      "id": "mental_challenge",
       "name": "Mental Challenge Deck",
       "systemType": "Mental",
       "cardIds": [
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "id": "deck_physical_challenge",
+      "id": "physical_challenge",
       "name": "Physical Challenge Deck",
       "systemType": "Physical",
       "cardIds": [
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "id": "deck_social_challenge",
+      "id": "social_challenge",
       "name": "Social Challenge Deck",
       "systemType": "Social",
       "cardIds": [

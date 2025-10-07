@@ -878,7 +878,7 @@
     ],
     "cardDecks": [
       {
-        "id": "deck_desperate_request",
+        "id": "desperate_request",
         "cardCounts": {
           "rapport_show_understanding": 2,
           "rapport_gentle_encouragement": 2,
@@ -903,7 +903,7 @@
         }
       },
       {
-        "id": "deck_trade_negotiation",
+        "id": "trade_negotiation",
         "cardCounts": {
           "diplomacy_reassure": 1,
           "diplomacy_propose_alternative": 1,
@@ -938,7 +938,7 @@
         }
       },
       {
-        "id": "deck_friendly_chat",
+        "id": "friendly_chat",
         "cardCounts": {
           "insight_quick_scan": 1,
           "insight_ask_question": 1,

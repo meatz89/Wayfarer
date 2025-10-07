@@ -23,21 +23,6 @@
     font-weight: bold;
 }
 
-.back-button {
-    background: #d4b896;
-    color: #3a2f24;
-    border: 2px solid #a68b6f;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.back-button:hover {
-    background: #c4a886;
-}
-
 .npc-info {
     display: flex;
     gap: 15px;
