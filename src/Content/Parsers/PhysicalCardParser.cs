@@ -64,6 +64,7 @@ public class PhysicalCardParser
             StaminaCost = PhysicalCardEffectCatalog.GetStaminaCost(approach, dto.Depth, exertionLevel),
             DirectHealthCost = PhysicalCardEffectCatalog.GetHealthCost(approach, riskLevel, dto.Depth),
             CoinCost = PhysicalCardEffectCatalog.GetCoinCost(category, dto.Depth),
+            XPReward = PhysicalCardEffectCatalog.GetXPReward(dto.Depth),
 
             // Simple requirement properties - parser calculates costs/effects from categorical properties via PhysicalCardEffectCatalog
             EquipmentCategory = equipmentCategory,

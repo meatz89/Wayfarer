@@ -14,7 +14,7 @@ public class MentalCardParser
         Method method = ParseMethod(dto.Method);
         MentalCategory category = ParseCategory(dto.Category);
         InvestigationDiscipline discipline = ParseDiscipline(dto.Discipline);
-        RiskLevel riskLevel = ParseRiskLevel(dto.RiskLevel);
+        // NOTE: RiskLevel removed - Mental investigations have mental strain, not physical risk
         ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
         MethodType methodType = ParseMethodType(dto.MethodType);
 
@@ -55,15 +55,14 @@ public class MentalCardParser
             Category = category,
             Discipline = discipline,
 
-            // Universal card properties
-            RiskLevel = riskLevel,
+            // Universal card properties (RiskLevel removed - mental strain, not physical risk)
             ExertionLevel = exertionLevel,
             MethodType = methodType,
 
             // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG (calculated ONCE at parse time)
-            StaminaCost = MentalCardEffectCatalog.GetStaminaCost(method, dto.Depth, exertionLevel),
-            DirectHealthCost = MentalCardEffectCatalog.GetHealthCost(method, riskLevel, dto.Depth),
+            // NOTE: Mental cards have NO health/stamina costs - only Focus at session level
             CoinCost = MentalCardEffectCatalog.GetCoinCost(category, dto.Depth),
+            XPReward = MentalCardEffectCatalog.GetXPReward(dto.Depth),
 
             // Simple requirement properties - parser calculates costs/effects from categorical properties via MentalCardEffectCatalog
             EquipmentCategory = equipmentCategory,
@@ -95,13 +94,6 @@ public class MentalCardParser
         return Enum.TryParse<MentalCategory>(categoryString, out MentalCategory category)
             ? category
             : MentalCategory.Analytical;
-    }
-
-    private RiskLevel ParseRiskLevel(string riskString)
-    {
-        return Enum.TryParse<RiskLevel>(riskString, out RiskLevel risk)
-            ? risk
-            : RiskLevel.Cautious;
     }
 
     private ExertionLevel ParseExertionLevel(string exertionString)

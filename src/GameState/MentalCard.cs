@@ -24,15 +24,16 @@ public class MentalCard
     public InvestigationDiscipline Discipline { get; init; } = InvestigationDiscipline.Research;  // Specialization for bonus matching
 
     // Universal card properties (apply across all tactical systems)
-    public RiskLevel RiskLevel { get; init; } = RiskLevel.Cautious;
+    // NOTE: RiskLevel removed - Mental investigations have mental strain (ExertionLevel), not physical risk
     public Visibility Visibility { get; init; } = Visibility.Moderate;
     public ExertionLevel ExertionLevel { get; init; } = ExertionLevel.Light;
     public MethodType MethodType { get; init; } = MethodType.Direct;
 
     // Strategic resource costs (calculated at parse time from categorical properties via MentalCardEffectCatalog)
-    public int StaminaCost { get; init; } = 0;
-    public int DirectHealthCost { get; init; } = 0;
-    public int CoinCost { get; init; } = 0;
+    // NOTE: Mental cards have NO health/stamina costs - Mental investigations cost Focus at SESSION level only
+    // Individual cards cost ZERO permanent resources (only session resources: Attention, Progress, Exposure)
+    public int CoinCost { get; init; } = 0;  // Rare - bribes, equipment purchases
+    public int XPReward { get; init; } = 0;  // Pre-calculated XP from depth (parse time, not runtime)
 
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;

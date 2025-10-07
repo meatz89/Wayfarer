@@ -33,6 +33,7 @@ public class PhysicalCard
     public int StaminaCost { get; init; } = 0;
     public int DirectHealthCost { get; init; } = 0;
     public int CoinCost { get; init; } = 0;
+    public int XPReward { get; init; } = 0;  // Pre-calculated XP from depth (parse time, not runtime)
 
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;

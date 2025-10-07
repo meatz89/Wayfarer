@@ -182,6 +182,21 @@ public static class PhysicalCardEffectCatalog
         // Could add specialized equipment cards that require coin investment
         return 0;
     }
+
+    /// <summary>
+    /// Get XP reward from depth (called by parser).
+    /// XP is ONLY calculated at parse time from depth, NEVER at runtime.
+    /// Domain only APPLIES this pre-calculated value.
+    /// </summary>
+    public static int GetXPReward(int depth)
+    {
+        // XP = depth (simple, direct progression)
+        // Foundation (1-2): 1-2 XP
+        // Standard (3-4): 3-4 XP
+        // Advanced (5-6): 5-6 XP
+        // Master (7-8): 7-8 XP
+        return depth;
+    }
 }
 
 /// <summary>

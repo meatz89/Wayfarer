@@ -20,7 +20,7 @@ public class MentalCardDTO
     public string Discipline { get; set; } = "Research";  // InvestigationDiscipline: Research/Observation/Deduction/Interrogation/Infiltration
 
     // Universal card properties (for catalog-based cost calculation)
-    public string RiskLevel { get; set; } = "Cautious";
+    // NOTE: RiskLevel removed - Mental investigations have mental strain, not physical risk
     public string ExertionLevel { get; set; } = "Light";
     public string MethodType { get; set; } = "Direct";
 

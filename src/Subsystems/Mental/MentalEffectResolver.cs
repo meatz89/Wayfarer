@@ -184,9 +184,8 @@ public class MentalEffectResolver
         result.ExposureChange = result.BaseExposure + result.ExposureBonuses.Sum(b => b.Amount);
 
         // Strategic resource costs - PRE-CALCULATED at parse time via MentalCardEffectCatalog
+        // NOTE: Mental cards have NO health/stamina costs - only session-level Focus cost
         // Resolver just uses the values calculated during parsing (no runtime calculation)
-        result.StaminaCost = template.StaminaCost;
-        result.HealthCost = template.DirectHealthCost;
         result.CoinsCost = template.CoinCost;
 
         // Session end detection: Check if this card would end session

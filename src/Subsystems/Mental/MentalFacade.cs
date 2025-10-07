@@ -165,12 +165,11 @@ public class MentalFacade
         }
         _currentSession.CategoryCounts[category]++;
 
-        // PROGRESSION SYSTEM: Award XP to bound stat
+        // PROGRESSION SYSTEM: Award XP to bound stat (XP pre-calculated at parse time)
         if (card.MentalCardTemplate.BoundStat != PlayerStatType.None)
         {
-            int xpAmount = CalculateXPAmount(card.MentalCardTemplate.Depth);
-            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, xpAmount);
-            Console.WriteLine($"[MentalFacade] Awarded {xpAmount} XP to {card.MentalCardTemplate.BoundStat} (Depth {card.MentalCardTemplate.Depth})");
+            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, card.MentalCardTemplate.XPReward);
+            Console.WriteLine($"[MentalFacade] Awarded {card.MentalCardTemplate.XPReward} XP to {card.MentalCardTemplate.BoundStat} (Depth {card.MentalCardTemplate.Depth})");
         }
 
         _sessionDeck.PlayCard(card);
@@ -334,20 +333,6 @@ public class MentalFacade
         _sessionDeck?.Clear();
 
         return outcome;
-    }
-
-    /// <summary>
-    /// Calculate XP amount from card depth.
-    /// Deeper cards award more XP for progression.
-    /// </summary>
-    private int CalculateXPAmount(int depth)
-    {
-        // Base XP = card depth
-        // Foundation (1-2): 1-2 XP
-        // Standard (3-4): 3-4 XP
-        // Advanced (5-6): 5-6 XP
-        // Master (7-8): 7-8 XP
-        return depth;
     }
 
     /// <summary>

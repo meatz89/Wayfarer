@@ -129,51 +129,6 @@ public static class MentalCardEffectCatalog
     }
 
     /// <summary>
-    /// Get Stamina cost from categorical properties (called by parser).
-    /// </summary>
-    public static int GetStaminaCost(Method method, int depth, ExertionLevel exertion)
-    {
-        int baseCost = exertion switch
-        {
-            ExertionLevel.Light => 0,
-            ExertionLevel.Moderate => 1,
-            ExertionLevel.Heavy => 3,
-            _ => 0
-        };
-
-        // Bold and Reckless methods cost more stamina (mental strain)
-        if (method == Method.Bold || method == Method.Reckless)
-        {
-            baseCost += 1;
-        }
-
-        return baseCost;
-    }
-
-    /// <summary>
-    /// Get Health cost from categorical properties (called by parser).
-    /// </summary>
-    public static int GetHealthCost(Method method, RiskLevel risk, int depth)
-    {
-        int baseCost = risk switch
-        {
-            RiskLevel.Safe => 0,
-            RiskLevel.Cautious => 0,
-            RiskLevel.Risky => 1,
-            RiskLevel.Dangerous => 3,
-            _ => 0
-        };
-
-        // Reckless method increases health cost (stress damage)
-        if (method == Method.Reckless)
-        {
-            baseCost += 2;
-        }
-
-        return baseCost;
-    }
-
-    /// <summary>
     /// Get Coin cost from categorical properties (called by parser).
     /// </summary>
     public static int GetCoinCost(MentalCategory category, int depth)
@@ -181,6 +136,21 @@ public static class MentalCardEffectCatalog
         // Some investigation cards might require resources (bribes, equipment)
         // For now, most mental cards don't cost coins
         return 0;
+    }
+
+    /// <summary>
+    /// Get XP reward from depth (called by parser).
+    /// XP is ONLY calculated at parse time from depth, NEVER at runtime.
+    /// Domain only APPLIES this pre-calculated value.
+    /// </summary>
+    public static int GetXPReward(int depth)
+    {
+        // XP = depth (simple, direct progression)
+        // Foundation (1-2): 1-2 XP
+        // Standard (3-4): 3-4 XP
+        // Advanced (5-6): 5-6 XP
+        // Master (7-8): 7-8 XP
+        return depth;
     }
 }
 

@@ -78,9 +78,8 @@ namespace Wayfarer.Pages.Components.Shared
         protected bool HasCardCost()
         {
             if (Card?.MentalCardTemplate == null) return false;
-            return Card.MentalCardTemplate.StaminaCost > 0
-                || Card.MentalCardTemplate.DirectHealthCost > 0
-                || Card.MentalCardTemplate.CoinCost > 0;
+            // NOTE: Mental cards have NO health/stamina costs - only CoinCost (rare)
+            return Card.MentalCardTemplate.CoinCost > 0;
         }
 
         protected string GetCardCost()
@@ -88,8 +87,6 @@ namespace Wayfarer.Pages.Components.Shared
             if (!HasCardCost()) return "";
 
             var costs = new System.Collections.Generic.List<string>();
-            if (Card.MentalCardTemplate.StaminaCost > 0) costs.Add($"Stamina -{Card.MentalCardTemplate.StaminaCost}");
-            if (Card.MentalCardTemplate.DirectHealthCost > 0) costs.Add($"Health -{Card.MentalCardTemplate.DirectHealthCost}");
             if (Card.MentalCardTemplate.CoinCost > 0) costs.Add($"Coins -{Card.MentalCardTemplate.CoinCost}");
 
             return string.Join(", ", costs);
