@@ -248,31 +248,27 @@ namespace Wayfarer.Pages.Components
 
             // Get Social, Mental, and Physical investigation goals available at current spot
             // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
+            // Goals are stored directly on Spot - Spots are the only entity that matters
             AvailableSocialGoals.Clear();
             AvailableMentalGoals.Clear();
             AvailablePhysicalGoals.Clear();
-            if (location != null && CurrentSpot != null && location.Goals != null)
+            if (CurrentSpot != null && CurrentSpot.Goals != null)
             {
-                string currentSpotId = CurrentSpot.SpotID;
-
-                AvailableSocialGoals = location.Goals
+                AvailableSocialGoals = CurrentSpot.Goals
                     .Where(g => g.SystemType == TacticalSystemType.Social)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailableMentalGoals = location.Goals
+                AvailableMentalGoals = CurrentSpot.Goals
                     .Where(g => g.SystemType == TacticalSystemType.Mental)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailablePhysicalGoals = location.Goals
+                AvailablePhysicalGoals = CurrentSpot.Goals
                     .Where(g => g.SystemType == TacticalSystemType.Physical)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.SpotId) || g.SpotId == currentSpotId)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 

@@ -340,22 +340,22 @@ public class LocationActionManager
         };
     }
     /// <summary>
-    /// Get goal actions from location.Goals (investigation goals)
+    /// Get goal actions from spot.Goals (investigation goals)
+    /// Goals are stored directly on Spot - Spots are the only entity that matters
     /// </summary>
     private List<LocationActionViewModel> GetLocationGoalActions(Location location, LocationSpot spot)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        if (location == null || location.Goals == null || location.Goals.Count == 0)
+        if (spot == null || spot.Goals == null || spot.Goals.Count == 0)
             return actions;
 
         Player player = _gameWorld.GetPlayer();
         if (player == null) return actions;
 
-        foreach (LocationGoal goal in location.Goals)
+        foreach (LocationGoal goal in spot.Goals)
         {
             if (goal.IsCompleted) continue;
-            if (!string.IsNullOrEmpty(goal.SpotId) && goal.SpotId != spot.SpotID) continue;
             if (!EvaluateGoalPrerequisites(goal, player, location.Id)) continue;
 
             string investigationLabel = null;
@@ -413,8 +413,9 @@ public class LocationActionManager
 
         foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
         {
-            LocationGoal requiredGoal = _gameWorld.Locations
-                .SelectMany(loc => loc.Goals)
+            // Search across all spot goals (Spots are the only entity that matters)
+            LocationGoal requiredGoal = _gameWorld.Spots
+                .SelectMany(spotEntry => spotEntry.Spot.Goals ?? new List<LocationGoal>())
                 .FirstOrDefault(g => g.Id == requiredGoalId);
 
             if (requiredGoal == null || !requiredGoal.IsCompleted)

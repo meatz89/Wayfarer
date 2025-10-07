@@ -1368,13 +1368,13 @@ public class GameFacade
             // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
             LocationGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
 
-            // Add intro goal to the appropriate location
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == introGoal.SpotId.Split('_')[0]);
-            if (location != null)
+            // Add intro goal directly to the spot (Spots are the only entity that matters)
+            LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId);
+            if (spotEntry != null)
             {
-                if (location.Goals == null)
-                    location.Goals = new List<LocationGoal>();
-                location.Goals.Add(introGoal);
+                if (spotEntry.Spot.Goals == null)
+                    spotEntry.Spot.Goals = new List<LocationGoal>();
+                spotEntry.Spot.Goals.Add(introGoal);
             }
 
             // Pending discovery result is now set in InvestigationActivity

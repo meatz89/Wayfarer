@@ -30,6 +30,9 @@ public class LocationSpot
     // Access Requirements for this spot
     public AccessRequirement AccessRequirement { get; set; }
 
+    // Tactical Goals - Mental, Physical, and Social challenges available at this spot
+    public List<LocationGoal> Goals { get; set; } = new List<LocationGoal>();
+
     // UI compatibility - converts SpotPropertyType enum to string list
     public List<string> Properties => SpotProperties.Select(p => p.ToString()).ToList();
 

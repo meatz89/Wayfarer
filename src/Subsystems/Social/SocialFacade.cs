@@ -1935,16 +1935,18 @@ public class SocialFacade
                 // This is intro completion - activate investigation
                 List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
 
-                // Add first goals to location
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.PhaseDefinitions[0].LocationId);
-                if (location != null && firstGoals.Count > 0)
+                // Add first goals to their respective spots (Spots are the only entity that matters)
+                if (firstGoals.Count > 0)
                 {
-                    if (location.Goals == null)
-                        location.Goals = new List<LocationGoal>();
-
                     foreach (LocationGoal goal in firstGoals)
                     {
-                        location.Goals.Add(goal);
+                        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == goal.SpotId);
+                        if (spotEntry != null)
+                        {
+                            if (spotEntry.Spot.Goals == null)
+                                spotEntry.Spot.Goals = new List<LocationGoal>();
+                            spotEntry.Spot.Goals.Add(goal);
+                        }
                     }
                 }
 

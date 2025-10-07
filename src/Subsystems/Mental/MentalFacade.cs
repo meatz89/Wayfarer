@@ -316,8 +316,12 @@ public class MentalFacade
 
         // Persist exposure to location (Mental debt system)
         // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
-        Location location = _gameWorld.Locations.FirstOrDefault(l =>
-            l.Goals != null && l.Goals.Any(g => g.ChallengeTypeId == _currentSession.InvestigationId));
+        // Find location by searching spots for goals with this investigation
+        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s =>
+            s.Spot.Goals != null && s.Spot.Goals.Any(g => g.ChallengeTypeId == _currentSession.InvestigationId));
+        Location location = spotEntry != null
+            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+            : null;
 
         if (location != null)
         {
@@ -360,16 +364,18 @@ public class MentalFacade
             // This is intro completion - activate investigation
             List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
 
-            // Add first goals to location
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.PhaseDefinitions[0].LocationId);
-            if (location != null && firstGoals.Count > 0)
+            // Add first goals to their respective spots (Spots are the only entity that matters)
+            if (firstGoals.Count > 0)
             {
-                if (location.Goals == null)
-                    location.Goals = new List<LocationGoal>();
-
                 foreach (LocationGoal goal in firstGoals)
                 {
-                    location.Goals.Add(goal);
+                    LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == goal.SpotId);
+                    if (spotEntry != null)
+                    {
+                        if (spotEntry.Spot.Goals == null)
+                            spotEntry.Spot.Goals = new List<LocationGoal>();
+                        spotEntry.Spot.Goals.Add(goal);
+                    }
                 }
             }
 

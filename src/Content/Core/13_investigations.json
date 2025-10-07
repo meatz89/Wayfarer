@@ -55,6 +55,24 @@
           "completionReward": {
             "knowledgeGranted": ["waterwheel_suspect_identified"]
           }
+        },
+        {
+          "id": "phase_3_repair",
+          "name": "Clear debris and repair the waterwheel",
+          "description": "Remove the obstructions and fix the damaged mechanism",
+          "outcomeNarrative": "With effort, you clear away the accumulated debris and use your tools to repair the damaged gears. The waterwheel groans back to life, water driving the mechanism once more. The mill's heart beats again.",
+          "progressThreshold": 10,
+          "systemType": "Physical",
+          "challengeTypeId": "physical_challenge",
+          "locationId": "old_mill",
+          "spotId": "courtyard",
+          "requirements": {
+            "completedGoals": ["phase_2_question"],
+            "knowledge": ["waterwheel_suspect_identified"]
+          },
+          "completionReward": {
+            "knowledgeGranted": ["waterwheel_repaired"]
+          }
         }
       ],
       "completionNarrative": "You've uncovered the truth behind the waterwheel's sabotage. The evidence points clearly to the culprit, and Elena now knows what happened to her mill.",
