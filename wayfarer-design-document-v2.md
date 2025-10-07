@@ -18,6 +18,85 @@ Low-fantasy historical CRPG with visual novel dialogue and resource management. 
 
 **Not included:** Modern concepts, checkpoints/guards, mountain passes, epic scope. **Focus:** Small timeframes (days), short distances (walking), actions spanning seconds/minutes like D&D sessions.
 
+## Unified Stat System Architecture
+
+### Five Universal Stats
+
+Wayfarer uses a **single unified progression system** across all three challenge types (Mental, Physical, Social). Five stats govern all tactical gameplay:
+
+- **Insight**: Pattern recognition, analysis, understanding
+- **Rapport**: Empathy, connection, emotional intelligence
+- **Authority**: Command, decisiveness, power
+- **Diplomacy**: Balance, patience, measured approach
+- **Cunning**: Subtlety, strategy, risk management
+
+### Card Binding and Depth Access
+
+**Every card in every system** is bound to one of these five stats. This binding determines:
+
+1. **Depth Access**: Player's stat level determines which card depths they can play
+   - Level 1: Access depths 1-2 (Foundation cards only)
+   - Level 2: Access depths 1-3
+   - Level 3: Access depths 1-4 (Standard cards)
+   - Level 5: Access depths 1-6 (Advanced cards)
+   - Level 7: Access depths 1-8 (Powerful cards)
+   - Level 9+: Access depths 1-10 (Master cards)
+
+2. **XP Gain**: Playing any card grants XP to its bound stat
+   - Mental "Insight-bound Observation" → grants Insight XP
+   - Physical "Authority-bound Power Move" → grants Authority XP
+   - Social "Rapport-bound Friendly Approach" → grants Rapport XP
+   - **Single unified progression**: All three challenge types level the same five stats
+
+### Stat Manifestation Across Challenge Types
+
+The same stat manifests differently depending on challenge type, creating thematic coherence while maintaining mechanical consistency:
+
+| Stat | Mental Manifestation | Physical Manifestation | Social Manifestation |
+|------|---------------------|----------------------|---------------------|
+| **Insight** | Pattern recognition in evidence, analyzing crime scenes, deductive reasoning | Structural analysis, reading terrain features, finding weaknesses | Understanding NPC motivations, reading between lines, seeing hidden agendas |
+| **Rapport** | Empathetic observation, understanding human element, sensing emotions | Flow state, body awareness, natural movement, athletic grace | Building emotional connection, creating trust, resonating with feelings |
+| **Authority** | Commanding the scene, decisive analysis, authoritative conclusions | Decisive action, power moves, commanding environment | Asserting position, directing conversation, establishing dominance |
+| **Diplomacy** | Balanced investigation, patient observation, measured approach | Measured technique, controlled force, pacing endurance | Finding middle ground, compromise, balanced conversation |
+| **Cunning** | Subtle investigation, covering tracks, tactical information gathering | Risk management, tactical precision, adaptive technique | Strategic conversation, subtle manipulation, reading and responding |
+
+### Card Examples Across Systems
+
+**Insight-Bound Cards**:
+- **Mental**: "Detailed Examination" (depth 4) - Systematic observation of evidence (+3 Progress, +1 Understanding)
+- **Physical**: "Structural Analysis" (depth 4) - Identify load-bearing points (+2 Position, reveal optimal path)
+- **Social**: "Read Motivation" (depth 4) - Understand NPC's true desires (+2 Momentum, reduce Doubt)
+
+**Rapport-Bound Cards**:
+- **Mental**: "Empathetic Reading" (depth 4) - Sense emotional context (+2 Progress, +1 to next Social at location)
+- **Physical**: "Flow State" (depth 6) - Natural fluid movement (+3 Breakthrough, +1 Position)
+- **Social**: "Emotional Resonance" (depth 5) - Connect on feeling level (+3 Momentum, +1 Rapport token)
+
+**Authority-Bound Cards**:
+- **Mental**: "Command Scene" (depth 5) - Take control of investigation space (+3 Progress, +1 Exposure from obviousness)
+- **Physical**: "Power Move" (depth 6) - Decisive forceful action (+4 Breakthrough, +1 Danger)
+- **Social**: "Assert Position" (depth 5) - Direct conversation firmly (+3 Momentum, +1 Cadence)
+
+**Diplomacy-Bound Cards**:
+- **Mental**: "Patient Observation" (depth 4) - Methodical investigation (+2 Progress, -1 Exposure from care)
+- **Physical**: "Measured Technique" (depth 4) - Controlled application of force (+2 Breakthrough, +1 Position)
+- **Social**: "Find Common Ground" (depth 4) - Seek compromise (+2 Momentum, -1 Cadence)
+
+**Cunning-Bound Cards**:
+- **Mental**: "Cover Tracks" (depth 4) - Investigate without leaving traces (+2 Progress, -1 Exposure)
+- **Physical**: "Calculated Risk" (depth 5) - Tactical risk assessment (+3 Breakthrough, -1 Danger)
+- **Social**: "Strategic Deflection" (depth 5) - Subtle redirection (+2 Momentum, manipulate Cadence)
+
+### Why Unified Stats Matter
+
+**Single Progression Path**: Playing any challenge type improves your capabilities across all systems. Mental investigations improve your Social Insight cards. Physical challenges improve your Mental Authority cards. Social conversations improve your Physical Cunning cards.
+
+**Thematic Coherence**: Stats represent fundamental character traits that manifest differently in different contexts. A highly Insightful character excels at observation (Mental), structural analysis (Physical), and reading people (Social).
+
+**Build Variety**: Players can specialize (focus on 2-3 stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
+
+**No Wasted Effort**: Every card played in every system contributes to unified character progression.
+
 ## Strategic-Tactical Architecture
 
 Wayfarer operates on two distinct layers that separate decision-making from execution:
@@ -217,73 +296,430 @@ When requirements met, phase spawns LocationGoal at specified location. Mental/P
 
 ### Three Challenge Systems Detailed
 
-**Mental Challenges** - Observation-based investigation at location spots
-
-*Core Resources:*
-- **Progress** (builder): Built toward victory threshold (typically 10-20)
-- **Attention** (session resource): Spent on Act cards, limited pool (max 10), represents investigative focus
-- **Exposure** (threshold): Accumulates from reckless investigation, persists at location, failure at maximum
-- **ObserveActBalance** (balance): Tracks cautious (-10) vs reckless (+10) approach, affects penalties
-- **Understanding** (tier unlock): Persistent sophistication, unlocks higher card tiers
-
-*Action Pair:*
-- **OBSERVE**: Play card cautiously, build Progress, shift balance toward overcautious
-- **ACT**: Play card aggressively, spend Attention, shift balance toward reckless, build Progress faster with more Exposure risk
-
-*Victory Condition:* Reach Progress threshold before Exposure exceeds maximum
-*Example Phase:* "Examine the waterwheel mechanism" (Mental challenge, 15 Progress threshold, at Mill spot)
+All three systems provide equivalent tactical depth through parallel architecture. Each interacts with different elements of the game world (locations, obstacles, NPCs) and respects verisimilitude through appropriate session models and resource costs.
 
 ---
 
-**Physical Challenges** - Strength-based obstacles at location spots
+## Mental Challenges - Investigation at Locations
 
-*Core Resources:*
-- **Breakthrough** (builder): Built toward victory threshold (typically 10-20)
-- **Position** (session resource): Represents advantageous positioning, spent on Execute cards (max 10)
-- **Danger** (threshold): Accumulates from risky actions, failure at maximum
-- **Commitment** (balance): Tracks cautious (-10) vs decisive (+10) approach, affects card effectiveness
-- **Understanding** (tier unlock): Persistent capability, unlocks higher card tiers
+**Interaction Model**: Player investigates static locations (crime scenes, mysterious sites, evidence locations)
 
-*Action Pair:*
-- **ASSESS**: Play card cautiously, build Breakthrough slowly, shift balance toward overcautious
-- **EXECUTE**: Play card decisively, spend Position, shift balance toward decisive, build Breakthrough faster with more Danger
+### Session Model: Pauseable Static Puzzle
 
-*Victory Condition:* Reach Breakthrough threshold before Danger exceeds maximum
-*Example Phase:* "Climb the damaged mill wheel" (Physical challenge, 15 Breakthrough threshold, at Mill spot)
+Mental investigations can be paused and resumed, respecting the reality that investigations take time:
+
+- **Can pause anytime**: Leave location, state persists exactly where you left off
+- **Progress persists**: Accumulates at location across multiple visits
+- **Exposure persists**: Your investigative "footprint" at location increases difficulty
+- **Attention resets**: Return with fresh mental energy after rest
+- **No forced ending**: High Exposure makes investigation harder but doesn't force failure
+- **Incremental victory**: Reach Progress threshold across multiple visits (typically 10-20 total)
+- **Verisimilitude**: Real investigations take days/weeks with breaks between sessions
+
+### Core Session Resources
+
+- **Progress** (builder, persists): Accumulates toward completion (10-20 total typical)
+- **Attention** (session, resets): Mental focus spent on ACT cards (max 10, resets on return)
+- **Exposure** (persistent penalty): Investigative footprint at location (no max, higher = harder future visits)
+- **ObserveActBalance** (balance): Cautious (-10) vs reckless (+10) investigation style
+- **Understanding** (global, persistent): Tier unlocking across all three systems
+
+### Action Pair
+
+- **OBSERVE**: Cautious investigation, build Progress slowly, shift toward overcautious, lower Exposure risk
+- **ACT**: Aggressive investigation, spend Attention, build Progress faster, higher Exposure risk
+
+### Stat Binding Examples
+
+Mental cards bind to stats based on investigative approach:
+
+**Insight-Bound** (pattern recognition, deduction):
+- "Detailed Examination" (depth 4): Systematic evidence observation (+3 Progress, +1 Understanding)
+- "Pattern Analysis" (depth 6): Connect disparate clues (+4 Progress, reveal hidden connections)
+- "Scientific Method" (depth 8): Rigorous hypothesis testing (+5 Progress, +2 Understanding)
+
+**Cunning-Bound** (subtle investigation, covering tracks):
+- "Cover Tracks" (depth 4): Investigate without leaving traces (+2 Progress, -1 Exposure)
+- "Subtle Investigation" (depth 6): Gather evidence discreetly (+3 Progress, -2 Exposure)
+- "Misdirection" (depth 8): Redirect attention while investigating (+4 Progress, manipulate Exposure)
+
+**Authority-Bound** (commanding scene, decisive analysis):
+- "Command Scene" (depth 5): Take investigative control (+3 Progress, +1 Exposure from obviousness)
+- "Authoritative Analysis" (depth 7): Make definitive conclusions (+5 Progress, +2 Exposure)
+- "Investigative Authority" (depth 9): Assert investigative dominance (+6 Progress, force breakthroughs)
+
+**Diplomacy-Bound** (balanced approach, patience):
+- "Patient Observation" (depth 4): Methodical investigation (+2 Progress, -1 Exposure)
+- "Balanced Approach" (depth 6): Steady measured investigation (+3 Progress, maintain Exposure)
+- "Thorough Method" (depth 8): Complete systematic coverage (+4 Progress, +1 Understanding)
+
+**Rapport-Bound** (empathetic observation, human element):
+- "Empathetic Reading" (depth 4): Sense emotional context (+2 Progress, +1 to next Social at location)
+- "Human Element Focus" (depth 6): Understand people involved (+3 Progress, unlock NPC leads)
+- "Emotional Reconstruction" (depth 8): Recreate emotional state (+5 Progress, deep NPC insights)
+
+### Permanent INPUT Resources (Costs to Attempt)
+
+**Focus** (max 100, Mental-specific):
+- Cost: 5-20 Focus per investigation session (depending on complexity)
+- Depletion effect: <30 Focus → Exposure accumulates faster (+1 per action)
+- Recovery: Rest blocks (+30 per block), light activity, food
+- Verisimilitude: Mental work depletes concentration
+
+### Permanent OUTPUT Resources (Rewards from Success)
+
+1. **Knowledge Discoveries**: Unlock investigation phases, conversation options, world state changes
+2. **Familiarity Tokens** (per location): +1 per successful investigation, reduce Exposure baseline (-1 per token, max -3 at location)
+3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise (Surface 0-20 → Detailed 20-50 → Deep 50-100 → Expert 100+)
+4. **Understanding**: Tier unlocking across all systems
+5. **Stat XP**: Level unified stats via bound cards
+6. **Coins**: Investigation completion rewards (5-20 coins typical)
+7. **Equipment**: Find items during investigations
+
+### Investigation Profiles (5 Tactical Modifiers)
+
+Each location has an investigation profile that fundamentally alters tactics:
+
+1. **Delicate** (fragile evidence, high Exposure risk): Exposure +2 per action, requires Cunning-focused approach
+2. **Obscured** (degraded/hidden evidence): Progress -1 per action, requires Insight breakthroughs
+3. **Layered** (complex mystery): Goal cards require 2+ stat types used, requires diverse approach
+4. **Time-Sensitive** (degrading evidence): +1 Exposure per time segment spent, requires efficient Authority
+5. **Resistant** (subtle patterns): Progress capped at ±2, requires patient Diplomacy grinding
+
+### Exhaustion Mechanics
+
+**Evidence Cards**: One-time clues that exhaust after ACT (represents using up physical evidence)
+**Insight Cards**: Fleeting observations that exhaust after OBSERVE (represents momentary clarity)
+
+### Victory Condition
+
+Accumulate Progress threshold (10-20 typical) across one or more visits to location. High Exposure doesn't end investigation but makes future visits harder.
+
+### Example Phase
+
+"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, 15 Progress threshold, at Mill Waterwheel spot, requires 10 Focus, costs 1 time segment per session
 
 ---
 
-**Social Challenges** - Rapport-based conversations with NPCs
+## Physical Challenges - Obstacles at Locations
 
-*Core Resources:*
-- **Momentum** (builder): Built toward victory threshold (typically 8-16), tracks conversation progress
-- **Initiative** (session resource): Conversation action economy, accumulated through Foundation cards, spent on higher-cost cards, persists through LISTEN
-- **Doubt** (threshold): NPC skepticism, accumulates through failed approaches and Cadence penalties, failure at maximum (10)
-- **Cadence** (balance): Tracks dominating (+10) vs deferential (-10) conversation style, creates Doubt penalties or card draw bonuses during LISTEN
-- **Statements** (history): Count of Statement cards played, creates conversation memory, determines time cost
-- **Understanding** (tier unlock): Persistent connection depth, unlocks higher card tiers
+**Interaction Model**: Player attempts immediate physical tests (climbing, combat, athletics, finesse, endurance)
 
-*Action Pair:*
-- **SPEAK**: Play card from hand, advance conversation state, increment Cadence (+1)
+### Session Model: One-Shot Test
+
+Physical challenges are immediate tests of current capability:
+
+- **Single attempt**: Must complete or fail in one session
+- **No challenge persistence**: Each attempt at challenge starts fresh
+- **Personal state carries**: Your Health/Stamina persist between challenges
+- **Danger threshold = consequences**: Reaching max Danger causes injury/failure immediately
+- **Must complete now**: Cannot pause halfway and return later
+- **Verisimilitude**: Can't pause halfway up a cliff or mid-combat
+
+### Core Session Resources
+
+- **Breakthrough** (builder): Toward victory in single session (10-20 typical)
+- **Position** (session): Advantageous positioning spent on EXECUTE cards (max 10)
+- **Danger** (threshold): Accumulates from risky actions, max typically 10-15 before injury
+- **Commitment** (balance): Cautious (-10) vs decisive (+10) physical approach
+- **Understanding** (global, persistent): Tier unlocking across all three systems
+
+### Action Pair
+
+- **ASSESS**: Cautious analysis, build Breakthrough slowly, shift toward overcautious, lower Danger
+- **EXECUTE**: Decisive action, spend Position, build Breakthrough faster, higher Danger risk
+
+### Stat Binding Examples
+
+Physical cards bind to stats based on physical approach:
+
+**Authority-Bound** (power, decisive action, command):
+- "Power Move" (depth 6): Decisive forceful action (+4 Breakthrough, +1 Danger)
+- "Commanding Presence" (depth 4): Assert control over environment (+3 Breakthrough, +1 Commitment)
+- "Dominant Force" (depth 8): Overwhelming physical assertion (+6 Breakthrough, +2 Danger)
+
+**Cunning-Bound** (risk management, tactical precision):
+- "Calculated Risk" (depth 5): Tactical risk assessment (+3 Breakthrough, -1 Danger)
+- "Tactical Precision" (depth 7): Precise calculated movement (+4 Breakthrough, +1 Position)
+- "Adaptive Technique" (depth 9): Respond to changing conditions (+5 Breakthrough, manipulate Danger)
+
+**Insight-Bound** (structural analysis, finding weaknesses):
+- "Structural Analysis" (depth 4): Identify load-bearing points (+2 Position, reveal optimal path)
+- "Find Weakness" (depth 6): Spot structural vulnerabilities (+3 Breakthrough, reduce Danger)
+- "Engineering Assessment" (depth 8): Complete structural understanding (+4 Breakthrough, +2 Position)
+
+**Rapport-Bound** (flow state, body awareness, grace):
+- "Flow State" (depth 6): Natural fluid movement (+3 Breakthrough, +1 Position)
+- "Body Awareness" (depth 4): Kinesthetic understanding (+2 Position, maintain balance)
+- "Athletic Grace" (depth 8): Perfect physical harmony (+4 Breakthrough, reduce Danger)
+
+**Diplomacy-Bound** (measured technique, controlled force):
+- "Measured Technique" (depth 4): Controlled application of force (+2 Breakthrough, +1 Position)
+- "Controlled Force" (depth 6): Balanced power application (+3 Breakthrough, maintain Danger)
+- "Paced Endurance" (depth 8): Sustainable effort (+4 Breakthrough, reduce exhaustion)
+
+### Permanent INPUT Resources (Costs to Attempt)
+
+**Health** (max 100, Physical-specific):
+- Risk: Danger threshold consequences damage Health (5-15 damage typical)
+- Depletion effect: <30 Health → Danger accumulates faster (+1 per action)
+- Recovery: Rest blocks, medical treatment, restorative food
+- Verisimilitude: Physical challenges risk injury
+
+**Stamina** (max 100, Physical-specific):
+- Cost: 10-30 Stamina per challenge attempt (depending on difficulty)
+- Depletion effect: <30 Stamina → Position generation reduced (-1 per action)
+- Recovery: Rest blocks, food, reduced activity
+- Verisimilitude: Physical exertion drains energy
+
+### Permanent OUTPUT Resources (Rewards from Success)
+
+1. **Mastery Tokens** (per challenge type): +1 per success at Challenge Type (Combat/Athletics/Finesse/Endurance/Strength), reduce Danger baseline (-1 per token, max -3 per type)
+2. **Challenge Proficiency Level** (per challenge type): Cumulative Breakthrough unlocks expertise (Novice 0-20 → Competent 20-50 → Skilled 50-100 → Master 100+)
+3. **Equipment Discoveries**: Find items during physical challenges
+4. **Reputation**: Affect Social interactions (physical feats build reputation)
+5. **Understanding**: Tier unlocking across all systems
+6. **Stat XP**: Level unified stats via bound cards
+7. **Coins**: Challenge completion rewards (5-15 coins typical)
+
+### Challenge Type Profiles (5 Types of Physical Engagement)
+
+Physical challenges are categorized by engagement type, not terrain:
+
+1. **Combat** (tactical fighting): Authority/Cunning/Insight-focused, high Danger from aggression, Position = tactical advantage
+2. **Athletics** (climbing/running/jumping): Insight/Rapport/Cunning-focused, Danger from falls, Position = stable footing
+3. **Finesse** (lockpicking/delicate work): Cunning/Insight/Diplomacy-focused, Danger from mistakes, Position = control/steadiness
+4. **Endurance** (long marches/holding out): Rapport/Diplomacy/Authority-focused, Danger from exhaustion, Position = sustainable pace
+5. **Strength** (lifting/breaking/forcing): Authority/Insight/Diplomacy-focused, Danger from strain, Position = mechanical advantage
+
+### Exhaustion Mechanics
+
+**Desperation Cards**: All-in risky moves that exhaust after EXECUTE (represents committing fully)
+**Setup Cards**: One-time advantages that exhaust after ASSESS (represents preparing position)
+
+### Victory Condition
+
+Reach Breakthrough threshold (10-20 typical) in single attempt. Reaching Danger maximum causes injury and failure.
+
+### Example Phase
+
+"Climb the damaged mill wheel" - Physical challenge, Athletics type, 15 Breakthrough threshold, 12 Danger maximum, at Mill exterior, costs 20 Stamina, risks 10 Health on failure
+
+---
+
+## Social Challenges - Conversations with NPCs
+
+**Interaction Model**: Player converses with dynamic entities (NPCs with personalities, agency, memory)
+
+### Session Model: Session-Bounded Dynamic Interaction
+
+Conversations are real-time interactions with entities that have agency:
+
+- **Session-bounded**: Must complete in single interaction (conversation happens in real-time)
+- **Doubt=10 ends**: NPC frustration forces conversation end (dynamic entity response)
+- **No pause/resume**: Cannot pause mid-conversation and return (unrealistic with dynamic entity)
+- **Can Leave early**: Voluntarily end conversation (consequences to relationship)
+- **Session clears**: Resources reset on conversation end
+- **Relationship persists**: Connection tokens/level remember you between conversations
+- **Verisimilitude**: Conversations happen continuously with entities who have patience limits
+
+### Core Session Resources
+
+- **Momentum** (builder): Progress toward goal (8-16 typical in single session)
+- **Initiative** (session): Action economy currency, accumulated via Foundation cards, persists through LISTEN (max 10)
+- **Doubt** (threshold): NPC skepticism/frustration, maximum 10 ends conversation
+- **Cadence** (balance): Dominating (+10) vs deferential (-10) conversation style
+- **Statements** (history): Count of Statement cards played, determines time cost (1 segment + Statements)
+- **Understanding** (global, persistent): Tier unlocking across all three systems
+
+### Action Pair
+
+- **SPEAK**: Play card, advance conversation, increment Cadence (+1)
 - **LISTEN**: Reset action, draw cards (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
 
-*Victory Condition:* Reach Momentum threshold before Doubt exceeds maximum
-*Additional Complexity:* Personality Rules (Proud, Devoted, Mercantile, Cunning, Steadfast) modify base mechanics per NPC
-*Example Phase:* "Question the mill owner about sabotage" (Social challenge, 12 Momentum threshold, targets Mill_Owner NPC)
+### Stat Binding Examples
+
+Social cards bind to stats based on conversational approach (existing system):
+
+**Insight**: Read motivations, understand subtext, see hidden agendas
+**Rapport**: Emotional connection, empathy, resonating with feelings
+**Authority**: Assert position, direct conversation, establish dominance
+**Diplomacy**: Find middle ground, compromise, balanced conversation
+**Cunning**: Strategic conversation, subtle manipulation, reading and responding
+
+### Permanent INPUT Resources (Costs to Attempt)
+
+**None**: Conversation is "free" in terms of permanent resources, but costs time (1 segment + Statements count)
+- Verisimilitude: Talking doesn't deplete resources (but takes time)
+
+### Permanent OUTPUT Resources (Rewards from Success)
+
+1. **Connection Tokens** (per NPC): Rapport, Trust, Commitment (affect mechanics with that specific NPC)
+2. **Connection Level** (per NPC): Stranger → Acquaintance → Friend → Close Friend (unlocks options, reduces Doubt accumulation)
+3. **NPC Observation Cards**: Knowledge discoveries add cards to THAT NPC's conversation deck
+4. **Understanding**: Tier unlocking across all systems
+5. **Stat XP**: Level unified stats via bound cards
+6. **Coins**: From completing NPC requests/rewards (10-50 coins typical)
+7. **Equipment**: From NPC gifts/trades
+8. **Knowledge**: From NPC information sharing
+9. **Route Knowledge**: NPCs reveal hidden paths
+
+### Personality Rules (5 Tactical Modifiers)
+
+Each NPC has personality that fundamentally alters conversation tactics:
+
+1. **Proud**: Must play cards in ascending Initiative order (rewards planning)
+2. **Devoted**: Doubt accumulates +2 per action (requires efficiency)
+3. **Mercantile**: Highest Initiative card gets bonus effect (rewards hoarding Initiative)
+4. **Cunning**: Repeated Initiative costs penalty (requires variety)
+5. **Steadfast**: All effects capped at ±2 (requires patient grinding)
+
+### Social-Specific Mechanics (No Mental/Physical Equivalent)
+
+**Request Cards**: NPCs offer obligations (locations/challenges don't - they lack agency)
+**Promise Cards**: Commitments to NPCs (social contracts)
+**Burden Cards**: Relationship damage consequences
+
+These exist ONLY in Social because NPCs have agency to offer tasks, make demands, and damage relationships. Locations and challenges lack agency - they don't "offer" anything or "remember" slights.
+
+### Exhaustion Mechanics
+
+**Opening Cards**: Exhaust on LISTEN (relationship building moments)
+**Impulse Cards**: Exhaust on SPEAK (emotional outbursts)
+
+### Victory Condition
+
+Reach Momentum threshold (8-16 typical) before Doubt reaches 10 (which ends conversation).
+
+### Example Phase
+
+"Question the mill owner about sabotage" - Social challenge, Proud personality, 12 Momentum threshold, targets Mill_Owner NPC at Mill location, costs 0 resources, takes 1+ time segments
 
 ---
 
-**Common Architectural Pattern:**
+## Common Architectural Pattern
 
-All three systems follow the same structure:
+All three systems follow the same core structure (creating equivalent tactical depth):
+
+**Universal Elements** (identical across all three):
+- **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
 - **Builder Resource** → Victory (Progress, Breakthrough, Momentum)
-- **Threshold Resource** → Failure (Exposure, Danger, Doubt)
+- **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt)
 - **Session Resource** → Tactical spending (Attention, Position, Initiative)
 - **Balance Tracker** → Playstyle modifier (ObserveActBalance, Commitment, Cadence)
 - **Binary Action Choice** → Tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
-- **Understanding** → Persistent tier unlocking (shared across all three)
+- **Understanding** → Persistent tier unlocking (shared globally)
+- **5 Tactical Modifiers** → Fundamental gameplay variety (Profiles, Challenge Types, Personalities)
+- **Expertise Tokens** → Mechanical benefits from repeated success (Familiarity, Mastery, Connection)
+- **Progression Levels** → Cumulative expertise tracking (Depth, Proficiency, Connection)
+- **Exhaustion Mechanics** → One-time use cards for tactical timing
+- **Goal Cards** → Victory condition cards unlock at thresholds
 
-The systems are **parallel implementations** with distinct resource names, thresholds, and gameplay rhythms. Social has the most complexity (5 resources + Personality Rules), Physical and Mental are more streamlined (4 resources each).
+**Intentional Differences** (justified by verisimilitude):
+- **Session Models**: Mental (pauseable), Physical (one-shot), Social (session-bounded)
+- **Resource Persistence**: Mental resources persist at location, Physical/Social clear on end
+- **Permanent Costs**: Mental (Focus), Physical (Health+Stamina), Social (none, but time)
+- **Special Systems**: Social (Request/Promise/Burden from NPC agency), Mental/Physical (none - locations/challenges lack agency)
+
+**Result**: Three systems with equivalent tactical depth (all ~1,000-1,100 lines of implementation) achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
+
+## Expertise and Progression Systems
+
+All three challenge types feature parallel systems for tracking and rewarding repeated engagement:
+
+### Token Systems (Immediate Mechanical Benefits)
+
+Tokens provide direct mechanical advantages from repeated success:
+
+**Mental: Familiarity Tokens** (per location)
+- **Earned**: +1 token per successful investigation at specific location
+- **Effect**: Reduce Exposure baseline at that location (-1 Exposure per token, maximum -3)
+- **Stacks**: Accumulate up to 3 tokens per location
+- **Verisimilitude**: You learn how to investigate this place safely and discreetly
+- **Example**: 3 Familiarity tokens at Mill → all future investigations at Mill start with -3 Exposure baseline
+
+**Physical: Mastery Tokens** (per challenge type)
+- **Earned**: +1 token per successful challenge of specific type (Combat, Athletics, Finesse, Endurance, Strength)
+- **Effect**: Reduce Danger baseline for that challenge type (-1 Danger per token, maximum -3)
+- **Stacks**: Accumulate up to 3 tokens per challenge type (15 tokens total across 5 types)
+- **Verisimilitude**: Experience with challenge type reduces inherent risk
+- **Example**: 3 Mastery tokens in Athletics → all future Athletics challenges start with -3 Danger baseline
+
+**Social: Connection Tokens** (per NPC)
+- **Earned**: Through successful conversations and specific card effects with that NPC
+- **Types**: Rapport (emotional bond), Trust (reliability), Commitment (mutual obligation)
+- **Effect**: Affect conversation mechanics with that specific NPC (reduce Doubt accumulation, enable special cards, affect thresholds)
+- **Stacks**: Multiple tokens of each type per NPC
+- **Verisimilitude**: NPCs remember your relationship history and respond accordingly
+- **Example**: 2 Rapport tokens with Mill Owner → reduced Doubt accumulation in conversations
+
+### Progression Level Systems (Long-Term Expertise)
+
+Progression levels track cumulative mastery and unlock escalating benefits:
+
+**Mental: Investigation Depth** (per location)
+
+Cumulative Progress at location determines expertise level:
+
+- **Surface** (0-20 cumulative Progress): Basic observations, standard card access
+- **Detailed** (20-50 cumulative): Patterns emerge, unlock depth-specific observation cards
+- **Deep** (50-100 cumulative): Hidden connections visible, advanced cards available
+- **Expert** (100+ cumulative): Complete reconstruction capability, master cards unlocked
+
+**Benefits by Level**:
+- Higher levels unlock better Mental cards specific to that location type
+- Expert-level investigators see connections novices miss
+- Represents accumulated investigative experience at this specific place
+
+**Verisimilitude**: Real investigators develop deep expertise with specific locations through repeated visits
+
+**Physical: Challenge Proficiency** (per challenge type)
+
+Cumulative Breakthrough per challenge type determines mastery:
+
+- **Novice** (0-20 cumulative Breakthrough): Basic techniques, standard card access
+- **Competent** (20-50 cumulative): Efficient movement, unlock advanced techniques
+- **Skilled** (50-100 cumulative): Advanced techniques available, tactical variety
+- **Master** (100+ cumulative): Risk mitigation expertise, master techniques unlocked
+
+**Benefits by Level**:
+- Higher levels unlock better Physical cards for that challenge type
+- Masters execute techniques that overwhelm novices
+- Represents accumulated physical expertise with this engagement type
+
+**Verisimilitude**: Athletes and fighters develop specialized mastery through repeated practice
+
+**Social: Connection Levels** (per NPC)
+
+Relationship depth through accumulated interactions:
+
+- **Stranger** (0 interactions): Base conversation difficulty, limited options
+- **Acquaintance** (1-3 successful conversations): Reduced Doubt accumulation, basic trust
+- **Friend** (4-7 successful conversations): Significant Doubt reduction, personal conversations unlocked
+- **Close Friend** (8+ successful conversations): Minimal Doubt, deep personal topics available
+
+**Benefits by Level**:
+- Higher levels reduce Doubt accumulation in conversations
+- Deeper relationships unlock personal conversation branches
+- Close friends forgive mistakes more readily (Doubt penalty reduction)
+
+**Verisimilitude**: Real relationships deepen through accumulated positive interactions over time
+
+### Why Parallel Progression Matters
+
+**Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (Familiarity/Mastery/Connection and Depth/Proficiency/Levels).
+
+**Specialization vs Generalization**: Players can:
+- Specialize in one challenge type (master Mental investigations)
+- Generalize across all three (competent at everything)
+- Mix strategies (expert Mental + competent Physical/Social)
+
+**No Wasted Effort**: Every challenge attempted builds toward:
+- Immediate token benefits (easier future attempts)
+- Long-term progression (unlock better cards)
+- Unified stat growth (benefit all systems)
+
+**Verisimilitude**: Real people develop both general capabilities (stats) and specialized expertise (tokens/levels) through practice.
 
 ### Knowledge System (Connective Tissue)
 
@@ -542,28 +978,175 @@ Build capability:
 
 ### Resource Management
 
-**Health:**
-- Maximum 100
-- Lost to: Physical hazards, environmental exposure, injuries from failures
-- Recovered through: Rest (blocks spent sleeping/recuperating), medical treatment, food with restorative properties
-- Critical threshold: Below 30 increases danger of further harm
+Wayfarer features permanent resources that persist across all gameplay. Three challenge-specific resources (Focus, Health, Stamina) create different strategic pressures:
 
-**Stamina:**
-- Maximum 100
-- Lost to: Physical exertion (travel, investigation, labor)
-- Recovered through: Rest blocks, food, reduced activity
-- Depletion effects: Cannot attempt stamina-requiring activities when insufficient
+**Focus** (Mental-specific permanent resource):
+- Maximum: 100
+- **Cost**: Mental investigations cost 5-20 Focus to initiate (depending on complexity)
+- **Lost to**: Mental work, investigation sessions, intense concentration
+- **Depletion effect**: Below 30 Focus → Exposure accumulates faster (+1 per action in Mental challenges)
+- **Cannot attempt**: Mental investigations when Focus insufficient for session cost
+- **Recovered through**: Rest blocks (+30 Focus per block), light activity, food, avoiding mental strain
+- **Integration**: Must balance Mental investigations against other activities requiring mental clarity
+- **Verisimilitude**: Concentration depletes with mental work, recovers with rest
 
-**Hunger:**
-- Increases 20 per block
-- Maximum 100
-- Effects: At 75+ movement slowed, work efficiency reduced, stamina recovery impaired
-- Management: Food costs coins, weighs capacity, must be carried or purchased at locations
+**Health** (Physical-specific permanent resource):
+- Maximum: 100
+- **Risk**: Physical challenges risk Health (Danger threshold consequences deal 5-15 damage typical)
+- **Lost to**: Physical hazards, environmental exposure, injuries from challenge failures, combat damage
+- **Depletion effect**: Below 30 Health → Danger accumulates faster (+1 per action in Physical challenges)
+- **Cannot attempt**: Dangerous Physical challenges when Health too low (minimum thresholds vary)
+- **Recovered through**: Rest blocks (slow natural healing), medical treatment (faster recovery), food with restorative properties
+- **Critical threshold**: Below 30 Health increases risk of further injury
+- **Integration**: Must balance Physical challenge attempts against injury risk
+- **Verisimilitude**: Physical challenges risk bodily harm, injuries require recovery time
 
-**Coins:**
-- Earned through: Completed deliveries, work, trade, discoveries
-- Spent on: Food, equipment, route fees (bribes, transport), supplies, information
-- Balance: Must work for income vs. spend time on investigation/relationships
+**Stamina** (Physical-specific permanent resource):
+- Maximum: 100
+- **Cost**: Physical challenges cost 10-30 Stamina to attempt (depending on difficulty)
+- **Lost to**: Physical exertion (challenges, travel, labor)
+- **Depletion effect**: Below 30 Stamina → Position generation reduced (-1 per action in Physical challenges)
+- **Cannot attempt**: Stamina-requiring activities when insufficient
+- **Recovered through**: Rest blocks (full recovery), food (moderate recovery), reduced activity
+- **Integration**: Must balance Physical challenges, travel, and work against stamina depletion
+- **Verisimilitude**: Physical exertion drains energy, rest and food restore it
+
+**Why Different Challenge-Specific Costs**:
+- **Mental** costs Focus (concentration) - respects that mental work is exhausting
+- **Physical** costs Health (injury risk) + Stamina (exertion) - respects that physical challenges are dangerous AND tiring
+- **Social** costs nothing permanent (but takes time) - respects that conversation is "free" but time-consuming
+- **Verisimilitude**: Different activities have different costs in reality
+
+**Hunger** (Universal pressure):
+- Increases: 20 per time block (affects all activities equally)
+- Maximum: 100
+- **Effects**: At 75+ hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
+- **Management**: Food costs coins, has weight, must be carried or purchased at locations
+- **Integration**: Creates pressure to work for income vs. pursue investigations/relationships
+- **Verisimilitude**: Everyone needs to eat, regardless of activity type
+
+**Coins** (Universal currency):
+- **Earned through**: Completed deliveries/requests, work, trade, Mental/Physical/Social challenge rewards
+- **Spent on**: Food, equipment, route fees (bribes, transport), supplies, information
+- **Balance**: Must work for income vs. spend time on investigations/relationships
+- **Integration**: All three challenge types can reward coins, all gameplay requires coins eventually
+- **Verisimilitude**: Money enables preparation and survival
+
+**Understanding** (Universal progression):
+- **Earned**: Through Mental/Physical/Social challenge cards (specific cards grant Understanding)
+- **Effect**: Unlocks higher card tiers across ALL three systems
+- **Integration**: Any challenge type can build Understanding, Understanding benefits all systems
+- **Verisimilitude**: Experience in any domain broadens overall capability
+
+## Verisimilitude: Why Different Is Right
+
+The three challenge systems achieve equivalent tactical depth (~1,000-1,100 lines of implementation each) while respecting fundamentally different interaction models. Asymmetries are features, not bugs.
+
+### Entity vs Place vs Challenge Interaction Models
+
+**Social Interacts with ENTITIES (NPCs)**:
+- NPCs have **agency**: They offer tasks, make demands, judge your actions
+- NPCs have **personalities**: Proud, Devoted, Mercantile, Cunning, Steadfast fundamentally alter tactics
+- NPCs have **memory**: Connection tokens, levels, observation cards remember relationship history
+- Conversations are **real-time**: Dynamic entities have patience limits (Doubt=10 ends interaction)
+- **Session-bounded model**: Must complete conversation in one sitting (can't pause mid-conversation)
+- **Special mechanics justified**: Request/Promise/Burden exist because NPCs can offer obligations, make commitments, and inflict relational damage
+
+**Verisimilitude Requirement**: Conversations happen continuously with entities who respond dynamically. You can't pause mid-conversation and return hours later - the NPC would leave.
+
+---
+
+**Mental Interacts with PLACES (Locations)**:
+- Locations are **static**: No agency, no personality, no dynamic responses
+- Locations have **investigative properties**: Delicate, Obscured, Layered, Time-Sensitive, Resistant profiles
+- Locations **accumulate state**: Progress and Exposure persist at location between visits
+- Investigations are **pauseable puzzles**: You can leave and return with state preserved
+- **Pauseable model**: Leave anytime, state persists exactly where you left off
+- **No obligation mechanics**: Places can't offer tasks (they lack agency), can't demand things, can't damage relationships
+
+**Verisimilitude Requirement**: Real investigations take days/weeks with breaks between sessions. Evidence doesn't disappear when you leave. You return with fresh mental energy but the scene is as you left it.
+
+---
+
+**Physical Interacts with CHALLENGES (Obstacles/Terrain)**:
+- Challenges are **immediate tests**: No agency, no personality, no memory
+- Challenges have **types**: Combat, Athletics, Finesse, Endurance, Strength determine tactical approach
+- Challenge state **doesn't persist**: Each attempt starts fresh (but YOUR Health/Stamina carry forward)
+- Challenges are **one-shot attempts**: Must complete or fail in single session
+- **One-shot model**: Can't pause halfway and return later
+- **No obligation mechanics**: Obstacles can't offer tasks, don't make demands, don't remember attempts
+
+**Verisimilitude Requirement**: You can't pause halfway up a cliff face and return tomorrow to continue. Physical challenges are immediate tests requiring completion or failure in the moment.
+
+### Why Session Models Differ
+
+**Mental Pauseable** (respects investigation reality):
+- Investigations take multiple sessions with breaks
+- Evidence doesn't vanish when investigator leaves
+- Returning with fresh perspective is normal investigative practice
+- Exposure accumulates (scene gets more disturbed with each visit)
+
+**Physical One-Shot** (respects physical reality):
+- Can't pause mid-climb and return tomorrow
+- Can't pause mid-combat for a rest break
+- Physical challenges test current capability in the moment
+- Your body state (Health/Stamina) persists, but challenge state doesn't
+
+**Social Session-Bounded** (respects conversation reality):
+- Conversations happen in real-time with dynamic entities
+- NPCs have patience limits (Doubt accumulates, 10 ends conversation)
+- Can't pause mid-conversation and return hours later
+- Relationship state persists between conversations, not mid-conversation
+
+### Why Permanent Costs Differ
+
+**Mental Costs Focus** (concentration depletes):
+- Mental work is genuinely exhausting
+- Concentration is finite and must recover
+- Respects that thinking hard drains mental energy
+
+**Physical Costs Health + Stamina** (injury risk + exertion):
+- Physical challenges genuinely risk bodily harm
+- Physical activity genuinely drains energy
+- Respects that action is both dangerous and tiring
+
+**Social Costs Nothing Permanent** (but takes time):
+- Talking doesn't deplete resources
+- Conversation is "free" but time-consuming
+- Respects that social interaction is low-cost but requires time investment
+
+### Why Special Mechanics Differ
+
+**Social Has Request/Promise/Burden** (NPC agency):
+- NPCs can offer tasks (Request cards)
+- NPCs can make commitments (Promise cards)
+- NPCs can damage relationships (Burden cards)
+- **Justified**: Entities with agency can do these things
+
+**Mental/Physical Have No Equivalent** (no agency):
+- Locations can't offer tasks (places lack agency)
+- Obstacles can't make promises (challenges lack social contract capability)
+- Terrain can't damage relationships (non-entities can't have relationships)
+- **Justified**: Static elements don't have agency to offer obligations or inflict social consequences
+
+### What IS Parallel (Creating Equivalent Depth)
+
+Despite intentional differences, all three systems share:
+
+1. **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
+2. **Builder → Victory**: Progress/Breakthrough/Momentum resources
+3. **Threshold → Failure**: Exposure/Danger/Doubt resources
+4. **Session → Spending**: Attention/Position/Initiative resources
+5. **Balance → Playstyle**: ObserveActBalance/Commitment/Cadence trackers
+6. **Binary Actions**: OBSERVE-ACT / ASSESS-EXECUTE / SPEAK-LISTEN pairs
+7. **5 Tactical Modifiers**: Profiles/Challenge Types/Personalities fundamentally alter tactics
+8. **Expertise Tokens**: Familiarity/Mastery/Connection provide mechanical benefits
+9. **Progression Levels**: Depth/Proficiency/Connection track cumulative mastery
+10. **Exhaustion Mechanics**: One-time use cards for tactical timing
+11. **Goal Cards**: Victory condition cards unlock at thresholds
+12. **Understanding**: Shared tier-unlocking resource
+
+**Result**: Three systems with equivalent tactical depth (~1,000-1,100 lines each) achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
 
 ### Weight Capacity
 
