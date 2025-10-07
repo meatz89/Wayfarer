@@ -62,16 +62,12 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ImmediateVisibility: Player is at required location/spot
-    /// Prerequisites: locationId, optional spotId
+    /// ImmediateVisibility: Player is at required spot
+    /// Prerequisites: spotId (globally unique)
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocationSpot?.LocationId != prereqs.LocationId)
-            return false;
-
-        // If spot specified, check if player is at that spot
+        // Check if player is at required spot (SpotId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
             return false;
 
@@ -79,22 +75,14 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// EnvironmentalObservation: Player has explored location to sufficient familiarity
-    /// Prerequisites: locationId, minLocationFamiliarity
+    /// EnvironmentalObservation: Player is at required spot
+    /// Prerequisites: spotId (globally unique)
     /// </summary>
     private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocationSpot?.LocationId != prereqs.LocationId)
+        // Check if player is at required spot (SpotId is globally unique)
+        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
             return false;
-
-        // Check location familiarity
-        if (prereqs.MinLocationFamiliarity > 0)
-        {
-            int familiarity = player.GetLocationFamiliarity(prereqs.LocationId);
-            if (familiarity < prereqs.MinLocationFamiliarity)
-                return false;
-        }
 
         return true;
     }

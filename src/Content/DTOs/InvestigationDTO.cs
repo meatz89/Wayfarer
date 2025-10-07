@@ -38,8 +38,7 @@ public class InvestigationPhaseDTO
     public string SystemType { get; set; } // "Social", "Mental", or "Physical"
     public string ChallengeTypeId { get; set; } // Engagement type ID for Mental/Physical, or conversation type for Social
 
-    // Location assignment (for Mental/Physical goals)
-    public string LocationId { get; set; }
+    // Spot assignment (SpotId is globally unique)
     public string SpotId { get; set; }
 
     // NPC assignment (for Social goals)
@@ -94,8 +93,7 @@ public class InvestigationIntroActionDTO
     public string ActionText { get; set; }
     public string SystemType { get; set; } // "Mental", "Physical", "Social"
     public string ChallengeTypeId { get; set; }
-    public string LocationId { get; set; }
-    public string SpotId { get; set; }
+    public string SpotId { get; set; } // SpotId is globally unique
     public string NpcId { get; set; }
     public string RequestId { get; set; }
     public string IntroNarrative { get; set; }
@@ -107,9 +105,7 @@ public class InvestigationIntroActionDTO
 /// </summary>
 public class InvestigationPrerequisitesDTO
 {
-    public string LocationId { get; set; }
-    public string SpotId { get; set; }
-    public int MinLocationFamiliarity { get; set; }
+    public string SpotId { get; set; } // SpotId is globally unique
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
     public List<string> RequiredItems { get; set; } = new List<string>();
     public string RequiredObligation { get; set; }

@@ -176,15 +176,19 @@ public class InvestigationActivity
                 // Create new goal for newly unlocked phase
                 LocationGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
 
-                // Add to GameWorld locations
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == phaseDef.LocationId);
+                // Derive location from spot (SpotId is globally unique)
+                LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == phaseDef.SpotId);
+                Location location = spotEntry != null
+                    ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+                    : null;
+
                 if (location != null)
                 {
                     newLeads.Add(new NewLeadInfo
                     {
                         GoalName = phaseDef.Name,
                         LocationName = location.Name,
-                        SpotName = phaseDef.SpotId
+                        SpotName = spotEntry.Spot.Name
                     });
                 }
             }
@@ -378,9 +382,12 @@ public class InvestigationActivity
         // Create intro action as LocationGoal
         LocationGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
 
-        // Find location and spot names for display
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
-        LocationSpot spot = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId)?.Spot;
+        // Derive location from spot (SpotId is globally unique)
+        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId);
+        LocationSpot spot = spotEntry?.Spot;
+        Location location = spotEntry != null
+            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+            : null;
 
         // Create discovery result for UI modal
         InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
@@ -390,7 +397,7 @@ public class InvestigationActivity
             IntroNarrative = investigation.IntroAction.IntroNarrative,
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
-            LocationName = location?.Name ?? investigation.IntroAction.LocationId,
+            LocationName = location?.Name ?? "Unknown Location",
             SpotName = spot?.Name ?? investigation.IntroAction.SpotId
         };
         _pendingDiscoveryResult = discoveryResult;

@@ -108,6 +108,7 @@ public class PackageLoader
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
         InitializeTravelDiscoverySystem();
+        InitializeInvestigationJournal();
 
         Console.WriteLine($"[PackageLoader] Static loading complete: {sortedPackages.Count} packages loaded");
     }
@@ -322,20 +323,6 @@ public class PackageLoader
                 StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto);
                 _gameWorld.GetPlayer().StandingObligations.Add(obligation);
             }
-        }
-
-        // Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
-        Console.WriteLine("[PackageLoader] Initializing investigation journal...");
-        Player player = _gameWorld.GetPlayer();
-        if (player != null && player.InvestigationJournal != null)
-        {
-            player.InvestigationJournal.PotentialInvestigationIds.Clear();
-            foreach (Investigation investigation in _gameWorld.Investigations)
-            {
-                player.InvestigationJournal.PotentialInvestigationIds.Add(investigation.Id);
-                Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
-            }
-            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PotentialInvestigationIds.Count} potential investigations");
         }
 
         // Apply starting token relationships
@@ -1661,6 +1648,26 @@ public class PackageLoader
         }
 
         Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EventDeckPositions.Count} event decks");
+    }
+
+    /// <summary>
+    /// Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
+    /// Called AFTER all packages are loaded to ensure all investigations exist
+    /// </summary>
+    private void InitializeInvestigationJournal()
+    {
+        Console.WriteLine("[PackageLoader] Initializing investigation journal...");
+        Player player = _gameWorld.GetPlayer();
+        if (player != null && player.InvestigationJournal != null)
+        {
+            player.InvestigationJournal.PotentialInvestigationIds.Clear();
+            foreach (Investigation investigation in _gameWorld.Investigations)
+            {
+                player.InvestigationJournal.PotentialInvestigationIds.Add(investigation.Id);
+                Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
+            }
+            Console.WriteLine($"[PackageLoader] Investigation journal initialized with {player.InvestigationJournal.PotentialInvestigationIds.Count} potential investigations");
+        }
     }
 
     /// <summary>

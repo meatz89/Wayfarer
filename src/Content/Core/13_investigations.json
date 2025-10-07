@@ -8,13 +8,11 @@
       "intro": {
         "triggerType": "ImmediateVisibility",
         "triggerPrerequisites": {
-          "locationId": "old_mill",
           "spotId": "courtyard"
         },
         "actionText": "Investigate the silent waterwheel",
         "systemType": "Mental",
         "challengeTypeId": "mental_challenge",
-        "locationId": "old_mill",
         "spotId": "courtyard",
         "introNarrative": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling. Something is clearly wrong—and someone needs to investigate."
       },
@@ -30,7 +28,6 @@
           "progressThreshold": 10,
           "systemType": "Mental",
           "challengeTypeId": "mental_challenge",
-          "locationId": "old_mill",
           "spotId": "courtyard",
           "completionReward": {
             "knowledgeGranted": ["waterwheel_sabotage_evidence"]
@@ -46,7 +43,6 @@
           "npcId": "elena",
           "requestId": "elena_investigate_offer",
           "challengeTypeId": "social_challenge",
-          "locationId": "old_mill",
           "spotId": "main_hall",
           "requirements": {
             "completedGoals": ["phase_1_examine"],
@@ -64,7 +60,6 @@
           "progressThreshold": 10,
           "systemType": "Physical",
           "challengeTypeId": "physical_challenge",
-          "locationId": "old_mill",
           "spotId": "courtyard",
           "requirements": {
             "completedGoals": ["phase_2_question"],
