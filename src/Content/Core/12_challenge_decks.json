@@ -1,41 +1,51 @@
 {
-  "challengeDecks": [
-    {
-      "id": "mental_challenge",
-      "name": "Mental Challenge Deck",
-      "systemType": "Mental",
-      "cardIds": [
-        "mental_examine_scene",
-        "mental_search_thoroughly",
-        "mental_interview_witness",
-        "mental_deduce_pattern",
-        "mental_trust_instinct"
-      ]
-    },
-    {
-      "id": "physical_challenge",
-      "name": "Physical Challenge Deck",
-      "systemType": "Physical",
-      "cardIds": [
-        "physical_climb_carefully",
-        "physical_sprint_forward",
-        "physical_leverage_tool",
-        "physical_brute_force",
-        "physical_precise_movement"
-      ]
-    },
-    {
-      "id": "social_challenge",
-      "name": "Social Challenge Deck",
-      "systemType": "Social",
-      "cardIds": [
-        "insight_quick_scan",
-        "insight_ask_question",
-        "rapport_casual_greeting",
-        "rapport_light_question",
-        "cunning_read_mood",
-        "cunning_gauge_interest"
-      ]
-    }
-  ]
+  "packageId": "challenge_decks",
+  "metadata": {
+    "name": "Challenge Deck Definitions",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Card deck assignments for Mental, Physical, and Social challenge systems",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "challengeDecks": [
+      {
+        "id": "mental_challenge",
+        "name": "Mental Challenge Deck",
+        "systemType": "Mental",
+        "cardIds": [
+          "mental_examine_scene",
+          "mental_search_thoroughly",
+          "mental_interview_witness",
+          "mental_deduce_pattern",
+          "mental_trust_instinct"
+        ]
+      },
+      {
+        "id": "physical_challenge",
+        "name": "Physical Challenge Deck",
+        "systemType": "Physical",
+        "cardIds": [
+          "physical_climb_carefully",
+          "physical_sprint_forward",
+          "physical_leverage_tool",
+          "physical_brute_force",
+          "physical_precise_movement"
+        ]
+      },
+      {
+        "id": "social_challenge",
+        "name": "Social Challenge Deck",
+        "systemType": "Social",
+        "cardIds": [
+          "insight_quick_scan",
+          "insight_ask_question",
+          "rapport_casual_greeting",
+          "rapport_light_question",
+          "cunning_read_mood",
+          "cunning_gauge_interest"
+        ]
+      }
+    ]
+  }
 }

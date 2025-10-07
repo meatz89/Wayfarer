@@ -1,118 +1,128 @@
 {
-  "mentalCards": [
-    {
-      "id": "mental_examine_scene",
-      "name": "Examine the Scene",
-      "description": "Carefully observe your surroundings for clues.",
-      "depth": 1,
-      "boundStat": "Insight",
-      "method": "Standard",
-      "clueType": "Physical",
-      "costs": {
-        "stamina": 0,
-        "health": 0,
-        "time": 1,
-        "coins": 0
-      },
-      "requirements": {
-        "stats": {}
-      },
-      "effects": {
-        "progress": 3,
-        "exposure": 1
-      }
-    },
-    {
-      "id": "mental_search_thoroughly",
-      "name": "Search Thoroughly",
-      "description": "Systematically search for hidden details.",
-      "depth": 1,
-      "boundStat": "Insight",
-      "method": "Standard",
-      "clueType": "Physical",
-      "costs": {
-        "stamina": 1,
-        "health": 0,
-        "time": 1,
-        "coins": 0
-      },
-      "requirements": {
-        "stats": {}
-      },
-      "effects": {
-        "progress": 5,
-        "exposure": 2
-      }
-    },
-    {
-      "id": "mental_interview_witness",
-      "name": "Interview Witness",
-      "description": "Question someone who might have information.",
-      "depth": 1,
-      "boundStat": "Rapport",
-      "method": "Standard",
-      "clueType": "Testimonial",
-      "costs": {
-        "stamina": 0,
-        "health": 0,
-        "time": 1,
-        "coins": 0
-      },
-      "requirements": {
-        "stats": {}
-      },
-      "effects": {
-        "progress": 4,
-        "exposure": 3
-      }
-    },
-    {
-      "id": "mental_deduce_pattern",
-      "name": "Deduce Pattern",
-      "description": "Connect the dots between disparate clues.",
-      "depth": 2,
-      "boundStat": "Insight",
-      "method": "Standard",
-      "clueType": "Deductive",
-      "costs": {
-        "stamina": 0,
-        "health": 0,
-        "time": 1,
-        "coins": 0
-      },
-      "requirements": {
-        "stats": {
-          "Insight": 2
+  "packageId": "mental_cards",
+  "metadata": {
+    "name": "Mental Investigation Cards",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Card deck for Mental tactical system",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "mentalCards": [
+      {
+        "id": "mental_examine_scene",
+        "name": "Examine the Scene",
+        "description": "Carefully observe your surroundings for clues.",
+        "depth": 1,
+        "boundStat": "Insight",
+        "method": "Standard",
+        "clueType": "Physical",
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "time": 1,
+          "coins": 0
+        },
+        "requirements": {
+          "stats": {}
+        },
+        "effects": {
+          "progress": 3,
+          "exposure": 1
         }
       },
-      "effects": {
-        "progress": 6,
-        "exposure": 1
-      }
-    },
-    {
-      "id": "mental_trust_instinct",
-      "name": "Trust Your Instinct",
-      "description": "Follow your gut feeling about what happened.",
-      "depth": 2,
-      "boundStat": "Cunning",
-      "method": "Standard",
-      "clueType": "Intuitive",
-      "costs": {
-        "stamina": 0,
-        "health": 0,
-        "time": 1,
-        "coins": 0
-      },
-      "requirements": {
-        "stats": {
-          "Cunning": 2
+      {
+        "id": "mental_search_thoroughly",
+        "name": "Search Thoroughly",
+        "description": "Systematically search for hidden details.",
+        "depth": 1,
+        "boundStat": "Insight",
+        "method": "Standard",
+        "clueType": "Physical",
+        "costs": {
+          "stamina": 1,
+          "health": 0,
+          "time": 1,
+          "coins": 0
+        },
+        "requirements": {
+          "stats": {}
+        },
+        "effects": {
+          "progress": 5,
+          "exposure": 2
         }
       },
-      "effects": {
-        "progress": 7,
-        "exposure": 4
+      {
+        "id": "mental_interview_witness",
+        "name": "Interview Witness",
+        "description": "Question someone who might have information.",
+        "depth": 1,
+        "boundStat": "Rapport",
+        "method": "Standard",
+        "clueType": "Testimonial",
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "time": 1,
+          "coins": 0
+        },
+        "requirements": {
+          "stats": {}
+        },
+        "effects": {
+          "progress": 4,
+          "exposure": 3
+        }
+      },
+      {
+        "id": "mental_deduce_pattern",
+        "name": "Deduce Pattern",
+        "description": "Connect the dots between disparate clues.",
+        "depth": 2,
+        "boundStat": "Insight",
+        "method": "Standard",
+        "clueType": "Deductive",
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "time": 1,
+          "coins": 0
+        },
+        "requirements": {
+          "stats": {
+            "Insight": 2
+          }
+        },
+        "effects": {
+          "progress": 6,
+          "exposure": 1
+        }
+      },
+      {
+        "id": "mental_trust_instinct",
+        "name": "Trust Your Instinct",
+        "description": "Follow your gut feeling about what happened.",
+        "depth": 2,
+        "boundStat": "Cunning",
+        "method": "Standard",
+        "clueType": "Intuitive",
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "time": 1,
+          "coins": 0
+        },
+        "requirements": {
+          "stats": {
+            "Cunning": 2
+          }
+        },
+        "effects": {
+          "progress": 7,
+          "exposure": 4
+        }
       }
-    }
-  ]
+    ]
+  }
 }
