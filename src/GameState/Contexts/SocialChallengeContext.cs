@@ -1,7 +1,9 @@
 /// <summary>
-/// Base class for all conversation contexts containing common properties
+/// Context for Social challenges containing session and metadata.
+/// Parallel to MentalChallengeContext and PhysicalChallengeContext for architectural consistency.
+/// Domain logic now lives in goal cards, not context subclasses.
 /// </summary>
-public abstract class SocialChallengeContextBase
+public class SocialChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
@@ -10,15 +12,17 @@ public abstract class SocialChallengeContextBase
     public string RequestId { get; set; }
     public string ConversationTypeId { get; set; }
     public ConnectionState InitialState { get; set; }
-    public SocialChallengeSession Session { get; set; }
+    public SocialSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
     public ResourceState PlayerResources { get; set; }
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }
     public string RequestText { get; set; }  // Text displayed when NPC presents a request
 
-    protected SocialChallengeContextBase()
+    public SocialChallengeContext()
     {
         ObservationCards = new List<CardInstance>();
+        IsValid = true;
+        ErrorMessage = string.Empty;
     }
 }

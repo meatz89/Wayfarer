@@ -11,7 +11,7 @@ public class MomentumManager
 {
     private int currentMomentum = 0;
     private int currentDoubt = 0;
-    private SocialChallengeSession _session; // Reference to sync state back
+    private SocialSession _session; // Reference to sync state back
     private const int MAX_DOUBT = 10;
     private const int TOKEN_TO_MOMENTUM_MULTIPLIER = 3;
 
@@ -50,7 +50,7 @@ public class MomentumManager
     /// <summary>
     /// Set the conversation session reference for state synchronization
     /// </summary>
-    public void SetSession(SocialChallengeSession session)
+    public void SetSession(SocialSession session)
     {
         _session = session;
         SyncToSession(); // Initial sync

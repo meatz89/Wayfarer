@@ -67,7 +67,7 @@ public class CardEffectFormula
     /// Calculate the actual effect value based on game state.
     /// Returns the amount to apply to the target resource.
     /// </summary>
-    public int CalculateEffect(SocialChallengeSession session)
+    public int CalculateEffect(SocialSession session)
     {
         switch (FormulaType)
         {
@@ -97,7 +97,7 @@ public class CardEffectFormula
         }
     }
 
-    private int CalculateScaling(SocialChallengeSession session)
+    private int CalculateScaling(SocialSession session)
     {
         if (!ScalingSource.HasValue) return 0;
 
@@ -130,7 +130,7 @@ public class CardEffectFormula
         return scaled;
     }
 
-    private int CalculateConditional(SocialChallengeSession session)
+    private int CalculateConditional(SocialSession session)
     {
         if (!ConditionResource.HasValue) return 0;
 
@@ -159,7 +159,7 @@ public class CardEffectFormula
     /// <summary>
     /// Check if this trading effect can be executed (has required resources).
     /// </summary>
-    public bool CanExecuteTrade(SocialChallengeSession session)
+    public bool CanExecuteTrade(SocialSession session)
     {
         if (FormulaType != EffectFormulaType.Trading) return true;
         if (!ConsumeResource.HasValue) return false;
@@ -178,7 +178,7 @@ public class CardEffectFormula
     /// Execute the trading effect (consume resources).
     /// Returns true if successful.
     /// </summary>
-    public bool ExecuteTrade(SocialChallengeSession session)
+    public bool ExecuteTrade(SocialSession session)
     {
         if (!CanExecuteTrade(session)) return false;
         if (!ConsumeResource.HasValue) return false;

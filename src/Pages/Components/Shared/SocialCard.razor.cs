@@ -21,7 +21,7 @@ namespace Wayfarer.Pages.Components.Shared
 
         // SOCIAL SYSTEM ONLY: ConversationSession and CategoricalEffectResolver
         [Inject] protected SocialEffectResolver EffectResolver { get; set; }
-        [Parameter] public SocialChallengeSession Session { get; set; }
+        [Parameter] public SocialSession Session { get; set; }
 
         protected async Task HandleClick()
         {

@@ -8,7 +8,10 @@ namespace Wayfarer.Pages.Components
 {
     public class PhysicalContentBase : ComponentBase
     {
-        [CascadingParameter] public GameScreen ParentScreen { get; set; }
+        [Parameter] public PhysicalChallengeContext Context { get; set; }
+        [Parameter] public EventCallback OnChallengeEnd { get; set; }
+        [CascadingParameter] public GameScreenBase GameScreen { get; set; }
+
         [Inject] protected GameFacade GameFacade { get; set; }
 
         /// <summary>
@@ -19,7 +22,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         [Inject] protected PhysicalEffectResolver EffectResolver { get; set; }
 
-        protected PhysicalSession Session => ParentScreen?.PhysicalSession;
+        protected PhysicalSession Session => Context?.Session;
         protected List<CardInstance> Hand => GameFacade?.IsPhysicalSessionActive() == true
             ? GameFacade.GetPhysicalFacade().GetHand()
             : new List<CardInstance>();
@@ -134,7 +137,7 @@ namespace Wayfarer.Pages.Components
                         : $"Challenge incomplete. Progress: {outcome.FinalProgress}, Danger: {outcome.FinalDanger}";
                 }
 
-                await ParentScreen.HandlePhysicalEnd();
+                await OnChallengeEnd.InvokeAsync();
             }
             catch (Exception ex)
             {

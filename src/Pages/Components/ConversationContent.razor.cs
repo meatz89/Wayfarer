@@ -32,7 +32,7 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class ConversationContentBase : ComponentBase
     {
-        [Parameter] public SocialChallengeContextBase Context { get; set; }
+        [Parameter] public SocialChallengeContext Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
@@ -48,7 +48,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         [Inject] protected SocialEffectResolver EffectResolver { get; set; }
 
-        protected SocialChallengeSession Session { get; set; }
+        protected SocialSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
         protected int TotalSelectedInitiative => GetCardInitiativeCost(SelectedCard);
         protected bool IsConversationEnded { get; set; } = false;
@@ -1014,7 +1014,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTierUnlockThreshold(int tier)
         {
-            return SocialChallengeSession.GetTierUnlockThreshold(tier);
+            return SocialSession.GetTierUnlockThreshold(tier);
         }
 
         protected SocialCardTier[] GetAllTiers()

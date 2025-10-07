@@ -55,11 +55,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected string CurrentSpot { get; set; } = "";
 
     // Navigation State
-    protected SocialChallengeContextBase CurrentConversationContext { get; set; }
     protected ExchangeContext CurrentExchangeContext { get; set; }
     protected ObstacleContext CurrentObstacleContext { get; set; }
-    public MentalSession MentalSession { get; set; }
-    public PhysicalSession PhysicalSession { get; set; }
+    protected SocialChallengeContext CurrentSocialContext { get; set; }
+    protected MentalChallengeContext CurrentMentalContext { get; set; }
+    protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
     protected int PendingLetterCount { get; set; }
     public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
@@ -282,7 +282,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         switch (CurrentScreen)
         {
             case ScreenMode.SocialChallenge:
-                state.NpcId = CurrentConversationContext?.NpcId;
+                state.NpcId = CurrentSocialContext?.NpcId;
                 break;
         }
 
@@ -326,22 +326,22 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartConversation(string npcId, string requestId)
     {
-        CurrentConversationContext = await GameFacade.CreateConversationContext(npcId, requestId);
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, requestId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
-        if (CurrentConversationContext != null && CurrentConversationContext.IsValid)
+        if (CurrentSocialContext != null && CurrentSocialContext.IsValid)
         {
             CurrentScreen = ScreenMode.SocialChallenge;
             ContentVersion++; // Force re-render
             await InvokeAsync(StateHasChanged);
         }
-        else if (CurrentConversationContext != null)
+        else if (CurrentSocialContext != null)
         {
             // Show error message
-            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentConversationContext.ErrorMessage}");
+            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentSocialContext.ErrorMessage}");
             await InvokeAsync(StateHasChanged);
         }
     }
@@ -413,7 +413,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task HandleConversationEnd()
     {
         Console.WriteLine("[GameScreen] Conversation ended");
-        CurrentConversationContext = null;
+        CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
         await RefreshResourceDisplay();
@@ -433,13 +433,24 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         Console.WriteLine($"[GameScreen] Starting Mental session: {challengeTypeId}");
 
-        MentalSession = GameFacade.StartMentalSession(challengeTypeId);
+        MentalSession session = GameFacade.StartMentalSession(challengeTypeId);
+
+        // Create context parallel to Social pattern
+        CurrentMentalContext = new MentalChallengeContext
+        {
+            IsValid = session != null,
+            ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
+            ChallengeTypeId = challengeTypeId,
+            Session = session,
+            Location = GameFacade.GetCurrentLocation(),
+            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+        };
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
-        if (MentalSession != null)
+        if (CurrentMentalContext.IsValid)
         {
             CurrentScreen = ScreenMode.MentalChallenge;
             ContentVersion++;
@@ -447,14 +458,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else
         {
-            Console.WriteLine("[GameScreen] Failed to start Mental session");
+            Console.WriteLine($"[GameScreen] {CurrentMentalContext.ErrorMessage}");
         }
     }
 
     public async Task HandleMentalEnd()
     {
         Console.WriteLine("[GameScreen] Mental session ended");
-        MentalSession = null;
+        CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
         await RefreshResourceDisplay();
@@ -473,13 +484,24 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         Console.WriteLine($"[GameScreen] Starting Physical session: {challengeTypeId}");
 
-        PhysicalSession = GameFacade.StartPhysicalSession(challengeTypeId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(challengeTypeId);
+
+        // Create context parallel to Social pattern
+        CurrentPhysicalContext = new PhysicalChallengeContext
+        {
+            IsValid = session != null,
+            ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
+            ChallengeTypeId = challengeTypeId,
+            Session = session,
+            Location = GameFacade.GetCurrentLocation(),
+            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+        };
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 
-        if (PhysicalSession != null)
+        if (CurrentPhysicalContext.IsValid)
         {
             CurrentScreen = ScreenMode.PhysicalChallenge;
             ContentVersion++;
@@ -487,14 +509,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else
         {
-            Console.WriteLine("[GameScreen] Failed to start Physical session");
+            Console.WriteLine($"[GameScreen] {CurrentPhysicalContext.ErrorMessage}");
         }
     }
 
     public async Task HandlePhysicalEnd()
     {
         Console.WriteLine("[GameScreen] Physical session ended");
-        PhysicalSession = null;
+        CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends
         await RefreshResourceDisplay();

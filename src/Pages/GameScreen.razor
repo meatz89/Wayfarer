@@ -154,15 +154,15 @@
                     break;
 
                 case ScreenMode.SocialChallenge:
-                    <ConversationContent Context="@CurrentConversationContext" OnConversationEnd="HandleConversationEnd" />
+                    <ConversationContent Context="@CurrentSocialContext" OnConversationEnd="HandleConversationEnd" />
                     break;
 
                 case ScreenMode.MentalChallenge:
-                    <MentalContent />
+                    <MentalContent Context="@CurrentMentalContext" OnChallengeEnd="HandleMentalEnd" />
                     break;
 
                 case ScreenMode.PhysicalChallenge:
-                    <PhysicalContent />
+                    <PhysicalContent Context="@CurrentPhysicalContext" OnChallengeEnd="HandlePhysicalEnd" />
                     break;
 
                 default:

@@ -255,7 +255,7 @@ public class GameFacade
         // Mark stranger as encountered
         stranger.MarkAsEncountered();
 
-        // Create conversation context
+        // Create conversation context (goal cards now handle domain logic)
         SocialChallengeContext context = new SocialChallengeContext
         {
             IsValid = true,
@@ -603,7 +603,7 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<SocialChallengeContextBase> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
     {
         return await _conversationFacade.CreateConversationContext(npcId, requestId);
     }
@@ -656,7 +656,7 @@ public class GameFacade
     /// <summary>
     /// Check if a card can be played in the current conversation
     /// </summary>
-    public bool CanPlayCard(CardInstance card, SocialChallengeSession session)
+    public bool CanPlayCard(CardInstance card, SocialSession session)
     {
         if (_conversationFacade == null) return false;
         return _conversationFacade.CanPlayCard(card, session);

@@ -36,7 +36,7 @@ public class SocialEffectResolver
     /// Calculates rapport changes, cards to draw, focus to add, atmosphere to set, etc.
     /// The caller decides whether to apply these projected changes.
     /// </summary>
-    public CardEffectResult ProcessSuccessEffect(CardInstance card, SocialChallengeSession session)
+    public CardEffectResult ProcessSuccessEffect(CardInstance card, SocialSession session)
     {
         CardEffectResult result = new CardEffectResult
         {
@@ -62,7 +62,7 @@ public class SocialEffectResolver
     /// DETERMINISTIC: Check if card succeeds based on clear rules (no randomness)
     /// Cards succeed based on personality rules, resource requirements, and momentum thresholds
     /// </summary>
-    public bool CheckCardSuccess(CardInstance card, SocialChallengeSession session)
+    public bool CheckCardSuccess(CardInstance card, SocialSession session)
     {
         // Goal cards (Requests, Promises) always succeed if momentum threshold is met
         if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Burden)
@@ -80,7 +80,7 @@ public class SocialEffectResolver
     /// <summary>
     /// Build comprehensive effect result from EffectFormula system
     /// </summary>
-    private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, SocialChallengeSession session)
+    private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, SocialSession session)
     {
         var result = new CardEffectResult
         {
@@ -161,7 +161,7 @@ public class SocialEffectResolver
         return result;
     }
 
-    private void ApplyFormulaToResult(CardEffectFormula formula, SocialChallengeSession session, CardEffectResult result, List<string> effects)
+    private void ApplyFormulaToResult(CardEffectFormula formula, SocialSession session, CardEffectResult result, List<string> effects)
     {
         // Calculate the effect value
         int effectValue = formula.CalculateEffect(session);

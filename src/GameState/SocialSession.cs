@@ -2,7 +2,7 @@
 using System.Linq;
 
 // Conversation session
-public class SocialChallengeSession
+public class SocialSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public NPC NPC { get; set; }
@@ -321,7 +321,7 @@ public class SocialChallengeSession
         };
     }
 
-    public static SocialChallengeSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
+    public static SocialSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
         List<CardInstance> observationCards, string requestId, string conversationTypeId, PlayerResourceState playerResourceState, GameWorld gameWorld, MomentumManager momentumManager)
     {
         // Use properly typed parameters
@@ -351,7 +351,7 @@ public class SocialChallengeSession
         }
 
         // Create session with proper initialization
-        SocialChallengeSession session = new SocialChallengeSession
+        SocialSession session = new SocialSession
         {
             NPC = npc,
             ChallengeTypeId = conversationTypeId,

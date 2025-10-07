@@ -23,7 +23,7 @@ public class SocialNarrativeService
     /// For progressive UI updates - show NPC dialogue first.
     /// </summary>
     public async Task<NarrativeOutput> GenerateOnlyNPCDialogueAsync(
-        SocialChallengeSession session,
+        SocialSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -62,7 +62,7 @@ public class SocialNarrativeService
     /// For progressive UI updates - show card narratives after NPC dialogue.
     /// </summary>
     public async Task<List<CardNarrative>> GenerateOnlyCardNarrativesAsync(
-        SocialChallengeSession session,
+        SocialSession session,
         NPC npc,
         List<CardInstance> activeCards,
         string npcDialogue)
@@ -106,7 +106,7 @@ public class SocialNarrativeService
     /// <param name="activeCards">List of cards currently available to player</param>
     /// <returns>Generated narrative output or fallback content</returns>
     public async Task<NarrativeOutput> GenerateNarrativeAsync(
-        SocialChallengeSession session,
+        SocialSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -157,7 +157,7 @@ public class SocialNarrativeService
     /// Ensures game continues functioning with basic descriptive text.
     /// </summary>
     private NarrativeOutput CreateMinimalFallbackNarrative(
-        SocialChallengeSession session,
+        SocialSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -190,7 +190,7 @@ public class SocialNarrativeService
     /// </summary>
     /// <param name="session">Game conversation session</param>
     /// <returns>Narrative conversation state</returns>
-    private SocialChallengeState BuildConversationState(SocialChallengeSession session)
+    private SocialChallengeState BuildConversationState(SocialSession session)
     {
         int momentum = session.CurrentMomentum;
         TopicLayer currentLayer = DetermineTopicLayer(momentum);

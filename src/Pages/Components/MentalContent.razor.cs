@@ -8,7 +8,10 @@ namespace Wayfarer.Pages.Components
 {
     public class MentalContentBase : ComponentBase
     {
-        [CascadingParameter] public GameScreen ParentScreen { get; set; }
+        [Parameter] public MentalChallengeContext Context { get; set; }
+        [Parameter] public EventCallback OnChallengeEnd { get; set; }
+        [CascadingParameter] public GameScreenBase GameScreen { get; set; }
+
         [Inject] protected GameFacade GameFacade { get; set; }
 
         /// <summary>
@@ -19,7 +22,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         [Inject] protected MentalEffectResolver EffectResolver { get; set; }
 
-        protected MentalSession Session => ParentScreen?.MentalSession;
+        protected MentalSession Session => Context?.Session;
         protected List<CardInstance> Hand => GameFacade?.IsMentalSessionActive() == true
             ? GameFacade.GetMentalFacade().GetHand()
             : new List<CardInstance>();
@@ -134,7 +137,7 @@ namespace Wayfarer.Pages.Components
                         : $"Investigation incomplete. Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}";
                 }
 
-                await ParentScreen.HandleMentalEnd();
+                await OnChallengeEnd.InvokeAsync();
             }
             catch (Exception ex)
             {
