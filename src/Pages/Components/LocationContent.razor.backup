@@ -16,7 +16,7 @@
 
 @if (CurrentSpot != null)
 {
-    <!-- Active Obligations Queue (from mockup) -->
+    <!-- Active Obligations Queue -->
     <div class="obligations-panel" @onclick="() => GameScreen.NavigateToQueue()">
         <div class="obligations-header">
             <span>Active Obligations</span>
@@ -53,7 +53,7 @@
         </div>
     </div>
 
-    <!-- Location Header (from mockup) -->
+    <!-- Location Header -->
     <div class="location-header">
         <div class="location-path">
             @if (!string.IsNullOrEmpty(CurrentLocation?.Name))
@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <!-- Current Spot Banner (from mockup) -->
+    <!-- Current Spot Banner -->
     <div class="current-spot-banner">
         <div class="current-spot-name">@CurrentSpot.Name</div>
         <div class="spot-traits">
@@ -82,7 +82,7 @@
     </div>
 
     <div class="content-area">
-        <!-- Atmosphere (from mockup) -->
+        <!-- Atmosphere -->
         @if (CurrentSpot != null)
         {
             <div class="atmosphere-text">
@@ -92,7 +92,7 @@
             </div>
         }
 
-        <!-- Actions Available Here (from mockup) -->
+        <!-- Actions Available Here -->
         @{
             bool hasInvestigationAction = CanInvestigate();
             bool hasLocationActions = LocationActions.Any();
@@ -220,7 +220,7 @@
             </div>
         }
 
-        <!-- People at This Spot (from mockup) -->
+        <!-- People at This Spot -->
         @if (AvailableNpcs.Any())
         {
             <div class="section-header">People at This Spot</div>
@@ -285,7 +285,7 @@
             }
         }
 
-        <!-- Observations (from mockup) -->
+        <!-- Observations -->
         @if (AvailableObservations.Any() || TakenObservations.Any())
         {
             <div class="observations">
@@ -323,7 +323,7 @@
             </div>
         }
 
-        <!-- Other Spots (from mockup) -->
+        <!-- Other Spots -->
         @if (AvailableSpots.Any())
         {
             <div class="section-header">Other Spots in @CurrentLocation?.Name</div>

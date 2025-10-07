@@ -5,7 +5,7 @@
 @if (CurrentSpot != null)
 {
 
-    <!-- Location Header (from mockup) -->
+    <!-- Location Header -->
     <div class="location-header">
         <div class="location-path">
             @if (!string.IsNullOrEmpty(CurrentLocation?.Name))
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Current Spot Banner (from mockup) -->
+    <!-- Current Spot Banner -->
     <div class="current-spot-banner">
         <div class="current-spot-name">@CurrentSpot.Name</div>
         <div class="spot-traits">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="content-area">
-        <!-- Atmosphere (from mockup) -->
+        <!-- Atmosphere -->
         @if (CurrentSpot != null)
         {
             <div class="atmosphere-text">
@@ -44,7 +44,7 @@
             </div>
         }
 
-        <!-- Actions Available Here (from mockup) -->
+        <!-- Actions Available Here -->
         @{
             bool hasLocationActions = LocationActions.Any();
             bool hasLocationGoals = AvailableSocialGoals.Any() || AvailableMentalGoals.Any() || AvailablePhysicalGoals.Any();
@@ -159,7 +159,7 @@
             </div>
         }
 
-        <!-- People at This Spot (from mockup) -->
+        <!-- People at This Spot -->
         @if (AvailableNpcs.Any())
         {
             <div class="section-header">People at This Spot</div>
@@ -224,6 +224,52 @@
             }
         }
 
+        <!-- Other Spots -->
+        @if (AvailableSpots.Any())
+        {
+            <div class="section-header">Other Spots in @CurrentLocation?.Name</div>
+            <div class="spots-grid">
+                @foreach (var spot in AvailableSpots)
+                {
+                    var isCurrentSpot = spot.Id == CurrentSpot?.Name;
+                    <div class="spot-card @(isCurrentSpot ? "current" : "")"
+                         @onclick="async () => { if (!isCurrentSpot) await MoveToSpot(spot.Id); }">
+                        <div class="spot-card-name">@spot.Name</div>
+                        @{
+                            var npcsAtSpot = GetNPCsAtSpot(spot.Id);
+                            if (npcsAtSpot.Any())
+                            {
+                                <div class="spot-occupants">
+                                    @foreach (var npc in npcsAtSpot)
+                                    {
+                                        <span class="npc-at-spot">
+                                            @npc.Name
+                                            <span class="npc-state">(@GetNPCStateDisplay(npc))</span>
+                                            @if (HasUrgentLetter(npc.ID))
+                                            {
+                                                <span class="urgent-marker" title="Urgent letter in queue!"><span class="icon-warning urgent"></span></span>
+                                            }
+                                        </span>
+                                        @if (npc != npcsAtSpot.Last())
+                                        {
+                                            <span>, </span>
+                                        }
+                                    }
+                                </div>
+                            }
+                        }
+                        @if (isCurrentSpot)
+                        {
+                            <div class="you-are-here">You are here</div>
+                        }
+                        else
+                        {
+                            <div class="spot-move-action">Move here (instant, free)</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 else

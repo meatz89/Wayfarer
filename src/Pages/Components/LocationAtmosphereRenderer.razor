@@ -150,21 +150,6 @@
         @GetAtmosphereText()
     </div>
 
-    @if (NPCsPresent?.Any() == true)
-    {
-        <div class="npcs-present">
-            @foreach (var npc in NPCsPresent)
-            {
-                <div class="npc-focus">
-                    <div class="npc-name">@npc.Name</div>
-                    <div class="npc-description">
-                        @GetNPCFocusDescription(npc)
-                    </div>
-                </div>
-            }
-        </div>
-    }
-
     @{
         var hint = GetObservationHint();
         if (!string.IsNullOrEmpty(hint))
