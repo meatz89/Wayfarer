@@ -15,6 +15,16 @@ public static class LocationParser
         if (!Enum.TryParse(dto.LocationType, out LocationTypes locationType))
             throw new InvalidOperationException($"Location {dto.Id} has invalid LocationType: '{dto.LocationType}'");
 
+        // Parse investigation profile
+        InvestigationDiscipline investigationProfile = InvestigationDiscipline.Research;
+        if (!string.IsNullOrEmpty(dto.InvestigationProfile))
+        {
+            if (!System.Enum.TryParse<InvestigationDiscipline>(dto.InvestigationProfile, out investigationProfile))
+            {
+                investigationProfile = InvestigationDiscipline.Research;
+            }
+        }
+
         Location location = new Location(dto.Id, dto.Name)
         {
             Description = dto.Description ?? string.Empty, // Description is optional
@@ -23,7 +33,8 @@ public static class LocationParser
             DomainTags = dto.DomainTags ?? new List<string>(), // Empty list is valid for no tags
             LocationType = locationType,
             LocationTypeString = dto.LocationType,
-            IsStartingLocation = dto.IsStartingLocation
+            IsStartingLocation = dto.IsStartingLocation,
+            InvestigationProfile = investigationProfile
         };
 
         // Parse environmental properties

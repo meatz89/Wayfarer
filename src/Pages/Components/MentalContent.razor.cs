@@ -306,6 +306,23 @@ namespace Wayfarer.Pages.Components
             return projection.EffectDescription ?? "";
         }
 
+        /// <summary>
+        /// PERFECT INFORMATION: Get detailed effect breakdown showing base + bonuses + total
+        /// Returns structured breakdown for UI display with transparency
+        /// </summary>
+        protected MentalCardEffectResult GetEffectBreakdown(CardInstance card, MentalActionType actionType)
+        {
+            if (card?.MentalCardTemplate == null) return null;
+            if (Session == null) return null;
+            if (GameFacade == null) return null;
+
+            Player player = GameFacade.GetPlayer();
+
+            // Get full projection with bonus tracking
+            MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, actionType);
+            return projection;
+        }
+
         // =============================================
         // TIER UNLOCK SYSTEM (Parallel to Social)
         // =============================================

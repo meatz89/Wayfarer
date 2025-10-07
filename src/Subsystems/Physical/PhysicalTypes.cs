@@ -4,6 +4,9 @@ using System.Collections.Generic;
 /// PROJECTION PRINCIPLE: Card effect projection for Physical tactical system
 /// Parallel to CardEffectResult in Conversation system
 /// Shows what WILL happen before committing - perfect information for player
+///
+/// PERFECT INFORMATION ENHANCEMENT: Tracks base values + all bonuses separately
+/// so UI can display complete breakdown to player (e.g., "5 base + 2 specialist + 1 mastery = 8 total")
 /// </summary>
 public class PhysicalCardEffectResult
 {
@@ -11,12 +14,18 @@ public class PhysicalCardEffectResult
 
     // Builder resource (parallel to Initiative in Social)
     public int PositionChange { get; set; }
+    public int BasePosition { get; set; }
+    public List<EffectBonus> PositionBonuses { get; set; } = new List<EffectBonus>();
 
     // Victory resource (parallel to Momentum in Social)
     public int BreakthroughChange { get; set; }
+    public int BaseBreakthrough { get; set; }
+    public List<EffectBonus> BreakthroughBonuses { get; set; } = new List<EffectBonus>();
 
     // Consequence resource (parallel to Doubt in Social)
     public int DangerChange { get; set; }
+    public int BaseDanger { get; set; }
+    public List<EffectBonus> DangerBonuses { get; set; } = new List<EffectBonus>();
 
     // Balance resource (rhythm tracking)
     public int BalanceChange { get; set; }

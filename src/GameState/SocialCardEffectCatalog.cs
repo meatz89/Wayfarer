@@ -19,7 +19,7 @@ using System.Linq;
 /// - Measured: +0 Cadence (questions, careful statements)
 /// - Yielding: -1 Cadence (deferential, rare)
 /// </summary>
-public static class CardEffectCatalog
+public static class SocialCardEffectCatalog
 {
     /// <summary>
     /// Get all available effect variants for a stat at a specific depth.

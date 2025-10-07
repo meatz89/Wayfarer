@@ -13,6 +13,7 @@ public class PhysicalCardParser
         // Parse categorical properties from DTO
         Approach approach = ParseApproach(dto.Approach);
         PhysicalCategory category = ParseCategory(dto.Category);
+        PhysicalDiscipline discipline = ParseDiscipline(dto.Discipline);
         RiskLevel riskLevel = ParseRiskLevel(dto.RiskLevel);
         ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
         MethodType methodType = ParseMethodType(dto.MethodType);
@@ -52,6 +53,7 @@ public class PhysicalCardParser
             PositionCost = positionCost,
             Approach = approach,
             Category = category,
+            Discipline = discipline,
 
             // Universal card properties
             RiskLevel = riskLevel,
@@ -114,5 +116,12 @@ public class PhysicalCardParser
         return Enum.TryParse<MethodType>(methodTypeString, out MethodType methodType)
             ? methodType
             : MethodType.Direct;
+    }
+
+    private PhysicalDiscipline ParseDiscipline(string disciplineString)
+    {
+        return Enum.TryParse<PhysicalDiscipline>(disciplineString, out PhysicalDiscipline discipline)
+            ? discipline
+            : PhysicalDiscipline.Combat;
     }
 }

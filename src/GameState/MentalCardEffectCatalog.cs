@@ -1,157 +1,196 @@
 using System;
 
 /// <summary>
-/// Mental Card Effect Catalog - Automatic effect derivation from categorical properties
-/// Parallel to CardEffectCatalog for Conversation system
-/// Reduces manual JSON specification by deriving costs/effects from Type + Depth + ClueType
+/// Catalog of Mental card effect calculations from categorical properties.
+/// Parser calls this at load time to calculate card base effects from card properties.
+///
+/// Parallel to CardEffectCatalog in Social system - converts categorical properties
+/// (Discipline, Category, Method, Stat, Depth) into numeric base effects.
+///
+/// PERFECT INFORMATION: Returns base values only - bonuses calculated at runtime in resolver.
 /// </summary>
 public static class MentalCardEffectCatalog
 {
     /// <summary>
-    /// Get automatic AttentionCost based on card depth
-    /// Foundation (1-2): Cost 0 (generates Attention)
-    /// Standard (3-4): Cost 2
-    /// Advanced (5-6): Cost 4
-    /// Master (7+): Cost 6
+    /// Get base effects from categorical properties.
+    /// Called by parser at card load time.
     /// </summary>
-    public static int GetAttentionCostFromDepth(int depth)
+    public static MentalBaseEffects GetBaseEffectsFromProperties(
+        InvestigationDiscipline discipline,
+        MentalCategory category,
+        Method method,
+        PlayerStatType stat,
+        int depth)
     {
-        return depth switch
+        return new MentalBaseEffects
         {
-            1 or 2 => 0,  // Foundation cards generate, don't cost
-            3 or 4 => 2,  // Standard
-            5 or 6 => 4,  // Advanced
-            _ => 6        // Master
+            BaseProgress = CalculateProgress(discipline, depth, category),
+            BaseExposure = CalculateExposure(method, depth),
+            BaseAttentionCost = CalculateAttentionCost(depth)
         };
     }
 
     /// <summary>
-    /// Get automatic Progress effect based on depth and mental category
-    /// Category determines approach and progress generation
+    /// Calculate base Progress (victory resource) from categorical properties.
+    /// Progress scales with depth and modified by category.
     /// </summary>
-    public static int GetProgressFromProperties(int depth, MentalCategory category)
+    private static int CalculateProgress(InvestigationDiscipline discipline, int depth, MentalCategory category)
     {
-        int baseProgress = depth switch
+        // Base progress by depth tier
+        int baseValue = depth switch
         {
-            1 or 2 => 0,  // Foundation cards don't generate progress
-            3 or 4 => 3,  // Standard
-            5 or 6 => 6,  // Advanced
-            _ => 10       // Master
+            <= 2 => 2,   // Foundation: 2-3 Progress
+            <= 4 => 5,   // Standard: 5-6 Progress
+            <= 6 => 9,   // Advanced: 9-10 Progress
+            _ => 13      // Master: 13-15 Progress
         };
 
-        // Category modifier
-        float modifier = category switch
+        // Category modifiers
+        int categoryModifier = category switch
         {
-            MentalCategory.Analytical => 1.5f,      // Systematic analysis finds more progress
-            MentalCategory.Physical => 1.0f,         // Standard hands-on examination
-            MentalCategory.Observational => 0.8f,    // Perception-based, less direct progress
-            MentalCategory.Social => 0.7f,           // Interpersonal, indirect progress
-            MentalCategory.Synthesis => 1.2f,        // Pattern recognition, good progress
-            _ => 1.0f
-        };
-
-        return (int)(baseProgress * modifier);
-    }
-
-    /// <summary>
-    /// Get automatic Exposure risk based on depth and method
-    /// Reckless methods increase exposure risk
-    /// Careful methods reduce it
-    /// </summary>
-    public static int GetExposureFromProperties(int depth, Method method)
-    {
-        int baseExposure = depth switch
-        {
-            1 or 2 => 0,  // Foundation safe
-            3 or 4 => 1,  // Standard slight risk
-            5 or 6 => 2,  // Advanced moderate risk
-            _ => 3        // Master high risk
-        };
-
-        // Method modifier
-        int modifier = method switch
-        {
-            Method.Careful => -1,    // Reduces risk
-            Method.Standard => 0,    // No change
-            Method.Bold => +1,       // Increases risk
-            Method.Reckless => +2,   // Major risk increase
+            MentalCategory.Analytical => 1,      // High progress, structured thinking
+            MentalCategory.Synthesis => 1,       // High progress, connecting clues
+            MentalCategory.Observational => 0,   // Moderate progress, gathering info
+            MentalCategory.Physical => -1,       // Lower progress, hands-on investigation
+            MentalCategory.Social => 0,          // Moderate progress, questioning
             _ => 0
         };
 
-        return Math.Max(0, baseExposure + modifier);
+        return baseValue + categoryModifier;
     }
 
-    // ==================== STRATEGIC RESOURCE COSTS ====================
-    // Parallel to effect derivation - costs derived from categorical properties
-    // NO Tags, NO string matching, NO hardcoding
+    /// <summary>
+    /// Calculate base Exposure (consequence resource) from categorical properties.
+    /// Exposure determined primarily by Method (risk level).
+    /// </summary>
+    private static int CalculateExposure(Method method, int depth)
+    {
+        int baseExposure = method switch
+        {
+            Method.Careful => 0,     // Safe, cautious
+            Method.Standard => 1,    // Moderate risk
+            Method.Bold => 2,        // High risk, high reward
+            Method.Reckless => 3,    // Extreme risk
+            _ => 1
+        };
+
+        // Higher depth investigations have slightly more exposure (complexity)
+        if (depth >= 5) baseExposure += 1;
+
+        return baseExposure;
+    }
 
     /// <summary>
-    /// Get stamina cost from categorical properties
-    /// ExertionLevel is primary driver, Method/Depth provide modifiers
-    /// PARSER-BASED ARCHITECTURE: Costs calculated once at parse time
+    /// Calculate base Attention cost (builder resource cost) from depth.
+    /// Higher depth cards cost more Attention to play.
+    /// </summary>
+    private static int CalculateAttentionCost(int depth)
+    {
+        return depth switch
+        {
+            <= 2 => 0,   // Foundation: free (generate Attention instead via GetAttentionGeneration)
+            <= 4 => 2,   // Standard: 2 Attention
+            <= 6 => 4,   // Advanced: 4 Attention
+            _ => 6       // Master: 6 Attention
+        };
+    }
+
+    /// <summary>
+    /// Get base Progress from properties (used by resolver, not parser).
+    /// Temporary method for existing resolver compatibility.
+    /// </summary>
+    public static int GetProgressFromProperties(int depth, MentalCategory category)
+    {
+        // Simple calculation for now - use full calculation once parser updated
+        return depth switch
+        {
+            <= 2 => 2,
+            <= 4 => 5,
+            <= 6 => 9,
+            _ => 13
+        };
+    }
+
+    /// <summary>
+    /// Get base Exposure from properties (used by resolver, not parser).
+    /// Temporary method for existing resolver compatibility.
+    /// </summary>
+    public static int GetExposureFromProperties(int depth, Method method)
+    {
+        return CalculateExposure(method, depth);
+    }
+
+    /// <summary>
+    /// Get Attention cost from depth (called by parser).
+    /// </summary>
+    public static int GetAttentionCostFromDepth(int depth)
+    {
+        return CalculateAttentionCost(depth);
+    }
+
+    /// <summary>
+    /// Get Stamina cost from categorical properties (called by parser).
     /// </summary>
     public static int GetStaminaCost(Method method, int depth, ExertionLevel exertion)
     {
         int baseCost = exertion switch
         {
-            ExertionLevel.Minimal => 0,
-            ExertionLevel.Light => 1,
-            ExertionLevel.Moderate => 2,
+            ExertionLevel.Light => 0,
+            ExertionLevel.Moderate => 1,
             ExertionLevel.Heavy => 3,
-            ExertionLevel.Extreme => 5,
-            _ => 1
-        };
-
-        // Method modifier - Careful conserves stamina, Reckless burns it
-        int methodModifier = method switch
-        {
-            Method.Careful => -1,    // Careful approach reduces exertion
-            Method.Standard => 0,
-            Method.Bold => 0,
-            Method.Reckless => 1,    // Reckless burns stamina
             _ => 0
         };
 
-        // Depth scaling - higher complexity requires more stamina
-        int depthScaling = depth / 3;
+        // Bold and Reckless methods cost more stamina (mental strain)
+        if (method == Method.Bold || method == Method.Reckless)
+        {
+            baseCost += 1;
+        }
 
-        return Math.Max(0, baseCost + methodModifier + depthScaling);
+        return baseCost;
     }
 
     /// <summary>
-    /// Get health cost from categorical properties
-    /// Direct health costs are RARE - most health loss from Exposure threshold
-    /// Only Reckless + Dangerous combinations cause direct health loss
+    /// Get Health cost from categorical properties (called by parser).
     /// </summary>
     public static int GetHealthCost(Method method, RiskLevel risk, int depth)
     {
-        // Reckless investigation of dangerous situations causes direct health loss
-        if (method == Method.Reckless && risk == RiskLevel.Dangerous)
+        int baseCost = risk switch
         {
-            return 1 + (depth / 4); // Scales slowly with depth
+            RiskLevel.Safe => 0,
+            RiskLevel.Cautious => 0,
+            RiskLevel.Risky => 1,
+            RiskLevel.Dangerous => 3,
+            _ => 0
+        };
+
+        // Reckless method increases health cost (stress damage)
+        if (method == Method.Reckless)
+        {
+            baseCost += 2;
         }
 
-        // Very high risk at high depth
-        if (risk == RiskLevel.Dangerous && depth >= 6)
-        {
-            return 1;
-        }
-
-        return 0; // Default: no direct health cost
+        return baseCost;
     }
 
     /// <summary>
-    /// Get coin cost from categorical properties
-    /// Only specific categories/contexts cost coins (bribes, payments, etc.)
-    /// Most mental cards cost 0 coins
+    /// Get Coin cost from categorical properties (called by parser).
     /// </summary>
     public static int GetCoinCost(MentalCategory category, int depth)
     {
-        // Social investigations might require bribes/payments at high depth
-        return category switch
-        {
-            MentalCategory.Social when depth >= 5 => 1,
-            _ => 0
-        };
+        // Some investigation cards might require resources (bribes, equipment)
+        // For now, most mental cards don't cost coins
+        return 0;
     }
+}
+
+/// <summary>
+/// Container for base Mental card effects calculated from categorical properties.
+/// These are the BASE values before any bonuses are applied.
+/// </summary>
+public class MentalBaseEffects
+{
+    public int BaseProgress { get; set; }
+    public int BaseExposure { get; set; }
+    public int BaseAttentionCost { get; set; }
 }

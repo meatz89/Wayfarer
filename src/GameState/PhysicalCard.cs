@@ -21,6 +21,7 @@ public class PhysicalCard
     public int PositionCost { get; init; } = 0;  // Action economy cost
     public Approach Approach { get; init; } = Approach.Standard;  // Rhythm effect
     public PhysicalCategory Category { get; init; }  // Card category determines thematic approach and effects
+    public PhysicalDiscipline Discipline { get; init; } = PhysicalDiscipline.Combat;  // Specialization for bonus matching
 
     // Universal card properties (apply across all tactical systems)
     public RiskLevel RiskLevel { get; init; } = RiskLevel.Cautious;

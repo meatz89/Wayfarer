@@ -24,6 +24,9 @@ public class LocationDTO
     public string LocationType { get; set; } // e.g., "Tavern", "Crossroads", "Elite Quarter"
     public bool IsStartingLocation { get; set; }
 
+    // Investigation Profile - Primary discipline for Mental challenges (for specialist bonuses)
+    public string InvestigationProfile { get; set; } = "Research";
+
     // Work System - Available work actions at this location
     public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
 }

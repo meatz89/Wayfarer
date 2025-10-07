@@ -9,6 +9,7 @@ public class MentalSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public string InvestigationId { get; set; }
+    public string LocationId { get; set; } // Track location for familiarity bonuses
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
 
     // Session Resources

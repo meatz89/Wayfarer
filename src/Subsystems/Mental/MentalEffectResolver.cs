@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// PROJECTION PRINCIPLE: Pure projection function that returns what WOULD happen
@@ -20,8 +21,10 @@ public class MentalEffectResolver
     /// Calculates all resource changes without modifying state.
     /// Perfect information for player decision-making.
     /// DUAL BALANCE SYSTEM: Combines action-based balance + method-based balance
+    ///
+    /// PERFECT INFORMATION ENHANCEMENT: Tracks base + all bonuses separately for UI display.
     /// </summary>
-    public MentalCardEffectResult ProjectCardEffects(CardInstance card, MentalSession session, Player player, MentalActionType actionType)
+    public MentalCardEffectResult ProjectCardEffects(CardInstance card, MentalSession session, Player player, MentalActionType actionType, string locationId = null)
     {
         MentalCardEffectResult result = new MentalCardEffectResult
         {
@@ -50,14 +53,35 @@ public class MentalEffectResolver
         PlayerExertionState exertion = _exertionCalculator.CalculateExertion(player);
         int costModifier = exertion.GetMentalCostModifier();
 
-        // Builder resource: Attention
-        // Spend Attention cost (modified by mental exertion)
-        int modifiedAttentionCost = Math.Max(0, template.AttentionCost + costModifier);
-        result.AttentionChange -= modifiedAttentionCost;
+        // ===== ATTENTION (Builder Resource) =====
+        // BASE: Attention cost from card depth
+        result.BaseAttention = -template.AttentionCost;
+
+        // BONUS: Exertion modifier (penalty when tired)
+        if (costModifier != 0)
+        {
+            result.AttentionBonuses.Add(new EffectBonus
+            {
+                Source = "Exertion",
+                Amount = -costModifier,  // Negative because it increases cost
+                Type = BonusType.Exertion
+            });
+        }
 
         // Generate Attention from Foundation cards (Depth 1-2)
         int attentionGen = template.GetAttentionGeneration();
-        result.AttentionChange += attentionGen;
+        if (attentionGen > 0)
+        {
+            result.AttentionBonuses.Add(new EffectBonus
+            {
+                Source = "Foundation Card",
+                Amount = attentionGen,
+                Type = BonusType.Other
+            });
+        }
+
+        // Calculate final Attention change
+        result.AttentionChange = result.BaseAttention + result.AttentionBonuses.Sum(b => b.Amount);
 
         // DUAL BALANCE SYSTEM:
         // 1. Action-based balance (Observe vs Act rhythm)
@@ -81,20 +105,83 @@ public class MentalEffectResolver
         // Combine both balance effects
         result.BalanceChange = actionBalance + methodBalance;
 
-        // Victory resource: Progress calculated from categorical properties via MentalCardEffectCatalog
-        result.ProgressChange = MentalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
+        // ===== PROGRESS (Victory Resource) =====
+        // BASE: Progress from card categorical properties
+        result.BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
 
-        // Consequence resource: Exposure calculated from categorical properties via MentalCardEffectCatalog
-        int baseExposure = MentalCardEffectCatalog.GetExposureFromProperties(template.Depth, template.Method);
+        // BONUS 1: Discipline Match (Specialist bonus)
+        // Check if card discipline matches location profile for +2 Progress
+        if (!string.IsNullOrEmpty(locationId))
+        {
+            // TODO: Need to get actual location investigation profile
+            // This will be properly implemented when Location.InvestigationProfile is added
+        }
+
+        // BONUS 2: Stat Level (Player progression)
+        if (template.BoundStat != PlayerStatType.None)
+        {
+            int statLevel = player.Stats.GetLevel(template.BoundStat);
+            if (statLevel >= 5)
+            {
+                int bonus = (statLevel - 4) / 2;  // +1 at level 5-6, +2 at level 7-8, etc.
+                result.ProgressBonuses.Add(new EffectBonus
+                {
+                    Source = $"{template.BoundStat} Level {statLevel}",
+                    Amount = bonus,
+                    Type = BonusType.StatLevel
+                });
+            }
+        }
+
+        // Calculate final Progress
+        result.ProgressChange = result.BaseProgress + result.ProgressBonuses.Sum(b => b.Amount);
+
+        // ===== EXPOSURE (Consequence Resource) =====
+        // BASE: Exposure from card method and depth
+        result.BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(template.Depth, template.Method);
+
+        // BONUS 1: Location Familiarity (Reduces exposure at familiar locations)
+        if (!string.IsNullOrEmpty(locationId))
+        {
+            int familiarityLevel = player.LocationFamiliarity.GetFamiliarity(locationId);
+            if (familiarityLevel > 0)
+            {
+                int exposureReduction = -Math.Min(3, familiarityLevel);  // Max -3 Exposure
+                result.ExposureBonuses.Add(new EffectBonus
+                {
+                    Source = $"Location Familiarity ({familiarityLevel})",
+                    Amount = exposureReduction,
+                    Type = BonusType.Familiarity
+                });
+            }
+        }
+
+        // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();
-        result.ExposureChange = baseExposure + riskModifier;
+        if (riskModifier != 0)
+        {
+            result.ExposureBonuses.Add(new EffectBonus
+            {
+                Source = "Exertion State",
+                Amount = riskModifier,
+                Type = BonusType.Exertion
+            });
+        }
 
-        // Balance modifier: High positive balance increases Exposure
+        // BONUS 3: Balance Modifier (High positive balance increases Exposure)
         int projectedBalance = session.ObserveActBalance + result.BalanceChange;
         if (projectedBalance > 5)
         {
-            result.ExposureChange += 1;
+            result.ExposureBonuses.Add(new EffectBonus
+            {
+                Source = "High Balance",
+                Amount = 1,
+                Type = BonusType.Other
+            });
         }
+
+        // Calculate final Exposure
+        result.ExposureChange = result.BaseExposure + result.ExposureBonuses.Sum(b => b.Amount);
 
         // Strategic resource costs - PRE-CALCULATED at parse time via MentalCardEffectCatalog
         // Resolver just uses the values calculated during parsing (no runtime calculation)

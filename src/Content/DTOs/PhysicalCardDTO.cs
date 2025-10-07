@@ -17,6 +17,7 @@ public class PhysicalCardDTO
     public int PositionCost { get; set; } = 0;
     public string Approach { get; set; } = "Standard";
     public string Category { get; set; }  // PhysicalCategory: Aggressive/Defensive/Tactical/Evasive/Endurance
+    public string Discipline { get; set; } = "Combat";  // PhysicalDiscipline: Combat/Athletics/Finesse/Endurance/Strength
 
     // Universal card properties (for catalog-based cost calculation)
     public string RiskLevel { get; set; } = "Cautious";

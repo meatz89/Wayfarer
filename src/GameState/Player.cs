@@ -103,6 +103,15 @@
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
 
+    // Physical progression - Mastery tokens earned through repeated challenge success
+    // Reduces Danger baseline at familiar challenge types (Combat, Athletics, etc.)
+    public List<MasteryTokenEntry> MasteryTokens { get; set; } = new List<MasteryTokenEntry>();
+
+    // Mental resource - Focus depletes with investigation, recovers with rest
+    // Below 30 Focus: Exposure accumulates faster (+1 per action)
+    // Maximum: 100, Cost: 5-20 per investigation start
+    public int Focus { get; set; } = 100;
+
     public void AddKnownRoute(RouteOption route)
     {
         string originName = route.OriginLocationSpot;

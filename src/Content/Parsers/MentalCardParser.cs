@@ -13,6 +13,7 @@ public class MentalCardParser
         // Parse categorical properties from DTO
         Method method = ParseMethod(dto.Method);
         MentalCategory category = ParseCategory(dto.Category);
+        InvestigationDiscipline discipline = ParseDiscipline(dto.Discipline);
         RiskLevel riskLevel = ParseRiskLevel(dto.RiskLevel);
         ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
         MethodType methodType = ParseMethodType(dto.MethodType);
@@ -52,6 +53,7 @@ public class MentalCardParser
             AttentionCost = attentionCost,
             Method = method,
             Category = category,
+            Discipline = discipline,
 
             // Universal card properties
             RiskLevel = riskLevel,
@@ -114,5 +116,12 @@ public class MentalCardParser
         return Enum.TryParse<MethodType>(methodTypeString, out MethodType methodType)
             ? methodType
             : MethodType.Direct;
+    }
+
+    private InvestigationDiscipline ParseDiscipline(string disciplineString)
+    {
+        return Enum.TryParse<InvestigationDiscipline>(disciplineString, out InvestigationDiscipline discipline)
+            ? discipline
+            : InvestigationDiscipline.Research;
     }
 }

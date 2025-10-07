@@ -15,4 +15,5 @@ public class MentalChallengeType
     // Session Parameters
     public int InitialHandSize { get; set; } = 5;
     public int MaxHandSize { get; set; } = 7;
+    public int? FocusCost { get; set; } = 10;  // Focus cost to start investigation (nullable for backwards compatibility)
 }

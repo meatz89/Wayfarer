@@ -77,7 +77,7 @@ public static class SocialCardParser
         int initiativeCost = 0;
         if (boundStat.HasValue)
         {
-            initiativeCost = CardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
+            initiativeCost = SocialCardEffectCatalog.GetSuggestedInitiativeCost(boundStat.Value, (int)depth);
         }
 
         // NOTE: Initiative Generation is derived from ConversationalMove via GetInitiativeGeneration() method
@@ -217,7 +217,7 @@ public static class SocialCardParser
             // Get effect formula from catalog using ONLY categorical properties
             // Card ID hash determines if Foundation card gets specialty or Momentum effect
             // move must have value here (only Conversation cards enter this block, and they always have move set)
-            effectFormula = CardEffectCatalog.GetEffectFromCategoricalProperties(move.Value, boundStat.Value, (int)depth, dto.Id);
+            effectFormula = SocialCardEffectCatalog.GetEffectFromCategoricalProperties(move.Value, boundStat.Value, (int)depth, dto.Id);
 
             if (effectFormula == null)
             {

@@ -54,12 +54,22 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
 
+        // PROGRESSION SYSTEM: Focus cost for Mental investigations
+        int focusCost = engagement.FocusCost ?? 10;
+        if (player.Focus < focusCost)
+        {
+            throw new InvalidOperationException($"Insufficient Focus. Need {focusCost}, have {player.Focus}");
+        }
+        player.Focus -= focusCost;
+        Console.WriteLine($"[MentalFacade] Paid {focusCost} Focus to start investigation (remaining: {player.Focus})");
+
         // Get location's persisted exposure (Mental debt system)
         int baseExposure = location?.Exposure ?? 0;
 
         _currentSession = new MentalSession
         {
             InvestigationId = engagement.Id,
+            LocationId = locationId,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
@@ -154,6 +164,14 @@ public class MentalFacade
             _currentSession.CategoryCounts[category] = 0;
         }
         _currentSession.CategoryCounts[category]++;
+
+        // PROGRESSION SYSTEM: Award XP to bound stat
+        if (card.MentalCardTemplate.BoundStat != PlayerStatType.None)
+        {
+            int xpAmount = CalculateXPAmount(card.MentalCardTemplate.Depth);
+            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, xpAmount);
+            Console.WriteLine($"[MentalFacade] Awarded {xpAmount} XP to {card.MentalCardTemplate.BoundStat} (Depth {card.MentalCardTemplate.Depth})");
+        }
 
         _sessionDeck.PlayCard(card);
         _sessionDeck.DrawToHand(projection.CardsToDraw);
@@ -287,6 +305,16 @@ public class MentalFacade
             CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
         }
 
+        // PROGRESSION SYSTEM: Award location familiarity on success
+        if (success && !string.IsNullOrEmpty(_currentSession.LocationId))
+        {
+            Player player = _gameWorld.GetPlayer();
+            int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_currentSession.LocationId);
+            int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
+            player.LocationFamiliarity.SetFamiliarity(_currentSession.LocationId, newFamiliarity);
+            Console.WriteLine($"[MentalFacade] Increased familiarity with location '{_currentSession.LocationId}' to {newFamiliarity}");
+        }
+
         // Persist exposure to location (Mental debt system)
         // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
         Location location = _gameWorld.Locations.FirstOrDefault(l =>
@@ -306,6 +334,20 @@ public class MentalFacade
         _sessionDeck?.Clear();
 
         return outcome;
+    }
+
+    /// <summary>
+    /// Calculate XP amount from card depth.
+    /// Deeper cards award more XP for progression.
+    /// </summary>
+    private int CalculateXPAmount(int depth)
+    {
+        // Base XP = card depth
+        // Foundation (1-2): 1-2 XP
+        // Standard (3-4): 3-4 XP
+        // Advanced (5-6): 5-6 XP
+        // Master (7-8): 7-8 XP
+        return depth;
     }
 
     /// <summary>

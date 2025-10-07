@@ -21,6 +21,7 @@ public class MentalCard
     public int AttentionCost { get; init; } = 0;  // Action economy cost
     public Method Method { get; init; } = Method.Standard;  // Rhythm effect
     public MentalCategory Category { get; init; }  // Card category determines thematic approach and effects
+    public InvestigationDiscipline Discipline { get; init; } = InvestigationDiscipline.Research;  // Specialization for bonus matching
 
     // Universal card properties (apply across all tactical systems)
     public RiskLevel RiskLevel { get; init; } = RiskLevel.Cautious;

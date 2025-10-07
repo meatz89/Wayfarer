@@ -84,6 +84,9 @@ public class Location
     // Location Exposure System - Mental debt that persists across investigations
     public int Exposure { get; set; } = 0;
 
+    // Investigation Profile - Primary discipline for Mental challenges at this location (for specialist bonuses)
+    public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
+
     public Location(string id, string name)
     {
         Id = id;

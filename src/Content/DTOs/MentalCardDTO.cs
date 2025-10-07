@@ -17,6 +17,7 @@ public class MentalCardDTO
     public int AttentionCost { get; set; } = 0;
     public string Method { get; set; } = "Standard";
     public string Category { get; set; }  // MentalCategory: Analytical/Physical/Observational/Social/Synthesis
+    public string Discipline { get; set; } = "Research";  // InvestigationDiscipline: Research/Observation/Deduction/Interrogation/Infiltration
 
     // Universal card properties (for catalog-based cost calculation)
     public string RiskLevel { get; set; } = "Cautious";

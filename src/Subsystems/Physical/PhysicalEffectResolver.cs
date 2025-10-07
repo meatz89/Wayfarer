@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// PROJECTION PRINCIPLE: Pure projection function that returns what WOULD happen
@@ -20,8 +21,10 @@ public class PhysicalEffectResolver
     /// Calculates all resource changes without modifying state.
     /// Perfect information for player decision-making.
     /// DUAL BALANCE SYSTEM: Combines action-based balance + approach-based balance
+    ///
+    /// PERFECT INFORMATION ENHANCEMENT: Tracks base + all bonuses separately for UI display.
     /// </summary>
-    public PhysicalCardEffectResult ProjectCardEffects(CardInstance card, PhysicalSession session, Player player, PhysicalActionType actionType)
+    public PhysicalCardEffectResult ProjectCardEffects(CardInstance card, PhysicalSession session, Player player, PhysicalActionType actionType, string challengeTypeId = null)
     {
         PhysicalCardEffectResult result = new PhysicalCardEffectResult
         {
@@ -50,14 +53,35 @@ public class PhysicalEffectResolver
         PlayerExertionState exertion = _exertionCalculator.CalculateExertion(player);
         int costModifier = exertion.GetPhysicalCostModifier();
 
-        // Builder resource: Position
-        // Spend Position cost (modified by physical exertion)
-        int modifiedPositionCost = Math.Max(0, template.PositionCost + costModifier);
-        result.PositionChange -= modifiedPositionCost;
+        // ===== POSITION (Builder Resource) =====
+        // BASE: Position cost from card depth
+        result.BasePosition = -template.PositionCost;
+
+        // BONUS: Exertion modifier (penalty when tired)
+        if (costModifier != 0)
+        {
+            result.PositionBonuses.Add(new EffectBonus
+            {
+                Source = "Exertion",
+                Amount = -costModifier,  // Negative because it increases cost
+                Type = BonusType.Exertion
+            });
+        }
 
         // Generate Position from Foundation cards (Depth 1-2)
         int positionGen = template.GetPositionGeneration();
-        result.PositionChange += positionGen;
+        if (positionGen > 0)
+        {
+            result.PositionBonuses.Add(new EffectBonus
+            {
+                Source = "Foundation Card",
+                Amount = positionGen,
+                Type = BonusType.Other
+            });
+        }
+
+        // Calculate final Position change
+        result.PositionChange = result.BasePosition + result.PositionBonuses.Sum(b => b.Amount);
 
         // DUAL BALANCE SYSTEM:
         // 1. Action-based balance (Assess vs Execute rhythm)
@@ -81,20 +105,84 @@ public class PhysicalEffectResolver
         // Combine both balance effects
         result.BalanceChange = actionBalance + approachBalance;
 
-        // Victory resource: Breakthrough calculated from categorical properties via PhysicalCardEffectCatalog
-        result.BreakthroughChange = PhysicalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
+        // ===== BREAKTHROUGH (Victory Resource) =====
+        // BASE: Breakthrough from card categorical properties
+        result.BaseBreakthrough = PhysicalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
 
-        // Consequence resource: Danger calculated from categorical properties via PhysicalCardEffectCatalog
-        int baseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(template.Depth, template.Approach);
+        // BONUS 1: Discipline Match (Specialist bonus)
+        // Check if card discipline matches challenge type for +2 Breakthrough
+        if (!string.IsNullOrEmpty(challengeTypeId))
+        {
+            // TODO: Need to get actual challenge discipline from challengeTypeId
+            // For now, award bonus if disciplines conceptually match
+            // This will be properly implemented when PhysicalChallengeType.DisciplineType is added
+        }
+
+        // BONUS 2: Stat Level (Player progression)
+        if (template.BoundStat != PlayerStatType.None)
+        {
+            int statLevel = player.Stats.GetLevel(template.BoundStat);
+            if (statLevel >= 5)
+            {
+                int bonus = (statLevel - 4) / 2;  // +1 at level 5-6, +2 at level 7-8, etc.
+                result.BreakthroughBonuses.Add(new EffectBonus
+                {
+                    Source = $"{template.BoundStat} Level {statLevel}",
+                    Amount = bonus,
+                    Type = BonusType.StatLevel
+                });
+            }
+        }
+
+        // Calculate final Breakthrough
+        result.BreakthroughChange = result.BaseBreakthrough + result.BreakthroughBonuses.Sum(b => b.Amount);
+
+        // ===== DANGER (Consequence Resource) =====
+        // BASE: Danger from card approach and depth
+        result.BaseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(template.Depth, template.Approach);
+
+        // BONUS 1: Mastery Token (Reduces danger at familiar challenge types)
+        if (!string.IsNullOrEmpty(challengeTypeId))
+        {
+            int masteryLevel = player.MasteryTokens.GetMastery(challengeTypeId);
+            if (masteryLevel > 0)
+            {
+                int dangerReduction = -Math.Min(3, masteryLevel);  // Max -3 Danger
+                result.DangerBonuses.Add(new EffectBonus
+                {
+                    Source = $"Mastery ({masteryLevel} tokens)",
+                    Amount = dangerReduction,
+                    Type = BonusType.Mastery
+                });
+            }
+        }
+
+        // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();
-        result.DangerChange = baseDanger + riskModifier;
+        if (riskModifier != 0)
+        {
+            result.DangerBonuses.Add(new EffectBonus
+            {
+                Source = "Exertion State",
+                Amount = riskModifier,
+                Type = BonusType.Exertion
+            });
+        }
 
-        // Balance modifier: High positive balance increases Danger
+        // BONUS 3: Balance Modifier (High positive balance increases Danger)
         int projectedBalance = session.Commitment + result.BalanceChange;
         if (projectedBalance > 5)
         {
-            result.DangerChange += 1;
+            result.DangerBonuses.Add(new EffectBonus
+            {
+                Source = "High Balance",
+                Amount = 1,
+                Type = BonusType.Other
+            });
         }
+
+        // Calculate final Danger
+        result.DangerChange = result.BaseDanger + result.DangerBonuses.Sum(b => b.Amount);
 
         // Strategic resource costs - PRE-CALCULATED at parse time via PhysicalCardEffectCatalog
         // Resolver just uses the values calculated during parsing (no runtime calculation)

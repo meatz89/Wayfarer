@@ -7,6 +7,7 @@ public class PhysicalChallengeType
     public string Id { get; set; }
     public string Name { get; set; }
     public string DeckId { get; set; }  // References PhysicalChallengeDeck
+    public PhysicalDiscipline Discipline { get; set; } = PhysicalDiscipline.Combat;  // Challenge discipline for specialist bonuses
 
     // Victory/Failure Thresholds
     public int VictoryThreshold { get; set; }  // Breakthrough needed

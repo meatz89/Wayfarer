@@ -149,6 +149,14 @@ public class PhysicalFacade
             _currentSession.ApproachHistory++;
         }
 
+        // PROGRESSION SYSTEM: Award XP to bound stat
+        if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
+        {
+            int xpAmount = CalculateXPAmount(card.PhysicalCardTemplate.Depth);
+            player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, xpAmount);
+            Console.WriteLine($"[PhysicalFacade] Awarded {xpAmount} XP to {card.PhysicalCardTemplate.BoundStat} (Depth {card.PhysicalCardTemplate.Depth})");
+        }
+
         _sessionDeck.PlayCard(card);
         _sessionDeck.DrawToHand(projection.CardsToDraw);
 
@@ -297,6 +305,14 @@ public class PhysicalFacade
             int reputationGain = _currentSession.CurrentBreakthrough >= 20 ? 1 : 0;
             player.Reputation += reputationGain;
             Console.WriteLine($"[PhysicalFacade] Awarded {reputationGain} reputation for victory (total: {player.Reputation})");
+
+            // PROGRESSION SYSTEM: Award mastery token for this challenge type
+            if (!string.IsNullOrEmpty(_currentSession.ChallengeId))
+            {
+                player.MasteryTokens.AddMastery(_currentSession.ChallengeId, 1);
+                int masteryLevel = player.MasteryTokens.GetMastery(_currentSession.ChallengeId);
+                Console.WriteLine($"[PhysicalFacade] Earned mastery token for '{_currentSession.ChallengeId}'. Total: {masteryLevel}");
+            }
         }
 
         // Clear investigation context
@@ -307,6 +323,20 @@ public class PhysicalFacade
         _sessionDeck?.Clear();
 
         return outcome;
+    }
+
+    /// <summary>
+    /// Calculate XP amount from card depth.
+    /// Deeper cards award more XP for progression.
+    /// </summary>
+    private int CalculateXPAmount(int depth)
+    {
+        // Base XP = card depth
+        // Foundation (1-2): 1-2 XP
+        // Standard (3-4): 3-4 XP
+        // Advanced (5-6): 5-6 XP
+        // Master (7-8): 7-8 XP
+        return depth;
     }
 
     /// <summary>
