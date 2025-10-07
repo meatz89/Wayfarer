@@ -18,12 +18,12 @@ using System.Linq;
 /// - No side effects occur during preview operations
 /// - Single source of truth for effect calculations
 /// </summary>
-public class CategoricalEffectResolver
+public class SocialEffectResolver
 {
     private readonly TokenMechanicsManager tokenManager;
     private readonly GameWorld gameWorld;
 
-    public CategoricalEffectResolver(
+    public SocialEffectResolver(
         TokenMechanicsManager tokenManager,
         GameWorld gameWorld)
     {
@@ -36,7 +36,7 @@ public class CategoricalEffectResolver
     /// Calculates rapport changes, cards to draw, focus to add, atmosphere to set, etc.
     /// The caller decides whether to apply these projected changes.
     /// </summary>
-    public CardEffectResult ProcessSuccessEffect(CardInstance card, ConversationSession session)
+    public CardEffectResult ProcessSuccessEffect(CardInstance card, SocialChallengeSession session)
     {
         CardEffectResult result = new CardEffectResult
         {
@@ -62,7 +62,7 @@ public class CategoricalEffectResolver
     /// DETERMINISTIC: Check if card succeeds based on clear rules (no randomness)
     /// Cards succeed based on personality rules, resource requirements, and momentum thresholds
     /// </summary>
-    public bool CheckCardSuccess(CardInstance card, ConversationSession session)
+    public bool CheckCardSuccess(CardInstance card, SocialChallengeSession session)
     {
         // Goal cards (Requests, Promises) always succeed if momentum threshold is met
         if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Burden)
@@ -80,7 +80,7 @@ public class CategoricalEffectResolver
     /// <summary>
     /// Build comprehensive effect result from EffectFormula system
     /// </summary>
-    private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, ConversationSession session)
+    private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, SocialChallengeSession session)
     {
         var result = new CardEffectResult
         {
@@ -161,7 +161,7 @@ public class CategoricalEffectResolver
         return result;
     }
 
-    private void ApplyFormulaToResult(CardEffectFormula formula, ConversationSession session, CardEffectResult result, List<string> effects)
+    private void ApplyFormulaToResult(CardEffectFormula formula, SocialChallengeSession session, CardEffectResult result, List<string> effects)
     {
         // Calculate the effect value
         int effectValue = formula.CalculateEffect(session);

@@ -20,8 +20,8 @@ namespace Wayfarer.Pages.Components.Shared
         [Parameter] public List<CardNarrative> CardNarratives { get; set; }
 
         // SOCIAL SYSTEM ONLY: ConversationSession and CategoricalEffectResolver
-        [Inject] protected CategoricalEffectResolver EffectResolver { get; set; }
-        [Parameter] public ConversationSession Session { get; set; }
+        [Inject] protected SocialEffectResolver EffectResolver { get; set; }
+        [Parameter] public SocialChallengeSession Session { get; set; }
 
         protected async Task HandleClick()
         {

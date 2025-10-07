@@ -76,7 +76,13 @@
       "Bash(git mv:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6500\" timeout 15 dotnet run --no-build)",
       "Bash(/dev/null)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6500\" timeout 60 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6500\" timeout 60 dotnet run --no-build)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6600\" dotnet run --no-build)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" dotnet run --no-build)",
+      "Bash(taskkill:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" timeout 30 dotnet run --no-build)"
     ],
     "deny": [],
     "ask": []

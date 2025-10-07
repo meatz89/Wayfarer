@@ -2,7 +2,7 @@
 using System.Linq;
 
 // Conversation session
-public class ConversationSession
+public class SocialChallengeSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public NPC NPC { get; set; }
@@ -276,11 +276,11 @@ public class ConversationSession
         return CurrentDoubt >= MaxDoubt;
     }
 
-    public ConversationOutcome CheckThresholds()
+    public SocialChallengeOutcome CheckThresholds()
     {
         if (CurrentDoubt >= MaxDoubt)
         {
-            return new ConversationOutcome
+            return new SocialChallengeOutcome
             {
                 Success = false,
                 FinalMomentum = CurrentMomentum,
@@ -290,7 +290,7 @@ public class ConversationSession
         }
 
         // Conversation ended normally without hitting thresholds
-        return new ConversationOutcome
+        return new SocialChallengeOutcome
         {
             Success = true,
             FinalMomentum = CurrentMomentum,
@@ -321,7 +321,7 @@ public class ConversationSession
         };
     }
 
-    public static ConversationSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
+    public static SocialChallengeSession StartConversation(NPC npc, ObligationQueueManager queueManager, TokenMechanicsManager tokenManager,
         List<CardInstance> observationCards, string requestId, string conversationTypeId, PlayerResourceState playerResourceState, GameWorld gameWorld, MomentumManager momentumManager)
     {
         // Use properly typed parameters
@@ -351,7 +351,7 @@ public class ConversationSession
         }
 
         // Create session with proper initialization
-        ConversationSession session = new ConversationSession
+        SocialChallengeSession session = new SocialChallengeSession
         {
             NPC = npc,
             ChallengeTypeId = conversationTypeId,

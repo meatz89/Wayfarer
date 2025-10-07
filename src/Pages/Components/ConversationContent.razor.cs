@@ -36,9 +36,9 @@ namespace Wayfarer.Pages.Components
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
-        [Inject] protected ConversationFacade ConversationFacade { get; set; }
+        [Inject] protected SocialFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected ConversationNarrativeService NarrativeService { get; set; }
+        [Inject] protected SocialNarrativeService NarrativeService { get; set; }
 
         /// <summary>
         /// PROJECTION PRINCIPLE: The CategoricalEffectResolver is a pure projection function
@@ -46,9 +46,9 @@ namespace Wayfarer.Pages.Components
         /// and game logic (for execution) call the resolver to get projections.
         /// This ensures the UI can accurately display what effects WILL occur.
         /// </summary>
-        [Inject] protected CategoricalEffectResolver EffectResolver { get; set; }
+        [Inject] protected SocialEffectResolver EffectResolver { get; set; }
 
-        protected ConversationSession Session { get; set; }
+        protected SocialChallengeSession Session { get; set; }
         protected CardInstance? SelectedCard { get; set; } = null;
         protected int TotalSelectedInitiative => GetCardInitiativeCost(SelectedCard);
         protected bool IsConversationEnded { get; set; } = false;
@@ -1014,7 +1014,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTierUnlockThreshold(int tier)
         {
-            return ConversationSession.GetTierUnlockThreshold(tier);
+            return SocialChallengeSession.GetTierUnlockThreshold(tier);
         }
 
         protected ConversationTier[] GetAllTiers()

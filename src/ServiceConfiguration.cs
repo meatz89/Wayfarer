@@ -66,10 +66,10 @@ public static class ServiceConfiguration
 
         // ConversationSubsystem services
         services.AddSingleton<MomentumManager>();
-        services.AddSingleton<CategoricalEffectResolver>();
-        services.AddSingleton<ConversationDeckBuilder>();
+        services.AddSingleton<SocialEffectResolver>();
+        services.AddSingleton<SocialChallengeDeckBuilder>();
         services.AddSingleton<ExchangeHandler>();
-        services.AddSingleton<ConversationFacade>();
+        services.AddSingleton<SocialFacade>();
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
 
@@ -108,7 +108,7 @@ public static class ServiceConfiguration
         // Narrative Generation Services
         services.AddSingleton<NarrativeStreamingService>();
         services.AddSingleton<JsonNarrativeRepository>();
-        services.AddSingleton<ConversationNarrativeService>();
+        services.AddSingleton<SocialNarrativeService>();
 
         // AI Narrative Generation Support Components
         services.AddSingleton<ConversationNarrativeGenerator>();

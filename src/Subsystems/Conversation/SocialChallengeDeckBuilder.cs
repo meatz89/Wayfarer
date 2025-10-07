@@ -6,12 +6,12 @@ using System.Linq;
 /// Builds conversation decks from conversation type cards.
 /// NO PLAYER DECK - cards come from conversation types defined in JSON.
 /// </summary>
-public class ConversationDeckBuilder
+public class SocialChallengeDeckBuilder
 {
     private readonly GameWorld _gameWorld;
     private readonly TokenMechanicsManager _tokenManager;
 
-    public ConversationDeckBuilder(GameWorld gameWorld, TokenMechanicsManager tokenManager)
+    public SocialChallengeDeckBuilder(GameWorld gameWorld, TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));

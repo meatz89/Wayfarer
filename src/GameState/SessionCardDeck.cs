@@ -117,7 +117,7 @@ public class SessionCardDeck
     /// Draw cards directly to hand with tier-based filtering
     /// Uses ConversationSession to get unlocked tiers and stat bonuses for depth access
     /// </summary>
-    public void DrawToHand(int count, ConversationSession session, PlayerStats playerStats = null)
+    public void DrawToHand(int count, SocialChallengeSession session, PlayerStats playerStats = null)
     {
         int maxDepth = session.GetUnlockedMaxDepth();
         Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, unlocked tiers: {string.Join(",", session.UnlockedTiers)}, max depth: {maxDepth}");
@@ -480,7 +480,7 @@ public class SessionCardDeck
     /// Tier system: Tier 1 (depths 1-2), Tier 2 (depths 3-4), Tier 3 (depths 5-6), Tier 4 (depths 7-8)
     /// Tiers unlock at Understanding thresholds (0/6/12/18) and persist once unlocked
     /// </summary>
-    private bool CanAccessCard(ConversationCard card, ConversationSession session, PlayerStats playerStats)
+    private bool CanAccessCard(ConversationCard card, SocialChallengeSession session, PlayerStats playerStats)
     {
         if (card == null) return false;
 
@@ -504,7 +504,7 @@ public class SessionCardDeck
     /// Check if a card can be played RIGHT NOW (tier + Statement requirements + Initiative cost).
     /// This is used by UI to determine which cards in hand are playable vs locked.
     /// </summary>
-    public bool CanPlayCard(CardInstance card, ConversationSession session, PlayerStats playerStats)
+    public bool CanPlayCard(CardInstance card, SocialChallengeSession session, PlayerStats playerStats)
     {
         if (card == null) return false;
 
@@ -528,7 +528,7 @@ public class SessionCardDeck
     /// Maintains deck order - draws the first accessible card from top of deck
     /// Returns null if no accessible cards are available
     /// </summary>
-    private CardInstance DrawNextAccessibleCard(ConversationSession session, PlayerStats playerStats)
+    private CardInstance DrawNextAccessibleCard(SocialChallengeSession session, PlayerStats playerStats)
     {
         int maxDepth = session.GetUnlockedMaxDepth();
 

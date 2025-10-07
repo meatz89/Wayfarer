@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 /// with the new narrative generation system. Converts between game models
 /// and narrative models, manages provider selection, and handles fallback scenarios.
 /// </summary>
-public class ConversationNarrativeService
+public class SocialNarrativeService
 {
     private readonly NarrativeProviderFactory _providerFactory;
 
-    public ConversationNarrativeService(
+    public SocialNarrativeService(
         NarrativeProviderFactory providerFactory)
     {
         _providerFactory = providerFactory;
@@ -23,7 +23,7 @@ public class ConversationNarrativeService
     /// For progressive UI updates - show NPC dialogue first.
     /// </summary>
     public async Task<NarrativeOutput> GenerateOnlyNPCDialogueAsync(
-        ConversationSession session,
+        SocialChallengeSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -62,7 +62,7 @@ public class ConversationNarrativeService
     /// For progressive UI updates - show card narratives after NPC dialogue.
     /// </summary>
     public async Task<List<CardNarrative>> GenerateOnlyCardNarrativesAsync(
-        ConversationSession session,
+        SocialChallengeSession session,
         NPC npc,
         List<CardInstance> activeCards,
         string npcDialogue)
@@ -106,7 +106,7 @@ public class ConversationNarrativeService
     /// <param name="activeCards">List of cards currently available to player</param>
     /// <returns>Generated narrative output or fallback content</returns>
     public async Task<NarrativeOutput> GenerateNarrativeAsync(
-        ConversationSession session,
+        SocialChallengeSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -157,7 +157,7 @@ public class ConversationNarrativeService
     /// Ensures game continues functioning with basic descriptive text.
     /// </summary>
     private NarrativeOutput CreateMinimalFallbackNarrative(
-        ConversationSession session,
+        SocialChallengeSession session,
         NPC npc,
         List<CardInstance> activeCards)
     {
@@ -190,7 +190,7 @@ public class ConversationNarrativeService
     /// </summary>
     /// <param name="session">Game conversation session</param>
     /// <returns>Narrative conversation state</returns>
-    private ConversationState BuildConversationState(ConversationSession session)
+    private ConversationState BuildConversationState(SocialChallengeSession session)
     {
         int momentum = session.CurrentMomentum;
         TopicLayer currentLayer = DetermineTopicLayer(momentum);

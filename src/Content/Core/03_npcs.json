@@ -1,11 +1,11 @@
 {
   "packageId": "npcs_all",
   "metadata": {
-    "name": "All NPCs - Named and Strangers",
+    "name": "POC NPCs - Elena and Aldric Only",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Complete NPC collection including named NPCs with deck compositions and stranger NPCs for encounters",
+    "description": "Minimal POC: Elena and Aldric at Old Mill courtyard",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "content": {
     "npcs": [
@@ -14,10 +14,10 @@
         "name": "Elena",
         "level": 2,
         "profession": "Miller's Daughter",
-        "locationId": "market_square",
-        "spotId": "fountain_plaza",
-        "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. She carries a sealed package destined for Farmer Aldric.",
-        "personality": "Determined but burdened by family secrets. Her family's old mill holds mysteries she's not ready to confront alone.",
+        "locationId": "old_mill",
+        "spotId": "courtyard",
+        "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. Her family's old mill holds mysteries she's not ready to confront alone.",
+        "personality": "Determined but burdened by family secrets.",
         "personalityType": "DEVOTED",
         "letterTokenTypes": [
           "Trust"
@@ -64,32 +64,12 @@
         ]
       },
       {
-        "id": "martha",
-        "name": "Martha",
-        "level": 4,
-        "profession": "Village Elder",
-        "locationId": "market_square",
-        "spotId": "elder_bench",
-        "description": "An elderly woman with sharp eyes who remembers when the old mill still turned. She knows every family's history in these parts.",
-        "personality": "Wise and observant. She sees more than she says, but shares knowledge with those who earn her trust.",
-        "personalityType": "STEADFAST",
-        "letterTokenTypes": [
-          "Insight"
-        ],
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Insight": 0
-        },
-        "conversationDifficulty": 3,
-        "requests": []
-      },
-      {
         "id": "aldric",
         "name": "Farmer Aldric",
         "level": 1,
         "profession": "Farmer",
-        "locationId": "aldric_farm",
-        "spotId": "farmhouse",
+        "locationId": "old_mill",
+        "spotId": "courtyard",
         "description": "A weathered farmer who tends his fields beyond the creek. He knew Elena's family before tragedy struck.",
         "personality": "Simple and direct. A man of few words but honest dealings.",
         "personalityType": "STEADFAST",
@@ -101,210 +81,15 @@
           "Trust": 0
         },
         "conversationDifficulty": 1,
-        "requests": []
-      },
-      {
-        "id": "marcus",
-        "name": "Marcus",
-        "level": 2,
-        "profession": "Merchant",
-        "locationId": "market_square",
-        "spotId": "merchant_row",
-        "description": "A shrewd merchant always looking for profitable deals",
-        "personality": "Calculating and opportunistic",
-        "personalityType": "MERCANTILE",
-        "letterTokenTypes": [
-          "Diplomacy"
-        ],
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Diplomacy": 0
-        },
-        "conversationDifficulty": 1,
         "requests": [
           {
-            "id": "marcus_trade_opportunities",
-            "conversationTypeId": "trade_negotiation",
-            "name": "Trade Opportunities",
-            "description": "Marcus seeks profitable trading partners",
+            "id": "aldric_friendly_chat",
+            "conversationTypeId": "friendly_chat",
+            "name": "Casual chat",
+            "description": "Have a friendly conversation with Aldric",
             "goals": []
           }
         ]
-      },
-      {
-        "id": "lord_blackwood",
-        "name": "Lord Blackwood",
-        "profession": "Noble",
-        "locationId": "noble_district",
-        "spotId": "blackwood_estate",
-        "description": "An influential noble preparing to leave for the capital at sunset",
-        "personality": "Impatient and powerful, expecting Elena's answer to his proposal",
-        "personalityType": "PROUD",
-        "letterTokenTypes": [
-          "Status"
-        ],
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Status": 0
-        },
-        "conversationDifficulty": 2
-      },
-      {
-        "id": "warehouse_recipient",
-        "name": "Warehouse Clerk",
-        "profession": "Clerk",
-        "locationId": "warehouse_district",
-        "spotId": "warehouse_entrance",
-        "description": "A busy clerk managing incoming and outgoing shipments",
-        "personality": "Efficient and no-nonsense",
-        "personalityType": "MERCANTILE",
-        "letterTokenTypes": [
-          "Diplomacy"
-        ],
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Diplomacy": 0
-        },
-        "conversationDifficulty": 1
-      },
-      {
-        "id": "victor",
-        "name": "Victor",
-        "profession": "Guard",
-        "locationId": "market_square",
-        "spotId": "guard_post",
-        "description": "The stern captain of the city guard",
-        "personality": "Vigilant and authoritative",
-        "personalityType": "PROUD",
-        "letterTokenTypes": [
-          "Status"
-        ],
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Status": 0
-        }
-      }
-    ],
-    "strangers": [
-      {
-        "id": "tea_vendor_morning",
-        "name": "Tea Vendor",
-        "level": 1,
-        "personality": "Steadfast",
-        "locationId": "market_square",
-        "timeBlock": "morning",
-        "request": {
-          "id": "tea_vendor_morning_trade",
-          "name": "Calming Tea Trade",
-          "description": "Purchase soothing tea from the friendly vendor",
-          "conversationTypeId": "trade_negotiation",
-          "rapportThresholds": [4, 8, 12],
-          "rewards": [
-            {"coins": 2, "health": 5},
-            {"coins": 4, "item": "calming_tea", "health": 10},
-            {"coins": 6, "item": "premium_tea", "health": 15, "tokens": {"Diplomacy": 1}}
-          ]
-        }
-      },
-      {
-        "id": "scholar_morning",
-        "name": "Scholar",
-        "level": 2,
-        "personality": "Proud",
-        "locationId": "library",
-        "timeBlock": "morning",
-        "request": {
-          "id": "scholar_morning_discussion",
-          "name": "Academic Knowledge Trade",
-          "description": "Exchange scholarly insights and research knowledge",
-          "conversationTypeId": "friendly_chat",
-          "rapportThresholds": [6, 12, 18],
-          "rewards": [
-            {"coins": 3, "familiarity": 1},
-            {"coins": 6, "observation": "research_insights_for_elena"},
-            {"coins": 9, "observation": "advanced_research_for_anyone", "tokens": {"Insight": 1}}
-          ]
-        }
-      },
-      {
-        "id": "pilgrim_afternoon",
-        "name": "Pilgrim",
-        "level": 2,
-        "personality": "Devoted",
-        "locationId": "temple",
-        "timeBlock": "afternoon",
-        "request": {
-          "id": "pilgrim_afternoon_wisdom",
-          "name": "Spiritual Wisdom Exchange",
-          "description": "Share spiritual insights and seek guidance",
-          "conversationTypeId": "friendly_chat",
-          "rapportThresholds": [5, 10, 15],
-          "rewards": [
-            {"health": 10, "coins": 2},
-            {"health": 20, "observation": "spiritual_wisdom_for_elena"},
-            {"health": 30, "item": "blessing", "tokens": {"Trust": 1}}
-          ]
-        }
-      },
-      {
-        "id": "foreign_merchant_evening",
-        "name": "Foreign Merchant",
-        "level": 3,
-        "personality": "Mercantile",
-        "locationId": "market_square",
-        "timeBlock": "evening",
-        "request": {
-          "id": "foreign_merchant_evening_trade",
-          "name": "Exotic Goods Exchange",
-          "description": "Trade for rare and valuable foreign goods",
-          "conversationTypeId": "trade_negotiation",
-          "rapportThresholds": [8, 16, 24],
-          "rewards": [
-            {"coins": 5, "item": "exotic_spices"},
-            {"coins": 10, "item": "rare_silk", "observation": "trade_routes_for_marcus"},
-            {"coins": 15, "item": "precious_gems", "observation": "foreign_contacts_for_marcus", "tokens": {"Diplomacy": 2}}
-          ]
-        }
-      },
-      {
-        "id": "market_guard_afternoon",
-        "name": "Market Guard",
-        "level": 2,
-        "personality": "Proud",
-        "locationId": "market_square",
-        "timeBlock": "afternoon",
-        "request": {
-          "id": "market_guard_afternoon_inquiry",
-          "name": "Authority Challenge",
-          "description": "Deal with the market guard's questioning",
-          "conversationTypeId": "authority_challenge",
-          "rapportThresholds": [8, 15, 20],
-          "rewards": [
-            {"coins": 3},
-            {"coins": 6, "permit": "market_access"},
-            {"coins": 10, "permit": "guard_quarters_access", "tokens": {"Authority": 1}}
-          ]
-        }
-      },
-      {
-        "id": "tavern_patron_evening",
-        "name": "Weary Traveler",
-        "level": 1,
-        "personality": "Devoted",
-        "locationId": "copper_kettle_tavern",
-        "timeBlock": "evening",
-        "request": {
-          "id": "tavern_patron_evening_stories",
-          "name": "Share Stories",
-          "description": "Exchange travel tales with the weary traveler",
-          "conversationTypeId": "friendly_chat",
-          "rapportThresholds": [6, 12, 18],
-          "rewards": [
-            {"coins": 1, "food": 1},
-            {"coins": 3, "observation": "travel_tales_for_elena"},
-            {"coins": 5, "observation": "travel_tales_for_elena", "tokens": {"Trust": 1}}
-          ]
-        }
       }
     ]
   }

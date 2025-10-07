@@ -1,6 +1,6 @@
 
 // Conversation outcome - updated for 4-resource system
-public class ConversationOutcome
+public class SocialChallengeOutcome
 {
     public bool Success { get; set; }
     public int FinalMomentum { get; set; }

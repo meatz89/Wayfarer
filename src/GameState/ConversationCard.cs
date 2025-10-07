@@ -89,7 +89,7 @@ public class ConversationCard
     public IReadOnlyList<string> SecretsGranted { get; init; } = new List<string>();
 
     // Get effective Initiative cost considering alternative costs
-    public int GetEffectiveInitiativeCost(ConversationSession session = null)
+    public int GetEffectiveInitiativeCost(SocialChallengeSession session = null)
     {
         return InitiativeCost;
     }
@@ -160,7 +160,7 @@ public class ConversationCard
     /// Check if Statement requirements are met for this card
     /// Returns true if no requirements or requirements are satisfied
     /// </summary>
-    public bool MeetsStatementRequirements(ConversationSession session)
+    public bool MeetsStatementRequirements(SocialChallengeSession session)
     {
         if (!RequiredStat.HasValue || RequiredStatements <= 0)
         {

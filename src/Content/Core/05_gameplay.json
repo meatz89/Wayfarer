@@ -1,36 +1,25 @@
 {
   "packageId": "core_gameplay",
   "metadata": {
-    "name": "Core Gameplay Systems",
+    "name": "Core Gameplay Systems - POC",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Player stats, letters, observations, exchanges, dialogue templates, and starting conditions",
+    "description": "Player stats, dialogue templates, and starting conditions for POC",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 0,
-      "health": 100,
-      "maxHealth": 100,
-      "hunger": 50,
+      "coins": 20,
+      "health": 10,
+      "maxHealth": 10,
+      "hunger": 0,
       "maxHunger": 100,
+      "stamina": 12,
+      "maxStamina": 12,
       "satchelCapacity": 10,
-      "satchelWeight": 3
+      "satchelWeight": 0
     },
-    "startingSpotId": "courtyard",
-    "startingObligations": [
-      {
-        "id": "viktor_package",
-        "type": "delivery",
-        "position": 1,
-        "deadline": 480,
-        "recipientId": "marcus",
-        "letterId": "viktor_package_letter",
-        "payment": 7,
-        "weight": 3,
-        "description": "Viktor's package for Marcus at Market Square"
-      }
-    ]
+    "startingSpotId": "courtyard"
   },
   "content": {
     "stats": [
@@ -108,105 +97,6 @@
           "description": "+20% success rate and cards never force LISTEN on failure"
         }
       ]
-    },
-    "letters": [
-      {
-        "id": "elena_urgent_letter",
-        "senderId": "elena",
-        "recipientId": "lord_blackwood",
-        "title": "Elena's Response",
-        "content": "My dearest Lord Blackwood, I accept your proposal with all my heart. Please wait for me. - Elena",
-        "payment": 25,
-        "deadline": 300,
-        "urgent": true
-      },
-      {
-        "id": "viktor_package_letter",
-        "senderId": "viktor",
-        "recipientId": "warehouse_recipient",
-        "title": "Viktor's Package",
-        "content": "Important shipment for warehouse storage. Handle with care.",
-        "payment": 10,
-        "deadline": 480,
-        "urgent": false
-      }
-    ],
-    "observations": [
-      {
-        "id": "safe_passage_knowledge",
-        "name": "Safe Passage Knowledge",
-        "displayText": "You notice the guard patrol patterns, gaining insight into safe passage routes",
-        "description": "Observing guard patrol patterns",
-        "category": "Investigation",
-        "focus": 1,
-        "properties": ["investigation", "guards", "safety"],
-        "requiredTags": ["market"],
-        "excludedTags": [],
-        "triggerCondition": "familiarity >= 1",
-        "oneTimeOnly": true,
-        "tokenType": "Trust",
-        "difficulty": "Medium"
-      },
-      {
-        "id": "merchant_route_insight",
-        "name": "Merchant Route Insight",
-        "displayText": "You understand the merchant traffic patterns, revealing profitable trade routes",
-        "description": "Understanding merchant traffic patterns",
-        "category": "Investigation",
-        "focus": 2,
-        "properties": ["investigation", "diplomacy", "trade"],
-        "requiredTags": ["market"],
-        "excludedTags": [],
-        "triggerCondition": "familiarity >= 2",
-        "oneTimeOnly": true,
-        "tokenType": "Diplomacy",
-        "difficulty": "Medium"
-      }
-    ],
-    "exchanges": [
-      {
-        "id": "quick_food_trade",
-        "name": "Quick Hunger Purchase",
-        "giveCurrency": "coins",
-        "giveAmount": 10,
-        "receiveCurrency": "food",
-        "receiveAmount": 1,
-        "tokenGate": {
-          "Diplomacy": 1
-        }
-      },
-      {
-        "id": "bread_trade",
-        "name": "Fresh Bread Purchase",
-        "giveCurrency": "coins",
-        "giveAmount": 5,
-        "receiveCurrency": "item",
-        "receiveItem": "fresh_bread",
-        "receiveAmount": 1,
-        "tokenGate": {}
-      },
-      {
-        "id": "caravan_transport",
-        "name": "Caravan Transport Service",
-        "giveCurrency": "coins",
-        "giveAmount": 15,
-        "receiveCurrency": "weight_reduction",
-        "receiveAmount": 5,
-        "tokenGate": {
-          "Diplomacy": 2
-        }
-      }
-    ],
-    "deckCompositions": {
-      "npcDecks": {
-        "marcus": {
-          "exchangeDeck": {
-            "quick_food_trade": 1,
-            "bread_trade": 1,
-            "caravan_transport": 1
-          }
-        }
-      }
     },
     "dialogueTemplates": {
       "connectionStateDialogue": {

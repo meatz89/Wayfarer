@@ -10,7 +10,7 @@ public static class ConversationContextFactory
     public static ConversationContextBase CreateContext(
         string conversationTypeId,
         NPC npc,
-        ConversationSession session,
+        SocialChallengeSession session,
         List<CardInstance> observationCards,
         ResourceState playerResources,
         string locationName,

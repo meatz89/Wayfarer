@@ -10,7 +10,7 @@ public abstract class ConversationContextBase
     public string RequestId { get; set; }
     public string ConversationTypeId { get; set; }
     public ConnectionState InitialState { get; set; }
-    public ConversationSession Session { get; set; }
+    public SocialChallengeSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
     public ResourceState PlayerResources { get; set; }
     public string LocationName { get; set; }

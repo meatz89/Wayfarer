@@ -12,7 +12,7 @@ public class GameFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly ConversationFacade _conversationFacade;
+    private readonly SocialFacade _conversationFacade;
     private readonly LocationFacade _locationFacade;
     private readonly ObligationFacade _obligationFacade;
     private readonly ResourceFacade _resourceFacade;
@@ -31,7 +31,7 @@ public class GameFacade
     public GameFacade(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        ConversationFacade conversationFacade,
+        SocialFacade conversationFacade,
         LocationFacade locationFacade,
         ObligationFacade obligationFacade,
         ResourceFacade resourceFacade,
@@ -598,7 +598,7 @@ public class GameFacade
 
     // ========== CONVERSATION OPERATIONS ==========
 
-    public ConversationFacade GetConversationFacade()
+    public SocialFacade GetConversationFacade()
     {
         return _conversationFacade;
     }
@@ -656,7 +656,7 @@ public class GameFacade
     /// <summary>
     /// Check if a card can be played in the current conversation
     /// </summary>
-    public bool CanPlayCard(CardInstance card, ConversationSession session)
+    public bool CanPlayCard(CardInstance card, SocialChallengeSession session)
     {
         if (_conversationFacade == null) return false;
         return _conversationFacade.CanPlayCard(card, session);
@@ -665,7 +665,7 @@ public class GameFacade
     /// <summary>
     /// End the current conversation and return the outcome
     /// </summary>
-    public ConversationOutcome EndConversation()
+    public SocialChallengeOutcome EndConversation()
     {
         if (_conversationFacade == null) return null;
         return _conversationFacade.EndConversation();
@@ -963,25 +963,33 @@ public class GameFacade
             return;
         }
 
-        // Initialize player at starting location
+        // Initialize player at starting location from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
-        Location? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "market_square");
-        if (startingLocation != null)
+        string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
+        LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.SpotID == startingSpotId);
+        if (startingSpot != null)
         {
-            LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.LocationId == "market_square" && s.SpotID == "central_fountain");
-            if (startingSpot != null)
-            {
-                player.CurrentLocationSpot = startingSpot;
-                Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation.Name} - {startingSpot.Name}");
-            }
+            player.CurrentLocationSpot = startingSpot;
+            Location? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == startingSpot.LocationId);
+            Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
+        }
+        else
+        {
+            Console.WriteLine($"[GameFacade.StartGameAsync] WARNING: Starting spot '{startingSpotId}' not found!");
         }
 
-        // Initialize player resources for testing
-        player.Coins = 50;  // Starting coins for testing
-        player.Health = 10; // Starting health for testing
-        player.Hunger = 5;   // Starting food for testing
+        // Initialize player resources from GameWorld initial player config
+        if (_gameWorld.InitialPlayerConfig != null)
+        {
+            player.Coins = _gameWorld.InitialPlayerConfig.Coins ?? 20;
+            player.Health = _gameWorld.InitialPlayerConfig.Health ?? 10;
+            player.MaxHealth = _gameWorld.InitialPlayerConfig.MaxHealth ?? 10;
+            player.Hunger = _gameWorld.InitialPlayerConfig.Hunger ?? 0;
+            player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints ?? 12;
+            player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina ?? 12;
+        }
 
-        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Hunger: {player.Hunger}");
+        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Stamina: {player.Stamina}, Hunger: {player.Hunger}");
 
         // Initialize exchange inventories
         _exchangeFacade.InitializeNPCExchanges();

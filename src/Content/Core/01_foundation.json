@@ -1,159 +1,14 @@
 {
   "packageId": "core_foundation",
   "metadata": {
-    "name": "Core Foundation - Geography Only",
+    "name": "Core Foundation - POC Only",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Core geographical foundation: regions, districts, locations, and spots",
+    "description": "Minimal POC: Old Mill location only with waterwheel investigation",
     "author": "Wayfarer Team",
-    "version": "4.0.0"
+    "version": "5.0.0"
   },
   "content": {
-    "regions": [
-      {
-        "id": "lower_wards",
-        "name": "Lower Wards",
-        "description": "The common districts of the city where merchants and workers live",
-        "districtIds": ["market_district", "warehouse_district", "riverside_district"],
-        "government": "City Council",
-        "culture": "Trade-focused",
-        "population": 50000,
-        "majorExports": ["Textiles", "Grain", "Crafts"],
-        "majorImports": ["Luxury goods", "Spices", "Metals"]
-      },
-      {
-        "id": "upper_wards",
-        "name": "Upper Wards",
-        "description": "The elevated districts where nobility and wealthy merchants reside",
-        "districtIds": ["noble_quarter", "temple_district"],
-        "government": "Noble Houses",
-        "culture": "Traditional",
-        "population": 10000,
-        "majorExports": ["Laws", "Culture", "Art"],
-        "majorImports": ["Everything"]
-      }
-    ],
-    "districts": [
-      {
-        "id": "market_district",
-        "name": "Market District",
-        "description": "The commercial heart of the Lower Wards",
-        "regionId": "lower_wards",
-        "locationIds": ["market_square", "copper_kettle_tavern"],
-        "districtType": "Trade Quarter",
-        "dangerLevel": 2,
-        "characteristics": ["Crowded", "Lively", "Well-patrolled"]
-      },
-      {
-        "id": "warehouse_district",
-        "name": "Warehouse District",
-        "description": "Industrial storage and trade logistics",
-        "regionId": "lower_wards",
-        "locationIds": ["warehouse_district"],
-        "districtType": "Industrial Zone",
-        "dangerLevel": 3,
-        "characteristics": ["Quiet at night", "Workers by day", "Some crime"]
-      },
-      {
-        "id": "noble_quarter",
-        "name": "Noble Quarter",
-        "description": "Exclusive estates and gardens of the aristocracy",
-        "regionId": "upper_wards",
-        "locationIds": ["noble_district"],
-        "districtType": "Elite Quarter",
-        "dangerLevel": 1,
-        "characteristics": ["Heavily guarded", "Quiet", "Exclusive"]
-      }
-    ],
     "locations": [
-      {
-        "id": "market_square",
-        "name": "Market Square",
-        "description": "The bustling heart of the city where merchants hawk their wares",
-        "districtId": "market_district",
-        "tier": 1,
-        "locationType": "Hub",
-        "travelHubSpotId": "central_fountain",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3,
-        "availableWork": [
-          {
-            "id": "market_porter",
-            "name": "Market Porter",
-            "description": "Help vendors move goods between stalls",
-            "type": "Standard",
-            "baseCoins": 5,
-            "locationId": "market_square",
-            "spotId": "merchant_row"
-          },
-          {
-            "id": "tavern_helper",
-            "name": "Tavern Helper",
-            "description": "Serve meals and clean tables at the local tavern",
-            "type": "Service",
-            "baseCoins": 3,
-            "locationId": "market_square",
-            "spotId": "merchant_row",
-            "hungerReduction": 30
-          }
-        ],
-        "observationRewards": [
-          {
-            "locationId": "market_square",
-            "familiarityRequired": 1,
-            "observationCard": {
-              "id": "safe_passage_knowledge",
-              "name": "Safe Passage Knowledge",
-              "description": "Knowledge of safe routes provides crucial conversational advantage with Elena.",
-              "targetNpcId": "elena",
-              "effect": "Momentum +4"
-            }
-          },
-          {
-            "locationId": "market_square",
-            "familiarityRequired": 2,
-            "observationCard": {
-              "id": "merchant_caravan_route",
-              "name": "Merchant Caravan Route",
-              "description": "Understanding caravan routes unlocks Marcus's transport option.",
-              "targetNpcId": "marcus",
-              "effect": "UnlockExchange caravan_transport"
-            }
-          }
-        ]
-      },
-      {
-        "id": "copper_kettle_tavern",
-        "name": "Copper Kettle Tavern",
-        "description": "A warm, inviting tavern with the famous copper kettle over the hearth",
-        "districtId": "market_district",
-        "tier": 1,
-        "locationType": "Tavern",
-        "travelHubSpotId": "main_hall",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3
-      },
-      {
-        "id": "noble_district",
-        "name": "Noble District",
-        "description": "Quiet streets lined with grand estates, heavily guarded",
-        "districtId": "noble_quarter",
-        "tier": 2,
-        "locationType": "Palace",
-        "travelHubSpotId": "gate_entrance",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3
-      },
-      {
-        "id": "warehouse_district",
-        "name": "Warehouse District",
-        "description": "Rows of warehouses storing goods from across the realm",
-        "districtId": "warehouse_district",
-        "tier": 1,
-        "locationType": "Market",
-        "travelHubSpotId": "warehouse_entrance",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3
-      },
       {
         "id": "old_mill",
         "name": "The Old Mill",
@@ -161,223 +16,26 @@
         "districtId": "market_district",
         "tier": 2,
         "locationType": "Ruin",
-        "travelHubSpotId": "mill_entrance",
+        "travelHubSpotId": "courtyard",
         "baseFamiliarity": 0,
-        "maxFamiliarity": 3
-      },
-      {
-        "id": "aldric_farm",
-        "name": "Aldric's Farm",
-        "description": "A modest farmstead beyond the creek, where Farmer Aldric tends his fields and livestock. The smell of honest work and good earth.",
-        "districtId": "market_district",
-        "tier": 1,
-        "locationType": "Settlement",
-        "travelHubSpotId": "farmhouse",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3
+        "maxFamiliarity": 3,
+        "goals": [
+          {
+            "id": "notice_waterwheel",
+            "name": "Notice the silent waterwheel",
+            "description": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling.",
+            "systemType": "Mental",
+            "challengeTypeId": "mental_challenge",
+            "spotId": "courtyard",
+            "investigationId": "waterwheel_mystery",
+            "isIntroAction": true,
+            "isAvailable": true,
+            "isCompleted": false
+          }
+        ]
       }
     ],
     "spots": [
-      {
-        "id": "central_fountain",
-        "locationId": "market_square",
-        "name": "Central Fountain",
-        "description": "The ornate fountain at the heart of Market Square",
-        "properties": {
-          "base": [
-            "crossroads"
-          ],
-          "morning": [
-            "quiet"
-          ],
-          "afternoon": [
-            "busy"
-          ],
-          "evening": [
-            "closing"
-          ],
-          "night": [
-            "closed"
-          ]
-        },
-        "canInvestigate": true,
-        "investigationScaling": {
-          "quiet": 2,
-          "busy": 1,
-          "default": 1
-        }
-      },
-      {
-        "id": "merchant_row",
-        "locationId": "market_square",
-        "name": "Merchant Row",
-        "description": "Rows of market stalls selling goods",
-        "properties": {
-          "morning": [
-            "commercial"
-          ],
-          "afternoon": [
-            "commercial",
-            "busy"
-          ],
-          "evening": [
-            "commercial"
-          ],
-          "night": [
-            "closed"
-          ]
-        },
-        "canInvestigate": false,
-        "canWork": true,
-        "workType": "haul_goods",
-        "workPay": 5
-      },
-      {
-        "id": "guard_post",
-        "locationId": "market_square",
-        "name": "Guard Post",
-        "description": "The official guard station",
-        "properties": {
-          "all": [
-            "authority",
-            "watched"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
-        "id": "main_hall",
-        "locationId": "copper_kettle_tavern",
-        "name": "Main Hall",
-        "description": "The heart of the tavern with tables and a warm fire",
-        "properties": {
-          "base": [
-            "crossroads"
-          ],
-          "morning": [
-            "quiet",
-            "warm"
-          ],
-          "afternoon": [
-            "social"
-          ],
-          "evening": [
-            "busy",
-            "social"
-          ],
-          "night": [
-            "quiet"
-          ]
-        },
-        "canInvestigate": true,
-        "investigationScaling": {
-          "quiet": 2,
-          "busy": 1,
-          "default": 1
-        }
-      },
-      {
-        "id": "corner_table",
-        "locationId": "copper_kettle_tavern",
-        "name": "Corner Table",
-        "description": "A quiet table perfect for private conversations",
-        "properties": {
-          "all": [
-            "private",
-            "quiet"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
-        "id": "gate_entrance",
-        "locationId": "noble_district",
-        "name": "District Gate",
-        "description": "The heavily guarded entrance to the Noble District",
-        "properties": {
-          "base": [
-            "crossroads"
-          ],
-          "all": [
-            "guarded",
-            "checkpoint"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
-        "id": "blackwood_estate",
-        "locationId": "noble_district",
-        "name": "Blackwood Estate",
-        "description": "Lord Blackwood's grand manor",
-        "properties": {
-          "morning": [
-            "quiet",
-            "noble"
-          ],
-          "afternoon": [
-            "noble"
-          ],
-          "evening": [
-            "noble",
-            "exclusive"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
-        "id": "warehouse_entrance",
-        "locationId": "warehouse_district",
-        "name": "Warehouse Entrance",
-        "description": "The main entrance to the warehouse district",
-        "properties": {
-          "base": [
-            "crossroads"
-          ],
-          "all": [
-            "commercial"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
-        "id": "fountain_plaza",
-        "locationId": "market_square",
-        "name": "Fountain Plaza",
-        "description": "The open plaza surrounding the central fountain, where townspeople gather",
-        "properties": {
-          "base": [
-            "social"
-          ],
-          "morning": [
-            "quiet"
-          ],
-          "afternoon": [
-            "busy"
-          ]
-        },
-        "canInvestigate": true,
-        "investigationScaling": {
-          "quiet": 2,
-          "busy": 1,
-          "default": 1
-        }
-      },
-      {
-        "id": "elder_bench",
-        "locationId": "market_square",
-        "name": "Elder's Bench",
-        "description": "A worn wooden bench where the village elders sit and watch the world pass by",
-        "properties": {
-          "base": [
-            "social"
-          ],
-          "all": [
-            "quiet"
-          ]
-        },
-        "canInvestigate": false
-      },
       {
         "id": "mill_entrance",
         "locationId": "old_mill",
@@ -389,8 +47,7 @@
           ],
           "all": [
             "quiet",
-            "isolated",
-            "crossroads"
+            "isolated"
           ]
         },
         "canInvestigate": true,
@@ -455,56 +112,22 @@
         "investigationScaling": {
           "default": 1
         }
-      },
-      {
-        "id": "farmhouse",
-        "locationId": "aldric_farm",
-        "name": "Farmhouse",
-        "description": "Aldric's simple but well-maintained farmhouse",
-        "properties": {
-          "base": [
-            "settlement"
-          ],
-          "all": [
-            "quiet",
-            "rustic",
-            "crossroads"
-          ]
-        },
-        "canInvestigate": false
       }
     ],
     "locationActions": [
       {
-        "id": "investigate_location",
-        "name": "Investigate",
-        "description": "Study the area to gain familiarity and potentially unlock observations",
-        "actionType": "investigate",
-        "icon": "🔍",
-        "priority": 50,
-        "cost": {
-          "segments": 1
-        },
-        "timeRequired": 20,
-        "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": [],
-        "optionalProperties": ["Quiet", "Busy"],
-        "excludedProperties": []
-      },
-      {
-        "id": "investigate_old_mill",
-        "name": "Investigate the Mill's Secrets",
-        "description": "Begin a thorough investigation of the abandoned mill. This will take time and preparation, but may reveal important truths about Elena's family.",
-        "actionType": "investigation",
-        "investigationId": "old_mill_mystery",
-        "icon": "🔍",
-        "priority": 100,
+        "id": "rest_on_bench",
+        "name": "Rest on bench",
+        "description": "Take a moment to rest",
+        "actionType": "rest",
+        "icon": "💤",
+        "priority": 10,
         "cost": {
           "segments": 0
         },
         "timeRequired": 0,
         "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": ["investigation"],
+        "requiredProperties": [],
         "optionalProperties": [],
         "excludedProperties": []
       }

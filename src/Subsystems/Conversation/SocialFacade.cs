@@ -4,14 +4,14 @@
 /// Public API for the Conversation subsystem.
 /// Handles all conversation operations with functionality absorbed from ConversationOrchestrator and CardDeckManager.
 /// </summary>
-public class ConversationFacade
+public class SocialFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly ExchangeHandler _exchangeHandler;
     private readonly MomentumManager _momentumManager;
-    private readonly CategoricalEffectResolver _effectResolver;
-    private readonly ConversationNarrativeService _narrativeService;
-    private readonly ConversationDeckBuilder _deckBuilder;
+    private readonly SocialEffectResolver _effectResolver;
+    private readonly SocialNarrativeService _narrativeService;
+    private readonly SocialChallengeDeckBuilder _deckBuilder;
 
     // External dependencies
     private readonly ObligationQueueManager _queueManager;
@@ -23,17 +23,17 @@ public class ConversationFacade
     private readonly KnowledgeService _knowledgeService;
     private readonly InvestigationActivity _investigationActivity;
 
-    private ConversationSession _currentSession;
-    private ConversationOutcome _lastOutcome;
+    private SocialChallengeSession _currentSession;
+    private SocialChallengeOutcome _lastOutcome;
     private PersonalityRuleEnforcer _personalityEnforcer;
 
-    public ConversationFacade(
+    public SocialFacade(
         GameWorld gameWorld,
         ExchangeHandler exchangeHandler,
         MomentumManager momentumManager,
-        CategoricalEffectResolver effectResolver,
-        ConversationNarrativeService narrativeService,
-        ConversationDeckBuilder deckBuilder,
+        SocialEffectResolver effectResolver,
+        SocialNarrativeService narrativeService,
+        SocialChallengeDeckBuilder deckBuilder,
         ObligationQueueManager queueManager,
         ObservationManager observationManager,
         TimeManager timeManager,
@@ -62,7 +62,7 @@ public class ConversationFacade
     /// <summary>
     /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public ConversationSession StartConversation(string npcId, string requestId, List<CardInstance> observationCards = null)
+    public SocialChallengeSession StartConversation(string npcId, string requestId, List<CardInstance> observationCards = null)
     {
         if (IsConversationActive())
         {
@@ -116,7 +116,7 @@ public class ConversationFacade
         string requestText = request.NpcRequestText;
 
         // Create session with new properties
-        _currentSession = new ConversationSession
+        _currentSession = new SocialChallengeSession
         {
             NPC = npc,
             RequestId = requestId,
@@ -163,7 +163,7 @@ public class ConversationFacade
     /// <summary>
     /// End the current conversation
     /// </summary>
-    public ConversationOutcome EndConversation()
+    public SocialChallengeOutcome EndConversation()
     {
         if (!IsConversationActive())
             return null;
@@ -422,7 +422,7 @@ public class ConversationFacade
     /// <summary>
     /// Get the current conversation session
     /// </summary>
-    public ConversationSession GetCurrentSession()
+    public SocialChallengeSession GetCurrentSession()
     {
         return _currentSession;
     }
@@ -453,7 +453,7 @@ public class ConversationFacade
         List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
         // Start conversation with the request
-        ConversationSession session = StartConversation(npcId, requestId, observationCards);
+        SocialChallengeSession session = StartConversation(npcId, requestId, observationCards);
 
         // Create typed context based on request's conversation type
         ConversationContextBase context = ConversationContextFactory.CreateContext(
@@ -482,7 +482,7 @@ public class ConversationFacade
     /// <summary>
     /// Get the last conversation outcome
     /// </summary>
-    public ConversationOutcome GetLastOutcome()
+    public SocialChallengeOutcome GetLastOutcome()
     {
         return _lastOutcome;
     }
@@ -509,11 +509,10 @@ public class ConversationFacade
                     throw new InvalidOperationException($"NPCRequest '{request.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
                 }
 
-                // Verify the conversation type actually exists
-                ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(request.ChallengeTypeId);
-                if (typeEntry == null)
+                // Verify the social challenge type actually exists
+                if (!_gameWorld.SocialChallengeTypes.ContainsKey(request.ChallengeTypeId))
                 {
-                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references conversation type '{request.ChallengeTypeId}' which does not exist in JSON. All conversation types must be defined.");
+                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references social challenge type '{request.ChallengeTypeId}' which does not exist in JSON. All social challenge types must be defined.");
                 }
 
                 options.Add(new ConversationOption
@@ -583,7 +582,7 @@ public class ConversationFacade
     /// <summary>
     /// Check if a card can be played in the current conversation
     /// </summary>
-    public bool CanPlayCard(CardInstance card, ConversationSession session)
+    public bool CanPlayCard(CardInstance card, SocialChallengeSession session)
     {
         if (card == null || session == null) return false;
 
@@ -671,7 +670,7 @@ public class ConversationFacade
 
     public Task<bool> EndConversationAsync()
     {
-        ConversationOutcome outcome = EndConversation();
+        SocialChallengeOutcome outcome = EndConversation();
         return Task.FromResult(outcome != null);
     }
 
@@ -686,7 +685,7 @@ public class ConversationFacade
     /// Standard: +1, Commanding: +2, Measured: +0, Yielding: -1
     /// Total: SPEAK (+1) + Delivery = combined Cadence change
     /// </summary>
-    private void ApplyCadenceFromDelivery(CardInstance card, ConversationSession session)
+    private void ApplyCadenceFromDelivery(CardInstance card, SocialChallengeSession session)
     {
         // DUAL BALANCE SYSTEM:
         // 1. Action-based balance (SPEAK action)
@@ -718,7 +717,7 @@ public class ConversationFacade
     /// 5. Convert positive cadence to doubt
     /// BEFORE card draw calculation (cadence reduction happens AFTER draw)
     /// </summary>
-    private void ProcessCadenceEffectsOnListen(ConversationSession session)
+    private void ProcessCadenceEffectsOnListen(SocialChallengeSession session)
     {
         // NEW REFACTORED LISTEN MECHANICS (Per Spec lines 862-896):
         // 1. Calculate doubt that will be cleared
@@ -761,7 +760,7 @@ public class ConversationFacade
     /// Apply LISTEN action-type balance AFTER card draw (step 7 of LISTEN sequence)
     /// DUAL BALANCE: LISTEN action = -2 cadence (action-type balance, no card played so no Delivery)
     /// </summary>
-    private void ReduceCadenceAfterDraw(ConversationSession session)
+    private void ReduceCadenceAfterDraw(SocialChallengeSession session)
     {
         // DUAL BALANCE SYSTEM: LISTEN action contributes -2 to Cadence
         session.Cadence = Math.Max(-10, session.Cadence - 2);
@@ -775,7 +774,7 @@ public class ConversationFacade
     /// Persistent: Stays in hand
     /// Banish: Removed entirely
     /// </summary>
-    private void ProcessCardPersistence(ConversationSession session)
+    private void ProcessCardPersistence(SocialChallengeSession session)
     {
         // Handle cards that need persistence processing
         // This is handled by the deck system based on card persistence types
@@ -786,7 +785,7 @@ public class ConversationFacade
     /// Check if goal cards should become active based on momentum thresholds
     /// Basic: 8, Enhanced: 12, Premium: 16
     /// </summary>
-    private void CheckGoalCardActivation(ConversationSession session)
+    private void CheckGoalCardActivation(SocialChallengeSession session)
     {
         int currentMomentum = session.CurrentMomentum;
 
@@ -804,7 +803,7 @@ public class ConversationFacade
     /// <summary>
     /// Execute card draw with tier-based filtering
     /// </summary>
-    private List<CardInstance> ExecuteNewListenCardDraw(ConversationSession session, int cardsToDraw)
+    private List<CardInstance> ExecuteNewListenCardDraw(SocialChallengeSession session, int cardsToDraw)
     {
         // Draw with tier and stat filtering
         Player player = _gameWorld.GetPlayer();
@@ -817,7 +816,7 @@ public class ConversationFacade
     /// <summary>
     /// Update card playability based on Initiative system and Statement requirements
     /// </summary>
-    private void UpdateCardPlayabilityForInitiative(ConversationSession session)
+    private void UpdateCardPlayabilityForInitiative(SocialChallengeSession session)
     {
         int currentInitiative = session.CurrentInitiative;
 
@@ -869,7 +868,7 @@ public class ConversationFacade
     /// Calculate card success with Initiative system
     /// Base% + (2% × Current Momentum) + (10% × Bound Stat Level)
     /// </summary>
-    private bool CalculateInitiativeCardSuccess(CardInstance selectedCard, ConversationSession session)
+    private bool CalculateInitiativeCardSuccess(CardInstance selectedCard, SocialChallengeSession session)
     {
         // Use existing deterministic success calculation for now
         // This handles momentum and stat bonuses correctly
@@ -880,7 +879,7 @@ public class ConversationFacade
     /// Process card play results with Initiative system
     /// PROJECTION PRINCIPLE: Get projection from resolver, then apply to session
     /// </summary>
-    private CardPlayResult ProcessInitiativeCardPlay(CardInstance selectedCard, bool success, ConversationSession session)
+    private CardPlayResult ProcessInitiativeCardPlay(CardInstance selectedCard, bool success, SocialChallengeSession session)
     {
         if (success)
         {
@@ -919,7 +918,7 @@ public class ConversationFacade
     /// Apply a projection result to actual session state
     /// PROJECTION PRINCIPLE: This is the ONLY place where projections become reality
     /// </summary>
-    private void ApplyProjectionToSession(CardEffectResult projection, ConversationSession session)
+    private void ApplyProjectionToSession(CardEffectResult projection, SocialChallengeSession session)
     {
         // Apply Initiative changes
         if (projection.InitiativeChange != 0)
@@ -981,7 +980,7 @@ public class ConversationFacade
     /// <summary>
     /// Process card after playing based on persistence type
     /// </summary>
-    private void ProcessCardAfterPlay(CardInstance selectedCard, bool success, ConversationSession session)
+    private void ProcessCardAfterPlay(CardInstance selectedCard, bool success, SocialChallengeSession session)
     {
         // Handle card based on its persistence type
         session.Deck.PlayCard(selectedCard);
@@ -990,7 +989,7 @@ public class ConversationFacade
     /// <summary>
     /// Calculate XP amount based on conversation difficulty
     /// </summary>
-    private int CalculateXPAmount(ConversationSession session)
+    private int CalculateXPAmount(SocialChallengeSession session)
     {
         if (session.IsStrangerConversation && session.StrangerLevel.HasValue)
         {
@@ -1046,7 +1045,7 @@ public class ConversationFacade
     /// <summary>
     /// Check if conversation should end
     /// </summary>
-    private bool ShouldEndConversation(ConversationSession session)
+    private bool ShouldEndConversation(SocialChallengeSession session)
     {
         // End if request card was played (request cards end conversation immediately)
         if (session.TurnHistory != null && session.TurnHistory.Any())
@@ -1079,7 +1078,7 @@ public class ConversationFacade
     /// <summary>
     /// Finalize conversation and calculate outcome
     /// </summary>
-    private ConversationOutcome FinalizeConversation(ConversationSession session)
+    private SocialChallengeOutcome FinalizeConversation(SocialChallengeSession session)
     {
         bool success = true;
         string reason = "Conversation completed";
@@ -1109,7 +1108,7 @@ public class ConversationFacade
             tokensEarned += 2; // Bonus for completing request
         }
 
-        return new ConversationOutcome
+        return new SocialChallengeOutcome
         {
             Success = success,
             FinalMomentum = session.CurrentMomentum,
@@ -1150,7 +1149,7 @@ public class ConversationFacade
     /// <summary>
     /// Check if letter should be generated (based on positive outcomes)
     /// </summary>
-    private bool ShouldGenerateLetter(ConversationSession session)
+    private bool ShouldGenerateLetter(SocialChallengeSession session)
     {
         if (session.LetterGenerated)
             return false;
@@ -1163,7 +1162,7 @@ public class ConversationFacade
     /// <summary>
     /// Create a letter obligation from successful conversation
     /// </summary>
-    private DeliveryObligation CreateLetterObligation(ConversationSession session)
+    private DeliveryObligation CreateLetterObligation(SocialChallengeSession session)
     {
         int stateValue = (int)session.CurrentState; // Use state as base value
         int momentumBonus = Math.Max(0, session.CurrentMomentum / 5); // Convert momentum to bonus
@@ -1245,7 +1244,7 @@ public class ConversationFacade
     /// <summary>
     /// Determine the connection type based on the conversation type and outcome
     /// </summary>
-    private ConnectionType DetermineConnectionTypeFromConversation(ConversationSession session)
+    private ConnectionType DetermineConnectionTypeFromConversation(SocialChallengeSession session)
     {
         // Map conversation types to their corresponding connection types
         return session.ChallengeTypeId switch
@@ -1267,7 +1266,7 @@ public class ConversationFacade
     /// <summary>
     /// Execute LISTEN action - refresh focus, draw cards, and exhaust opening cards
     /// </summary>
-    private List<CardInstance> ExecuteListenAction(ConversationSession session)
+    private List<CardInstance> ExecuteListenAction(SocialChallengeSession session)
     {
 
         // Initiative does not refresh on LISTEN 
@@ -1297,7 +1296,7 @@ public class ConversationFacade
     /// Handle Promise card queue manipulation - moves target obligation to position 1
     /// and burns tokens with all displaced NPCs
     /// </summary>
-    private void HandlePromiseCardQueueManipulation(CardInstance promiseCard, ConversationSession session)
+    private void HandlePromiseCardQueueManipulation(CardInstance promiseCard, SocialChallengeSession session)
     {
         // Promise cards manipulate the queue mid-conversation
         // They force a specific obligation to position 1, burning tokens with displaced NPCs
@@ -1360,7 +1359,7 @@ public class ConversationFacade
     /// <summary>
     /// Find the target obligation for a promise card
     /// </summary>
-    private DeliveryObligation FindTargetObligationForPromise(CardInstance promiseCard, ConversationSession session)
+    private DeliveryObligation FindTargetObligationForPromise(CardInstance promiseCard, SocialChallengeSession session)
     {
         // Promise cards are associated with the NPC in the current conversation
         // Find an obligation from this NPC in the queue
@@ -1408,7 +1407,7 @@ public class ConversationFacade
     /// <summary>
     /// Check if goal cards should become playable after LISTEN based on momentum threshold
     /// </summary>
-    private void UpdateGoalCardPlayabilityAfterListen(ConversationSession session)
+    private void UpdateGoalCardPlayabilityAfterListen(SocialChallengeSession session)
     {
         // Get current momentum
         int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
@@ -1439,7 +1438,7 @@ public class ConversationFacade
     /// <summary>
     /// Mark request card presence in conversation session
     /// </summary>
-    private void UpdateRequestCardPlayability(ConversationSession session)
+    private void UpdateRequestCardPlayability(SocialChallengeSession session)
     {
         // This is called at conversation start - just check for goal card presence
         bool hasRequestCard = session.Deck.HandCards
@@ -1455,7 +1454,7 @@ public class ConversationFacade
     /// Update all cards' playability based on current Initiative availability and Statement requirements
     /// Cards that cost more Initiative than available or don't meet Statement requirements are marked Unplayable
     /// </summary>
-    private void UpdateCardPlayabilityBasedOnInitiative(ConversationSession session)
+    private void UpdateCardPlayabilityBasedOnInitiative(SocialChallengeSession session)
     {
         int availableInitiative = session.GetCurrentInitiative();
 
