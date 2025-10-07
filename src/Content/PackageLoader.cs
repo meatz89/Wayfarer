@@ -143,7 +143,6 @@ public class PackageLoader
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadCards(package.Content.Cards, allowSkeletons);
-        LoadConversationTypesAndDecks(package.Content.ConversationTypes, package.Content.CardDecks, allowSkeletons);
         LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
         LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
@@ -480,59 +479,6 @@ public class PackageLoader
         // Validate Foundation card rules after all cards are loaded
         List<SocialCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
         SocialCardParser.ValidateFoundationCardRules(allCards);
-    }
-
-    private void LoadConversationTypesAndDecks(List<SocialTypeDefinitionDTO> conversationTypeDtos, List<CardDeckDTO> cardDeckDtos, bool allowSkeletons)
-    {
-        // Load card decks first (conversation types reference them)
-        if (cardDeckDtos != null)
-        {
-            Console.WriteLine($"[PackageLoader] Loading {cardDeckDtos.Count} card decks...");
-            foreach (CardDeckDTO dto in cardDeckDtos)
-            {
-                // Convert cardCounts to cardIds list
-                List<string> cardIds = new List<string>();
-                foreach (KeyValuePair<string, int> kvp in dto.CardCounts)
-                {
-                    for (int i = 0; i < kvp.Value; i++)
-                    {
-                        cardIds.Add(kvp.Key);
-                    }
-                }
-
-                CardDeckDefinition deck = new CardDeckDefinition
-                {
-                    Id = dto.Id,
-                    CardIds = cardIds
-                };
-                _gameWorld.CardDecks.AddOrUpdateDeck(deck.Id, deck);
-                Console.WriteLine($"[PackageLoader] Loaded card deck '{deck.Id}' with {deck.CardIds.Count} cards");
-            }
-        }
-
-        // Load conversation types (they reference card decks by ID)
-        if (conversationTypeDtos != null)
-        {
-            Console.WriteLine($"[PackageLoader] Loading {conversationTypeDtos.Count} conversation types...");
-            foreach (SocialTypeDefinitionDTO dto in conversationTypeDtos)
-            {
-                SocialTypeDefinition conversationType = new SocialTypeDefinition
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    Description = dto.Description,
-                    DeckId = dto.DeckId,
-                    Category = dto.Category,
-                    AvailableTimeBlocks = dto.AvailableTimeBlocks ?? new List<string>(),
-                    DoubtPerListen = dto.DoubtPerListen ?? 0,
-                    MomentumErosion = dto.MomentumErosion ?? false,
-                    MaxDoubt = dto.MaxDoubt ?? 10,
-                    MaxInitiative = dto.MaxInitiative ?? 10
-                };
-                _gameWorld.ConversationTypes.AddOrUpdateConversationType(conversationType.Id, conversationType);
-                Console.WriteLine($"[PackageLoader] Loaded conversation type '{conversationType.Id}' using deck '{conversationType.DeckId}'");
-            }
-        }
     }
 
     private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons)

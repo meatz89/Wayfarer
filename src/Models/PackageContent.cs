@@ -21,16 +21,6 @@ public class PackageContent
     public List<ConversationCardDTO> Cards { get; set; }
 
     /// <summary>
-    /// Card deck definitions for conversation types
-    /// </summary>
-    public List<CardDeckDTO> CardDecks { get; set; }
-
-    /// <summary>
-    /// Conversation type definitions that reference card decks
-    /// </summary>
-    public List<SocialTypeDefinitionDTO> ConversationTypes { get; set; }
-
-    /// <summary>
     /// NPC definitions - uses existing NPCDTO
     /// </summary>
     public List<NPCDTO> Npcs { get; set; }

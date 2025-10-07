@@ -106,24 +106,6 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for conversation type definition entries (replaces Dictionary<string, ConversationTypeDefinition>)
-/// </summary>
-public class ConversationTypeEntry
-{
-    public string TypeId { get; set; }
-    public SocialTypeDefinition Definition { get; set; }
-}
-
-/// <summary>
-/// Helper class for card deck definition entries (replaces Dictionary<string, CardDeckDefinition>)
-/// </summary>
-public class CardDeckDefinitionEntry
-{
-    public string DeckId { get; set; }
-    public CardDeckDefinition Definition { get; set; }
-}
-
-/// <summary>
 /// Helper class for card definition entries (replaces Dictionary<string, ConversationCard>)
 /// </summary>
 public class CardDefinitionEntry
@@ -449,25 +431,6 @@ public static class ListBasedHelperExtensions
     }
 
 
-    // ConversationTypeEntry helpers
-    public static SocialTypeDefinition GetConversationType(this List<ConversationTypeEntry> types, string typeId)
-    {
-        return types.FindById(typeId)?.Definition;
-    }
-
-    public static void AddOrUpdateConversationType(this List<ConversationTypeEntry> types, string typeId, SocialTypeDefinition definition)
-    {
-        ConversationTypeEntry existing = types.FindById(typeId);
-        if (existing != null)
-        {
-            existing.Definition = definition;
-        }
-        else
-        {
-            types.Add(new ConversationTypeEntry { TypeId = typeId, Definition = definition });
-        }
-    }
-
     // PathCardDiscoveryEntry helpers already exist above as IsDiscovered/SetDiscovered
 
     // TravelEventEntry helpers
@@ -497,25 +460,6 @@ public static class ListBasedHelperExtensions
         return history.Select(h => h.History);
     }
 
-
-    // CardDeckDefinitionEntry helpers
-    public static CardDeckDefinition GetDeck(this List<CardDeckDefinitionEntry> decks, string deckId)
-    {
-        return decks.FindById(deckId)?.Definition;
-    }
-
-    public static void AddOrUpdateDeck(this List<CardDeckDefinitionEntry> decks, string deckId, CardDeckDefinition definition)
-    {
-        CardDeckDefinitionEntry existing = decks.FindById(deckId);
-        if (existing != null)
-        {
-            existing.Definition = definition;
-        }
-        else
-        {
-            decks.Add(new CardDeckDefinitionEntry { DeckId = deckId, Definition = definition });
-        }
-    }
 
     // MentalCardEntry helpers
     public static MentalCard GetMentalCard(this List<MentalCardEntry> cards, string cardId)
