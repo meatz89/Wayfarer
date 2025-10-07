@@ -19,18 +19,6 @@ public class ActionGenerator
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-
-        // ALWAYS show Wait action for testing purposes
-        // Previously only showed when exhausted, but need it visible for testing time block transitions
-        actions.Add(new LocationActionViewModel
-        {
-            Icon = "⏳",
-            Title = "Wait",
-            Detail = "Advance to next period",
-            Cost = "NEXT PERIOD",
-            ActionType = "wait" // Special type for handling
-        });
-
         // Generate service-based actions
         if (location.AvailableServices != null)
         {
@@ -68,21 +56,8 @@ public class ActionGenerator
         // Generate atmosphere-based actions
         actions.AddRange(GenerateAtmosphereActions(location));
 
-        // Add optional Rest action
-        if (actions.Count < 5)
-        {
-            actions.Add(new LocationActionViewModel
-            {
-                Icon = "🕐",
-                Title = "Rest a While",
-                Detail = "Advance to next period",
-                Cost = "TIME PASSES",
-                ActionType = "wait"
-            });
-        }
-
         // Limit to 4-5 actions max (per mockup)
-        return actions.Take(5).ToList();
+        return actions.ToList();
     }
 
     private List<LocationActionViewModel> GenerateServiceActions(ServiceTypes service, Location location, TimeBlocks currentTime)

@@ -120,7 +120,6 @@
         "name": "Rest on bench",
         "description": "Take a moment to rest",
         "actionType": "rest",
-        "icon": "💤",
         "priority": 10,
         "cost": {
           "segments": 0

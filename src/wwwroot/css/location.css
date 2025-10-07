@@ -615,6 +615,7 @@ body * {
     padding: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-bottom: 12px;
 }
 
 .action-card:hover {
