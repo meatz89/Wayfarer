@@ -264,3 +264,124 @@
 .card-trait.trait-suppressspeakcadence:hover {
     background: #7a8b6a;
 }
+
+/* CONVERSATION-SPECIFIC: NPC Bar (contextual header with NPC info and personality rule) */
+.npc-bar {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 15px 20px;
+    border-bottom: 2px solid #a68b6f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.npc-info {
+    flex: 1;
+}
+
+.npc-name {
+    color: #5c4a3a;
+    font-size: 22px;
+    font-weight: normal;
+}
+
+.npc-status {
+    font-size: 12px;
+    color: #7a6250;
+    margin-top: 2px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.npc-bar .personality-rule {
+    padding: 8px 12px;
+    background: #8b4726;
+    color: #faf4ea;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* CONVERSATION-SPECIFIC: Action Display (LISTEN/SPEAK buttons with pile counts) */
+.action-display {
+    background: #e8dcc4;
+    padding: 15px 20px;
+    border-bottom: 2px solid #a68b6f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.action-section {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* CONVERSATION-SPECIFIC: Observation Cards (Knowledge cards section) */
+.observation-cards-section {
+    background: #f9f3e9;
+    padding: 15px 20px;
+    border-bottom: 2px solid #c4a684;
+}
+
+.cards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.cards-title {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.observation-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.observation-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.observation-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-marker {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+
+.card-marker.observation {
+    background: #5a7a8a;
+    color: #faf4ea;
+}
