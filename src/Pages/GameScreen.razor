@@ -134,10 +134,6 @@
                     <LocationContent OnActionExecuted="RefreshUI" />
                     break;
                     
-                case ScreenMode.Conversation:
-                    <ConversationContent Context="@CurrentConversationContext" OnConversationEnd="HandleConversationEnd" />
-                    break;
-                    
                 case ScreenMode.Exchange:
                     <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
                     break;
@@ -157,15 +153,15 @@
                     <NPCDeckViewer />
                     break;
 
-                case ScreenMode.Obstacle:
-                    <div>TODO: Implement ObstacleContent</div>
+                case ScreenMode.SocialChallenge:
+                    <ConversationContent Context="@CurrentConversationContext" OnConversationEnd="HandleConversationEnd" />
                     break;
 
-                case ScreenMode.Mental:
+                case ScreenMode.MentalChallenge:
                     <MentalContent />
                     break;
 
-                case ScreenMode.Physical:
+                case ScreenMode.PhysicalChallenge:
                     <PhysicalContent />
                     break;
 

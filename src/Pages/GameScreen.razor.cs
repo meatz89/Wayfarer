@@ -194,7 +194,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         if (CurrentScreen == targetMode) return false;
 
         // Conversation-specific rules
-        if (CurrentScreen == ScreenMode.Conversation)
+        if (CurrentScreen == ScreenMode.SocialChallenge)
         {
             // Can only exit conversation through proper ending
             // This is handled by HandleConversationEnd
@@ -281,7 +281,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // Save screen-specific state
         switch (CurrentScreen)
         {
-            case ScreenMode.Conversation:
+            case ScreenMode.SocialChallenge:
                 state.NpcId = CurrentConversationContext?.NpcId;
                 break;
         }
@@ -334,7 +334,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         if (CurrentConversationContext != null && CurrentConversationContext.IsValid)
         {
-            CurrentScreen = ScreenMode.Conversation;
+            CurrentScreen = ScreenMode.SocialChallenge;
             ContentVersion++; // Force re-render
             await InvokeAsync(StateHasChanged);
         }
@@ -441,7 +441,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         if (MentalSession != null)
         {
-            CurrentScreen = ScreenMode.Mental;
+            CurrentScreen = ScreenMode.MentalChallenge;
             ContentVersion++;
             await InvokeAsync(StateHasChanged);
         }
@@ -481,7 +481,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         if (PhysicalSession != null)
         {
-            CurrentScreen = ScreenMode.Physical;
+            CurrentScreen = ScreenMode.PhysicalChallenge;
             ContentVersion++;
             await InvokeAsync(StateHasChanged);
         }
@@ -836,14 +836,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 public enum ScreenMode
 {
     Location,
-    Conversation,
     Exchange,
     ObligationQueue,
     Travel,
     DeckViewer, // Dev mode screen for viewing NPC decks
-    Obstacle, // V2 Travel Obstacles
-    Mental, // Mental tactical engagements (investigation/problem-solving)
-    Physical // Physical tactical engagements (challenges/obstacles)
+    SocialChallenge,
+    MentalChallenge, // Mental tactical engagements (investigation/problem-solving)
+    PhysicalChallenge // Physical tactical engagements (challenges/obstacles)
 }
 
 public class ScreenContext
