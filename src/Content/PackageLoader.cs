@@ -473,16 +473,16 @@ public class PackageLoader
         foreach (ConversationCardDTO dto in cardDtos)
         {
             // Use static method from ConversationCardParser
-            ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+            SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
         }
 
         // Validate Foundation card rules after all cards are loaded
-        List<ConversationCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
-        ConversationCardParser.ValidateFoundationCardRules(allCards);
+        List<SocialCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
+        SocialCardParser.ValidateFoundationCardRules(allCards);
     }
 
-    private void LoadConversationTypesAndDecks(List<ConversationTypeDefinitionDTO> conversationTypeDtos, List<CardDeckDTO> cardDeckDtos, bool allowSkeletons)
+    private void LoadConversationTypesAndDecks(List<SocialTypeDefinitionDTO> conversationTypeDtos, List<CardDeckDTO> cardDeckDtos, bool allowSkeletons)
     {
         // Load card decks first (conversation types reference them)
         if (cardDeckDtos != null)
@@ -514,9 +514,9 @@ public class PackageLoader
         if (conversationTypeDtos != null)
         {
             Console.WriteLine($"[PackageLoader] Loading {conversationTypeDtos.Count} conversation types...");
-            foreach (ConversationTypeDefinitionDTO dto in conversationTypeDtos)
+            foreach (SocialTypeDefinitionDTO dto in conversationTypeDtos)
             {
-                ConversationTypeDefinition conversationType = new ConversationTypeDefinition
+                SocialTypeDefinition conversationType = new SocialTypeDefinition
                 {
                     Id = dto.Id,
                     Name = dto.Name,
@@ -545,7 +545,7 @@ public class PackageLoader
             string npcId = kvp.Key;
             foreach (ConversationCardDTO dto in kvp.Value)
             {
-                ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+                SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
                 _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
                 Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
             }
@@ -560,7 +560,7 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Loading promise cards...");
         foreach (ConversationCardDTO dto in promiseCards)
         {
-            ConversationCard card = ConversationCardParser.ConvertDTOToCard(dto);
+            SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
             _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
             Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
         }
@@ -831,8 +831,8 @@ public class PackageLoader
 
                 // Preserve all cards from the persistent decks
                 List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
-                List<ConversationCard> preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
-                List<ConversationCard> preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<ConversationCard>();
+                List<SocialCard> preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<SocialCard>();
+                List<SocialCard> preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<SocialCard>();
                 List<NPCRequest> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
 
                 int totalPreservedCards = preservedExchangeCards.Count +
@@ -864,7 +864,7 @@ public class PackageLoader
 
                 if (preservedObservationCards.Any())
                 {
-                    foreach (ConversationCard? card in preservedObservationCards)
+                    foreach (SocialCard? card in preservedObservationCards)
                     {
                         npc.ObservationDeck.AddCard(card);
                     }
@@ -872,7 +872,7 @@ public class PackageLoader
 
                 if (preservedBurdenCards.Any())
                 {
-                    foreach (ConversationCard? card in preservedBurdenCards)
+                    foreach (SocialCard? card in preservedBurdenCards)
                     {
                         npc.BurdenDeck.AddCard(card);
                     }
@@ -1081,7 +1081,7 @@ public class PackageLoader
         foreach (ObservationDTO dto in observationDtos)
         {
             // Convert to ConversationCard for the existing system
-            ConversationCard observation = ConvertObservationDTOToCard(dto);
+            SocialCard observation = ConvertObservationDTOToCard(dto);
             _gameWorld.PlayerObservationCards.Add(observation);
 
             // Also create Observation domain object and store in GameWorld
@@ -1489,10 +1489,10 @@ public class PackageLoader
         return route;
     }
 
-    private ConversationCard ConvertObservationDTOToCard(ObservationDTO dto)
+    private SocialCard ConvertObservationDTOToCard(ObservationDTO dto)
     {
         // Observations become player cards
-        return new ConversationCard
+        return new SocialCard
         {
             Id = dto.Id,
             Title = dto.DisplayText ?? "",

@@ -2,10 +2,10 @@
 /// Context for resolution conversations where burden obligations are resolved
 /// Contains burden-specific data without dictionaries
 /// </summary>
-public class ResolutionContext : ConversationContextBase
+public class ResolutionContext : SocialChallengeContextBase
 {
-    public List<ConversationCard> BurdenCards { get; set; }
-    public ConversationCard SelectedBurden { get; set; }
+    public List<SocialCard> BurdenCards { get; set; }
+    public SocialCard SelectedBurden { get; set; }
     public int BurdenCount { get; set; }
     public int MinimumBurdensRequired { get; set; }
     public bool CanResolve { get; set; }
@@ -22,7 +22,7 @@ public class ResolutionContext : ConversationContextBase
     public ResolutionContext()
     {
         ConversationTypeId = "resolution";
-        BurdenCards = new List<ConversationCard>();
+        BurdenCards = new List<SocialCard>();
         ResolutionOptions = new List<string>();
         MinimumBurdensRequired = 2; // Default minimum burdens to resolve
         FlowBonus = 10; // Default flow bonus for successful resolution
@@ -30,14 +30,14 @@ public class ResolutionContext : ConversationContextBase
         RequiresMultipleBurdens = true;
     }
 
-    public void SetBurdenCards(List<ConversationCard> burdens)
+    public void SetBurdenCards(List<SocialCard> burdens)
     {
-        BurdenCards = burdens ?? new List<ConversationCard>();
+        BurdenCards = burdens ?? new List<SocialCard>();
         BurdenCount = BurdenCards.Count;
         CanResolve = BurdenCount >= MinimumBurdensRequired;
     }
 
-    public void SetSelectedBurden(ConversationCard burden)
+    public void SetSelectedBurden(SocialCard burden)
     {
         SelectedBurden = burden;
         if (burden != null)

@@ -55,7 +55,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected string CurrentSpot { get; set; } = "";
 
     // Navigation State
-    protected ConversationContextBase CurrentConversationContext { get; set; }
+    protected SocialChallengeContextBase CurrentConversationContext { get; set; }
     protected ExchangeContext CurrentExchangeContext { get; set; }
     protected ObstacleContext CurrentObstacleContext { get; set; }
     public MentalSession MentalSession { get; set; }

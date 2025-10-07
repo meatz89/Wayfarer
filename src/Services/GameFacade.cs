@@ -102,20 +102,20 @@ public class GameFacade
     /// Get accessible cards for a conversation type based on player stats
     /// Your stat level determines maximum depth accessible for that stat's cards
     /// </summary>
-    public List<ConversationCard> GetAccessibleCards(string conversationTypeId)
+    public List<SocialCard> GetAccessibleCards(string conversationTypeId)
     {
         ConversationTypeEntry? typeEntry = _gameWorld.ConversationTypes.FindById(conversationTypeId);
         if (typeEntry == null)
         {
-            return new List<ConversationCard>();
+            return new List<SocialCard>();
         }
 
         // Get all cards for this conversation type through the deck system
-        List<ConversationCard> allCards = GetCardsForConversationType(typeEntry.Definition);
+        List<SocialCard> allCards = GetCardsForConversationType(typeEntry.Definition);
         PlayerStats playerStats = GetPlayerStats();
 
         // Filter cards based on stat-gated depth access
-        List<ConversationCard> accessibleCards = allCards.Where(card =>
+        List<SocialCard> accessibleCards = allCards.Where(card =>
             CanAccessCardDepth(playerStats, card)
         ).ToList();
 
@@ -125,7 +125,7 @@ public class GameFacade
     /// <summary>
     /// Check if player can access a card based on their stat levels and the card's depth
     /// </summary>
-    private bool CanAccessCardDepth(PlayerStats playerStats, ConversationCard card)
+    private bool CanAccessCardDepth(PlayerStats playerStats, SocialCard card)
     {
         // Get card depth
         int cardDepth = GetCardDepth(card);
@@ -145,23 +145,23 @@ public class GameFacade
     /// <summary>
     /// Get cards for a conversation type using the deck system (following ConversationDeckBuilder pattern)
     /// </summary>
-    private List<ConversationCard> GetCardsForConversationType(ConversationTypeDefinition definition)
+    private List<SocialCard> GetCardsForConversationType(SocialTypeDefinition definition)
     {
         // Use the deck ID to get cards from GameWorld (following ConversationDeckBuilder pattern)
         if (string.IsNullOrEmpty(definition.DeckId))
         {
-            return new List<ConversationCard>();
+            return new List<SocialCard>();
         }
 
         // Get card deck definition
         CardDeckDefinitionEntry? deckEntry = _gameWorld.CardDecks.FindById(definition.DeckId);
         if (deckEntry == null)
         {
-            return new List<ConversationCard>();
+            return new List<SocialCard>();
         }
 
         CardDeckDefinition cardDeck = deckEntry.Definition;
-        List<ConversationCard> cards = new List<ConversationCard>();
+        List<SocialCard> cards = new List<SocialCard>();
 
         // Get card definitions for each card ID in the deck
         foreach (string cardId in cardDeck.CardIds)
@@ -179,7 +179,7 @@ public class GameFacade
     /// <summary>
     /// Get card depth from actual depth property
     /// </summary>
-    private int GetCardDepth(ConversationCard card)
+    private int GetCardDepth(SocialCard card)
     {
         return (int)card.Depth;
     }
@@ -187,9 +187,9 @@ public class GameFacade
     /// <summary>
     /// Build conversation deck for player based on accessible cards
     /// </summary>
-    public List<ConversationCard> BuildDeckForPlayer(string conversationTypeId)
+    public List<SocialCard> BuildDeckForPlayer(string conversationTypeId)
     {
-        List<ConversationCard> accessibleCards = GetAccessibleCards(conversationTypeId);
+        List<SocialCard> accessibleCards = GetAccessibleCards(conversationTypeId);
         PlayerStats playerStats = GetPlayerStats();
 
         // Log depth analysis for debugging
@@ -229,7 +229,7 @@ public class GameFacade
         return _gameWorld.GetAvailableStrangers(locationId, currentTime);
     }
 
-    public ConversationContext StartStrangerConversation(string strangerId)
+    public SocialChallengeContext StartStrangerConversation(string strangerId)
     {
         // Find the stranger
         NPC stranger = _gameWorld.GetStrangerById(strangerId);
@@ -256,7 +256,7 @@ public class GameFacade
         stranger.MarkAsEncountered();
 
         // Create conversation context
-        ConversationContext context = new ConversationContext
+        SocialChallengeContext context = new SocialChallengeContext
         {
             IsValid = true,
             Npc = stranger,
@@ -364,7 +364,7 @@ public class GameFacade
 
         foreach (NPC npc in npcs)
         {
-            List<ConversationOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
+            List<SocialChallengeOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
             List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ChallengeTypeId).Distinct().ToList();
 
             options.Add(new NPCConversationOptions
@@ -603,16 +603,16 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContextBase> CreateConversationContext(string npcId, string requestId)
     {
         return await _conversationFacade.CreateConversationContext(npcId, requestId);
     }
 
-    public List<ConversationOption> GetAvailableConversationOptions(string npcId)
+    public List<SocialChallengeOption> GetAvailableConversationOptions(string npcId)
     {
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
-            return new List<ConversationOption>();
+            return new List<SocialChallengeOption>();
 
         return _conversationFacade.GetAvailableConversationOptions(npc);
     }
@@ -620,7 +620,7 @@ public class GameFacade
     /// <summary>
     /// Play a conversation card - proper architectural flow through GameFacade
     /// </summary>
-    public async Task<ConversationTurnResult> PlayConversationCard(CardInstance card)
+    public async Task<SocialTurnResult> PlayConversationCard(CardInstance card)
     {
         if (_conversationFacade == null)
             throw new InvalidOperationException("ConversationFacade not available");
@@ -634,7 +634,7 @@ public class GameFacade
     /// <summary>
     /// Execute listen action in current conversation - proper architectural flow through GameFacade
     /// </summary>
-    public async Task<ConversationTurnResult> ExecuteListen()
+    public async Task<SocialTurnResult> ExecuteListen()
     {
         if (_conversationFacade == null)
             throw new InvalidOperationException("ConversationFacade not available");

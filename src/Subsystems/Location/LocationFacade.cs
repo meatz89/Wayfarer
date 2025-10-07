@@ -320,7 +320,7 @@ public class LocationFacade
     private ConnectionState GetNPCConnectionState(NPC npc)
     {
         Console.WriteLine($"[LocationFacade.GetNPCConnectionState] Called for NPC: {npc?.Name ?? "null"}");
-        return ConversationRules.DetermineInitialState(npc, _letterQueueManager);
+        return SocialRules.DetermineInitialState(npc, _letterQueueManager);
     }
 
     private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, string conversationType, ConnectionState connectionState)

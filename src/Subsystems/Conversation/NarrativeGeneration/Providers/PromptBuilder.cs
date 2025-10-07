@@ -38,7 +38,7 @@ public class PromptBuilder
     /// <param name="analysis">Card analysis results</param>
     /// <param name="conversationType">Type of conversation being started</param>
     /// <returns>Complete prompt ready for AI generation</returns>
-    public string BuildIntroductionPrompt(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis, string conversationType = "standard")
+    public string BuildIntroductionPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, string conversationType = "standard")
     {
         string template = LoadTemplateFromPath("npc/introduction.md");
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
@@ -56,7 +56,7 @@ public class PromptBuilder
     /// <param name="analysis">Card analysis results</param>
     /// <param name="conversationHistory">Previous turns in the conversation</param>
     /// <returns>Complete prompt ready for AI generation</returns>
-    public string BuildDialoguePrompt(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis, List<string> conversationHistory = null)
+    public string BuildDialoguePrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, List<string> conversationHistory = null)
     {
         string template = LoadTemplateFromPath("npc/dialogue.md");
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
@@ -82,7 +82,7 @@ public class PromptBuilder
     /// <param name="cards">Active cards for narrative generation</param>
     /// <param name="npcDialogue">The NPC's current dialogue that cards need to respond to</param>
     /// <returns>Complete prompt ready for AI generation</returns>
-    public string BuildBatchCardGenerationPrompt(ConversationState state, NPCData npc, CardCollection cards, string npcDialogue)
+    public string BuildBatchCardGenerationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, string npcDialogue)
     {
         string template = LoadTemplateFromPath("cards/batch_generation.md");
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, null);
@@ -101,7 +101,7 @@ public class PromptBuilder
     /// <param name="cards">Active cards for backwards construction</param>
     /// <param name="analysis">Card analysis results</param>
     /// <returns>Complete prompt ready for AI generation</returns>
-    public string BuildConversationPrompt(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
+    public string BuildConversationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
         // Legacy method - use dialogue prompt as fallback
         return BuildDialoguePrompt(state, npc, cards, analysis);
@@ -366,7 +366,7 @@ public class PromptBuilder
     /// <param name="cards">Card collection</param>
     /// <param name="analysis">Card analysis (can be null)</param>
     /// <returns>Dictionary of placeholder names to values</returns>
-    private Dictionary<string, object> ExtractPlaceholders(ConversationState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
+    private Dictionary<string, object> ExtractPlaceholders(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
         Dictionary<string, object> placeholders = new Dictionary<string, object>
         {

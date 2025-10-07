@@ -2,7 +2,7 @@
 /// Context for standard trust-building conversations (FriendlyChat)
 /// Contains rapport and relationship building data without dictionaries
 /// </summary>
-public class StandardContext : ConversationContextBase
+public class StandardContext : SocialChallengeContextBase
 {
     public int CurrentRapport { get; set; }
     public ConnectionType TargetTokenType { get; set; }

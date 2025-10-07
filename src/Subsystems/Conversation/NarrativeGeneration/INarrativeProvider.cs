@@ -19,7 +19,7 @@ public interface INarrativeProvider
     /// <param name="activeCards">Cards currently available for the player to use</param>
     /// <returns>NarrativeOutput with NPCDialogue/NarrativeText filled, CardNarratives empty</returns>
     Task<NarrativeOutput> GenerateNPCDialogueAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards);
 
@@ -34,7 +34,7 @@ public interface INarrativeProvider
     /// <param name="npcDialogue">The NPC dialogue generated in Phase 1</param>
     /// <returns>List of card narratives with their IDs and text</returns>
     Task<List<CardNarrative>> GenerateCardNarrativesAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards,
         string npcDialogue);

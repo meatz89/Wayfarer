@@ -32,7 +32,7 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class ConversationContentBase : ComponentBase
     {
-        [Parameter] public ConversationContextBase Context { get; set; }
+        [Parameter] public SocialChallengeContextBase Context { get; set; }
         [Parameter] public EventCallback OnConversationEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
@@ -150,7 +150,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to disable buttons
 
                 // Delegate to facade - all game logic handled there
-                ConversationTurnResult listenResult = await GameFacade.ExecuteListen();
+                SocialTurnResult listenResult = await GameFacade.ExecuteListen();
 
                 if (listenResult == null)
                 {
@@ -211,7 +211,7 @@ namespace Wayfarer.Pages.Components
                 StateHasChanged(); // Update UI to disable buttons
 
                 // Delegate to facade - all game logic handled there
-                ConversationTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
+                SocialTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
 
                 if (turnResult?.CardPlayResult == null)
                 {
@@ -1017,15 +1017,15 @@ namespace Wayfarer.Pages.Components
             return SocialChallengeSession.GetTierUnlockThreshold(tier);
         }
 
-        protected ConversationTier[] GetAllTiers()
+        protected SocialCardTier[] GetAllTiers()
         {
-            return ConversationTier.AllTiers;
+            return SocialCardTier.AllTiers;
         }
 
         protected int GetMaxUnderstanding()
         {
             // Get the maximum Understanding threshold from the highest tier
-            return ConversationTier.AllTiers.Max(t => t.UnderstandingThreshold);
+            return SocialCardTier.AllTiers.Max(t => t.UnderstandingThreshold);
         }
 
         // Statement count methods

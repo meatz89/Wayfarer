@@ -91,7 +91,7 @@ public static class CardEffectCatalog
         return new CardEffectFormula
         {
             FormulaType = EffectFormulaType.Fixed,
-            TargetResource = ConversationResourceType.Momentum,
+            TargetResource = SocialChallengeResourceType.Momentum,
             BaseValue = depth switch
             {
                 1 or 2 => 2,  // Foundation: Authority specialist bonus
@@ -126,7 +126,7 @@ public static class CardEffectCatalog
                 return new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Momentum,
+                    TargetResource = SocialChallengeResourceType.Momentum,
                     BaseValue = 1  // Non-specialists get +1 Momentum (Authority gets +2 as specialist)
                 };
             }
@@ -205,7 +205,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Cards,
+                    TargetResource = SocialChallengeResourceType.Cards,
                     BaseValue = 2
                 }
             },
@@ -217,7 +217,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Cards,
+                    TargetResource = SocialChallengeResourceType.Cards,
                     BaseValue = 3
                 },
                 // Specialist + Understanding: Draw 3 cards, +1 Understanding
@@ -226,8 +226,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cards, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 1 }
                     }
                 }
             },
@@ -237,7 +237,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Cards,
+                    TargetResource = SocialChallengeResourceType.Cards,
                     BaseValue = 3
                 },
                 // Specialist + Understanding: Draw 3 cards, +1 Understanding
@@ -246,8 +246,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 1 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cards, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 1 }
                     }
                 }
             },
@@ -261,8 +261,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cards, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 2 }
                     }
                 }
             },
@@ -274,8 +274,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cards, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 2 }
                     }
                 }
             },
@@ -289,8 +289,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cards, BaseValue = 6 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cards, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 3 }
                     }
                 }
             },
@@ -315,7 +315,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Understanding,
+                    TargetResource = SocialChallengeResourceType.Understanding,
                     BaseValue = 2
                 }
             },
@@ -329,8 +329,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 2 }
                     }
                 }
             },
@@ -343,8 +343,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 6 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 4 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 4 }
                     }
                 }
             },
@@ -357,8 +357,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 10 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 6 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 10 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 6 }
                     }
                 }
             },
@@ -384,7 +384,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Momentum,
+                    TargetResource = SocialChallengeResourceType.Momentum,
                     BaseValue = 2
                 }
             },
@@ -398,8 +398,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 5 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 5 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 2 }
                     }
                 }
             },
@@ -412,8 +412,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 8 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 8 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 3 }
                     }
                 }
             },
@@ -426,8 +426,8 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 12 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 12 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 4 }
                     }
                 }
             },
@@ -453,7 +453,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Doubt,
+                    TargetResource = SocialChallengeResourceType.Doubt,
                     BaseValue = -1
                 }
             },
@@ -467,9 +467,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Doubt, BaseValue = -2 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 2 },
-                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = ConversationResourceType.Momentum, TradeRatio = -2, ConsumeResource = ConversationResourceType.Momentum, ConsumeAmount = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Doubt, BaseValue = -2 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 2 },
+                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = SocialChallengeResourceType.Momentum, TradeRatio = -2, ConsumeResource = SocialChallengeResourceType.Momentum, ConsumeAmount = 2 }
                     }
                 }
             },
@@ -483,9 +483,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Doubt, BaseValue = -4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = ConversationResourceType.Momentum, TradeRatio = -3, ConsumeResource = ConversationResourceType.Momentum, ConsumeAmount = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Doubt, BaseValue = -4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = SocialChallengeResourceType.Momentum, TradeRatio = -3, ConsumeResource = SocialChallengeResourceType.Momentum, ConsumeAmount = 3 }
                     }
                 }
             },
@@ -499,9 +499,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Setting, TargetResource = ConversationResourceType.Doubt, SetValue = 0 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = ConversationResourceType.Momentum, TradeRatio = -4, ConsumeResource = ConversationResourceType.Momentum, ConsumeAmount = 4 }
+                        new() { FormulaType = EffectFormulaType.Setting, TargetResource = SocialChallengeResourceType.Doubt, SetValue = 0 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Trading, TargetResource = SocialChallengeResourceType.Momentum, TradeRatio = -4, ConsumeResource = SocialChallengeResourceType.Momentum, ConsumeAmount = 4 }
                     }
                 }
             },
@@ -528,7 +528,7 @@ public static class CardEffectCatalog
                 new CardEffectFormula
                 {
                     FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = ConversationResourceType.Understanding,
+                    TargetResource = SocialChallengeResourceType.Understanding,
                     BaseValue = 0  // Cunning Foundation has NO effect - Initiative comes from ConversationalMove only
                 }
             },
@@ -542,9 +542,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 3 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 1 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 3 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cadence, BaseValue = 1 }
                     }
                 }
             },
@@ -557,9 +557,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 4 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 2 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 4 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cadence, BaseValue = 2 }
                     }
                 }
             },
@@ -572,9 +572,9 @@ public static class CardEffectCatalog
                     FormulaType = EffectFormulaType.Compound,
                     CompoundEffects = new List<CardEffectFormula>
                     {
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Understanding, BaseValue = 6 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Momentum, BaseValue = 6 },
-                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = ConversationResourceType.Cadence, BaseValue = 3 }
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Understanding, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Momentum, BaseValue = 6 },
+                        new() { FormulaType = EffectFormulaType.Fixed, TargetResource = SocialChallengeResourceType.Cadence, BaseValue = 3 }
                     }
                 }
             },

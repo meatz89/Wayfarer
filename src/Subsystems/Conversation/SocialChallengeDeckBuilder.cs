@@ -54,7 +54,7 @@ public class SocialChallengeDeckBuilder
         List<EquipmentCategory> playerEquipmentCategories = GetPlayerEquipmentCategories(player);
         deckInstances = deckInstances.Where(instance =>
         {
-            ConversationCard template = instance.ConversationCardTemplate;
+            SocialCard template = instance.ConversationCardTemplate;
             if (template == null) return false;
 
             if (template.EquipmentCategory != EquipmentCategory.None)
@@ -123,7 +123,7 @@ public class SocialChallengeDeckBuilder
     private List<CardInstance> CreateInstancesWithDepthDistribution(List<string> cardIds, DepthDistribution distribution, string ownerId)
     {
         // Get all available cards
-        List<ConversationCard> availableCards = new List<ConversationCard>();
+        List<SocialCard> availableCards = new List<SocialCard>();
         foreach (string cardId in cardIds)
         {
             CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(cardId);
@@ -134,11 +134,11 @@ public class SocialChallengeDeckBuilder
         }
 
         // Apply depth distribution
-        List<ConversationCard> filteredCards = ApplyDepthDistribution(availableCards, distribution);
+        List<SocialCard> filteredCards = ApplyDepthDistribution(availableCards, distribution);
 
         // Convert to card instances
         List<CardInstance> instances = new List<CardInstance>();
-        foreach (ConversationCard card in filteredCards)
+        foreach (SocialCard card in filteredCards)
         {
             CardInstance instance = new CardInstance(card, ownerId);
             instances.Add(instance);
@@ -151,7 +151,7 @@ public class SocialChallengeDeckBuilder
     /// <summary>
     /// Apply depth distribution to filter cards
     /// </summary>
-    private List<ConversationCard> ApplyDepthDistribution(List<ConversationCard> allCards, DepthDistribution distribution)
+    private List<SocialCard> ApplyDepthDistribution(List<SocialCard> allCards, DepthDistribution distribution)
     {
         // Group cards by depth ranges
         var foundationCards = allCards.Where(c => (int)c.Depth <= 2).ToList();
@@ -159,7 +159,7 @@ public class SocialChallengeDeckBuilder
         var advancedCards = allCards.Where(c => (int)c.Depth >= 5 && (int)c.Depth <= 6).ToList();
         var decisiveCards = allCards.Where(c => (int)c.Depth >= 7).ToList();
 
-        List<ConversationCard> selectedCards = new List<ConversationCard>();
+        List<SocialCard> selectedCards = new List<SocialCard>();
 
         // Target deck size (could be configurable)
         int targetDeckSize = 40;
@@ -226,7 +226,7 @@ public class SocialChallengeDeckBuilder
             {
                 throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in 02_cards.json and referenced in NPC goal.");
             }
-            ConversationCard goalCard = cardEntry.Card;
+            SocialCard goalCard = cardEntry.Card;
 
             // Create instance from the goal card
             CardInstance instance = new CardInstance(goalCard, npc.ID);
@@ -257,7 +257,7 @@ public class SocialChallengeDeckBuilder
 
         foreach (CardInstance instance in instances)
         {
-            ConversationCard card = instance.ConversationCardTemplate;
+            SocialCard card = instance.ConversationCardTemplate;
 
             // Check if this is a signature card (has token requirements)
             if (card.TokenRequirements != null && card.TokenRequirements.Any())

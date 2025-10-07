@@ -9,7 +9,7 @@ using System.Linq;
 /// </summary>
 public class CardDeck
 {
-    protected List<ConversationCard> cards = new();
+    protected List<SocialCard> cards = new();
     protected HashSet<string> drawnCardIds = new();
 
     public int RemainingCards
@@ -17,7 +17,7 @@ public class CardDeck
         get
         {
             int count = 0;
-            foreach (ConversationCard c in cards)
+            foreach (SocialCard c in cards)
             {
                 if (!drawnCardIds.Contains(c.Id)) count++;
             }
@@ -26,36 +26,36 @@ public class CardDeck
     }
     public int Count => cards.Count;
 
-    public void AddCard(ConversationCard card)
+    public void AddCard(SocialCard card)
     {
         cards.Add(card);
     }
 
-    public void AddCards(IEnumerable<ConversationCard> newCards)
+    public void AddCards(IEnumerable<SocialCard> newCards)
     {
         cards.AddRange(newCards);
     }
 
-    public ConversationCard DrawCard()
+    public SocialCard DrawCard()
     {
-        List<ConversationCard> available = new List<ConversationCard>();
-        foreach (ConversationCard c in cards)
+        List<SocialCard> available = new List<SocialCard>();
+        foreach (SocialCard c in cards)
         {
             if (!drawnCardIds.Contains(c.Id)) available.Add(c);
         }
         if (!available.Any()) return null;
 
-        ConversationCard card = available[0];
+        SocialCard card = available[0];
         drawnCardIds.Add(card.Id);
         return card;
     }
 
-    public List<ConversationCard> DrawCards(int count)
+    public List<SocialCard> DrawCards(int count)
     {
-        List<ConversationCard> drawn = new List<ConversationCard>();
+        List<SocialCard> drawn = new List<SocialCard>();
         for (int i = 0; i < count; i++)
         {
-            ConversationCard card = DrawCard();
+            SocialCard card = DrawCard();
             if (card != null) drawn.Add(card);
         }
         return drawn;
@@ -66,7 +66,7 @@ public class CardDeck
         drawnCardIds.Clear();
     }
 
-    public List<ConversationCard> GetAllCards()
+    public List<SocialCard> GetAllCards()
     {
         return cards.ToList();
     }
@@ -86,7 +86,7 @@ public class CardDeck
         return HasCards();
     }
 
-    public void RemoveCard(ConversationCard card)
+    public void RemoveCard(SocialCard card)
     {
         cards.Remove(card);
         drawnCardIds.Remove(card.Id);

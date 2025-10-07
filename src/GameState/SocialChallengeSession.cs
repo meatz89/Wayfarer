@@ -59,7 +59,7 @@ public class SocialChallengeSession
 
 
     // Conversation turn history
-    public List<ConversationTurn> TurnHistory { get; set; } = new List<ConversationTurn>();
+    public List<SocialTurn> TurnHistory { get; set; } = new List<SocialTurn>();
 
     // Stranger conversation properties
     public bool IsStrangerConversation { get; set; } = false;
@@ -199,7 +199,7 @@ public class SocialChallengeSession
     /// </summary>
     public static int GetTierUnlockThreshold(int tier)
     {
-        return ConversationTier.GetUnlockThreshold(tier);
+        return SocialCardTier.GetUnlockThreshold(tier);
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ public class SocialChallengeSession
         bool tiersChanged = false;
 
         // Check each tier (skip Tier 1 as it's always unlocked)
-        foreach (ConversationTier tier in ConversationTier.AllTiers.Skip(1))
+        foreach (SocialCardTier tier in SocialCardTier.AllTiers.Skip(1))
         {
             if (CurrentUnderstanding >= tier.UnderstandingThreshold && !UnlockedTiers.Contains(tier.TierNumber))
             {
@@ -329,10 +329,10 @@ public class SocialChallengeSession
         GameWorld world = gameWorld;
 
         // Determine initial state
-        ConnectionState initialState = ConversationRules.DetermineInitialState(npc, queueManager);
+        ConnectionState initialState = SocialRules.DetermineInitialState(npc, queueManager);
 
         // Create empty session deck (cards will be added separately)
-        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(new List<ConversationCard>(), npc.ID);
+        SessionCardDeck sessionDeck = SessionCardDeck.CreateFromTemplates(new List<SocialCard>(), npc.ID);
 
         // Add observation cards if provided
         foreach (CardInstance obsCard in obsCards)
@@ -344,7 +344,7 @@ public class SocialChallengeSession
         List<CardInstance> npcObservationCards = new List<CardInstance>();
         if (npc.ObservationDeck != null && npc.ObservationDeck.Any())
         {
-            foreach (ConversationCard obsCard in npc.ObservationDeck.GetAllCards())
+            foreach (SocialCard obsCard in npc.ObservationDeck.GetAllCards())
             {
                 npcObservationCards.Add(new CardInstance(obsCard));
             }

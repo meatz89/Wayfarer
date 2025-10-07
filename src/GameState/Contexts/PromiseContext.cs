@@ -2,7 +2,7 @@
 /// Context for promise/letter delivery request conversations
 /// Contains promise-specific data without dictionaries
 /// </summary>
-public class PromiseContext : ConversationContextBase
+public class PromiseContext : SocialChallengeContextBase
 {
     public PromiseCardData PromiseData { get; set; }
     public LetterDetails LetterDetails { get; set; }

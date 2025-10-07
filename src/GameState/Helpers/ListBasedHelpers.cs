@@ -111,7 +111,7 @@ public class NPCExchangeCardEntry
 public class ConversationTypeEntry
 {
     public string TypeId { get; set; }
-    public ConversationTypeDefinition Definition { get; set; }
+    public SocialTypeDefinition Definition { get; set; }
 }
 
 /// <summary>
@@ -129,7 +129,7 @@ public class CardDeckDefinitionEntry
 public class CardDefinitionEntry
 {
     public string CardId { get; set; }
-    public ConversationCard Card { get; set; }
+    public SocialCard Card { get; set; }
 }
 
 /// <summary>
@@ -430,12 +430,12 @@ public static class ListBasedHelperExtensions
 
 
     // CardDefinitionEntry helpers
-    public static ConversationCard GetCard(this List<CardDefinitionEntry> cards, string cardId)
+    public static SocialCard GetCard(this List<CardDefinitionEntry> cards, string cardId)
     {
         return cards.FindById(cardId)?.Card;
     }
 
-    public static void AddOrUpdateCard(this List<CardDefinitionEntry> cards, string cardId, ConversationCard card)
+    public static void AddOrUpdateCard(this List<CardDefinitionEntry> cards, string cardId, SocialCard card)
     {
         CardDefinitionEntry existing = cards.FindById(cardId);
         if (existing != null)
@@ -450,12 +450,12 @@ public static class ListBasedHelperExtensions
 
 
     // ConversationTypeEntry helpers
-    public static ConversationTypeDefinition GetConversationType(this List<ConversationTypeEntry> types, string typeId)
+    public static SocialTypeDefinition GetConversationType(this List<ConversationTypeEntry> types, string typeId)
     {
         return types.FindById(typeId)?.Definition;
     }
 
-    public static void AddOrUpdateConversationType(this List<ConversationTypeEntry> types, string typeId, ConversationTypeDefinition definition)
+    public static void AddOrUpdateConversationType(this List<ConversationTypeEntry> types, string typeId, SocialTypeDefinition definition)
     {
         ConversationTypeEntry existing = types.FindById(typeId);
         if (existing != null)

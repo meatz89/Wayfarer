@@ -25,7 +25,7 @@ public class JsonNarrativeRepository
     /// Finds the best matching narrative template for the current conversation state.
     /// Uses NPC ID, flow range, and rapport range to determine the best fit.
     /// </summary>
-    public NarrativeTemplate FindBestMatch(ConversationState state, NPCData npcData)
+    public NarrativeTemplate FindBestMatch(SocialChallengeState state, NPCData npcData)
     {
         if (!isLoaded)
         {
@@ -124,7 +124,7 @@ public class JsonNarrativeRepository
         return "You consider your response carefully.";
     }
 
-    private NarrativeTemplate FindBestMatchFromCandidates(List<NarrativeTemplate> candidates, ConversationState state)
+    private NarrativeTemplate FindBestMatchFromCandidates(List<NarrativeTemplate> candidates, SocialChallengeState state)
     {
         if (!candidates.Any())
         {
@@ -147,7 +147,7 @@ public class JsonNarrativeRepository
         return bestScore >= 0 ? bestMatch : null;
     }
 
-    private int CalculateMatchScore(NarrativeConditions conditions, ConversationState state)
+    private int CalculateMatchScore(NarrativeConditions conditions, SocialChallengeState state)
     {
         int score = 0;
 

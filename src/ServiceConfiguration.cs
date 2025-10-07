@@ -111,12 +111,12 @@ public static class ServiceConfiguration
         services.AddSingleton<SocialNarrativeService>();
 
         // AI Narrative Generation Support Components
-        services.AddSingleton<ConversationNarrativeGenerator>();
+        services.AddSingleton<SocialNarrativeGenerator>();
         services.AddSingleton<PromptBuilder>();
 
         // Always register both providers as concrete types
         services.AddSingleton<JsonNarrativeProvider>();
-        services.AddSingleton<AIConversationNarrativeProvider>();
+        services.AddSingleton<AINarrativeProvider>();
 
         // NarrativeProviderFactory will handle selection based on config
         services.AddSingleton<NarrativeProviderFactory>();

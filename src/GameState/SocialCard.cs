@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 
-public class ConversationCard
+public class SocialCard
 {
     // Core identity
     public string Id { get; init; }

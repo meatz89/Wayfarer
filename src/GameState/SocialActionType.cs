@@ -3,7 +3,7 @@
 /// Determines action-based balance shift (combines with Delivery for total balance change)
 /// Listen (draw) = -2 balance, Speak (play) = +1 balance
 /// </summary>
-public enum ConversationActionType
+public enum SocialActionType
 {
     /// <summary>
     /// Listen action: Drawing cards during conversation = -2 Cadence

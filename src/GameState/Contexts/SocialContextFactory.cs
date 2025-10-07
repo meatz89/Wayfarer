@@ -2,12 +2,12 @@
 /// Factory for creating type-specific conversation contexts
 /// Eliminates Dictionary usage and provides strongly-typed contexts
 /// </summary>
-public static class ConversationContextFactory
+public static class SocialContextFactory
 {
     /// <summary>
     /// Create a typed conversation context based on conversation type
     /// </summary>
-    public static ConversationContextBase CreateContext(
+    public static SocialChallengeContextBase CreateContext(
         string conversationTypeId,
         NPC npc,
         SocialChallengeSession session,
@@ -17,7 +17,7 @@ public static class ConversationContextFactory
         string timeDisplay)
     {
         // Create context based on conversation type ID
-        ConversationContextBase context = conversationTypeId switch
+        SocialChallengeContextBase context = conversationTypeId switch
         {
             "desperate_request" => new PromiseContext(),
             "trade_negotiation" => new PromiseContext(),
@@ -49,7 +49,7 @@ public static class ConversationContextFactory
     /// <summary>
     /// Create an invalid context with error message
     /// </summary>
-    public static ConversationContextBase CreateInvalidContext(string errorMessage)
+    public static SocialChallengeContextBase CreateInvalidContext(string errorMessage)
     {
         return new StandardContext
         {
@@ -61,7 +61,7 @@ public static class ConversationContextFactory
     /// <summary>
     /// Initialize type-specific data for a context
     /// </summary>
-    public static void InitializeContextData(ConversationContextBase context, GameWorld gameWorld, ObligationQueueManager queueManager)
+    public static void InitializeContextData(SocialChallengeContextBase context, GameWorld gameWorld, ObligationQueueManager queueManager)
     {
         switch (context)
         {
@@ -130,12 +130,12 @@ public static class ConversationContextFactory
             // Get burden cards from NPC's burden deck
             if (context.Npc?.BurdenDeck != null)
             {
-                List<ConversationCard> burdenCards = context.Npc.BurdenDeck.GetAllCards();
+                List<SocialCard> burdenCards = context.Npc.BurdenDeck.GetAllCards();
                 context.SetBurdenCards(burdenCards);
             }
             else
             {
-                context.SetBurdenCards(new List<ConversationCard>());
+                context.SetBurdenCards(new List<SocialCard>());
             }
         }
     }

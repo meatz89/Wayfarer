@@ -2692,7 +2692,7 @@ public class ObligationQueueManager
         }
 
         // Create a burden card representing the damaged relationship
-        ConversationCard burdenCard = new ConversationCard
+        SocialCard burdenCard = new SocialCard
         {
             Id = $"burden_{npcId}_{Guid.NewGuid()}",
             CardType = CardType.Request,  // Burden cards use BurdenGoal type

@@ -73,7 +73,7 @@ public class ObservationManager
         _takenObservationsByTimeBlock[currentTimeBlock].Add(observation.Id);
 
         // Generate conversation card first
-        ConversationCard conversationCard = GenerateConversationCard(observation, tokenManager);
+        SocialCard conversationCard = GenerateConversationCard(observation, tokenManager);
 
         if (conversationCard != null)
         {
@@ -150,7 +150,7 @@ public class ObservationManager
 
         // Convert NPC's observation cards to ObservationCard type
         List<ObservationCard> observationCards = new List<ObservationCard>();
-        foreach (ConversationCard card in npc.ObservationDeck.GetAllCards())
+        foreach (SocialCard card in npc.ObservationDeck.GetAllCards())
         {
         }
         return observationCards;
@@ -160,11 +160,11 @@ public class ObservationManager
     /// Get observation cards as conversation cards for a specific NPC
     /// Used when starting a conversation to include relevant observations
     /// </summary>
-    public List<ConversationCard> GetObservationCardsAsConversationCards(string npcId)
+    public List<SocialCard> GetObservationCardsAsConversationCards(string npcId)
     {
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc?.ObservationDeck == null)
-            return new List<ConversationCard>();
+            return new List<SocialCard>();
 
         // Return all observation cards from NPC's deck
         return npc.ObservationDeck.GetAllCards()
@@ -182,7 +182,7 @@ public class ObservationManager
         if (npc?.ObservationDeck != null)
         {
             // Find and remove the card from NPC's observation deck
-            ConversationCard cardToRemove = npc.ObservationDeck.GetAllCards()
+            SocialCard cardToRemove = npc.ObservationDeck.GetAllCards()
                 .FirstOrDefault(c => c.Id == observationCardId);
 
             if (cardToRemove != null)
@@ -243,7 +243,7 @@ public class ObservationManager
     /// <summary>
     /// Generate a conversation card from an observation using JSON-based card templates
     /// </summary>
-    private ConversationCard GenerateConversationCard(Observation observation, TokenMechanicsManager tokenManager)
+    private SocialCard GenerateConversationCard(Observation observation, TokenMechanicsManager tokenManager)
     {
         if (string.IsNullOrEmpty(observation.CardTemplate))
         {
@@ -260,11 +260,11 @@ public class ObservationManager
         }
 
         // Create new observation card based on template with observation-specific properties
-        ConversationCard baseCard = entry.Card;
+        SocialCard baseCard = entry.Card;
         string description = !string.IsNullOrEmpty(baseCard.Title) ? baseCard.Title :
                            !string.IsNullOrEmpty(observation.Text) ? observation.Text : observation.Description;
 
-        ConversationCard observationCard = new ConversationCard
+        SocialCard observationCard = new SocialCard
         {
             Id = $"{observation.Id}_card_{Guid.NewGuid()}",
             Title = description,
@@ -374,7 +374,7 @@ public class ObservationManager
         }
 
         // Create observation card and add to NPC's observation deck
-        ConversationCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
+        SocialCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
         if (targetNpc.ObservationDeck == null)
         {
             targetNpc.ObservationDeck = new CardDeck();
@@ -396,12 +396,12 @@ public class ObservationManager
     /// <summary>
     /// Create a conversation card from an observation card reward
     /// </summary>
-    public ConversationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
+    public SocialCard CreateObservationCardForNPC(ObservationCardReward cardReward)
     {
         // Parse the effect string to determine categorical effect type
         SuccessEffectType successType = ParseObservationEffectType(cardReward.Effect);
 
-        return new ConversationCard
+        return new SocialCard
         {
             Id = cardReward.Id,
             Title = cardReward.Name,

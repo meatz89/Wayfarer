@@ -50,7 +50,7 @@ namespace Wayfarer.Pages.Components
         protected async Task StartStrangerConversation(string strangerId, string conversationType)
         {
             // For now, use the simpler approach - start conversation without specific type
-            ConversationContext context = GameFacade.StartStrangerConversation(strangerId);
+            SocialChallengeContext context = GameFacade.StartStrangerConversation(strangerId);
             if (context != null)
             {
                 RefreshStrangers();

@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 /// Implements backwards construction principle through AI generation,
 /// analyzing cards first and generating appropriate NPC dialogue.
 /// </summary>
-public class AIConversationNarrativeProvider : INarrativeProvider
+public class AINarrativeProvider : INarrativeProvider
 {
     private readonly OllamaClient ollamaClient;
-    private readonly ConversationNarrativeGenerator generator;
+    private readonly SocialNarrativeGenerator generator;
     private readonly PromptBuilder promptBuilder;
     private readonly IConfiguration configuration;
 
@@ -26,9 +26,9 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <param name="generator">Backwards construction algorithm generator</param>
     /// <param name="promptBuilder">Prompt template builder</param>
     /// <param name="configuration">Application configuration</param>
-    public AIConversationNarrativeProvider(
+    public AINarrativeProvider(
         OllamaClient ollamaClient,
-        ConversationNarrativeGenerator generator,
+        SocialNarrativeGenerator generator,
         PromptBuilder promptBuilder,
         IConfiguration configuration)
     {
@@ -48,7 +48,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <param name="activeCards">Cards available to player</param>
     /// <returns>NarrativeOutput with NPCDialogue/NarrativeText filled, CardNarratives empty</returns>
     public async Task<NarrativeOutput> GenerateNPCDialogueAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards)
     {
@@ -109,7 +109,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <param name="npcDialogue">The NPC dialogue generated in Phase 1</param>
     /// <returns>List of card narratives with their IDs and text</returns>
     public async Task<List<CardNarrative>> GenerateCardNarrativesAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards,
         string npcDialogue)
@@ -298,7 +298,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return cardNarratives;
     }
 
-    private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, ConversationState state)
+    private NarrativeOutput ParseAIResponse(string aiResponse, CardCollection activeCards, SocialChallengeState state)
     {
         NarrativeOutput output = new NarrativeOutput
         {
@@ -335,7 +335,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
     /// <summary>
     /// Determines which prompt template to use and builds the appropriate prompt.
     /// </summary>
-    private string DetermineAndBuildPrompt(ConversationState state, NPCData npcData, CardCollection activeCards, CardAnalysis analysis)
+    private string DetermineAndBuildPrompt(SocialChallengeState state, NPCData npcData, CardCollection activeCards, CardAnalysis analysis)
     {
         if (state.TotalTurns == 0)
         {
@@ -542,7 +542,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
 
     private NarrativeOutput ValidateAndEnhanceOutput(
         NarrativeOutput output,
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards,
         CardAnalysis analysis)
@@ -576,7 +576,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return output;
     }
 
-    private string GenerateFallbackNPCDialogue(ConversationState state, NPCData npcData, CardAnalysis analysis)
+    private string GenerateFallbackNPCDialogue(SocialChallengeState state, NPCData npcData, CardAnalysis analysis)
     {
         // Use the generator's logic as fallback
         NarrativeConstraints constraints = generator.DetermineNarrativeConstraints(analysis);
@@ -599,7 +599,7 @@ public class AIConversationNarrativeProvider : INarrativeProvider
         return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {action}";
     }
 
-    private string GenerateFallbackEnvironmental(ConversationState state, NPCData npcData)
+    private string GenerateFallbackEnvironmental(SocialChallengeState state, NPCData npcData)
     {
         return state.Flow switch
         {

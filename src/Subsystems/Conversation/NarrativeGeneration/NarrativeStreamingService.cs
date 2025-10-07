@@ -89,7 +89,7 @@ public class NarrativeStreamingService
     /// <returns>Stream of narrative chunks</returns>
     public async IAsyncEnumerable<NarrativeChunk> StreamFromProviderAsync(
         INarrativeProvider provider,
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection cards,
         int chunkSize = 3,

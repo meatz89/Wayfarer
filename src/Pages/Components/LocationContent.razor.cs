@@ -89,10 +89,10 @@ namespace Wayfarer.Pages.Components
                     List<ConversationOptionViewModel> options = new List<ConversationOptionViewModel>();
 
                     // Get ACTUAL available conversation options with specific goal cards
-                    List<ConversationOption> availableOptions = GameFacade.GetAvailableConversationOptions(npc.ID);
+                    List<SocialChallengeOption> availableOptions = GameFacade.GetAvailableConversationOptions(npc.ID);
 
                     // Add each available option with its specific goal card
-                    foreach (ConversationOption conversationOption in availableOptions)
+                    foreach (SocialChallengeOption conversationOption in availableOptions)
                     {
 
                         ConversationOptionViewModel option = new ConversationOptionViewModel

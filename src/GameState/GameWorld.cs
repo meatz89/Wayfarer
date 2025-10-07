@@ -82,7 +82,7 @@ public class GameWorld
     public List<CardDeckDefinitionEntry> CardDecks { get; set; } = new List<CardDeckDefinitionEntry>();
     // Exchange cards are now completely separate from conversation cards
     public List<NPCExchangeCardEntry> NPCExchangeCards { get; set; } = new List<NPCExchangeCardEntry>();
-    public List<ConversationCard> PlayerObservationCards { get; set; } = new List<ConversationCard>();
+    public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
     // Mental cards for investigation system

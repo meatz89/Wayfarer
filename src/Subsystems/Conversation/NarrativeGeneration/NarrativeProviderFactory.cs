@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 /// </summary>
 public class NarrativeProviderFactory
 {
-    private readonly AIConversationNarrativeProvider _aiProvider;
+    private readonly AINarrativeProvider _aiProvider;
     private readonly JsonNarrativeProvider _jsonProvider;
     private readonly IConfiguration _configuration;
 
     public NarrativeProviderFactory(
-        AIConversationNarrativeProvider aiProvider,
+        AINarrativeProvider aiProvider,
         JsonNarrativeProvider jsonProvider,
         IConfiguration configuration)
     {

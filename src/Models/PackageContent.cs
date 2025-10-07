@@ -28,7 +28,7 @@ public class PackageContent
     /// <summary>
     /// Conversation type definitions that reference card decks
     /// </summary>
-    public List<ConversationTypeDefinitionDTO> ConversationTypes { get; set; }
+    public List<SocialTypeDefinitionDTO> ConversationTypes { get; set; }
 
     /// <summary>
     /// NPC definitions - uses existing NPCDTO

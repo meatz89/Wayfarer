@@ -36,7 +36,7 @@ public class CardEffectFormula
     public EffectFormulaType FormulaType { get; set; }
 
     // Primary resource being affected
-    public ConversationResourceType TargetResource { get; set; }
+    public SocialChallengeResourceType TargetResource { get; set; }
 
     // Base value for Fixed/Compound types
     public int? BaseValue { get; set; }
@@ -47,13 +47,13 @@ public class CardEffectFormula
     public int? ScalingMax { get; set; } // Cap for scaling effects
 
     // Conditional properties for Type C
-    public ConversationResourceType? ConditionResource { get; set; }
+    public SocialChallengeResourceType? ConditionResource { get; set; }
     public int? ConditionThreshold { get; set; }
     public int? ConditionMetValue { get; set; }
     public int? ConditionUnmetValue { get; set; }
 
     // Trading properties for Type D
-    public ConversationResourceType? ConsumeResource { get; set; }
+    public SocialChallengeResourceType? ConsumeResource { get; set; }
     public int? ConsumeAmount { get; set; }
     public int? TradeRatio { get; set; }
 
@@ -136,11 +136,11 @@ public class CardEffectFormula
 
         int currentValue = ConditionResource.Value switch
         {
-            ConversationResourceType.Doubt => session.CurrentDoubt,
-            ConversationResourceType.Cadence => session.Cadence,
-            ConversationResourceType.Momentum => session.CurrentMomentum,
-            ConversationResourceType.Initiative => session.CurrentInitiative,
-            ConversationResourceType.Cards => session.Deck.HandSize,
+            SocialChallengeResourceType.Doubt => session.CurrentDoubt,
+            SocialChallengeResourceType.Cadence => session.Cadence,
+            SocialChallengeResourceType.Momentum => session.CurrentMomentum,
+            SocialChallengeResourceType.Initiative => session.CurrentInitiative,
+            SocialChallengeResourceType.Cards => session.Deck.HandSize,
             _ => 0
         };
 
@@ -166,8 +166,8 @@ public class CardEffectFormula
 
         int available = ConsumeResource.Value switch
         {
-            ConversationResourceType.Momentum => session.CurrentMomentum,
-            ConversationResourceType.Initiative => session.CurrentInitiative,
+            SocialChallengeResourceType.Momentum => session.CurrentMomentum,
+            SocialChallengeResourceType.Initiative => session.CurrentInitiative,
             _ => 0
         };
 
@@ -185,11 +185,11 @@ public class CardEffectFormula
 
         switch (ConsumeResource.Value)
         {
-            case ConversationResourceType.Momentum:
+            case SocialChallengeResourceType.Momentum:
                 session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - (ConsumeAmount ?? 0));
                 return true;
 
-            case ConversationResourceType.Initiative:
+            case SocialChallengeResourceType.Initiative:
                 session.CurrentInitiative = Math.Max(0, session.CurrentInitiative - (ConsumeAmount ?? 0));
                 return true;
 

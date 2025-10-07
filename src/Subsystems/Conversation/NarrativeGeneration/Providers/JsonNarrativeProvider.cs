@@ -22,7 +22,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// Returns immediately after NPC dialogue generation for quick UI update.
     /// </summary>
     public Task<NarrativeOutput> GenerateNPCDialogueAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards)
     {
@@ -66,7 +66,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// For JSON fallback, doesn't use NPC dialogue but generates based on card properties.
     /// </summary>
     public Task<List<CardNarrative>> GenerateCardNarrativesAsync(
-        ConversationState state,
+        SocialChallengeState state,
         NPCData npcData,
         CardCollection activeCards,
         string npcDialogue)
@@ -153,7 +153,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// Generates a progression hint based on current conversation state.
     /// Provides guidance to help the player understand their options.
     /// </summary>
-    private string GenerateProgressionHint(ConversationState state, NPCData npcData, NarrativeTemplate template)
+    private string GenerateProgressionHint(SocialChallengeState state, NPCData npcData, NarrativeTemplate template)
     {
         // Low rapport situations need trust building
         if (state.Momentum < 0)
@@ -199,7 +199,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// Creates smart mechanical fallbacks based on conversation state when no templates match.
     /// Uses flow, rapport, atmosphere, and card properties to generate appropriate responses.
     /// </summary>
-    private NarrativeOutput CreateSmartFallbackOutput(ConversationState state, NPCData npcData, CardCollection activeCards)
+    private NarrativeOutput CreateSmartFallbackOutput(SocialChallengeState state, NPCData npcData, CardCollection activeCards)
     {
         NarrativeOutput output = new NarrativeOutput
         {
@@ -226,7 +226,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// <summary>
     /// Generates NPC dialogue based on flow value (0-24) and card presence.
     /// </summary>
-    private string GenerateFlowBasedDialogue(ConversationState state, NPCData npcData, CardCollection activeCards)
+    private string GenerateFlowBasedDialogue(SocialChallengeState state, NPCData npcData, CardCollection activeCards)
     {
         // Check for special card requirements first
         bool hasImpulse = activeCards.Cards.Any(c => c.Persistence == PersistenceType.Statement);
@@ -301,7 +301,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// <summary>
     /// Generates card narratives based on card properties and conversation state.
     /// </summary>
-    private string GenerateSmartCardNarrative(CardInfo card, ConversationState state, NPCData npcData)
+    private string GenerateSmartCardNarrative(CardInfo card, SocialChallengeState state, NPCData npcData)
     {
         // Handle by narrative category first
         string baseNarrative = card.NarrativeCategory switch
@@ -365,7 +365,7 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// <summary>
     /// Generates smart progression hints based on current state and available cards.
     /// </summary>
-    private string GenerateSmartProgressionHint(ConversationState state, CardCollection activeCards)
+    private string GenerateSmartProgressionHint(SocialChallengeState state, CardCollection activeCards)
     {
         // Check card-specific hints first
         if (activeCards.Cards.Any(c => c.Persistence == PersistenceType.Statement))

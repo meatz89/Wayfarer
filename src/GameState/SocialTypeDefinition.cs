@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// Defines a conversation type loaded from JSON
 /// Fully extensible without code changes
 /// </summary>
-public class ConversationTypeDefinition
+public class SocialTypeDefinition
 {
     public string Id { get; set; }
     public string Name { get; set; }

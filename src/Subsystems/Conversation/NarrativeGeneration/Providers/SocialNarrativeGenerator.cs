@@ -8,7 +8,7 @@ using System.Linq;
 /// Implements the principle of analyzing cards first, then generating NPC dialogue 
 /// that all cards can respond to meaningfully.
 /// </summary>
-public class ConversationNarrativeGenerator
+public class SocialNarrativeGenerator
 {
     /// <summary>
     /// Generates narrative content using backwards construction.
@@ -19,7 +19,7 @@ public class ConversationNarrativeGenerator
     /// <param name="npc">NPC data for personality and context</param>
     /// <param name="cards">Active cards available to player</param>
     /// <returns>Generated narrative output with NPC dialogue and card responses</returns>
-    public NarrativeOutput GenerateNarrative(ConversationState state, NPCData npc, CardCollection cards)
+    public NarrativeOutput GenerateNarrative(SocialChallengeState state, NPCData npc, CardCollection cards)
     {
         // Phase 1: Analyze what cards player has available
         CardAnalysis analysis = AnalyzeActiveCards(cards);
@@ -106,7 +106,7 @@ public class ConversationNarrativeGenerator
     /// <param name="npc">NPC personality and context data</param>
     /// <param name="state">Current conversation state</param>
     /// <returns>NPC dialogue text</returns>
-    public string GenerateNPCDialogue(NarrativeConstraints constraints, NPCData npc, ConversationState state)
+    public string GenerateNPCDialogue(NarrativeConstraints constraints, NPCData npc, SocialChallengeState state)
     {
         RapportStage rapportStage = GetRapportStage(state.Momentum);
         TopicLayer topicLayer = GetTopicLayer(state.Momentum, npc.CurrentCrisis);
@@ -307,13 +307,13 @@ public class ConversationNarrativeGenerator
         return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {response.ToLower()}";
     }
 
-    private string GenerateEnvironmentalNarrative(ConversationState state, NPCData npc)
+    private string GenerateEnvironmentalNarrative(SocialChallengeState state, NPCData npc)
     {
         // Generate environmental description based on current state
         return "The conversation continues with growing understanding";
     }
 
-    private string GenerateProgressionHint(ConversationState state, NPCData npc, CardAnalysis analysis)
+    private string GenerateProgressionHint(SocialChallengeState state, NPCData npc, CardAnalysis analysis)
     {
         // Generate hint about conversation progression
         if (state.Momentum >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))

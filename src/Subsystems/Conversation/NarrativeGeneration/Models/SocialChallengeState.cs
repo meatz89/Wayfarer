@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// Wrapper for conversation mechanical state used in narrative generation.
 /// Contains all the game state information needed to generate contextually appropriate narratives.
 /// </summary>
-public class ConversationState
+public class SocialChallengeState
 {
     /// <summary>
     /// Current flow value (0-24 internal scale).

@@ -10,13 +10,13 @@ using System.Linq;
 /// - Exchange cards use "successEffect" structure and are handled by the exchange system
 /// - They must NEVER be mixed or cross-parsed between systems
 /// </summary>
-public static class ConversationCardParser
+public static class SocialCardParser
 {
 
     /// <summary>
     /// Get request card for conversation type from provided card data
     /// </summary>
-    public static ConversationCard GetRequestCard(string conversationTypeId, string npcId, string npcName,
+    public static SocialCard GetRequestCard(string conversationTypeId, string npcId, string npcName,
         Dictionary<string, ConversationCardDTO> cardTemplates)
     {
         // Use conversation type ID directly to find request card template
@@ -35,7 +35,7 @@ public static class ConversationCardParser
     /// IMPORTANT: This method only handles conversation cards with "effects" structure.
     /// Exchange cards with "successEffect" structure are handled by the exchange system.
     /// </summary>
-    public static ConversationCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null, string customId = null)
+    public static SocialCard ConvertDTOToCard(ConversationCardDTO dto, NPC npc = null, string customId = null)
     {
         // Parse token type from connection type
         ConnectionType tokenType = ConnectionType.Trust; // Default
@@ -243,7 +243,7 @@ public static class ConversationCardParser
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
         // Create ConversationCard with all properties in initializer
-        return new ConversationCard
+        return new SocialCard
         {
             Id = customId ?? dto.Id,
             Title = dto.Title ?? "",
@@ -280,7 +280,7 @@ public static class ConversationCardParser
     /// 70% of Foundation cards (depth 1-2) must be Echo type
     /// ALL Initiative-generating cards must be Echo type
     /// </summary>
-    public static void ValidateFoundationCardRules(List<ConversationCard> allCards)
+    public static void ValidateFoundationCardRules(List<SocialCard> allCards)
     {
         if (allCards == null || !allCards.Any())
         {
@@ -288,7 +288,7 @@ public static class ConversationCardParser
         }
 
         // Get Foundation cards (depth 1-2)
-        List<ConversationCard> foundationCards = allCards
+        List<SocialCard> foundationCards = allCards
             .Where(c => (int)c.Depth <= 2)
             .ToList();
 
@@ -306,7 +306,7 @@ public static class ConversationCardParser
 
         // Report on card distribution (no strict validation)
         // Cards can be Echo or Statement based on narrative weight, not mechanical requirements
-        List<ConversationCard> cunningCards = allCards
+        List<SocialCard> cunningCards = allCards
             .Where(c => c.BoundStat == PlayerStatType.Cunning)
             .ToList();
 
@@ -327,13 +327,13 @@ public static class ConversationCardParser
 
         // Trading effects that consume Initiative don't count
         if (formula.FormulaType == EffectFormulaType.Trading &&
-            formula.ConsumeResource == ConversationResourceType.Initiative)
+            formula.ConsumeResource == SocialChallengeResourceType.Initiative)
         {
             return false;
         }
 
         // Top-level Initiative generation = primary
-        if (formula.TargetResource == ConversationResourceType.Initiative &&
+        if (formula.TargetResource == SocialChallengeResourceType.Initiative &&
             formula.FormulaType != EffectFormulaType.Trading)
         {
             return true;
@@ -343,7 +343,7 @@ public static class ConversationCardParser
         if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
         {
             if (formula.CompoundEffects.Count > 0 &&
-                formula.CompoundEffects[0].TargetResource == ConversationResourceType.Initiative)
+                formula.CompoundEffects[0].TargetResource == SocialChallengeResourceType.Initiative)
             {
                 return true;
             }
@@ -363,7 +363,7 @@ public static class ConversationCardParser
         if (formula.FormulaType == EffectFormulaType.Trading) return false;
 
         // Check if top-level effect generates Initiative
-        if (formula.TargetResource == ConversationResourceType.Initiative) return true;
+        if (formula.TargetResource == SocialChallengeResourceType.Initiative) return true;
 
         // Recursively check compound effects
         if (formula.FormulaType == EffectFormulaType.Compound && formula.CompoundEffects != null)
@@ -433,7 +433,7 @@ public static class ConversationCardParser
         if (formula == null) return false;
 
         // Check top-level effect
-        if (formula.TargetResource == ConversationResourceType.Cadence)
+        if (formula.TargetResource == SocialChallengeResourceType.Cadence)
             return true;
 
         // Check compound effects recursively

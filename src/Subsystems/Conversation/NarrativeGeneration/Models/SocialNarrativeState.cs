@@ -2,7 +2,7 @@
 /// UI state management for narrative streaming and display.
 /// Tracks the current state of narrative content being shown to the player.
 /// </summary>
-public class ConversationNarrativeState
+public class SocialNarrativeState
 {
     /// <summary>
     /// Whether narrative content is currently being streamed/generated.

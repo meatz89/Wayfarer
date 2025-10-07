@@ -45,10 +45,10 @@ public class SessionCardDeck
     /// <summary>
     /// Create a deck from card templates
     /// </summary>
-    public static SessionCardDeck CreateFromTemplates(List<ConversationCard> templates, string npcId)
+    public static SessionCardDeck CreateFromTemplates(List<SocialCard> templates, string npcId)
     {
         SessionCardDeck deck = new SessionCardDeck(npcId);
-        foreach (ConversationCard template in templates)
+        foreach (SocialCard template in templates)
         {
             CardInstance cardInstance = new CardInstance(template);
             deck.deckPile.Add(cardInstance);
@@ -480,7 +480,7 @@ public class SessionCardDeck
     /// Tier system: Tier 1 (depths 1-2), Tier 2 (depths 3-4), Tier 3 (depths 5-6), Tier 4 (depths 7-8)
     /// Tiers unlock at Understanding thresholds (0/6/12/18) and persist once unlocked
     /// </summary>
-    private bool CanAccessCard(ConversationCard card, SocialChallengeSession session, PlayerStats playerStats)
+    private bool CanAccessCard(SocialCard card, SocialChallengeSession session, PlayerStats playerStats)
     {
         if (card == null) return false;
 

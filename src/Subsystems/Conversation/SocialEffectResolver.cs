@@ -146,7 +146,7 @@ public class SocialEffectResolver
 
         // Strategic resource costs - PRE-CALCULATED at parse time via CardEffectCatalog
         // THREE PARALLEL SYSTEMS: Resolver just uses the values calculated during parsing
-        ConversationCard template = card.ConversationCardTemplate;
+        SocialCard template = card.ConversationCardTemplate;
         if (template != null)
         {
             result.StaminaCost = template.StaminaCost;
@@ -169,38 +169,38 @@ public class SocialEffectResolver
         // Apply to appropriate resource
         switch (formula.TargetResource)
         {
-            case ConversationResourceType.Initiative:
+            case SocialChallengeResourceType.Initiative:
                 // CRITICAL ERROR: Initiative should NEVER be a card effect target
                 // Initiative comes ONLY from ConversationalMove (Remark/Observation generate, Arguments cost)
                 throw new InvalidOperationException(
                     $"INVALID CARD EFFECT: Card '{result.Card?.ConversationCardTemplate?.Id}' has Initiative as effect target. " +
                     $"Initiative is NOT a card effect - it's a categorical property of ConversationalMove.");
 
-            case ConversationResourceType.Momentum:
+            case SocialChallengeResourceType.Momentum:
                 result.MomentumChange += effectValue;
                 if (effectValue != 0)
                     effects.Add(effectValue > 0 ? $"+{effectValue} Momentum" : $"{effectValue} Momentum");
                 break;
 
-            case ConversationResourceType.Doubt:
+            case SocialChallengeResourceType.Doubt:
                 result.DoubtChange += effectValue;
                 if (effectValue != 0)
                     effects.Add(effectValue > 0 ? $"+{effectValue} Doubt" : $"{-effectValue} Doubt");
                 break;
 
-            case ConversationResourceType.Cadence:
+            case SocialChallengeResourceType.Cadence:
                 result.CadenceChange += effectValue;
                 if (effectValue != 0)
                     effects.Add(effectValue > 0 ? $"+{effectValue} Cadence" : $"{effectValue} Cadence");
                 break;
 
-            case ConversationResourceType.Cards:
+            case SocialChallengeResourceType.Cards:
                 result.CardsToDraw += effectValue;
                 if (effectValue > 0)
                     effects.Add($"Draw {effectValue} card{(effectValue == 1 ? "" : "s")}");
                 break;
 
-            case ConversationResourceType.Understanding:
+            case SocialChallengeResourceType.Understanding:
                 result.UnderstandingChange += effectValue;
                 if (effectValue != 0)
                     effects.Add(effectValue > 0 ? $"+{effectValue} Understanding" : $"{effectValue} Understanding");

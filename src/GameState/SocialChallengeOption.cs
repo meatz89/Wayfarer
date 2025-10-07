@@ -4,7 +4,7 @@ using System;
 /// Represents a specific conversation option that maps to a goal card from the NPC's requests.
 /// Each conversation option corresponds to exactly one goal card.
 /// </summary>
-public class ConversationOption
+public class SocialChallengeOption
 {
     /// <summary>
     /// The request ID that drives this conversation option

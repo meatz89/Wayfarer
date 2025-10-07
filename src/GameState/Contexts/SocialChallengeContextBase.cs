@@ -1,7 +1,7 @@
 /// <summary>
 /// Base class for all conversation contexts containing common properties
 /// </summary>
-public abstract class ConversationContextBase
+public abstract class SocialChallengeContextBase
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
@@ -17,7 +17,7 @@ public abstract class ConversationContextBase
     public string TimeDisplay { get; set; }
     public string RequestText { get; set; }  // Text displayed when NPC presents a request
 
-    protected ConversationContextBase()
+    protected SocialChallengeContextBase()
     {
         ObservationCards = new List<CardInstance>();
     }

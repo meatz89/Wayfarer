@@ -2,7 +2,7 @@
 /// The 6 core conversation resources that cards can manipulate.
 /// Each stat maps to one or two resources.
 /// </summary>
-public enum ConversationResourceType
+public enum SocialChallengeResourceType
 {
     /// <summary>Initiative - Action economy within turn (Cunning stat PRIMARY)</summary>
     Initiative,

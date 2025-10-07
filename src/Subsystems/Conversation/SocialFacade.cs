@@ -211,7 +211,7 @@ public class SocialFacade
     /// Execute LISTEN action - Complete 4-Resource System Implementation
     /// Sequence: Apply Cadence Effects → Handle Card Persistence → Fixed Card Draw → Refresh Initiative → Check Goal Cards
     /// </summary>
-    public async Task<ConversationTurnResult> ExecuteListen()
+    public async Task<SocialTurnResult> ExecuteListen()
     {
         if (!IsConversationActive())
         {
@@ -264,7 +264,7 @@ public class SocialFacade
             drawnCards);
         string npcResponse = narrative.NPCDialogue;
 
-        return new ConversationTurnResult
+        return new SocialTurnResult
         {
             Success = true,
             NewState = _currentSession.CurrentState, // Connection State doesn't change during conversation
@@ -279,7 +279,7 @@ public class SocialFacade
     /// Execute SPEAK action - Complete 4-Resource System Implementation
     /// Sequence: Validate Initiative Cost → Check Personality Rules → Pay Cost → Apply Cadence → Calculate Success → Apply Results
     /// </summary>
-    public async Task<ConversationTurnResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
+    public async Task<SocialTurnResult> ExecuteSpeakSingleCard(CardInstance selectedCard)
     {
         if (!IsConversationActive())
         {
@@ -303,7 +303,7 @@ public class SocialFacade
         if (!_currentSession.CanAffordCardInitiative(initiativeCost))
         {
             // Not enough Initiative - cannot play card
-            return new ConversationTurnResult
+            return new SocialTurnResult
             {
                 Success = false,
                 NewState = _currentSession.CurrentState,
@@ -319,7 +319,7 @@ public class SocialFacade
             string violationMessage;
             if (!ValidateInitiativePersonalityRules(selectedCard, out violationMessage))
             {
-                return new ConversationTurnResult
+                return new SocialTurnResult
                 {
                     Success = false,
                     NewState = _currentSession.CurrentState,
@@ -334,7 +334,7 @@ public class SocialFacade
         if (!_currentSession.SpendInitiative(initiativeCost))
         {
             // This should never happen due to check above, but safety check
-            return new ConversationTurnResult
+            return new SocialTurnResult
             {
                 Success = false,
                 NewState = _currentSession.CurrentState,
@@ -387,7 +387,7 @@ public class SocialFacade
         UpdateCardPlayabilityForInitiative(_currentSession);
 
         // 11. Handle special card effects (exchanges, letters, etc.)
-        HandleSpecialCardEffects(new HashSet<CardInstance> { selectedCard }, new ConversationTurnResult { Success = success });
+        HandleSpecialCardEffects(new HashSet<CardInstance> { selectedCard }, new SocialTurnResult { Success = success });
 
         // Generate NPC response through narrative service
         List<CardInstance> activeCards = _currentSession.Deck.HandCards.ToList();
@@ -396,7 +396,7 @@ public class SocialFacade
             _currentSession.NPC,
             activeCards);
 
-        ConversationTurnResult result = new ConversationTurnResult
+        SocialTurnResult result = new SocialTurnResult
         {
             Success = success,
             NewState = _currentSession.CurrentState, // Connection State doesn't change
@@ -430,33 +430,33 @@ public class SocialFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<ConversationContextBase> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContextBase> CreateConversationContext(string npcId, string requestId)
     {
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
-            return ConversationContextFactory.CreateInvalidContext("NPC not found");
+            return SocialContextFactory.CreateInvalidContext("NPC not found");
         }
 
         // Get request to determine attention cost
         NPCRequest request = npc.GetRequestById(requestId);
         if (request == null)
         {
-            return ConversationContextFactory.CreateInvalidContext($"Request {requestId} not found");
+            return SocialContextFactory.CreateInvalidContext($"Request {requestId} not found");
         }
 
 
         // Get observation cards from the specific NPC's deck
         // ARCHITECTURE: Each NPC maintains their own observation deck
         // This ensures observations are contextually relevant to conversations
-        List<ConversationCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards(npcId);
+        List<SocialCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards(npcId);
         List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
 
         // Start conversation with the request
         SocialChallengeSession session = StartConversation(npcId, requestId, observationCards);
 
         // Create typed context based on request's conversation type
-        ConversationContextBase context = ConversationContextFactory.CreateContext(
+        SocialChallengeContextBase context = SocialContextFactory.CreateContext(
             request.ChallengeTypeId,
             npc,
             session,
@@ -466,7 +466,7 @@ public class SocialFacade
             _timeManager.GetCurrentTimeBlock().ToString());
 
         // Initialize type-specific data
-        ConversationContextFactory.InitializeContextData(context, _gameWorld, _queueManager);
+        SocialContextFactory.InitializeContextData(context, _gameWorld, _queueManager);
 
         return context;
     }
@@ -490,9 +490,9 @@ public class SocialFacade
     /// <summary>
     /// Get available conversation options for an NPC with specific goal cards
     /// </summary>
-    public List<ConversationOption> GetAvailableConversationOptions(NPC npc)
+    public List<SocialChallengeOption> GetAvailableConversationOptions(NPC npc)
     {
-        List<ConversationOption> options = new List<ConversationOption>();
+        List<SocialChallengeOption> options = new List<SocialChallengeOption>();
 
 
         // Get one-time requests as conversation options
@@ -515,7 +515,7 @@ public class SocialFacade
                     throw new InvalidOperationException($"NPCRequest '{request.Id}' references social challenge type '{request.ChallengeTypeId}' which does not exist in JSON. All social challenge types must be defined.");
                 }
 
-                options.Add(new ConversationOption
+                options.Add(new SocialChallengeOption
                 {
                     RequestId = request.Id, // Store the actual request ID
                     ChallengeTypeId = request.ChallengeTypeId, // Use the actual conversation type from JSON
@@ -539,7 +539,7 @@ public class SocialFacade
             if (hasLetterForNpc)
             {
                 // Delivery doesn't need a goal card from RequestDeck
-                options.Add(new ConversationOption
+                options.Add(new SocialChallengeOption
                 {
                     ChallengeTypeId = "delivery",
                     GoalCardId = null,
@@ -1006,11 +1006,11 @@ public class SocialFacade
     /// <summary>
     /// Add turn to conversation history
     /// </summary>
-    private void AddTurnToHistory(ActionType actionType, CardInstance cardPlayed, ConversationTurnResult result)
+    private void AddTurnToHistory(ActionType actionType, CardInstance cardPlayed, SocialTurnResult result)
     {
         if (_currentSession != null)
         {
-            ConversationTurn turn = new ConversationTurn
+            SocialTurn turn = new SocialTurn
             {
                 ActionType = actionType,
                 Narrative = result.Narrative,
@@ -1050,7 +1050,7 @@ public class SocialFacade
         // End if request card was played (request cards end conversation immediately)
         if (session.TurnHistory != null && session.TurnHistory.Any())
         {
-            ConversationTurn lastTurn = session.TurnHistory.Last();
+            SocialTurn lastTurn = session.TurnHistory.Last();
             if (lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Request ||
                 lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Promise ||
                 lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Burden)
@@ -1490,7 +1490,7 @@ public class SocialFacade
     /// <summary>
     /// Handle special card effects like exchanges and letter delivery
     /// </summary>
-    private void HandleSpecialCardEffects(HashSet<CardInstance> playedCards, ConversationTurnResult result)
+    private void HandleSpecialCardEffects(HashSet<CardInstance> playedCards, SocialTurnResult result)
     {
         foreach (CardInstance card in playedCards)
         {

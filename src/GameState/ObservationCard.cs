@@ -19,7 +19,7 @@ public enum ObservationEffectType
     RefreshInitiative    // Initiative = max
 }
 
-public class ObservationCard : ConversationCard
+public class ObservationCard : SocialCard
 {
     public ObservationEffectType UniqueEffect { get; set; }
     public int ExpirationSegments { get; set; }

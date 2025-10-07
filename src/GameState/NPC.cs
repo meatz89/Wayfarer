@@ -112,7 +112,7 @@ public class NPC
     }
 
     // Initialize burden deck with burden cards
-    public void InitializeBurdenDeck(List<ConversationCard> burdenCards = null)
+    public void InitializeBurdenDeck(List<SocialCard> burdenCards = null)
     {
         // Only initialize if not already done
         if (BurdenDeck == null)
@@ -122,7 +122,7 @@ public class NPC
 
         if (burdenCards != null)
         {
-            foreach (ConversationCard card in burdenCards)
+            foreach (SocialCard card in burdenCards)
             {
                 // Burden cards should already have CardType.BurdenGoal set
                 // No need to modify properties since we use CardType now

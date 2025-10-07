@@ -3,7 +3,7 @@ using System.Collections.Generic;
 /// <summary>
 /// DTO for conversation type definitions loaded from JSON
 /// </summary>
-public class ConversationTypeDefinitionDTO
+public class SocialTypeDefinitionDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }

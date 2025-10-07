@@ -8,7 +8,7 @@ public class CardInstance
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
 
     // Template reference - single source of truth for card properties
-    public ConversationCard ConversationCardTemplate { get; init; }
+    public SocialCard ConversationCardTemplate { get; init; }
     public MentalCard MentalCardTemplate { get; init; }
     public PhysicalCard PhysicalCardTemplate { get; init; }
 
@@ -99,7 +99,7 @@ public class CardInstance
 
     public CardInstance() { }
 
-    public CardInstance(ConversationCard template, string sourceContext = null)
+    public CardInstance(SocialCard template, string sourceContext = null)
     {
         ConversationCardTemplate = template;
         SourceContext = sourceContext;

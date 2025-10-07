@@ -550,7 +550,7 @@ public class DisplacementCalculator
         }
 
         // Create a burden card for the displacement damage
-        ConversationCard burdenCard = new ConversationCard
+        SocialCard burdenCard = new SocialCard
         {
             Id = $"burden_displacement_{npcId}_{Guid.NewGuid()}",
             CardType = CardType.Request,  // Burden cards use BurdenGoal type

@@ -67,7 +67,7 @@ public class ObservationManagerWrapper
     /// <summary>
     /// Get observation cards as conversation cards for a specific NPC
     /// </summary>
-    public List<ConversationCard> GetObservationCardsAsConversationCards(string npcId)
+    public List<SocialCard> GetObservationCardsAsConversationCards(string npcId)
     {
         return _observationManager.GetObservationCardsAsConversationCards(npcId);
     }

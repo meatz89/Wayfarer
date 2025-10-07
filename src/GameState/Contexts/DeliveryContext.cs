@@ -2,7 +2,7 @@
 /// Context for delivery conversations where letters are completed
 /// Contains delivery-specific data without dictionaries
 /// </summary>
-public class DeliveryContext : ConversationContextBase
+public class DeliveryContext : SocialChallengeContextBase
 {
     public List<DeliveryObligation> LettersCarriedForNpc { get; set; }
     public DeliveryObligation SelectedLetter { get; set; }

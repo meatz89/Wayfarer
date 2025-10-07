@@ -35,7 +35,7 @@ public class SocialNarrativeService
             Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 1: {provider?.GetProviderType().ToString() ?? "null"}");
 
             // Convert game models to narrative models
-            ConversationState conversationState = BuildConversationState(session);
+            SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
 
@@ -75,7 +75,7 @@ public class SocialNarrativeService
             Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 2: {provider?.GetProviderType().ToString() ?? "null"}");
 
             // Convert game models to narrative models
-            ConversationState conversationState = BuildConversationState(session);
+            SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
 
@@ -119,7 +119,7 @@ public class SocialNarrativeService
             Console.WriteLine($"[ConversationNarrativeService] Got provider: {provider?.GetProviderType().ToString() ?? "null"}");
 
             // Convert game models to narrative models
-            ConversationState conversationState = BuildConversationState(session);
+            SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
 
@@ -190,12 +190,12 @@ public class SocialNarrativeService
     /// </summary>
     /// <param name="session">Game conversation session</param>
     /// <returns>Narrative conversation state</returns>
-    private ConversationState BuildConversationState(SocialChallengeSession session)
+    private SocialChallengeState BuildConversationState(SocialChallengeSession session)
     {
         int momentum = session.CurrentMomentum;
         TopicLayer currentLayer = DetermineTopicLayer(momentum);
 
-        return new ConversationState
+        return new SocialChallengeState
         {
             Flow = session.Cadence, // Cadence system (-10 to +10)
             Momentum = momentum, // Use momentum as rapport for narrative compatibility
@@ -214,11 +214,11 @@ public class SocialNarrativeService
     /// </summary>
     /// <param name="turnHistory">List of conversation turns</param>
     /// <returns>List of formatted conversation history strings</returns>
-    private List<string> BuildConversationHistory(List<ConversationTurn> turnHistory)
+    private List<string> BuildConversationHistory(List<SocialTurn> turnHistory)
     {
         List<string> history = new List<string>();
 
-        foreach (ConversationTurn turn in turnHistory)
+        foreach (SocialTurn turn in turnHistory)
         {
             // Format each turn as a readable conversation entry
             if (turn.ActionType == ActionType.Listen)

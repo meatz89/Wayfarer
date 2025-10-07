@@ -1,6 +1,6 @@
 
 // Conversation context for UI
-public class ConversationContext
+public class SocialChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }

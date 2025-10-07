@@ -1,6 +1,6 @@
 
 // Result of processing a conversation turn
-public class ConversationTurnResult
+public class SocialTurnResult
 {
     public bool Success { get; set; }
     public ConnectionState NewState { get; set; }
@@ -18,7 +18,7 @@ public class ConversationTurnResult
     public string PersonalityViolation { get; set; }  // Message when personality rule is violated
     public bool EndsConversation { get; set; }  // Request cards end conversation immediately
 
-    public ConversationTurnResult()
+    public SocialTurnResult()
     {
         DrawnCards = new List<CardInstance>();
         RemovedCards = new List<CardInstance>();
