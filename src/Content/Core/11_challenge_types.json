@@ -8,31 +8,32 @@
     "version": "1.0.0"
   },
   "content": {
-    "challengeTypes": [
+    "mentalChallengeTypes": [
       {
         "id": "mental_challenge",
         "name": "Mental Challenge",
-        "systemType": "Mental",
         "deckId": "mental_challenge",
         "victoryThreshold": 10,
         "dangerThreshold": 10,
         "initialHandSize": 5,
         "maxHandSize": 7
-      },
+      }
+    ],
+    "physicalChallengeTypes": [
       {
         "id": "physical_challenge",
         "name": "Physical Challenge",
-        "systemType": "Physical",
         "deckId": "physical_challenge",
         "victoryThreshold": 10,
         "dangerThreshold": 10,
         "initialHandSize": 5,
         "maxHandSize": 7
-      },
+      }
+    ],
+    "socialChallengeTypes": [
       {
         "id": "social_challenge",
         "name": "Social Challenge",
-        "systemType": "Social",
         "deckId": "social_challenge",
         "victoryThreshold": 10,
         "dangerThreshold": 10,

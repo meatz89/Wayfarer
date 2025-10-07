@@ -8,11 +8,10 @@
     "version": "1.0.0"
   },
   "content": {
-    "challengeDecks": [
+    "mentalChallengeDecks": [
       {
         "id": "mental_challenge",
         "name": "Mental Challenge Deck",
-        "systemType": "Mental",
         "cardIds": [
           "mental_examine_scene",
           "mental_search_thoroughly",
@@ -20,11 +19,12 @@
           "mental_deduce_pattern",
           "mental_trust_instinct"
         ]
-      },
+      }
+    ],
+    "physicalChallengeDecks": [
       {
         "id": "physical_challenge",
         "name": "Physical Challenge Deck",
-        "systemType": "Physical",
         "cardIds": [
           "physical_climb_carefully",
           "physical_sprint_forward",
@@ -32,11 +32,12 @@
           "physical_brute_force",
           "physical_precise_movement"
         ]
-      },
+      }
+    ],
+    "socialChallengeDecks": [
       {
         "id": "social_challenge",
         "name": "Social Challenge Deck",
-        "systemType": "Social",
         "cardIds": [
           "insight_quick_scan",
           "insight_ask_question",
