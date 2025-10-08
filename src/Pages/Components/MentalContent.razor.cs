@@ -84,11 +84,6 @@ namespace Wayfarer.Pages.Components
             return Session?.MaxExposure ?? 10;
         }
 
-        protected int GetCurrentObserveActBalance()
-        {
-            return Session?.ObserveActBalance ?? 0;
-        }
-
         protected int GetProgressPercentage()
         {
             if (Session == null || Session.VictoryThreshold <= 0) return 0;
@@ -99,21 +94,6 @@ namespace Wayfarer.Pages.Components
         {
             if (Session == null || Session.MaxExposure <= 0) return 0;
             return (int)((Session.CurrentExposure / (double)Session.MaxExposure) * 100);
-        }
-
-        protected int GetBalancePosition()
-        {
-            // Returns position on -10 to +10 scale as 0-20 for UI display
-            int balance = Session?.ObserveActBalance ?? 0;
-            return balance + 10; // Convert -10..10 to 0..20
-        }
-
-        protected string GetBalanceClass()
-        {
-            int balance = Session?.ObserveActBalance ?? 0;
-            if (balance < -5) return "overcautious";
-            if (balance > 5) return "reckless";
-            return "balanced";
         }
 
         protected int GetDeckCount()
@@ -497,28 +477,6 @@ namespace Wayfarer.Pages.Components
             if (IsInvestigationComplete()) return "Complete";
             if (IsInvestigationFailed()) return "Exposed";
             return "Active";
-        }
-
-        // =============================================
-        // BALANCE STATE DISPLAY
-        // =============================================
-
-        protected string GetBalanceState()
-        {
-            if (Session == null) return "Balanced";
-
-            if (Session.IsRecklessBalance()) return "Reckless";
-            if (Session.IsOvercautiousBalance()) return "Overcautious";
-            return "Balanced";
-        }
-
-        protected string GetBalanceStateClass()
-        {
-            if (Session == null) return "balanced";
-
-            if (Session.IsRecklessBalance()) return "reckless";
-            if (Session.IsOvercautiousBalance()) return "overcautious";
-            return "balanced";
         }
 
         // =============================================

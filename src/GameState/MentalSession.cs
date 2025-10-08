@@ -24,16 +24,10 @@ public class MentalSession
     public int CurrentExposure { get; set; } = 0; // Cumulative disturbance/detection
     public int MaxExposure { get; set; } = 10; // Configured via EngagementType
     public int VictoryThreshold { get; set; } = 20; // Configured via EngagementType
-    public int ObserveActBalance { get; set; } = 0; // Range -10 to +10
     public Dictionary<DiscoveryType, List<string>> Discoveries { get; set; } = new Dictionary<DiscoveryType, List<string>>();
 
     // Timing
     public int TimeSegmentsSpent { get; set; } = 0;
-
-    // Balance States
-    public bool IsRecklessBalance() => ObserveActBalance >= 5;
-    public bool IsOvercautiousBalance() => ObserveActBalance <= -5;
-    public bool IsNeutralBalance() => ObserveActBalance > -5 && ObserveActBalance < 5;
 
     // Tier and Category Methods
     public int GetUnlockedMaxDepth() => UnlockedTiers.Max() * 2;
