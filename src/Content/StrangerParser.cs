@@ -60,7 +60,7 @@ public static class StrangerParser
         GoalCard request = new GoalCard
         {
             Id = dto.Id ?? "",
-            Name = dto.Name ?? "",
+            Title = dto.Name ?? "",
             Description = dto.Description ?? "",
             SystemType = TacticalSystemType.Social,  // Strangers use Social system
             ChallengeTypeId = dto.ConversationTypeId ?? "",  // Map old ConversationTypeId to new ChallengeTypeId

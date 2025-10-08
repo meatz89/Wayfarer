@@ -121,7 +121,7 @@ public static class NPCParser
                 GoalCard request = new GoalCard
                 {
                     Id = requestDto.Id,
-                    Name = requestDto.Name,
+                    Title = requestDto.Name,
                     Description = requestDto.Description,
                     SystemType = TacticalSystemType.Social,  // NPCRequests default to Social system
                     ChallengeTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new ChallengeTypeId

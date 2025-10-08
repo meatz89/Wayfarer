@@ -100,15 +100,16 @@ public class SocialChallengeDeckBuilder
         foreach (NPCRequestGoal goal in request.Goals)
         {
             // Find the card referenced by this goal (CardId references card in _cards.json)
-            GoalCard? cardEntry = _gameWorld.SocialCards.FindById(goal.CardId);
-            if (cardEntry == null)
+            GoalCard? goalCard = _gameWorld.GoalCards.Where(c => c.Id == goal.CardId).FirstOrDefault();
+            if (goalCard == null)
             {
                 throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in _cards.json and referenced in NPC goal.");
             }
-            GoalCard goalCard = cardEntry.Card;
+
+            goalCard.NpcId = npc.ID;
 
             // Create instance from the goal card
-            CardInstance instance = new CardInstance(goalCard, npc.ID);
+            CardInstance instance = new CardInstance(goalCard);
 
             // Store context for momentum threshold and request tracking
             instance.Context = new CardContext

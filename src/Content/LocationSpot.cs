@@ -25,8 +25,7 @@ public class LocationSpot
 
     public int FlowModifier { get; set; } = 0;
     public int Tier { get; set; } = 1;
-
-    public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
+    
     public List<string> MorningProperties { get; set; } = new List<string>();
     public List<string> AfternoonProperties { get; set; } = new List<string>();
     public List<string> EveningProperties { get; set; } = new List<string>();
@@ -56,7 +55,8 @@ public class LocationSpot
     public int Exposure { get; set; } = 0;
 
     public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
-
+    public bool DomainTags { get; internal set; }
+    public string? Description { get; internal set; }
 
     public LocationSpot(string id, string name)
     {
@@ -139,4 +139,5 @@ public class LocationSpot
 
         return modifier;
     }
+
 }

@@ -13,7 +13,7 @@ public class GoalCard
     /// <summary>
     /// Display name for the request
     /// </summary>
-    public string Name { get; set; }
+    public string Title { get; set; }
 
     /// <summary>
     /// Narrative description of what the NPC is asking
@@ -65,6 +65,8 @@ public class GoalCard
     /// Tiered goals with different momentum thresholds and weights (new system)
     /// </summary>
     public List<NPCRequestGoal> Goals { get; set; } = new List<NPCRequestGoal>();
+    public string NpcId { get; internal set; }
+    public string LocationSpot { get; internal set; }
 
     /// <summary>
     /// Check if this request is available to attempt

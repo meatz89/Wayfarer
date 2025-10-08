@@ -45,7 +45,7 @@
 
                                 <div class="stranger-conversation @(canAfford ? "" : "unavailable")"
                                      @onclick="async () => { if (canAfford) await StartStrangerConversation(stranger.ID, request.Id); }">
-                                    <div class="conversation-type">@request.Name</div>
+                                    <div class="conversation-type">@request.Title</div>
                                     <div class="conversation-details">
                                         <span class="xp-gain">+@stranger.Level XP per card</span>
                                     </div>

@@ -489,7 +489,7 @@ public class SocialFacade
                     RequestId = request.Id, // Store the actual request ID
                     ChallengeTypeId = request.ChallengeTypeId, // Use the actual conversation type from JSON
                     GoalCardId = request.Id, // Use request ID to identify which request
-                    DisplayName = request.Name,
+                    DisplayName = request.Title,
                     Description = request.Description,
                     TokenType = ConnectionType.Trust, // Default token type
                     MomentumThreshold = 0, // Will check individual card thresholds

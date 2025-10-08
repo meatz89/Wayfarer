@@ -1114,7 +1114,7 @@ public class PackageLoader
                     GoalCard request = new GoalCard
                     {
                         Id = requestDto.Id,
-                        Name = requestDto.Name,
+                        Title = requestDto.Name,
                         Description = requestDto.Description,
                         NpcRequestText = requestDto.NpcRequestText,
                         Status = GoalStatus.Available

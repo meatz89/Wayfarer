@@ -77,32 +77,32 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate atmosphere text for a general location.
     /// </summary>
-    private string GenerateLocationAtmosphere(Location location, TimeBlocks currentTime)
+    private string GenerateLocationAtmosphere(LocationSpot spot, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(location.Description))
+        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == spot.LocationId).Description))
         {
-            return GenerateDefaultLocationDescription(location, currentTime);
+            return GenerateDefaultLocationDescription(spot, currentTime);
         }
 
         // Add time-specific modifiers to the base description
         string timeModifier = GetTimeModifier(currentTime);
         if (!string.IsNullOrEmpty(timeModifier))
         {
-            return $"{location.Description} {timeModifier}";
+            return $"{spot.Description} {timeModifier}";
         }
 
-        return location.Description;
+        return spot.Description;
     }
 
     /// <summary>
     /// Generate a default description when none is provided.
     /// </summary>
-    private string GenerateDefaultLocationDescription(Location location, TimeBlocks currentTime)
+    private string GenerateDefaultLocationDescription(LocationSpot spot, TimeBlocks currentTime)
     {
         string timeDesc = GetTimeDescription(currentTime);
-        string locationType = DetermineLocationType(location);
+        string locationType = DetermineLocationType(spot);
 
-        return $"{timeDesc} at {location.Name}, {locationType}.";
+        return $"{timeDesc} at {spot.Name}, {locationType}.";
     }
 
     /// <summary>
@@ -142,16 +142,16 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Determine the type of location for generic descriptions.
     /// </summary>
-    private string DetermineLocationType(Location location)
+    private string DetermineLocationType(LocationSpot spot)
     {
         // Check location tags or properties to determine type
-        if (location.DomainTags?.Contains("Market") == true)
+        if (spot.DomainTags?.Contains("Market") == true)
             return "a bustling marketplace";
-        if (location.DomainTags?.Contains("Inn") == true)
+        if (spot.DomainTags?.Contains("Inn") == true)
             return "a welcoming inn";
-        if (location.DomainTags?.Contains("Noble") == true)
+        if (spot.DomainTags?.Contains("Noble") == true)
             return "an upscale district";
-        if (location.DomainTags?.Contains("Dock") == true)
+        if (spot.DomainTags?.Contains("Dock") == true)
             return "a busy port area";
 
         return "an interesting location";

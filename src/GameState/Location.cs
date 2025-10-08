@@ -14,6 +14,7 @@ public class Location
     public string SkeletonSource { get; set; } // What created this skeleton
 
     // Tier system (1-5) for difficulty/content progression
+    public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
     public int Tier { get; set; } = 1;
 
     public List<string> LocationSpotIds { get; set; } = new List<string>();

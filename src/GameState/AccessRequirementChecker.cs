@@ -28,17 +28,6 @@ public class AccessRequirementChecker
     }
 
     /// <summary>
-    /// Check if player meets access requirements for a location.
-    /// </summary>
-    public AccessCheckResult CheckLocationAccess(Location location)
-    {
-        if (location.AccessRequirement == null)
-            return AccessCheckResult.Allowed();
-
-        return CheckRequirements(location.AccessRequirement);
-    }
-
-    /// <summary>
     /// Check if player meets access requirements for a location spot.
     /// </summary>
     public AccessCheckResult CheckLocationSpotAccess(LocationSpot spot)

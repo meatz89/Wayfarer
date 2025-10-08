@@ -19,15 +19,6 @@ public class ActionGenerator
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Generate service-based actions
-        if (location.AvailableServices != null)
-        {
-            foreach (ServiceTypes service in location.AvailableServices)
-            {
-                actions.AddRange(GenerateServiceActions(service, location, currentTime));
-            }
-        }
-
         // Generate spot-specific actions
         if (spot != null)
         {
@@ -35,19 +26,6 @@ public class ActionGenerator
 
             // Travel action is now defined in JSON with Crossroads property requirement
             // No need to hardcode it here - LocationActionManager will add it dynamically
-        }
-
-        // Generate location-level domain tag actions
-        if (location.DomainTags != null)
-        {
-            foreach (string tag in location.DomainTags)
-            {
-                LocationActionViewModel action = GenerateTagAction(tag, spot);
-                if (action != null && !actions.Any(a => a.Title == action.Title))
-                {
-                    actions.Add(action);
-                }
-            }
         }
 
         // Generate time-based actions
@@ -206,7 +184,7 @@ public class ActionGenerator
         };
     }
 
-    private List<LocationActionViewModel> GenerateTimeBasedActions(Location location, TimeBlocks currentTime)
+    private List<LocationActionViewModel> GenerateTimeBasedActions(LocationSpot spot, TimeBlocks currentTime)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
@@ -214,7 +192,7 @@ public class ActionGenerator
         switch (currentTime)
         {
             case TimeBlocks.Morning:
-                if (location.MorningProperties?.Contains("market_day") == true)
+                if (spot.MorningProperties?.Contains("market_day") == true)
                 {
                     // Basic purchases are T1
                     actions.Add(CreateActionWithTierCheck(
@@ -225,7 +203,7 @@ public class ActionGenerator
                 break;
 
             case TimeBlocks.Midday:
-                if (location.Population?.GetPropertyValue() == "Crowded")
+                if (spot.Population?.GetPropertyValue() == "Crowded")
                 {
                     // People watching for information requires T2
                     actions.Add(CreateActionWithTierCheck(
@@ -236,7 +214,7 @@ public class ActionGenerator
                 break;
 
             case TimeBlocks.Afternoon:
-                if (location.Illumination?.GetPropertyValue() == "Thiefy" || location.Illumination?.GetPropertyValue() == "Dark")
+                if (spot.Illumination?.GetPropertyValue() == "Thiefy" || spot.Illumination?.GetPropertyValue() == "Dark")
                 {
                     // Shadow activities require T3 (Confidant)
                     actions.Add(CreateActionWithTierCheck(
