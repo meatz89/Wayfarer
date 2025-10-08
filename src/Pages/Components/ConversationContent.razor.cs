@@ -567,7 +567,7 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected async Task ManuallyEndConversation()
+        protected async Task EndConversation()
         {
             // Player clicked "End Conversation" button
             await OnConversationEnd.InvokeAsync();
@@ -1017,15 +1017,15 @@ namespace Wayfarer.Pages.Components
             return SocialSession.GetTierUnlockThreshold(tier);
         }
 
-        protected SocialCardTier[] GetAllTiers()
+        protected SocialTier[] GetAllTiers()
         {
-            return SocialCardTier.AllTiers;
+            return SocialTier.AllTiers;
         }
 
         protected int GetMaxUnderstanding()
         {
             // Get the maximum Understanding threshold from the highest tier
-            return SocialCardTier.AllTiers.Max(t => t.UnderstandingThreshold);
+            return SocialTier.AllTiers.Max(t => t.UnderstandingThreshold);
         }
 
         // Statement count methods

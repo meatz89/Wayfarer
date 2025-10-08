@@ -1,4 +1,4 @@
-@inherits PhysicalContentBase
+﻿@inherits PhysicalContentBase
 
 @namespace Wayfarer.Pages.Components
 @using Wayfarer.Pages.Components.Shared
@@ -125,12 +125,43 @@
             </div>
         </div>
 
+        <!-- Exertion Display (with glowing orbs matching mockup) -->
+        <ActionEconomyDisplay Label="Exertion"
+                              CurrentValue="@GetCurrentExertion()"
+                              MaxValue="@GetMaxExertion()"
+                              TooltipContent="@TooltipContentProvider.Get("Exertion")" />
+
+        <!-- Tier Unlock Display -->
+        <div class="tier-display">
+            <div class="tier-info">
+                <GameTooltip Content="@TooltipContentProvider.Get("Understanding")" Exertion="right">
+                    <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
+                </GameTooltip>
+                <div class="tier-unlocks">
+                    @foreach (var tier in GetAllTiers())
+                    {
+                        <span class="tier-badge @(IsTierUnlocked(tier.TierNumber) ? "unlocked" : "locked")">
+                            TIER @tier.TierNumber (@tier.MinDepth-@tier.MaxDepth)<br /><small>Understanding @tier.UnderstandingThreshold</small>
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
         <!-- Hand Display -->
-        <div class="hand-display">
-            @if (Hand != null && Hand.Any())
-            {
-                foreach (var card in Hand)
+        <div class="cards-section">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Mind:</span>
+                    <span class="pile-number">@Hand.Count</span>
+                </div>
+            </div>
+
+            <div class="card-grid slot-aware-container" style="@GetContainerCSSVariables()">
+                @foreach (var displayCard in GetAllDisplayCards())
                 {
+                    var card = displayCard.Card;
+
                     <PhysicalCard Card="@card"
                                   IsSelected="@(SelectedCard == card)"
                                   IsSelectable="true"
@@ -143,11 +174,7 @@
                         </SystemSpecificBadges>
                     </PhysicalCard>
                 }
-            }
-            else
-            {
-                <div class="empty-hand">No cards in hand</div>
-            }
+            </div>
         </div>
 
         @if (IsProcessing)

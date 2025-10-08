@@ -137,9 +137,6 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteObserve()
         {
-            if (SelectedCard == null || IsProcessing || Session == null)
-                return;
-
             IsProcessing = true;
             StateHasChanged();
 
@@ -332,11 +329,6 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentUnderstanding ?? 0;
         }
 
-        protected int GetMaxUnderstanding()
-        {
-            return 100; // Maximum Understanding value
-        }
-
         protected int GetUnderstandingPercentage()
         {
             int max = GetMaxUnderstanding();
@@ -359,16 +351,17 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTierUnlockThreshold(int tier)
         {
-            // Simple tier threshold: 20 Understanding per tier (1=20, 2=40, 3=60, 4=80, 5=100)
-            // Mental uses simplified tier system compared to Social's complex tier cards
-            return tier * 20;
+            return SocialSession.GetTierUnlockThreshold(tier);
         }
 
         protected MentalTier[] GetAllTiers()
         {
-            // Mental uses simplified tier system without tier card definitions
-            // Tiers unlock based solely on Understanding thresholds
-            return new MentalTier[0];
+            return MentalTier.AllTiers;
+        }
+
+        protected int GetMaxUnderstanding()
+        {
+            return MentalTier.AllTiers.Max(t => t.UnderstandingThreshold);
         }
 
         // =============================================
@@ -654,6 +647,16 @@ namespace Wayfarer.Pages.Components
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Get CSS variables for the static card container.
+        /// Static display only - no animations, no slot coordination.
+        /// </summary>
+        protected string GetContainerCSSVariables()
+        {
+            // Static container variables only
+            return "--container-state: static;";
         }
 
         // =============================================

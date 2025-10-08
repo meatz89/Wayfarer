@@ -64,9 +64,3 @@ public class PhysicalTurnResult
     public int CurrentDanger { get; set; }
     public bool SessionEnded { get; set; }
 }
-
-public class PhysicalTier
-{
-    public int TierLevel { get; set; }
-    public int ReadinessRequired { get; set; }
-}

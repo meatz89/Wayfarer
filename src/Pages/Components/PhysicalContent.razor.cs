@@ -64,14 +64,14 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentBreakthrough ?? 0;
         }
 
-        protected int GetCurrentPosition()
+        protected int GetCurrentExertion()
         {
-            return Session?.CurrentPosition ?? 0;
+            return Session?.CurrentExertion ?? 0;
         }
 
-        protected int GetMaxPosition()
+        protected int GetMaxExertion()
         {
-            return Session?.MaxPosition ?? 10;
+            return Session?.MaxExertion ?? 10;
         }
 
         protected int GetCurrentDanger()
@@ -101,9 +101,9 @@ namespace Wayfarer.Pages.Components
             return (int)((Session.CurrentDanger / (double)Session.MaxDanger) * 100);
         }
 
-        protected int GetCommitmentPosition()
+        protected int GetCommitmentExertion()
         {
-            // Returns position on -10 to +10 scale as 0-20 for UI display
+            // Returns exertion on -10 to +10 scale as 0-20 for UI display
             int commitment = Session?.Commitment ?? 0;
             return commitment + 10; // Convert -10..10 to 0..20
         }
@@ -332,11 +332,6 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentUnderstanding ?? 0;
         }
 
-        protected int GetMaxUnderstanding()
-        {
-            return 100; // Maximum Understanding value
-        }
-
         protected int GetUnderstandingPercentage()
         {
             int max = GetMaxUnderstanding();
@@ -369,6 +364,12 @@ namespace Wayfarer.Pages.Components
             // Physical uses simplified tier system without tier card definitions
             // Tiers unlock based solely on Understanding thresholds
             return new PhysicalTier[0];
+        }
+
+        protected int GetMaxUnderstanding()
+        {
+            // Get the maximum Understanding threshold from the highest tier
+            return PhysicalTier.AllTiers.Max(t => t.UnderstandingThreshold);
         }
 
         // =============================================
@@ -422,9 +423,9 @@ namespace Wayfarer.Pages.Components
             if (Session == null || card == null) return false;
             if (IsProcessing) return false;
 
-            // Basic validation: check if player has enough Position to play card
-            int positionCost = card?.PhysicalCardTemplate?.PositionCost ?? 0;
-            return Session.CurrentPosition >= positionCost;
+            // Basic validation: check if player has enough Exertion to play card
+            int exertionCost = card?.PhysicalCardTemplate?.ExertionCost ?? 0;
+            return Session.CurrentExertion >= exertionCost;
         }
 
         protected string GetCardCssClasses(CardInstance card)
@@ -623,16 +624,16 @@ namespace Wayfarer.Pages.Components
         // CARD COST & RESOURCE DISPLAY
         // =============================================
 
-        protected int GetCardPositionCost(CardInstance card)
+        protected int GetCardExertionCost(CardInstance card)
         {
-            return card?.PhysicalCardTemplate?.PositionCost ?? 0;
+            return card?.PhysicalCardTemplate?.ExertionCost ?? 0;
         }
 
-        protected int GetCardPositionGeneration(CardInstance card)
+        protected int GetCardExertionGeneration(CardInstance card)
         {
-            // Foundation cards (Depth 1-2) generate +1 Position
+            // Foundation cards (Depth 1-2) generate +1 Exertion
             if (card?.PhysicalCardTemplate == null) return 0;
-            return card.PhysicalCardTemplate.GetPositionGeneration();
+            return card.PhysicalCardTemplate.GetExertionGeneration();
         }
 
         protected bool IsFoundationCard(CardInstance card)
@@ -657,7 +658,7 @@ namespace Wayfarer.Pages.Components
             return displayCards;
         }
 
-        protected int GetCardPosition(CardInstance card)
+        protected int GetCardExertion(CardInstance card)
         {
             if (card == null || Hand == null) return -1;
 
@@ -669,6 +670,16 @@ namespace Wayfarer.Pages.Components
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Get CSS variables for the static card container.
+        /// Static display only - no animations, no slot coordination.
+        /// </summary>
+        protected string GetContainerCSSVariables()
+        {
+            // Static container variables only
+            return "--container-state: static;";
         }
 
         // =============================================
@@ -698,25 +709,25 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // POSITION ECONOMY DISPLAY
+        // EXERTION ECONOMY DISPLAY
         // =============================================
 
-        protected string GetPositionStatusClass()
+        protected string GetExertionStatusClass()
         {
-            int position = GetCurrentPosition();
-            int max = GetMaxPosition();
+            int exertion = GetCurrentExertion();
+            int max = GetMaxExertion();
 
-            double percentage = max > 0 ? (position / (double)max) * 100 : 0;
+            double percentage = max > 0 ? (exertion / (double)max) * 100 : 0;
 
-            if (percentage >= 80) return "position-high";
-            if (percentage >= 40) return "position-medium";
-            return "position-low";
+            if (percentage >= 80) return "exertion-high";
+            if (percentage >= 40) return "exertion-medium";
+            return "exertion-low";
         }
 
         protected bool CanAffordCard(CardInstance card)
         {
-            int cost = GetCardPositionCost(card);
-            int current = GetCurrentPosition();
+            int cost = GetCardExertionCost(card);
+            int current = GetCurrentExertion();
             return current >= cost;
         }
 

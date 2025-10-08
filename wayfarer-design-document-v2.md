@@ -64,12 +64,12 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Insight-Bound Cards**:
 - **Mental**: "Detailed Examination" (depth 4) - Systematic observation of evidence (+3 Progress, +1 Understanding)
-- **Physical**: "Structural Analysis" (depth 4) - Identify load-bearing points (+2 Position, reveal optimal path)
+- **Physical**: "Structural Analysis" (depth 4) - Identify load-bearing points (+2 Breakthrough, reveal optimal path)
 - **Social**: "Read Motivation" (depth 4) - Understand NPC's true desires (+2 Momentum, reduce Doubt)
 
 **Rapport-Bound Cards**:
 - **Mental**: "Empathetic Reading" (depth 4) - Sense emotional context (+2 Progress, +1 to next Social at location)
-- **Physical**: "Flow State" (depth 6) - Natural fluid movement (+3 Breakthrough, +1 Position)
+- **Physical**: "Flow State" (depth 6) - Natural fluid movement (+3 Breakthrough, costs 1 less Exertion)
 - **Social**: "Emotional Resonance" (depth 5) - Connect on feeling level (+3 Momentum, +1 Rapport token)
 
 **Authority-Bound Cards**:
@@ -79,7 +79,7 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Diplomacy-Bound Cards**:
 - **Mental**: "Patient Observation" (depth 4) - Methodical investigation (+2 Progress, -1 Exposure from care)
-- **Physical**: "Measured Technique" (depth 4) - Controlled application of force (+2 Breakthrough, +1 Position)
+- **Physical**: "Measured Technique" (depth 4) - Controlled application of force (+2 Breakthrough, efficient technique)
 - **Social**: "Find Common Ground" (depth 4) - Seek compromise (+2 Momentum, -1 Cadence)
 
 **Cunning-Bound Cards**:
@@ -120,7 +120,7 @@ The tactical layer handles **how** execution through three parallel challenge sy
 Each system is a distinct tactical game with unique resources and action pairs, but all follow a common structural pattern:
 - **Builder Resource**: Primary progress toward victory (Progress, Breakthrough, Momentum)
 - **Threshold Resource**: Accumulating danger toward failure (Exposure, Danger, Doubt)
-- **Session Resource**: Limited spendable resource (Attention, Position, Initiative)
+- **Session Resource**: Tactical capacity for playing cards (Attention from Focus, Exertion from Stamina, Initiative from Foundation cards)
 - **Balance Tracker**: Bipolar scale affecting gameplay (ObserveActBalance, Commitment, Cadence)
 - **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
 - **Understanding**: Shared tier-unlocking resource across all three systems
@@ -168,15 +168,15 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
 
 **Three Challenge Types:**
 - **Mental Challenges**: Observation-based investigation at location spots (examine scenes, deduce patterns, search thoroughly)
-  - Resources: Progress (builder), Attention (session), Exposure (threshold), ObserveActBalance (balance)
+  - Resources: Progress (builder), Attention (session budget from Focus), Exposure (threshold), ObserveActBalance (balance)
   - Actions: OBSERVE (cautious builder) / ACT (aggressive spender)
 
 - **Physical Challenges**: Strength-based obstacles at location spots (climb carefully, leverage tools, precise movement)
-  - Resources: Breakthrough (builder), Position (session), Danger (threshold), Commitment (balance)
+  - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold), Commitment (balance)
   - Actions: ASSESS (cautious builder) / EXECUTE (aggressive spender)
 
 - **Social Challenges**: Rapport-based conversations with NPCs (build trust, gather information, persuade cooperation)
-  - Resources: Momentum (builder), Initiative (session), Doubt (threshold), Cadence (balance), Statements (history)
+  - Resources: Momentum (builder), Initiative (session builder), Doubt (threshold), Cadence (balance), Statements (history)
   - Actions: SPEAK (advance conversation) / LISTEN (reset and draw)
 
 Each system is a distinct tactical game following the same architectural pattern: builder resource toward victory, threshold resource toward failure, session-scoped spender, balance tracker affecting gameplay, and binary action choice creating tactical rhythm.
@@ -319,14 +319,14 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 ### Core Session Resources
 
 - **Progress** (builder, persists): Accumulates toward completion (10-20 total typical)
-- **Attention** (session, resets): Mental focus spent on ACT cards (max 10, resets on return)
+- **Attention** (session budget, resets): Mental capacity for ACT cards, derived from permanent Focus at challenge start (max determined by current Focus level). **Cannot replenish during investigation** - must rest outside challenge to restore.
 - **Exposure** (persistent penalty): Investigative footprint at location (no max, higher = harder future visits)
 - **ObserveActBalance** (balance): Cautious (-10) vs reckless (+10) investigation style
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **OBSERVE**: Cautious investigation, build Progress slowly, shift toward overcautious, lower Exposure risk
+- **OBSERVE**: Cautious investigation, build Progress slowly, shift toward overcautious, lower Exposure risk, **does not restore Attention**
 - **ACT**: Aggressive investigation, spend Attention, build Progress faster, higher Exposure risk
 
 ### Stat Binding Examples
@@ -419,15 +419,15 @@ Physical challenges are immediate tests of current capability:
 ### Core Session Resources
 
 - **Breakthrough** (builder): Toward victory in single session (10-20 typical)
-- **Position** (session): Advantageous positioning spent on EXECUTE cards (max 10)
+- **Exertion** (session budget): Physical capacity for EXECUTE cards, derived from permanent Stamina at challenge start (max determined by current Stamina level). **Cannot replenish during challenge except through specific Foundation cards** like "Deep Breath" which restore small amounts.
 - **Danger** (threshold): Accumulates from risky actions, max typically 10-15 before injury
 - **Commitment** (balance): Cautious (-10) vs decisive (+10) physical approach
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **ASSESS**: Cautious analysis, build Breakthrough slowly, shift toward overcautious, lower Danger
-- **EXECUTE**: Decisive action, spend Position, build Breakthrough faster, higher Danger risk
+- **ASSESS**: Cautious analysis, build Breakthrough slowly, shift toward overcautious, lower Danger, **does not restore Exertion**
+- **EXECUTE**: Decisive action, spend Exertion, build Breakthrough faster, higher Danger risk
 
 ### Stat Binding Examples
 
@@ -440,21 +440,21 @@ Physical cards bind to stats based on physical approach:
 
 **Cunning-Bound** (risk management, tactical precision):
 - "Calculated Risk" (depth 5): Tactical risk assessment (+3 Breakthrough, -1 Danger)
-- "Tactical Precision" (depth 7): Precise calculated movement (+4 Breakthrough, +1 Position)
+- "Tactical Precision" (depth 7): Precise calculated movement (+4 Breakthrough, restore 1 Exertion)
 - "Adaptive Technique" (depth 9): Respond to changing conditions (+5 Breakthrough, manipulate Danger)
 
 **Insight-Bound** (structural analysis, finding weaknesses):
-- "Structural Analysis" (depth 4): Identify load-bearing points (+2 Position, reveal optimal path)
+- "Structural Analysis" (depth 4): Identify load-bearing points (+2 Breakthrough, reveal optimal path)
 - "Find Weakness" (depth 6): Spot structural vulnerabilities (+3 Breakthrough, reduce Danger)
-- "Engineering Assessment" (depth 8): Complete structural understanding (+4 Breakthrough, +2 Position)
+- "Engineering Assessment" (depth 8): Complete structural understanding (+4 Breakthrough, reduce Exertion cost of next card)
 
 **Rapport-Bound** (flow state, body awareness, grace):
-- "Flow State" (depth 6): Natural fluid movement (+3 Breakthrough, +1 Position)
-- "Body Awareness" (depth 4): Kinesthetic understanding (+2 Position, maintain balance)
+- "Flow State" (depth 6): Natural fluid movement (+3 Breakthrough, costs 1 less Exertion)
+- "Body Awareness" (depth 4): Kinesthetic understanding (+2 Breakthrough, maintain balance)
 - "Athletic Grace" (depth 8): Perfect physical harmony (+4 Breakthrough, reduce Danger)
 
 **Diplomacy-Bound** (measured technique, controlled force):
-- "Measured Technique" (depth 4): Controlled application of force (+2 Breakthrough, +1 Position)
+- "Measured Technique" (depth 4): Controlled application of force (+2 Breakthrough, efficient technique)
 - "Controlled Force" (depth 6): Balanced power application (+3 Breakthrough, maintain Danger)
 - "Paced Endurance" (depth 8): Sustainable effort (+4 Breakthrough, reduce exhaustion)
 
@@ -468,7 +468,7 @@ Physical cards bind to stats based on physical approach:
 
 **Stamina** (max 100, Physical-specific):
 - Cost: 10-30 Stamina per challenge attempt (depending on difficulty)
-- Depletion effect: <30 Stamina → Position generation reduced (-1 per action)
+- Depletion effect: <30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
 - Recovery: Rest blocks, food, reduced activity
 - Verisimilitude: Physical exertion drains energy
 
@@ -486,11 +486,11 @@ Physical cards bind to stats based on physical approach:
 
 Physical challenges are categorized by engagement type, not terrain:
 
-1. **Combat** (tactical fighting): Authority/Cunning/Insight-focused, high Danger from aggression, Position = tactical advantage
-2. **Athletics** (climbing/running/jumping): Insight/Rapport/Cunning-focused, Danger from falls, Position = stable footing
-3. **Finesse** (lockpicking/delicate work): Cunning/Insight/Diplomacy-focused, Danger from mistakes, Position = control/steadiness
-4. **Endurance** (long marches/holding out): Rapport/Diplomacy/Authority-focused, Danger from exhaustion, Position = sustainable pace
-5. **Strength** (lifting/breaking/forcing): Authority/Insight/Diplomacy-focused, Danger from strain, Position = mechanical advantage
+1. **Combat** (tactical fighting): Authority/Cunning/Insight-focused, high Danger from aggression, Exertion = tactical advantage
+2. **Athletics** (climbing/running/jumping): Insight/Rapport/Cunning-focused, Danger from falls, Exertion = stable footing
+3. **Finesse** (lockpicking/delicate work): Cunning/Insight/Diplomacy-focused, Danger from mistakes, Exertion = control/steadiness
+4. **Endurance** (long marches/holding out): Rapport/Diplomacy/Authority-focused, Danger from exhaustion, Exertion = sustainable pace
+5. **Strength** (lifting/breaking/forcing): Authority/Insight/Diplomacy-focused, Danger from strain, Exertion = mechanical advantage
 
 ### Exhaustion Mechanics
 
@@ -605,7 +605,7 @@ All three systems follow the same core structure (creating equivalent tactical d
 - **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
 - **Builder Resource** → Victory (Progress, Breakthrough, Momentum)
 - **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt)
-- **Session Resource** → Tactical spending (Attention, Position, Initiative)
+- **Session Resource** → Tactical spending (Attention, Exertion, Initiative)
 - **Balance Tracker** → Playstyle modifier (ObserveActBalance, Commitment, Cadence)
 - **Binary Action Choice** → Tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
 - **Understanding** → Persistent tier unlocking (shared globally)
@@ -619,6 +619,10 @@ All three systems follow the same core structure (creating equivalent tactical d
 - **Session Models**: Mental (pauseable), Physical (one-shot), Social (session-bounded)
 - **Resource Persistence**: Mental resources persist at location, Physical/Social clear on end
 - **Permanent Costs**: Mental (Focus), Physical (Health+Stamina), Social (none, but time)
+- **Session Resource Mechanics**:
+  - Mental Attention: Derived from Focus at start, finite budget, **no replenishment during challenge**
+  - Physical Exertion: Derived from Stamina at start, finite budget, **minimal replenishment via specific Foundation cards only**
+  - Social Initiative: Starts at 0, **actively builds during session via Foundation cards**, persists through LISTEN
 - **Special Systems**: Social (Request/Promise/Burden from NPC agency), Mental/Physical (none - locations/challenges lack agency)
 
 **Result**: Three systems with equivalent tactical depth (all ~1,000-1,100 lines of implementation) achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
@@ -1005,7 +1009,7 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 - Maximum: 100
 - **Cost**: Physical challenges cost 10-30 Stamina to attempt (depending on difficulty)
 - **Lost to**: Physical exertion (challenges, travel, labor)
-- **Depletion effect**: Below 30 Stamina → Position generation reduced (-1 per action in Physical challenges)
+- **Depletion effect**: Below 30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
 - **Cannot attempt**: Stamina-requiring activities when insufficient
 - **Recovered through**: Rest blocks (full recovery), food (moderate recovery), reduced activity
 - **Integration**: Must balance Physical challenges, travel, and work against stamina depletion
@@ -1136,7 +1140,7 @@ Despite intentional differences, all three systems share:
 1. **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
 2. **Builder → Victory**: Progress/Breakthrough/Momentum resources
 3. **Threshold → Failure**: Exposure/Danger/Doubt resources
-4. **Session → Spending**: Attention/Position/Initiative resources
+4. **Session → Spending**: Attention/Exertion/Initiative resources
 5. **Balance → Playstyle**: ObserveActBalance/Commitment/Cadence trackers
 6. **Binary Actions**: OBSERVE-ACT / ASSESS-EXECUTE / SPEAK-LISTEN pairs
 7. **5 Tactical Modifiers**: Profiles/Challenge Types/Personalities fundamentally alter tactics

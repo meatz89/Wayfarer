@@ -64,9 +64,3 @@ public class MentalTurnResult
     public int CurrentExposure { get; set; }
     public bool SessionEnded { get; set; }
 }
-
-public class MentalTier
-{
-    public int TierLevel { get; set; }
-    public int UnderstandingRequired { get; set; }
-}

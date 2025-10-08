@@ -72,16 +72,13 @@
 
         <!-- Action Section -->
         <div class="action-display">
-            <div class="pile-display">
-                <div class="pile-count">
-                    <span>Hand:</span>
-                    <span class="pile-number">@GetHandCount()</span>
-                </div>
-            </div>
+            <div></div>
             <div class="action-section">
-                <div class="action-button @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                @if (!IsInvestigationEnded)
+                {
+                <div class="action-button @(IsProcessing ? "disabled" : "")"
                      @onclick="ExecuteObserve"
-                     disabled="@(SelectedCard == null || IsProcessing)">
+                     disabled="@(IsProcessing)">
                     OBSERVE
                     @if (SelectedCard != null)
                     {
@@ -115,22 +112,54 @@
                         </div>
                     }
                 </div>
-                @if (Session.CurrentProgress >= 20 || Session.CurrentExposure >= 10)
+                }
+                else
                 {
-                    <div class="action-button"
-                         @onclick="EndInvestigation">
+                    <div class="action-button primary" @onclick="EndInvestigation">
                         END INVESTIGATION
                     </div>
                 }
             </div>
+            <div></div>
+        </div>
+
+        <!-- Attention Display (with glowing orbs matching mockup) -->
+        <ActionEconomyDisplay Label="Attention"
+                              CurrentValue="@GetCurrentAttention()"
+                              MaxValue="@GetMaxAttention()"
+                              TooltipContent="@TooltipContentProvider.Get("Attention")" />
+
+        <!-- Tier Unlock Display -->
+        <div class="tier-display">
+            <div class="tier-info">
+                <GameTooltip Content="@TooltipContentProvider.Get("Understanding")" Position="right">
+                    <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
+                </GameTooltip>
+                <div class="tier-unlocks">
+                    @foreach (var tier in GetAllTiers())
+                    {
+                        <span class="tier-badge @(IsTierUnlocked(tier.TierNumber) ? "unlocked" : "locked")">
+                            TIER @tier.TierNumber (@tier.MinDepth-@tier.MaxDepth)<br /><small>Understanding @tier.UnderstandingThreshold</small>
+                        </span>
+                    }
+                </div>
+            </div>
         </div>
 
         <!-- Hand Display -->
-        <div class="hand-display">
-            @if (Hand != null && Hand.Any())
-            {
-                foreach (var card in Hand)
+        <div class="cards-section">
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Hand:</span>
+                    <span class="pile-number">@Hand.Count</span>
+                </div>
+            </div>
+
+            <div class="card-grid slot-aware-container" style="@GetContainerCSSVariables()">
+                @foreach (var displayCard in GetAllDisplayCards())
                 {
+                    var card = displayCard.Card;
+
                     <MentalCard Card="@card"
                                 IsSelected="@(SelectedCard == card)"
                                 IsSelectable="true"
@@ -143,11 +172,7 @@
                         </SystemSpecificBadges>
                     </MentalCard>
                 }
-            }
-            else
-            {
-                <div class="empty-hand">No cards in hand</div>
-            }
+            </div>
         </div>
 
         @if (IsProcessing)

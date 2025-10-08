@@ -199,7 +199,7 @@ public class SocialSession
     /// </summary>
     public static int GetTierUnlockThreshold(int tier)
     {
-        return SocialCardTier.GetUnlockThreshold(tier);
+        return SocialTier.GetUnlockThreshold(tier);
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ public class SocialSession
         bool tiersChanged = false;
 
         // Check each tier (skip Tier 1 as it's always unlocked)
-        foreach (SocialCardTier tier in SocialCardTier.AllTiers.Skip(1))
+        foreach (SocialTier tier in SocialTier.AllTiers.Skip(1))
         {
             if (CurrentUnderstanding >= tier.UnderstandingThreshold && !UnlockedTiers.Contains(tier.TierNumber))
             {
