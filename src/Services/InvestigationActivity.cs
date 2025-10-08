@@ -102,7 +102,7 @@ public class InvestigationActivity
         foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
         {
             // Check if prerequisites met (initially only phases with no requirements)
-            if (ArePrerequisitesMet(phaseDef.Requirements))
+            if (ArePrerequisitesMet(phaseDef.Requirements, new List<string>()))
             {
                 LocationGoal goal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
                 createdGoals.Add(goal);
@@ -323,7 +323,7 @@ public class InvestigationActivity
     /// <summary>
     /// Check if prerequisites are met for a phase
     /// </summary>
-    private bool ArePrerequisitesMet(GoalRequirements requirements, List<string> completedGoalIds = null)
+    private bool ArePrerequisitesMet(GoalRequirements requirements, List<string> completedGoalIds)
     {
         if (requirements == null)
             return true;

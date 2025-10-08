@@ -27,7 +27,7 @@ public class MentalCardParser
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
         if (dto.Requirements?.Stats != null)
         {
-            foreach (var kvp in dto.Requirements.Stats)
+            foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
             {
                 if (Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
                 {
@@ -47,7 +47,6 @@ public class MentalCardParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            CardType = CardType.Mental,
             Depth = dto.Depth,
             BoundStat = ParseStat(dto.BoundStat),
             AttentionCost = attentionCost,

@@ -24,17 +24,13 @@
     public int MaxHealth { get; set; } = 100; // Maximum health
     public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
 
-
     public Inventory Inventory { get; set; } = new Inventory(10); // 10 weight capacity per documentation
 
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
 
-
-    // Location knowledge
     // Location knowledge - Moved from action system
     public List<string> LocationActionAvailability { get; set; } = new List<string>();
-
     public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
 
     // Travel capabilities
@@ -49,38 +45,22 @@
     public LocationSpot CurrentLocationSpot { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
-
     public List<KnownRouteEntry> KnownRoutes { get; private set; } = new List<KnownRouteEntry>();
 
-    public DeliveryObligation[] ObligationQueue { get; private set; } = new DeliveryObligation[8];
     public List<MeetingObligation> MeetingObligations { get; set; } = new List<MeetingObligation>();
     public List<NPCTokenEntry> NPCTokens { get; private set; } = new List<NPCTokenEntry>();
 
     // Physical DeliveryObligation Carrying
-    public List<Letter> CarriedLetters { get; private set; } = new List<Letter>(); // Letters physically in satchel for delivery
     public int MaxSatchelSize { get; set; } = 12; // Maximum size capacity for letters in satchel
 
     // Queue manipulation tracking
     public int LastMorningSwapDay { get; set; } = -1; // Track when morning swap was last used
 
-    // DeliveryObligation history tracking
-    public List<LetterHistoryEntry> NPCLetterHistory { get; private set; } = new List<LetterHistoryEntry>();
-
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
-
     // Token Favor System
-    public List<string> PurchasedFavors { get; set; } = new List<string>();
     public List<string> UnlockedLocationIds { get; set; } = new List<string>();
-    public List<string> UnlockedServices { get; set; } = new List<string>();
-
-
-    // Scenario tracking
-    public List<DeliveryObligation> DeliveredLetters { get; set; } = new List<DeliveryObligation>();
-    public int TotalLettersDelivered { get; set; } = 0;
-    public int TotalLettersExpired { get; set; } = 0;
-    public int TotalTokensSpent { get; set; } = 0;
 
     // Route Familiarity System (0-5 scale per route)
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
@@ -368,21 +348,7 @@
     public int GetCurrentWeight(ItemRepository itemRepository)
     {
         int inventoryWeight = Inventory.GetUsedWeight(itemRepository);
-        int letterWeight = GetCarriedLetterWeight();
-        return inventoryWeight + letterWeight;
-    }
-
-    /// <summary>
-    /// Get weight from all carried letters (physical objects in satchel)
-    /// </summary>
-    public int GetCarriedLetterWeight()
-    {
-        int totalWeight = 0;
-        foreach (Letter letter in CarriedLetters)
-        {
-            totalWeight += letter.GetWeight();
-        }
-        return totalWeight;
+        return inventoryWeight;
     }
 
     /// <summary>

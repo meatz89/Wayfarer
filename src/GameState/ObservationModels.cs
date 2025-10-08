@@ -18,37 +18,3 @@ public class Observation
     public bool Automatic { get; set; }
     public string SpotId { get; set; } // Which spot this observation is associated with
 }
-
-public enum ObservationType
-{
-    Important,
-    Normal,
-    Useful,
-    Critical,
-    Shadow,
-    NPC
-}
-
-public enum ObservationInfoType
-{
-    Transport,
-    Timing,
-    Secret,
-    Location
-}
-
-public class ObservationsData
-{
-    public Dictionary<string, List<Observation>> locations { get; set; }
-    public Dictionary<string, ObservationTypeData> observationTypes { get; set; }
-}
-
-public class ObservationTypeData
-{
-    public int InitiativeCost { get; set; }
-    public int BaseFlow { get; set; }
-    public bool CreatesOpening { get; set; }
-    public bool ProvidesInformation { get; set; }
-    public bool CreatesUrgency { get; set; }
-    public bool RequiresShadowTokens { get; set; }
-}

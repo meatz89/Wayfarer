@@ -52,7 +52,6 @@ public static class ServiceConfiguration
         // Investigation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
         services.AddSingleton<TravelObstacleService>();
-        services.AddSingleton<ObstacleFacade>();
 
         services.AddTimeSystem();
 
@@ -131,14 +130,10 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();
 
-        services.AddSingleton<ObligationQueueManager>();
-
         // Transaction and Preview System
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
-        services.AddSingleton<SpecialLetterHandler>();
-        services.AddSingleton<DailyActivitiesManager>();
 
 
         // Action generation service
@@ -146,7 +141,6 @@ public static class ServiceConfiguration
 
         // Core services
         services.AddScoped<MusicService>();
-        services.AddScoped<TimeImpactCalculator>();
 
         // Location Subsystem
         services.AddSingleton<LocationManager>();
@@ -158,13 +152,7 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationFacade>();
 
         // Obligation Subsystem
-        services.AddSingleton<DeliveryManager>();
         services.AddSingleton<MeetingManager>();
-        services.AddSingleton<QueueManipulator>();
-        services.AddSingleton<DisplacementCalculator>();
-        services.AddSingleton<DeadlineTracker>();
-        services.AddSingleton<ObligationStatistics>();
-        services.AddSingleton<ObligationFacade>();
 
         // Resource Subsystem
         services.AddSingleton<CoinManager>();
@@ -208,7 +196,6 @@ public static class ServiceConfiguration
         services.AddSingleton<TokenFacade>();
 
         // Narrative Subsystem
-        services.AddSingleton<ObservationManagerWrapper>();
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<NarrativeRenderer>();

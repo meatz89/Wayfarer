@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 public enum ObligationEffect
 {
     // Entry Position Effects
@@ -97,112 +96,6 @@ public class StandingObligation
     public bool AppliesTo(ConnectionType tokenType)
     {
         return RelatedTokenType == null || RelatedTokenType == tokenType;
-    }
-
-    // Calculate coin bonus for letter delivery
-    public int CalculateCoinBonus(DeliveryObligation letter, int basePayment)
-    {
-        if (!AppliesTo(letter.TokenType)) return 0;
-
-        if (HasEffect(ObligationEffect.DiplomacyBonus) && letter.TokenType == ConnectionType.Diplomacy)
-        {
-            return 10; // Flat +10 bonus
-        }
-
-        if (HasEffect(ObligationEffect.DiplomacyBonusPlus3) && letter.TokenType == ConnectionType.Diplomacy)
-        {
-            return 3; // Flat +3 bonus
-        }
-
-        if (HasEffect(ObligationEffect.ShadowTriplePay) && letter.TokenType == ConnectionType.Shadow)
-        {
-            return basePayment * 2; // Triple = base + (2 * base)
-        }
-
-        return 0;
-    }
-
-    // Determine entry position for new letters
-    public int CalculateEntryPosition(DeliveryObligation letter, int defaultPosition)
-    {
-        if (!AppliesTo(letter.TokenType)) return defaultPosition;
-
-        if (HasEffect(ObligationEffect.StatusPriority) && letter.TokenType == ConnectionType.Status)
-        {
-            return Math.Min(3, defaultPosition); // Enter at slot 3 or higher
-        }
-
-        if (HasEffect(ObligationEffect.DiplomacyPriority) && letter.TokenType == ConnectionType.Diplomacy)
-        {
-            return Math.Min(5, defaultPosition); // Enter at slot 5 or higher
-        }
-
-        if (HasEffect(ObligationEffect.TrustPriority) && letter.TokenType == ConnectionType.Trust)
-        {
-            return Math.Min(7, defaultPosition); // Enter at slot 7 or higher
-        }
-
-
-        return defaultPosition;
-    }
-
-    // Check if deadline extension is free
-    public bool IsFreeDeadlineExtension(DeliveryObligation letter)
-    {
-        return HasEffect(ObligationEffect.TrustFreeExtend) &&
-               letter.TokenType == ConnectionType.Trust;
-    }
-
-    // Calculate skip cost multiplier
-    public int CalculateSkipCostMultiplier(DeliveryObligation letter)
-    {
-        if (HasEffect(ObligationEffect.TrustSkipDoubleCost) &&
-            letter.TokenType == ConnectionType.Trust)
-        {
-            return 2; // Double cost
-        }
-
-        return 1; // Normal cost
-    }
-
-    // Check if action is forbidden by constraints
-    public bool IsForbiddenAction(string actionType, DeliveryObligation letter)
-    {
-        if (actionType == "refuse" && HasEffect(ObligationEffect.NoStatusRefusal) &&
-            letter.TokenType == ConnectionType.Status)
-        {
-            return true;
-        }
-
-        if (actionType == "refuse" && HasEffect(ObligationEffect.CannotRefuseLetters))
-        {
-            return true; // Cannot refuse any letters
-        }
-
-        if (actionType == "purge" && HasEffect(ObligationEffect.NoDiplomacyPurge) &&
-            letter.TokenType == ConnectionType.Diplomacy)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Check if forced letter should be generated
-    public bool ShouldGenerateForcedLetter()
-    {
-        if (HasEffect(ObligationEffect.ShadowForced))
-        {
-            return DaysSinceLastForcedDeliveryObligation >= 3; // Every 3 days
-        }
-
-        return false;
-    }
-
-    // Record forced letter generation
-    public void RecordForcedLetterGenerated()
-    {
-        DaysSinceLastForcedDeliveryObligation = 0;
     }
 
     // Check if this obligation should be active based on current token count
@@ -351,35 +244,4 @@ public class StandingObligation
         }
     }
 
-    // Calculate dynamic leverage modifier
-    public int CalculateDynamicLeverage(DeliveryObligation letter, int currentPosition, int tokenCount)
-    {
-        if (!HasEffect(ObligationEffect.DynamicLeverageModifier)) return currentPosition;
-        if (!AppliesTo(letter.TokenType)) return currentPosition;
-
-        float modifier = CalculateDynamicValue(tokenCount);
-        int newPosition = currentPosition - (int)modifier; // Negative modifier improves position
-
-        return Math.Max(1, Math.Min(8, newPosition)); // Clamp to valid queue range
-    }
-
-    // Calculate dynamic payment bonus
-    public int CalculateDynamicPaymentBonus(DeliveryObligation letter, int basePayment, int tokenCount)
-    {
-        if (!HasEffect(ObligationEffect.DynamicPaymentBonus)) return 0;
-        if (!AppliesTo(letter.TokenType)) return 0;
-
-        float bonus = CalculateDynamicValue(tokenCount);
-        return (int)bonus;
-    }
-
-    // Calculate dynamic deadline bonus
-    public int CalculateDynamicDeadlineBonus(DeliveryObligation letter, int tokenCount)
-    {
-        if (!HasEffect(ObligationEffect.DynamicDeadlineBonus)) return 0;
-        if (!AppliesTo(letter.TokenType)) return 0;
-
-        float bonus = CalculateDynamicValue(tokenCount);
-        return (int)bonus;
-    }
 }

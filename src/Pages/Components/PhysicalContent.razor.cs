@@ -27,10 +27,10 @@ namespace Wayfarer.Pages.Components
             ? GameFacade.GetPhysicalFacade().GetHand()
             : new List<CardInstance>();
         protected CardInstance SelectedCard { get; set; }
-        protected string LastNarrative { get; set; } = "";
+        protected string LastNarrative { get; set; }
         protected bool IsProcessing { get; set; } = false;
         protected bool IsChallengeEnded { get; set; } = false;
-        protected string EndReason { get; set; } = "";
+        protected string EndReason { get; set; }
 
         protected override void OnInitialized()
         {
@@ -145,7 +145,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var result = await GameFacade.ExecuteAssess(SelectedCard);
+                PhysicalTurnResult result = await GameFacade.ExecuteAssess(SelectedCard);
 
                 if (result == null)
                 {
@@ -196,7 +196,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var result = await GameFacade.ExecuteExecute(SelectedCard);
+                PhysicalTurnResult result = await GameFacade.ExecuteExecute(SelectedCard);
 
                 if (result == null)
                 {
@@ -247,7 +247,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var outcome = GameFacade.EndPhysicalSession();
+                PhysicalOutcome outcome = GameFacade.EndPhysicalSession();
 
                 if (outcome != null)
                 {

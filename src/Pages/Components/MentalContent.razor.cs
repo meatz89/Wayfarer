@@ -27,10 +27,10 @@ namespace Wayfarer.Pages.Components
             ? GameFacade.GetMentalFacade().GetHand()
             : new List<CardInstance>();
         protected CardInstance SelectedCard { get; set; }
-        protected string LastNarrative { get; set; } = "";
+        protected string LastNarrative { get; set; }
         protected bool IsProcessing { get; set; } = false;
         protected bool IsInvestigationEnded { get; set; } = false;
-        protected string EndReason { get; set; } = "";
+        protected string EndReason { get; set; }
 
         protected override void OnInitialized()
         {
@@ -122,7 +122,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var result = await GameFacade.ExecuteObserve(SelectedCard);
+                MentalTurnResult result = await GameFacade.ExecuteObserve(SelectedCard);
 
                 if (result == null)
                 {
@@ -173,7 +173,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var result = await GameFacade.ExecuteAct(SelectedCard);
+                MentalTurnResult result = await GameFacade.ExecuteAct(SelectedCard);
 
                 if (result == null)
                 {
@@ -224,7 +224,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                var outcome = GameFacade.EndMentalSession();
+                MentalOutcome outcome = GameFacade.EndMentalSession();
 
                 if (outcome != null)
                 {

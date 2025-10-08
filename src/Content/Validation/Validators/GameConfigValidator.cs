@@ -31,7 +31,6 @@ public class GameConfigValidator : IContentValidator
             }
 
             // Validate main sections
-            ValidateLetterQueueConfig(root, fileName, errors);
             ValidateTimeConfig(root, fileName, errors);
             ValidateStaminaConfig(root, fileName, errors);
             ValidateTokenEconomyConfig(root, fileName, errors);
@@ -47,62 +46,6 @@ public class GameConfigValidator : IContentValidator
         }
 
         return errors;
-    }
-
-    private void ValidateLetterQueueConfig(JsonElement root, string fileName, List<ValidationError> errors)
-    {
-        if (!root.TryGetProperty("letterQueue", out JsonElement letterQueue))
-        {
-            errors.Add(new ValidationError(
-                fileName,
-                "Missing required section: letterQueue",
-                ValidationSeverity.Critical));
-            return;
-        }
-
-        // Validate maxQueueSize
-        if (letterQueue.TryGetProperty("maxQueueSize", out JsonElement queueSize) &&
-            queueSize.ValueKind == JsonValueKind.Number)
-        {
-            int size = queueSize.GetInt32();
-            if (size < 1 || size > 20)
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:letterQueue",
-                    $"maxQueueSize must be between 1 and 20 (got {size})",
-                    ValidationSeverity.Critical));
-            }
-        }
-
-        // Validate basePositions
-        if (letterQueue.TryGetProperty("basePositions", out JsonElement positions) &&
-            positions.ValueKind == JsonValueKind.Object)
-        {
-            foreach (JsonProperty pos in positions.EnumerateObject())
-            {
-                // Validate token type
-                if (!EnumParser.TryParse<ConnectionType>(pos.Name, out _))
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:letterQueue.basePositions",
-                        $"Invalid connection type: '{pos.Name}'",
-                        ValidationSeverity.Critical));
-                }
-
-                // Validate position value
-                if (pos.Value.ValueKind == JsonValueKind.Number)
-                {
-                    int position = pos.Value.GetInt32();
-                    if (position < 1)
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:letterQueue.basePositions.{pos.Name}",
-                            $"Position must be positive (got {position})",
-                            ValidationSeverity.Critical));
-                    }
-                }
-            }
-        }
     }
 
     private void ValidateTimeConfig(JsonElement root, string fileName, List<ValidationError> errors)

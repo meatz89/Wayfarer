@@ -75,9 +75,6 @@ public class Location
     // Work System - Available work actions at this location
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
-    // Signature Deck System - Knowledge cards earned through successful engagements at this location
-    public SignatureDeck SignatureDeck { get; set; }
-
     // Location Exposure System - Mental debt that persists across investigations
     public int Exposure { get; set; } = 0;
 

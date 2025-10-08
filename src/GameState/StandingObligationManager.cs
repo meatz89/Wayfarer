@@ -120,51 +120,6 @@ public class StandingObligationManager
         return conflicts;
     }
 
-    // Check if we should generate forced letters today
-    public List<StandingObligation> GetObligationsRequiringForcedLetters()
-    {
-        return GetActiveObligations()
-            .Where(o => o.ShouldGenerateForcedLetter())
-            .ToList();
-    }
-
-    // Process daily obligations and return any forced letters generated
-    public List<DeliveryObligation> ProcessDailyObligations(int currentDay)
-    {
-        List<DeliveryObligation> forcedLetters = new List<DeliveryObligation>();
-        List<StandingObligation> obligationsNeedingLetters = GetObligationsRequiringForcedLetters();
-
-        foreach (StandingObligation obligation in obligationsNeedingLetters)
-        {
-            DeliveryObligation letter = GenerateForcedLetter(obligation);
-            if (letter != null)
-            {
-                forcedLetters.Add(letter);
-                obligation.RecordForcedLetterGenerated();
-
-                _messageSystem.AddSystemMessage(
-                    $"Forced letter generated from {obligation.Name}: {letter.SenderName} → {letter.RecipientName}",
-                    SystemMessageTypes.Info
-                );
-            }
-        }
-
-        return forcedLetters;
-    }
-
-    // Obligations no longer generate forced letters
-    // Letters are ONLY created through conversation choices
-    public DeliveryObligation GenerateForcedLetter(StandingObligation obligation)
-    {
-        // This method is deprecated - obligations create conversation opportunities, not automatic letters
-        _messageSystem.AddSystemMessage(
-            $"Obligation {obligation.Name} creates new conversation opportunities!",
-            SystemMessageTypes.Info
-        );
-        return null;
-    }
-
-
     // Advance time for all obligations (called daily)
     public void AdvanceDailyTime()
     {
@@ -174,48 +129,6 @@ public class StandingObligationManager
         {
             obligation.DaysSinceLastForcedDeliveryObligation++;
         }
-    }
-
-    // Helper to get NPC ID from name
-    private string GetNPCIdByName(string npcName)
-    {
-        // This would typically use NPCRepository, but we don't have it injected here
-        // For now, return empty string - the calling code should handle this
-        return "";
-    }
-
-
-    // Calculate total skip cost multiplier
-    public int CalculateSkipCostMultiplier(DeliveryObligation letter)
-    {
-        int maxMultiplier = 1;
-        List<StandingObligation> activeObligations = GetActiveObligations();
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            int multiplier = obligation.CalculateSkipCostMultiplier(letter);
-            maxMultiplier = Math.Max(maxMultiplier, multiplier);
-        }
-
-        return maxMultiplier;
-    }
-
-    // Check if any obligation forbids an action
-    public bool IsActionForbidden(string actionType, DeliveryObligation letter, out string reason)
-    {
-        reason = "";
-        List<StandingObligation> activeObligations = GetActiveObligations();
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            if (obligation.IsForbiddenAction(actionType, letter))
-            {
-                reason = $"Forbidden by {obligation.Name}";
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // Check for threshold-based obligations that should activate or deactivate
@@ -274,23 +187,6 @@ public class StandingObligationManager
             // Get total tokens of type
             return _connectionTokenManager.GetTokenCount(obligation.RelatedTokenType.Value);
         }
-    }
-
-    // Get the relevant token count for a letter-based calculation
-    private int GetRelevantTokenCountForLetter(StandingObligation obligation, DeliveryObligation letter, string senderId)
-    {
-        // If obligation is NPC-specific, only apply if letter is from that NPC
-        if (!string.IsNullOrEmpty(obligation.RelatedNPCId) && obligation.RelatedNPCId != senderId)
-        {
-            return 0;
-        }
-
-        // Get tokens with the letter sender
-        Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(senderId);
-
-        // Use obligation's token type if specified, otherwise use letter's token type
-        ConnectionType relevantType = obligation.RelatedTokenType ?? letter.TokenType;
-        return npcTokens.GetValueOrDefault(relevantType, 0);
     }
 
     // Activate a threshold-based obligation
@@ -440,35 +336,6 @@ public class StandingObligationManager
                 result.Message,
                 SystemMessageTypes.Info
             );
-        }
-    }
-
-
-    // Apply dynamic deadline bonuses from obligations
-    public void ApplyDynamicDeadlineBonuses(DeliveryObligation letter)
-    {
-        List<StandingObligation> activeObligations = GetActiveObligations();
-
-        foreach (StandingObligation obligation in activeObligations)
-        {
-            if (obligation.HasEffect(ObligationEffect.DynamicDeadlineBonus))
-            {
-                string senderId = GetNPCIdByName(letter.SenderName);
-                if (!string.IsNullOrEmpty(senderId))
-                {
-                    int tokenCount = GetRelevantTokenCountForLetter(obligation, letter, senderId);
-                    int deadlineBonus = obligation.CalculateDynamicDeadlineBonus(letter, tokenCount);
-
-                    if (deadlineBonus > 0)
-                    {
-                        letter.DeadlineInSegments += deadlineBonus;
-                        _messageSystem.AddSystemMessage(
-                            $"📅 {obligation.Name} grants +{deadlineBonus} days deadline (scaled by {tokenCount} tokens)",
-                            SystemMessageTypes.Info
-                        );
-                    }
-                }
-            }
         }
     }
 }

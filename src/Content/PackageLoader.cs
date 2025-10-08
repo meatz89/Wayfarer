@@ -143,9 +143,8 @@ public class PackageLoader
         LoadLocationSpots(package.Content.Spots, allowSkeletons);
 
         // 3. Cards (foundation for NPCs and conversations)
-        LoadCards(package.Content.Cards, allowSkeletons);
-        LoadNpcRequestCards(package.Content.NpcRequestCards, allowSkeletons);
-        LoadPromiseCards(package.Content.PromiseCards, allowSkeletons);
+        LoadSocialCards(package.Content.Cards, allowSkeletons);
+        LoadNpcGoalCards(package.Content.NpcGoalCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
         // THREE PARALLEL TACTICAL SYSTEMS
@@ -173,10 +172,8 @@ public class PackageLoader
         InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
         // 7. Complex entities
-        LoadObservations(package.Content.Observations, allowSkeletons);
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
         LoadInvestigationRewards(package.Content.InvestigationRewards, allowSkeletons);
-        LoadLetterTemplates(package.Content.LetterTemplates, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
         LoadLocationActions(package.Content.LocationActions, allowSkeletons);
 
@@ -254,7 +251,7 @@ public class PackageLoader
     /// Load a dynamic package from JSON string (e.g., AI-generated content)
     /// Returns list of skeleton IDs that need completion
     /// </summary>
-    public List<string> LoadDynamicPackageFromJson(string json, string packageId = null)
+    public List<string> LoadDynamicPackageFromJson(string json, string packageId)
     {
         Console.WriteLine($"[PackageLoader] Loading dynamic package from JSON: {packageId ?? "unnamed"}");
 
@@ -452,51 +449,37 @@ public class PackageLoader
         }
     }
 
-    private void LoadCards(List<ConversationCardDTO> cardDtos, bool allowSkeletons)
+    private void LoadNpcGoalCards(Dictionary<string, List<SocialCardDTO>> npcGoalCards, bool allowSkeletons)
     {
-        if (cardDtos == null) return;
-
-        foreach (ConversationCardDTO dto in cardDtos)
-        {
-            // Use static method from ConversationCardParser
-            SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
-            _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
-        }
-
-        // Validate Foundation card rules after all cards are loaded
-        List<SocialCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
-        SocialCardParser.ValidateFoundationCardRules(allCards);
-    }
-
-    private void LoadNpcRequestCards(Dictionary<string, List<ConversationCardDTO>> npcRequestCards, bool allowSkeletons)
-    {
-        if (npcRequestCards == null) return;
+        if (npcGoalCards == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
-        foreach (KeyValuePair<string, List<ConversationCardDTO>> kvp in npcRequestCards)
+        foreach (KeyValuePair<string, List<SocialCardDTO>> kvp in npcGoalCards)
         {
             string npcId = kvp.Key;
-            foreach (ConversationCardDTO dto in kvp.Value)
+            foreach (SocialCardDTO dto in kvp.Value)
             {
-                SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
+                SocialCard card = SocialCardParser.ParseCard(dto);
                 _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
                 Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
             }
         }
     }
 
-
-    private void LoadPromiseCards(List<ConversationCardDTO> promiseCards, bool allowSkeletons)
+    private void LoadSocialCards(List<SocialCardDTO> cardDtos, bool allowSkeletons)
     {
-        if (promiseCards == null) return;
+        if (cardDtos == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading promise cards...");
-        foreach (ConversationCardDTO dto in promiseCards)
+        foreach (SocialCardDTO dto in cardDtos)
         {
-            SocialCard card = SocialCardParser.ConvertDTOToCard(dto);
+            // Use static method from ConversationCardParser
+            SocialCard card = SocialCardParser.ParseCard(dto);
             _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
-            Console.WriteLine($"[PackageLoader] Loaded promise card '{card.Id}'");
         }
+
+        // Validate Foundation card rules after all cards are loaded
+        List<SocialCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
+        SocialCardParser.ValidateFoundationCardRules(allCards);
     }
 
     private void LoadMentalCards(List<MentalCardDTO> mentalCards, bool allowSkeletons)
@@ -528,8 +511,6 @@ public class PackageLoader
         }
         Console.WriteLine($"[PackageLoader] Completed loading physical cards. Total: {_gameWorld.PhysicalCards.Count}");
     }
-
-    // THREE PARALLEL TACTICAL SYSTEMS - SEPARATE LOADERS
 
     private void LoadSocialChallengeTypes(List<SocialChallengeTypeDTO> challengeTypes, bool allowSkeletons)
     {
@@ -764,17 +745,12 @@ public class PackageLoader
 
                 // Preserve all cards from the persistent decks
                 List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
-                List<SocialCard> preservedObservationCards = existingSkeleton.ObservationDeck?.GetAllCards()?.ToList() ?? new List<SocialCard>();
-                List<SocialCard> preservedBurdenCards = existingSkeleton.BurdenDeck?.GetAllCards()?.ToList() ?? new List<SocialCard>();
-                List<NPCRequest> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<NPCRequest>();
+                List<GoalCard> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<GoalCard>();
 
-                int totalPreservedCards = preservedExchangeCards.Count +
-                                        preservedObservationCards.Count + preservedBurdenCards.Count;
+                int totalPreservedCards = preservedExchangeCards.Count;
 
                 Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
                 Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
-                Console.WriteLine($"  - Observation: {preservedObservationCards.Count} cards");
-                Console.WriteLine($"  - Burden: {preservedBurdenCards.Count} cards");
                 Console.WriteLine($"  - Requests: {preservedRequests.Count} request objects");
 
                 // Remove skeleton from game world
@@ -793,22 +769,6 @@ public class PackageLoader
                 if (preservedExchangeCards.Any())
                 {
                     npc.ExchangeDeck.AddRange(preservedExchangeCards);
-                }
-
-                if (preservedObservationCards.Any())
-                {
-                    foreach (SocialCard? card in preservedObservationCards)
-                    {
-                        npc.ObservationDeck.AddCard(card);
-                    }
-                }
-
-                if (preservedBurdenCards.Any())
-                {
-                    foreach (SocialCard? card in preservedBurdenCards)
-                    {
-                        npc.BurdenDeck.AddCard(card);
-                    }
                 }
 
                 if (preservedRequests.Any())
@@ -1007,22 +967,6 @@ public class PackageLoader
         return spot?.LocationId;
     }
 
-    private void LoadObservations(List<ObservationDTO> observationDtos, bool allowSkeletons)
-    {
-        if (observationDtos == null) return;
-
-        foreach (ObservationDTO dto in observationDtos)
-        {
-            // Convert to ConversationCard for the existing system
-            SocialCard observation = ConvertObservationDTOToCard(dto);
-            _gameWorld.PlayerObservationCards.Add(observation);
-
-            // Also create Observation domain object and store in GameWorld
-            Observation observationDomain = ConvertDTOToObservation(dto);
-            _gameWorld.Observations.Add(observationDomain);
-        }
-    }
-
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
     {
         if (dialogueTemplates == null) return;
@@ -1177,13 +1121,13 @@ public class PackageLoader
                         continue; // Skip skeleton NPCs for now
                     }
 
-                    NPCRequest request = new NPCRequest
+                    GoalCard request = new GoalCard
                     {
                         Id = requestDto.Id,
                         Name = requestDto.Name,
                         Description = requestDto.Description,
                         NpcRequestText = requestDto.NpcRequestText,
-                        Status = RequestStatus.Available
+                        Status = GoalStatus.Available
                     };
 
                     // Add request to NPC (cards are created from goals during NPC parsing)
@@ -1302,17 +1246,6 @@ public class PackageLoader
         }
     }
 
-    private void LoadLetterTemplates(List<LetterTemplateDTO> letterDtos, bool allowSkeletons)
-    {
-        if (letterDtos == null) return;
-
-        foreach (LetterTemplateDTO dto in letterDtos)
-        {
-            LetterTemplate letter = LetterTemplateParser.ConvertDTOToLetterTemplate(dto);
-            _gameWorld.WorldState.LetterTemplates.Add(letter);
-        }
-    }
-
     private void LoadStandingObligations(List<StandingObligationDTO> obligationDtos, bool allowSkeletons)
     {
         if (obligationDtos == null) return;
@@ -1422,23 +1355,20 @@ public class PackageLoader
         return route;
     }
 
-    private SocialCard ConvertObservationDTOToCard(ObservationDTO dto)
+    private ObservationCard ConvertObservationDTOToCard(ObservationDTO dto)
     {
-        // Observations become player cards
-        return new SocialCard
+        ObservationCard observationCard = new()
         {
             Id = dto.Id,
             Title = dto.DisplayText ?? "",
             InitiativeCost = dto.InitiativeCost,
             TokenType = ConnectionType.Trust,
-            CardType = CardType.Observation,
-            Persistence = PersistenceType.Statement, // Observations persist through LISTEN
+            Persistence = PersistenceType.Statement,
             SuccessType = SuccessEffectType.None,
-            PersonalityTypes = new List<string>(),
-            LevelBonuses = new List<CardLevelBonus>(),
             DialogueText = "",
-            VerbPhrase = ""
         };
+
+        return observationCard;
     }
 
     private Observation ConvertDTOToObservation(ObservationDTO dto)
@@ -1457,13 +1387,13 @@ public class PackageLoader
             Type = observationType,
             AttentionCost = 0, // From DTO or default to 0
             RelevantNPCs = new string[0], // Empty by default - could be populated from properties
-            CreatesState = null, // No state creation from DTO
+            CreatesState = ConnectionState.NEUTRAL, // No state creation from DTO
             CardTemplate = dto.Id ?? "", // Use ID as template
             Description = dto.Description ?? dto.DisplayText ?? "",
-            ProvidesInfo = null, // Could be derived from properties
+            ProvidesInfo = ObservationInfoType.Location, // Could be derived from properties
             CreatesUrgency = false, // Default false
             Automatic = false, // Default false
-            SpotId = null // Will be set by location-specific loading if needed
+            SpotId = dto.SpotId // Will be set by location-specific loading if needed
         };
     }
 
@@ -1478,7 +1408,6 @@ public class PackageLoader
             Reward = dto.Reward ?? new Dictionary<string, int>(),
             TimeRequired = dto.TimeRequired,
             Availability = dto.Availability ?? new List<string>(),
-            Icon = dto.Icon ?? "[WORK]",
             Priority = dto.Priority,
             ActionType = dto.ActionType ?? "",
             InvestigationId = dto.InvestigationId
@@ -1559,7 +1488,7 @@ public class PackageLoader
             ObservationCard = new ObservationCardReward
             {
                 Id = dto.ObservationCard.Id,
-                Name = dto.ObservationCard.Name,
+                Title = dto.ObservationCard.Name,
                 TargetNpcId = dto.ObservationCard.TargetNpcId,
                 Effect = dto.ObservationCard.Effect,
                 Description = dto.ObservationCard.Description
@@ -1583,7 +1512,7 @@ public class PackageLoader
         _parsedExchangeCards = new List<ExchangeCardEntry>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto);
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId);
             _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
             Console.WriteLine($"[PackageLoader] Created ExchangeCard: {exchangeCard.Id} - {exchangeCard.GetExchangeRatio()}");
         }

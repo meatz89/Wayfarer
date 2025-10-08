@@ -25,7 +25,7 @@ public class PhysicalChallengeDeck
             PhysicalCardEntry entry = gameWorld.PhysicalCards.FirstOrDefault(e => e.CardId == cardId);
             if (entry?.Card != null)
             {
-                instances.Add(new CardInstance(entry.Card, "deck"));
+                instances.Add(new CardInstance(entry.Card));
             }
         }
 

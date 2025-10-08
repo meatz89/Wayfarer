@@ -2,23 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-// Player initial configuration data
-public class PlayerInitialConfig
-{
-    public int? Coins { get; set; }
-    public int? StaminaPoints { get; set; }
-    public int? MaxStamina { get; set; }
-    public int? Health { get; set; }
-    public int? MaxHealth { get; set; }
-    public int? Hunger { get; set; }
-    public int? MaxHunger { get; set; }
-    public int? SatchelCapacity { get; set; }
-    public int? SatchelWeight { get; set; }
-    public string Personality { get; set; }
-    public string Archetype { get; set; }
-    public List<ResourceEntry> InitialItems { get; set; }
-}
-
 public class GameWorld
 {
     // Game mode determines content loading and tutorial state
@@ -27,20 +10,6 @@ public class GameWorld
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
-    public WeatherCondition CurrentWeather
-    {
-        get
-        {
-            return WorldState.CurrentWeather;
-        }
-
-        set
-        {
-            WorldState.CurrentWeather = value;
-        }
-    }
-    // Player state is accessed through Player object, not duplicated here
-    public Inventory PlayerInventory { get; private set; }
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<LocationSpotEntry> Spots { get; set; } = new List<LocationSpotEntry>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
@@ -57,8 +26,6 @@ public class GameWorld
     public WorldState WorldState { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
-    public int DeadlineDay { get; set; }
-    public string DeadlineReason { get; set; }
     public Guid GameInstanceId { get; set; }
     public RouteOption CurrentRouteOption { get; internal set; }
 
@@ -66,13 +33,6 @@ public class GameWorld
     public List<SystemMessage> SystemMessages { get; set; } = new List<SystemMessage>();
     // Event Log - Permanent record of all messages
     public List<SystemMessage> EventLog { get; set; } = new List<SystemMessage>();
-    // DeliveryObligation positioning messages for UI translation
-    public List<LetterPositioningMessage> LetterPositioningMessages { get; set; } = new List<LetterPositioningMessage>();
-    // Special letter events for UI translation
-    public List<SpecialLetterEvent> SpecialLetterEvents { get; set; } = new List<SpecialLetterEvent>();
-
-    public List<PersonalityMappingEntry> PersonalityMappings { get; set; } = new List<PersonalityMappingEntry>();
-    public List<TokenUnlockEntry> TokenUnlocks { get; set; } = new List<TokenUnlockEntry>();
 
     // DECK ARCHITECTURE - Single source of truth for all deck configurations
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
@@ -106,38 +66,23 @@ public class GameWorld
 
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
-
     public List<Investigation> Investigations { get; private set; } = new List<Investigation>();
     public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
     public Dictionary<string, Knowledge> Knowledge { get; private set; } = new Dictionary<string, Knowledge>();
-    // DELETED: InvestigationCard - will be replaced with MentalCard in Phase 1
-    // public Dictionary<string, InvestigationCard> InvestigationCards { get; private set; } = new Dictionary<string, InvestigationCard>();
 
     // Travel System
     public Dictionary<string, List<RouteImprovement>> RouteImprovements { get; private set; } = new Dictionary<string, List<RouteImprovement>>();
     public List<TravelObstacle> TravelObstacles { get; private set; } = new List<TravelObstacle>();
 
     // Initialization data - stored in GameWorld, not passed between phases
-    // This eliminates the need for SharedData dictionary
     public string InitialLocationSpotId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
-
-    // Note: Pending command system has been removed in favor of intent-based architecture
-
-    // Strongly typed pending queue state (replaces unsafe metadata dictionary)
-    public PendingQueueState PendingQueueState { get; private set; } = new PendingQueueState();
-
-    // Endless mode flag for post-30 day gameplay
-    public bool EndlessMode { get; set; } = false;
 
     // Skeleton tracking for lazy content resolution
     public List<SkeletonRegistryEntry> SkeletonRegistry { get; set; } = new List<SkeletonRegistryEntry>();
 
     // Track if game has been started to prevent duplicate initialization
     public bool IsGameStarted { get; set; } = false;
-
-    // PATH CARD SYSTEM - Travel path card discovery mechanics
-    // Path cards are now stored in collections (AllPathCollections)
 
     // Persistent discovery states
     public List<PathCardDiscoveryEntry> PathCardDiscoveries { get; set; } = new List<PathCardDiscoveryEntry>();
@@ -317,31 +262,6 @@ public class GameWorld
             }
         }
         return allStrangers;
-    }
-
-    /// <summary>
-    /// Convert TimeBlocks enum (no longer needed as we unified to TimeBlocks)
-    /// </summary>
-    private TimeBlocks ConvertTimeBlocks(TimeBlocks timeBlocks)
-    {
-        return timeBlocks switch
-        {
-            TimeBlocks.Dawn => TimeBlocks.Dawn,
-            TimeBlocks.Morning => TimeBlocks.Morning,
-            TimeBlocks.Midday => TimeBlocks.Midday,
-            TimeBlocks.Afternoon => TimeBlocks.Afternoon,
-            TimeBlocks.Evening => TimeBlocks.Evening,
-            TimeBlocks.Night => TimeBlocks.Night,
-            _ => TimeBlocks.Morning
-        };
-    }
-
-    /// <summary>
-    /// Get current time block as TimeBlock enum
-    /// </summary>
-    public TimeBlocks GetCurrentTimeBlock()
-    {
-        return ConvertTimeBlocks(CurrentTimeBlock);
     }
 
 }

@@ -21,15 +21,15 @@ public class SocialChallengeDeckBuilder
     /// Create a conversation deck from conversation type cards.
     /// Request drives everything - it determines the conversation type and connection type.
     /// </summary>
-    public (SessionCardDeck deck, List<CardInstance> requestCards) CreateConversationDeck(
+    public (SocialSessionCardDeck deck, List<CardInstance> GoalCards) CreateConversationDeck(
         NPC npc,
         string requestId,
-        List<CardInstance> observationCards = null)
+        List<CardInstance> observationCards)
     {
         string sessionId = Guid.NewGuid().ToString();
 
         // Get the request which drives everything
-        NPCRequest request = npc.GetRequestById(requestId);
+        GoalCard request = npc.GetRequestById(requestId);
         if (request == null)
         {
             throw new ArgumentException($"Request {requestId} not found for NPC {npc.ID}");
@@ -54,7 +54,7 @@ public class SocialChallengeDeckBuilder
         List<EquipmentCategory> playerEquipmentCategories = GetPlayerEquipmentCategories(player);
         deckInstances = deckInstances.Where(instance =>
         {
-            SocialCard template = instance.ConversationCardTemplate;
+            SocialCard template = instance.SocialCardTemplate;
             if (template == null) return false;
 
             if (template.EquipmentCategory != EquipmentCategory.None)
@@ -72,7 +72,7 @@ public class SocialChallengeDeckBuilder
         deckInstances = FilterSignatureCardsByTokenRequirements(deckInstances, npc);
 
         // Create session deck
-        SessionCardDeck deck = SessionCardDeck.CreateFromInstances(deckInstances, sessionId);
+        SocialSessionCardDeck deck = SocialSessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
         // Add NPC signature deck knowledge cards to STARTING HAND (parallel to Mental/Physical)
         if (npc.SignatureDeck != null)
@@ -102,12 +102,12 @@ public class SocialChallengeDeckBuilder
         }
 
         // Process request cards
-        List<CardInstance> requestCardInstances = CreateRequestCardInstances(request, npc);
+        List<CardInstance> GoalCardInstances = CreateGoalCardInstances(request, npc);
 
         // Add request cards to deck's request pile
-        foreach (CardInstance requestCard in requestCardInstances)
+        foreach (CardInstance GoalCard in GoalCardInstances)
         {
-            deck.AddRequestCard(requestCard);
+            deck.AddGoalCard(GoalCard);
         }
 
         // Shuffle the deck after all cards have been added
@@ -120,18 +120,18 @@ public class SocialChallengeDeckBuilder
     /// <summary>
     /// Create request card instances from request goals
     /// </summary>
-    private List<CardInstance> CreateRequestCardInstances(NPCRequest request, NPC npc)
+    private List<CardInstance> CreateGoalCardInstances(GoalCard request, NPC npc)
     {
-        List<CardInstance> requestCards = new List<CardInstance>();
+        List<CardInstance> GoalCards = new List<CardInstance>();
 
-        // Load cards from goals (goals reference cards from 02_cards.json)
+        // Load cards from goals (goals reference cards from _cards.json)
         foreach (NPCRequestGoal goal in request.Goals)
         {
-            // Find the card referenced by this goal (CardId references card in 02_cards.json)
+            // Find the card referenced by this goal (CardId references card in _cards.json)
             CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(goal.CardId);
             if (cardEntry == null)
             {
-                throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in 02_cards.json and referenced in NPC goal.");
+                throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in _cards.json and referenced in NPC goal.");
             }
             SocialCard goalCard = cardEntry.Card;
 
@@ -148,11 +148,11 @@ public class SocialChallengeDeckBuilder
             // Request cards start as unplayable until momentum threshold is met
             instance.IsPlayable = false;
 
-            requestCards.Add(instance);
+            GoalCards.Add(instance);
             Console.WriteLine($"[ConversationDeckBuilder] Added request card '{goalCard.Title}' (threshold: {goal.MomentumThreshold}) to request pile");
         }
 
-        return requestCards;
+        return GoalCards;
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public class SocialChallengeDeckBuilder
 
         foreach (CardInstance instance in instances)
         {
-            SocialCard card = instance.ConversationCardTemplate;
+            SocialCard card = instance.SocialCardTemplate;
 
             // Check if this is a signature card (has token requirements)
             if (card.TokenRequirements != null && card.TokenRequirements.Any())

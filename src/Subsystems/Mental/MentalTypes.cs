@@ -27,9 +27,6 @@ public class MentalCardEffectResult
     public int BaseExposure { get; set; }
     public List<EffectBonus> ExposureBonuses { get; set; } = new List<EffectBonus>();
 
-    // Balance resource (rhythm tracking)
-    public int BalanceChange { get; set; }
-
     // Persistent progress resource
     public int UnderstandingChange { get; set; }
 

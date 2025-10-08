@@ -56,7 +56,7 @@ public class PromptBuilder
     /// <param name="analysis">Card analysis results</param>
     /// <param name="conversationHistory">Previous turns in the conversation</param>
     /// <returns>Complete prompt ready for AI generation</returns>
-    public string BuildDialoguePrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, List<string> conversationHistory = null)
+    public string BuildDialoguePrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, List<string> conversationHistory)
     {
         string template = LoadTemplateFromPath("npc/dialogue.md");
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
@@ -104,7 +104,7 @@ public class PromptBuilder
     public string BuildConversationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
         // Legacy method - use dialogue prompt as fallback
-        return BuildDialoguePrompt(state, npc, cards, analysis);
+        return BuildDialoguePrompt(state, npc, cards, analysis, new List<string>());
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class PromptBuilder
                 {
                     object? value = prop.GetValue(item);
                     string key = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1); // camelCase
-                    itemPlaceholders[key] = value ?? string.Empty;
+                    itemPlaceholders[key] = value;
                 }
                 catch
                 {
@@ -267,7 +267,7 @@ public class PromptBuilder
 
             if (itemPlaceholders.TryGetValue(placeholder, out object value))
             {
-                return value?.ToString() ?? string.Empty;
+                return value?.ToString();
             }
 
             // Return placeholder unchanged if not found (for debugging)
@@ -350,7 +350,7 @@ public class PromptBuilder
 
             if (placeholders.TryGetValue(placeholder, out object value))
             {
-                return value?.ToString() ?? string.Empty;
+                return value?.ToString();
             }
 
             // Return placeholder unchanged if not found (for debugging)

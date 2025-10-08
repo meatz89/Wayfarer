@@ -154,7 +154,7 @@ public class NarrativeService
     /// Generate narrative for time block transitions
     /// Returns: TransitionNarrativeResult
     /// </summary>
-    public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
+    public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription)
     {
         string transition = GetTimeTransitionNarrative(from, to);
         string action = null;
@@ -184,29 +184,6 @@ public class NarrativeService
 
         return null;
     }
-
-    /// <summary>
-    /// Generate narrative for letter deadline warnings
-    /// Returns: NarrativeResult
-    /// </summary>
-    public NarrativeResult GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
-    {
-        string urgency = daysRemaining switch
-        {
-            0 => "expires today",
-            1 => "expires tomorrow",
-            2 => "has only 2 days left",
-            _ => $"has {daysRemaining} days remaining"
-        };
-
-        string severity = daysRemaining <= 1 ? "warning" : "info";
-        string message = $"⏰ DeliveryObligation from {letter.SenderName} {urgency}!";
-
-        return new NarrativeResult(message, severity);
-    }
-
-
-    /// <summary>
 
     // Helper methods
 
@@ -281,25 +258,6 @@ public class NarrativeService
             (TimeBlocks.Evening, TimeBlocks.Dawn) => "The first light of dawn breaks the horizon.",
             _ => "Time passes..."
         };
-    }
-
-    /// <summary>
-    /// Generate queue position narrative when letters enter at different positions
-    /// </summary>
-    public string GenerateQueueEntryNarrative(DeliveryObligation letter, int position)
-    {
-        if (position <= 3)
-        {
-            return $"⚡ {letter.SenderName}'s urgent letter pushes to position {position}!";
-        }
-        else if (position <= 5)
-        {
-            return $"📬 New letter enters queue at position {position}.";
-        }
-        else
-        {
-            return $"📨 DeliveryObligation queued at position {position}.";
-        }
     }
 
     /// <summary>
@@ -400,40 +358,6 @@ public class NarrativeService
         {
             return $"The terms of {obligation.Name} have been fulfilled. You are released from your obligations.";
         }
-    }
-
-    /// <summary>
-    /// Generate narrative for forced letter generation
-    /// </summary>
-    public string GenerateForcedLetterNarrative(StandingObligation obligation, DeliveryObligation letter)
-    {
-        Dictionary<string, string[]> forcedNarratives = new Dictionary<string, string[]>
-            {
-                { "Shadow", new[] {
-                    $"A shadowy messenger slips a letter into your queue. \"{letter.SenderName} requires your... immediate attention.\"",
-                    $"You find a black-sealed letter among your papers. The {obligation.Name} demands payment.",
-                    $"\"No exceptions,\" the hooded figure insists, adding {letter.SenderName}'s letter to your burden."
-                }},
-                { "Trade", new[] {
-                    $"The guild enforcer visits. \"Guild business. {letter.RecipientName} needs this immediately.\"",
-                    $"Your {obligation.Name} requires this guild letter be delivered without delay.",
-                    $"\"Union rules,\" the merchant explains, adding another letter to your load."
-                }}
-            };
-
-        // Find matching narrative type
-        foreach (string key in forcedNarratives.Keys)
-        {
-            if (obligation.Name.Contains(key, StringComparison.OrdinalIgnoreCase) ||
-                (obligation.RelatedTokenType.HasValue && obligation.RelatedTokenType.Value.ToString().Contains(key)))
-            {
-                string[] narratives = forcedNarratives[key];
-                return narratives[_random.Next(narratives.Length)];
-            }
-        }
-
-        // Generic forced letter narrative
-        return $"Your {obligation.Name} compels you to accept a letter from {letter.SenderName} to {letter.RecipientName}.";
     }
 
     /// <summary>

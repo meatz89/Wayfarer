@@ -92,8 +92,7 @@ public sealed class NPCState
             npc.SpotId,
             npc.Profession,
             npc.ProvidedServices,
-            npc.PlayerRelationship,
-            npc.LetterTokenTypes);
+            npc.PlayerRelationship);
     }
 
     /// <summary>

@@ -14,7 +14,7 @@ public class PhysicalCardDTO
     public string BoundStat { get; set; }
 
     // Physical-specific properties
-    public int PositionCost { get; set; } = 0;
+    public int ExertionCost { get; set; } = 0;
     public string Approach { get; set; } = "Standard";
     public string Category { get; set; }  // PhysicalCategory: Aggressive/Defensive/Tactical/Evasive/Endurance
     public string Discipline { get; set; } = "Combat";  // PhysicalDiscipline: Combat/Athletics/Finesse/Endurance/Strength

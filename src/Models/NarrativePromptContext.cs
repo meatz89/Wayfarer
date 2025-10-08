@@ -32,8 +32,8 @@ public class NarrativePromptContext
     public string HasObservation { get; set; } = "false";
 
     // Template-specific content
-    public string CardSummary { get; set; } = "";
-    public string CardsDetail { get; set; } = "";
+    public string CardSummary { get; set; }
+    public string CardsDetail { get; set; }
 
     // Conversation-specific
     public string ConversationType { get; set; } = "standard";

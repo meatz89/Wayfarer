@@ -14,14 +14,12 @@ public class GameFacade
     private readonly MessageSystem _messageSystem;
     private readonly SocialFacade _conversationFacade;
     private readonly LocationFacade _locationFacade;
-    private readonly ObligationFacade _obligationFacade;
     private readonly ResourceFacade _resourceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly TravelFacade _travelFacade;
     private readonly TokenFacade _tokenFacade;
     private readonly NarrativeFacade _narrativeFacade;
     private readonly ExchangeFacade _exchangeFacade;
-    private readonly ObstacleFacade _obstacleFacade;
     private readonly MentalFacade _mentalFacade;
     private readonly PhysicalFacade _physicalFacade;
     private readonly InvestigationActivity _investigationActivity;
@@ -33,14 +31,12 @@ public class GameFacade
         MessageSystem messageSystem,
         SocialFacade conversationFacade,
         LocationFacade locationFacade,
-        ObligationFacade obligationFacade,
         ResourceFacade resourceFacade,
         TimeFacade timeFacade,
         TravelFacade travelFacade,
         TokenFacade tokenFacade,
         NarrativeFacade narrativeFacade,
         ExchangeFacade exchangeFacade,
-        ObstacleFacade obstacleFacade,
         MentalFacade mentalFacade,
         PhysicalFacade physicalFacade,
         InvestigationActivity investigationActivity,
@@ -51,14 +47,12 @@ public class GameFacade
         _messageSystem = messageSystem;
         _conversationFacade = conversationFacade;
         _locationFacade = locationFacade;
-        _obligationFacade = obligationFacade;
         _resourceFacade = resourceFacade;
         _timeFacade = timeFacade;
         _travelFacade = travelFacade;
         _tokenFacade = tokenFacade;
         _narrativeFacade = narrativeFacade;
         _exchangeFacade = exchangeFacade;
-        _obstacleFacade = obstacleFacade;
         _mentalFacade = mentalFacade;
         _physicalFacade = physicalFacade;
         _investigationActivity = investigationActivity;
@@ -113,7 +107,7 @@ public class GameFacade
         }
 
         // Get the first available request (strangers have single request)
-        NPCRequest request = stranger.GetAvailableRequests().FirstOrDefault();
+        GoalCard request = stranger.GetAvailableRequests().FirstOrDefault();
         if (request == null || string.IsNullOrEmpty(request.ChallengeTypeId))
         {
             return null;
@@ -148,7 +142,7 @@ public class GameFacade
         // Find stranger with this request
         foreach (NPC stranger in _gameWorld.GetAllStrangers())
         {
-            NPCRequest request = stranger.GetRequestById(requestId);
+            GoalCard request = stranger.GetRequestById(requestId);
             if (request != null && !string.IsNullOrEmpty(request.ChallengeTypeId))
             {
                 // THREE PARALLEL SYSTEMS: Check if Social engagement type exists
@@ -400,33 +394,6 @@ public class GameFacade
         return travelResult.Success;
     }
 
-    // ========== OBLIGATION OPERATIONS ==========
-
-    public LetterQueueViewModel GetLetterQueue()
-    {
-        return _obligationFacade.GetLetterQueue();
-    }
-
-    public QueueDisplacementPreview GetDisplacementPreview(string obligationId, int targetPosition)
-    {
-        return _obligationFacade.GetDisplacementPreview(obligationId, targetPosition);
-    }
-
-    public async Task<bool> DisplaceObligation(string obligationId, int targetPosition)
-    {
-        return _obligationFacade.DisplaceObligation(obligationId, targetPosition);
-    }
-
-    public int GetLetterQueueCount()
-    {
-        return _obligationFacade.GetLetterQueueCount();
-    }
-
-    public ObligationFacade GetObligationQueueManager()
-    {
-        return _obligationFacade;
-    }
-
     // ========== RESOURCE OPERATIONS ==========
 
     public InventoryViewModel GetInventory()
@@ -452,22 +419,6 @@ public class GameFacade
         }
         return result;
     }
-
-    // ========== TOKEN OPERATIONS ==========
-
-    public NPCTokenBalance GetTokensWithNPC(string npcId)
-    {
-        Dictionary<ConnectionType, int> tokens = _tokenFacade.GetTokensWithNPC(npcId);
-        return new NPCTokenBalance
-        {
-            Balances = tokens.Select(kvp => new TokenBalance
-            {
-                TokenType = kvp.Key,
-                Amount = kvp.Value
-            }).ToList()
-        };
-    }
-
 
     // ========== CONVERSATION OPERATIONS ==========
 
@@ -546,7 +497,10 @@ public class GameFacade
 
     // ========== MENTAL TACTICAL SYSTEM OPERATIONS ==========
 
-    public MentalFacade GetMentalFacade() => _mentalFacade;
+    public MentalFacade GetMentalFacade()
+    {
+        return _mentalFacade;
+    }
 
     /// <summary>
     /// Start a new Mental tactical session with specified engagement type
@@ -570,7 +524,7 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
 
-        return _mentalFacade.StartSession(challengeType, deck, startingHand, currentLocationId);
+        return _mentalFacade.StartSession(challengeType, deck, startingHand, currentLocationId, goalId, investigationId);
     }
 
     /// <summary>
@@ -620,7 +574,10 @@ public class GameFacade
 
     // ========== PHYSICAL TACTICAL SYSTEM OPERATIONS ==========
 
-    public PhysicalFacade GetPhysicalFacade() => _physicalFacade;
+    public PhysicalFacade GetPhysicalFacade()
+    {
+        return _physicalFacade;
+    }
 
     /// <summary>
     /// Start a new Physical tactical session with specified engagement type
@@ -644,7 +601,7 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
 
-        return _physicalFacade.StartSession(challengeType, deck, startingHand, currentLocationId);
+        return _physicalFacade.StartSession(challengeType, deck, startingHand, currentLocationId, goalId, investigationId);
     }
 
     /// <summary>
@@ -742,7 +699,6 @@ public class GameFacade
             {
                 NpcId = npc.ID,
                 Name = npc.Name,
-                Portrait = "",  // NPCs don't have portraits stored
                 TokenCounts = _tokenFacade.GetTokensWithNPC(npc.ID)
             },
             LocationInfo = new LocationInfo
@@ -766,43 +722,6 @@ public class GameFacade
     }
 
     // ========== NARRATIVE OPERATIONS ==========
-
-    public async Task<bool> TakeObservationAsync(string observationId)
-    {
-        Location currentLocation = _locationFacade.GetCurrentLocation();
-        LocationSpot currentSpot = _locationFacade.GetCurrentLocationSpot();
-
-        // Check if this is an old-style observation from JSON
-        Observation? observation = _narrativeFacade.GetLocationObservations(
-            currentLocation?.Id,
-            currentSpot?.SpotID)
-            .FirstOrDefault(o => o.Id == observationId);
-
-        if (observation != null)
-        {
-            return _narrativeFacade.TakeObservation(observationId);
-        }
-
-        // Check if this is a new-style observation reward
-        List<ObservationReward> availableRewards = _narrativeFacade.GetAvailableObservationRewards(currentLocation?.Id);
-        ObservationReward? reward = availableRewards.FirstOrDefault(r => r.ObservationCard.Id == observationId);
-
-        if (reward != null)
-        {
-            // New system: costs 0 attention, goes to NPC observation deck
-            return _narrativeFacade.CompleteObservationReward(currentLocation?.Id, reward);
-        }
-
-        return false;
-    }
-
-    public List<ObservationReward> GetAvailableObservationRewards()
-    {
-        Location currentLocation = _locationFacade.GetCurrentLocation();
-        if (currentLocation == null) return new List<ObservationReward>();
-
-        return _narrativeFacade.GetAvailableObservationRewards(currentLocation.Id);
-    }
 
     public List<TakenObservation> GetTakenObservations()
     {
@@ -884,7 +803,6 @@ public class GameFacade
             MoveIntent move => MoveToSpot(move.TargetSpotId),
             WaitIntent => ProcessWaitIntent(),
             RestIntent rest => ProcessRestIntent(rest.Segments),
-            DeliverLetterIntent deliver => _obligationFacade.DeliverObligation(deliver.LetterId).Success,
             _ => ProcessGenericIntent(intent)
         };
     }
@@ -940,33 +858,12 @@ public class GameFacade
         return _travelFacade.GetAvailableRoutesFromCurrentLocation();
     }
 
-    public DailyActivityResult GetDailyActivities()
-    {
-        return new DailyActivityResult();
-    }
 
     public List<RouteOption> GetRoutesToDestination(string destinationId)
     {
         return new List<RouteOption>();
     }
 
-    public void AddLetterWithObligationEffects(object letterData)
-    {
-        if (letterData is DeliveryObligation obligation)
-        {
-            int queuePosition = _obligationFacade.AddLetterWithObligationEffects(obligation);
-
-            // Obligation acceptance may unlock investigation discovery (ObligationTriggered trigger type)
-            if (queuePosition > 0)
-            {
-                EvaluateInvestigationDiscovery();
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Warning: AddLetterWithObligationEffects called with invalid data type: {letterData?.GetType()?.Name ?? "null"}");
-        }
-    }
 
     /// <summary>
     /// Get the LocationActionManager for managing location-specific actions.
@@ -983,12 +880,6 @@ public class GameFacade
         if (result.CrossedTimeBlock)
         {
             _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);
-            _obligationFacade.ProcessSegmentDeadlines(result.SegmentsAdvanced);
-            _narrativeFacade.RefreshObservationsForNewTimeBlock();
-        }
-        else if (result.SegmentsAdvanced > 0)
-        {
-            _obligationFacade.ProcessSegmentDeadlines(result.SegmentsAdvanced);
         }
     }
 

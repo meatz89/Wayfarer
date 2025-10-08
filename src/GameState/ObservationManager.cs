@@ -93,12 +93,6 @@ public class ObservationManager
                     NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
                     if (targetNpc != null)
                     {
-                        // Initialize NPC's observation deck if needed
-                        if (targetNpc.ObservationDeck == null)
-                        {
-                            targetNpc.ObservationDeck = new CardDeck();
-                        }
-
                         Console.WriteLine($"[ObservationManager] Added observation {observation.Id} to {targetNpc.Name}'s deck");
                         addedToAnyNPC = true;
                     }
@@ -139,61 +133,6 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Get all observation cards for a specific NPC
-    /// Each NPC maintains their own observation deck
-    /// </summary>
-    public List<ObservationCard> GetObservationCards(string npcId)
-    {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc?.ObservationDeck == null)
-            return new List<ObservationCard>();
-
-        // Convert NPC's observation cards to ObservationCard type
-        List<ObservationCard> observationCards = new List<ObservationCard>();
-        foreach (SocialCard card in npc.ObservationDeck.GetAllCards())
-        {
-        }
-        return observationCards;
-    }
-
-    /// <summary>
-    /// Get observation cards as conversation cards for a specific NPC
-    /// Used when starting a conversation to include relevant observations
-    /// </summary>
-    public List<SocialCard> GetObservationCardsAsConversationCards(string npcId)
-    {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc?.ObservationDeck == null)
-            return new List<SocialCard>();
-
-        // Return all observation cards from NPC's deck
-        return npc.ObservationDeck.GetAllCards()
-            .Where(c => c.CardType == CardType.Observation)
-            .ToList();
-    }
-
-    /// <summary>
-    /// Remove an observation card from a specific NPC's deck after it's been played
-    /// Observations are consumed when used in conversation
-    /// </summary>
-    public void RemoveObservationCard(string npcId, string observationCardId)
-    {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc?.ObservationDeck != null)
-        {
-            // Find and remove the card from NPC's observation deck
-            SocialCard cardToRemove = npc.ObservationDeck.GetAllCards()
-                .FirstOrDefault(c => c.Id == observationCardId);
-
-            if (cardToRemove != null)
-            {
-                npc.ObservationDeck.RemoveCard(cardToRemove);
-                Console.WriteLine($"[ObservationManager] Removed observation {observationCardId} from {npc.Name}'s deck");
-            }
-        }
-    }
-
-    /// <summary>
     /// Get all taken observations for the current time block
     /// Tracks which location observations the player has taken this time block
     /// </summary>
@@ -230,17 +169,6 @@ public class ObservationManager
     }
 
     /// <summary>
-    /// Clear all observations for a new day
-    /// </summary>
-    public void StartNewDay()
-    {
-        Console.WriteLine("[ObservationManager] Starting new day - clearing all observations");
-        _takenObservationsByTimeBlock.Clear();
-        // Note: Player's observation deck handles its own expiration, not cleared on new day
-    }
-
-
-    /// <summary>
     /// Generate a conversation card from an observation using JSON-based card templates
     /// </summary>
     private SocialCard GenerateConversationCard(Observation observation, TokenMechanicsManager tokenManager)
@@ -274,7 +202,6 @@ public class ObservationManager
             DialogueText = baseCard.DialogueText,
             VerbPhrase = baseCard.VerbPhrase,
             PersonalityTypes = baseCard.PersonalityTypes,
-            LevelBonuses = baseCard.LevelBonuses,
             MinimumTokensRequired = baseCard.MinimumTokensRequired,
             MomentumThreshold = baseCard.MomentumThreshold,
             QueuePosition = baseCard.QueuePosition,
@@ -283,7 +210,6 @@ public class ObservationManager
             RequiredTokenType = baseCard.RequiredTokenType,
             // Override for observation cards
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
-            CardType = CardType.Observation
         };
 
         Console.WriteLine($"[ObservationManager] Cloned observation card {observationCard.Id} from template {observation.CardTemplate} for observation {observation.Id}");
@@ -374,13 +300,8 @@ public class ObservationManager
         }
 
         // Create observation card and add to NPC's observation deck
-        SocialCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
-        if (targetNpc.ObservationDeck == null)
-        {
-            targetNpc.ObservationDeck = new CardDeck();
-        }
-
-        targetNpc.ObservationDeck.AddCard(observationCard);
+        ObservationCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
+        targetNpc.ObservationDeck.Add(observationCard);
 
         // Update highest observation completed (assume sequential 1, 2, 3...)
         int observationNumber = reward.FamiliarityRequired; // Use familiarity required as observation number for now
@@ -396,18 +317,17 @@ public class ObservationManager
     /// <summary>
     /// Create a conversation card from an observation card reward
     /// </summary>
-    public SocialCard CreateObservationCardForNPC(ObservationCardReward cardReward)
+    public ObservationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
     {
         // Parse the effect string to determine categorical effect type
         SuccessEffectType successType = ParseObservationEffectType(cardReward.Effect);
 
-        return new SocialCard
+        return new ObservationCard
         {
             Id = cardReward.Id,
-            Title = cardReward.Name,
+            Title = cardReward.Title,
             DialogueText = cardReward.Description,
             InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
-            CardType = CardType.Observation,
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN
             SuccessType = successType
         };

@@ -49,7 +49,7 @@ public abstract class BaseValidator : IContentValidator
     /// Validates a numeric field with optional min/max constraints.
     /// </summary>
     protected void ValidateNumericField(JsonElement item, string fieldName, string itemId,
-        string fileName, List<ValidationError> errors, int? min = null, int? max = null)
+        string fileName, List<ValidationError> errors, int? min, int? max)
     {
         if (TryGetPropertyCaseInsensitive(item, fieldName, out JsonElement field))
         {

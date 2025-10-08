@@ -30,7 +30,7 @@ public class DebugLogger
         }
     }
 
-    public void LogStateTransition(string fromState, string toState, string context = null)
+    public void LogStateTransition(string fromState, string toState, string context)
     {
         if (!_enabled) return;
 
@@ -41,7 +41,7 @@ public class DebugLogger
         AddLog(DebugLogCategory.StateTransition, message);
     }
 
-    public void LogNavigation(string fromScreen, string toScreen, string reason = null)
+    public void LogNavigation(string fromScreen, string toScreen, string reason)
     {
         if (!_enabled) return;
 
@@ -52,7 +52,7 @@ public class DebugLogger
         AddLog(DebugLogCategory.Navigation, message);
     }
 
-    public void LogNPCActivity(string activity, string npcId = null, string details = null)
+    public void LogNPCActivity(string activity, string npcId, string details)
     {
         if (!_enabled) return;
 
@@ -65,7 +65,7 @@ public class DebugLogger
         AddLog(DebugLogCategory.NPC, message);
     }
 
-    public void LogConversation(string stage, string details = null)
+    public void LogConversation(string stage, string details)
     {
         if (!_enabled) return;
 
@@ -84,7 +84,7 @@ public class DebugLogger
         AddLog(DebugLogCategory.Time, message);
     }
 
-    public void LogAction(string action, string target = null, string result = null)
+    public void LogAction(string action, string target, string result)
     {
         if (!_enabled) return;
 
@@ -105,7 +105,7 @@ public class DebugLogger
         AddLog(DebugLogCategory.Polling, message, verbose: true);
     }
 
-    public void LogError(string component, string error, Exception ex = null)
+    public void LogError(string component, string error, Exception ex)
     {
         if (!_enabled) return;
 
@@ -134,12 +134,11 @@ public class DebugLogger
     /// <summary>
     /// Get recent logs, optionally filtered by category
     /// </summary>
-    public List<DebugLogEntry> GetRecentLogs(int count = 50, DebugLogCategory? category = null)
+    public List<DebugLogEntry> GetRecentLogs(int count, DebugLogCategory category)
     {
         IEnumerable<DebugLogEntry> query = _logs.AsEnumerable();
 
-        if (category.HasValue)
-            query = query.Where(l => l.Category == category.Value);
+        query = query.Where(l => l.Category == category);
 
         return query.OrderByDescending(l => l.Timestamp)
                    .Take(count)
@@ -149,7 +148,7 @@ public class DebugLogger
     /// <summary>
     /// Get logs since a specific time
     /// </summary>
-    public List<DebugLogEntry> GetLogsSince(DateTime since, DebugLogCategory? category = null)
+    public List<DebugLogEntry> GetLogsSince(DateTime since, DebugLogCategory? category)
     {
         IEnumerable<DebugLogEntry> query = _logs.Where(l => l.Timestamp >= since);
 
@@ -223,7 +222,7 @@ public class DebugLogger
 
         // Recent logs
         report.Add("RECENT ACTIVITY:");
-        List<DebugLogEntry> recentLogs = GetRecentLogs(20);
+        List<DebugLogEntry> recentLogs = GetRecentLogs(20, DebugLogCategory.Debug);
         foreach (DebugLogEntry? log in recentLogs.OrderBy(l => l.Timestamp))
         {
             report.Add($"  [{log.Timestamp:HH:mm:ss}] {log.Message}");

@@ -1,34 +1,24 @@
-
-public enum WeatherCondition
-{
-    Clear,
-    Rain,
-    Snow,
-    Fog,
-    Storm
-}
-
 public class RouteAccessResult
 {
     public bool IsAllowed { get; private set; }
     public string BlockingReason { get; private set; }
     public List<string> Warnings { get; private set; }
 
-    private RouteAccessResult(bool isAllowed, string blockingReason = "", List<string> warnings = null)
+    private RouteAccessResult(bool isAllowed, string blockingReason, List<string> warnings)
     {
         IsAllowed = isAllowed;
         BlockingReason = blockingReason ?? "";
         Warnings = warnings ?? new List<string>();
     }
 
-    public static RouteAccessResult Allowed(List<string> warnings = null)
+    public static RouteAccessResult Allowed()
     {
-        return new RouteAccessResult(true, "", warnings);
+        return new RouteAccessResult(true, "", new List<string>());
     }
 
     public static RouteAccessResult Blocked(string reason)
     {
-        return new RouteAccessResult(false, reason);
+        return new RouteAccessResult(false, reason, new List<string>());
     }
 
     public static RouteAccessResult AllowedWithWarning(string warning)
@@ -192,7 +182,7 @@ public class RouteOption
             }
         }
 
-        return warnings.Any() ? RouteAccessResult.Allowed(warnings) : RouteAccessResult.Allowed();
+        return RouteAccessResult.Allowed();
     }
 
     /// <summary>

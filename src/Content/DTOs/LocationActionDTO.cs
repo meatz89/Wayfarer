@@ -57,11 +57,6 @@ public class LocationActionDTO
     public List<string> Availability { get; set; } = new List<string>();
 
     /// <summary>
-    /// Icon to display for this action (optional)
-    /// </summary>
-    public string Icon { get; set; } = "💼";
-
-    /// <summary>
     /// Priority for sorting when multiple actions match (lower = higher priority)
     /// </summary>
     public int Priority { get; set; } = 100;
@@ -69,7 +64,7 @@ public class LocationActionDTO
     /// <summary>
     /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
     /// </summary>
-    public string ActionType { get; set; } = "";
+    public string ActionType { get; set; }
 
     /// <summary>
     /// Investigation ID if this action launches an investigation (V2)

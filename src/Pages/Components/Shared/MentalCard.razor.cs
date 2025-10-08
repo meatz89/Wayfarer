@@ -86,7 +86,7 @@ namespace Wayfarer.Pages.Components.Shared
         {
             if (!HasCardCost()) return "";
 
-            var costs = new System.Collections.Generic.List<string>();
+            List<string> costs = new System.Collections.Generic.List<string>();
             if (Card.MentalCardTemplate.CoinCost > 0) costs.Add($"Coins -{Card.MentalCardTemplate.CoinCost}");
 
             return string.Join(", ", costs);

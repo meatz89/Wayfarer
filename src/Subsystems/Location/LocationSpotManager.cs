@@ -24,7 +24,7 @@ public class LocationSpotManager
     {
         if (location == null || string.IsNullOrEmpty(spotIdentifier)) return null;
 
-        LocationSpot targetSpot = null;
+        LocationSpot targetSpot;
 
         // Get spots from GameWorld's primary dictionary for this location
         List<LocationSpot> spotsInLocation = GetSpotsForLocation(location.Id);

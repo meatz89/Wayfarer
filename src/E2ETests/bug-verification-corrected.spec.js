@@ -155,7 +155,7 @@ test.describe('Bug Verification - Focus Constraints and Doubt Prevention', () =>
 
     // Look for a card with PreventDoubt effect
     const cards = await page.locator('.card:not(.disabled)').all();
-    let preventDoubtCard = null;
+    let preventDoubtCard;
 
     for (const card of cards) {
       const effectElement = await card.locator('.card-effect').first();

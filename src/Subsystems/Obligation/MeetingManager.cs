@@ -35,8 +35,6 @@ public class MeetingManager
     {
         Player player = _gameWorld.GetPlayer();
         return player.MeetingObligations
-            .Where(m => m.DeadlineInSegments > 0)
-            .OrderBy(m => m.DeadlineInSegments)
             .ToList();
     }
 
@@ -102,11 +100,6 @@ public class MeetingManager
             _ => SystemMessageTypes.Info
         };
 
-        _messageSystem.AddSystemMessage(
-            $"📅 {meeting.RequesterName} urgently requests to meet you! ({meeting.DeadlineInSegments / 2}h remaining)",
-            messageType
-        );
-
         return result;
     }
 
@@ -148,7 +141,7 @@ public class MeetingManager
         result.AffectedMeeting = meeting;
 
         _messageSystem.AddSystemMessage(
-            $"✅ Met with {meeting.RequesterName}",
+            $"Met with {meeting.RequesterName}",
             SystemMessageTypes.Success
         );
 
@@ -183,7 +176,7 @@ public class MeetingManager
         {
             _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, 1, meeting.RequesterId);
             _messageSystem.AddSystemMessage(
-                $"💔 Lost 1 Trust token with {meeting.RequesterName} for canceling meeting",
+                $"Lost 1 Trust token with {meeting.RequesterName} for canceling meeting",
                 SystemMessageTypes.Warning
             );
         }
@@ -208,15 +201,6 @@ public class MeetingManager
         Player player = _gameWorld.GetPlayer();
         List<MeetingObligation> expiredMeetings = new List<MeetingObligation>();
 
-        // Find expired meetings
-        foreach (MeetingObligation? meeting in player.MeetingObligations.ToList())
-        {
-            if (meeting.DeadlineInSegments <= 0)
-            {
-                expiredMeetings.Add(meeting);
-            }
-        }
-
         // Process each expired meeting
         foreach (MeetingObligation expiredMeeting in expiredMeetings)
         {
@@ -225,17 +209,6 @@ public class MeetingManager
         }
 
         return results;
-    }
-
-    /// <summary>
-    /// Get all meetings that are expiring within the specified threshold.
-    /// </summary>
-    public List<MeetingObligation> GetExpiringMeetings(int segmentsThreshold)
-    {
-        return GetActiveMeetingObligations()
-            .Where(m => m.DeadlineInSegments <= segmentsThreshold && m.DeadlineInSegments > 0)
-            .OrderBy(m => m.DeadlineInSegments)
-            .ToList();
     }
 
     /// <summary>
@@ -260,55 +233,6 @@ public class MeetingManager
         return IsPlayerAtNPCLocation(npcId);
     }
 
-    /// <summary>
-    /// Get detailed meeting statistics.
-    /// </summary>
-    public MeetingStatistics GetMeetingStatistics()
-    {
-        List<MeetingObligation> activeMeetings = GetActiveMeetingObligations();
-
-        return new MeetingStatistics
-        {
-            TotalActiveMeetings = activeMeetings.Count,
-            CriticalMeetings = activeMeetings.Count(m => m.IsCritical),
-            UrgentMeetings = activeMeetings.Count(m => m.IsUrgent && !m.IsCritical),
-            NextMeetingDeadlineSegments = activeMeetings.Any() ?
-                activeMeetings.Min(m => m.DeadlineInSegments) : -1,
-            MostUrgentMeeting = activeMeetings.OrderBy(m => m.DeadlineInSegments).FirstOrDefault(),
-            MeetingsByStakes = GroupMeetingsByStakes(activeMeetings),
-            AverageDeadlineSegments = activeMeetings.Any() ?
-                activeMeetings.Average(m => m.DeadlineInSegments) : 0
-        };
-    }
-
-    /// <summary>
-    /// Schedule a meeting with specific timing and requirements.
-    /// </summary>
-    public MeetingResult ScheduleMeeting(string npcId, string reason, int deadlineInSegments, StakeType stakes = StakeType.REPUTATION)
-    {
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null)
-        {
-            return new MeetingResult
-            {
-                Operation = MeetingOperation.Add,
-                ErrorMessage = "NPC not found"
-            };
-        }
-
-        MeetingObligation meeting = new MeetingObligation
-        {
-            Id = Guid.NewGuid().ToString(),
-            RequesterId = npcId,
-            RequesterName = npc.Name,
-            DeadlineInSegments = deadlineInSegments,
-            Stakes = stakes,
-            Reason = reason
-        };
-
-        return AddMeetingObligation(meeting);
-    }
-
     // Private helper methods
 
     private MeetingResult ValidateMeetingRequest(MeetingObligation meeting)
@@ -329,14 +253,6 @@ public class MeetingManager
             result.ErrorMessage = "Requester NPC not found";
             return result;
         }
-
-        if (meeting.DeadlineInSegments <= 0)
-        {
-            result.Success = false;
-            result.ErrorMessage = "Meeting deadline must be positive";
-            return result;
-        }
-
         return result;
     }
 
@@ -344,13 +260,6 @@ public class MeetingManager
     {
         MeetingResult result = new MeetingResult { Success = true };
 
-        // Check if meeting has expired
-        if (meeting.DeadlineInSegments <= 0)
-        {
-            result.Success = false;
-            result.ErrorMessage = "Cannot complete expired meeting";
-            return result;
-        }
 
         // Check if player is at NPC's location
         if (!IsPlayerAtNPCLocation(meeting.RequesterId))
@@ -382,7 +291,7 @@ public class MeetingManager
         result.Success = true;
 
         _messageSystem.AddSystemMessage(
-            $"⏰ Meeting with {expiredMeeting.RequesterName} has expired!",
+            $"Meeting with {expiredMeeting.RequesterName} has expired!",
             SystemMessageTypes.Danger
         );
 
@@ -394,20 +303,11 @@ public class MeetingManager
         int tokensAwarded = 1; // Base reward
         ConnectionType tokenType = ConnectionType.Trust; // Meetings typically build trust
 
-        // Bonus for early completion
-        if (meeting.DeadlineInSegments > 180) // More than 3 hours remaining
-        {
-            tokensAwarded += 1;
-            _messageSystem.AddSystemMessage(
-                "⭐ Early meeting bonus!",
-                SystemMessageTypes.Success
-            );
-        }
 
         _tokenManager.AddTokensToNPC(tokenType, tokensAwarded, meeting.RequesterId);
 
         _messageSystem.AddSystemMessage(
-            $"🎖️ Gained {tokensAwarded} {tokenType} tokens with {meeting.RequesterName}",
+            $"Gained {tokensAwarded} {tokenType} tokens with {meeting.RequesterName}",
             SystemMessageTypes.Success
         );
     }
@@ -420,15 +320,13 @@ public class MeetingManager
         _tokenManager.RemoveTokensFromNPC(tokenType, tokenPenalty, expiredMeeting.RequesterId);
 
         _messageSystem.AddSystemMessage(
-            $"💔 Lost {tokenPenalty} {tokenType} tokens with {expiredMeeting.RequesterName} for missing meeting!",
+            $"Lost {tokenPenalty} {tokenType} tokens with {expiredMeeting.RequesterName} for missing meeting!",
             SystemMessageTypes.Danger
         );
     }
 
     private MeetingUrgency GetMeetingUrgencyLevel(MeetingObligation meeting)
     {
-        if (meeting.IsCritical) return MeetingUrgency.Critical;
-        if (meeting.IsUrgent) return MeetingUrgency.Urgent;
         return MeetingUrgency.Normal;
     }
 
@@ -444,13 +342,6 @@ public class MeetingManager
             currentTime);
 
         return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);
-    }
-
-    private Dictionary<StakeType, int> GroupMeetingsByStakes(List<MeetingObligation> meetings)
-    {
-        return meetings
-            .GroupBy(m => m.Stakes)
-            .ToDictionary(g => g.Key, g => g.Count());
     }
 
     private TimeBlocks GetCurrentTimeBlock()
@@ -469,18 +360,4 @@ public enum MeetingUrgency
     Normal,   // > 6 hours
     Urgent,   // 3-6 hours  
     Critical  // < 3 hours
-}
-
-/// <summary>
-/// Statistics about meeting obligations.
-/// </summary>
-public class MeetingStatistics
-{
-    public int TotalActiveMeetings { get; set; }
-    public int CriticalMeetings { get; set; }
-    public int UrgentMeetings { get; set; }
-    public int NextMeetingDeadlineSegments { get; set; }
-    public MeetingObligation MostUrgentMeeting { get; set; }
-    public Dictionary<StakeType, int> MeetingsByStakes { get; set; } = new Dictionary<StakeType, int>();
-    public double AverageDeadlineSegments { get; set; }
 }

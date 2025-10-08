@@ -6,7 +6,7 @@
     <div class="card-content">
         <div class="card-top-row">
             <div class="stat-badge @GetCardStatClass()">
-                @if (Card.ConversationCardTemplate.CardType == CardType.Request)
+                @if (Card.SocialCardTemplate.IsGoalCard == CardType.Request)
                 {
                     <span>REQUEST</span>
                 }
@@ -21,10 +21,10 @@
         </div>
 
         @* Card Traits Display *@
-        @if (Card.ConversationCardTemplate.Traits != null && Card.ConversationCardTemplate.Traits.Any())
+        @if (Card.SocialCardTemplate.Traits != null && Card.SocialCardTemplate.Traits.Any())
         {
             <div class="card-traits">
-                @foreach (var trait in Card.ConversationCardTemplate.Traits)
+                @foreach (var trait in Card.SocialCardTemplate.Traits)
                 {
                     <div class="card-trait @GetTraitClass(trait)" title="@GetTraitTooltip(trait)">
                         @GetTraitDisplayName(trait)

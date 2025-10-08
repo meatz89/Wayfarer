@@ -37,9 +37,6 @@ public class NPC
     public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
 
-    // DeliveryObligation Queue Properties
-    public List<ConnectionType> LetterTokenTypes { get; set; } = new List<ConnectionType>();
-
     // Work Properties
     public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
@@ -59,10 +56,7 @@ public class NPC
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
 
-    // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking Requests for available request cards
-    // Burden history detected by counting burden cards in BurdenDeck
-    // Crisis detected by checking CurrentState == ConnectionState.DISCONNECTED
+    // Boolean flags violate deck-based architecture
 
     // Relationship Flow (Single value 0-24 encoding both state and battery)
     // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
@@ -74,26 +68,21 @@ public class NPC
 
 
     // NPC DECK ARCHITECTURE
+    public List<ObservationCard> ObservationDeck { get; internal set; }
+    public List<BurdenCard> BurdenDeck { get; internal set; }
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
-    public CardDeck ObservationDeck { get; set; } = new();  // Cards created from location observations
-    public CardDeck BurdenDeck { get; set; } = new();  // Burden cards from past conflicts and resolution attempts
-
-    // Signature Deck System - Knowledge cards earned through successful engagements
-    public SignatureDeck SignatureDeck { get; set; } 
-
-    // Requests system - Multiple requests, each with multiple cards at different rapport thresholds
-    public List<NPCRequest> Requests { get; set; } = new List<NPCRequest>();
+    public List<GoalCard> Requests { get; set; } = new List<GoalCard>();
 
     // Initial token values to be applied during game initialization
     public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
 
     // Stranger-specific properties (for unnamed one-time NPCs)
     public bool IsStranger { get; set; } = false;
-    public TimeBlocks? AvailableTimeBlock { get; set; } = null; // When stranger appears
+    public TimeBlocks? AvailableTimeBlock { get; set; } // When stranger appears
     public bool HasBeenEncountered { get; set; } = false; // One-time flag
 
     // Initialize exchange deck (for Mercantile NPCs only)
-    public void InitializeExchangeDeck(List<ExchangeCard> exchangeCards = null)
+    public void InitializeExchangeDeck(List<ExchangeCard> exchangeCards)
     {
         if (ExchangeDeck == null || !ExchangeDeck.Any())
         {
@@ -109,42 +98,6 @@ public class NPC
                 }
             }
         }
-    }
-
-    // Initialize burden deck with burden cards
-    public void InitializeBurdenDeck(List<SocialCard> burdenCards = null)
-    {
-        // Only initialize if not already done
-        if (BurdenDeck == null)
-        {
-            BurdenDeck = new CardDeck();
-        }
-
-        if (burdenCards != null)
-        {
-            foreach (SocialCard card in burdenCards)
-            {
-                // Burden cards should already have CardType.BurdenGoal set
-                // No need to modify properties since we use CardType now
-                BurdenDeck.AddCard(card);
-            }
-        }
-    }
-
-
-    // Check if NPC has burden history (cards in burden deck)
-    public bool HasBurdenHistory()
-    {
-        return CountBurdenCards() > 0;
-    }
-
-    // Count burden cards in burden deck
-    public int CountBurdenCards()
-    {
-        if (BurdenDeck == null) return 0;
-
-        // All cards in the burden deck are burden cards
-        return BurdenDeck.GetAllCards().Count();
     }
 
     // Check if NPC has exchange cards available
@@ -194,10 +147,6 @@ public class NPC
         return ProvidedServices.Contains(requestedService);
     }
 
-
-
-
-
     // Method for adding known routes (used by HELP verb)
     public void AddKnownRoute(RouteOption route)
     {
@@ -246,12 +195,12 @@ public class NPC
     /// <summary>
     /// Get available one-time requests
     /// </summary>
-    public List<NPCRequest> GetAvailableRequests()
+    public List<GoalCard> GetAvailableRequests()
     {
-        List<NPCRequest> available = new List<NPCRequest>();
+        List<GoalCard> available = new List<GoalCard>();
         if (Requests != null)
         {
-            foreach (NPCRequest request in Requests)
+            foreach (GoalCard request in Requests)
             {
                 if (request.IsAvailable())
                 {
@@ -273,11 +222,11 @@ public class NPC
     /// <summary>
     /// Get a specific request by ID
     /// </summary>
-    public NPCRequest GetRequestById(string requestId)
+    public GoalCard GetRequestById(string requestId)
     {
         if (Requests != null)
         {
-            foreach (NPCRequest request in Requests)
+            foreach (GoalCard request in Requests)
             {
                 if (request.Id == requestId)
                 {
@@ -293,7 +242,7 @@ public class NPC
     /// </summary>
     public void CompleteRequest(string requestId)
     {
-        NPCRequest request = GetRequestById(requestId);
+        GoalCard request = GetRequestById(requestId);
         if (request != null)
         {
             request.Complete();
@@ -332,6 +281,4 @@ public class NPC
             HasBeenEncountered = false;
         }
     }
-
-
 }

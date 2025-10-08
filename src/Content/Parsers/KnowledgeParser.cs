@@ -16,7 +16,7 @@ public static class KnowledgeParser
             Id = dto.Id,
             DisplayName = dto.DisplayName,
             Description = dto.Description,
-            InvestigationContext = dto.InvestigationContext ?? string.Empty,
+            InvestigationContext = dto.InvestigationContext,
             UnlocksInvestigationIntros = dto.UnlocksInvestigationIntros ?? new List<string>(),
             UnlocksInvestigationGoals = dto.UnlocksInvestigationGoals ?? new List<string>()
         };

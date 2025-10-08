@@ -97,11 +97,6 @@ public class RouteValidator : BaseValidator
             }
         }
 
-        // Validate numeric fields
-        ValidateNumericField(route, "travelTimeSegments", routeId, fileName, errors, min: 1);
-        ValidateNumericField(route, "baseCoinCost", routeId, fileName, errors, min: 0);
-        ValidateNumericField(route, "baseStaminaCost", routeId, fileName, errors, min: 0);
-
         // Validate departure time (single value in DTO)
         if (TryGetPropertyCaseInsensitive(route, "departureTime", out JsonElement departureTime) &&
             departureTime.ValueKind == JsonValueKind.String)

@@ -48,7 +48,6 @@ namespace Wayfarer.Pages.Components
         protected List<WorkAction> AvailableWorkActions { get; set; } = new();
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
-        protected IEnumerable<DeliveryObligation> ActiveObligations { get; set; } = new List<DeliveryObligation>();
         protected Location CurrentLocation { get; set; }
         protected List<LocationGoal> AvailableSocialGoals { get; set; } = new();
         protected List<LocationGoal> AvailableMentalGoals { get; set; } = new();
@@ -86,7 +85,8 @@ namespace Wayfarer.Pages.Components
                 NPCsAtSpot = npcsAtSpot ?? new List<NPC>();
                 foreach (NPC npc in NPCsAtSpot)
                 {
-                    List<ConversationOptionViewModel> options = new List<ConversationOptionViewModel>();
+                    List<ConversationOptionViewModel> conversationChallenges = new List<ConversationOptionViewModel>();
+                    List<ExchangeOptionViewModel> exchangeOptions = new List<ExchangeOptionViewModel>();
 
                     // Get ACTUAL available conversation options with specific goal cards
                     List<SocialChallengeOption> availableOptions = GameFacade.GetAvailableConversationOptions(npc.ID);
@@ -94,8 +94,7 @@ namespace Wayfarer.Pages.Components
                     // Add each available option with its specific goal card
                     foreach (SocialChallengeOption conversationOption in availableOptions)
                     {
-
-                        ConversationOptionViewModel option = new ConversationOptionViewModel
+                        ConversationOptionViewModel conversationChallenge = new ConversationOptionViewModel
                         {
                             RequestId = conversationOption.RequestId,
                             ConversationTypeId = conversationOption.ChallengeTypeId,
@@ -104,25 +103,24 @@ namespace Wayfarer.Pages.Components
                             Description = conversationOption.Description,
                             IsAvailable = true,
                             EngagementType = "Conversation",
-                            InvestigationLabel = null // Investigation system not yet integrated
+                            InvestigationLabel = "" // Investigation system not yet integrated
                         };
-                        options.Add(option);
+                        conversationChallenges.Add(conversationChallenge);
                     }
 
                     // Check if NPC has exchange cards (separate from conversations!)
                     if (npc.HasExchangeCards())
                     {
                         // Add exchange as a special option (not a conversation type)
-                        ConversationOptionViewModel exchangeOption = new ConversationOptionViewModel
+                        ExchangeOptionViewModel exchangeOption = new ExchangeOptionViewModel
                         {
-                            ConversationTypeId = null, // No conversation type - this is an exchange!
+                            ConversationTypeId = "", // No conversation type - this is an exchange!
                             Label = "Quick Exchange",
                             IsAvailable = true,
                             IsExchange = true // Mark this as an exchange
                         };
-                        options.Add(exchangeOption);
+                        exchangeOptions.Add(exchangeOption);
                     }
-
 
                     // Get actual connection state using the same logic as conversations
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
@@ -136,7 +134,7 @@ namespace Wayfarer.Pages.Components
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
                         ConnectionState = stateDisplay,
-                        ConversationOptions = options
+                        ConversationOptions = conversationChallenges
                     });
                 }
             }
@@ -144,29 +142,10 @@ namespace Wayfarer.Pages.Components
             // Get available observations
             AvailableObservations.Clear();
             TakenObservations.Clear();
-            
+
             // Get taken observations
             List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
             Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
-
-            // Get available observation rewards and convert to view models
-            List<ObservationReward> availableRewards = GameFacade.GetAvailableObservationRewards();
-            Console.WriteLine($"[LocationContent] Got {availableRewards?.Count ?? 0} available observation rewards");
-
-            if (availableRewards != null && availableRewards.Any())
-            {
-                AvailableObservations = availableRewards
-                    .Select(reward => new LocationObservationViewModel
-                    {
-                        Id = reward.ObservationCard.Id,
-                        Name = reward.ObservationCard.Name,
-                        Type = reward.ObservationCard.Effect ?? "General"
-                    }).ToList();
-            }
-            else
-            {
-                Console.WriteLine("[LocationContent] No observation rewards available");
-            }
 
             if (takenObservations != null)
             {
@@ -328,29 +307,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task TakeObservation(string observationId)
-        {
-            Console.WriteLine($"[LocationContent] Taking observation: {observationId}");
-
-            // Observations are free (0 attention cost), no need to check attention
-
-            // Call GameFacade to take the observation
-            // This will handle card generation and adding to hand
-            bool success = await GameFacade.TakeObservationAsync(observationId);
-
-            if (success)
-            {
-                Console.WriteLine($"[LocationContent] Successfully took observation {observationId}");
-                // Refresh the UI to show the observation is now taken
-                await RefreshLocationData();
-                await OnActionExecuted.InvokeAsync();
-            }
-            else
-            {
-                Console.WriteLine($"[LocationContent] Failed to take observation {observationId}");
-            }
-        }
-
         protected async Task MoveToSpot(string spotId)
         {
             Console.WriteLine($"[LocationContent] Moving to spot: {spotId}");
@@ -400,47 +356,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task PerformWork()
-        {
-            Console.WriteLine("[LocationContent] Performing work action");
-
-            WorkResult result = await GameFacade.PerformWork();
-
-            if (result.Success)
-            {
-                Console.WriteLine($"[LocationContent] Work successful: {result.Message}");
-                // Refresh UI to show updated coins and attention
-                await RefreshLocationData();
-                await OnActionExecuted.InvokeAsync();
-            }
-            else
-            {
-                // Error is already logged via MessageSystem
-                Console.WriteLine($"[LocationContent] Work failed: {result.Message}");
-            }
-        }
-
-        protected async Task PerformLocationAction(LocationActionViewModel action)
-        {
-            Console.WriteLine($"[LocationContent] Performing location action: {action.ActionType}");
-
-            try
-            {
-                // Location actions are executed through specific handlers based on type
-                Console.WriteLine($"[LocationContent] Executing action: {action.Title}");
-                Console.WriteLine($"[LocationContent] Action cost: {action.Cost}");
-                Console.WriteLine($"[LocationContent] Action detail: {action.Detail}");
-
-                // Refresh the UI
-                await RefreshLocationData();
-                await OnActionExecuted.InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[LocationContent] Error performing location action {action.ActionType}: {ex.Message}");
-            }
-        }
-
         /// <summary>
         /// Investigate the current location to gain familiarity. Costs 1 attention and 1 segment.
         /// Familiarity gain depends on spot properties.
@@ -486,88 +401,6 @@ namespace Wayfarer.Pages.Components
             return currentFamiliarity < CurrentLocation.MaxFamiliarity;
         }
 
-        /// <summary>
-        /// Get display text for current location familiarity.
-        /// </summary>
-        protected string GetFamiliarityDisplay()
-        {
-            if (CurrentLocation == null) return "";
-
-            Player player = GameWorld.GetPlayer();
-            int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
-            return $"{currentFamiliarity}/{CurrentLocation.MaxFamiliarity}";
-        }
-
-        /// <summary>
-        /// Get expected familiarity gain for investigation at current spot.
-        /// </summary>
-        protected int GetExpectedFamiliarityGain()
-        {
-            if (CurrentSpot == null) return 1;
-
-            List<SpotPropertyType> activeProperties = CurrentSpot.GetActiveProperties(CurrentTime);
-
-            // Quiet spots give +2, Busy spots give +1, others give +1
-            if (activeProperties.Contains(SpotPropertyType.Quiet))
-            {
-                return 2;
-            }
-            return 1;
-        }
-
-        /// <summary>
-        /// Perform a work action, consuming entire time block and generating coins.
-        /// </summary>
-        protected async Task PerformWork(WorkAction work)
-        {
-            if (work == null || CurrentLocation == null)
-            {
-                Console.WriteLine("[LocationContent] Cannot perform work - invalid work action or location");
-                return;
-            }
-
-            Console.WriteLine($"[LocationContent] Starting work: {work.Name} at {CurrentLocation.Name}");
-
-            // Call LocationFacade to perform the work
-            LocationFacade locationFacade = GameFacade.GetLocationFacade();
-            bool success = locationFacade.PerformWork(work.Id, CurrentLocation.Id);
-
-            if (success)
-            {
-                Console.WriteLine($"[LocationContent] Successfully completed work: {work.Name}");
-                // Refresh the UI to show updated resources and time
-                await RefreshLocationData();
-                await OnActionExecuted.InvokeAsync();
-            }
-            else
-            {
-                Console.WriteLine($"[LocationContent] Failed to perform work: {work.Name}");
-            }
-        }
-
-        /// <summary>
-        /// Calculate work output preview showing hunger impact.
-        /// </summary>
-        protected (int baseCoins, int hungerPenalty, int actualCoins) GetWorkOutputPreview(WorkAction work)
-        {
-            if (work == null) return (0, 0, 0);
-
-            LocationFacade locationFacade = GameFacade.GetLocationFacade();
-            return locationFacade.CalculateWorkOutput(work);
-        }
-
-        /// <summary>
-        /// Get display text for work type.
-        /// </summary>
-        protected string GetWorkTypeDisplay(WorkType type)
-        {
-            return type switch
-            {
-                WorkType.Service => "Service",
-                WorkType.Enhanced => "Enhanced",
-                _ => "Standard"
-            };
-        }
 
         protected string GetStateClass(string connectionState)
         {
@@ -613,22 +446,6 @@ namespace Wayfarer.Pages.Components
             return npcsAtLocation.Where(n => n.SpotId == spot.SpotID).ToList();
         }
 
-        protected bool HasUrgentLetter(string npcId)
-        {
-            // Check if NPC has urgent letter in queue position 1
-            ObligationFacade queueManager = GameFacade.GetObligationQueueManager();
-            if (queueManager == null) return false;
-
-            DeliveryObligation[] obligations = queueManager.GetActiveObligations();
-            if (obligations == null || !obligations.Any()) return false;
-
-            // Check if position 1 has this NPC's letter
-            DeliveryObligation? firstObligation = obligations.FirstOrDefault();
-            return firstObligation != null &&
-                   (firstObligation.SenderId == npcId || firstObligation.SenderName == GetNPCName(npcId)) &&
-                   firstObligation.DeadlineInSegments < 360; // Urgent if less than 360 segments
-        }
-
         protected string GetNPCName(string npcId)
         {
             NPC npc = GameFacade.GetNPCById(npcId);
@@ -654,17 +471,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetDeadlineClass(int deadlineInSegments)
-        {
-            if (deadlineInSegments <= 0)
-                return "expired";
-            else if (deadlineInSegments <= 4) // 4 segments
-                return "critical";
-            else if (deadlineInSegments <= 12) // 12 segments
-                return "urgent";
-            else
-                return "normal";
-        }
 
         protected string GetNPCDescription(NpcViewModel npc)
         {
@@ -697,14 +503,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected string GetDeadlineText(int deadlineInSegments)
-        {
-            if (deadlineInSegments <= 0)
-                return "EXPIRED!";
-
-            return $"{deadlineInSegments} seg";
-        }
-
         protected string GetTokenCount(string npcId, ConnectionType tokenType)
         {
             // This would get the actual token count from the ConnectionTokenManager
@@ -728,19 +526,6 @@ namespace Wayfarer.Pages.Components
             return $"{npc.PersonalityType} type";
         }
 
-        protected bool HasLetterRequest(string npcId)
-        {
-            // Check if this NPC has an active letter request
-            // This would check against the game state
-            return false;
-        }
-
-        protected int GetBurdenCount(string npcId)
-        {
-            // Get burden count for this NPC
-            // This would check against the game state
-            return 0;
-        }
 
         protected string GetDoubtDisplay(NpcViewModel npc, LocationSpot spot)
         {
@@ -748,11 +533,6 @@ namespace Wayfarer.Pages.Components
             return "Available";
         }
 
-        protected int GetPatience(NpcViewModel npc, LocationSpot spot)
-        {
-            // Patience system removed - return default value
-            return 100;
-        }
 
         protected string GetTimeOfDayTrait()
         {
@@ -823,52 +603,6 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
-        protected string GetObservationReward(LocationObservationViewModel obs)
-        {
-            // Generate state transition display based on observation type and name
-            try
-            {
-                // For now, use type-based logic and name analysis to generate realistic transitions
-                // This matches the mockup which shows context-appropriate state transitions
-
-                string name = obs.Name?.ToLower() ?? "";
-                string type = obs.Type?.ToLower() ?? "";
-
-                // Analyze observation name for context clues
-                if (name.Contains("checkpoint") || name.Contains("guard"))
-                {
-                    return "Any→Guarded";
-                }
-                else if (name.Contains("carriage") || name.Contains("preparation"))
-                {
-                    return "Guarded→Eager";
-                }
-                else if (name.Contains("family") || name.Contains("letter"))
-                {
-                    return "Neutral→Open";
-                }
-                else if (name.Contains("trembling") || name.Contains("desperat"))
-                {
-                    return "Disconnected→Open";
-                }
-
-                // Fall back to type-based display
-                return type switch
-                {
-                    "authority" => "Any→Guarded",
-                    "diplomacy" => "Guarded→Eager",
-                    "social" => "Neutral→Open",
-                    "secret" => "Any→Shadow",
-                    _ => "Any→Neutral"
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[LocationContent] Error getting observation reward for {obs.Id}: {ex.Message}");
-                return "Any→Neutral";
-            }
-        }
-
         protected string GetSpotTraitClass(SpotPropertyType prop)
         {
             // Return a CSS class based on the property type
@@ -890,22 +624,6 @@ namespace Wayfarer.Pages.Components
                 SpotPropertyType.Loud => "Loud (-1 flow)",
                 SpotPropertyType.Warm => "Warm (+1 flow)",
                 _ => prop.ToString()
-            };
-        }
-
-
-        protected int GetBasePatience(NpcViewModel npc)
-        {
-            // Base patience by personality type
-            return npc.PersonalityType?.ToLower() switch
-            {
-                "devoted" => 12,
-                "mercantile" => 10,
-                "proud" => 8,
-                "cunning" => 9,
-                "gruff" => 7,
-                "steadfast" => 11,
-                _ => 10
             };
         }
 

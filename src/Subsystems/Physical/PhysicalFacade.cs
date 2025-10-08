@@ -33,14 +33,37 @@ public class PhysicalFacade
         _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
 
-    public PhysicalSession GetCurrentSession() => _currentSession;
-    public bool IsSessionActive() => _currentSession != null;
-    public List<CardInstance> GetHand() => _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
-    public PhysicalDeckBuilder GetDeckBuilder() => _deckBuilder;
-    public int GetDeckCount() => _sessionDeck?.RemainingDeckCards ?? 0;
-    public int GetDiscardCount() => _sessionDeck?.PlayedCards.Count ?? 0;
+    public PhysicalSession GetCurrentSession()
+    {
+        return _currentSession;
+    }
 
-    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
+    public bool IsSessionActive()
+    {
+        return _currentSession != null;
+    }
+
+    public List<CardInstance> GetHand()
+    {
+        return _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
+    }
+
+    public PhysicalDeckBuilder GetDeckBuilder()
+    {
+        return _deckBuilder;
+    }
+
+    public int GetDeckCount()
+    {
+        return _sessionDeck?.RemainingDeckCards ?? 0;
+    }
+
+    public int GetDiscardCount()
+    {
+        return _sessionDeck?.PlayedCards.Count ?? 0;
+    }
+
+    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId, string investigationId)
     {
         if (IsSessionActive())
         {
@@ -56,8 +79,8 @@ public class PhysicalFacade
         _currentSession = new PhysicalSession
         {
             ChallengeId = engagement.Id,
-            CurrentPosition = 0,
-            MaxPosition = 10,
+            CurrentExertion = 0,
+            MaxExertion = 10,
             CurrentUnderstanding = 0,
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
@@ -127,10 +150,10 @@ public class PhysicalFacade
         // DUAL BALANCE: Pass action type to combine with card Approach
         PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, actionType);
 
-        // Check Position cost BEFORE applying
-        if (_currentSession.CurrentPosition < card.PhysicalCardTemplate.PositionCost)
+        // Check Exertion cost BEFORE applying
+        if (_currentSession.CurrentExertion < card.PhysicalCardTemplate.ExertionCost)
         {
-            throw new InvalidOperationException($"Insufficient Position. Need {card.PhysicalCardTemplate.PositionCost}, have {_currentSession.CurrentPosition}");
+            throw new InvalidOperationException($"Insufficient Exertion. Need {card.PhysicalCardTemplate.ExertionCost}, have {_currentSession.CurrentExertion}");
         }
 
         // Apply projection to session state
@@ -191,15 +214,15 @@ public class PhysicalFacade
     /// </summary>
     private void ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
     {
-        // Builder resource: Position
-        session.CurrentPosition += projection.PositionChange;
-        if (session.CurrentPosition > session.MaxPosition)
+        // Builder resource: Exertion
+        session.CurrentExertion += projection.ExertionChange;
+        if (session.CurrentExertion > session.MaxExertion)
         {
-            session.CurrentPosition = session.MaxPosition;
+            session.CurrentExertion = session.MaxExertion;
         }
-        if (session.CurrentPosition < 0)
+        if (session.CurrentExertion < 0)
         {
-            session.CurrentPosition = 0;
+            session.CurrentExertion = 0;
         }
 
         // Victory resource: Breakthrough (stored as Progress in session)
@@ -287,7 +310,7 @@ public class PhysicalFacade
             Success = success,
             FinalProgress = _currentSession.CurrentBreakthrough,
             FinalDanger = _currentSession.CurrentDanger,
-            EscapeCost = null
+            EscapeCost = ""
         };
 
         // Check for investigation progress if this was an investigation goal

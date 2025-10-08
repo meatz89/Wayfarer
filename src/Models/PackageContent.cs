@@ -18,7 +18,7 @@ public class PackageContent
     /// <summary>
     /// Card definitions - uses DTO for consistency
     /// </summary>
-    public List<ConversationCardDTO> Cards { get; set; }
+    public List<SocialCardDTO> Cards { get; set; }
 
     /// <summary>
     /// NPC definitions - uses existing NPCDTO
@@ -51,11 +51,6 @@ public class PackageContent
     public List<ObservationRewardDTO> InvestigationRewards { get; set; }
 
     /// <summary>
-    /// Letter templates - uses existing LetterTemplateDTO
-    /// </summary>
-    public List<LetterTemplateDTO> LetterTemplates { get; set; }
-
-    /// <summary>
     /// Standing obligations - uses existing StandingObligationDTO
     /// </summary>
     public List<StandingObligationDTO> StandingObligations { get; set; }
@@ -71,19 +66,14 @@ public class PackageContent
     public List<NPCRequestDTO> NpcRequests { get; set; }
 
     /// <summary>
-    /// NPC-specific request cards organized by NPC ID
-    /// </summary>
-    public Dictionary<string, List<ConversationCardDTO>> NpcRequestCards { get; set; }
-
-    /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments
     /// </summary>
-    public List<ConversationCardDTO> PromiseCards { get; set; }
+    public List<SocialCardDTO> PromiseCards { get; set; }
 
     /// <summary>
     /// Exchange cards - cards that offer trades between resources
     /// </summary>
-    public List<ConversationCardDTO> ExchangeCards { get; set; }
+    public List<SocialCardDTO> ExchangeCards { get; set; }
 
     /// <summary>
     /// Path cards for travel system

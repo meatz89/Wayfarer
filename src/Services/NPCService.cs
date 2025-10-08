@@ -83,7 +83,7 @@ public class NPCService
     /// <summary>
     /// Find NPCs that can provide a specific service at the current time
     /// </summary>
-    public IEnumerable<NPC> GetAvailableServiceProviders(ServiceTypes service, string locationId = null)
+    public IEnumerable<NPC> GetAvailableServiceProviders(ServiceTypes service, string locationId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         IEnumerable<NPC> npcs = string.IsNullOrWhiteSpace(locationId)

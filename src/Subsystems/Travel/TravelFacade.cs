@@ -419,7 +419,7 @@ public class TravelFacade
             }
         }
 
-        return new PathCardAvailability { CanPlay = true, Reason = null };
+        return new PathCardAvailability { CanPlay = true, Reason = "" };
     }
 
     /// <summary>

@@ -34,7 +34,6 @@ public class DialogueGenerationService
     public string GenerateNPCDialogue(
         ConnectionState state,
         PersonalityType personality,
-        DeliveryObligation obligation,
         MeetingObligation meeting,
         int turnNumber)
     {
@@ -44,19 +43,6 @@ public class DialogueGenerationService
             return "emotional:neutral query:general";
 
         ConnectionStateTemplate stateTemplate = _templates.ConnectionStateDialogue[stateKey];
-
-        // Check for contextual dialogue first (urgent letters, meetings)
-        if (state == ConnectionState.DISCONNECTED)
-        {
-            if (meeting != null)
-            {
-                return GenerateMeetingDialogue(meeting, turnNumber);
-            }
-            if (obligation != null)
-            {
-                return GenerateObligationDialogue(obligation, turnNumber);
-            }
-        }
 
         // Use personality-based dialogue
         if (stateTemplate.Personality != null &&
@@ -73,20 +59,6 @@ public class DialogueGenerationService
         }
 
         return "emotional:neutral query:general";
-    }
-
-    private string GenerateMeetingDialogue(MeetingObligation meeting, int turnNumber)
-    {
-        int segments = meeting.DeadlineInSegments;
-        string urgency = segments <= 3 ? "critical" : segments <= 9 ? "urgent" : "pressing";
-
-        return $"urgency:{urgency} time_pressure:{segments}seg stakes:{meeting.Stakes.ToString().ToLower()} turn:{turnNumber}";
-    }
-
-    private string GenerateObligationDialogue(DeliveryObligation obligation, int turnNumber)
-    {
-        int segments = obligation.DeadlineInSegments;
-        return $"letter_urgency:{segments}seg recipient:{obligation.RecipientName} stakes:{obligation.Stakes.ToString().ToLower()} turn:{turnNumber}";
     }
 
     /// <summary>
@@ -115,7 +87,7 @@ public class DialogueGenerationService
     /// Generate NPC description from profession and state
     /// Returns categorical template, NOT English text
     /// </summary>
-    public string GenerateNPCDescription(NPC npc, ConnectionState state, bool hasUrgentLetter = false)
+    public string GenerateNPCDescription(NPC npc, ConnectionState state)
     {
         List<string> elements = new List<string>();
 
@@ -135,16 +107,6 @@ public class DialogueGenerationService
         if (_templates.NpcDescriptions?.EmotionalModifiers?.ContainsKey(stateKey) == true)
         {
             Dictionary<string, List<string>> modifiers = _templates.NpcDescriptions.EmotionalModifiers[stateKey];
-            string modKey = hasUrgentLetter && modifiers.ContainsKey("hasLetter") ? "hasLetter" : "default";
-
-            if (modifiers.ContainsKey(modKey))
-            {
-                List<string> modOptions = modifiers[modKey];
-                if (modOptions.Any())
-                {
-                    elements.Add(modOptions[_random.Next(modOptions.Count)]);
-                }
-            }
         }
 
         return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";

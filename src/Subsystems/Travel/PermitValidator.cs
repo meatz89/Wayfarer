@@ -32,7 +32,7 @@ public class PermitValidator
         Player player = _gameWorld.GetPlayer();
 
         // Check if permit has been received (using HasReceivedPermit flag)
-        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
+        if (!route.AccessRequirement.HasReceivedPermit)
         {
             return false; // Permit letter required but not received
         }
@@ -64,7 +64,7 @@ public class PermitValidator
         }
 
         // Check if permit has not been received
-        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
+        if (!route.AccessRequirement.HasReceivedPermit)
         {
             string permitName = route.AccessRequirement.Name ?? "Travel Permit";
             missingPermits.Add(permitName);
@@ -125,7 +125,7 @@ public class PermitValidator
 
         List<string> descriptions = new List<string>();
 
-        if (!route.AccessRequirement.HasReceivedPermit && route.AccessRequirement.AlternativeLetterUnlock != null)
+        if (!route.AccessRequirement.HasReceivedPermit)
         {
             string permitName = route.AccessRequirement.Name ?? "Special Permit";
             descriptions.Add($"Requires: {permitName}");

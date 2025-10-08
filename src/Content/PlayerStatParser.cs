@@ -115,6 +115,6 @@ public class StatLevelBonus
     public int Level { get; set; }
     public int SuccessBonus { get; set; }
     public bool GainsThoughtPersistence { get; set; }
-    public string Description { get; set; } = "";
+    public string Description { get; set; }
 }
 

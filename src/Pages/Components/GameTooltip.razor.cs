@@ -4,12 +4,12 @@ namespace Wayfarer.Pages.Components
 {
     public partial class GameTooltip : ComponentBase, IDisposable
     {
-        [Parameter] public string Content { get; set; } = "";
+        [Parameter] public string Content { get; set; }
         [Parameter] public RenderFragment? ContentFragment { get; set; }
-        [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+        [Parameter] public RenderFragment ChildContent { get; set; }
         [Parameter] public string Position { get; set; } = "top"; // top, bottom, left, right
         [Parameter] public int Delay { get; set; } = 300; // milliseconds
-        [Parameter] public string CssClass { get; set; } = "";
+        [Parameter] public string CssClass { get; set; }
 
         private bool IsVisible { get; set; }
         private Timer? _showTimer;

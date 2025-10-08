@@ -22,7 +22,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
-    [Inject] protected ObligationQueueManager ObligationQueueManager { get; set; }
     [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
 
     public GameScreenBase()
@@ -46,13 +45,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public int Hunger { get; set; }
 
     // Time Display - Made public for child components to access for Perfect Information principle
-    public string CurrentTime { get; set; } = "";
-    public string TimePeriod { get; set; } = "";
-    public string MostUrgentDeadline { get; set; } = "";
+    public string CurrentTime { get; set; }
+    public string TimePeriod { get; set; }
 
     // Location Display
-    protected string CurrentLocationPath { get; set; } = "";
-    protected string CurrentSpot { get; set; } = "";
+    protected string CurrentLocationPath { get; set; }
+    protected string CurrentSpot { get; set; }
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
@@ -108,31 +106,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // Use segment display format: "AFTERNOON ●●○○ [2/4]"
         CurrentTime = timeInfo.SegmentDisplay;
         TimePeriod = timeInfo.CurrentTimeBlock.ToString();
-
-        // Get most urgent deadline from queue
-        LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
-        if (queueVM?.QueueSlots != null)
-        {
-            LetterViewModel mostUrgent = null;
-            foreach (QueueSlotViewModel slot in queueVM.QueueSlots)
-            {
-                if (slot.IsOccupied && slot.DeliveryObligation != null)
-                {
-                    if (mostUrgent == null || slot.DeliveryObligation.DeadlineInSegments_Display < mostUrgent.DeadlineInSegments_Display)
-                    {
-                        mostUrgent = slot.DeliveryObligation;
-                    }
-                }
-            }
-
-            MostUrgentDeadline = mostUrgent != null && mostUrgent.DeadlineInSegments_Display > 0
-                ? $"Next deadline: {mostUrgent.DeadlineInSegments_Display} seg - {mostUrgent.SenderName} → {mostUrgent.RecipientName}"
-                : "";
-        }
-        else
-        {
-            MostUrgentDeadline = "";
-        }
     }
 
     protected async Task RefreshLocationDisplay()
@@ -691,23 +664,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         return "0/0";
     }
 
-    protected int GetDeadlineSegments()
-    {
-        // Get the most urgent deadline from the letter queue
-        LetterQueueViewModel queueVM = GameFacade.GetLetterQueue();
-        if (queueVM?.QueueSlots != null)
-        {
-            foreach (QueueSlotViewModel slot in queueVM.QueueSlots)
-            {
-                if (slot.IsOccupied && slot.DeliveryObligation != null)
-                {
-                    return slot.DeliveryObligation.DeadlineInSegments_Display;
-                }
-            }
-        }
-        return 0;
-    }
-
     // Discovery Journal
     protected bool _showJournal = false;
 
@@ -830,8 +786,8 @@ public enum ScreenMode
     Travel,
     DeckViewer, // Dev mode screen for viewing NPC decks
     SocialChallenge,
-    MentalChallenge, // Mental tactical engagements (investigation/problem-solving)
-    PhysicalChallenge // Physical tactical engagements (challenges/obstacles)
+    MentalChallenge,
+    PhysicalChallenge
 }
 
 public class ScreenContext

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 public class LocationScreenViewModel
 {
     public string CurrentTime { get; set; }
-    public string DeadlineTimer { get; set; }
     public List<string> LocationPath { get; set; } = new();
     public string LocationName { get; set; }
     public List<string> LocationTraits { get; set; } = new();

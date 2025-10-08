@@ -664,7 +664,7 @@ public class MarketSubsystemManager
     /// </summary>
     private bool ValidateTradeConditions(string locationId, out string error)
     {
-        error = null;
+        error = "";
 
         // Check time
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();

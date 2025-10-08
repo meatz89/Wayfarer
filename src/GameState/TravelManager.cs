@@ -45,7 +45,7 @@ public class TravelManager
             CurrentState = DetermineInitialTravelState(player),
             SegmentsElapsed = 0,
             CompletedSegments = new List<string>(),
-            SelectedPathId = null
+            SelectedPathId = ""
         };
 
         _gameWorld.CurrentTravelSession = session;
@@ -283,7 +283,7 @@ public class TravelManager
 
         // Clear reveal state
         session.IsRevealingCard = false;
-        session.RevealedCardId = null;
+        session.RevealedCardId = "";
 
         // Update travel state based on stamina
         UpdateTravelState(session);
@@ -636,8 +636,8 @@ public class TravelManager
         {
             session.CurrentSegment++;
             // Clear event state for the new segment
-            session.CurrentEventId = null;
-            session.CurrentEventNarrative = null;
+            session.CurrentEventId = "";
+            session.CurrentEventNarrative = "";
 
             // Pre-load cards for the new segment (works for both FixedPath and Event segments)
             // For Event segments, this triggers event selection and sets CurrentEventId

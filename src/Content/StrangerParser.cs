@@ -38,13 +38,13 @@ public static class StrangerParser
             HasBeenEncountered = false,
             Tier = dto.Level, // Use level as tier for difficulty
             Description = $"Level {dto.Level} stranger",
-            Requests = new List<NPCRequest>()
+            Requests = new List<GoalCard>()
         };
 
         // Convert stranger's single request to NPCRequest
         if (dto.Request != null)
         {
-            NPCRequest request = ConvertRequestDTOToNPCRequest(dto.Request);
+            GoalCard request = ConvertRequestDTOToNPCRequest(dto.Request);
             stranger.Requests.Add(request);
         }
 
@@ -54,17 +54,17 @@ public static class StrangerParser
     /// <summary>
     /// Convert stranger request DTO to NPCRequest
     /// </summary>
-    private static NPCRequest ConvertRequestDTOToNPCRequest(StrangerRequestDTO dto)
+    private static GoalCard ConvertRequestDTOToNPCRequest(StrangerRequestDTO dto)
     {
         // Create request from stranger request DTO
-        NPCRequest request = new NPCRequest
+        GoalCard request = new GoalCard
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
             Description = dto.Description ?? "",
             SystemType = TacticalSystemType.Social,  // Strangers use Social system
             ChallengeTypeId = dto.ConversationTypeId ?? "",  // Map old ConversationTypeId to new ChallengeTypeId
-            Status = RequestStatus.Available,
+            Status = GoalStatus.Available,
             MomentumThresholds = new List<int>(dto.MomentumThresholds ?? new List<int>()),
             Rewards = ConvertRewards(dto.Rewards)
         };
@@ -75,14 +75,14 @@ public static class StrangerParser
     /// <summary>
     /// Convert stranger rewards to NPCRequest rewards
     /// </summary>
-    private static List<RequestReward> ConvertRewards(List<StrangerRewardDTO> rewardDtos)
+    private static List<GoalReward> ConvertRewards(List<StrangerRewardDTO> rewardDtos)
     {
-        List<RequestReward> rewards = new List<RequestReward>();
+        List<GoalReward> rewards = new List<GoalReward>();
         if (rewardDtos != null)
         {
             foreach (StrangerRewardDTO dto in rewardDtos)
             {
-                RequestReward reward = new RequestReward
+                GoalReward reward = new GoalReward
                 {
                     Coins = dto.Coins,
                     Health = dto.Health,

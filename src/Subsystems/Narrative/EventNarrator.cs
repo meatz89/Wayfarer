@@ -18,77 +18,6 @@ public class EventNarrator
         _gameWorld = gameWorld;
     }
 
-    // ========== OBSERVATION NARRATIVES ==========
-
-    /// <summary>
-    /// Generate narrative for taking an observation
-    /// </summary>
-    public string NarrateObservationTaken(Observation observation, ObservationCard card)
-    {
-        string[] templates = new[]
-        {
-            $"You notice {observation.Text} and make a mental note.",
-            $"Your keen observation of {observation.Text} may prove useful.",
-            $"You carefully observe {observation.Text}.",
-            $"The details of {observation.Text} catch your attention."
-        };
-
-        return templates[_random.Next(templates.Length)];
-    }
-
-    /// <summary>
-    /// Generate narrative for time block transition
-    /// </summary>
-    public string NarrateTimeBlockTransition()
-    {
-        string[] templates = new[]
-        {
-            "Time passes and new opportunities arise.",
-            "The world shifts as the hours advance.",
-            "New observations become available.",
-            "Fresh details emerge as time moves forward."
-        };
-
-        return templates[_random.Next(templates.Length)];
-    }
-
-    // ========== LETTER NARRATIVES ==========
-
-    /// <summary>
-    /// Generate narrative for letter positioning
-    /// </summary>
-    public string NarrateLetterPositioning(string senderName, LetterPositioningReason reason, int position, int strength, int debt)
-    {
-        string reasonText = reason switch
-        {
-            LetterPositioningReason.Obligation => "standing obligation",
-            LetterPositioningReason.DiplomacyDebt => $"diplomacy debt (debt: {debt})",
-            LetterPositioningReason.PoorStanding => $"poor standing (debt: {debt})",
-            LetterPositioningReason.GoodStanding => $"good relationship (strength: {strength})",
-            LetterPositioningReason.Neutral => "standard priority",
-            _ => "standard priority"
-        };
-
-        return $"{senderName}'s letter takes position {position} due to {reasonText}.";
-    }
-
-    /// <summary>
-    /// Generate narrative for special letter events
-    /// </summary>
-    public string NarrateSpecialLetterEvent(SpecialLetterEvent letterEvent)
-    {
-        return letterEvent.EventType switch
-        {
-            SpecialLetterEventType.IntroductionLetterGenerated => $"Introduction letter generated for {letterEvent.TargetNPCId}.",
-            SpecialLetterEventType.NPCIntroduced => $"You've been introduced to {letterEvent.TargetNPCId}!",
-            SpecialLetterEventType.AccessPermitGenerated => $"Access permit generated for {letterEvent.TargetLocationId}.",
-            SpecialLetterEventType.LocationAccessGranted => $"Access granted to {letterEvent.TargetLocationId}!",
-            SpecialLetterEventType.SpecialLetterTokenBonus => $"Token bonus earned: +{letterEvent.TokenAmount} {letterEvent.TokenType}!",
-            SpecialLetterEventType.SpecialLetterDelivered => $"Special letter delivered successfully!",
-            _ => $"Event: {letterEvent.EventType}"
-        };
-    }
-
     // ========== TOKEN NARRATIVES ==========
 
     /// <summary>
@@ -159,89 +88,13 @@ public class EventNarrator
         }
     }
 
-    // ========== QUEUE NARRATIVES ==========
-
-    /// <summary>
-    /// Generate narrative for queue reorganization
-    /// </summary>
-    public string[] GenerateQueueReorganizationNarrative(int removedPosition, int lettersShifted)
-    {
-        List<string> messages = new List<string>();
-
-        if (lettersShifted > 0)
-        {
-            messages.Add($"Letters moved up in queue after position {removedPosition} was cleared.");
-
-            if (lettersShifted > 3)
-            {
-                messages.Add("The queue shifts dramatically as letters cascade upward.");
-            }
-        }
-
-        return messages.ToArray();
-    }
-
-    /// <summary>
-    /// Generate narrative for queue entry
-    /// </summary>
-    public string GenerateQueueEntryNarrative(DeliveryObligation letter, int position)
-    {
-        if (position <= 3)
-        {
-            return $"⚡ {letter.SenderName}'s urgent letter pushes to position {position}!";
-        }
-        else if (position <= 5)
-        {
-            return $"📬 New letter enters queue at position {position}.";
-        }
-        else
-        {
-            return $"📨 Letter queued at position {position}.";
-        }
-    }
-
-    // ========== MORNING NARRATIVES ==========
-
-    /// <summary>
-    /// Generate narrative for morning letter generation
-    /// </summary>
-    public MorningNarrativeResult GenerateMorningLetterNarrative(int lettersGenerated, bool queueFull)
-    {
-        string[] morningNarratives = new[]
-        {
-            "The morning brings new correspondence to the posting board.",
-            "Dawn's light reveals fresh letters awaiting carriers.",
-            "The night courier has left new deliveries on the board.",
-            "Morning mist clears to show new letters have arrived."
-        };
-
-        string morning = morningNarratives[_random.Next(morningNarratives.Length)];
-        string letterCount;
-        string severity = "info";
-
-        if (lettersGenerated > 0)
-        {
-            letterCount = $"{lettersGenerated} new letter{(lettersGenerated > 1 ? "s have" : " has")} arrived at the posting board.";
-        }
-        else if (queueFull)
-        {
-            letterCount = "New letters arrived, but your queue is already full.";
-            severity = "warning";
-        }
-        else
-        {
-            letterCount = "No new letters have arrived this morning.";
-        }
-
-        return new MorningNarrativeResult(morning, letterCount, severity);
-    }
-
+    
     // ========== TIME NARRATIVES ==========
 
     /// <summary>
     /// Generate narrative for time transitions
     /// </summary>
-    public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription = null)
+    public TransitionNarrativeResult GenerateTimeTransitionNarrative(TimeBlocks from, TimeBlocks to, string actionDescription)
     {
         string transition = GetTimeTransitionNarrative(from, to);
         string action = null;
@@ -252,44 +105,6 @@ public class EventNarrator
         }
 
         return new TransitionNarrativeResult(transition, action);
-    }
-
-    // ========== OBLIGATION NARRATIVES ==========
-
-    /// <summary>
-    /// Generate narrative for obligation warnings
-    /// </summary>
-    public NarrativeResult GenerateObligationWarning(StandingObligation obligation, int daysUntilForced)
-    {
-        if (daysUntilForced == 1)
-        {
-            return new NarrativeResult($"⚠️ Your {obligation.Name} obligation will demand action tomorrow!", "warning");
-        }
-        else if (daysUntilForced == 0)
-        {
-            return new NarrativeResult($"📮 Your {obligation.Name} obligation forces a letter into your queue!", "danger");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Generate narrative for deadline warnings
-    /// </summary>
-    public NarrativeResult GenerateDeadlineWarning(DeliveryObligation letter, int daysRemaining)
-    {
-        string urgency = daysRemaining switch
-        {
-            0 => "expires today",
-            1 => "expires tomorrow",
-            2 => "has only 2 days left",
-            _ => $"has {daysRemaining} days remaining"
-        };
-
-        string severity = daysRemaining <= 1 ? "warning" : "info";
-        string message = $"⏰ Letter from {letter.SenderName} {urgency}!";
-
-        return new NarrativeResult(message, severity);
     }
 
     /// <summary>
@@ -388,38 +203,6 @@ public class EventNarrator
         {
             return $"The terms of {obligation.Name} have been fulfilled. You are released from your obligations.";
         }
-    }
-
-    /// <summary>
-    /// Generate narrative for forced letter
-    /// </summary>
-    public string GenerateForcedLetterNarrative(StandingObligation obligation, DeliveryObligation letter)
-    {
-        Dictionary<string, string[]> forcedNarratives = new Dictionary<string, string[]>
-        {
-            { "Shadow", new[] {
-                $"A shadowy messenger slips a letter into your queue. \"{letter.SenderName} requires your... immediate attention.\"",
-                $"You find a black-sealed letter among your papers. The {obligation.Name} demands payment.",
-                $"\"No exceptions,\" the hooded figure insists, adding {letter.SenderName}'s letter to your burden."
-            }},
-            { "Trade", new[] {
-                $"The guild enforcer visits. \"Guild business. {letter.RecipientName} needs this immediately.\"",
-                $"Your {obligation.Name} requires this guild letter be delivered without delay.",
-                $"\"Union rules,\" the merchant explains, adding another letter to your load."
-            }}
-        };
-
-        foreach (string key in forcedNarratives.Keys)
-        {
-            if (obligation.Name.Contains(key, StringComparison.OrdinalIgnoreCase) ||
-                (obligation.RelatedTokenType.HasValue && obligation.RelatedTokenType.Value.ToString().Contains(key)))
-            {
-                string[] narratives = forcedNarratives[key];
-                return narratives[_random.Next(narratives.Length)];
-            }
-        }
-
-        return $"Your {obligation.Name} compels you to accept a letter from {letter.SenderName} to {letter.RecipientName}.";
     }
 
     /// <summary>

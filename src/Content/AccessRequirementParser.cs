@@ -19,9 +19,9 @@ public static class AccessRequirementParser
         AccessRequirement requirement = new AccessRequirement
         {
             Id = dto.Id ?? Guid.NewGuid().ToString(),
-            Name = dto.Name ?? string.Empty,
+            Name = dto.Name,
             BlockedMessage = dto.BlockedMessage ?? "You cannot access this area.",
-            HintMessage = dto.HintMessage ?? string.Empty
+            HintMessage = dto.HintMessage
         };
 
         // Parse logic
@@ -93,9 +93,9 @@ public static class AccessRequirementParser
         AccessRequirement requirement = new AccessRequirement
         {
             Id = dto.Id ?? Guid.NewGuid().ToString(),
-            Name = dto.Name ?? string.Empty,
+            Name = dto.Name,
             BlockedMessage = dto.BlockedMessage ?? "You cannot access this area.",
-            HintMessage = dto.HintMessage ?? string.Empty
+            HintMessage = dto.HintMessage
         };
 
         // Parse logic

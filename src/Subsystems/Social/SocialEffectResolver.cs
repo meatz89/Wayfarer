@@ -65,9 +65,9 @@ public class SocialEffectResolver
     public bool CheckCardSuccess(CardInstance card, SocialSession session)
     {
         // Goal cards (Requests, Promises) always succeed if momentum threshold is met
-        if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Burden)
+        if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Burden)
         {
-            return session.CurrentMomentum >= card.ConversationCardTemplate.MomentumThreshold;
+            return session.CurrentMomentum >= card.SocialCardTemplate.MomentumThreshold;
         }
 
         // Regular conversation cards ALWAYS succeed - no failure possible
@@ -75,14 +75,12 @@ public class SocialEffectResolver
         return true;
     }
 
-
-
     /// <summary>
     /// Build comprehensive effect result from EffectFormula system
     /// </summary>
     private CardEffectResult BuildComprehensiveEffectResult(CardInstance card, SocialSession session)
     {
-        var result = new CardEffectResult
+        CardEffectResult result = new CardEffectResult
         {
             Card = card,
             MomentumChange = 0,
@@ -96,13 +94,13 @@ public class SocialEffectResolver
             EndsConversation = false
         };
 
-        var effectsOnly = new List<string>();  // Card effects only (for card display)
+        List<string> effectsOnly = new List<string>();  // Card effects only (for card display)
 
         // CRITICAL: Initiative generation from ConversationalMove (NOT from card effects!)
         // Remark/Observation generate Initiative through ConversationalMove property
         // Arguments COST Initiative, they never generate it
         // This is added to InitiativeChange for projection, but NOT to description strings
-        int initiativeGen = card.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
+        int initiativeGen = card.SocialCardTemplate?.GetInitiativeGeneration() ?? 0;
         if (initiativeGen > 0)
         {
             result.InitiativeChange += initiativeGen;
@@ -110,30 +108,14 @@ public class SocialEffectResolver
         }
 
         // Use EffectFormula system for singular card effect
-        CardEffectFormula formula = card.ConversationCardTemplate?.EffectFormula;
-        if (formula == null)
-        {
-            // Request/Promise/Burden cards don't use EffectFormula - they complete goals
-            if (card.ConversationCardTemplate.CardType == CardType.Request ||
-                card.ConversationCardTemplate.CardType == CardType.Promise ||
-                card.ConversationCardTemplate.CardType == CardType.Burden)
-            {
-                result.EffectDescription = "Complete request";
-                result.EffectOnlyDescription = "Complete request";
-                result.EndsConversation = true;
-                return result;
-            }
-
-            result.EffectDescription = "No effect formula";
-            return result;
-        }
-
+        CardEffectFormula formula = card.SocialCardTemplate?.EffectFormula;
+       
         // Execute the formula to get projected effects
         if (formula.FormulaType == EffectFormulaType.Compound)
         {
             if (formula.CompoundEffects != null)
             {
-                foreach (var subFormula in formula.CompoundEffects)
+                foreach (CardEffectFormula subFormula in formula.CompoundEffects)
                 {
                     ApplyFormulaToResult(subFormula, session, result, effectsOnly);
                 }
@@ -146,7 +128,7 @@ public class SocialEffectResolver
 
         // Strategic resource costs - PRE-CALCULATED at parse time via CardEffectCatalog
         // THREE PARALLEL SYSTEMS: Resolver just uses the values calculated during parsing
-        SocialCard template = card.ConversationCardTemplate;
+        SocialCard template = card.SocialCardTemplate;
         if (template != null)
         {
             result.StaminaCost = template.StaminaCost;
@@ -173,7 +155,7 @@ public class SocialEffectResolver
                 // CRITICAL ERROR: Initiative should NEVER be a card effect target
                 // Initiative comes ONLY from ConversationalMove (Remark/Observation generate, Arguments cost)
                 throw new InvalidOperationException(
-                    $"INVALID CARD EFFECT: Card '{result.Card?.ConversationCardTemplate?.Id}' has Initiative as effect target. " +
+                    $"INVALID CARD EFFECT: Card '{result.Card?.SocialCardTemplate?.Id}' has Initiative as effect target. " +
                     $"Initiative is NOT a card effect - it's a categorical property of ConversationalMove.");
 
             case SocialChallengeResourceType.Momentum:

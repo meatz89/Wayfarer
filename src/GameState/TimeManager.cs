@@ -102,7 +102,7 @@ public class TimeManager
     /// <summary>
     /// Simple segment advancement for basic actions.
     /// </summary>
-    public async Task<bool> SpendSegments(int segments, string description = null)
+    public async Task<bool> SpendSegments(int segments, string description)
     {
         if (!CanPerformAction(segments))
         {

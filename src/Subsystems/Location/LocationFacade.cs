@@ -2,30 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
-/// <summary>
-/// Different approaches to investigate a location, unlocked by player stats
-/// </summary>
-public enum InvestigationApproach
-{
-    Standard,      // Always available
-    Systematic,    // Insight 2+: +1 familiarity
-    LocalInquiry,  // Rapport 2+: Learn NPC preferences
-    DemandAccess,  // Authority 2+: Access restricted spots
-    PurchaseInfo,  // Diplomacy 2+: Pay for familiarity
-    CovertSearch   // Cunning 2+: No alerts
-}
-
-/// <summary>
-/// Represents conversation options available for a specific NPC
-/// </summary>
-public class NPCConversationOptions
-{
-    public string NpcId { get; set; }
-    public string NpcName { get; set; }
-    public List<string> AvailableTypes { get; set; } = new List<string>();
-    public bool CanAfford { get; set; }
-}
 /// <summary>
 /// Public facade for all location-related operations.
 /// Coordinates between location managers and provides a clean API for GameFacade.
@@ -47,7 +23,6 @@ public class LocationFacade
     private readonly NPCRepository _npcRepository;
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
-    private readonly ObligationQueueManager _letterQueueManager;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
 
@@ -65,7 +40,6 @@ public class LocationFacade
         NPCRepository npcRepository,
         TimeManager timeManager,
         MessageSystem messageSystem,
-        ObligationQueueManager letterQueueManager,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer)
     {
@@ -82,7 +56,6 @@ public class LocationFacade
         _npcRepository = npcRepository;
         _timeManager = timeManager;
         _messageSystem = messageSystem;
-        _letterQueueManager = letterQueueManager;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
     }
@@ -169,7 +142,7 @@ public class LocationFacade
     /// Get the complete location screen view model with all location data.
     /// </summary>
     /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
-    public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions = null)
+    public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
     {
         Console.WriteLine("[LocationFacade.GetLocationScreen] Starting...");
 
@@ -182,12 +155,11 @@ public class LocationFacade
         LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
-            DeadlineTimer = GetNextDeadlineDisplay(),
             LocationPath = _spotManager.BuildLocationPath(location, spot),
             LocationName = location?.Name ?? "Unknown Location",
             CurrentSpotName = spot?.Name,
             LocationTraits = _spotManager.GetLocationTraits(location, spot, _timeManager.GetCurrentTimeBlock()),
-            AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, location, _timeManager.GetCurrentTimeBlock(), GetUrgentObligationCount(), GetNPCCountAtSpot(spot)),
+            AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, location, _timeManager.GetCurrentTimeBlock(), GetNPCCountAtSpot(spot)),
             QuickActions = new List<LocationActionViewModel>(),
             NPCsPresent = new List<NPCInteractionViewModel>(),
             Observations = new List<ObservationViewModel>(),
@@ -319,8 +291,7 @@ public class LocationFacade
 
     private ConnectionState GetNPCConnectionState(NPC npc)
     {
-        Console.WriteLine($"[LocationFacade.GetNPCConnectionState] Called for NPC: {npc?.Name ?? "null"}");
-        return SocialRules.DetermineInitialState(npc, _letterQueueManager);
+        return ConnectionState.NEUTRAL;
     }
 
     private InteractionOptionViewModel GenerateConversationInteraction(NPC npc, string conversationType, ConnectionState connectionState)
@@ -349,12 +320,7 @@ public class LocationFacade
 
     private string GetNPCDescription(NPC npc, ConnectionState state)
     {
-        DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
-        bool hasUrgentLetter = obligations.Any(o =>
-            (o.SenderId == npc.ID || o.SenderName == npc.Name) &&
-            o.DeadlineInSegments < 360);
-
-        string template = _dialogueGenerator.GenerateNPCDescription(npc, state, hasUrgentLetter);
+        string template = _dialogueGenerator.GenerateNPCDescription(npc, state);
         return _narrativeRenderer.RenderTemplate(template);
     }
 
@@ -443,30 +409,6 @@ public class LocationFacade
         }
 
         return routes;
-    }
-
-    private string GetNextDeadlineDisplay()
-    {
-        DeliveryObligation[] obligations = _letterQueueManager.GetActiveObligations();
-        if (obligations == null || !obligations.Any()) return "";
-
-        DeliveryObligation? mostUrgent = obligations
-            .Where(o => o != null)
-            .OrderBy(o => o.DeadlineInSegments)
-            .FirstOrDefault();
-
-        if (mostUrgent != null)
-        {
-            return $"⏰ {mostUrgent.SegmentsUntilDeadline}seg";
-        }
-
-        return "";
-    }
-
-    private int GetUrgentObligationCount()
-    {
-        return _letterQueueManager.GetActiveObligations()
-            .Count(o => o.DeadlineInSegments < 360);
     }
 
     private int GetNPCCountAtSpot(LocationSpot spot)
@@ -562,11 +504,11 @@ public class LocationFacade
 
                     // Notify player
                     _messageSystem.AddSystemMessage(
-                        $"Discovered observation: {reward.ObservationCard.Name}",
+                        $"Discovered observation: {reward.ObservationCard.Title}",
                         SystemMessageTypes.Success
                     );
 
-                    Console.WriteLine($"[LocationFacade] Granted observation card '{reward.ObservationCard.Name}' for reaching familiarity {level} at {location.Name}");
+                    Console.WriteLine($"[LocationFacade] Granted observation card '{reward.ObservationCard.Title}' for reaching familiarity {level} at {location.Name}");
                 }
             }
         }
@@ -575,44 +517,34 @@ public class LocationFacade
     /// <summary>
     /// Grant an observation card to the player by adding it to the target NPC's observation deck
     /// </summary>
-    private void GrantObservationCard(ObservationCardReward cardReward, Player player)
+    private void GrantObservationCard(ObservationCardReward card, Player player)
     {
         // Find the target NPC
-        NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == cardReward.TargetNpcId);
+        NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == card.TargetNpcId);
         if (targetNpc == null)
         {
-            Console.WriteLine($"[LocationFacade] Warning: Could not find target NPC '{cardReward.TargetNpcId}' for observation card");
+            Console.WriteLine($"[LocationFacade] Warning: Could not find target NPC '{card.TargetNpcId}' for observation card");
             return;
         }
 
         // Create the observation card
-        ObservationCard observationCard = new ObservationCard(cardReward.Id, cardReward.Name)
+        ObservationCard observationCard = new ObservationCard()
         {
+            Id = card.Id,
+            Title = card.Title,
             LocationDiscovered = player.CurrentLocationSpot?.LocationId ?? "Unknown",
-            ItemName = cardReward.Name,
-            ObservationId = cardReward.Id,
+            ItemName = card.Title,
+            ObservationId = card.Id,
             TimeDiscovered = _timeManager.GetCurrentTimeBlock().ToString(),
             TokenType = ConnectionType.None, // Default for observations
-            SuccessType = ParseSuccessType(cardReward.Effect),
-            DialogueText = cardReward.Description
+            SuccessType = ParseSuccessType(card.Effect),
+            DialogueText = card.Description
         };
 
-        // Initialize NPC's observation deck if needed
-        if (targetNpc.ObservationDeck == null)
-        {
-            targetNpc.ObservationDeck = new CardDeck();
-        }
-
         // Add the observation card to the NPC's observation deck
-        targetNpc.ObservationDeck.AddCard(observationCard);
+        targetNpc.ObservationDeck.Add(observationCard);
 
-        // Track that player has this observation
-        if (!player.CollectedObservations.Contains(cardReward.Id))
-        {
-            player.CollectedObservations.Add(cardReward.Id);
-        }
-
-        Console.WriteLine($"[LocationFacade] Added observation card '{cardReward.Name}' to {targetNpc.Name}'s observation deck");
+        Console.WriteLine($"[LocationFacade] Added observation card '{card.Title}' to {targetNpc.Name}'s observation deck");
     }
 
     /// <summary>

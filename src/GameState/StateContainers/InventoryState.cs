@@ -178,7 +178,7 @@ public sealed class InventoryState
     /// <summary>
     /// Check if there's enough space to add an item considering its size
     /// </summary>
-    public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport)
     {
         if (item == null) return false;
 
@@ -192,7 +192,7 @@ public sealed class InventoryState
     /// <summary>
     /// Get the maximum number of slots available (base capacity + transport bonuses)
     /// </summary>
-    public int GetMaxSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public int GetMaxSlots(ItemRepository itemRepository, TravelMethods? currentTransport)
     {
         // Base inventory: 5 slots as specified in UserStories.md
         int baseSlots = 5;
@@ -218,7 +218,7 @@ public sealed class InventoryState
     /// <summary>
     /// Get available slot space
     /// </summary>
-    public int GetAvailableSlots(ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public int GetAvailableSlots(ItemRepository itemRepository, TravelMethods? currentTransport)
     {
         return GetMaxSlots(itemRepository, currentTransport) - GetUsedSlots(itemRepository);
     }

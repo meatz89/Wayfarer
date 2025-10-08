@@ -23,7 +23,7 @@ public static class NPCParser
             ID = dto.Id,
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
-            Description = dto.Description ?? string.Empty, // Description is optional
+            Description = dto.Description, // Description is optional
             Location = dto.LocationId,
             SpotId = dto.SpotId,
             Tier = dto.Tier,
@@ -39,7 +39,7 @@ public static class NPCParser
         npc.Profession = MapProfessionFromJson(dto.Profession);
 
         // Parse personality - preserve authentic description and map to categorical type
-        npc.PersonalityDescription = dto.Personality ?? string.Empty; // Optional field
+        npc.PersonalityDescription = dto.Personality; // Optional field
 
         // Parse personalityType directly from DTO - NO FALLBACKS
         Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from DTO: '{dto.PersonalityType}'");
@@ -73,19 +73,6 @@ public static class NPCParser
 
         // Set default player relationship
         npc.PlayerRelationship = NPCRelationship.Neutral;
-
-        // Parse letter token types for letter queue system
-        if (dto.LetterTokenTypes != null)
-        {
-            foreach (string tokenTypeStr in dto.LetterTokenTypes)
-            {
-                ConnectionType? tokenType = ParseConnectionType(tokenTypeStr);
-                if (tokenType.HasValue && !npc.LetterTokenTypes.Contains(tokenType.Value))
-                {
-                    npc.LetterTokenTypes.Add(tokenType.Value);
-                }
-            }
-        }
 
         // Parse initial connection state and convert to flow value
         if (string.IsNullOrEmpty(dto.CurrentState))
@@ -131,14 +118,14 @@ public static class NPCParser
                     throw new InvalidOperationException($"NPCRequest '{requestDto.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
                 }
 
-                NPCRequest request = new NPCRequest
+                GoalCard request = new GoalCard
                 {
                     Id = requestDto.Id,
                     Name = requestDto.Name,
                     Description = requestDto.Description,
                     SystemType = TacticalSystemType.Social,  // NPCRequests default to Social system
                     ChallengeTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new ChallengeTypeId
-                    Status = RequestStatus.Available
+                    Status = GoalStatus.Available
                 };
 
                 // Parse tiered goals if present
@@ -146,16 +133,16 @@ public static class NPCParser
                 {
                     foreach (NPCRequestGoalDTO goalDto in requestDto.Goals)
                     {
-                        // CRITICAL: CardId is REQUIRED - goals reference existing cards from 02_cards.json
+                        // CRITICAL: CardId is REQUIRED - goals reference existing cards from _cards.json
                         if (string.IsNullOrEmpty(goalDto.CardId))
                         {
-                            throw new InvalidOperationException($"Goal '{goalDto.Id}' in request '{request.Id}' has no cardId defined in JSON. All goals must reference a card from 02_cards.json.");
+                            throw new InvalidOperationException($"Goal '{goalDto.Id}' in request '{request.Id}' has no cardId defined in JSON. All goals must reference a card from _cards.json.");
                         }
 
                         NPCRequestGoal goal = new NPCRequestGoal
                         {
                             Id = goalDto.Id,
-                            CardId = goalDto.CardId, // Reference to card in 02_cards.json
+                            CardId = goalDto.CardId, // Reference to card in _cards.json
                             Name = goalDto.Name,
                             Description = goalDto.Description,
                             MomentumThreshold = goalDto.MomentumThreshold,
@@ -264,8 +251,4 @@ public static class NPCParser
             _ => null
         };
     }
-
-    // REMOVED: ParseActiveLetter violates deck-based architecture
-    // Letters are now handled as request cards in the Request deck
-
 }

@@ -71,7 +71,18 @@ public class ExchangeSession
     /// <summary>
     /// Alias for StartedAt for backward compatibility.
     /// </summary>
-    public DateTime StartTime { get => StartedAt; set => StartedAt = value; }
+    public DateTime StartTime
+    {
+        get
+        {
+            return StartedAt;
+        }
+
+        set
+        {
+            StartedAt = value;
+        }
+    }
 
     /// <summary>
     /// Timestamp when the session ended (if ended).
@@ -140,7 +151,7 @@ public class ExchangeSession
         }
 
         // Clear active exchange
-        ActiveExchangeId = null;
+        ActiveExchangeId = "";
         CurrentPhase = ExchangePhase.Browsing;
     }
 

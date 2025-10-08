@@ -7,6 +7,7 @@ public class ExchangeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string NpcId { get; set; }
     public string GiveCurrency { get; set; }
     public int GiveAmount { get; set; }
     public string ReceiveCurrency { get; set; }

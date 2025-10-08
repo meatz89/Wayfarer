@@ -10,17 +10,17 @@ public class LocationAction
     /// <summary>
     /// Unique identifier for this action
     /// </summary>
-    public string Id { get; set; } = "";
+    public string Id { get; set; }
 
     /// <summary>
     /// Display name shown to the player
     /// </summary>
-    public string Name { get; set; } = "";
+    public string Name { get; set; }
 
     /// <summary>
     /// Detailed description of what this action does
     /// </summary>
-    public string Description { get; set; } = "";
+    public string Description { get; set; }
 
     /// <summary>
     /// Required spot properties for this action to be available.
@@ -61,11 +61,6 @@ public class LocationAction
     public List<string> Availability { get; set; } = new List<string>();
 
     /// <summary>
-    /// Icon to display for this action (optional)
-    /// </summary>
-    public string Icon { get; set; } = "💼";
-
-    /// <summary>
     /// Priority for sorting when multiple actions match (lower = higher priority)
     /// </summary>
     public int Priority { get; set; } = 100;
@@ -73,12 +68,12 @@ public class LocationAction
     /// <summary>
     /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
     /// </summary>
-    public string ActionType { get; set; } = "";
-    
+    public string ActionType { get; set; }
+
     /// <summary>
     /// Engagement type for tactical system integration (Mental, Physical, Social, Conversation)
     /// </summary>
-    public string EngagementType { get; set; } = "";
+    public string EngagementType { get; set; }
 
     /// <summary>
     /// Investigation ID if this action launches an investigation (V2)

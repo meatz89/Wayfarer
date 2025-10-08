@@ -39,7 +39,7 @@ public class InvestigationJournal
 public class ActiveInvestigation
 {
     public string InvestigationId { get; set; }
-    
+
     /// <summary>
     /// IDs of goals that have been completed for this investigation
     /// Used to calculate progress (X/Y completed) for journal display

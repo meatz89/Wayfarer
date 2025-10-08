@@ -33,14 +33,37 @@ public class MentalFacade
         _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
 
-    public MentalSession GetCurrentSession() => _currentSession;
-    public bool IsSessionActive() => _currentSession != null;
-    public List<CardInstance> GetHand() => _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
-    public MentalDeckBuilder GetDeckBuilder() => _deckBuilder;
-    public int GetDeckCount() => _sessionDeck?.RemainingDeckCards ?? 0;
-    public int GetDiscardCount() => _sessionDeck?.PlayedCards.Count ?? 0;
+    public MentalSession GetCurrentSession()
+    {
+        return _currentSession;
+    }
 
-    public MentalSession StartSession(MentalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId = null, string investigationId = null)
+    public bool IsSessionActive()
+    {
+        return _currentSession != null;
+    }
+
+    public List<CardInstance> GetHand()
+    {
+        return _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
+    }
+
+    public MentalDeckBuilder GetDeckBuilder()
+    {
+        return _deckBuilder;
+    }
+
+    public int GetDeckCount()
+    {
+        return _sessionDeck?.RemainingDeckCards ?? 0;
+    }
+
+    public int GetDiscardCount()
+    {
+        return _sessionDeck?.PlayedCards.Count ?? 0;
+    }
+
+    public MentalSession StartSession(MentalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId, string investigationId)
     {
         if (IsSessionActive())
         {
@@ -76,8 +99,7 @@ public class MentalFacade
             CurrentProgress = 0,
             CurrentExposure = baseExposure, // Start with persisted exposure from location
             MaxExposure = engagement.DangerThreshold,
-            VictoryThreshold = engagement.VictoryThreshold,
-            ObserveActBalance = 0
+            VictoryThreshold = engagement.VictoryThreshold
         };
 
         // Use MentalSessionDeck with Pile abstraction
@@ -228,12 +250,6 @@ public class MentalFacade
         if (projection.ExposureChange != 0)
         {
             session.CurrentExposure += projection.ExposureChange;
-        }
-
-        // Balance resource
-        if (projection.BalanceChange != 0)
-        {
-            session.ObserveActBalance += projection.BalanceChange;
         }
 
         // Persistent progress: Understanding

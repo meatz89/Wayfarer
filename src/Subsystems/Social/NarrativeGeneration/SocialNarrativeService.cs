@@ -171,12 +171,12 @@ public class SocialNarrativeService
         // Generate basic card narratives
         foreach (CardInstance card in activeCards)
         {
-            string basicNarrative = card.ConversationCardTemplate.InitiativeCost <= 1 ? "Say something carefully" :
-                                   card.ConversationCardTemplate.InitiativeCost >= 3 ? "Speak boldly" :
+            string basicNarrative = card.SocialCardTemplate.InitiativeCost <= 1 ? "Say something carefully" :
+                                   card.SocialCardTemplate.InitiativeCost >= 3 ? "Speak boldly" :
                                    "Continue the conversation";
             fallback.CardNarratives.Add(new CardNarrative
             {
-                CardId = card.ConversationCardTemplate.Id,
+                CardId = card.SocialCardTemplate.Id,
                 NarrativeText = basicNarrative,
                 ProviderSource = NarrativeProviderType.JsonFallback
             });
@@ -234,7 +234,7 @@ public class SocialNarrativeService
                 // Speak turns - show what card was played
                 if (turn.CardPlayed != null)
                 {
-                    string cardDescription = turn.CardPlayed.ConversationCardTemplate.Title ?? turn.CardPlayed.ConversationCardTemplate.Id;
+                    string cardDescription = turn.CardPlayed.SocialCardTemplate.Title ?? turn.CardPlayed.SocialCardTemplate.Id;
                     history.Add($"Player: {cardDescription}");
 
                     // Also include NPC's response if available
@@ -291,9 +291,9 @@ public class SocialNarrativeService
         {
             CardInfo cardInfo = new CardInfo
             {
-                Id = card.ConversationCardTemplate.Id,
-                InitiativeCost = card.ConversationCardTemplate.InitiativeCost,
-                Effect = card.ConversationCardTemplate.SuccessType.ToString() ?? card.ConversationCardTemplate.Title ?? "",
+                Id = card.SocialCardTemplate.Id,
+                InitiativeCost = card.SocialCardTemplate.InitiativeCost,
+                Effect = card.SocialCardTemplate.SuccessType.ToString() ?? card.SocialCardTemplate.Title ?? "",
                 Persistence = DetermineCardPersistence(card),
                 NarrativeCategory = DetermineNarrativeCategory(card)
             };
@@ -368,7 +368,7 @@ public class SocialNarrativeService
     private string DetermineNarrativeCategory(CardInstance card)
     {
         // Check for atmosphere effects (indicates risk/pressure cards)
-        if (card.ConversationCardTemplate.SuccessType == SuccessEffectType.None)
+        if (card.SocialCardTemplate.SuccessType == SuccessEffectType.None)
         {
             return "atmosphere_change";
         }
@@ -381,13 +381,13 @@ public class SocialNarrativeService
             return "pressure";
 
         // Token type indicates support/connection building
-        if (card.ConversationCardTemplate.TokenType == ConnectionType.Trust)
+        if (card.SocialCardTemplate.TokenType == ConnectionType.Trust)
             return "support_trust";
-        if (card.ConversationCardTemplate.TokenType == ConnectionType.Diplomacy)
+        if (card.SocialCardTemplate.TokenType == ConnectionType.Diplomacy)
             return "support_diplomacy";
-        if (card.ConversationCardTemplate.TokenType == ConnectionType.Status)
+        if (card.SocialCardTemplate.TokenType == ConnectionType.Status)
             return "support_status";
-        if (card.ConversationCardTemplate.TokenType == ConnectionType.Shadow)
+        if (card.SocialCardTemplate.TokenType == ConnectionType.Shadow)
             return "support_shadow";
 
         // Default

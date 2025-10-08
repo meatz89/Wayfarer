@@ -94,7 +94,7 @@ public class ExchangeHandler
             return exchanges;
 
         // Get current location and time for availability check
-        string currentLocationId = spotDomainTags?.FirstOrDefault() ?? string.Empty;
+        string currentLocationId = spotDomainTags?.FirstOrDefault();
         TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         foreach (ExchangeCard card in npc.ExchangeDeck)

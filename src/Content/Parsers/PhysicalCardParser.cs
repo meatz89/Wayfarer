@@ -19,15 +19,15 @@ public class PhysicalCardParser
         MethodType methodType = ParseMethodType(dto.MethodType);
 
         // PARSER CATALOG INTEGRATION: Auto-derive values from categorical properties if not specified in JSON
-        int positionCost = dto.PositionCost > 0
-            ? dto.PositionCost
-            : PhysicalCardEffectCatalog.GetPositionCostFromDepth(dto.Depth);
+        int exertionCost = dto.ExertionCost > 0
+            ? dto.ExertionCost
+            : PhysicalCardEffectCatalog.GetExertionCostFromDepth(dto.Depth);
 
         // Parse simple requirement properties (NOT objects)
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
         if (dto.Requirements?.Stats != null)
         {
-            foreach (var kvp in dto.Requirements.Stats)
+            foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
             {
                 if (Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
                 {
@@ -47,10 +47,9 @@ public class PhysicalCardParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            CardType = CardType.Physical,
             Depth = dto.Depth,
             BoundStat = ParseStat(dto.BoundStat),
-            PositionCost = positionCost,
+            ExertionCost = exertionCost,
             Approach = approach,
             Category = category,
             Discipline = discipline,

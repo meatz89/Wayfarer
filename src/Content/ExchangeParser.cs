@@ -11,7 +11,7 @@ public static class ExchangeParser
     /// <summary>
     /// Parse a single ExchangeDTO into an ExchangeCard
     /// </summary>
-    public static ExchangeCard ParseExchange(ExchangeDTO dto, string npcId = null)
+    public static ExchangeCard ParseExchange(ExchangeDTO dto, string npcId)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
@@ -21,7 +21,7 @@ public static class ExchangeParser
             Id = dto.Id,
             Name = dto.Name ?? $"Exchange {dto.Id}",
             Description = GenerateDescription(dto),
-            NpcId = npcId ?? string.Empty,
+            NpcId = npcId,
 
             // Default to trade type
             ExchangeType = dto.GiveCurrency == "coins" ? ExchangeType.Purchase : ExchangeType.Trade,

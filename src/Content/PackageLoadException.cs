@@ -52,7 +52,7 @@ public class PackageLoadException : Exception
         string entityType,
         string referencingEntity,
         string missingDependency,
-        string suggestion = null)
+        string suggestion)
     {
         PackageLoadException exception = new PackageLoadException(
             $"[{packageId}] {entityType} '{referencingEntity}' references missing {missingDependency}")

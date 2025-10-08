@@ -45,7 +45,7 @@ public class TransportCompatibilityValidator
             }
         }
 
-        return TransportCompatibilityResult.Allowed();
+        return TransportCompatibilityResult.Allowed(new List<string>());
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class TransportCompatibilityValidator
                 break;
         }
 
-        return TransportCompatibilityResult.Allowed();
+        return TransportCompatibilityResult.Allowed(new List<string>());
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class TransportCompatibilityValidator
         if (!equipmentResult.IsCompatible)
             return equipmentResult;
 
-        return TransportCompatibilityResult.Allowed();
+        return TransportCompatibilityResult.Allowed(new List<string>());
     }
 
     /// <summary>
@@ -152,20 +152,20 @@ public class TransportCompatibilityResult
     public string BlockingReason { get; private set; }
     public List<string> Warnings { get; private set; }
 
-    private TransportCompatibilityResult(bool isCompatible, string blockingReason = "", List<string> warnings = null)
+    private TransportCompatibilityResult(bool isCompatible, string blockingReason, List<string> warnings)
     {
         IsCompatible = isCompatible;
         BlockingReason = blockingReason;
         Warnings = warnings ?? new List<string>();
     }
 
-    public static TransportCompatibilityResult Allowed(List<string> warnings = null)
+    public static TransportCompatibilityResult Allowed(List<string> warnings)
     {
         return new TransportCompatibilityResult(true, "", warnings);
     }
 
     public static TransportCompatibilityResult Blocked(string reason)
     {
-        return new TransportCompatibilityResult(false, reason);
+        return new TransportCompatibilityResult(false, reason, new List<string>());
     }
 }

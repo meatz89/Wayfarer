@@ -71,12 +71,6 @@ public class ItemValidator : BaseValidator
             }
         }
 
-        // Validate numeric fields
-        ValidateNumericField(item, "focus", itemId, fileName, errors, min: 0);
-        ValidateNumericField(item, "buyPrice", itemId, fileName, errors, min: 0);
-        ValidateNumericField(item, "sellPrice", itemId, fileName, errors, min: 0);
-        ValidateNumericField(item, "inventorySlots", itemId, fileName, errors, min: 1);
-
         // Validate categories
         if (TryGetPropertyCaseInsensitive(item, "categories", out JsonElement categories) ||
             TryGetPropertyCaseInsensitive(item, "itemCategories", out categories))

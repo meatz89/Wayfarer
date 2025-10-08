@@ -15,24 +15,14 @@ public class NPCDTO
     public string Personality { get; set; }
     public string PersonalityType { get; set; }
     public List<string> Services { get; set; } = new List<string>();
-    public List<string> LetterTokenTypes { get; set; } = new List<string>();
     public string Role { get; set; }
     public string AvailabilitySchedule { get; set; }
     public int Tier { get; set; }
     public int Level { get; set; } = 1; // Level 1-5 for difficulty/content progression and XP scaling
     public int ConversationDifficulty { get; set; } = 1; // Level 1-3 for XP multipliers
 
-    // REMOVED: Boolean flags violate deck-based architecture
-    // Letters are detected by checking Request deck contents
-    // Burden history detected by counting burden cards in burden deck
-
-    // Properties from JSON that weren't being parsed
     public string CurrentState { get; set; }
     public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
 
-    // One-time requests with multiple cards at different rapport thresholds
     public List<NPCRequestDTO> Requests { get; set; } = new List<NPCRequestDTO>();
 }
-
-// REMOVED: Letter DTOs violate deck-based architecture
-// Letters are now handled as request cards in the Request deck

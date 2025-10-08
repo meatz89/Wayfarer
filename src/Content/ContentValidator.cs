@@ -23,8 +23,6 @@
             }
         }
 
-        // Actions removed - using letter queue system
-
         foreach (Location location in _worldState.locations)
         {
             if (location.ConnectedLocationIds != null)

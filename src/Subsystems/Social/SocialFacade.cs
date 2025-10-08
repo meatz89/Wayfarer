@@ -1,5 +1,3 @@
-
-
 /// <summary>
 /// Public API for the Conversation subsystem.
 /// Handles all conversation operations with functionality absorbed from ConversationOrchestrator and CardDeckManager.
@@ -14,12 +12,10 @@ public class SocialFacade
     private readonly SocialChallengeDeckBuilder _deckBuilder;
 
     // External dependencies
-    private readonly ObligationQueueManager _queueManager;
     private readonly ObservationManager _observationManager;
     private readonly TimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
-    private readonly DisplacementCalculator _displacementCalculator;
     private readonly KnowledgeService _knowledgeService;
     private readonly InvestigationActivity _investigationActivity;
 
@@ -34,12 +30,10 @@ public class SocialFacade
         SocialEffectResolver effectResolver,
         SocialNarrativeService narrativeService,
         SocialChallengeDeckBuilder deckBuilder,
-        ObligationQueueManager queueManager,
         ObservationManager observationManager,
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        DisplacementCalculator displacementCalculator,
         KnowledgeService knowledgeService,
         InvestigationActivity investigationActivity)
     {
@@ -49,12 +43,10 @@ public class SocialFacade
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
-        _queueManager = queueManager ?? throw new ArgumentNullException(nameof(queueManager));
         _observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _displacementCalculator = displacementCalculator ?? throw new ArgumentNullException(nameof(displacementCalculator));
         _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
         _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
@@ -62,7 +54,7 @@ public class SocialFacade
     /// <summary>
     /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public SocialSession StartConversation(string npcId, string requestId, List<CardInstance> observationCards = null)
+    public SocialSession StartConversation(string npcId, string requestId)
     {
         if (IsConversationActive())
         {
@@ -77,7 +69,7 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation
-        NPCRequest request = npc.GetRequestById(requestId);
+        GoalCard request = npc.GetRequestById(requestId);
         if (request == null)
         {
             throw new ArgumentException($"Request {requestId} not found for NPC {npc.Name}");
@@ -95,7 +87,7 @@ public class SocialFacade
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
         // Create session deck and get request cards from the request
-        (SessionCardDeck deck, List<CardInstance> requestCards) = _deckBuilder.CreateConversationDeck(npc, requestId, observationCards);
+        (SocialSessionCardDeck deck, List<CardInstance> GoalCards) = _deckBuilder.CreateConversationDeck(npc, requestId, observationCards);
 
         // Initialize momentum manager for this conversation with token data
         _momentumManager.InitializeForConversation(npcTokens);
@@ -133,7 +125,6 @@ public class SocialFacade
             TokenManager = _tokenManager,
             MomentumManager = _momentumManager,
             PersonalityEnforcer = _personalityEnforcer,  // Add personality enforcer to session
-            ObservationCards = observationCards ?? new List<CardInstance>(),
             RequestText = requestText // Set request text for Request conversations
         };
 
@@ -152,7 +143,7 @@ public class SocialFacade
         _currentSession.Deck.DrawToHand(drawCount, _currentSession, player.Stats);
 
         // Update request card playability based on initiative
-        UpdateRequestCardPlayability(_currentSession);
+        UpdateGoalCardPlayability(_currentSession);
 
         // Update card playability based on starting initiative (already set from formula)
         UpdateCardPlayabilityBasedOnInitiative(_currentSession);
@@ -202,7 +193,7 @@ public class SocialFacade
         }
 
         _currentSession.Deck.ResetForNewConversation();
-        _currentSession = null;
+        _currentSession;
 
         return _lastOutcome;
     }
@@ -354,18 +345,18 @@ public class SocialFacade
 
         // 7. Grant XP to player stat (unchanged)
         Player player = _gameWorld.GetPlayer();
-        if (selectedCard.ConversationCardTemplate.BoundStat.HasValue)
+        if (selectedCard.SocialCardTemplate.BoundStat.HasValue)
         {
             int xpAmount = CalculateXPAmount(_currentSession);
-            player.Stats.AddXP(selectedCard.ConversationCardTemplate.BoundStat.Value, xpAmount);
+            player.Stats.AddXP(selectedCard.SocialCardTemplate.BoundStat.Value, xpAmount);
         }
 
         // 7b. Grant Knowledge and Secrets (V2 Investigation System)
-        foreach (string knowledge in selectedCard.ConversationCardTemplate.KnowledgeGranted)
+        foreach (string knowledge in selectedCard.SocialCardTemplate.KnowledgeGranted)
         {
             _knowledgeService.GrantKnowledge(knowledge);
         }
-        foreach (string secret in selectedCard.ConversationCardTemplate.SecretsGranted)
+        foreach (string secret in selectedCard.SocialCardTemplate.SecretsGranted)
         {
             player.Knowledge.AddSecret(secret);
         }
@@ -377,10 +368,10 @@ public class SocialFacade
         ProcessCardAfterPlay(selectedCard, success, _currentSession);
 
         // 9b. Increment Statement counter if this is a Statement card
-        if (selectedCard.ConversationCardTemplate.Persistence == PersistenceType.Statement
-            && selectedCard.ConversationCardTemplate.BoundStat.HasValue)
+        if (selectedCard.SocialCardTemplate.Persistence == PersistenceType.Statement
+            && selectedCard.SocialCardTemplate.BoundStat.HasValue)
         {
-            _currentSession.IncrementStatementCount(selectedCard.ConversationCardTemplate.BoundStat.Value);
+            _currentSession.IncrementStatementCount(selectedCard.SocialCardTemplate.BoundStat.Value);
         }
 
         // 10. Update card playability based on new Initiative level
@@ -439,28 +430,20 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost
-        NPCRequest request = npc.GetRequestById(requestId);
+        GoalCard request = npc.GetRequestById(requestId);
         if (request == null)
         {
             return SocialContextFactory.CreateInvalidContext($"Request {requestId} not found");
         }
 
-
-        // Get observation cards from the specific NPC's deck
-        // ARCHITECTURE: Each NPC maintains their own observation deck
-        // This ensures observations are contextually relevant to conversations
-        List<SocialCard> observationCardsTemplates = _observationManager.GetObservationCardsAsConversationCards(npcId);
-        List<CardInstance> observationCards = observationCardsTemplates.Select(card => new CardInstance(card, "observation")).ToList();
-
         // Start conversation with the request
-        SocialSession session = StartConversation(npcId, requestId, observationCards);
+        SocialSession session = StartConversation(npcId, requestId);
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
             request.ChallengeTypeId,
             npc,
             session,
-            observationCards,
             ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
             _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
@@ -497,10 +480,10 @@ public class SocialFacade
         // Get one-time requests as conversation options
         if (npc.Requests != null && npc.Requests.Count > 0)
         {
-            List<NPCRequest> availableRequests = npc.GetAvailableRequests();
+            List<GoalCard> availableRequests = npc.GetAvailableRequests();
 
             // Add each available request as a conversation option
-            foreach (NPCRequest request in availableRequests)
+            foreach (GoalCard request in availableRequests)
             {
                 // CRITICAL: All requests MUST have valid conversation types defined in JSON
                 if (string.IsNullOrEmpty(request.ChallengeTypeId))
@@ -523,30 +506,6 @@ public class SocialFacade
                     Description = request.Description,
                     TokenType = ConnectionType.Trust, // Default token type
                     MomentumThreshold = 0, // Will check individual card thresholds
-                    CardType = CardType.Promise
-                });
-            }
-        }
-
-        // DELIVERY: Check if player has letter for this NPC in obligation queue
-        if (_queueManager != null)
-        {
-            DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
-            bool hasLetterForNpc = activeObligations.Any(o =>
-                o != null && (o.RecipientId == npc.ID || o.RecipientName == npc.Description));
-
-            if (hasLetterForNpc)
-            {
-                // Delivery doesn't need a goal card from RequestDeck
-                options.Add(new SocialChallengeOption
-                {
-                    ChallengeTypeId = "delivery",
-                    GoalCardId = null,
-                    DisplayName = "Deliver Letter",
-                    Description = "Deliver a letter from your queue",
-                    TokenType = ConnectionType.None,
-                    MomentumThreshold = 0,
-                    CardType = CardType.Request
                 });
             }
         }
@@ -557,13 +516,13 @@ public class SocialFacade
     /// <summary>
     /// Get available requests for an NPC that can be started as conversations
     /// </summary>
-    public List<NPCRequest> GetAvailableRequests(NPC npc)
+    public List<GoalCard> GetAvailableRequests(NPC npc)
     {
-        List<NPCRequest> available = new List<NPCRequest>();
+        List<GoalCard> available = new List<GoalCard>();
 
 
         // Get all available requests from the NPC
-        foreach (NPCRequest request in npc.Requests)
+        foreach (GoalCard request in npc.Requests)
         {
             if (request.IsAvailable())
             {
@@ -601,7 +560,7 @@ public class SocialFacade
 
         // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
+        if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -691,7 +650,7 @@ public class SocialFacade
         int actionBalance = +1; // SPEAK action always +1
 
         // 2. Delivery-based balance (card property)
-        int deliveryBalance = card.ConversationCardTemplate.Delivery switch
+        int deliveryBalance = card.SocialCardTemplate.Delivery switch
         {
             DeliveryType.Yielding => -1,
             DeliveryType.Measured => 0,
@@ -704,7 +663,7 @@ public class SocialFacade
         int totalCadenceChange = actionBalance + deliveryBalance;
 
         session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);
-        Console.WriteLine($"[ConversationFacade] SPEAK action (+{actionBalance}) + Delivery {card.ConversationCardTemplate.Delivery} ({(deliveryBalance >= 0 ? "+" : "")}{deliveryBalance}) = Cadence {(totalCadenceChange >= 0 ? "+" : "")}{totalCadenceChange} → {session.Cadence}");
+        Console.WriteLine($"[ConversationFacade] SPEAK action (+{actionBalance}) + Delivery {card.SocialCardTemplate.Delivery} ({(deliveryBalance >= 0 ? "+" : "")}{deliveryBalance}) = Cadence {(totalCadenceChange >= 0 ? "+" : "")}{totalCadenceChange} → {session.Cadence}");
     }
 
     /// <summary>
@@ -794,7 +753,7 @@ public class SocialFacade
         foreach (CardInstance card in activatedCards)
         {
             _messageSystem.AddSystemMessage(
-                $"{card.ConversationCardTemplate.Title} is now available (Momentum threshold met)",
+                $"{card.SocialCardTemplate.Title} is now available (Momentum threshold met)",
                 SystemMessageTypes.Success);
         }
     }
@@ -822,7 +781,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request cards - their playability is based on momentum thresholds
-            if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
+            if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
             {
                 continue;
             }
@@ -832,7 +791,7 @@ public class SocialFacade
             bool canAffordInitiative = currentInitiative >= initiativeCost;
 
             // Check if Statement requirements are met
-            bool meetsStatementRequirements = card.ConversationCardTemplate.MeetsStatementRequirements(session);
+            bool meetsStatementRequirements = card.SocialCardTemplate.MeetsStatementRequirements(session);
 
             // Card is playable if BOTH conditions are met
             card.IsPlayable = canAffordInitiative && meetsStatementRequirements;
@@ -844,7 +803,7 @@ public class SocialFacade
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        return card.ConversationCardTemplate?.InitiativeCost ?? 0;
+        return card.SocialCardTemplate?.InitiativeCost ?? 0;
     }
 
     /// <summary>
@@ -890,9 +849,9 @@ public class SocialFacade
         }
 
         // Check if card ends conversation (Request, Promise, Burden cards)
-        bool endsConversation = selectedCard.ConversationCardTemplate.CardType == CardType.Request ||
-                                selectedCard.ConversationCardTemplate.CardType == CardType.Promise ||
-                                selectedCard.ConversationCardTemplate.CardType == CardType.Burden;
+        bool endsConversation = selectedCard.SocialCardTemplate.IsGoalCard == CardType.Request ||
+                                selectedCard.SocialCardTemplate.IsGoalCard == CardType.Promise ||
+                                selectedCard.SocialCardTemplate.IsGoalCard == CardType.Burden;
 
         // Create play result
         return new CardPlayResult
@@ -1050,9 +1009,9 @@ public class SocialFacade
         if (session.TurnHistory != null && session.TurnHistory.Any())
         {
             SocialTurn lastTurn = session.TurnHistory.Last();
-            if (lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Request ||
-                lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Promise ||
-                lastTurn?.CardPlayed?.ConversationCardTemplate?.CardType == CardType.Burden)
+            if (lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Request ||
+                lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Promise ||
+                lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Burden)
             {
                 return true;
             }
@@ -1099,9 +1058,9 @@ public class SocialFacade
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
         bool requestAchieved = session.Deck.SpokenCards.Any(c =>
-            c.ConversationCardTemplate.CardType == CardType.Request ||
-            c.ConversationCardTemplate.CardType == CardType.Promise ||
-            c.ConversationCardTemplate.CardType == CardType.Request);
+            c.SocialCardTemplate.IsGoalCard == CardType.Request ||
+            c.SocialCardTemplate.IsGoalCard == CardType.Promise ||
+            c.SocialCardTemplate.IsGoalCard == CardType.Request);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1144,101 +1103,6 @@ public class SocialFacade
 
         return Math.Max(0, baseReward);
     }
-
-    /// <summary>
-    /// Check if letter should be generated (based on positive outcomes)
-    /// </summary>
-    private bool ShouldGenerateLetter(SocialSession session)
-    {
-        if (session.LetterGenerated)
-            return false;
-
-        // Generate letters from positive connections
-        return session.CurrentState == ConnectionState.TRUSTING ||
-               (session.CurrentState == ConnectionState.RECEPTIVE && session.CurrentMomentum > 5);
-    }
-
-    /// <summary>
-    /// Create a letter obligation from successful conversation
-    /// </summary>
-    private DeliveryObligation CreateLetterObligation(SocialSession session)
-    {
-        int stateValue = (int)session.CurrentState; // Use state as base value
-        int momentumBonus = Math.Max(0, session.CurrentMomentum / 5); // Convert momentum to bonus
-        int cadenceBonus = Math.Max(0, -session.Cadence / 2); // Negative cadence (good listening) provides bonus
-
-        // Calculate deadline and payment based on relationship quality (segment-based)
-        int baseSegments = 12; // ~12 segments base (3/4 of day)
-        int deadlineInSegments = Math.Max(2, baseSegments - (stateValue * 2) - (cadenceBonus * 1));
-        int payment = 5 + stateValue + cadenceBonus;
-
-        // Determine tier and focus
-        TierLevel tier = stateValue >= 4 ? TierLevel.T3 :
-                        stateValue >= 2 ? TierLevel.T2 : TierLevel.T1;
-
-        EmotionalFocus focus = deadlineInSegments <= 3 ? EmotionalFocus.CRITICAL :
-                                deadlineInSegments <= 6 ? EmotionalFocus.HIGH :
-                                deadlineInSegments <= 12 ? EmotionalFocus.MEDIUM :
-                                EmotionalFocus.LOW;
-
-        // Find recipient (deterministic - first available NPC)
-        List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != session.NPC.ID).ToList();
-        NPC recipient = otherNpcs.FirstOrDefault();
-        if (recipient == null)
-        {
-            Console.WriteLine($"ERROR: No suitable recipient found for letter from {session.NPC.Name} - only {_gameWorld.NPCs.Count} NPCs available");
-            throw new InvalidOperationException($"Cannot create letter - no other NPCs available as recipients (sender: {session.NPC.Name})");
-        }
-
-        return new DeliveryObligation
-        {
-            Id = Guid.NewGuid().ToString(),
-            SenderId = session.NPC.ID,
-            SenderName = session.NPC.Name,
-            RecipientId = recipient.ID,
-            RecipientName = recipient.Name,
-            TokenType = ConnectionType.Trust,
-            Stakes = StakeType.SAFETY,
-            DeadlineInSegments = deadlineInSegments,
-            Payment = payment,
-            Tier = tier,
-            EmotionalFocus = focus,
-            Description = $"Letter from {session.NPC.Name} (State: {session.CurrentState}, Momentum: {session.CurrentMomentum})"
-        };
-    }
-
-    /// <summary>
-    /// Create an urgent letter from an NPC in distress
-    /// </summary>
-    private DeliveryObligation CreateUrgentLetter(NPC npc)
-    {
-        // Find a suitable recipient (family member, friend, etc.)
-        List<NPC> allNpcs = _gameWorld.GetAllNPCs();
-        NPC recipient = allNpcs.FirstOrDefault(n => n.ID != npc.ID);
-        if (recipient == null)
-        {
-            Console.WriteLine($"ERROR: No suitable recipient found for urgent letter from {npc.Name} - only {allNpcs.Count} NPCs available");
-            throw new InvalidOperationException($"Cannot create urgent letter - no other NPCs available as recipients (sender: {npc.Name})");
-        }
-
-        return new DeliveryObligation
-        {
-            Id = Guid.NewGuid().ToString(),
-            Title = $"Urgent Letter from {npc.Name}",
-            SenderId = npc.ID,
-            SenderName = npc.Name,
-            RecipientId = recipient.ID,
-            RecipientName = recipient.Name,
-            TokenType = ConnectionType.Trust,
-            Stakes = StakeType.SAFETY,
-            DeadlineInSegments = 8, // 8 segments for urgent letters
-            Payment = 15, // Higher payment for urgent delivery
-            Tier = (TierLevel)npc.Tier,
-            EmotionalFocus = EmotionalFocus.HIGH, // High emotional focus for urgency
-            Description = $"Urgent letter from {npc.Name} - they disconnectedly need help!"
-        };
-    }
-
 
     /// <summary>
     /// Determine the connection type based on the conversation type and outcome
@@ -1292,118 +1156,6 @@ public class SocialFacade
 
 
     /// <summary>
-    /// Handle Promise card queue manipulation - moves target obligation to position 1
-    /// and burns tokens with all displaced NPCs
-    /// </summary>
-    private void HandlePromiseCardQueueManipulation(CardInstance promiseCard, SocialSession session)
-    {
-        // Promise cards manipulate the queue mid-conversation
-        // They force a specific obligation to position 1, burning tokens with displaced NPCs
-
-        if (_displacementCalculator == null || _queueManager == null)
-        {
-            Console.WriteLine("[ConversationFacade] Cannot manipulate queue - displacement or queue manager not available");
-            return;
-        }
-
-        // Find the target obligation for this promise card
-        // Promise cards are typically associated with a specific NPC's request
-        DeliveryObligation targetObligation = FindTargetObligationForPromise(promiseCard, session);
-
-        if (targetObligation == null)
-        {
-            Console.WriteLine("[ConversationFacade] No target obligation found for promise card");
-            return;
-        }
-
-        // Calculate the current position of the target obligation
-        int currentPosition = GetObligationPosition(targetObligation);
-
-        if (currentPosition <= 0)
-        {
-            Console.WriteLine("[ConversationFacade] Target obligation not in queue");
-            return;
-        }
-
-        if (currentPosition == 1)
-        {
-            Console.WriteLine("[ConversationFacade] Obligation already at position 1, no displacement needed");
-            return;
-        }
-
-        // Execute automatic displacement to position 1
-        string displacementReason = $"Promise made to {session.NPC?.Name ?? "unknown"} - immediate action guaranteed";
-        DisplacementResult result = _displacementCalculator.ExecuteAutomaticDisplacement(
-            targetObligation,
-            1, // Force to position 1
-            displacementReason
-        );
-
-        if (result.CanExecute)
-        {
-            _messageSystem.AddSystemMessage(
-                $"💫 Your promise to {session.NPC?.Name} moves their letter to the front of the queue!",
-                SystemMessageTypes.Success
-            );
-
-            // The displacement calculator already handled token burning and burden cards
-            Console.WriteLine($"[ConversationFacade] Promise card successfully moved obligation to position 1");
-        }
-        else
-        {
-            Console.WriteLine($"[ConversationFacade] Failed to execute promise displacement: {result.ErrorMessage}");
-        }
-    }
-
-    /// <summary>
-    /// Find the target obligation for a promise card
-    /// </summary>
-    private DeliveryObligation FindTargetObligationForPromise(CardInstance promiseCard, SocialSession session)
-    {
-        // Promise cards are associated with the NPC in the current conversation
-        // Find an obligation from this NPC in the queue
-
-        if (session.NPC == null || _queueManager == null)
-            return null;
-
-        DeliveryObligation[] activeObligations = _queueManager.GetActiveObligations();
-
-        // Look for an obligation from the current NPC
-        // Priority: obligations where this NPC is the sender
-        DeliveryObligation targetObligation = activeObligations.FirstOrDefault(o =>
-            o != null && (o.SenderId == session.NPC.ID || o.SenderName == session.NPC.Name));
-
-        if (targetObligation == null)
-        {
-            // Fallback: look for obligations where this NPC is the recipient
-            targetObligation = activeObligations.FirstOrDefault(o =>
-                o != null && (o.RecipientId == session.NPC.ID || o.RecipientName == session.NPC.Name));
-        }
-
-        return targetObligation;
-    }
-
-    /// <summary>
-    /// Get the current position of an obligation in the queue
-    /// </summary>
-    private int GetObligationPosition(DeliveryObligation obligation)
-    {
-        if (obligation == null || _gameWorld == null)
-            return -1;
-
-        DeliveryObligation[] queue = _gameWorld.GetPlayer().ObligationQueue;
-        for (int i = 0; i < queue.Length; i++)
-        {
-            if (queue[i]?.Id == obligation.Id)
-            {
-                return i + 1; // Return 1-based position
-            }
-        }
-
-        return -1; // Not found
-    }
-
-    /// <summary>
     /// Check if goal cards should become playable after LISTEN based on momentum threshold
     /// </summary>
     private void UpdateGoalCardPlayabilityAfterListen(SocialSession session)
@@ -1415,7 +1167,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
-            if ((card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
+            if ((card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1428,7 +1180,7 @@ public class SocialFacade
                     // Request cards already have Impulse + Opening persistence set
 
                     // Mark that a request card is now playable
-                    session.RequestCardDrawn = true;
+                    session.GoalCardDrawn = true;
                 }
             }
         }
@@ -1437,15 +1189,15 @@ public class SocialFacade
     /// <summary>
     /// Mark request card presence in conversation session
     /// </summary>
-    private void UpdateRequestCardPlayability(SocialSession session)
+    private void UpdateGoalCardPlayability(SocialSession session)
     {
         // This is called at conversation start - just check for goal card presence
-        bool hasRequestCard = session.Deck.HandCards
-            .Any(c => c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise || c.ConversationCardTemplate.CardType == CardType.Request);
+        bool hasGoalCard = session.Deck.HandCards
+            .Any(c => c.SocialCardTemplate.IsGoalCard == CardType.Request || c.SocialCardTemplate.IsGoalCard == CardType.Promise || c.SocialCardTemplate.IsGoalCard == CardType.Request);
 
-        if (hasRequestCard)
+        if (hasGoalCard)
         {
-            session.RequestCardDrawn = true;
+            session.GoalCardDrawn = true;
         }
     }
 
@@ -1460,7 +1212,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not Initiative
-            if (card.ConversationCardTemplate.CardType == CardType.Request || card.ConversationCardTemplate.CardType == CardType.Promise || card.ConversationCardTemplate.CardType == CardType.Request)
+            if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
             {
                 continue; // Don't modify request card playability here
             }
@@ -1472,7 +1224,7 @@ public class SocialFacade
             bool canAfford = session.CanAffordCard(effectiveInitiativeCost);
 
             // Check if Statement requirements are met
-            bool meetsStatementRequirements = card.ConversationCardTemplate.MeetsStatementRequirements(session);
+            bool meetsStatementRequirements = card.SocialCardTemplate.MeetsStatementRequirements(session);
 
             // Update playability based on Initiative availability AND Statement requirements
             card.IsPlayable = canAfford && meetsStatementRequirements;
@@ -1480,179 +1232,11 @@ public class SocialFacade
     }
 
 
-
-
-
-
-
-
-    /// <summary>
-    /// Handle special card effects like exchanges and letter delivery
-    /// </summary>
-    private void HandleSpecialCardEffects(HashSet<CardInstance> playedCards, SocialTurnResult result)
-    {
-        foreach (CardInstance card in playedCards)
-        {
-            Console.WriteLine($"[ConversationFacade] Processing card {card.ConversationCardTemplate.Title}, has Context: {card.Context != null}, has ExchangeData: {card.Context?.ExchangeData != null}");
-
-            // Handle request card completion (Request, Promise, Burden)
-            if (card.ConversationCardTemplate.CardType == CardType.Request ||
-                card.ConversationCardTemplate.CardType == CardType.Promise ||
-                card.ConversationCardTemplate.CardType == CardType.Burden)
-            {
-                NPCRequest request = _currentSession.NPC.GetRequestById(_currentSession.RequestId);
-                if (request == null)
-                {
-                    Console.WriteLine($"[HandleSpecialCardEffects] WARNING: Request '{_currentSession.RequestId}' not found for NPC '{_currentSession.NPC.Name}'");
-                    continue;
-                }
-
-                // Find matching goal by card ID
-                NPCRequestGoal goal = request.Goals.FirstOrDefault(g => g.CardId == card.ConversationCardTemplate.Id);
-                if (goal == null)
-                {
-                    Console.WriteLine($"[HandleSpecialCardEffects] WARNING: No goal found for card '{card.ConversationCardTemplate.Id}'");
-                    continue;
-                }
-
-                Player player = _gameWorld.GetPlayer();
-
-                // GRANT COINS
-                if (goal.Rewards.Coins.HasValue)
-                {
-                    player.Coins += goal.Rewards.Coins.Value;
-                    _messageSystem.AddSystemMessage($"Received {goal.Rewards.Coins.Value} coins", SystemMessageTypes.Success);
-                }
-
-                // GRANT TOKENS (using existing AddTokensToNPC)
-                if (goal.Rewards.Tokens != null && goal.Rewards.Tokens.Any())
-                {
-                    foreach (var tokenEntry in goal.Rewards.Tokens)
-                    {
-                        ConnectionType tokenType = Enum.Parse<ConnectionType>(tokenEntry.Key);
-                        _tokenManager.AddTokensToNPC(tokenType, tokenEntry.Value, _currentSession.NPC.ID);
-                        _messageSystem.AddSystemMessage($"Gained {tokenEntry.Value} {tokenEntry.Key} with {_currentSession.NPC.Name}", SystemMessageTypes.Success);
-                    }
-                }
-
-                // GRANT LETTER (create DeliveryObligation like CreateUrgentLetter does)
-                if (!string.IsNullOrEmpty(goal.Rewards.LetterId))
-                {
-                    // Find recipient (first other NPC)
-                    List<NPC> otherNpcs = _gameWorld.NPCs.Where(n => n.ID != _currentSession.NPC.ID).ToList();
-                    NPC recipient = otherNpcs.FirstOrDefault();
-
-                    if (recipient != null)
-                    {
-                        DeliveryObligation letter = new DeliveryObligation
-                        {
-                            Id = goal.Rewards.LetterId,  // Use reward letterId as obligation ID
-                            SenderId = _currentSession.NPC.ID,
-                            SenderName = _currentSession.NPC.Name,
-                            RecipientId = recipient.ID,
-                            RecipientName = recipient.Name,
-                            TokenType = ConnectionType.Trust,
-                            Stakes = StakeType.REPUTATION,
-                            DeadlineInSegments = 72, // 3 days default
-                            Payment = 10, // Default payment
-                            Tier = TierLevel.T1,
-                            EmotionalFocus = EmotionalFocus.MEDIUM,
-                            Description = $"Letter from {_currentSession.NPC.Name} ({goal.Name})"
-                        };
-
-                        _queueManager.AddObligation(letter);  // Uses existing ObligationQueueManager method
-                        _messageSystem.AddSystemMessage("Received letter delivery obligation", SystemMessageTypes.Info);
-                    }
-                }
-
-                // GRANT OBLIGATION (standalone obligation string - use as standing obligation)
-                if (!string.IsNullOrEmpty(goal.Rewards.Obligation))
-                {
-                    _messageSystem.AddSystemMessage($"New obligation: {goal.Rewards.Obligation}", SystemMessageTypes.Info);
-                }
-
-                // GRANT ITEM (using existing Inventory.AddItem)
-                if (!string.IsNullOrEmpty(goal.Rewards.Item))
-                {
-                    player.Inventory.AddItem(goal.Rewards.Item);
-                    _messageSystem.AddSystemMessage($"Received item: {goal.Rewards.Item}", SystemMessageTypes.Success);
-                }
-
-                // MARK REQUEST AS COMPLETED
-                request.Complete();
-                _messageSystem.AddSystemMessage($"Completed request: {goal.Name}", SystemMessageTypes.Success);
-
-                Console.WriteLine($"[HandleSpecialCardEffects] Request card '{card.ConversationCardTemplate.Id}' completed, granted rewards from goal '{goal.Id}'");
-
-                // CHECK FOR INVESTIGATION PROGRESS
-                CheckInvestigationProgress(_currentSession.NPC.ID, _currentSession.RequestId);
-            }
-
-            // Handle exchange cards (exchanges use separate ExchangeCard system)
-            if (card.Context?.ExchangeData != null)
-            {
-                bool exchangeSuccess = _exchangeHandler.ExecuteExchange(
-                    card.Context.ExchangeData,
-                    _currentSession.NPC,
-                    _gameWorld.GetPlayer(),
-                    _gameWorld.GetPlayerResourceState());
-
-                if (!exchangeSuccess)
-                {
-                    _messageSystem.AddSystemMessage("Exchange failed - insufficient resources", SystemMessageTypes.Warning);
-                }
-            }
-
-            // Handle letter delivery
-            if (card.CanDeliverLetter && !string.IsNullOrEmpty(card.DeliveryObligationId))
-            {
-                DeliveryObligation[] obligations = _queueManager.GetActiveObligations();
-                DeliveryObligation deliveredObligation = obligations.FirstOrDefault(o => o.Id == card.DeliveryObligationId);
-
-                if (deliveredObligation != null && _queueManager.DeliverObligation(card.DeliveryObligationId))
-                {
-                    // Grant rewards
-                    _gameWorld.GetPlayer().Coins += deliveredObligation.Payment;
-
-                    int tokenReward = deliveredObligation.EmotionalFocus switch
-                    {
-                        EmotionalFocus.CRITICAL => 3,
-                        EmotionalFocus.HIGH => 2,
-                        EmotionalFocus.MEDIUM => 1,
-                        _ => 1
-                    };
-
-                    _tokenManager.AddTokensToNPC(deliveredObligation.TokenType, tokenReward, _currentSession.NPC.ID);
-                    // Flow no longer changes automatically - only from explicit "Advancing" cards
-
-                    _messageSystem.AddSystemMessage(
-                        $"Successfully delivered {deliveredObligation.SenderName}'s letter to {_currentSession.NPC.Name}!",
-                        SystemMessageTypes.Success);
-                    _messageSystem.AddSystemMessage(
-                        $"Earned {deliveredObligation.Payment} coins",
-                        SystemMessageTypes.Success);
-                }
-            }
-
-            // Handle crisis letter generation
-            if (card.Context?.GeneratesLetterOnSuccess == true)
-            {
-                DeliveryObligation urgentLetter = CreateUrgentLetter(_currentSession.NPC);
-                _queueManager.AddObligation(urgentLetter);
-                _messageSystem.AddSystemMessage(
-                    $"{_currentSession.NPC.Name} disconnectedly hands you a letter for her family!",
-                    SystemMessageTypes.Success);
-                // Flow no longer changes automatically - only from explicit "Advancing" cards
-                _currentSession.LetterGenerated = true;
-            }
-        }
-    }
-
     /// <summary>
     /// Check and move request cards to hand if momentum threshold is met
     /// This should only be called by UI components, never directly on Session
     /// </summary>
-    public List<CardInstance> CheckAndMoveRequestCards()
+    public List<CardInstance> CheckAndMoveGoalCards()
     {
         if (_currentSession == null || _currentSession.Deck == null)
         {
@@ -1667,7 +1251,7 @@ public class SocialFacade
         {
             card.IsPlayable = true;
             _messageSystem.AddSystemMessage(
-                $"{card.ConversationCardTemplate.Title} is now available (Momentum threshold met)",
+                $"{card.SocialCardTemplate.Title} is now available (Momentum threshold met)",
                 SystemMessageTypes.Success);
         }
 
@@ -1691,12 +1275,12 @@ public class SocialFacade
     /// <summary>
     /// Get request pile cards (read-only) for UI display
     /// </summary>
-    public IReadOnlyList<CardInstance> GetRequestCards()
+    public IReadOnlyList<CardInstance> GetGoalCards()
     {
         if (_currentSession?.Deck == null)
             return new List<CardInstance>();
 
-        return _currentSession.Deck.RequestCards;
+        return _currentSession.Deck.GoalCards;
     }
 
     /// <summary>
@@ -1889,7 +1473,7 @@ public class SocialFacade
     /// </summary>
     public string GetCardStatBonus(CardInstance card)
     {
-        if (card?.ConversationCardTemplate?.BoundStat == null || _gameWorld == null) return "";
+        if (card?.SocialCardTemplate?.BoundStat == null || _gameWorld == null) return "";
 
         try
         {
@@ -1897,7 +1481,7 @@ public class SocialFacade
             if (player?.Stats == null) return "";
 
             PlayerStats stats = player.Stats;
-            int statLevel = stats.GetLevel(card.ConversationCardTemplate.BoundStat.Value);
+            int statLevel = stats.GetLevel(card.SocialCardTemplate.BoundStat.Value);
 
             // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
             if (statLevel >= 2)

@@ -1,7 +1,5 @@
 @* Maps location atmosphere categories to descriptive text *@
 
-@inject ObligationQueueManager LetterQueueManager
-
 @code {
     [Parameter] public LocationSpot CurrentSpot { get; set; }
     [Parameter] public TimeBlocks CurrentTime { get; set; }
@@ -21,15 +19,10 @@
             activeProperties.AddRange(CurrentSpot.TimeSpecificProperties[CurrentTime]);
         }
 
-        // Count urgent obligations for tension
-        var urgentObligations = LetterQueueManager?.GetActiveObligations()
-            ?.Count(o => o.DeadlineInSegments < 360) ?? 0;
-
         // Generate description from categorical properties
         return _descriptionGenerator.GenerateDescription(
             activeProperties,
             CurrentTime,
-            urgentObligations,
             NPCsPresent?.Count ?? 0
         );
     }
@@ -38,19 +31,10 @@
     {
         // Generate description from categorical properties
         var connectionState = DetermineConnectionState(npc);
-        var hasUrgentLetter = HasUrgentLetter(npc);
         
         var baseActivity = GetProfessionActivity(npc.Profession);
-        var emotionalModifier = GetEmotionalModifier(connectionState, hasUrgentLetter);
-        var contextualProp = GetContextualProp(npc.Profession, hasUrgentLetter);
         
-        // Combine categorical elements into description
-        if (connectionState == ConnectionState.DISCONNECTED && hasUrgentLetter)
-        {
-            return $"{emotionalModifier} {contextualProp}, {GetDisconnectedDetail()}";
-        }
-        
-        return $"{baseActivity}, {emotionalModifier}";
+        return $"{baseActivity}";
     }
     
     private ConnectionState DetermineConnectionState(NPC npc)
@@ -58,14 +42,6 @@
         // In the 5-state system, NPCs always start NEUTRAL at locations
         // Their state changes during conversations based on mechanics
         return ConnectionState.NEUTRAL;
-    }
-    
-    private bool HasUrgentLetter(NPC npc)
-    {
-        var obligations = LetterQueueManager?.GetActiveObligations() ?? new DeliveryObligation[0];
-        return obligations.Any(o => 
-            (o.SenderId == npc.ID || o.SenderName == npc.Name) && 
-            o.DeadlineInSegments < 360);
     }
     
     private string GetProfessionActivity(Professions profession)

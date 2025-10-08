@@ -1,0 +1,880 @@
+{
+  "packageId": "social_cards",
+    "metadata": {
+        "name": "Social Conversation Cards",
+        "timestamp": "2025-09-30T00:00:00Z",
+        "description": "Card deck for Social tactical system",
+        "version": "3.0.0"
+    },
+  "content": {
+    "socialCards": [
+      {
+        "id": "insight_quick_scan",
+        "title": "Quick Scan",
+        "dialogueText": "Let me take a quick look at the situation...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "insight_ask_question",
+        "title": "Ask Question",
+        "dialogueText": "I have a question about that...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_careful_analysis",
+        "title": "Careful Analysis",
+        "dialogueText": "Let me think about this carefully...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_notice_detail",
+        "title": "Notice Detail",
+        "dialogueText": "I notice something important here...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_connect_evidence",
+        "title": "Connect Evidence",
+        "dialogueText": "These pieces fit together...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_cross_reference",
+        "title": "Cross-Reference",
+        "dialogueText": "As I mentioned earlier...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_identify_pattern",
+        "title": "Identify Pattern",
+        "dialogueText": "I'm seeing a pattern here...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 4,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_pattern_synthesis",
+        "title": "Pattern Synthesis",
+        "dialogueText": "Everything we've discussed reveals a clear pattern...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_synthesize_information",
+        "title": "Synthesize Information",
+        "dialogueText": "Bringing it all together...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_reveal_implication",
+        "title": "Reveal Implication",
+        "dialogueText": "The implications are clear...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_analytical_mastery",
+        "title": "Analytical Mastery",
+        "dialogueText": "Based on all my analysis...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "insight_complete_understanding",
+        "title": "Complete Understanding",
+        "dialogueText": "I now completely understand...",
+        "type": "Conversation",
+        "boundStat": "Insight",
+        "depth": 8,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "rapport_show_understanding",
+        "title": "Show Understanding",
+        "dialogueText": "I understand what you mean...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "rapport_gentle_encouragement",
+        "title": "Gentle Encouragement",
+        "dialogueText": "Please, go on...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
+      },
+      {
+        "id": "rapport_empathetic_response",
+        "title": "Empathetic Response",
+        "dialogueText": "That must have been difficult...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "rapport_active_listening",
+        "title": "Active Listening",
+        "dialogueText": "I hear what you're saying...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "rapport_reflect_emotions",
+        "title": "Reflect Emotions",
+        "dialogueText": "You seem to be feeling...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "rapport_find_common_ground",
+        "title": "Find Common Ground",
+        "dialogueText": "We both understand...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "rapport_validate_feelings",
+        "title": "Validate Feelings",
+        "dialogueText": "Your feelings are completely valid...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 4,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
+      },
+      {
+        "id": "rapport_emotional_resonance",
+        "title": "Emotional Resonance",
+        "dialogueText": "Everything we've shared shows how deeply connected...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "rapport_resonate",
+        "title": "Resonate",
+        "dialogueText": "We're in perfect harmony...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "rapport_deep_understanding",
+        "title": "Deep Understanding",
+        "dialogueText": "I truly understand you...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
+      },
+      {
+        "id": "rapport_perfect_empathy",
+        "title": "Perfect Empathy",
+        "dialogueText": "Based on everything we've shared, I feel exactly what you feel...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Yielding"
+      },
+      {
+        "id": "rapport_transcendent_understanding",
+        "title": "Transcendent Understanding",
+        "dialogueText": "Our connection transcends words...",
+        "type": "Conversation",
+        "boundStat": "Rapport",
+        "depth": 8,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "authority_state_firmly",
+        "title": "State Firmly",
+        "dialogueText": "This is how it is...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 1,
+        "conversationalMove": "Remark",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_challenge",
+        "title": "Challenge",
+        "dialogueText": "I challenge that assumption...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 1,
+        "conversationalMove": "Remark",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_direct_statement",
+        "title": "Direct Statement",
+        "dialogueText": "Let me be direct...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 2,
+        "conversationalMove": "Remark",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_assert_position",
+        "title": "Assert Position",
+        "dialogueText": "My position is clear...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 2,
+        "conversationalMove": "Remark",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_escalate_tension",
+        "title": "Escalate Tension",
+        "dialogueText": "Let me make this perfectly clear...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_pressure_point",
+        "title": "Pressure Point",
+        "dialogueText": "You need to understand...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_direct_demand",
+        "title": "Direct Demand",
+        "dialogueText": "This is what must happen...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 4,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_calculated_pressure",
+        "title": "Calculated Pressure",
+        "dialogueText": "Every point I've made leads to one conclusion...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_dominate",
+        "title": "Dominate",
+        "dialogueText": "I will not be denied...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_compelling_argument",
+        "title": "Compelling Argument",
+        "dialogueText": "The evidence is overwhelming...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_unquestionable_authority",
+        "title": "Unquestionable Authority",
+        "dialogueText": "My authority on this matter cannot be challenged...",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "authority_absolute_authority",
+        "title": "Absolute Authority",
+        "dialogueText": "This conversation is over. You will comply.",
+        "type": "Conversation",
+        "boundStat": "Authority",
+        "depth": 8,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Commanding"
+      },
+      {
+        "id": "diplomacy_reassure",
+        "title": "Reassure",
+        "dialogueText": "Don't worry about that...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "diplomacy_propose_alternative",
+        "title": "Propose Alternative",
+        "dialogueText": "What if we tried...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_mitigate_risk",
+        "title": "Mitigate Risk",
+        "dialogueText": "We can reduce the risk by...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "diplomacy_address_concern",
+        "title": "Address Concern",
+        "dialogueText": "Let me address that concern directly...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_trade_concession",
+        "title": "Trade Concession",
+        "dialogueText": "I'm willing to compromise on...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_calculate_risk",
+        "title": "Calculate Risk",
+        "dialogueText": "The risks are manageable...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_find_middle_ground",
+        "title": "Find Middle Ground",
+        "dialogueText": "We can both benefit if...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 4,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_strategic_exchange",
+        "title": "Strategic Exchange",
+        "dialogueText": "Every concession I've made builds toward mutual benefit...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_mitigate_crisis",
+        "title": "Mitigate Crisis",
+        "dialogueText": "Let's step back and address the real issues...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_propose_terms",
+        "title": "Propose Terms",
+        "dialogueText": "Here are my final terms...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_perfect_terms",
+        "title": "Perfect Terms",
+        "dialogueText": "Through careful negotiation, I've crafted terms that address every concern...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "diplomacy_perfect_agreement",
+        "title": "Perfect Agreement",
+        "dialogueText": "We have reached perfect agreement...",
+        "type": "Conversation",
+        "boundStat": "Diplomacy",
+        "depth": 8,
+        "conversationalMove": "Argument",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_feint",
+        "title": "Feint",
+        "dialogueText": "Perhaps we should consider...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "cunning_bait",
+        "title": "Bait",
+        "dialogueText": "What would you say if...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 1,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Measured"
+      },
+      {
+        "id": "cunning_quick_maneuver",
+        "title": "Quick Maneuver",
+        "dialogueText": "Let me approach this differently...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_subtle_maneuver",
+        "title": "Subtle Maneuver",
+        "dialogueText": "There's another angle to consider...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 2,
+        "conversationalMove": "Observation",
+        "persistence": "Statement",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_tactical_leverage",
+        "title": "Tactical Leverage",
+        "dialogueText": "I've positioned us perfectly to...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_position_advantage",
+        "title": "Position Advantage",
+        "dialogueText": "This gives us leverage...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_create_opening",
+        "title": "Create Opening",
+        "dialogueText": "Now I have the opportunity to...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 4,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_perfect_leverage",
+        "title": "Perfect Leverage",
+        "dialogueText": "Every move I've made creates more opportunities...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 3,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_convert_tension",
+        "title": "Convert Tension",
+        "dialogueText": "The more tension, the more opportunity...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 5,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_exploit_opening",
+        "title": "Exploit Opening",
+        "dialogueText": "Now to capitalize on the advantage...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_total_exploitation",
+        "title": "Total Exploitation",
+        "dialogueText": "Every tactical position I've built leads to this moment...",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 6,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "cunning_overwhelming_advantage",
+        "title": "Overwhelming Advantage",
+        "dialogueText": "The trap is sprung. You never saw it coming.",
+        "type": "Conversation",
+        "boundStat": "Cunning",
+        "depth": 8,
+        "conversationalMove": "Argument",
+        "persistence": "Echo",
+        "personalityTypes": [
+          "ALL"
+        ],
+        "delivery": "Standard"
+      },
+      {
+        "id": "elena_basic_delivery",
+        "title": "Letter Delivery",
+        "dialogueText": "I'll deliver your letter to Lord Blackwood before sunset",
+        "type": "Request",
+        "momentumThreshold": 8,
+        "persistence": "Statement",
+        "delivery": "Standard"
+      },
+      {
+        "id": "elena_enhanced_delivery",
+        "title": "Letter + Safety Escort",
+        "dialogueText": "I'll deliver the letter and escort you to safety",
+        "type": "Request",
+        "momentumThreshold": 12,
+        "persistence": "Statement",
+        "delivery": "Standard"
+      },
+      {
+        "id": "elena_premium_delivery",
+        "title": "Complete Protection",
+        "dialogueText": "I'll deliver the letter, escort you to safety, and provide additional protection",
+        "type": "Request",
+        "momentumThreshold": 16,
+        "persistence": "Statement",
+        "delivery": "Standard"
+      }
+    ]
+  }
+}

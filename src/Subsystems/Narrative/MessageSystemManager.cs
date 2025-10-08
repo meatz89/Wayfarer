@@ -48,22 +48,6 @@ public class MessageSystemManager
     }
 
     /// <summary>
-    /// Add letter positioning message
-    /// </summary>
-    public void AddLetterPositioningMessage(string senderName, LetterPositioningReason reason, int position, int strength, int debt)
-    {
-        _messageSystem.AddLetterPositioningMessage(senderName, reason, position, strength, debt);
-    }
-
-    /// <summary>
-    /// Add special letter event
-    /// </summary>
-    public void AddSpecialLetterEvent(SpecialLetterEvent letterEvent)
-    {
-        _messageSystem.AddSpecialLetterEvent(letterEvent);
-    }
-
-    /// <summary>
     /// Add multiple messages as a narrative sequence
     /// </summary>
     public void AddNarrativeSequence(string[] messages, SystemMessageTypes type = SystemMessageTypes.Info)

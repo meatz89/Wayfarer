@@ -24,7 +24,7 @@ public static class SocialContextFactory
             NpcId = npc.ID,
             Npc = npc,
             ConversationTypeId = conversationTypeId,
-            InitialState = session?.InitialState ?? ConnectionState.NEUTRAL,
+            InitialState = ConnectionState.NEUTRAL,
             Session = session,
             ObservationCards = observationCards ?? new List<CardInstance>(),
             PlayerResources = playerResources,

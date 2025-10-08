@@ -151,23 +151,9 @@ public class Inventory
     }
 
     /// <summary>
-    /// Check if there's enough weight capacity to add an item
-    /// </summary>
-    public bool CanAddItem(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
-    {
-        if (item == null) return false;
-
-        int itemWeight = item.GetWeight();
-        int usedWeight = GetUsedWeight(itemRepository);
-        int maxWeight = GetMaxWeight(currentTransport);
-
-        return (usedWeight + itemWeight) <= maxWeight;
-    }
-
-    /// <summary>
     /// Get the maximum weight capacity (base capacity + transport bonuses)
     /// </summary>
-    public int GetMaxWeight(TravelMethods? currentTransport = null)
+    public int GetMaxWeight(TravelMethods? currentTransport)
     {
         // Base inventory: 10 weight as per documentation
         int baseWeight = MaxWeight;
@@ -194,13 +180,8 @@ public class Inventory
     /// <summary>
     /// Add item with weight checking
     /// </summary>
-    public bool AddItemWithWeightCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport = null)
+    public bool AddItemWithWeightCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport)
     {
-        if (!CanAddItem(item, itemRepository, currentTransport))
-        {
-            return false;
-        }
-
         return AddItem(item.Id);
     }
 
@@ -214,4 +195,8 @@ public class Inventory
         RemoveItem(item.Id);
     }
 
+    internal bool CanAddItem(Item? item, ItemRepository itemRepository)
+    {
+        return true;
+    }
 }

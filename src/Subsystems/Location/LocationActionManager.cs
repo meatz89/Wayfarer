@@ -75,8 +75,7 @@ public class LocationActionManager
                 Detail = action.Description,
                 Cost = GetCostDisplay(action.Cost),
                 IsAvailable = CanPerformAction(action),
-                EngagementType = action.EngagementType,
-                InvestigationLabel = null // Investigation system not yet integrated
+                EngagementType = action.EngagementType
             };
             actions.Add(viewModel);
         }

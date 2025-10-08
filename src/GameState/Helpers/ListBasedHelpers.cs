@@ -70,15 +70,6 @@ public class KnownRouteEntry
 }
 
 /// <summary>
-/// Helper class for letter history entries (replaces Dictionary<string, LetterHistory>)
-/// </summary>
-public class LetterHistoryEntry
-{
-    public string NpcId { get; set; }
-    public LetterHistory History { get; set; }
-}
-
-/// <summary>
 /// Helper class for familiarity entries (replaces Dictionary<string, int>)
 /// </summary>
 public class FamiliarityEntry
@@ -166,15 +157,6 @@ public class TravelEventEntry
 {
     public string EventId { get; set; }
     public TravelEventDTO TravelEvent { get; set; }
-}
-
-/// <summary>
-/// Helper class for personality mapping entries (replaces Dictionary<PersonalityType, PersonalityCardMapping>)
-/// </summary>
-public class PersonalityMappingEntry
-{
-    public PersonalityType PersonalityType { get; set; }
-    public PersonalityCardMapping Mapping { get; set; }
 }
 
 /// <summary>
@@ -429,37 +411,6 @@ public static class ListBasedHelperExtensions
             cards.Add(new CardDefinitionEntry { CardId = cardId, Card = card });
         }
     }
-
-
-    // PathCardDiscoveryEntry helpers already exist above as IsDiscovered/SetDiscovered
-
-    // TravelEventEntry helpers
-
-    // LetterHistoryEntry helpers
-    public static LetterHistory GetHistory(this List<LetterHistoryEntry> history, string npcId)
-    {
-        return history.FindById(npcId)?.History;
-    }
-
-    public static void AddOrUpdateHistory(this List<LetterHistoryEntry> history, string npcId, LetterHistory letterHistory)
-    {
-        LetterHistoryEntry existing = history.FindById(npcId);
-        if (existing != null)
-        {
-            existing.History = letterHistory;
-        }
-        else
-        {
-            history.Add(new LetterHistoryEntry { NpcId = npcId, History = letterHistory });
-        }
-    }
-
-    // Get all histories
-    public static IEnumerable<LetterHistory> GetAllHistories(this List<LetterHistoryEntry> history)
-    {
-        return history.Select(h => h.History);
-    }
-
 
     // MentalCardEntry helpers
     public static MentalCard GetMentalCard(this List<MentalCardEntry> cards, string cardId)

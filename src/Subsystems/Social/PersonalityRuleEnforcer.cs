@@ -20,7 +20,8 @@ public class PersonalityRuleEnforcer
         _modifier = modifier ?? new PersonalityModifier { Type = PersonalityModifierType.None };
         _playedInitiativeThisTurn = new List<int>();
         _isFirstCardOfTurn = true;
-        _highestInitiativeThisTurn = 0;     }
+        _highestInitiativeThisTurn = 0;
+    }
 
     /// <summary>
     /// Validate if a card can be legally played according to personality rules (UPDATED FOR INITIATIVE)
@@ -28,7 +29,7 @@ public class PersonalityRuleEnforcer
     /// </summary>
     public bool ValidatePlay(CardInstance card, out string violationMessage)
     {
-        violationMessage = null;
+        violationMessage = "";
 
         if (_modifier.Type == PersonalityModifierType.AscendingFocusRequired)
         {
@@ -53,7 +54,7 @@ public class PersonalityRuleEnforcer
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        return card.ConversationCardTemplate.InitiativeCost;
+        return card.SocialCardTemplate.InitiativeCost;
     }
 
     /// <summary>
@@ -137,10 +138,12 @@ public class PersonalityRuleEnforcer
     public void OnCardPlayed(CardInstance card)
     {
         int cardInitiative = GetCardInitiativeCost(card);
-        _playedInitiativeThisTurn.Add(cardInitiative);         _lastPlayedCard = card;
+        _playedInitiativeThisTurn.Add(cardInitiative); _lastPlayedCard = card;
 
-        if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)         {
-            _highestInitiativeThisTurn = cardInitiative;         }
+        if (_isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn)
+        {
+            _highestInitiativeThisTurn = cardInitiative;
+        }
 
         _isFirstCardOfTurn = false;
     }
@@ -150,7 +153,7 @@ public class PersonalityRuleEnforcer
     /// </summary>
     public void OnListen()
     {
-        _playedInitiativeThisTurn.Clear();         _isFirstCardOfTurn = true;
+        _playedInitiativeThisTurn.Clear(); _isFirstCardOfTurn = true;
         _highestInitiativeThisTurn = 0;         // Note: We keep _lastPlayedCard for Cunning personality check across turns
     }
 
@@ -179,7 +182,8 @@ public class PersonalityRuleEnforcer
             return false;
 
         int cardInitiative = GetCardInitiativeCost(card);
-        return _isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn;     }
+        return _isFirstCardOfTurn || cardInitiative > _highestInitiativeThisTurn;
+    }
 
     /// <summary>
     /// Check if a specific card would trigger Cunning penalty - UPDATED FOR INITIATIVE
@@ -191,7 +195,8 @@ public class PersonalityRuleEnforcer
 
         int cardInitiative = GetCardInitiativeCost(card);
         int lastInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : -1;
-        return lastInitiative != -1 && cardInitiative == lastInitiative;     }
+        return lastInitiative != -1 && cardInitiative == lastInitiative;
+    }
 
     /// <summary>
     /// Get momentum cost for LISTEN action based on personality rules
@@ -220,7 +225,10 @@ public class PersonalityRuleEnforcer
         return new PersonalityRuleState
         {
             ModifierType = _modifier.Type,
-            PlayedInitiativeOrder = _playedInitiativeThisTurn.ToList(),             LastPlayedInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : null,             HighestInitiativeThisTurn = _highestInitiativeThisTurn,             IsFirstCardOfTurn = _isFirstCardOfTurn
+            PlayedInitiativeOrder = _playedInitiativeThisTurn.ToList(),
+            LastPlayedInitiative = _lastPlayedCard != null ? GetCardInitiativeCost(_lastPlayedCard) : null,
+            HighestInitiativeThisTurn = _highestInitiativeThisTurn,
+            IsFirstCardOfTurn = _isFirstCardOfTurn
         };
     }
 }
@@ -231,6 +239,9 @@ public class PersonalityRuleEnforcer
 public class PersonalityRuleState
 {
     public PersonalityModifierType ModifierType { get; set; }
-    public List<int> PlayedInitiativeOrder { get; set; }     public int? LastPlayedInitiative { get; set; }     public int HighestInitiativeThisTurn { get; set; }     public bool IsFirstCardOfTurn { get; set; }
+    public List<int> PlayedInitiativeOrder { get; set; }
+    public int? LastPlayedInitiative { get; set; }
+    public int HighestInitiativeThisTurn { get; set; }
+    public bool IsFirstCardOfTurn { get; set; }
 
 }

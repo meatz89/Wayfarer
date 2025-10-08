@@ -25,7 +25,7 @@ test.describe('Doubt Prevention Bug Verification', () => {
 
     // Look for a card with PreventDoubt effect (typically a Soothe card)
     const cards = await page.locator('.card:not(.disabled)').all();
-    let preventDoubtCard = null;
+    let preventDoubtCard;
 
     for (const card of cards) {
       // Look for card effect text that mentions "Prevent next doubt increase"
@@ -240,7 +240,7 @@ test.describe('Doubt Prevention Bug Verification', () => {
 
     // Find a PreventDoubt card
     const cards = await page.locator('.card:not(.disabled)').all();
-    let preventDoubtCard = null;
+    let preventDoubtCard;
 
     for (const card of cards) {
       const effectElement = await card.locator('.card-effect').first();

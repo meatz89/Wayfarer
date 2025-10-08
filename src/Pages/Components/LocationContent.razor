@@ -170,10 +170,6 @@
                         <div>
                             <div class="npc-name">
                                 @npc.Name
-                                @if (HasUrgentLetter(npc.Id))
-                                {
-                                    <span class="urgent-badge" title="Has urgent letter in queue position 1!">URGENT</span>
-                                }
                             </div>
                             <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
                         </div>
@@ -205,10 +201,6 @@
                                 <span class="action-type">@option.Label</span>
                                 <span class="action-details">
                                     <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
-                                    @if (option.ConversationTypeId == "request" && HasLetterRequest(npc.Id))
-                                    {
-                                        <span> <span class="icon-bullet"></span> Letter request available!</span>
-                                    }
                                 </span>
                             </div>
                         }
@@ -245,10 +237,6 @@
                                         <span class="npc-at-spot">
                                             @npc.Name
                                             <span class="npc-state">(@GetNPCStateDisplay(npc))</span>
-                                            @if (HasUrgentLetter(npc.ID))
-                                            {
-                                                <span class="urgent-marker" title="Urgent letter in queue!"><span class="icon-warning urgent"></span></span>
-                                            }
                                         </span>
                                         @if (npc != npcsAtSpot.Last())
                                         {

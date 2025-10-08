@@ -24,7 +24,7 @@ public class MentalEffectResolver
     ///
     /// PERFECT INFORMATION ENHANCEMENT: Tracks base + all bonuses separately for UI display.
     /// </summary>
-    public MentalCardEffectResult ProjectCardEffects(CardInstance card, MentalSession session, Player player, MentalActionType actionType, string locationId = null)
+    public MentalCardEffectResult ProjectCardEffects(CardInstance card, MentalSession session, Player player, MentalActionType actionType)
     {
         MentalCardEffectResult result = new MentalCardEffectResult
         {
@@ -32,7 +32,6 @@ public class MentalEffectResolver
             AttentionChange = 0,
             ProgressChange = 0,
             ExposureChange = 0,
-            BalanceChange = 0,
             UnderstandingChange = 0,
             HealthCost = 0,
             StaminaCost = 0,
@@ -83,39 +82,9 @@ public class MentalEffectResolver
         // Calculate final Attention change
         result.AttentionChange = result.BaseAttention + result.AttentionBonuses.Sum(b => b.Amount);
 
-        // DUAL BALANCE SYSTEM:
-        // 1. Action-based balance (Observe vs Act rhythm)
-        int actionBalance = actionType switch
-        {
-            MentalActionType.Observe => -2,  // Drawing/observing decreases balance
-            MentalActionType.Act => +1,       // Acting increases balance
-            _ => 0
-        };
-
-        // 2. Method-based balance (card approach)
-        int methodBalance = template.Method switch
-        {
-            Method.Careful => -1,
-            Method.Standard => 0,
-            Method.Bold => 1,
-            Method.Reckless => 2,
-            _ => 0
-        };
-
-        // Combine both balance effects
-        result.BalanceChange = actionBalance + methodBalance;
-
         // ===== PROGRESS (Victory Resource) =====
         // BASE: Progress from card categorical properties
         result.BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
-
-        // BONUS 1: Discipline Match (Specialist bonus)
-        // Check if card discipline matches location profile for +2 Progress
-        if (!string.IsNullOrEmpty(locationId))
-        {
-            // TODO: Need to get actual location investigation profile
-            // This will be properly implemented when Location.InvestigationProfile is added
-        }
 
         // BONUS 2: Stat Level (Player progression)
         if (template.BoundStat != PlayerStatType.None)
@@ -140,22 +109,6 @@ public class MentalEffectResolver
         // BASE: Exposure from card method and depth
         result.BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(template.Depth, template.Method);
 
-        // BONUS 1: Location Familiarity (Reduces exposure at familiar locations)
-        if (!string.IsNullOrEmpty(locationId))
-        {
-            int familiarityLevel = player.LocationFamiliarity.GetFamiliarity(locationId);
-            if (familiarityLevel > 0)
-            {
-                int exposureReduction = -Math.Min(3, familiarityLevel);  // Max -3 Exposure
-                result.ExposureBonuses.Add(new EffectBonus
-                {
-                    Source = $"Location Familiarity ({familiarityLevel})",
-                    Amount = exposureReduction,
-                    Type = BonusType.Familiarity
-                });
-            }
-        }
-
         // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();
         if (riskModifier != 0)
@@ -165,18 +118,6 @@ public class MentalEffectResolver
                 Source = "Exertion State",
                 Amount = riskModifier,
                 Type = BonusType.Exertion
-            });
-        }
-
-        // BONUS 3: Balance Modifier (High positive balance increases Exposure)
-        int projectedBalance = session.ObserveActBalance + result.BalanceChange;
-        if (projectedBalance > 5)
-        {
-            result.ExposureBonuses.Add(new EffectBonus
-            {
-                Source = "High Balance",
-                Amount = 1,
-                Type = BonusType.Other
             });
         }
 
@@ -202,8 +143,6 @@ public class MentalEffectResolver
             effects.Add($"Progress +{result.ProgressChange}");
         if (result.ExposureChange > 0)
             effects.Add($"Exposure +{result.ExposureChange}");
-        if (result.BalanceChange != 0)
-            effects.Add($"Balance {(result.BalanceChange > 0 ? "+" : "")}{result.BalanceChange}");
 
         if (result.HealthCost > 0) effects.Add($"Health -{result.HealthCost}");
         if (result.StaminaCost > 0) effects.Add($"Stamina -{result.StaminaCost}");

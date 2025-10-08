@@ -52,7 +52,7 @@ public class TimeTransaction
     /// <summary>
     /// Adds segments to the transaction cost.
     /// </summary>
-    public TimeTransaction WithSegments(int segments, string description = null)
+    public TimeTransaction WithSegments(int segments, string description)
     {
         if (segments <= 0)
             throw new ArgumentException("Segments must be positive", nameof(segments));
@@ -288,7 +288,7 @@ public class EffectResult
     public bool BlocksSubsequentEffects { get; init; }
     public EffectOutputData OutputData { get; init; } = new();
 
-    public static EffectResult Succeeded(string message = null)
+    public static EffectResult Succeeded(string message)
     {
         return new EffectResult
         {

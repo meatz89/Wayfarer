@@ -50,12 +50,6 @@ public class AccessRequirement
     public string RequiredInformationId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Special letter type that can unlock this access (alternative to other requirements).
-    /// CONTENT EFFICIENT: Allows travel permits to unlock routes without extra NPCs.
-    /// </summary>
-    public LetterSpecialType? AlternativeLetterUnlock { get; set; } = null;
-
-    /// <summary>
     /// Whether a travel permit has been delivered to unlock this requirement.
     /// Tracked per-route to allow multiple paths to the same destination.
     /// </summary>
@@ -98,7 +92,7 @@ public class AccessCheckResult
         return new AccessCheckResult { IsAllowed = true };
     }
 
-    public static AccessCheckResult Blocked(string message, string hint = "", List<string> missing = null)
+    public static AccessCheckResult Blocked(string message, string hint, List<string> missing)
     {
         return new AccessCheckResult
         {

@@ -23,7 +23,7 @@ public class MomentumManager
     /// Initialize momentum manager with starting tokens converted to momentum
     /// </summary>
     /// <param name="tokens">Dictionary of connection types and their token counts</param>
-    public MomentumManager(Dictionary<ConnectionType, int> tokens = null)
+    public MomentumManager(Dictionary<ConnectionType, int> tokens)
     {
         if (tokens != null)
         {
@@ -35,11 +35,11 @@ public class MomentumManager
     /// Initialize momentum manager for a new conversation with token data
     /// </summary>
     /// <param name="tokens">Dictionary of connection types and their token counts</param>
-    public void InitializeForConversation(Dictionary<ConnectionType, int> tokens = null)
+    public void InitializeForConversation(Dictionary<ConnectionType, int> tokens)
     {
         currentMomentum = 0;
         currentDoubt = 0;
-        _session = null;
+        _session;
 
         if (tokens != null)
         {

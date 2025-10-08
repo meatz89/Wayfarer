@@ -30,12 +30,26 @@ public class MentalSession
     public int TimeSegmentsSpent { get; set; } = 0;
 
     // Tier and Category Methods
-    public int GetUnlockedMaxDepth() => UnlockedTiers.Max() * 2;
-    public int GetCategoryCount(MentalCategory category) => CategoryCounts.TryGetValue(category, out int count) ? count : 0;
+    public int GetUnlockedMaxDepth()
+    {
+        return UnlockedTiers.Max() * 2;
+    }
+
+    public int GetCategoryCount(MentalCategory category)
+    {
+        return CategoryCounts.TryGetValue(category, out int count) ? count : 0;
+    }
 
     // Facade helper methods
-    public bool ShouldEnd() => CurrentProgress >= VictoryThreshold || CurrentExposure >= MaxExposure;
-    public int GetDrawCount() => 3; // Base draw count
+    public bool ShouldEnd()
+    {
+        return CurrentProgress >= VictoryThreshold || CurrentExposure >= MaxExposure;
+    }
+
+    public int GetDrawCount()
+    {
+        return 3; // Base draw count
+    }
 }
 
 /// <summary>

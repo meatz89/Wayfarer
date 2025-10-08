@@ -13,9 +13,9 @@ public class PhysicalCardEffectResult
     public CardInstance Card { get; set; }
 
     // Builder resource (parallel to Initiative in Social)
-    public int PositionChange { get; set; }
-    public int BasePosition { get; set; }
-    public List<EffectBonus> PositionBonuses { get; set; } = new List<EffectBonus>();
+    public int ExertionChange { get; set; }
+    public int BaseExertion { get; set; }
+    public List<EffectBonus> ExertionBonuses { get; set; } = new List<EffectBonus>();
 
     // Victory resource (parallel to Momentum in Social)
     public int BreakthroughChange { get; set; }
@@ -53,7 +53,7 @@ public class PhysicalOutcome
     public bool Success { get; set; }
     public int FinalProgress { get; set; }
     public int FinalDanger { get; set; }
-    public string EscapeCost { get; set; } = null; // Resources lost if escaped
+    public string EscapeCost { get; set; } // Resources lost if escaped
 }
 
 public class PhysicalTurnResult

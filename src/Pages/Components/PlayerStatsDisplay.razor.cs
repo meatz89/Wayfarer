@@ -30,7 +30,7 @@ namespace Wayfarer.Pages.Components
         protected List<StatDisplayInfo> StatDisplayInfos { get; set; } = new();
         protected int TotalLevel { get; set; }
         protected int TotalXP { get; set; }
-        protected string PrimaryStatName { get; set; } = "";
+        protected string PrimaryStatName { get; set; }
 
         protected override void OnInitialized()
         {

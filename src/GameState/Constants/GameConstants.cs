@@ -58,22 +58,6 @@ public static class GameConstants
 
 
     /// <summary>
-    /// DeliveryObligation queue position constants
-    /// </summary>
-    public static class LetterQueue
-    {
-        public const int FIRST_POSITION = 1;
-        public const int DEADLINE_URGENT_THRESHOLD = 3;
-        public const int DEADLINE_CRITICAL_THRESHOLD = 2;
-        public const int DEADLINE_EXPIRED = 0;
-
-        // Token relationship thresholds
-        public const int HIGH_POSITIVE_RELATIONSHIP_THRESHOLD = 4;
-        public const int REPEATED_SKIP_THRESHOLD = 2;
-        public const int SKIP_WARNING_THRESHOLD = 3;
-    }
-
-    /// <summary>
     /// Miscellaneous game constants
     /// </summary>
     public static class Game

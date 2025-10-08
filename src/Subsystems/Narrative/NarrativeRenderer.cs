@@ -120,12 +120,6 @@ public class NarrativeRenderer
         return result;
     }
 
-    private string CapitalizeFirst(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return text;
-        return char.ToUpper(text[0]) + text.Substring(1);
-    }
 
     // Category renderers - convert categorical values to text
 

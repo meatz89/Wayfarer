@@ -30,7 +30,7 @@ window.initializeDraggable = function (elementId, cardId) {
             if (window.cardDragEndCallback) {
                 window.cardDragEndCallback.invokeMethodAsync('HandleDragEndFromJS');
             }
-            window.cardDraggedId = null;
+            window.cardDraggedId;
         }, 10);
     });
 };

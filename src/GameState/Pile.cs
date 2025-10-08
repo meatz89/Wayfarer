@@ -4,8 +4,6 @@ using System.Linq;
 public class Pile
 {
     private readonly List<CardInstance> cards = new();
-    // DETERMINISTIC SYSTEM: No random number generation needed
-
     public IReadOnlyList<CardInstance> Cards => cards;
     public int Count => cards.Count;
 

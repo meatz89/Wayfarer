@@ -53,26 +53,6 @@ public class MentalDeckBuilder
 
         // Get location and add signature deck knowledge cards to STARTING HAND
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location?.SignatureDeck != null)
-        {
-            List<SignatureKnowledgeCard> knowledgeCards = location.SignatureDeck.GetCardsForTacticalType(TacticalSystemType.Mental);
-            foreach (SignatureKnowledgeCard sigCard in knowledgeCards)
-            {
-                MentalCard knowledgeTemplate = _gameWorld.MentalCards
-                    .FirstOrDefault(e => e.Card.Id == sigCard.CardId)?.Card;
-
-                if (knowledgeTemplate != null)
-                {
-                    CardInstance knowledgeInstance = new CardInstance
-                    {
-                        InstanceId = Guid.NewGuid().ToString(),
-                        MentalCardTemplate = knowledgeTemplate
-                    };
-                    startingHand.Add(knowledgeInstance);
-                }
-            }
-        }
-
         return (deck, startingHand);
     }
 

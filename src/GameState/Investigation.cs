@@ -50,13 +50,13 @@ public class InvestigationPhaseDefinition
     public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
     public string Goal { get; set; } // Goal text
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
-    
+
     public TacticalSystemType SystemType { get; set; }
     public string ChallengeTypeId { get; set; }
 
     // Spot assignment (SpotId is globally unique)
     public string SpotId { get; set; }
-    
+
     // NPC assignment (Social goals)
     public string NpcId { get; set; }
     public string RequestId { get; set; }

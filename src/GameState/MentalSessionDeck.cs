@@ -18,7 +18,7 @@ public class MentalSessionDeck
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
-    public IReadOnlyList<CardInstance> RequestCards => requestPile.Cards;
+    public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;

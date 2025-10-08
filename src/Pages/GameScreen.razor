@@ -53,18 +53,6 @@
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(MostUrgentDeadline))
-    {
-        <!-- Deadline Warning (when applicable) -->
-        <div class="deadline-warning">
-            <div class="deadline-text">URGENT DEADLINE</div>
-            <div class="deadline-timer">
-                <span>@MostUrgentDeadline</span>
-                <span class="deadline-segments">@GetDeadlineSegments() segments</span>
-            </div>
-        </div>
-    }
-
     <!-- Journal Button -->
     <div class="journal-button-container">
         <button class="journal-btn" @onclick="ToggleJournal">📖 Journal</button>

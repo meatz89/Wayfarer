@@ -120,7 +120,7 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(NPCRequest request)
+        protected string GetRewardsPreview(GoalCard request)
         {
             if (request?.Rewards == null || !request.Rewards.Any())
             {
@@ -128,7 +128,7 @@ namespace Wayfarer.Pages.Components
             }
 
             List<string> rewardTexts = new List<string>();
-            RequestReward reward = request.Rewards.First(); // Show first tier reward as preview
+            GoalReward reward = request.Rewards.First(); // Show first tier reward as preview
 
             if (reward.Coins > 0)
                 rewardTexts.Add($"{reward.Coins} coins");

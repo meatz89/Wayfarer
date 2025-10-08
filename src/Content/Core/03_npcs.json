@@ -19,9 +19,6 @@
         "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. Her family's old mill holds mysteries she's not ready to confront alone.",
         "personality": "Determined but burdened by family secrets.",
         "personalityType": "DEVOTED",
-        "letterTokenTypes": [
-          "Trust"
-        ],
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0
@@ -73,9 +70,6 @@
         "description": "A weathered farmer who tends his fields beyond the creek. He knew Elena's family before tragedy struck.",
         "personality": "Simple and direct. A man of few words but honest dealings.",
         "personalityType": "STEADFAST",
-        "letterTokenTypes": [
-          "Trust"
-        ],
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0

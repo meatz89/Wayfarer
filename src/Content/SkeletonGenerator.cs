@@ -59,11 +59,10 @@ public static class SkeletonGenerator
 
             // Empty collections
             ProvidedServices = new List<ServiceTypes>(),
-            LetterTokenTypes = new List<ConnectionType>()
         };
 
         // Initialize card decks (required for NPC to function)
-        npc.Requests = new List<NPCRequest>();
+        npc.Requests = new List<GoalCard>();
         npc.ExchangeDeck = new List<ExchangeCard>();
 
         // Add a default service based on profession

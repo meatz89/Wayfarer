@@ -321,7 +321,11 @@ public class ExchangeValidationResult
     /// </summary>
     public string RequirementDetails
     {
-        get => string.Join(", ", MissingRequirements);
+        get
+        {
+            return string.Join(", ", MissingRequirements);
+        }
+
         set { }
     }
 }

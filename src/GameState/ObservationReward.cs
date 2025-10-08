@@ -16,7 +16,7 @@ public class ObservationReward
 public class ObservationCardReward
 {
     public string Id { get; set; }
-    public string Name { get; set; }
+    public string Title { get; set; }
     public string TargetNpcId { get; set; }
     public string Effect { get; set; }
     public string Description { get; set; }

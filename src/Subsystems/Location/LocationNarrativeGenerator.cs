@@ -37,12 +37,11 @@ public class LocationNarrativeGenerator
         LocationSpot spot,
         Location location,
         TimeBlocks currentTime,
-        int urgentObligations,
         int npcsPresent)
     {
         if (spot != null)
         {
-            return GenerateSpotAtmosphere(spot, currentTime, urgentObligations, npcsPresent);
+            return GenerateSpotAtmosphere(spot, currentTime, npcsPresent);
         }
         else if (location != null)
         {
@@ -58,7 +57,6 @@ public class LocationNarrativeGenerator
     private string GenerateSpotAtmosphere(
         LocationSpot spot,
         TimeBlocks currentTime,
-        int urgentObligations,
         int npcsPresent)
     {
         SpotDescriptionGenerator descGenerator = new SpotDescriptionGenerator();
@@ -67,12 +65,11 @@ public class LocationNarrativeGenerator
         // Debug log
         Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {spot.SpotID}");
         Console.WriteLine($"  Properties: {string.Join(", ", activeProperties)}");
-        Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}, Urgent: {urgentObligations}");
+        Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}");
 
         return descGenerator.GenerateDescription(
             activeProperties,
             currentTime,
-            urgentObligations,
             npcsPresent
         );
     }

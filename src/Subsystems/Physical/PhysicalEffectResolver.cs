@@ -24,12 +24,12 @@ public class PhysicalEffectResolver
     ///
     /// PERFECT INFORMATION ENHANCEMENT: Tracks base + all bonuses separately for UI display.
     /// </summary>
-    public PhysicalCardEffectResult ProjectCardEffects(CardInstance card, PhysicalSession session, Player player, PhysicalActionType actionType, string challengeTypeId = null)
+    public PhysicalCardEffectResult ProjectCardEffects(CardInstance card, PhysicalSession session, Player player, PhysicalActionType actionType)
     {
         PhysicalCardEffectResult result = new PhysicalCardEffectResult
         {
             Card = card,
-            PositionChange = 0,
+            ExertionChange = 0,
             BreakthroughChange = 0,
             DangerChange = 0,
             BalanceChange = 0,
@@ -53,14 +53,14 @@ public class PhysicalEffectResolver
         PlayerExertionState exertion = _exertionCalculator.CalculateExertion(player);
         int costModifier = exertion.GetPhysicalCostModifier();
 
-        // ===== POSITION (Builder Resource) =====
-        // BASE: Position cost from card depth
-        result.BasePosition = -template.PositionCost;
+        // ===== EXERTION (Builder Resource) =====
+        // BASE: Exertion cost from card depth
+        result.BaseExertion = -template.ExertionCost;
 
         // BONUS: Exertion modifier (penalty when tired)
         if (costModifier != 0)
         {
-            result.PositionBonuses.Add(new EffectBonus
+            result.ExertionBonuses.Add(new EffectBonus
             {
                 Source = "Exertion",
                 Amount = -costModifier,  // Negative because it increases cost
@@ -68,20 +68,20 @@ public class PhysicalEffectResolver
             });
         }
 
-        // Generate Position from Foundation cards (Depth 1-2)
-        int positionGen = template.GetPositionGeneration();
-        if (positionGen > 0)
+        // Generate Exertion from Foundation cards (Depth 1-2)
+        int exertionGen = template.GetExertionGeneration();
+        if (exertionGen > 0)
         {
-            result.PositionBonuses.Add(new EffectBonus
+            result.ExertionBonuses.Add(new EffectBonus
             {
                 Source = "Foundation Card",
-                Amount = positionGen,
+                Amount = exertionGen,
                 Type = BonusType.Other
             });
         }
 
-        // Calculate final Position change
-        result.PositionChange = result.BasePosition + result.PositionBonuses.Sum(b => b.Amount);
+        // Calculate final Exertion change
+        result.ExertionChange = result.BaseExertion + result.ExertionBonuses.Sum(b => b.Amount);
 
         // DUAL BALANCE SYSTEM:
         // 1. Action-based balance (Assess vs Execute rhythm)
@@ -109,15 +109,6 @@ public class PhysicalEffectResolver
         // BASE: Breakthrough from card categorical properties
         result.BaseBreakthrough = PhysicalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
 
-        // BONUS 1: Discipline Match (Specialist bonus)
-        // Check if card discipline matches challenge type for +2 Breakthrough
-        if (!string.IsNullOrEmpty(challengeTypeId))
-        {
-            // TODO: Need to get actual challenge discipline from challengeTypeId
-            // For now, award bonus if disciplines conceptually match
-            // This will be properly implemented when PhysicalChallengeType.DisciplineType is added
-        }
-
         // BONUS 2: Stat Level (Player progression)
         if (template.BoundStat != PlayerStatType.None)
         {
@@ -140,22 +131,6 @@ public class PhysicalEffectResolver
         // ===== DANGER (Consequence Resource) =====
         // BASE: Danger from card approach and depth
         result.BaseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(template.Depth, template.Approach);
-
-        // BONUS 1: Mastery Token (Reduces danger at familiar challenge types)
-        if (!string.IsNullOrEmpty(challengeTypeId))
-        {
-            int masteryLevel = player.MasteryTokens.GetMastery(challengeTypeId);
-            if (masteryLevel > 0)
-            {
-                int dangerReduction = -Math.Min(3, masteryLevel);  // Max -3 Danger
-                result.DangerBonuses.Add(new EffectBonus
-                {
-                    Source = $"Mastery ({masteryLevel} tokens)",
-                    Amount = dangerReduction,
-                    Type = BonusType.Mastery
-                });
-            }
-        }
 
         // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();
@@ -198,8 +173,8 @@ public class PhysicalEffectResolver
         // Build effect description
         List<string> effects = new List<string>();
 
-        if (result.PositionChange != 0)
-            effects.Add($"Position {(result.PositionChange > 0 ? "+" : "")}{result.PositionChange}");
+        if (result.ExertionChange != 0)
+            effects.Add($"Exertion {(result.ExertionChange > 0 ? "+" : "")}{result.ExertionChange}");
         if (result.BreakthroughChange > 0)
             effects.Add($"Breakthrough +{result.BreakthroughChange}");
         if (result.DangerChange > 0)

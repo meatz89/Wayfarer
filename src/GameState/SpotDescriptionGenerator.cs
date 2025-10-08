@@ -146,7 +146,6 @@ public class SpotDescriptionGenerator
     public string GenerateDescription(
         List<SpotPropertyType> properties,
         TimeBlocks currentTime,
-        int urgentObligationCount,
         int npcsPresent)
     {
         if (properties == null || !properties.Any())
@@ -192,13 +191,6 @@ public class SpotDescriptionGenerator
         else if (npcsPresent > 0)
             description.Add(". A few souls are present");
 
-        // Add tension if urgent obligations exist
-        if (urgentObligationCount > 0)
-        {
-            string tensionPhrase = TensionModifiers[Math.Min(urgentObligationCount - 1, TensionModifiers.Length - 1)];
-            description.Add($", {tensionPhrase}");
-        }
-
         return string.Join("", description) + ".";
     }
 
@@ -234,8 +226,6 @@ public class SpotDescriptionGenerator
             SpotPropertyType.CommonerHaunt => "Common area",
             SpotPropertyType.MerchantHub => "Trade center",
             SpotPropertyType.SacredGround => "Sacred place",
-
-            // Common unmapped properties (intelligent fallbacks)
             SpotPropertyType.Authority => "Authority post",
             SpotPropertyType.Commercial => "Trade spot",
             SpotPropertyType.Watched => "Watched area",

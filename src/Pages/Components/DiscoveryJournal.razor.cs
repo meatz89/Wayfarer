@@ -6,7 +6,7 @@ namespace Wayfarer.Pages.Components
 {
     public class DiscoveryJournalBase : ComponentBase
     {
-        [Inject] protected GameWorld GameWorld { get; set; } = null!;
+        [Inject] protected GameWorld GameWorld { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }
 
         protected string CurrentTab { get; set; } = "active";
@@ -73,9 +73,9 @@ namespace Wayfarer.Pages.Components
             Player player = GameWorld.GetPlayer();
             List<RouteInfo> routes = new List<RouteInfo>();
 
-            foreach (var entry in player.KnownRoutes)
+            foreach (KnownRouteEntry entry in player.KnownRoutes)
             {
-                foreach (var route in entry.Routes)
+                foreach (RouteOption route in entry.Routes)
                 {
                     routes.Add(new RouteInfo
                     {
@@ -181,9 +181,9 @@ namespace Wayfarer.Pages.Components
 
     public class RouteInfo
     {
-        public string Id { get; set; } = "";
-        public string OriginName { get; set; } = "";
-        public string DestinationName { get; set; } = "";
+        public string Id { get; set; }
+        public string OriginName { get; set; }
+        public string DestinationName { get; set; }
         public int Familiarity { get; set; }
     }
 }

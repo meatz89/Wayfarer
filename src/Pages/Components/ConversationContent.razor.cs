@@ -49,10 +49,10 @@ namespace Wayfarer.Pages.Components
         [Inject] protected SocialEffectResolver EffectResolver { get; set; }
 
         protected SocialSession Session { get; set; }
-        protected CardInstance? SelectedCard { get; set; } = null;
+        protected CardInstance? SelectedCard { get; set; }
         protected int TotalSelectedInitiative => GetCardInitiativeCost(SelectedCard);
         protected bool IsConversationEnded { get; set; } = false;
-        protected string EndReason { get; set; } = "";
+        protected string EndReason { get; set; }
 
         // Action preview state
         protected bool ShowSpeakPreview { get; set; } = false;
@@ -62,7 +62,7 @@ namespace Wayfarer.Pages.Components
 
         // Static system - no animations
         // Track which request cards have already been moved from RequestPile to ActiveCards
-        protected HashSet<string> MovedRequestCardIds { get; set; } = new();
+        protected HashSet<string> MovedGoalCardIds { get; set; } = new();
 
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -73,7 +73,7 @@ namespace Wayfarer.Pages.Components
         protected bool IsGeneratingNarrative { get; set; } = false;
         protected List<CardNarrative> CurrentCardNarratives { get; set; } = new List<CardNarrative>();
         protected NarrativeOutput CurrentNarrativeOutput { get; set; }
-        private Task<NarrativeOutput> _initialNarrativeTask = null;
+        private Task<NarrativeOutput> _initialNarrativeTask;
 
         // Static UI - no animation blocking needed
 
@@ -87,26 +87,6 @@ namespace Wayfarer.Pages.Components
             if (IsGeneratingNarrative)
                 return "json-fallback narrative-loading";
             return LastProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
-        }
-
-        protected string GetCardNarrativeClass(CardInstance card)
-        {
-            // Request cards don't use narrative styling (no TEMPLATE badge needed)
-            if (card?.ConversationCardTemplate?.CardType == CardType.Request)
-                return "";
-
-            // Check if this specific card has AI-generated narrative
-            if (card != null && CurrentCardNarratives != null)
-            {
-                CardNarrative cardNarrative = CurrentCardNarratives.FirstOrDefault(cn => cn.CardId == card.ConversationCardTemplate.Id);
-                if (cardNarrative != null && !string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                {
-                    return cardNarrative.ProviderSource == NarrativeProviderType.AIGenerated ? "ai-generated" : "json-fallback";
-                }
-            }
-
-            // Default to template/fallback
-            return "json-fallback";
         }
 
         protected override async Task OnParametersSetAsync()
@@ -469,44 +449,10 @@ namespace Wayfarer.Pages.Components
             return GameFacade.CanPlayCard(card, Session);
         }
 
-        protected string GetStateClass()
-        {
-            return Session?.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "disconnected",
-                ConnectionState.GUARDED => "guarded",
-                ConnectionState.NEUTRAL => "neutral",
-                ConnectionState.RECEPTIVE => "receptive",
-                ConnectionState.TRUSTING => "connected",
-                _ => ""
-            };
-        }
-
-        protected string GetConnectionStateDisplay()
-        {
-            if (Session == null) return "Unknown";
-
-            return Session.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "Disconnected",
-                ConnectionState.GUARDED => "Guarded",
-                ConnectionState.NEUTRAL => "Neutral",
-                ConnectionState.RECEPTIVE => "Receptive",
-                ConnectionState.TRUSTING => "Connected",
-                _ => Session.CurrentState.ToString()
-            };
-        }
-
         protected string GetProperCardName(CardInstance card)
         {
             // Use the card's title - all cards must have titles from JSON
-            return card.ConversationCardTemplate.Title;
-        }
-
-        protected string GetDoubtSlotClass(int slotNumber)
-        {
-            int currentDoubt = Session?.CurrentDoubt ?? 0;
-            return slotNumber <= currentDoubt ? "filled" : "empty";
+            return card.SocialCardTemplate.Title;
         }
 
         protected List<string> GetNpcStatusParts()
@@ -528,43 +474,9 @@ namespace Wayfarer.Pages.Components
             return status;
         }
 
-        protected string GetCardName(CardInstance card)
-        {
-            // Use the card's title - all cards must have titles from JSON
-            return card.ConversationCardTemplate.Title;
-        }
-
-        /// <summary>
-        /// PROJECTION PRINCIPLE: ALWAYS use effect resolver to get projection of what WOULD happen.
-        /// This ensures UI accurately shows what effects will occur without modifying game state.
-        /// NO FALLBACKS - the resolver is the single source of truth for effect projections.
-        /// </summary>
-        protected string GetSuccessEffect(CardInstance card)
-        {
-            // For exchange cards, show the reward
-            if (card.Context?.ExchangeData?.Reward?.Resources != null)
-            {
-                return $"Complete exchange: {FormatResourceList(card.Context.ExchangeData.Reward.Resources)}";
-            }
-
-            // PROJECTION PRINCIPLE: ALWAYS use resolver for ALL effects (no SuccessType check)
-            CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
-
-            // Use comprehensive effect description
-            return projection.EffectDescription.Replace(", +", " +").Replace("Promise made, ", "");
-        }
-
         private string GetInitialDialogue()
         {
-            return Session?.CurrentState switch
-            {
-                ConnectionState.DISCONNECTED => "Please, I need your help urgently!",
-                ConnectionState.GUARDED => "I don't have much time...",
-                ConnectionState.NEUTRAL => "Hello, what brings you here?",
-                ConnectionState.RECEPTIVE => "Good to see you! What can I do for you?",
-                ConnectionState.TRUSTING => "My friend! How can I help?",
-                _ => "Hello, what brings you here?"
-            };
+            return "Hello, what brings you here?";
         }
 
         protected async Task EndConversation()
@@ -572,7 +484,6 @@ namespace Wayfarer.Pages.Components
             // Player clicked "End Conversation" button
             await OnConversationEnd.InvokeAsync();
         }
-
 
         /// <summary>
         /// Get the location context data for display in the location bar
@@ -614,121 +525,17 @@ namespace Wayfarer.Pages.Components
             return string.Join(", ", propertyDescriptions);
         }
 
-        /// <summary>
-        /// PROJECTION PRINCIPLE: Wrapper that delegates to projection-based GetSuccessEffect
-        /// </summary>
-        protected string GetSuccessEffectDescription(CardInstance card)
-        {
-            return GetSuccessEffect(card);
-        }
-
-        // PACKET 7: Action Preview System Implementation
-
-        /// <summary>
-        /// Get cards that will exhaust on SPEAK action (Impulse cards)
-        /// </summary>
-        protected List<CardInstance> GetImpulseCards()
-        {
-            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            if (handCards == null) return new List<CardInstance>();
-
-            // No Impulse cards in current system
-            return new List<CardInstance>();
-        }
-
-        /// <summary>
-        /// Get NPC observation cards available for playing
-        /// </summary>
-        protected List<CardInstance> GetNPCObservationCards()
-        {
-            return Session?.NPCObservationCards ?? new List<CardInstance>();
-        }
-
-        /// <summary>
-        /// Play an observation card (0 focus cost, consumed after use)
-        /// </summary>
-        protected async Task PlayObservationCard(CardInstance observationCard)
-        {
-            if (Session == null || observationCard == null) return;
-
-            // Observation cards cost 0 focus and count as SPEAK actions
-            // Set the card as selected and execute speak
-            SelectedCard = observationCard;
-
-            // Execute the SPEAK action
-            await ExecuteSpeak();
-
-            // Remove the observation card from the session (consumed permanently)
-            Session.NPCObservationCards.Remove(observationCard);
-        }
-
-        /// <summary>
-        /// Get cards that will exhaust on LISTEN action (Opening cards)
-        /// </summary>
-        protected List<CardInstance> GetOpeningCards()
-        {
-            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            if (handCards == null) return new List<CardInstance>();
-
-            return handCards
-                .Where(c => (c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise)) // Request cards have Opening property
-                .ToList();
-        }
-
-        /// <summary>
-        /// Get critical exhausts (request cards) from a list of cards
-        /// </summary>
-        protected List<CardInstance> GetCriticalExhausts(List<CardInstance> cards)
-        {
-            return cards.Where(c => (c.ConversationCardTemplate.CardType == CardType.Request || c.ConversationCardTemplate.CardType == CardType.Promise)).ToList();
-        }
-
-        /// <summary>
-        /// Get number of cards to draw on LISTEN
-        /// </summary>
-
-
-        /// <summary>
-        /// Get CSS classes for a card based on its animation state
-        /// </summary>
-        protected string GetCardCssClasses(CardInstance card)
-        {
-            if (card == null) return "card";
-
-            List<string> classes = new List<string> { "card" };
-            string cardId = card.InstanceId ?? card.ConversationCardTemplate.Id ?? "";
-
-
-            // Add selected state
-            if (SelectedCard?.InstanceId == cardId)
-            {
-                classes.Add("selected");
-            }
-
-            return string.Join(" ", classes);
-        }
-
-        /// <summary>
-        /// Get all display cards for rendering with enhanced slot-aware presentation models.
-        /// During animations, returns presentation models with animation coordination.
-        /// </summary>
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
             // Static UI: Return simple list of current hand cards
-            var handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            List<CardInstance> handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
             // CRITICAL: Request cards MUST appear first (user requirement)
-            var sortedCards = handCards
-                .OrderBy(card =>
-                {
-                    CardType type = card.ConversationCardTemplate.CardType;
-                    // Request cards (Letter/Promise/Burden) get priority 0, others get priority 1
-                    return (type == CardType.Request || type == CardType.Promise || type == CardType.Burden) ? 0 : 1;
-                })
+            List<CardInstance> sortedCards = handCards
                 .ToList();
 
-            var displayCards = new List<CardDisplayInfo>();
-            foreach (var card in sortedCards)
+            List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
+            foreach (CardInstance? card in sortedCards)
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
@@ -745,34 +552,6 @@ namespace Wayfarer.Pages.Components
         {
             // Static container variables only
             return "--container-state: static;";
-        }
-
-        /// <summary>
-        /// Get the position of a card in the current hand
-        /// </summary>
-        protected int GetCardPosition(CardInstance card)
-        {
-            if (card == null) return -1;
-
-            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
-            if (handCards == null) return -1;
-
-            for (int i = 0; i < handCards.Count; i++)
-            {
-                if (handCards[i].InstanceId == card.InstanceId)
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Mark cards for exhaust animation - SIMPLIFIED: No longer needed
-        /// </summary>
-        protected void MarkCardsForExhaust(List<CardInstance> cardsToExhaust)
-        {
-            // Cards are removed immediately, no exhaust animation
         }
 
         private string FormatResourceList(List<ResourceAmount> resources)
@@ -793,7 +572,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardEffectDescription(CardInstance card)
         {
-            if (card?.ConversationCardTemplate == null) return "";
+            if (card?.SocialCardTemplate == null) return "";
             if (Session == null) return "";
 
             // Use effect resolver to get projection with effect description
@@ -836,37 +615,17 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Calculate Cadence meter position as percentage (0-100%)
-        /// </summary>
-        protected double GetCadencePosition()
-        {
-            int cadence = GetCurrentCadence();
-            // Convert from -5 to +5 range to 0-100% position
-            return ((cadence + 5) / 10.0) * 100;
-        }
-
-        /// <summary>
         /// Get Initiative cost for a card (replaces Focus cost)
         /// </summary>
         protected int GetCardInitiativeCost(CardInstance card)
         {
-            if (card?.ConversationCardTemplate == null) return 0;
+            if (card?.SocialCardTemplate == null) return 0;
 
             // FIXED: Always use InitiativeCost from template (0 is a valid cost for Foundation cards!)
-            return card.ConversationCardTemplate.InitiativeCost;
+            return card.SocialCardTemplate.InitiativeCost;
         }
 
         // ===== NEW MOCKUP-SPECIFIC HELPER METHODS =====
-
-        /// <summary>
-        /// Get momentum as percentage (0-100%) for resource bar display
-        /// </summary>
-        protected double GetMomentumPercentage()
-        {
-            int momentum = GetCurrentMomentum();
-            // Assuming max momentum of 16 for percentage calculation
-            return Math.Min(100, (momentum / 16.0) * 100);
-        }
 
         /// <summary>
         /// Get current Understanding from session
@@ -876,37 +635,6 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentUnderstanding ?? 0;
         }
 
-        /// <summary>
-        /// Get Understanding as percentage (0-100%) for resource bar display
-        /// Calculated based on the maximum tier unlock threshold
-        /// </summary>
-        protected double GetUnderstandingPercentage()
-        {
-            int understanding = GetCurrentUnderstanding();
-            int maxUnderstanding = GetMaxUnderstanding();
-            return Math.Min(100, (understanding / (double)maxUnderstanding) * 100);
-        }
-
-        /// <summary>
-        /// Get CSS class for cadence scale segments matching mockup (-5 to +5 range)
-        /// </summary>
-        protected string GetCadenceSegmentClass(int segmentValue)
-        {
-            // Simple logic: <0 negative, =0 neutral, >0 positive
-            if (segmentValue < 0) return "negative";
-            if (segmentValue == 0) return "neutral";
-            return "positive";
-        }
-
-        /// <summary>
-        /// Get doubt as percentage (0-100%) for resource bar display
-        /// </summary>
-        protected double GetDoubtPercentage()
-        {
-            int doubt = Session?.CurrentDoubt ?? 0;
-            int maxDoubt = Session?.MaxDoubt ?? 10;
-            return Math.Min(100, (doubt / (double)maxDoubt) * 100);
-        }
 
         /// <summary>
         /// Get count of cards in Deck pile
@@ -937,7 +665,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardPersistenceType(CardInstance card)
         {
-            return card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo ? "Echo" : "Statement";
+            return card?.SocialCardTemplate?.Persistence == PersistenceType.Echo ? "Echo" : "Statement";
         }
 
         /// <summary>
@@ -946,7 +674,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardInitiativeGeneration(CardInstance card)
         {
-            return card?.ConversationCardTemplate?.GetInitiativeGeneration() ?? 0;
+            return card?.SocialCardTemplate?.GetInitiativeGeneration() ?? 0;
         }
 
         /// <summary>
@@ -954,7 +682,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetPersistenceTooltip(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Persistence == PersistenceType.Echo)
+            if (card?.SocialCardTemplate?.Persistence == PersistenceType.Echo)
             {
                 return "Echo: Repeatable card that doesn't count toward statement requirements";
             }
@@ -971,8 +699,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardDelivery(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Delivery == null) return "Standard";
-            return card.ConversationCardTemplate.Delivery.ToString();
+            if (card?.SocialCardTemplate?.Delivery == null) return "Standard";
+            return card.SocialCardTemplate.Delivery.ToString();
         }
 
         /// <summary>
@@ -980,8 +708,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardDeliveryClass(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Delivery == null) return "delivery-standard";
-            return $"delivery-{card.ConversationCardTemplate.Delivery.ToString().ToLower()}";
+            if (card?.SocialCardTemplate?.Delivery == null) return "delivery-standard";
+            return $"delivery-{card.SocialCardTemplate.Delivery.ToString().ToLower()}";
         }
 
         /// <summary>
@@ -989,9 +717,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCardDeliveryCadenceEffect(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Delivery == null) return "+1";
+            if (card?.SocialCardTemplate?.Delivery == null) return "+1";
 
-            return card.ConversationCardTemplate.Delivery switch
+            return card.SocialCardTemplate.Delivery switch
             {
                 DeliveryType.Commanding => "+2",
                 DeliveryType.Standard => "+1",
@@ -1010,11 +738,6 @@ namespace Wayfarer.Pages.Components
         protected bool IsTierUnlocked(int tier)
         {
             return Session?.UnlockedTiers?.Contains(tier) ?? (tier == 1);
-        }
-
-        protected int GetTierUnlockThreshold(int tier)
-        {
-            return SocialSession.GetTierUnlockThreshold(tier);
         }
 
         protected SocialTier[] GetAllTiers()
@@ -1045,14 +768,14 @@ namespace Wayfarer.Pages.Components
         // ConversationalMove display methods
         protected string GetCardMove(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Move == null) return "Remark";
-            return card.ConversationCardTemplate.Move.ToString();
+            if (card?.SocialCardTemplate?.Move == null) return "Remark";
+            return card.SocialCardTemplate.Move.ToString();
         }
 
         protected string GetCardMoveClass(CardInstance card)
         {
-            if (card?.ConversationCardTemplate?.Move == null) return "move-remark";
-            return $"move-{card.ConversationCardTemplate.Move.ToString().ToLower()}";
+            if (card?.SocialCardTemplate?.Move == null) return "move-remark";
+            return $"move-{card.SocialCardTemplate.Move.ToString().ToLower()}";
         }
     }
 }

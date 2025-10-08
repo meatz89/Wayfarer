@@ -68,28 +68,6 @@ public class PhysicalDeckBuilder
             }
         }
 
-        // Get location and add signature deck knowledge cards to STARTING HAND
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location?.SignatureDeck != null)
-        {
-            List<SignatureKnowledgeCard> knowledgeCards = location.SignatureDeck.GetCardsForTacticalType(TacticalSystemType.Physical);
-            foreach (SignatureKnowledgeCard sigCard in knowledgeCards)
-            {
-                PhysicalCard knowledgeTemplate = _gameWorld.PhysicalCards
-                    .FirstOrDefault(e => e.Card.Id == sigCard.CardId)?.Card;
-
-                if (knowledgeTemplate != null)
-                {
-                    CardInstance knowledgeInstance = new CardInstance
-                    {
-                        InstanceId = Guid.NewGuid().ToString(),
-                        PhysicalCardTemplate = knowledgeTemplate
-                    };
-                    startingHand.Add(knowledgeInstance);
-                }
-            }
-        }
-
         return (deck, startingHand);
     }
 

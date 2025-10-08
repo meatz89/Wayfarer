@@ -237,7 +237,7 @@ public class MarketFacade
     {
         Player player = _gameWorld.GetPlayer();
         Item item = _itemRepository.GetItemById(itemId);
-        return item != null && player.Inventory.CanAddItem(item, _itemRepository);
+        return item != null;
     }
 
     /// <summary>
@@ -247,8 +247,7 @@ public class MarketFacade
     {
         Player player = _gameWorld.GetPlayer();
         int usedWeight = player.Inventory.GetUsedWeight(_itemRepository);
-        int maxWeight = player.Inventory.GetMaxWeight();
-        return $"Inventory: {usedWeight}/{maxWeight} weight";
+        return $"Inventory: {usedWeight} weight";
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ public class NPCRequestDTO
 public class NPCRequestGoalDTO
 {
     public string Id { get; set; }
-    public string CardId { get; set; } // REQUIRED: References conversation card from 02_cards.json
+    public string CardId { get; set; } // REQUIRED: References conversation card from _cards.json
     public string Name { get; set; }
     public string Description { get; set; }
     public int MomentumThreshold { get; set; }

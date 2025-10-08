@@ -32,6 +32,7 @@
 	</ItemGroup>
     
 	<ItemGroup>
+	  <Folder Include="Models\ObservationSystem\" />
 	  <Folder Include="wwwroot\images\cursors\" />
 	  <Folder Include="wwwroot\music\forest\" />
 	</ItemGroup>

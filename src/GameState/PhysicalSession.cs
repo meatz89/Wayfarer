@@ -12,8 +12,8 @@ public class PhysicalSession
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
 
     // Session Resources
-    public int CurrentPosition { get; set; } = 0;
-    public int MaxPosition { get; set; } = 10;
+    public int CurrentExertion { get; set; } = 0;
+    public int MaxExertion { get; set; } = 10;
     public int CurrentUnderstanding { get; set; } = 0;
     public HashSet<int> UnlockedTiers { get; set; } = new HashSet<int> { 1 };
     public Dictionary<PhysicalCategory, int> CategoryCounts { get; set; } = new Dictionary<PhysicalCategory, int>();
@@ -29,17 +29,42 @@ public class PhysicalSession
     public int TimeSegmentsSpent { get; set; } = 0;
 
     // Balance States
-    public bool IsRecklessBalance() => Commitment >= 5;
-    public bool IsOvercautiousBalance() => Commitment <= -5;
-    public bool IsNeutralBalance() => Commitment > -5 && Commitment < 5;
+    public bool IsRecklessBalance()
+    {
+        return Commitment >= 5;
+    }
+
+    public bool IsOvercautiousBalance()
+    {
+        return Commitment <= -5;
+    }
+
+    public bool IsNeutralBalance()
+    {
+        return Commitment > -5 && Commitment < 5;
+    }
 
     // Tier and Category Methods
-    public int GetUnlockedMaxDepth() => UnlockedTiers.Max() * 2;
-    public int GetCategoryCount(PhysicalCategory category) => CategoryCounts.TryGetValue(category, out int count) ? count : 0;
+    public int GetUnlockedMaxDepth()
+    {
+        return UnlockedTiers.Max() * 2;
+    }
+
+    public int GetCategoryCount(PhysicalCategory category)
+    {
+        return CategoryCounts.TryGetValue(category, out int count) ? count : 0;
+    }
 
     // Facade helper methods
     public int MaxDanger { get; set; } = 10;
     public int VictoryThreshold { get; set; } = 20; // Configured via EngagementType
-    public bool ShouldEnd() => CurrentBreakthrough >= VictoryThreshold || CurrentDanger >= MaxDanger;
-    public int GetDrawCount() => 3; // Base draw count
+    public bool ShouldEnd()
+    {
+        return CurrentBreakthrough >= VictoryThreshold || CurrentDanger >= MaxDanger;
+    }
+
+    public int GetDrawCount()
+    {
+        return 3; // Base draw count
+    }
 }

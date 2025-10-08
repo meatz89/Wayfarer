@@ -6,7 +6,6 @@ using System.Collections.Generic;
 /// </summary>
 public class GameConfiguration
 {
-    public LetterQueueConfig LetterQueue { get; set; } = new();
     public TokenEconomyConfig TokenEconomy { get; set; } = new();
     public WorkRewardConfig WorkRewards { get; set; } = new();
     public TimeConfig Time { get; set; } = new();
@@ -17,20 +16,6 @@ public class GameConfiguration
     public TravelConfig Travel { get; set; } = new();
     public DebtConfig Debt { get; set; } = new();
 
-}
-
-// Configuration classes for different game systems
-public class LetterQueueConfig
-{
-    public int MaxQueueSize { get; set; }
-    public Dictionary<ConnectionType, int> BasePositions { get; set; } = new();
-    public int LeverageMultiplier { get; set; }
-    public int SkipCostPerPosition { get; set; }
-    public int PurgeCostTokens { get; set; }
-    public int ExtendDeadlineDays { get; set; }
-    public int ExtendCostTokens { get; set; }
-    public int PriorityCostTokens { get; set; }
-    public int DeadlinePenaltyTokens { get; set; }
 }
 
 public class TokenEconomyConfig

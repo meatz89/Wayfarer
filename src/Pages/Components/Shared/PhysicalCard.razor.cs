@@ -51,10 +51,10 @@ namespace Wayfarer.Pages.Components.Shared
             return Card.PhysicalCardTemplate.Name;
         }
 
-        protected int GetCardPositionCost()
+        protected int GetCardExertionCost()
         {
             if (Card?.PhysicalCardTemplate == null) return 0;
-            return Card.PhysicalCardTemplate.PositionCost;
+            return Card.PhysicalCardTemplate.ExertionCost;
         }
 
         protected string GetCardDescription()
@@ -87,7 +87,7 @@ namespace Wayfarer.Pages.Components.Shared
         {
             if (!HasCardCost()) return "";
 
-            var costs = new System.Collections.Generic.List<string>();
+            List<string> costs = new System.Collections.Generic.List<string>();
             if (Card.PhysicalCardTemplate.StaminaCost > 0) costs.Add($"Stamina -{Card.PhysicalCardTemplate.StaminaCost}");
             if (Card.PhysicalCardTemplate.DirectHealthCost > 0) costs.Add($"Health -{Card.PhysicalCardTemplate.DirectHealthCost}");
             if (Card.PhysicalCardTemplate.CoinCost > 0) costs.Add($"Coins -{Card.PhysicalCardTemplate.CoinCost}");

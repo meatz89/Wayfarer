@@ -151,7 +151,7 @@ public static class LocationSpotParser
             {
                 if (item.ValueKind == JsonValueKind.String)
                 {
-                    string value = item.GetString() ?? string.Empty;
+                    string value = item.GetString();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         results.Add(value);

@@ -19,7 +19,7 @@ public class LocationGoal
     /// Which challenge type this goal spawns (ID within SystemType collection)
     /// </summary>
     public string ChallengeTypeId { get; set; }
-    
+
     /// <summary>
     /// Spot ID where this goal is available (null = available at all spots in location)
     /// Mental/Physical use this

@@ -27,8 +27,8 @@ public static class LocationParser
 
         Location location = new Location(dto.Id, dto.Name)
         {
-            Description = dto.Description ?? string.Empty, // Description is optional
-            District = dto.DistrictId ?? string.Empty, // Populate District from DistrictId
+            Description = dto.Description, // Description is optional
+            District = dto.DistrictId, // Populate District from DistrictId
             Tier = dto.Tier,
             DomainTags = dto.DomainTags ?? new List<string>(), // Empty list is valid for no tags
             LocationType = locationType,

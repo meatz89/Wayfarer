@@ -30,40 +30,40 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected bool IsObservationExpired()
         {
-            return Card.ConversationCardTemplate.CardType == CardType.Observation &&
+            return Card.SocialCardTemplate.IsGoalCard == CardType.Observation &&
                    Card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
         protected string GetCardStatClass()
         {
             // Request cards use CardType for styling
-            if (Card?.ConversationCardTemplate?.CardType == CardType.Request)
-                return Card.ConversationCardTemplate.CardType.ToString().ToLower();
+            if (Card?.SocialCardTemplate?.IsGoalCard == CardType.Request)
+                return Card.SocialCardTemplate.IsGoalCard.ToString().ToLower();
 
             // Conversation cards use BoundStat for styling
-            if (Card?.ConversationCardTemplate?.BoundStat == null) return "";
-            return Card.ConversationCardTemplate.BoundStat.Value.ToString().ToLower();
+            if (Card?.SocialCardTemplate?.BoundStat == null) return "";
+            return Card.SocialCardTemplate.BoundStat.Value.ToString().ToLower();
         }
 
         protected string GetCardStatName()
         {
-            if (Card?.ConversationCardTemplate?.BoundStat == null) return "";
+            if (Card?.SocialCardTemplate?.BoundStat == null) return "";
 
-            return Card.ConversationCardTemplate.BoundStat.Value switch
+            return Card.SocialCardTemplate.BoundStat.Value switch
             {
                 PlayerStatType.Insight => "Insight",
                 PlayerStatType.Rapport => "Rapport",
                 PlayerStatType.Authority => "Authority",
                 PlayerStatType.Diplomacy => "Diplomacy",
                 PlayerStatType.Cunning => "Cunning",
-                _ => Card.ConversationCardTemplate.BoundStat.Value.ToString()
+                _ => Card.SocialCardTemplate.BoundStat.Value.ToString()
             };
         }
 
         protected int GetCardDepth()
         {
-            if (Card?.ConversationCardTemplate?.Depth == null) return 1;
-            return (int)Card.ConversationCardTemplate.Depth;
+            if (Card?.SocialCardTemplate?.Depth == null) return 1;
+            return (int)Card.SocialCardTemplate.Depth;
         }
 
         protected string GetTraitClass(CardTrait trait)
@@ -91,13 +91,13 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardName()
         {
-            return Card.ConversationCardTemplate.Title;
+            return Card.SocialCardTemplate.Title;
         }
 
         protected int GetCardInitiativeCost()
         {
-            if (Card?.ConversationCardTemplate == null) return 0;
-            return Card.ConversationCardTemplate.InitiativeCost;
+            if (Card?.SocialCardTemplate == null) return 0;
+            return Card.SocialCardTemplate.InitiativeCost;
         }
 
         protected string GetCardDialogue()
@@ -105,30 +105,30 @@ namespace Wayfarer.Pages.Components.Shared
             // First check for AI-generated narrative
             if (CardNarratives != null && Card != null)
             {
-                CardNarrative cardNarrative = CardNarratives.FirstOrDefault(cn => cn.CardId == Card.ConversationCardTemplate.Id);
+                CardNarrative cardNarrative = CardNarratives.FirstOrDefault(cn => cn.CardId == Card.SocialCardTemplate.Id);
                 if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
                     return cardNarrative.NarrativeText;
             }
 
             // Use DialogueText property - this is what the player says
-            return Card.ConversationCardTemplate.DialogueText ?? "";
+            return Card.SocialCardTemplate.DialogueText ?? "";
         }
 
         protected bool HasCardRequirement()
         {
-            if (Card?.ConversationCardTemplate == null) return false;
+            if (Card?.SocialCardTemplate == null) return false;
 
-            return Card.ConversationCardTemplate.RequiredStat.HasValue
-                && Card.ConversationCardTemplate.RequiredStatements > 0;
+            return Card.SocialCardTemplate.RequiredStat.HasValue
+                && Card.SocialCardTemplate.RequiredStatements > 0;
         }
 
         protected string GetCardRequirement()
         {
             if (!HasCardRequirement() || Session == null) return "";
 
-            var reqStat = Card.ConversationCardTemplate.RequiredStat.Value;
-            var reqCount = Card.ConversationCardTemplate.RequiredStatements;
-            var currentCount = Session.GetStatementCount(reqStat);
+            PlayerStatType reqStat = Card.SocialCardTemplate.RequiredStat.Value;
+            int reqCount = Card.SocialCardTemplate.RequiredStatements;
+            int currentCount = Session.GetStatementCount(reqStat);
 
             bool requirementMet = currentCount >= reqCount;
             string status = requirementMet ? "✓" : "✗";
@@ -149,7 +149,7 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardEffectDescription()
         {
-            if (Card?.ConversationCardTemplate == null) return "";
+            if (Card?.SocialCardTemplate == null) return "";
             if (Session == null) return "";
 
             // PROJECTION PRINCIPLE: Get effect projection from resolver
