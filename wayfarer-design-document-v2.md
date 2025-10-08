@@ -131,7 +131,7 @@ The systems differentiate through distinct card mechanics that respect verisimil
 
 **Mental (Investigation)**: You cannot observe what you haven't investigated. ACT generates Leads (investigative threads) based on card depth. OBSERVE draws exactly Leads count - zero Leads means zero draw. Hands persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks cards as preparation - setting up your stance, positioning, readiness. ASSESS triggers all locked cards as a combo (effects resolve simultaneously), then exhausts your entire hand and draws fresh because you've fundamentally changed the physical situation.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks cards as preparation while increasing Aggression - setting up your stance, building momentum. ASSESS triggers all locked cards as a combo while decreasing Aggression (careful evaluation), then exhausts your entire hand and draws fresh. You want to stay balanced - both overcautious and reckless approaches create penalties.
 
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statements to Spoken pile (said aloud) while Echoes reshuffle (fleeting thoughts). LISTEN draws while your hand persists - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
@@ -181,9 +181,9 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
   - Card Flow: ACT generates Leads by depth (1-2 = +1, 3-4 = +2, 5-6 = +3), OBSERVE draws exactly Leads count
 
 - **Physical Challenges**: Strength-based obstacles at location spots (climb carefully, leverage tools, precise movement)
-  - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold)
-  - Actions: EXECUTE (lock cards as preparation) / ASSESS (trigger combo, exhaust hand, draw fresh)
-  - Card Flow: EXECUTE locks cards as prepared sequence, ASSESS executes all locked cards together then exhausts entire hand
+  - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold), Aggression (balance)
+  - Actions: EXECUTE (lock cards, increase Aggression) / ASSESS (trigger combo, decrease Aggression, exhaust hand, draw fresh)
+  - Card Flow: EXECUTE locks cards as prepared sequence while building aggressive momentum, ASSESS executes combo and returns to balanced state
 
 - **Social Challenges**: Rapport-based conversations with NPCs (build trust, gather information, persuade cooperation)
   - Resources: Momentum (builder), Initiative (session builder), Doubt (threshold), Cadence (balance), Statements (history)
@@ -433,12 +433,16 @@ Physical challenges are immediate tests of current capability:
 - **Breakthrough** (builder): Toward victory in single session (10-20 typical)
 - **Exertion** (session budget): Physical capacity for EXECUTE cards, derived from permanent Stamina at challenge start (max determined by current Stamina level). **Cannot replenish during challenge except through specific Foundation cards** like "Deep Breath" which restore small amounts.
 - **Danger** (threshold): Accumulates from risky actions, max typically 10-15 before injury
+- **Aggression** (balance): Overcautious (-10) to Reckless (+10) spectrum. **Both extremes are bad** - you want to stay near 0 (balanced, controlled).
+  - High Aggression (reckless): +1 Danger per action at +3 or higher, injury risk increases
+  - Low Aggression (overcautious): -1 Breakthrough per action at -3 or lower, wasting opportunities through hesitation
+  - Sweet spot: -2 to +2 range (balanced approach)
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **EXECUTE**: Lock card as preparation, spend Exertion, card enters locked state ready to trigger. Multiple EXECUTE actions build prepared sequence.
-- **ASSESS**: Trigger all locked cards as combo (effects resolve together), then exhaust entire hand and draw fresh. Situation fundamentally changed, requires new assessment. Unplayed cards return to draw pile.
+- **EXECUTE**: Lock card as preparation, spend Exertion, increase Aggression (+1). Multiple EXECUTE actions build prepared sequence and aggressive momentum.
+- **ASSESS**: Trigger all locked cards as combo (effects resolve together), decrease Aggression (-2), then exhaust entire hand and draw fresh. Careful assessment brings you back toward balanced state.
 
 ### Card Flow Mechanics
 
@@ -637,9 +641,12 @@ All three systems follow the same core structure (creating equivalent tactical d
   - Social Initiative: Starts at 0, **actively builds during session via Foundation cards**, persists through LISTEN
 - **Card Flow Mechanics** (distinct per system, respecting verisimilitude):
   - Mental: ACT generates Leads (depth-based), OBSERVE draws Leads count, plans in hand persist, Leads persist until completion
-  - Physical: EXECUTE locks cards as preparation, ASSESS triggers all locked cards as combo then exhausts entire hand and draws fresh
+  - Physical: EXECUTE locks cards as preparation (+Aggression), ASSESS triggers combo (-Aggression) then exhausts entire hand and draws fresh
   - Social: SPEAK moves Statements to Spoken (Echoes reshuffle), LISTEN draws while hand persists, thoughts accumulate
-- **Balance Trackers**: Only Social has Cadence (conversation dominance), Mental/Physical have flow mechanics instead
+- **Balance Trackers** (different penalty models):
+  - Mental: No balance tracker (uses Leads flow instead)
+  - Physical: Aggression (both extremes penalized - overcautious reduces Breakthrough, reckless increases Danger)
+  - Social: Cadence (asymmetric - negative gives bonus card draw, positive gives Doubt penalty)
 - **Special Systems**: Social (Request/Promise/Burden from NPC agency), Mental/Physical (none - locations/challenges lack agency)
 
 **Result**: Three systems with equivalent tactical depth (all ~1,000-1,100 lines of implementation) achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
@@ -1073,13 +1080,25 @@ Plans in your hand persist when you OBSERVE because investigation knowledge does
 
 **Physical: You Prepare Actions Then Execute Them**
 
-EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple cards, building up a prepared sequence - ready your stance, set your grip, position your weight.
+EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple cards, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1) as you commit to action.
 
-When you ASSESS, all locked cards trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. After the combo, you've fundamentally changed the physical situation - you've exhausted your prepared actions and the context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+When you ASSESS, all locked cards trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression (-2) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical situation - you've exhausted your prepared actions and the context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+
+**Aggression tracks your physical approach**: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
 
 **Social: Thoughts Persist Because That's How Thinking Works**
 
 When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud stays said) while Echo cards reshuffle into the draw pile (fleeting thoughts that return to consideration). When you LISTEN, all cards in your hand remain - your mind doesn't empty when you pause to listen. You draw additional cards representing new thoughts and considerations. Your mind accumulates understanding as the conversation progresses.
+
+**Cadence tracks conversation dominance**: Unlike Physical's symmetric penalties, Social's Cadence is asymmetric by design. Negative Cadence (deferential, giving space) REWARDS you with bonus card draw when you LISTEN. Positive Cadence (dominating) PENALIZES you with Doubt accumulation. Sometimes you intentionally go negative to gain card advantage.
+
+### Balance Tracker Philosophy
+
+**Physical Aggression** (symmetric penalties): Both extremes are bad. You want to stay balanced. Going too far in either direction creates problems.
+
+**Social Cadence** (asymmetric rewards/penalties): One direction is strategically valuable (negative = card draw bonus), the other is dangerous (positive = Doubt penalty). You intentionally manage which side you're on.
+
+**Mental** (no balance tracker): Uses Leads flow instead - you generate investigative threads then follow them. No spectrum to manage.
 
 ### Entity vs Place vs Challenge Interaction Models
 
@@ -1184,9 +1203,9 @@ Despite intentional differences, all three systems share:
 10. **Understanding**: Shared tier-unlocking resource
 
 **What Differentiates (verisimilitude-justified card flow):**
-- **Mental**: Leads generation (ACT by depth) → Leads-based draw (OBSERVE), plans persist, Leads persist until completion
-- **Physical**: Preparation locking (EXECUTE) → Combo execution (ASSESS exhausts all), situation fundamentally changes
-- **Social**: Statement/Echo persistence (SPEAK) → Accumulating thoughts (LISTEN draws while hand persists), Cadence balance tracker
+- **Mental**: Leads generation (ACT by depth) → Leads-based draw (OBSERVE), plans persist, Leads persist until completion, no balance tracker
+- **Physical**: Preparation locking (EXECUTE +Aggression) → Combo execution (ASSESS -Aggression, exhausts all), Aggression penalizes both extremes
+- **Social**: Statement/Echo persistence (SPEAK) → Accumulating thoughts (LISTEN draws while hand persists), Cadence asymmetrically rewards negative
 
 **Result**: Three systems with equivalent tactical depth (~1,000-1,100 lines each) achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
 
