@@ -187,10 +187,6 @@ public class PackageLoader
         LoadTravelObstacles(package.Content.TravelObstacles, allowSkeletons);
     }
 
-
-
-
-
     /// <summary>
     /// Load all packages from a directory with proper ordering
     /// </summary>
@@ -474,11 +470,11 @@ public class PackageLoader
         {
             // Use static method from ConversationCardParser
             SocialCard card = SocialCardParser.ParseCard(dto);
-            _gameWorld.SocialCards.AddOrUpdateCard(card.Id, card);
+            _gameWorld.SocialCards.Add(card);
         }
 
         // Validate Foundation card rules after all cards are loaded
-        List<SocialCard> allCards = _gameWorld.SocialCards.Select(entry => entry.Card).ToList();
+        List<SocialCard> allCards = _gameWorld.SocialCards.ToList();
         SocialCardParser.ValidateFoundationCardRules(allCards);
     }
 
@@ -491,7 +487,7 @@ public class PackageLoader
         foreach (MentalCardDTO dto in mentalCards)
         {
             MentalCard card = parser.ParseCard(dto);
-            _gameWorld.MentalCards.AddOrUpdateCard(card.Id, card);
+            _gameWorld.MentalCards.Add(card);
             Console.WriteLine($"[PackageLoader] Loaded mental card '{card.Id}': {card.Name} (Depth {card.Depth})");
         }
         Console.WriteLine($"[PackageLoader] Completed loading mental cards. Total: {_gameWorld.MentalCards.Count}");
@@ -506,7 +502,7 @@ public class PackageLoader
         foreach (PhysicalCardDTO dto in physicalCards)
         {
             PhysicalCard card = parser.ParseCard(dto);
-            _gameWorld.PhysicalCards.AddOrUpdateCard(card.Id, card);
+            _gameWorld.PhysicalCards.Add(card);
             Console.WriteLine($"[PackageLoader] Loaded physical card '{card.Id}': {card.Name} (Depth {card.Depth})");
         }
         Console.WriteLine($"[PackageLoader] Completed loading physical cards. Total: {_gameWorld.PhysicalCards.Count}");
@@ -639,12 +635,6 @@ public class PackageLoader
 
             if (existingSkeleton != null)
             {
-                // Preserve player's familiarity with skeleton location
-                int preservedFamiliarity = existingSkeleton.Familiarity;
-
-                // Transfer familiarity to real location (capped by MaxFamiliarity)
-                location.Familiarity = Math.Min(preservedFamiliarity, location.MaxFamiliarity);
-
                 Console.WriteLine($"[PackageLoader] Preserving familiarity for location {dto.Id}: {preservedFamiliarity} -> {location.Familiarity} (max: {location.MaxFamiliarity})");
 
                 _gameWorld.WorldState.locations.Remove(existingSkeleton);
@@ -1026,7 +1016,7 @@ public class PackageLoader
                     PathCardEntry? eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
                     if (eventCardEntry != null)
                     {
-                        dto.EventCards.Add(eventCardEntry.Card);
+                        dto.EventCards.Add(eventCardentry);
                     }
                 }
             }
@@ -1055,7 +1045,7 @@ public class PackageLoader
                     PathCardEntry? pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
                     if (pathCardEntry != null)
                     {
-                        dto.PathCards.Add(pathCardEntry.Card);
+                        dto.PathCards.Add(pathCardentry);
                     }
                 }
             }
@@ -1193,7 +1183,7 @@ public class PackageLoader
                         ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
                         if (exchangeEntry != null)
                         {
-                            ExchangeCard exchangeCard = exchangeEntry.Card;
+                            ExchangeCard exchangeCard = exchangeEntry;
                             // Add the specified number of copies to the deck
                             for (int i = 0; i < count; i++)
                             {

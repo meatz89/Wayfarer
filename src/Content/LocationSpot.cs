@@ -11,30 +11,52 @@ public class LocationSpot
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    // Tier system (1-5) for difficulty/content progression
-    public int Tier { get; set; } = 1;
-
-    // Categorical spot properties that affect conversations
-    public List<SpotPropertyType> SpotProperties { get; set; } = new List<SpotPropertyType>();
-
-    // Flow modifier based on spot properties
-    public int FlowModifier { get; set; } = 0;
-
-    // Time-specific properties that activate only during certain time blocks
     public Dictionary<TimeBlocks, List<SpotPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     public bool PlayerKnowledge { get; set; }
 
-    // Access Requirements for this spot
     public AccessRequirement AccessRequirement { get; set; }
 
-    // Tactical Goals - Mental, Physical, and Social challenges available at this spot
     public List<ChallengeGoal> Goals { get; set; } = new List<ChallengeGoal>();
-
-    // UI compatibility - converts SpotPropertyType enum to string list
+    public List<SpotPropertyType> SpotProperties { get; set; } = new List<SpotPropertyType>();
     public List<string> Properties => SpotProperties.Select(p => p.ToString()).ToList();
+
+    public int FlowModifier { get; set; } = 0;
+    public int Tier { get; set; } = 1;
+
+    public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
+    public List<string> MorningProperties { get; set; } = new List<string>();
+    public List<string> AfternoonProperties { get; set; } = new List<string>();
+    public List<string> EveningProperties { get; set; } = new List<string>();
+    public List<string> NightProperties { get; set; } = new List<string>();
+    public int TravelTimeSegments { get; set; }
+    public string TravelDescription { get; set; }
+    public int Difficulty { get; set; }
+    public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
+    public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
+    public bool HasBeenVisited { get; set; }
+    public int VisitCount { get; set; }
+    public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
+
+    public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
+    public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
+    public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
+    public List<string> ConnectedLocationIds { get; internal set; }
+    public List<Item> MarketItems { get; internal set; }
+    public List<RestOption> RestOptions { get; internal set; }
+
+    public int Familiarity { get; set; } = 0;
+    public int MaxFamiliarity { get; set; } = 3;
+    public int HighestObservationCompleted { get; set; } = 0;
+    public List<ObservationReward> ObservationRewards { get; set; } = new List<ObservationReward>();
+    public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
+
+    public int Exposure { get; set; } = 0;
+
+    public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
+
 
     public LocationSpot(string id, string name)
     {
