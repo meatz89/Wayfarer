@@ -87,7 +87,7 @@ public class SocialFacade
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
         // Create session deck and get request cards from the request
-        (SocialSessionCardDeck deck, List<CardInstance> GoalCards) = _deckBuilder.CreateConversationDeck(npc, requestId, observationCards);
+        (SocialSessionCardDeck deck, List<CardInstance> GoalCards) = _deckBuilder.CreateConversationDeck(npc, requestId);
 
         // Initialize momentum manager for this conversation with token data
         _momentumManager.InitializeForConversation(npcTokens);
@@ -175,8 +175,6 @@ public class SocialFacade
         // Set relationship flow based on connection state only
         _currentSession.NPC.RelationshipFlow = stateBase;
 
-        // Token rewards are now handled via individual card thresholds, not a global rapport goal
-
         // Apply token changes from other sources
         if (_lastOutcome.TokensEarned != 0)
         {
@@ -184,16 +182,8 @@ public class SocialFacade
             _tokenManager.AddTokensToNPC(connectionType, _lastOutcome.TokensEarned, _currentSession.NPC.ID);
         }
 
-        // Generate letter if eligible
-        if (ShouldGenerateLetter(_currentSession))
-        {
-            DeliveryObligation obligation = CreateLetterObligation(_currentSession);
-            _queueManager.AddObligation(obligation);
-            _currentSession.LetterGenerated = true;
-        }
-
         _currentSession.Deck.ResetForNewConversation();
-        _currentSession;
+        _currentSession = null;
 
         return _lastOutcome;
     }
@@ -377,9 +367,6 @@ public class SocialFacade
         // 10. Update card playability based on new Initiative level
         UpdateCardPlayabilityForInitiative(_currentSession);
 
-        // 11. Handle special card effects (exchanges, letters, etc.)
-        HandleSpecialCardEffects(new HashSet<CardInstance> { selectedCard }, new SocialTurnResult { Success = success });
-
         // Generate NPC response through narrative service
         List<CardInstance> activeCards = _currentSession.Deck.HandCards.ToList();
         NarrativeOutput narrative = await _narrativeService.GenerateNarrativeAsync(
@@ -560,7 +547,7 @@ public class SocialFacade
 
         // Additional checks for goal cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
+        if (card.CardType == CardTypes.Goal)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -781,7 +768,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request cards - their playability is based on momentum thresholds
-            if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
+            if (card.CardType == CardTypes.Goal)
             {
                 continue;
             }
@@ -849,9 +836,7 @@ public class SocialFacade
         }
 
         // Check if card ends conversation (Request, Promise, Burden cards)
-        bool endsConversation = selectedCard.SocialCardTemplate.IsGoalCard == CardType.Request ||
-                                selectedCard.SocialCardTemplate.IsGoalCard == CardType.Promise ||
-                                selectedCard.SocialCardTemplate.IsGoalCard == CardType.Burden;
+        bool endsConversation = selectedCard.CardType == CardTypes.Goal;
 
         // Create play result
         return new CardPlayResult
@@ -1009,9 +994,7 @@ public class SocialFacade
         if (session.TurnHistory != null && session.TurnHistory.Any())
         {
             SocialTurn lastTurn = session.TurnHistory.Last();
-            if (lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Request ||
-                lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Promise ||
-                lastTurn?.CardPlayed?.SocialCardTemplate?.IsGoalCard == CardType.Burden)
+            if (lastTurn?.CardPlayed?.CardType == CardTypes.Goal)
             {
                 return true;
             }
@@ -1057,10 +1040,7 @@ public class SocialFacade
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.CurrentMomentum);
 
         // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
-        bool requestAchieved = session.Deck.SpokenCards.Any(c =>
-            c.SocialCardTemplate.IsGoalCard == CardType.Request ||
-            c.SocialCardTemplate.IsGoalCard == CardType.Promise ||
-            c.SocialCardTemplate.IsGoalCard == CardType.Request);
+        bool requestAchieved = session.Deck.SpokenCards.Any(c => c.CardType == CardTypes.Goal);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1167,7 +1147,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Only process goal cards that are currently Unplayable
-            if ((card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
+            if ((card.CardType == CardTypes.Goal)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1193,7 +1173,7 @@ public class SocialFacade
     {
         // This is called at conversation start - just check for goal card presence
         bool hasGoalCard = session.Deck.HandCards
-            .Any(c => c.SocialCardTemplate.IsGoalCard == CardType.Request || c.SocialCardTemplate.IsGoalCard == CardType.Promise || c.SocialCardTemplate.IsGoalCard == CardType.Request);
+            .Any(c => c.CardType == CardTypes.Goal);
 
         if (hasGoalCard)
         {
@@ -1212,7 +1192,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not Initiative
-            if (card.SocialCardTemplate.IsGoalCard == CardType.Request || card.SocialCardTemplate.IsGoalCard == CardType.Promise || card.SocialCardTemplate.IsGoalCard == CardType.Request)
+            if (card.CardType == CardTypes.Goal)
             {
                 continue; // Don't modify request card playability here
             }
@@ -1231,35 +1211,6 @@ public class SocialFacade
         }
     }
 
-
-    /// <summary>
-    /// Check and move request cards to hand if momentum threshold is met
-    /// This should only be called by UI components, never directly on Session
-    /// </summary>
-    public List<CardInstance> CheckAndMoveGoalCards()
-    {
-        if (_currentSession == null || _currentSession.Deck == null)
-        {
-            return new List<CardInstance>();
-        }
-
-        int currentMomentum = _currentSession.MomentumManager?.CurrentMomentum ?? 0;
-        List<CardInstance> movedCards = _currentSession.Deck.CheckRequestThresholds(currentMomentum);
-
-        // Notify about moved cards
-        foreach (CardInstance card in movedCards)
-        {
-            card.IsPlayable = true;
-            _messageSystem.AddSystemMessage(
-                $"{card.SocialCardTemplate.Title} is now available (Momentum threshold met)",
-                SystemMessageTypes.Success);
-        }
-
-        return movedCards;
-    }
-
-    #region UI Access Methods - Encapsulated Deck Access
-
     /// <summary>
     /// Get current hand cards (read-only) for UI display
     /// UI should NEVER access Session.Deck directly
@@ -1271,234 +1222,6 @@ public class SocialFacade
 
         return _currentSession.Deck.HandCards;
     }
-
-    /// <summary>
-    /// Get request pile cards (read-only) for UI display
-    /// </summary>
-    public IReadOnlyList<CardInstance> GetGoalCards()
-    {
-        if (_currentSession?.Deck == null)
-            return new List<CardInstance>();
-
-        return _currentSession.Deck.GoalCards;
-    }
-
-    /// <summary>
-    /// Get played cards history (read-only) for UI display
-    /// </summary>
-    public IReadOnlyList<CardInstance> GetPlayedHistory()
-    {
-        if (_currentSession?.Deck == null)
-            return new List<CardInstance>();
-
-        return _currentSession.Deck.SpokenCards;
-    }
-
-    /// <summary>
-    /// Check if a card is in the hand
-    /// </summary>
-    public bool IsCardInHand(CardInstance card)
-    {
-        if (_currentSession?.Deck == null || card == null)
-            return false;
-
-        return _currentSession.Deck.IsCardInMind(card);
-    }
-
-    /// <summary>
-    /// Check if a card is in the request pile
-    /// </summary>
-    public bool IsCardInRequestPile(CardInstance card)
-    {
-        if (_currentSession?.Deck == null || card == null)
-            return false;
-
-        return _currentSession.Deck.IsCardInRequestPile(card);
-    }
-
-    /// <summary>
-    /// Get the current hand size
-    /// </summary>
-    public int GetHandSize()
-    {
-        if (_currentSession?.Deck == null)
-            return 0;
-
-        return _currentSession.Deck.HandSize;
-    }
-
-    /// <summary>
-    /// Get the current request pile size
-    /// </summary>
-    public int GetRequestPileSize()
-    {
-        if (_currentSession?.Deck == null)
-            return 0;
-
-        return _currentSession.Deck.RequestPileSize;
-    }
-
-    /// <summary>
-    /// Get deck statistics for UI display
-    /// </summary>
-    public (int deck, int spoken, int mind, int requestPile) GetDeckStatistics()
-    {
-        if (_currentSession?.Deck == null)
-            return (0, 0, 0, 0);
-
-        return (
-            _currentSession.Deck.RemainingDeckCards,
-            _currentSession.Deck.SpokenPileCount,
-            _currentSession.Deck.HandSize,
-            _currentSession.Deck.RequestPileSize
-        );
-    }
-
-    /// <summary>
-    /// Check if there are cards available to draw
-    /// </summary>
-    public bool HasCardsAvailable()
-    {
-        if (_currentSession?.Deck == null)
-            return false;
-
-        return _currentSession.Deck.HasCardsAvailable();
-    }
-
-    #endregion
-
-    #region Preview Methods for UI
-
-    /// <summary>
-    /// Get preview text for LISTEN action showing effects of doubt clear/add, momentum loss, cadence change, and card draw
-    /// </summary>
-    public string GetListenActionPreview()
-    {
-        if (_currentSession == null) return "";
-
-        List<string> preview = new List<string>();
-
-        int currentDoubt = _currentSession.CurrentDoubt;
-        int currentMomentum = _currentSession.CurrentMomentum;
-        int currentCadence = _currentSession.Cadence;
-
-        // Step 1: Show doubt clearing and momentum loss
-        if (currentDoubt > 0)
-        {
-            int newMomentum = Math.Max(0, currentMomentum - currentDoubt);
-            preview.Add($"Clear {currentDoubt} doubt, lose {currentDoubt} momentum");
-            preview.Add($"Momentum: {currentMomentum} → {newMomentum}");
-        }
-
-        // Step 2: Show positive cadence conversion to doubt
-        if (currentCadence > 0)
-        {
-            int cadenceToDoubt = currentCadence;
-            int finalDoubt = Math.Min(_currentSession.MaxDoubt, cadenceToDoubt);
-            preview.Add($"Convert {cadenceToDoubt} positive cadence to doubt");
-            preview.Add($"Doubt: 0 → {finalDoubt}");
-        }
-
-        // Step 3: Show cadence change
-        int newCadence = Math.Max(-5, currentCadence - 1);
-        preview.Add($"Cadence: {currentCadence} → {newCadence} (-1 for listening)");
-
-        // Step 4: Show card draw
-        int drawCount = _currentSession.GetDrawCount();
-        int cadenceBonus = newCadence < 0 ? Math.Abs(newCadence) : 0;
-        if (cadenceBonus > 0)
-        {
-            preview.Add($"Draw {drawCount} cards (3 base + {cadenceBonus} from negative cadence)");
-        }
-        else
-        {
-            preview.Add($"Draw {drawCount} cards (3 base)");
-        }
-
-        // Show Initiative status (accumulates between LISTEN - no reset)
-        preview.Add($"Initiative: {_currentSession.CurrentInitiative} (never resets)");
-
-        return string.Join("<br/>", preview);
-    }
-
-    /// <summary>
-    /// Get preview text for SPEAK action based on selected card
-    /// </summary>
-    public string GetSpeakActionPreview(CardInstance selectedCard)
-    {
-        if (_currentSession == null) return "";
-
-        if (selectedCard == null)
-        {
-            return $"Select a card to play ({_currentSession.CurrentInitiative} Initiative available)";
-        }
-
-        int initiativeCost = GetCardInitiativeCost(selectedCard);
-        int newInitiative = Math.Max(0, _currentSession.CurrentInitiative - initiativeCost);
-        int newCadence = Math.Min(5, _currentSession.Cadence + 1); // SPEAK gives +1 Cadence (max +5)
-
-        List<string> preview = new List<string>();
-        preview.Add($"Initiative: {_currentSession.CurrentInitiative} → {newInitiative} (-{initiativeCost})");
-        preview.Add($"Cadence: {_currentSession.Cadence} → {newCadence} (+1 for speaking)");
-
-        return string.Join("<br/>", preview);
-    }
-
-    /// <summary>
-    /// Get action text for SPEAK button details based on selected card
-    /// </summary>
-    public string GetSpeakActionText(CardInstance selectedCard)
-    {
-        if (_currentSession == null) return "";
-
-        if (selectedCard != null)
-        {
-            int initiativeCost = GetCardInitiativeCost(selectedCard);
-            int remainingAfter = _currentSession.CurrentInitiative - initiativeCost;
-            string continueHint = remainingAfter > 0 ? $" (Can continue with {remainingAfter} Initiative)" : " (Must use Foundation cards to build Initiative)";
-            return $"Play Card ({initiativeCost} Initiative){continueHint}";
-        }
-
-        int availableInitiative = _currentSession.CurrentInitiative;
-        if (availableInitiative == 0)
-            return "No Initiative - use Foundation cards to build Initiative";
-        else if (availableInitiative == 1)
-            return "Select a card to play (1 Initiative available)";
-        else
-            return $"Select a card to play ({availableInitiative} Initiative available)";
-    }
-
-    /// <summary>
-    /// Get stat bonus text for cards based on player stats
-    /// </summary>
-    public string GetCardStatBonus(CardInstance card)
-    {
-        if (card?.SocialCardTemplate?.BoundStat == null || _gameWorld == null) return "";
-
-        try
-        {
-            Player player = _gameWorld.GetPlayer();
-            if (player?.Stats == null) return "";
-
-            PlayerStats stats = player.Stats;
-            int statLevel = stats.GetLevel(card.SocialCardTemplate.BoundStat.Value);
-
-            // Level 2 = +1, Level 3 = +2, Level 4 = +3, Level 5 = +4
-            if (statLevel >= 2)
-            {
-                int bonus = statLevel - 1;
-                return $"+{bonus} momentum";
-            }
-        }
-        catch
-        {
-            // Fallback to no bonus display
-        }
-
-        return "";
-    }
-
-    #endregion
 
     #region Investigation Integration
 

@@ -22,7 +22,7 @@ public class SocialChallengeDeck
 
         foreach (string cardId in CardIds)
         {
-            CardDefinitionEntry entry = gameWorld.AllCardDefinitions
+            SocialCard entry = gameWorld.SocialCards
                 .FirstOrDefault(d => d.Card?.Id == cardId);
 
             if (entry?.Card != null)

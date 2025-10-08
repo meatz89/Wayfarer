@@ -144,15 +144,7 @@ public static class SocialCardEffectCatalog
     {
         // Arguments MUST use compound effects - no fallbacks
         List<CardEffectFormula> variants = GetEffectVariants(stat, depth);
-
         CardEffectFormula? compoundVariant = variants.FirstOrDefault(v => v.FormulaType == EffectFormulaType.Compound);
-
-        if (compoundVariant == null)
-        {
-            throw new InvalidOperationException(
-                $"ARGUMENT CARD REQUIRES COMPOUND EFFECT: No compound effect found for {stat} depth {depth}. " +
-                $"Arguments are complex developed points and MUST have compound effects.");
-        }
 
         return compoundVariant;
     }

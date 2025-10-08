@@ -449,18 +449,18 @@ public class PackageLoader
         }
     }
 
-    private void LoadNpcGoalCards(Dictionary<string, List<SocialCardDTO>> npcGoalCards, bool allowSkeletons)
+    private void LoadGoalCards(Dictionary<string, List<GoalCardDTO>> goalCards, bool allowSkeletons)
     {
-        if (npcGoalCards == null) return;
+        if (goalCards == null) return;
 
         Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
-        foreach (KeyValuePair<string, List<SocialCardDTO>> kvp in npcGoalCards)
+        foreach (KeyValuePair<string, List<GoalCardDTO>> kvp in goalCards)
         {
             string npcId = kvp.Key;
-            foreach (SocialCardDTO dto in kvp.Value)
+            foreach (GoalCardDTO dto in kvp.Value)
             {
-                SocialCard card = SocialCardParser.ParseCard(dto);
-                _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
+                GoalCard card = GoalCardParser.ParseCard(dto);
+                _gameWorld.GoalCards.Add(card);
                 Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
             }
         }
@@ -474,11 +474,11 @@ public class PackageLoader
         {
             // Use static method from ConversationCardParser
             SocialCard card = SocialCardParser.ParseCard(dto);
-            _gameWorld.AllCardDefinitions.AddOrUpdateCard(card.Id, card);
+            _gameWorld.SocialCards.AddOrUpdateCard(card.Id, card);
         }
 
         // Validate Foundation card rules after all cards are loaded
-        List<SocialCard> allCards = _gameWorld.AllCardDefinitions.Select(entry => entry.Card).ToList();
+        List<SocialCard> allCards = _gameWorld.SocialCards.Select(entry => entry.Card).ToList();
         SocialCardParser.ValidateFoundationCardRules(allCards);
     }
 
@@ -1092,7 +1092,7 @@ public class PackageLoader
     /// <summary>
     /// Initialize one-time requests for NPCs from NpcGoalCards and deck compositions
     /// </summary>
-    private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<NPCGoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
+    private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<GoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
     {
         Console.WriteLine($"[PackageLoader] Initializing NPC one-time requests... npcRequestDtos={npcRequestDtos?.Count ?? 0}, npcGoalCardDtos={npcGoalCardDtos?.Count ?? 0}");
         List<string> validationErrors = new List<string>();

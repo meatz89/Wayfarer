@@ -6,14 +6,7 @@
     <div class="card-content">
         <div class="card-top-row">
             <div class="stat-badge @GetCardStatClass()">
-                @if (Card.SocialCardTemplate.IsGoalCard == CardType.Request)
-                {
-                    <span>REQUEST</span>
-                }
-                else
-                {
-                    <text>@GetCardStatName() Depth @GetCardDepth()</text>
-                }
+                <text>@GetCardStatName() Depth @GetCardDepth()</text>
             </div>
             <div class="card-flags">
                 @SystemSpecificBadges

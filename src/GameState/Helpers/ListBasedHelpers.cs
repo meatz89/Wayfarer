@@ -97,15 +97,6 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for card definition entries (replaces Dictionary<string, ConversationCard>)
-/// </summary>
-public class CardDefinitionEntry
-{
-    public string CardId { get; set; }
-    public SocialCard Card { get; set; }
-}
-
-/// <summary>
 /// Helper class for location spot entries (replaces Dictionary<string, LocationSpot>)
 /// </summary>
 public class LocationSpotEntry
@@ -166,24 +157,6 @@ public class TokenUnlockEntry
 {
     public int TokenCount { get; set; }
     public List<string> UnlockedIds { get; set; } = new List<string>();
-}
-
-/// <summary>
-/// Helper class for mental card entries (replaces Dictionary<string, MentalCard>)
-/// </summary>
-public class MentalCardEntry
-{
-    public string CardId { get; set; }
-    public MentalCard Card { get; set; }
-}
-
-/// <summary>
-/// Helper class for physical card entries (replaces Dictionary<string, PhysicalCard>)
-/// </summary>
-public class PhysicalCardEntry
-{
-    public string CardId { get; set; }
-    public PhysicalCard Card { get; set; }
 }
 
 /// <summary>
@@ -392,61 +365,4 @@ public static class ListBasedHelperExtensions
         return events.FindById(eventId)?.TravelEvent;
     }
 
-
-    // CardDefinitionEntry helpers
-    public static SocialCard GetCard(this List<CardDefinitionEntry> cards, string cardId)
-    {
-        return cards.FindById(cardId)?.Card;
-    }
-
-    public static void AddOrUpdateCard(this List<CardDefinitionEntry> cards, string cardId, SocialCard card)
-    {
-        CardDefinitionEntry existing = cards.FindById(cardId);
-        if (existing != null)
-        {
-            existing.Card = card;
-        }
-        else
-        {
-            cards.Add(new CardDefinitionEntry { CardId = cardId, Card = card });
-        }
-    }
-
-    // MentalCardEntry helpers
-    public static MentalCard GetMentalCard(this List<MentalCardEntry> cards, string cardId)
-    {
-        return cards.FindById(cardId)?.Card;
-    }
-
-    public static void AddOrUpdateCard(this List<MentalCardEntry> cards, string cardId, MentalCard card)
-    {
-        MentalCardEntry existing = cards.FindById(cardId);
-        if (existing != null)
-        {
-            existing.Card = card;
-        }
-        else
-        {
-            cards.Add(new MentalCardEntry { CardId = cardId, Card = card });
-        }
-    }
-
-    // PhysicalCardEntry helpers
-    public static PhysicalCard GetPhysicalCard(this List<PhysicalCardEntry> cards, string cardId)
-    {
-        return cards.FindById(cardId)?.Card;
-    }
-
-    public static void AddOrUpdateCard(this List<PhysicalCardEntry> cards, string cardId, PhysicalCard card)
-    {
-        PhysicalCardEntry existing = cards.FindById(cardId);
-        if (existing != null)
-        {
-            existing.Card = card;
-        }
-        else
-        {
-            cards.Add(new PhysicalCardEntry { CardId = cardId, Card = card });
-        }
-    }
 }

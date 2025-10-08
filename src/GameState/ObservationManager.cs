@@ -180,7 +180,7 @@ public class ObservationManager
         }
 
         // Load the base card template from GameWorld's AllCardDefinitions
-        CardDefinitionEntry? entry = _gameWorld.AllCardDefinitions.FindById(observation.CardTemplate);
+        SocialCard? entry = _gameWorld.SocialCards.FindById(observation.CardTemplate);
         if (entry == null)
         {
             Console.WriteLine($"[ObservationManager] Card template '{observation.CardTemplate}' not found in AllCardDefinitions for observation {observation.Id}");

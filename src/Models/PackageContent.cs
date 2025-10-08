@@ -58,7 +58,7 @@ public class PackageContent
     /// <summary>
     /// NPC goal cards - goal cards specific to NPCs (promises, connection tokens, etc)
     /// </summary>
-    public List<NPCGoalCardDTO> NpcGoalCards { get; set; }
+    public List<GoalCardDTO> NpcGoalCards { get; set; }
 
     /// <summary>
     /// NPC requests - bundles of request and promise cards for one-time requests

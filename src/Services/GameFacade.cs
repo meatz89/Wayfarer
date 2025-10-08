@@ -491,7 +491,6 @@ public class GameFacade
     /// </summary>
     public SocialChallengeOutcome EndConversation()
     {
-        if (_conversationFacade == null) return null;
         return _conversationFacade.EndConversation();
     }
 
@@ -506,11 +505,8 @@ public class GameFacade
     /// Start a new Mental tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string challengeTypeId)
+    public MentalSession StartMentalSession(string challengeTypeId, string goalId, string investigationId)
     {
-        if (_mentalFacade == null)
-            throw new InvalidOperationException("MentalFacade not available");
-
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
@@ -583,11 +579,8 @@ public class GameFacade
     /// Start a new Physical tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string challengeTypeId)
+    public PhysicalSession StartPhysicalSession(string challengeTypeId, string goalId, string investigationId)
     {
-        if (_physicalFacade == null)
-            throw new InvalidOperationException("PhysicalFacade not available");
-
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 

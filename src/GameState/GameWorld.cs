@@ -36,16 +36,17 @@ public class GameWorld
 
     // DECK ARCHITECTURE - Single source of truth for all deck configurations
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
-    public List<CardDefinitionEntry> AllCardDefinitions { get; set; } = new List<CardDefinitionEntry>();
     // Exchange cards are now completely separate from conversation cards
     public List<NPCExchangeCardEntry> NPCExchangeCards { get; set; } = new List<NPCExchangeCardEntry>();
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
     // Mental cards for investigation system
-    public List<MentalCardEntry> MentalCards { get; set; } = new List<MentalCardEntry>();
+    public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
+    public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
+    public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
-    public List<PhysicalCardEntry> PhysicalCards { get; set; } = new List<PhysicalCardEntry>();
+    public List<PhysicalCard> PhysicalCards { get; set; } = new List<PhysicalCard>();
 
     // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
 

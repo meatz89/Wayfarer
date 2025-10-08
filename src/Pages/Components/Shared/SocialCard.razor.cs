@@ -30,14 +30,14 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected bool IsObservationExpired()
         {
-            return Card.SocialCardTemplate.IsGoalCard == CardType.Observation &&
+            return Card.SocialCardTemplate.IsGoalCard == CardTypes.Observation &&
                    Card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
         }
 
         protected string GetCardStatClass()
         {
             // Request cards use CardType for styling
-            if (Card?.SocialCardTemplate?.IsGoalCard == CardType.Request)
+            if (Card?.SocialCardTemplate?.IsGoalCard == CardTypes.Request)
                 return Card.SocialCardTemplate.IsGoalCard.ToString().ToLower();
 
             // Conversation cards use BoundStat for styling

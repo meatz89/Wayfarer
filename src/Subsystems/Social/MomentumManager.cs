@@ -39,7 +39,7 @@ public class MomentumManager
     {
         currentMomentum = 0;
         currentDoubt = 0;
-        _session;
+        _session = null;
 
         if (tokens != null)
         {

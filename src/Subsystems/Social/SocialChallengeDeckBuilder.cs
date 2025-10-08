@@ -23,8 +23,7 @@ public class SocialChallengeDeckBuilder
     /// </summary>
     public (SocialSessionCardDeck deck, List<CardInstance> GoalCards) CreateConversationDeck(
         NPC npc,
-        string requestId,
-        List<CardInstance> observationCards)
+        string requestId)
     {
         string sessionId = Guid.NewGuid().ToString();
 
@@ -74,33 +73,6 @@ public class SocialChallengeDeckBuilder
         // Create session deck
         SocialSessionCardDeck deck = SocialSessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
-        // Add NPC signature deck knowledge cards to STARTING HAND (parallel to Mental/Physical)
-        if (npc.SignatureDeck != null)
-        {
-            List<SignatureKnowledgeCard> knowledgeCards = npc.SignatureDeck.GetCardsForTacticalType(TacticalSystemType.Social);
-            foreach (SignatureKnowledgeCard sigCard in knowledgeCards)
-            {
-                CardDefinitionEntry knowledgeEntry = _gameWorld.AllCardDefinitions
-                    .FirstOrDefault(e => e.Card?.Id == sigCard.CardId);
-
-                if (knowledgeEntry?.Card != null)
-                {
-                    CardInstance knowledgeInstance = new CardInstance(knowledgeEntry.Card, "signature_knowledge");
-                    deck.AddCardToMind(knowledgeInstance);
-                    Console.WriteLine($"[ConversationDeckBuilder] Added signature knowledge card '{sigCard.CardId}' to starting hand from NPC '{npc.ID}'");
-                }
-            }
-        }
-
-        // Add observation cards if provided
-        if (observationCards != null && observationCards.Any())
-        {
-            foreach (CardInstance card in observationCards)
-            {
-                deck.AddCard(card);
-            }
-        }
-
         // Process request cards
         List<CardInstance> GoalCardInstances = CreateGoalCardInstances(request, npc);
 
@@ -128,12 +100,12 @@ public class SocialChallengeDeckBuilder
         foreach (NPCRequestGoal goal in request.Goals)
         {
             // Find the card referenced by this goal (CardId references card in _cards.json)
-            CardDefinitionEntry? cardEntry = _gameWorld.AllCardDefinitions.FindById(goal.CardId);
+            GoalCard? cardEntry = _gameWorld.SocialCards.FindById(goal.CardId);
             if (cardEntry == null)
             {
                 throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in _cards.json and referenced in NPC goal.");
             }
-            SocialCard goalCard = cardEntry.Card;
+            GoalCard goalCard = cardEntry.Card;
 
             // Create instance from the goal card
             CardInstance instance = new CardInstance(goalCard, npc.ID);
