@@ -22,10 +22,10 @@ public class MentalChallengeDeck
 
         foreach (string cardId in CardIds)
         {
-            MentalCard entry = gameWorld.MentalCards.FirstOrDefault(e => e.CardId == cardId);
-            if (entry?.Card != null)
+            MentalCard card = gameWorld.MentalCards.FirstOrDefault(e => e.Id == cardId);
+            if (card != null)
             {
-                instances.Add(new CardInstance(entry.Card));
+                instances.Add(new CardInstance(card));
             }
         }
 

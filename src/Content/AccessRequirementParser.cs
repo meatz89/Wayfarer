@@ -13,7 +13,7 @@ public static class AccessRequirementParser
     /// </summary>
     public static AccessRequirement ConvertDTOToAccessRequirement(AccessRequirementDTO dto)
     {
-            return null;
+        return null;
 
         AccessRequirement requirement = new AccessRequirement
         {

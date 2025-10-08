@@ -16,7 +16,7 @@
         {
             foreach (string locationSpotId in location.LocationSpotIds)
             {
-                if (!_worldState.locationSpots.Any(ls => ls.SpotID == locationSpotId))
+                if (!_worldState.locationSpots.Any(ls => ls.Id == locationSpotId))
                 {
                     result.AddMissingLocationSpot(locationSpotId, location);
                 }

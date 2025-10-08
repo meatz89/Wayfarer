@@ -63,7 +63,8 @@ public class PhysicalFacade
         return _sessionDeck?.PlayedCards.Count ?? 0;
     }
 
-    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, string locationId, string goalId, string investigationId)
+    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, 
+        string goalId, string investigationId)
     {
         if (IsSessionActive())
         {
@@ -376,18 +377,18 @@ public class PhysicalFacade
         if (investigation != null && goalId == $"{investigationId}_intro")
         {
             // This is intro completion - activate investigation
-            List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
+            List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
 
             // Add first goals to their respective spots (Spots are the only entity that matters)
             if (firstGoals.Count > 0)
             {
-                foreach (LocationGoal goal in firstGoals)
+                foreach (ChallengeGoal goal in firstGoals)
                 {
-                    LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == goal.SpotId);
+                    LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == goal.SpotId);
                     if (spotEntry != null)
                     {
                         if (spotEntry.Spot.Goals == null)
-                            spotEntry.Spot.Goals = new List<LocationGoal>();
+                            spotEntry.Spot.Goals = new List<ChallengeGoal>();
                         spotEntry.Spot.Goals.Add(goal);
                     }
                 }

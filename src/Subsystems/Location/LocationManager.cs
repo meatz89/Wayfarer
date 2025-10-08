@@ -103,9 +103,9 @@ public class LocationManager
 
         if (_gameWorld.WorldState.locationSpots.Any(s =>
             s.LocationId.Equals(spot.LocationId, StringComparison.OrdinalIgnoreCase) &&
-            s.SpotID.Equals(spot.SpotID, StringComparison.OrdinalIgnoreCase)))
+            s.Id.Equals(spot.Id, StringComparison.OrdinalIgnoreCase)))
         {
-            throw new InvalidOperationException($"Spot '{spot.SpotID}' already exists in '{spot.LocationId}'.");
+            throw new InvalidOperationException($"Spot '{spot.Id}' already exists in '{spot.LocationId}'.");
         }
 
         _gameWorld.WorldState.locationSpots.Add(spot);
@@ -121,7 +121,7 @@ public class LocationManager
         // Validate that the spot belongs to the location
         if (spot != null && !spot.LocationId.Equals(location.Id, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException($"Spot {spot.SpotID} does not belong to location {location.Id}");
+            throw new InvalidOperationException($"Spot {spot.Id} does not belong to location {location.Id}");
         }
 
         _gameWorld.GetPlayer().CurrentLocationSpot = spot;

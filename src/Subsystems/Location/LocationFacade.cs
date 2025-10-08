@@ -132,7 +132,7 @@ public class LocationFacade
 
         // Execute movement
         _locationManager.SetCurrentSpot(targetSpot);
-        player.AddKnownLocationSpot(targetSpot.SpotID);
+        player.AddKnownLocationSpot(targetSpot.Id);
         _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
 
         return true;
@@ -150,7 +150,7 @@ public class LocationFacade
         Location location = GetCurrentLocation();
         LocationSpot spot = GetCurrentLocationSpot();
 
-        Console.WriteLine($"[LocationFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.SpotID})");
+        Console.WriteLine($"[LocationFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.Id})");
 
         LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
@@ -177,7 +177,7 @@ public class LocationFacade
             viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.Id, spot.SpotID);
+            viewModel.Observations = GetLocationObservations(location.Id, spot.Id);
 
             // Add areas within location
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinLocation(location, spot, currentTime, _npcRepository);
@@ -219,7 +219,7 @@ public class LocationFacade
         if (player?.CurrentLocationSpot == null) return new List<NPC>();
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _npcTracker.GetNPCsAtSpot(player.CurrentLocationSpot.SpotID, currentTime);
+        return _npcTracker.GetNPCsAtSpot(player.CurrentLocationSpot.Id, currentTime);
     }
 
     /// <summary>
@@ -244,8 +244,8 @@ public class LocationFacade
     {
         List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>();
 
-        Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Looking for NPCs at {spot.SpotID} during {currentTime}");
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+        Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Looking for NPCs at {spot.Id} during {currentTime}");
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.Id, currentTime);
         Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Found {npcs.Count} NPCs");
 
         foreach (NPC npc in npcs)
@@ -386,7 +386,7 @@ public class LocationFacade
 
         foreach (RouteOption route in availableRoutes)
         {
-            LocationSpot? destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
+            LocationSpot? destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
             Location? destination = destSpot != null ? _locationManager.GetLocation(destSpot.LocationId) : null;
 
             if (destination != null)
@@ -414,7 +414,7 @@ public class LocationFacade
     private int GetNPCCountAtSpot(LocationSpot spot)
     {
         if (spot == null) return 0;
-        return _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, _timeManager.GetCurrentTimeBlock()).Count();
+        return _npcRepository.GetNPCsForLocationSpotAndTime(spot.Id, _timeManager.GetCurrentTimeBlock()).Count();
     }
 
     /// <summary>

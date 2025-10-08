@@ -49,9 +49,9 @@ namespace Wayfarer.Pages.Components
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected Location CurrentLocation { get; set; }
-        protected List<LocationGoal> AvailableSocialGoals { get; set; } = new();
-        protected List<LocationGoal> AvailableMentalGoals { get; set; } = new();
-        protected List<LocationGoal> AvailablePhysicalGoals { get; set; } = new();
+        protected List<ChallengeGoal> AvailableSocialGoals { get; set; } = new();
+        protected List<ChallengeGoal> AvailableMentalGoals { get; set; } = new();
+        protected List<ChallengeGoal> AvailablePhysicalGoals { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -226,22 +226,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-
-        protected async Task StartConversationWithRequest(string npcId, string requestId)
-        {
-            Console.WriteLine($"[LocationContent] Starting   conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
-
-            if (GameScreen != null)
-            {
-                await GameScreen.StartConversation(npcId, requestId);
-            }
-            else
-            {
-                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
-            }
-        }
-
-
         protected async Task StartExchange(string npcId)
         {
             Console.WriteLine($"[LocationContent] Starting exchange with NPC ID: '{npcId}'");
@@ -256,13 +240,27 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartSocialGoal(LocationGoal goal)
+        protected async Task StartConversationWithRequest(string npcId, string requestId)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.RequestId}'");
+            Console.WriteLine($"[LocationContent] Starting   conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversation(goal.NpcId, goal.RequestId);
+                await GameScreen.StartConversationSession(npcId, requestId);
+            }
+            else
+            {
+                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
+            }
+        }
+
+        protected async Task StartSocialGoal(ChallengeGoal goal)
+        {
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.NPCRequestId}'");
+
+            if (GameScreen != null)
+            {
+                await GameScreen.StartConversationSession(goal.NpcId, goal.NPCRequestId);
             }
             else
             {
@@ -270,13 +268,13 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartMentalGoal(LocationGoal goal)
+        protected async Task StartMentalGoal(ChallengeGoal goal)
         {
             Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartMentalSession(goal.ChallengeTypeId);
+                await GameScreen.StartMentalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocationSpot.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
@@ -284,13 +282,13 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartPhysicalGoal(LocationGoal goal)
+        protected async Task StartPhysicalGoal(ChallengeGoal goal)
         {
             Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId);
+                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocationSpot.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
@@ -372,7 +370,7 @@ namespace Wayfarer.Pages.Components
 
 
             // Call LocationFacade to perform the investigation
-            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.SpotID);
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.Id);
 
             if (success)
             {
@@ -443,7 +441,7 @@ namespace Wayfarer.Pages.Components
 
             // Get ALL NPCs at this location and filter by SpotId
             List<NPC> npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
-            return npcsAtLocation.Where(n => n.SpotId == spot.SpotID).ToList();
+            return npcsAtLocation.Where(n => n.SpotId == spot.Id).ToList();
         }
 
         protected string GetNPCName(string npcId)
@@ -638,7 +636,7 @@ namespace Wayfarer.Pages.Components
 
             Console.WriteLine($"[LocationContent] Starting investigation with {approach} approach");
 
-            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.SpotID, approach);
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.Id, approach);
 
             if (success)
             {

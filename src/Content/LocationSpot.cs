@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 public class LocationSpot
 {
-    public string SpotID { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; }
     // Description removed - generated from SpotPropertyType combinations
     public string LocationId { get; set; }
@@ -31,14 +31,14 @@ public class LocationSpot
     public AccessRequirement AccessRequirement { get; set; }
 
     // Tactical Goals - Mental, Physical, and Social challenges available at this spot
-    public List<LocationGoal> Goals { get; set; } = new List<LocationGoal>();
+    public List<ChallengeGoal> Goals { get; set; } = new List<ChallengeGoal>();
 
     // UI compatibility - converts SpotPropertyType enum to string list
     public List<string> Properties => SpotProperties.Select(p => p.ToString()).ToList();
 
     public LocationSpot(string id, string name)
     {
-        SpotID = id;
+        Id = id;
         Name = name;
     }
 

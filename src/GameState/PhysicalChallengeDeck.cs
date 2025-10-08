@@ -22,10 +22,10 @@ public class PhysicalChallengeDeck
 
         foreach (string cardId in CardIds)
         {
-            PhysicalCard entry = gameWorld.PhysicalCards.FirstOrDefault(e => e.CardId == cardId);
-            if (entry?.Card != null)
+            PhysicalCard card = gameWorld.PhysicalCards.FirstOrDefault(e => e.Id == cardId);
+            if (card != null)
             {
-                instances.Add(new CardInstance(entry.Card));
+                instances.Add(new CardInstance(card));
             }
         }
 

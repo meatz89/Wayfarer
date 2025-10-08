@@ -88,7 +88,7 @@ public class EventNarrator
         }
     }
 
-    
+
     // ========== TIME NARRATIVES ==========
 
     /// <summary>

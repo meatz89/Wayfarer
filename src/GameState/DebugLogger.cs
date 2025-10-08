@@ -180,7 +180,7 @@ public class DebugLogger
         Player player = gameWorld.GetPlayer();
         report.Add("PLAYER STATE:");
         report.Add($"  Location: {player.CurrentLocationSpot?.LocationId ?? "NULL"}");
-        report.Add($"  Spot: {player.CurrentLocationSpot?.SpotID ?? "NULL"}");
+        report.Add($"  Spot: {player.CurrentLocationSpot?.Id ?? "NULL"}");
         report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");
@@ -204,13 +204,13 @@ public class DebugLogger
         {
             List<NPC> allNpcs = gameWorld.WorldState.NPCs;
             List<NPC> locationNpcs = allNpcs.Where(n => n.Location == player.CurrentLocationSpot.LocationId).ToList();
-            List<NPC> spotNpcs = locationNpcs.Where(n => n.SpotId == player.CurrentLocationSpot.SpotID).ToList();
+            List<NPC> spotNpcs = locationNpcs.Where(n => n.SpotId == player.CurrentLocationSpot.Id).ToList();
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 
             report.Add($"  Total NPCs in game: {allNpcs.Count}");
             report.Add($"  NPCs at location '{player.CurrentLocationSpot.LocationId}': {locationNpcs.Count}");
-            report.Add($"  NPCs at spot '{player.CurrentLocationSpot.SpotID}': {spotNpcs.Count}");
+            report.Add($"  NPCs at spot '{player.CurrentLocationSpot.Id}': {spotNpcs.Count}");
             report.Add($"  Available at time '{currentTime}': {availableNpcs.Count}");
 
             foreach (NPC? npc in availableNpcs)

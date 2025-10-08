@@ -167,9 +167,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         if (CurrentScreen == targetMode) return false;
 
         // Conversation-specific rules
-        if (CurrentScreen == ScreenMode.SocialChallenge)
+        if (CurrentScreen == ScreenMode.SocialChallenge
+            || CurrentScreen == ScreenMode.PhysicalChallenge)
         {
-            // Can only exit conversation through proper ending
+            // Can only exit challenges through proper ending
             // This is handled by HandleConversationEnd
             return false;
         }
@@ -297,28 +298,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartConversation(string npcId, string requestId)
-    {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, requestId);
-
-        // Always refresh UI after GameFacade action
-        await RefreshResourceDisplay();
-        await RefreshTimeDisplay();
-
-        if (CurrentSocialContext != null && CurrentSocialContext.IsValid)
-        {
-            CurrentScreen = ScreenMode.SocialChallenge;
-            ContentVersion++; // Force re-render
-            await InvokeAsync(StateHasChanged);
-        }
-        else if (CurrentSocialContext != null)
-        {
-            // Show error message
-            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentSocialContext.ErrorMessage}");
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
     public async Task NavigateToQueue()
     {
         await NavigateToScreen(ScreenMode.ObligationQueue);
@@ -383,6 +362,28 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.DeckViewer);
     }
 
+    public async Task StartConversationSession(string npcId, string goalId)
+    {
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, goalId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentSocialContext != null && CurrentSocialContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.SocialChallenge;
+            ContentVersion++; // Force re-render
+            await InvokeAsync(StateHasChanged);
+        }
+        else if (CurrentSocialContext != null)
+        {
+            // Show error message
+            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentSocialContext.ErrorMessage}");
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     protected async Task HandleConversationEnd()
     {
         Console.WriteLine("[GameScreen] Conversation ended");
@@ -402,11 +403,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string challengeTypeId)
+    public async Task StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
     {
-        Console.WriteLine($"[GameScreen] Starting Mental session: {challengeTypeId}");
+        Console.WriteLine($"[GameScreen] Starting Mental session: {goalId}");
 
-        MentalSession session = GameFacade.StartMentalSession(challengeTypeId);
+        MentalSession session = GameFacade.StartMentalSession(challengeTypeId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -453,11 +454,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string challengeTypeId)
+    public async Task StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
     {
         Console.WriteLine($"[GameScreen] Starting Physical session: {challengeTypeId}");
 
-        PhysicalSession session = GameFacade.StartPhysicalSession(challengeTypeId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(challengeTypeId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext

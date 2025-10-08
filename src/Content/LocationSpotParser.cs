@@ -40,7 +40,7 @@ public static class LocationSpotParser
         // Parse spot properties from the new structure
         if (dto.Properties != null)
         {
-            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.SpotID} properties");
+            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.Id} properties");
 
             // Parse base properties (always active)
             if (dto.Properties.Base != null)

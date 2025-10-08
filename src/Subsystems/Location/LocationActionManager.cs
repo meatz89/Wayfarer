@@ -33,7 +33,7 @@ public class LocationActionManager
         if (location == null || spot == null) return new List<LocationActionViewModel>();
 
         // Get dynamic actions from GameWorld data
-        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(location.Id, spot.SpotID);
+        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(location.Id, spot.Id);
 
         // Get actions from ActionGenerator
         List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForLocation(location, spot);
@@ -182,7 +182,7 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         // Get NPCs at this spot
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.Id, currentTime);
 
         foreach (NPC npc in npcs)
         {
@@ -340,7 +340,7 @@ public class LocationActionManager
     /// <summary>
     /// Evaluate goal prerequisites
     /// </summary>
-    private bool EvaluateGoalPrerequisites(LocationGoal goal, Player player, string currentLocationId)
+    private bool EvaluateGoalPrerequisites(ChallengeGoal goal, Player player, string currentLocationId)
     {
         if (goal.Requirements == null) return true;
 
@@ -366,8 +366,8 @@ public class LocationActionManager
         foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
         {
             // Search across all spot goals (Spots are the only entity that matters)
-            LocationGoal requiredGoal = _gameWorld.Spots
-                .SelectMany(spotEntry => spotEntry.Spot.Goals ?? new List<LocationGoal>())
+            ChallengeGoal requiredGoal = _gameWorld.Spots
+                .SelectMany(spotEntry => spotEntry.Spot.Goals ?? new List<ChallengeGoal>())
                 .FirstOrDefault(g => g.Id == requiredGoalId);
 
             if (requiredGoal == null || !requiredGoal.IsCompleted)

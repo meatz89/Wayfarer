@@ -56,31 +56,7 @@
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
                 
-                <!-- Social Investigation Goals -->
-                @foreach (var goal in AvailableSocialGoals)
-                {
-                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
-                        <div class="goal-system-badge social">Social</div>
-                        <div class="goal-name">@goal.Name</div>
-                        @if (!string.IsNullOrEmpty(goal.Description))
-                        {
-                            <div class="goal-description">@goal.Description</div>
-                        }
-                        @if (!string.IsNullOrEmpty(goal.InvestigationId))
-                        {
-                            @if (goal.IsIntroAction)
-                            {
-                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
-                            }
-                            else
-                            {
-                                <div class="goal-investigation-tag">Investigation Goal</div>
-                            }
-                        }
-                    </div>
-                }
-
-                <!-- Mental Investigation Goals -->
+                <!-- Mental Goals -->
                 @foreach (var goal in AvailableMentalGoals)
                 {
                     <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartMentalGoal(goal)">
@@ -104,7 +80,7 @@
                     </div>
                 }
 
-                <!-- Physical Investigation Goals -->
+                <!-- Physical Goals -->
                 @foreach (var goal in AvailablePhysicalGoals)
                 {
                     <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartPhysicalGoal(goal)">
@@ -194,6 +170,31 @@
                         @GetNPCDescription(npc)
                     </div>
                     <div class="npc-actions">
+
+                        <!-- Social Goals -->
+                        @foreach (var goal in AvailableSocialGoals.Where(g => g.NpcId == npc.Id))
+                        {
+                            <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
+                                <div class="goal-system-badge social">Social</div>
+                                <div class="goal-name">@goal.Name</div>
+                                @if (!string.IsNullOrEmpty(goal.Description))
+                                {
+                                    <div class="goal-description">@goal.Description</div>
+                                }
+                                @if (!string.IsNullOrEmpty(goal.InvestigationId))
+                                {
+                                    @if (goal.IsIntroAction)
+                                    {
+                                        <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="goal-investigation-tag">Investigation Goal</div>
+                                    }
+                                }
+                            </div>
+                        }
+
                         @foreach (var option in npc.ConversationOptions)
                         {
                             <div class="npc-action @(option.IsExchange ? "exchange" : GetActionClass(option.ConversationTypeId)) @(!option.IsAvailable ? "unavailable" : "")"

@@ -20,7 +20,8 @@ public class PhysicalDeckBuilder
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge and injury cards)
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(PhysicalChallengeType challengeType, string locationId, Player player)
+    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(
+        PhysicalChallengeType challengeType, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
@@ -54,12 +55,10 @@ public class PhysicalDeckBuilder
         // Add injury cards to deck (debuffs from past failures - Physical debt system)
         foreach (string injuryCardId in player.InjuryCardIds)
         {
-            PhysicalCard injuryTemplate = _gameWorld.PhysicalCards
-                .FirstOrDefault(e => e.Card.Id == injuryCardId)?.Card;
-
+            PhysicalCard injuryTemplate = null;
             if (injuryTemplate != null)
             {
-                CardInstance injuryInstance = new CardInstance
+                CardInstance injuryInstance = new CardInstance(injuryTemplate)
                 {
                     InstanceId = Guid.NewGuid().ToString(),
                     PhysicalCardTemplate = injuryTemplate

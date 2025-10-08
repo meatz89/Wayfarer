@@ -30,7 +30,7 @@ public class LocationSpotManager
         List<LocationSpot> spotsInLocation = GetSpotsForLocation(location.Id);
         targetSpot = spotsInLocation?.FirstOrDefault(s =>
             s.Name.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-            s.SpotID.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
+            s.Id.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
 
         return targetSpot;
     }
@@ -100,11 +100,11 @@ public class LocationSpotManager
         foreach (LocationSpot spot in spots)
         {
             // Skip the current spot - don't show it in the list
-            if (spot.SpotID == currentSpot?.SpotID)
+            if (spot.Id == currentSpot?.Id)
                 continue;
 
             // Get NPCs at this spot
-            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationSpotAndTime(spot.SpotID, currentTime);
+            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationSpotAndTime(spot.Id, currentTime);
             List<string> npcNames = npcsAtSpot.Select(n => n.Name).ToList();
 
             // Build detail string with NPCs if present
@@ -118,7 +118,7 @@ public class LocationSpotManager
             {
                 Name = spot.Name,
                 Detail = detail,
-                SpotId = spot.SpotID,
+                SpotId = spot.Id,
                 IsCurrent = false, // Never current since we skip the current spot
                 IsTravelHub = IsSpotTravelHub(spot, location)
             });
@@ -135,7 +135,7 @@ public class LocationSpotManager
         if (spot == null) return "";
 
         // Generate detail based on spot ID (using categorical approach)
-        return spot.SpotID switch
+        return spot.Id switch
         {
             "marcus_stall" => "Cloth merchant's stall",
             "central_fountain" => "Gathering place",
@@ -250,7 +250,7 @@ public class LocationSpotManager
         // For now, all spots in the same location are accessible
         // This could be enhanced with specific connectivity rules
         return GetSpotsForLocation(currentSpot.LocationId)
-            .Where(s => s.SpotID != currentSpot.SpotID)
+            .Where(s => s.Id != currentSpot.Id)
             .ToList();
     }
 

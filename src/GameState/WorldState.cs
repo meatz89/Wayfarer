@@ -35,7 +35,7 @@ public class WorldState
 
     public string GetLocationIdForSpot(string locationSpotId)
     {
-        string? locationId = locationSpots.Where(x => x.SpotID == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
+        string? locationId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
         return locationId;
     }
 

@@ -109,7 +109,7 @@ public class SocialEffectResolver
 
         // Use EffectFormula system for singular card effect
         CardEffectFormula formula = card.SocialCardTemplate?.EffectFormula;
-       
+
         // Execute the formula to get projected effects
         if (formula.FormulaType == EffectFormulaType.Compound)
         {

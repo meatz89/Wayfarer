@@ -669,7 +669,7 @@ public class PackageLoader
         {
             // Check if this spot was previously a skeleton, if so replace it
             LocationSpot? existingSkeleton = _gameWorld.WorldState.locationSpots
-                .FirstOrDefault(s => s.SpotID == dto.Id && s.IsSkeleton);
+                .FirstOrDefault(s => s.Id == dto.Id && s.IsSkeleton);
 
             if (existingSkeleton != null)
             {
@@ -688,7 +688,7 @@ public class PackageLoader
             _gameWorld.WorldState.locationSpots.Add(spot);
 
             // Add to primary spots dictionary
-            _gameWorld.Spots.AddOrUpdateSpot(spot.SpotID, spot);
+            _gameWorld.Spots.AddOrUpdateSpot(spot.Id, spot);
         }
     }
 
@@ -720,12 +720,12 @@ public class PackageLoader
 
                 _gameWorld.WorldState.locationSpots.Add(hubSpot);
                 _gameWorld.Spots.AddOrUpdateSpot(hubSpotId, hubSpot);
-                _gameWorld.SkeletonRegistry.AddSkeleton(hubSpot.SpotID, "LocationSpot");
+                _gameWorld.SkeletonRegistry.AddSkeleton(hubSpot.Id, "LocationSpot");
             }
 
             // Check if NPC references a spot that doesn't exist
             if (!string.IsNullOrEmpty(dto.SpotId) &&
-                !_gameWorld.WorldState.locationSpots.Any(s => s.SpotID == dto.SpotId))
+                !_gameWorld.WorldState.locationSpots.Any(s => s.Id == dto.SpotId))
             {
                 // Create skeleton spot
                 LocationSpot skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
@@ -950,11 +950,11 @@ public class PackageLoader
 
     private string GetLocationIdFromSpotId(string spotId)
     {
-        LocationSpot? spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+        LocationSpot? spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
         if (spot == null)
         {
             Console.WriteLine($"[PackageLoader] GetLocationIdFromSpotId: Spot '{spotId}' not found in WorldState.locationSpots");
-            Console.WriteLine($"[PackageLoader] Available spots: {string.Join(", ", _gameWorld.WorldState.locationSpots.Select(s => s.SpotID))}");
+            Console.WriteLine($"[PackageLoader] Available spots: {string.Join(", ", _gameWorld.WorldState.locationSpots.Select(s => s.Id))}");
         }
         else if (string.IsNullOrEmpty(spot.LocationId))
         {
@@ -1741,11 +1741,11 @@ public class PackageLoader
             }
             else if (crossroadsSpots.Count > 1)
             {
-                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.SpotID}' ({s.Name})"));
+                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Id}' ({s.Name})"));
                 throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has {crossroadsSpots.Count} spots with Crossroads property: {spotsInfo}. Only one crossroads spot is allowed per location.");
             }
 
-            Console.WriteLine($"[PackageLoader] Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].SpotID}'");
+            Console.WriteLine($"[PackageLoader] Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].Id}'");
         }
 
         // Validate all route spots have crossroads property
@@ -1760,7 +1760,7 @@ public class PackageLoader
 
         foreach (string spotId in routeSpotIds)
         {
-            LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.SpotID == spotId);
+            LocationSpot spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
             if (spot == null)
             {
                 Console.WriteLine($"[PackageLoader] Route references missing spot '{spotId}' - creating skeleton");

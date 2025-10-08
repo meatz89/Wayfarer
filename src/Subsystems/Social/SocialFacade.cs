@@ -1240,18 +1240,18 @@ public class SocialFacade
                 investigation.IntroAction.RequestId == requestId)
             {
                 // This is intro completion - activate investigation
-                List<LocationGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
+                List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
 
                 // Add first goals to their respective spots (Spots are the only entity that matters)
                 if (firstGoals.Count > 0)
                 {
-                    foreach (LocationGoal goal in firstGoals)
+                    foreach (ChallengeGoal goal in firstGoals)
                     {
-                        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == goal.SpotId);
+                        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == goal.SpotId);
                         if (spotEntry != null)
                         {
                             if (spotEntry.Spot.Goals == null)
-                                spotEntry.Spot.Goals = new List<LocationGoal>();
+                                spotEntry.Spot.Goals = new List<ChallengeGoal>();
                             spotEntry.Spot.Goals.Add(goal);
                         }
                     }

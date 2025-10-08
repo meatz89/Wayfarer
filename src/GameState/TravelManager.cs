@@ -660,7 +660,7 @@ public class TravelManager
 
         // Move player to destination
         LocationSpot targetSpot = _gameWorld.WorldState.locationSpots
-            .FirstOrDefault(s => s.SpotID == route.DestinationLocationSpot);
+            .FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
 
         if (targetSpot != null)
         {

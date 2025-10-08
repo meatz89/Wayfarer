@@ -50,7 +50,7 @@ public class MovementValidator
         if (currentSpot == null || string.IsNullOrEmpty(targetSpotIdentifier)) return false;
 
         return currentSpot.Name.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-               currentSpot.SpotID.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase);
+               currentSpot.Id.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

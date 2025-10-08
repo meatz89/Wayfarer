@@ -84,10 +84,10 @@ public class InvestigationDiscoveryEvaluator
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
     {
-        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required SpotID: '{prereqs.SpotId ?? "NULL"}', Player SpotID: '{player.CurrentLocationSpot?.SpotID ?? "NULL"}'");
+        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required SpotID: '{prereqs.SpotId ?? "NULL"}', Player SpotID: '{player.CurrentLocationSpot?.Id ?? "NULL"}'");
 
         // Check if player is at required spot (SpotId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
+        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.Id != prereqs.SpotId)
         {
             Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required spot");
             return false;
@@ -104,7 +104,7 @@ public class InvestigationDiscoveryEvaluator
     private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
     {
         // Check if player is at required spot (SpotId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.SpotID != prereqs.SpotId)
+        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.Id != prereqs.SpotId)
             return false;
 
         return true;

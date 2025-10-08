@@ -22,12 +22,11 @@ public class SocialChallengeDeck
 
         foreach (string cardId in CardIds)
         {
-            SocialCard entry = gameWorld.SocialCards
-                .FirstOrDefault(d => d.Card?.Id == cardId);
+            SocialCard card = gameWorld.SocialCards.FirstOrDefault(d => d?.Id == cardId);
 
-            if (entry?.Card != null)
+            if (card != null)
             {
-                instances.Add(new CardInstance(entry.Card, "deck"));
+                instances.Add(new CardInstance(card));
             }
         }
 

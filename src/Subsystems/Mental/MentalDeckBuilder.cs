@@ -20,7 +20,7 @@ public class MentalDeckBuilder
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge cards)
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeType challengeType, string locationId, Player player)
+    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeType challengeType, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 

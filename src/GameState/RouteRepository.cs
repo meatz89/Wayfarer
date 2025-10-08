@@ -65,7 +65,7 @@ public class RouteRepository : IRouteRepository
         if (currentSpot == null) return new List<RouteOption>();
 
         // Get all routes that start from the current spot
-        IEnumerable<RouteOption> allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.SpotID);
+        IEnumerable<RouteOption> allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.Id);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)

@@ -77,7 +77,7 @@ public class InvestigationActivity
     /// Activate investigation - creates LocationGoals from PhaseDefinitions
     /// Moves investigation from Pending → Active in GameWorld.InvestigationJournal
     /// </summary>
-    public List<LocationGoal> ActivateInvestigation(string investigationId)
+    public List<ChallengeGoal> ActivateInvestigation(string investigationId)
     {
         // Load investigation template from GameWorld
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
@@ -98,13 +98,13 @@ public class InvestigationActivity
         _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
 
         // Create goals from phase definitions
-        List<LocationGoal> createdGoals = new List<LocationGoal>();
+        List<ChallengeGoal> createdGoals = new List<ChallengeGoal>();
         foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
         {
             // Check if prerequisites met (initially only phases with no requirements)
             if (ArePrerequisitesMet(phaseDef.Requirements, new List<string>()))
             {
-                LocationGoal goal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
+                ChallengeGoal goal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
                 createdGoals.Add(goal);
             }
         }
@@ -174,10 +174,10 @@ public class InvestigationActivity
             if (ArePrerequisitesMet(phaseDef.Requirements, activeInv.CompletedGoalIds))
             {
                 // Create new goal for newly unlocked phase
-                LocationGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
+                ChallengeGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
 
                 // Derive location from spot (SpotId is globally unique)
-                LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == phaseDef.SpotId);
+                LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phaseDef.SpotId);
                 Location location = spotEntry != null
                     ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
                     : null;
@@ -299,9 +299,9 @@ public class InvestigationActivity
     /// <summary>
     /// Create LocationGoal from InvestigationPhaseDefinition
     /// </summary>
-    private LocationGoal CreateGoalFromPhaseDefinition(InvestigationPhaseDefinition phaseDef, string investigationId)
+    private ChallengeGoal CreateGoalFromPhaseDefinition(InvestigationPhaseDefinition phaseDef, string investigationId)
     {
-        LocationGoal goal = new LocationGoal
+        ChallengeGoal goal = new ChallengeGoal
         {
             Id = phaseDef.Id,
             Name = phaseDef.Name,
@@ -310,7 +310,7 @@ public class InvestigationActivity
             ChallengeTypeId = phaseDef.ChallengeTypeId,
             SpotId = phaseDef.SpotId,
             NpcId = phaseDef.NpcId,
-            RequestId = phaseDef.RequestId,
+            NPCRequestId = phaseDef.RequestId,
             InvestigationId = investigationId,
             Requirements = phaseDef.Requirements,
             IsAvailable = true,
@@ -366,7 +366,7 @@ public class InvestigationActivity
     /// Returns LocationGoal for intro action to be added to location
     /// Sets pending discovery result for UI modal display
     /// </summary>
-    public LocationGoal DiscoverInvestigation(string investigationId)
+    public ChallengeGoal DiscoverInvestigation(string investigationId)
     {
         Console.WriteLine($"[InvestigationActivity] DiscoverInvestigation called for '{investigationId}'");
 
@@ -383,11 +383,11 @@ public class InvestigationActivity
         Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
 
         // Create intro action as LocationGoal
-        LocationGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
+        ChallengeGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
         Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', SpotID='{introGoal.SpotId}'");
 
         // Derive location from spot (SpotId is globally unique)
-        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId);
+        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == investigation.IntroAction.SpotId);
         LocationSpot spot = spotEntry?.Spot;
         Location location = spotEntry != null
             ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
@@ -417,13 +417,13 @@ public class InvestigationActivity
     /// Complete intro action - moves Discovered → Active, spawns first goals
     /// Called from tactical session completion (Mental/Physical/SocialFacade)
     /// </summary>
-    public List<LocationGoal> CompleteIntroAction(string investigationId)
+    public List<ChallengeGoal> CompleteIntroAction(string investigationId)
     {
         // Move Discovered → Active
         _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Remove(investigationId);
 
         // Call existing ActivateInvestigation to create first goals
-        List<LocationGoal> firstGoals = ActivateInvestigation(investigationId);
+        List<ChallengeGoal> firstGoals = ActivateInvestigation(investigationId);
 
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
 
@@ -445,11 +445,11 @@ public class InvestigationActivity
     /// <summary>
     /// Create intro action goal from investigation
     /// </summary>
-    private LocationGoal CreateIntroGoalFromInvestigation(Investigation investigation)
+    private ChallengeGoal CreateIntroGoalFromInvestigation(Investigation investigation)
     {
         InvestigationIntroAction intro = investigation.IntroAction;
 
-        return new LocationGoal
+        return new ChallengeGoal
         {
             Id = $"{investigation.Id}_intro",
             Name = intro.ActionText,
@@ -458,7 +458,7 @@ public class InvestigationActivity
             ChallengeTypeId = intro.ChallengeTypeId,
             SpotId = intro.SpotId,
             NpcId = intro.NpcId,
-            RequestId = intro.RequestId,
+            NPCRequestId = intro.RequestId,
             InvestigationId = investigation.Id,
             IsIntroAction = true,  // Flag to identify intro actions
             IsAvailable = true,

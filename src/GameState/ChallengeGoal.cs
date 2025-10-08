@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// Goal available at a location spot that spawns tactical engagement
 /// Parallel to NPCRequest but for location-based Mental/Physical challenges
 /// </summary>
-public class LocationGoal
+public class ChallengeGoal
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -36,7 +36,7 @@ public class LocationGoal
     /// Request ID for Social system goals
     /// Links to NPCRequest for conversation content
     /// </summary>
-    public string RequestId { get; set; }
+    public string NPCRequestId { get; set; }
 
     /// <summary>
     /// Investigation ID for UI grouping and label display

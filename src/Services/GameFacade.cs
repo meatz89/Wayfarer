@@ -362,7 +362,7 @@ public class GameFacade
                 if (destSpot != null)
                 {
                     player.CurrentLocationSpot = destSpot;
-                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.SpotID} at location: {destSpot.LocationId}");
+                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.Id} at location: {destSpot.LocationId}");
                 }
             }
 
@@ -505,7 +505,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string challengeTypeId, string goalId, string investigationId)
+    public MentalSession StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
@@ -514,13 +514,12 @@ public class GameFacade
             throw new InvalidOperationException($"MentalChallengeType {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = player.CurrentLocationSpot?.LocationId;
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
+            .BuildDeckWithStartingHand(challengeType, player);
 
-        return _mentalFacade.StartSession(challengeType, deck, startingHand, currentLocationId, goalId, investigationId);
+        return _mentalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
     }
 
     /// <summary>
@@ -579,7 +578,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified engagement type
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string challengeTypeId, string goalId, string investigationId)
+    public PhysicalSession StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
@@ -588,13 +587,12 @@ public class GameFacade
             throw new InvalidOperationException($"PhysicalChallengeType {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = player.CurrentLocationSpot?.LocationId;
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, currentLocationId, player);
+            .BuildDeckWithStartingHand(challengeType, player);
 
-        return _physicalFacade.StartSession(challengeType, deck, startingHand, currentLocationId, goalId, investigationId);
+        return _physicalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
     }
 
     /// <summary>
@@ -696,7 +694,7 @@ public class GameFacade
             },
             LocationInfo = new LocationInfo
             {
-                LocationId = currentSpot?.SpotID ?? "",
+                LocationId = currentSpot?.Id ?? "",
                 Name = currentLocation?.Name ?? "",
                 Description = currentLocation?.Description ?? ""
             },
@@ -706,7 +704,7 @@ public class GameFacade
             Session = new ExchangeSession
             {
                 NpcId = npcId,
-                LocationId = currentSpot?.SpotID ?? "",
+                LocationId = currentSpot?.Id ?? "",
                 AvailableExchanges = availableExchanges
             }
         };
@@ -751,7 +749,7 @@ public class GameFacade
         // Initialize player at starting location from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
-        LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.SpotID == startingSpotId);
+        LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot != null)
         {
             player.CurrentLocationSpot = startingSpot;
@@ -1085,7 +1083,7 @@ public class GameFacade
     public void EvaluateInvestigationDiscovery()
     {
         Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at spot: {player.CurrentLocationSpot?.SpotID ?? "NULL"}");
+        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at spot: {player.CurrentLocationSpot?.Id ?? "NULL"}");
 
         // Evaluate which investigations can be discovered
         List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
@@ -1097,16 +1095,16 @@ public class GameFacade
             Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
 
             // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
-            LocationGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
+            ChallengeGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
 
             // Add intro goal directly to the spot (Spots are the only entity that matters)
-            LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == investigation.IntroAction.SpotId);
+            LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == investigation.IntroAction.SpotId);
             if (spotEntry != null)
             {
                 if (spotEntry.Spot.Goals == null)
-                    spotEntry.Spot.Goals = new List<LocationGoal>();
+                    spotEntry.Spot.Goals = new List<ChallengeGoal>();
                 spotEntry.Spot.Goals.Add(introGoal);
-                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to spot '{spotEntry.Spot.SpotID}' ({spotEntry.Spot.Name})");
+                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to spot '{spotEntry.Spot.Id}' ({spotEntry.Spot.Name})");
             }
             else
             {

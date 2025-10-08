@@ -161,7 +161,7 @@ namespace Wayfarer.Pages.Components
             foreach (InvestigationPhaseDefinition phase in activePhases)
             {
                 // Derive location from spot (SpotId is globally unique)
-                LocationSpotEntry spotEntry = GameWorld.Spots.FirstOrDefault(s => s.Spot.SpotID == phase.SpotId);
+                LocationSpotEntry spotEntry = GameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phase.SpotId);
                 Location loc = spotEntry != null
                     ? GameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
                     : null;

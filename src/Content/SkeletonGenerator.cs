@@ -236,7 +236,7 @@ public static class SkeletonGenerator
         }
         else if (typeof(T) == typeof(LocationSpot))
         {
-            if (!gameWorld.WorldState.locationSpots.Any(s => s.SpotID == id))
+            if (!gameWorld.WorldState.locationSpots.Any(s => s.Id == id))
             {
                 // Need to find or create parent location first
                 string locationId = source.Contains("location_")
