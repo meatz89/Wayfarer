@@ -171,7 +171,7 @@
                     </div>
                     <div class="npc-actions">
 
-                        <!-- Social Goals -->
+                        <!-- Social Goals from Location -->
                         @foreach (var goal in AvailableSocialGoals.Where(g => g.NpcId == npc.Id))
                         {
                             <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
@@ -195,16 +195,37 @@
                             </div>
                         }
 
-                        @foreach (var option in npc.ConversationOptions)
-                        {
-                            <div class="npc-action @(option.IsExchange ? "exchange" : GetActionClass(option.ConversationTypeId)) @(!option.IsAvailable ? "unavailable" : "")"
-                                 @onclick="async () => { if (option.IsAvailable) { if (option.IsExchange) await StartExchange(npc.Id); else if (!string.IsNullOrEmpty(option.RequestId)) await StartConversationWithRequest(npc.Id, option.RequestId); } }">
-                                <span class="action-type">@option.Label</span>
-                                <span class="action-details">
-                                    <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
-                                </span>
-                            </div>
+                        <!-- NPC Active Goals (Direct from NPC) -->
+                        @{
+                            var actualNpc = NPCsAtSpot.FirstOrDefault(n => n.ID == npc.Id);
+                            if (actualNpc?.ActiveGoals != null)
+                            {
+                                foreach (var goal in actualNpc.ActiveGoals)
+                                {
+                                    <div class="npc-action" @onclick="async () => await StartConversationWithRequest(npc.Id, goal.Id)">
+                                        <span class="action-type">@goal.Name</span>
+                                        <span class="action-details">
+                                            <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
+                                        </span>
+                                    </div>
+                                }
+                            }
                         }
+
+                        <!-- Exchange Option if NPC has exchange cards -->
+                        @{
+                            var npcForExchange = NPCsAtSpot.FirstOrDefault(n => n.ID == npc.Id);
+                            if (npcForExchange?.HasExchangeCards() == true)
+                            {
+                                <div class="npc-action exchange" @onclick="async () => await StartExchange(npc.Id)">
+                                    <span class="action-type">Quick Exchange</span>
+                                    <span class="action-details">
+                                        <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
+                                    </span>
+                                </div>
+                            }
+                        }
+
                         @if (DevMode?.ShowDeckViewer == true)
                         {
                             <div class="npc-action" @onclick="() => ViewNPCDeck(npc.Id)">

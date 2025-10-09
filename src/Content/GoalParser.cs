@@ -70,7 +70,6 @@ public static class GoalParser
         GoalCard goalCard = new GoalCard
         {
             Id = dto.Id,
-            CardId = dto.CardId, // References SocialCard/MentalCard/PhysicalCard
             Name = dto.Name,
             Description = dto.Description,
             MomentumThreshold = dto.MomentumThreshold,

@@ -55,6 +55,36 @@ public class MentalDeckBuilder
     }
 
 
+    /// <summary>
+    /// Create goal card instances for Mental challenges
+    /// Goal cards are self-contained templates - no lookup required
+    /// Goal cards start unplayable until Progress threshold met
+    /// </summary>
+    private List<CardInstance> CreateGoalCardInstances(Goal goal)
+    {
+        List<CardInstance> goalCardInstances = new List<CardInstance>();
+
+        foreach (GoalCard goalCard in goal.GoalCards)
+        {
+            // Create CardInstance directly from GoalCard (self-contained template)
+            CardInstance instance = new CardInstance(goalCard);
+
+            // Set context for threshold checking (Mental system uses Progress = MomentumThreshold)
+            instance.Context = new CardContext
+            {
+                MomentumThreshold = goalCard.MomentumThreshold,
+                RequestId = goal.Id
+            };
+
+            // Goal cards start unplayable until threshold met
+            instance.IsPlayable = false;
+
+            goalCardInstances.Add(instance);
+        }
+
+        return goalCardInstances;
+    }
+
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();

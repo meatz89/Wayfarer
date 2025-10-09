@@ -85,47 +85,10 @@ namespace Wayfarer.Pages.Components
                 NPCsAtSpot = npcsAtSpot ?? new List<NPC>();
                 foreach (NPC npc in NPCsAtSpot)
                 {
-                    List<ConversationOptionViewModel> conversationChallenges = new List<ConversationOptionViewModel>();
-                    List<ExchangeOptionViewModel> exchangeOptions = new List<ExchangeOptionViewModel>();
-
-                    // Get ACTUAL available conversation options with specific goal cards
-                    List<SocialChallengeOption> availableOptions = GameFacade.GetAvailableConversationOptions(npc.ID);
-
-                    // Add each available option with its specific goal card
-                    foreach (SocialChallengeOption conversationOption in availableOptions)
-                    {
-                        ConversationOptionViewModel conversationChallenge = new ConversationOptionViewModel
-                        {
-                            RequestId = conversationOption.RequestId,
-                            ConversationTypeId = conversationOption.ChallengeTypeId,
-                            GoalCardId = conversationOption.GoalCardId,
-                            Label = conversationOption.DisplayName ?? GetConversationLabel(conversationOption.ChallengeTypeId),
-                            Description = conversationOption.Description,
-                            IsAvailable = true,
-                            EngagementType = "Conversation",
-                            InvestigationLabel = "" // Investigation system not yet integrated
-                        };
-                        conversationChallenges.Add(conversationChallenge);
-                    }
-
-                    // Check if NPC has exchange cards (separate from conversations!)
-                    if (npc.HasExchangeCards())
-                    {
-                        // Add exchange as a special option (not a conversation type)
-                        ExchangeOptionViewModel exchangeOption = new ExchangeOptionViewModel
-                        {
-                            ConversationTypeId = "", // No conversation type - this is an exchange!
-                            Label = "Quick Exchange",
-                            IsAvailable = true,
-                            IsExchange = true // Mark this as an exchange
-                        };
-                        exchangeOptions.Add(exchangeOption);
-                    }
-
-                    // Get actual connection state using the same logic as conversations
+                    // Get actual connection state
                     ConnectionState connectionState = GameFacade.GetNPCConnectionState(npc.ID);
 
-                    // Display connection state (Flow system removed in 4-resource system)
+                    // Display connection state
                     string stateDisplay = connectionState.ToString();
 
                     AvailableNpcs.Add(new NpcViewModel
@@ -133,8 +96,7 @@ namespace Wayfarer.Pages.Components
                         Id = npc.ID,
                         Name = npc.Name,
                         PersonalityType = npc.PersonalityType.ToString(),
-                        ConnectionState = stateDisplay,
-                        ConversationOptions = conversationChallenges
+                        ConnectionState = stateDisplay
                     });
                 }
             }
@@ -805,20 +767,6 @@ namespace Wayfarer.Pages.Components
         public string Name { get; set; }
         public string PersonalityType { get; set; }
         public string ConnectionState { get; set; }
-        public List<ConversationOptionViewModel> ConversationOptions { get; set; } = new();
-    }
-
-    public class ConversationOptionViewModel
-    {
-        public string RequestId { get; set; }  // The actual request ID for NPC requests
-        public string ConversationTypeId { get; set; }
-        public string GoalCardId { get; set; }  // The specific card ID from the NPC's requests
-        public string Label { get; set; }
-        public string Description { get; set; }  // Full description of the conversation option
-        public bool IsAvailable { get; set; }
-        public bool IsExchange { get; set; } // True if this is an exchange, not a conversation
-        public string EngagementType { get; set; }
-        public string InvestigationLabel { get; set; }
     }
 
     public class LocationObservationViewModel

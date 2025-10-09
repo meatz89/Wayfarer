@@ -157,6 +157,7 @@ public class PackageLoader
         // 3.5 Investigation Templates (strategic multi-phase activities)
         LoadInvestigations(package.Content.Investigations, allowSkeletons);
         LoadKnowledge(package.Content.Knowledge, allowSkeletons);
+        LoadGoals(package.Content.Goals, allowSkeletons);
 
         // 4. NPCs (reference locations, Locations, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -599,6 +600,61 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Loaded knowledge '{knowledge.Id}': {knowledge.DisplayName}");
         }
         Console.WriteLine($"[PackageLoader] Completed loading knowledge. Total: {_gameWorld.Knowledge.Count}");
+    }
+
+    private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
+    {
+        if (goalDtos == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading {goalDtos.Count} goals...");
+
+        foreach (GoalDTO dto in goalDtos)
+        {
+            // Parse goal using GoalParser
+            Goal goal = GoalParser.ConvertDTOToGoal(dto, _gameWorld);
+
+            // Add to centralized GameWorld.Goals storage
+            _gameWorld.Goals.Add(goal);
+            Console.WriteLine($"[PackageLoader] Parsed goal '{goal.Id}': {goal.Name} ({goal.SystemType})");
+
+            // Assign goal to NPC or Location based on npcId/locationId
+            if (!string.IsNullOrEmpty(goal.NpcId))
+            {
+                // Social goal - assign to NPC.ActiveGoals
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                if (npc != null)
+                {
+                    if (npc.ActiveGoals == null)
+                        npc.ActiveGoals = new List<Goal>();
+
+                    npc.ActiveGoals.Add(goal);
+                    Console.WriteLine($"[PackageLoader] Assigned Social goal '{goal.Name}' to NPC '{npc.Name}'");
+                }
+                else
+                {
+                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references NPC '{goal.NpcId}' which doesn't exist yet");
+                }
+            }
+            else if (!string.IsNullOrEmpty(goal.LocationId))
+            {
+                // Mental/Physical goal - assign to Location.Goals
+                Location location = _gameWorld.GetLocation(goal.LocationId);
+                if (location != null)
+                {
+                    if (location.Goals == null)
+                        location.Goals = new List<Goal>();
+
+                    location.Goals.Add(goal);
+                    Console.WriteLine($"[PackageLoader] Assigned {goal.SystemType} goal '{goal.Name}' to location '{location.Name}'");
+                }
+                else
+                {
+                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references location '{goal.LocationId}' which doesn't exist yet");
+                }
+            }
+        }
+
+        Console.WriteLine($"[PackageLoader] Completed loading goals. Total: {_gameWorld.Goals.Count}");
     }
 
     private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)

@@ -91,38 +91,28 @@ public class SocialChallengeDeckBuilder
 
     /// <summary>
     /// Create goal card instances from goal's victory conditions
-    /// Each goal card references a SocialCard by CardId
+    /// Goal cards are self-contained templates - no lookup required
     /// </summary>
     private List<CardInstance> CreateGoalCardInstances(Goal goal, NPC npc)
     {
         List<CardInstance> goalCardInstances = new List<CardInstance>();
 
-        // Load cards from goal cards (victory conditions reference SocialCards from JSON)
         foreach (GoalCard goalCard in goal.GoalCards)
         {
-            // Find the SocialCard referenced by this goal card (CardId references card in _cards.json)
-            SocialCard socialCard = _gameWorld.SocialCards.FirstOrDefault(c => c.Id == goalCard.CardId);
-            if (socialCard == null)
-            {
-                throw new InvalidOperationException($"[ConversationDeckBuilder] Social card '{goalCard.CardId}' not found in GameWorld.SocialCards. Ensure card is defined in _cards.json and referenced in goal card.");
-            }
+            // Create CardInstance directly from GoalCard (self-contained template)
+            CardInstance instance = new CardInstance(goalCard);
 
-            // Create instance from the social card (not from goal card - goal card is just metadata)
-            CardInstance instance = new CardInstance(socialCard);
-
-            // Store context for momentum threshold and goal tracking
+            // Set context for momentum threshold checking
             instance.Context = new CardContext
             {
                 MomentumThreshold = goalCard.MomentumThreshold,
-                RequestId = goal.Id,
-                GoalCardId = goalCard.Id
+                RequestId = goal.Id
             };
 
-            // Goal cards start as unplayable until momentum threshold is met
+            // Goal cards start unplayable until momentum threshold met
             instance.IsPlayable = false;
 
             goalCardInstances.Add(instance);
-            Console.WriteLine($"[ConversationDeckBuilder] Added goal card '{goalCard.Name}' (threshold: {goalCard.MomentumThreshold}) to request pile");
         }
 
         return goalCardInstances;

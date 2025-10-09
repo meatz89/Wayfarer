@@ -14,11 +14,6 @@ public class GoalCard
     public string Id { get; set; }
 
     /// <summary>
-    /// Card ID that references the actual card definition (for Social system)
-    /// </summary>
-    public string CardId { get; set; }
-
-    /// <summary>
     /// Display name of this victory condition
     /// </summary>
     public string Name { get; set; }

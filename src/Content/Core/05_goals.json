@@ -22,7 +22,6 @@
         "goalCards": [
           {
             "id": "elena_basic_delivery",
-            "cardId": "elena_basic_delivery",
             "name": "Simple Delivery",
             "description": "Deliver the package to Aldric",
             "momentumThreshold": 8,
@@ -34,7 +33,6 @@
           },
           {
             "id": "elena_enhanced_delivery",
-            "cardId": "elena_enhanced_delivery",
             "name": "Delivery + Investigation Offer",
             "description": "Deliver the package and Elena shares something about the old mill",
             "momentumThreshold": 12,
