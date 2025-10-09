@@ -144,7 +144,6 @@ public static class ServiceConfiguration
 
         // Venue Subsystem
         services.AddSingleton<LocationManager>();
-        services.AddSingleton<LocationManager>();
         services.AddSingleton<MovementValidator>();
         services.AddSingleton<NPCLocationTracker>();
         services.AddSingleton<LocationActionManager>();

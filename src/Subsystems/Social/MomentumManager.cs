@@ -20,15 +20,12 @@ public class MomentumManager
     public int MaxDoubt => MAX_DOUBT;
 
     /// <summary>
-    /// Initialize momentum manager with starting tokens converted to momentum
+    /// Initialize momentum manager (use InitializeForConversation to set initial momentum)
     /// </summary>
-    /// <param name="tokens">Dictionary of connection types and their token counts</param>
-    public MomentumManager(Dictionary<ConnectionType, int> tokens)
+    public MomentumManager()
     {
-        if (tokens != null)
-        {
-            currentMomentum = tokens.Values.Sum() * TOKEN_TO_MOMENTUM_MULTIPLIER;
-        }
+        // Parameterless constructor for DI
+        // Call InitializeForConversation() to set starting momentum from tokens
     }
 
     /// <summary>

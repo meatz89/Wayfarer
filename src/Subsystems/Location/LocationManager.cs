@@ -9,12 +9,10 @@ using System.Linq;
 public class LocationManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly LocationManager _locationManager;
 
-    public LocationManager(GameWorld gameWorld, LocationManager locationManager)
+    public LocationManager(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _locationManager = locationManager ?? throw new ArgumentNullException(nameof(locationManager));
     }
 
     /// <summary>
@@ -396,7 +394,7 @@ public class LocationManager
     /// </summary>
     public Location GetDefaultEntranceLocation(string venueId)
     {
-        Venue Venue = _locationManager.GetVenue(venueId);
+        Venue Venue = GetVenue(venueId);
 
         // Look for Locations with Crossroads property
         List<Location> Locations = GetLocationsForVenue(venueId);
