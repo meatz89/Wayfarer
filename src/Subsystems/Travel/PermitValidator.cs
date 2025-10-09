@@ -88,9 +88,9 @@ public class PermitValidator
     }
 
     /// <summary>
-    /// Check if a location requires special access.
+    /// Check if a Venue requires special access.
     /// </summary>
-    public bool LocationRequiresSpecialAccess(string locationId)
+    public bool LocationRequiresSpecialAccess(string venueId)
     {
         // Certain locations always require permits
         List<string> restrictedLocations = new List<string>
@@ -100,7 +100,7 @@ public class PermitValidator
             "royal_palace"
         };
 
-        return restrictedLocations.Contains(locationId);
+        return restrictedLocations.Contains(venueId);
     }
 
     /// <summary>

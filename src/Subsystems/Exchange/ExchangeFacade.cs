@@ -77,7 +77,7 @@ public class ExchangeFacade
         // Get exchanges from NPC's inventory
         List<ExchangeCard> npcExchanges = _inventory.GetNPCExchanges(npcId);
 
-        // Get player's current location for domain validation
+        // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
         LocationSpot currentSpot = _gameWorld.WorldState.locationSpots
             .FirstOrDefault(s => s.Id == player.CurrentLocationSpot?.Id);

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 public class ObservationRewardDTO
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public int FamiliarityRequired { get; set; }
     public int? PriorObservationRequired { get; set; }
     public ObservationCardDTO ObservationCard { get; set; }

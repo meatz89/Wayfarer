@@ -7,9 +7,9 @@ public class RouteDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string OriginLocationId { get; set; }
+    public string OriginVenueId { get; set; }
     public string OriginSpotId { get; set; }
-    public string DestinationLocationId { get; set; }
+    public string DestinationVenueId { get; set; }
     public string DestinationSpotId { get; set; }
     public string Method { get; set; }
     public int BaseCoinCost { get; set; }

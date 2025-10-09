@@ -28,7 +28,7 @@ public class ObstacleContext
     public RouteOption Route { get; set; }
 
     /// <summary>
-    /// Current location information.
+    /// Current Venue information.
     /// </summary>
     public LocationInfo LocationInfo { get; set; }
 

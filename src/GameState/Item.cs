@@ -50,7 +50,7 @@ public class Item
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
 
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string SpotId { get; set; }
     public string Description { get; set; }
 

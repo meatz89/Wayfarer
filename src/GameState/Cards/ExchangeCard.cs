@@ -80,10 +80,10 @@ public class ExchangeCard
     public string SkeletonSource { get; set; }
 
     /// <summary>
-    /// Location requirement for this exchange.
+    /// Venue requirement for this exchange.
     /// Null means available everywhere, otherwise must be at specified location.
     /// </summary>
-    public string RequiredLocationId { get; set; }
+    public string RequiredVenueId { get; set; }
 
     /// <summary>
     /// Time block requirements for this exchange.
@@ -188,15 +188,15 @@ public class ExchangeCard
     /// Checks if this exchange is currently available.
     /// Does not check if player can afford it, only availability.
     /// </summary>
-    public bool IsAvailable(string currentLocationId, TimeBlocks currentTimeBlock)
+    public bool IsAvailable(string currentVenueId, TimeBlocks currentTimeBlock)
     {
         // Check if already completed for single-use exchanges
         if (SingleUse && IsCompleted)
             return false;
 
-        // Check location requirement
-        if (!string.IsNullOrEmpty(RequiredLocationId) &&
-            currentLocationId != RequiredLocationId)
+        // Check Venue requirement
+        if (!string.IsNullOrEmpty(RequiredVenueId) &&
+            currentVenueId != RequiredVenueId)
             return false;
 
         // Check time block requirement

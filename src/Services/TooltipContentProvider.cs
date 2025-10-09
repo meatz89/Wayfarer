@@ -38,7 +38,7 @@ public static class TooltipContentProvider
         ["Stamina"] = "Energy for travel. Restored by rest. Required for long journeys.",
         ["Attention"] = "Daily mental energy for investigations and deep work. Refreshes each time block.",
 
-        // Location Mechanics
+        // Venue Mechanics
         ["Familiarity"] = "Location knowledge (0-3). Investigate to increase. Unlocks observations at specific levels.",
         ["Investigation"] = "Spend 1 Attention + 1 Segment to increase Familiarity. Different approaches use different stats.",
 

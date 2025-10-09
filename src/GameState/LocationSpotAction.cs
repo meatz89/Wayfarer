@@ -5,7 +5,7 @@ using System.Linq;
 /// Represents a location-specific action that players can take.
 /// Uses property-based matching to dynamically determine availability at different spots.
 /// </summary>
-public class LocationAction
+public class LocationSpotAction
 {
     /// <summary>
     /// Unique identifier for this action

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Data Transfer Object for deserializing location action data from JSON.
+/// Data Transfer Object for deserializing Venue action data from JSON.
 /// Maps to the structure in the locationActions array in game packages.
 /// </summary>
-public class LocationActionDTO
+public class VenueActionDTO
 {
     /// <summary>
     /// Unique identifier for this action

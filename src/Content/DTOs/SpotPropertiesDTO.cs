@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// DTO for the properties object structure in location spots JSON.
+/// DTO for the properties object structure in Venue spots JSON.
 /// Maps time periods to property lists.
 /// </summary>
 public class SpotPropertiesDTO

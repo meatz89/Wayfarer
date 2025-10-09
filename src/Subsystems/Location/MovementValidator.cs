@@ -27,14 +27,14 @@ public class MovementValidator
     /// <summary>
     /// Validate the current state before movement.
     /// </summary>
-    public bool ValidateCurrentState(Player player, Location currentLocation, LocationSpot currentSpot)
+    public bool ValidateCurrentState(Player player, Venue currentLocation, LocationSpot currentSpot)
     {
         if (player == null) return false;
         if (currentSpot == null) return false;
         if (currentLocation == null) return false;
 
-        // Verify consistency between location and spot
-        if (!currentSpot.LocationId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
+        // Verify consistency between Venue and spot
+        if (!currentSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -56,7 +56,7 @@ public class MovementValidator
     /// <summary>
     /// Validate movement from one spot to another.
     /// </summary>
-    public MovementValidationResult ValidateMovement(Location currentLocation, LocationSpot currentSpot, LocationSpot targetSpot)
+    public MovementValidationResult ValidateMovement(Venue currentLocation, LocationSpot currentSpot, LocationSpot targetSpot)
     {
         MovementValidationResult result = new MovementValidationResult { IsValid = true };
 
@@ -69,7 +69,7 @@ public class MovementValidator
         }
 
         // Verify spot belongs to current location
-        if (!targetSpot.LocationId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
+        if (!targetSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
         {
             result.IsValid = false;
             result.ErrorMessage = "Cannot move to a spot in a different location";
@@ -136,7 +136,7 @@ public class MovementValidator
     /// <summary>
     /// Validate travel between locations.
     /// </summary>
-    public TravelValidationResult ValidateTravelToLocation(string targetLocationId, RouteOption route)
+    public TravelValidationResult ValidateTravelToLocation(string targetVenueId, RouteOption route)
     {
         TravelValidationResult result = new TravelValidationResult { IsValid = true };
         Player player = _gameWorld.GetPlayer();
@@ -195,24 +195,24 @@ public class MovementValidator
     /// <summary>
     /// Check if player can enter a location.
     /// </summary>
-    public bool CanEnterLocation(string locationId)
+    public bool CanEnterLocation(string venueId)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Check if location is unlocked
-        if (player.UnlockedLocationIds?.Contains(locationId) == true)
+        // Check if Venue is unlocked
+        if (player.UnlockedVenueIds?.Contains(venueId) == true)
         {
             return true;
         }
 
-        // Check if location has been discovered
-        if (player.DiscoveredLocationIds?.Contains(locationId) == true)
+        // Check if Venue has been discovered
+        if (player.DiscoveredVenueIds?.Contains(venueId) == true)
         {
             return true;
         }
 
-        // Check if it's a starting location (always accessible)
-        if (locationId == "greystone_market" || locationId == "sleeping_fox_inn")
+        // Check if it's a starting Venue (always accessible)
+        if (venueId == "greystone_market" || venueId == "sleeping_fox_inn")
         {
             return true;
         }
@@ -221,15 +221,15 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Get the reason why a location cannot be entered.
+    /// Get the reason why a Venue cannot be entered.
     /// </summary>
-    public string GetLocationBlockedReason(string locationId)
+    public string GetLocationBlockedReason(string venueId)
     {
-        if (CanEnterLocation(locationId)) return null;
+        if (CanEnterLocation(venueId)) return null;
 
         Player player = _gameWorld.GetPlayer();
 
-        if (!player.DiscoveredLocationIds?.Contains(locationId) == true)
+        if (!player.DiscoveredVenueIds?.Contains(venueId) == true)
         {
             return "Location not yet discovered";
         }

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-public class Location
+public class Venue
 {
     public string Id { get; set; }
     public string Name { get; private set; }
     public string Description { get; set; }
 
-    // Hierarchical organization - Location only knows its District
+    // Hierarchical organization - Venue only knows its District
     public string District { get; set; } // e.g., "Lower Wards"
 
     // Skeleton tracking
@@ -19,7 +19,7 @@ public class Location
 
     public List<string> LocationSpotIds { get; set; } = new List<string>();
    
-    public Location(string id, string name)
+    public Venue(string id, string name)
     {
         Id = id;
         Name = name;

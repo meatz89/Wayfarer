@@ -10,7 +10,7 @@ public class TravelObstacleParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            LocationId = dto.LocationId,
+            VenueId = dto.VenueId,
             RouteId = dto.RouteId
         };
 

@@ -360,10 +360,10 @@ else
         
         // Get current player location
         var player = GameFacade.GetPlayer();
-        if (player?.CurrentLocationSpot?.LocationId != null)
+        if (player?.CurrentLocationSpot?.VenueId != null)
         {
-            var location = GameFacade.GetLocationById(player.CurrentLocationSpot.LocationId);
-            return location?.Name ?? "Origin";
+            var Venue = GameFacade.GetLocationById(player.CurrentLocationSpot.VenueId);
+            return Venue?.Name ?? "Origin";
         }
         
         return "Origin";

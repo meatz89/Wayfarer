@@ -9,7 +9,7 @@ public class NPCValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "profession", "locationId"
+            "id", "name", "profession", "venueId"
         };
 
     public bool CanValidate(string fileName)

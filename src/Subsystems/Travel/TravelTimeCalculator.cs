@@ -58,16 +58,16 @@ public class TravelTimeCalculator
     /// <summary>
     /// Get base travel time between two locations in segments.
     /// </summary>
-    public int GetBaseTravelTime(string fromLocationId, string toLocationId)
+    public int GetBaseTravelTime(string fromVenueId, string toVenueId)
     {
-        // Same location = no travel time
-        if (fromLocationId == toLocationId)
+        // Same Venue = no travel time
+        if (fromVenueId == toVenueId)
         {
             return 0;
         }
 
         // Look up travel time
-        (string fromLocationId, string toLocationId) key = (fromLocationId, toLocationId);
+        (string fromVenueId, string toVenueId) key = (fromVenueId, toVenueId);
         if (TravelTimes.TryGetValue(key, out int time))
         {
             return time;
@@ -75,16 +75,16 @@ public class TravelTimeCalculator
 
         // Route must be defined - undefined routes are a content error
         throw new InvalidOperationException(
-            $"[TravelTimeCalculator] UNDEFINED ROUTE: No travel time defined for {fromLocationId} -> {toLocationId}. " +
+            $"[TravelTimeCalculator] UNDEFINED ROUTE: No travel time defined for {fromVenueId} -> {toVenueId}. " +
             $"All valid routes must be defined in the TravelTimes dictionary.");
     }
 
     /// <summary>
     /// Calculate actual travel time with transport method modifier and route improvements.
     /// </summary>
-    public int CalculateTravelTime(string fromLocationId, string toLocationId, TravelMethods transportMethod)
+    public int CalculateTravelTime(string fromVenueId, string toVenueId, TravelMethods transportMethod)
     {
-        int baseTime = GetBaseTravelTime(fromLocationId, toLocationId);
+        int baseTime = GetBaseTravelTime(fromVenueId, toVenueId);
 
         // Apply transport method modifier
         double modifier = GetTransportModifier(transportMethod);
@@ -94,7 +94,7 @@ public class TravelTimeCalculator
         actualTime = ApplyWeatherEffects(actualTime);
 
         // Apply route improvements (V2 Investigation System)
-        string routeKey = $"{fromLocationId}_to_{toLocationId}";
+        string routeKey = $"{fromVenueId}_to_{toVenueId}";
         if (_gameWorld.RouteImprovements.TryGetValue(routeKey, out List<RouteImprovement> improvements))
         {
             foreach (RouteImprovement improvement in improvements)
@@ -162,13 +162,13 @@ public class TravelTimeCalculator
     /// <summary>
     /// Get all travel times from a specific location.
     /// </summary>
-    public Dictionary<string, int> GetTravelTimesFrom(string locationId)
+    public Dictionary<string, int> GetTravelTimesFrom(string venueId)
     {
         Dictionary<string, int> result = new Dictionary<string, int>();
 
         foreach (KeyValuePair<(string, string), int> kvp in TravelTimes)
         {
-            if (kvp.Key.Item1 == locationId)
+            if (kvp.Key.Item1 == venueId)
             {
                 result[kvp.Key.Item2] = kvp.Value;
             }

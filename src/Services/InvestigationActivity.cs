@@ -176,18 +176,18 @@ public class InvestigationActivity
                 // Create new goal for newly unlocked phase
                 ChallengeGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
 
-                // Derive location from spot (SpotId is globally unique)
+                // Derive venue from spot (SpotId is globally unique)
                 LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phaseDef.SpotId);
-                Location location = spotEntry != null
-                    ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+                Venue venue = spotEntry != null
+                    ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
                     : null;
 
-                if (location != null)
+                if (venue != null)
                 {
                     newLeads.Add(new NewLeadInfo
                     {
                         GoalName = phaseDef.Name,
-                        LocationName = location.Name,
+                        LocationName = venue.Name,
                         SpotName = spotEntry.Spot.Name
                     });
                 }
@@ -386,11 +386,11 @@ public class InvestigationActivity
         ChallengeGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
         Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', SpotID='{introGoal.SpotId}'");
 
-        // Derive location from spot (SpotId is globally unique)
+        // Derive venue from spot (SpotId is globally unique)
         LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == investigation.IntroAction.SpotId);
         LocationSpot spot = spotEntry?.Spot;
-        Location location = spotEntry != null
-            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+        Venue venue = spotEntry != null
+            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
             : null;
 
         // Create discovery result for UI modal
@@ -401,7 +401,7 @@ public class InvestigationActivity
             IntroNarrative = investigation.IntroAction.IntroNarrative,
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
-            LocationName = location?.Name ?? "Unknown Location",
+            LocationName = venue?.Name ?? "Unknown Venue",
             SpotName = spot?.Name ?? investigation.IntroAction.SpotId
         };
         _pendingDiscoveryResult = discoveryResult;

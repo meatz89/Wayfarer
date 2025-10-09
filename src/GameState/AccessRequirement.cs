@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 /// <summary>
-/// Defines equipment, token, or other requirements needed to access a location or route.
+/// Defines equipment, token, or other requirements needed to access a Venue or route.
 /// </summary>
 public class AccessRequirement
 {

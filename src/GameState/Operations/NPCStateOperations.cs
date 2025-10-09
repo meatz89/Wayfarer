@@ -27,20 +27,20 @@ public static class NPCStateOperations
     /// <summary>
     /// Moves an NPC to a new location.
     /// </summary>
-    public static NPCOperationResult MoveToLocation(NPCState state, string locationId, string spotId)
+    public static NPCOperationResult MoveToLocation(NPCState state, string venueId, string spotId)
     {
         if (state == null)
             return NPCOperationResult.Failure("NPC state cannot be null");
 
-        if (string.IsNullOrWhiteSpace(locationId))
+        if (string.IsNullOrWhiteSpace(venueId))
             return NPCOperationResult.Failure("Location ID cannot be empty");
 
-        if (state.Location == locationId && state.SpotId == spotId)
+        if (state.Venue == venueId && state.SpotId == spotId)
             return NPCOperationResult.Success(state, "NPC already at this location");
 
-        NPCState newState = state.WithLocation(locationId, spotId);
+        NPCState newState = state.WithLocation(venueId, spotId);
         return NPCOperationResult.Success(newState,
-            $"Moved {state.Name} from {state.Location} to {locationId}");
+            $"Moved {state.Name} from {state.Venue} to {venueId}");
     }
 
     /// <summary>
@@ -74,17 +74,6 @@ public static class NPCStateOperations
     {
         // NPCs are always available by design
         return state != null;
-    }
-
-    /// <summary>
-    /// Gets the letter token types this NPC provides.
-    /// </summary>
-    public static ConnectionType[] GetLetterTokenTypes(NPCState state)
-    {
-        if (state == null)
-            return Array.Empty<ConnectionType>();
-
-        return state.LetterTokenTypes.ToArray();
     }
 
     /// <summary>

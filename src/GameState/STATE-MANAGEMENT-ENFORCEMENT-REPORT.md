@@ -28,7 +28,7 @@ This report documents the comprehensive enforcement of unified state management 
 ### ✅ Completed
 
 1. **Created Immutable State Containers**
-   - `LocationState.cs` - Immutable location data
+   - `LocationState.cs` - Immutable Venue data
    - `NPCState.cs` - Immutable NPC data
    - `InventoryState.cs` - Immutable inventory data
    - `ExtendedPlayerState.cs` - Complete immutable player state
@@ -38,7 +38,7 @@ This report documents the comprehensive enforcement of unified state management 
 2. **Created State Operations**
    - `InventoryOperations.cs` - All inventory modifications
    - `PlayerStateOperations.cs` - All player state changes
-   - `LocationStateOperations.cs` - Location state changes
+   - `LocationStateOperations.cs` - Venue state changes
    - `NPCStateOperations.cs` - NPC state changes
 
 3. **Created New Commands**
@@ -120,7 +120,7 @@ await GameStateManager.ExecuteTransactionAsync("Complete quest", cmd => {
     cmd.AddCommand(new SpendCoinsCommand(-50, "quest reward"))
        .AddCommand(new SpendStaminaCommand(2, "quest effort"))
        .AddCommand(new ModifyInventoryCommandV2("sword", InventoryOperation.Add, "quest reward"))
-       .AddCommand(new VisitLocationCommand(locationId));
+       .AddCommand(new VisitLocationCommand(venueId));
 });
 ```
 

@@ -138,13 +138,12 @@ public class PackageLoader
         LoadDistricts(package.Content.Districts, allowSkeletons);
         LoadItems(package.Content.Items, allowSkeletons);
 
-        // 2. Locations and spots (may reference regions/districts)
-        LoadLocations(package.Content.Locations, allowSkeletons);
+        // 2. Venues and spots (may reference regions/districts)
+        LoadLocations(package.Content.Venues, allowSkeletons);
         LoadLocationSpots(package.Content.Spots, allowSkeletons);
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadSocialCards(package.Content.Cards, allowSkeletons);
-        LoadNpcGoalCards(package.Content.NpcGoalCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
         // THREE PARALLEL TACTICAL SYSTEMS
@@ -163,7 +162,7 @@ public class PackageLoader
         LoadNPCs(package.Content.Npcs, allowSkeletons);
         LoadStrangers(package.Content.Strangers, allowSkeletons);
 
-        // 5. Routes (reference spots which now have LocationId set)
+        // 5. Routes (reference spots which now have VenueId set)
         LoadRoutes(package.Content.Routes, allowSkeletons);
 
         // 6. Relationship entities (depend on NPCs and cards)
@@ -173,7 +172,6 @@ public class PackageLoader
 
         // 7. Complex entities
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
-        LoadInvestigationRewards(package.Content.InvestigationRewards, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
         LoadLocationActions(package.Content.LocationActions, allowSkeletons);
 
@@ -396,7 +394,7 @@ public class PackageLoader
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
 
-            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.Location}' for time block '{stranger.AvailableTimeBlock}'");
+            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to Venue '{stranger.Venue}' for time block '{stranger.AvailableTimeBlock}'");
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading strangers. Total strangers loaded: {strangerDtos.Count}");
@@ -436,7 +434,7 @@ public class PackageLoader
                 Name = dto.Name,
                 Description = dto.Description,
                 RegionId = dto.RegionId,
-                LocationIds = dto.LocationIds ?? new List<string>(),
+                VenueIds = dto.VenueIds ?? new List<string>(),
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics ?? new List<string>()
@@ -621,21 +619,21 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading knowledge. Total: {_gameWorld.Knowledge.Count}");
     }
 
-    private void LoadLocations(List<LocationDTO> locationDtos, bool allowSkeletons)
+    private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)
     {
-        if (locationDtos == null) return;
+        if (venueDtos == null) return;
 
-        foreach (LocationDTO dto in locationDtos)
+        foreach (VenueDTO dto in venueDtos)
         {
-            // Check if this location was previously a skeleton, if so replace it
-            Location? existingSkeleton = _gameWorld.WorldState.locations
+            // Check if this venue was previously a skeleton, if so replace it
+            Venue? existingSkeleton = _gameWorld.WorldState.locations
                 .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
 
-            Location location = LocationParser.ConvertDTOToLocation(dto);
+            Venue venue = VenueParser.ConvertDTOToVenue(dto);
 
             if (existingSkeleton != null)
             {
-                Console.WriteLine($"[PackageLoader] Preserving familiarity for location {dto.Id}: {preservedFamiliarity} -> {location.Familiarity} (max: {location.MaxFamiliarity})");
+                Console.WriteLine($"[PackageLoader] Replacing skeleton venue {dto.Id}");
 
                 _gameWorld.WorldState.locations.Remove(existingSkeleton);
                 _gameWorld.Locations.Remove(existingSkeleton);
@@ -646,8 +644,8 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.Locations.Add(location);
-            _gameWorld.WorldState.locations.Add(location);
+            _gameWorld.Locations.Add(venue);
+            _gameWorld.WorldState.locations.Add(venue);
         }
     }
 
@@ -688,25 +686,25 @@ public class PackageLoader
 
         foreach (NPCDTO dto in npcDtos)
         {
-            // Check if NPC references a location that doesn't exist
-            if (!string.IsNullOrEmpty(dto.LocationId) &&
-                !_gameWorld.WorldState.locations.Any(l => l.Id == dto.LocationId))
+            // Check if NPC references a Venue that doesn't exist
+            if (!string.IsNullOrEmpty(dto.VenueId) &&
+                !_gameWorld.WorldState.locations.Any(l => l.Id == dto.VenueId))
             {
-                // Create skeleton location
-                Location skeletonLocation = SkeletonGenerator.GenerateSkeletonLocation(
-                    dto.LocationId,
+                // Create skeleton venue
+                Venue skeletonVenue = SkeletonGenerator.GenerateSkeletonVenue(
+                    dto.VenueId,
                     $"npc_{dto.Id}_reference");
 
-                _gameWorld.WorldState.locations.Add(skeletonLocation);
-                _gameWorld.Locations.Add(skeletonLocation);
-                _gameWorld.SkeletonRegistry.AddSkeleton(dto.LocationId, "Location");
+                _gameWorld.WorldState.locations.Add(skeletonVenue);
+                _gameWorld.Locations.Add(skeletonVenue);
+                _gameWorld.SkeletonRegistry.AddSkeleton(dto.VenueId, "Venue");
 
                 // Also create a skeleton spot for the location
-                string hubSpotId = $"{dto.LocationId}_hub";
+                string hubSpotId = $"{dto.VenueId}_hub";
                 LocationSpot hubSpot = SkeletonGenerator.GenerateSkeletonSpot(
                     hubSpotId,
-                    dto.LocationId,
-                    $"location_{dto.LocationId}_hub");
+                    dto.VenueId,
+                    $"location_{dto.VenueId}_hub");
 
                 _gameWorld.WorldState.locationSpots.Add(hubSpot);
                 _gameWorld.Spots.AddOrUpdateSpot(hubSpotId, hubSpot);
@@ -720,7 +718,7 @@ public class PackageLoader
                 // Create skeleton spot
                 LocationSpot skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
                     dto.SpotId,
-                    dto.LocationId ?? "unknown_location",
+                    dto.VenueId ?? "unknown_location",
                     $"npc_{dto.Id}_spot_reference");
 
                 _gameWorld.WorldState.locationSpots.Add(skeletonSpot);
@@ -809,7 +807,7 @@ public class PackageLoader
                     // Create skeleton spot with crossroads property (required for routes)
                     originSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.OriginSpotId,
-                        dto.OriginLocationId ?? "unknown_location",
+                        dto.OriginVenueId ?? "unknown_location",
                         $"route_{dto.Id}_origin"
                     );
 
@@ -842,7 +840,7 @@ public class PackageLoader
                     // Create skeleton spot with crossroads property (required for routes)
                     destSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.DestinationSpotId,
-                        dto.DestinationLocationId ?? "unknown_location",
+                        dto.DestinationVenueId ?? "unknown_location",
                         $"route_{dto.Id}_destination"
                     );
 
@@ -874,87 +872,33 @@ public class PackageLoader
             RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
             _gameWorld.WorldState.Routes.Add(forwardRoute);
             Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
-            AddRouteToLocationConnections(forwardRoute);
 
             // Automatically generate the reverse route
             RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
             _gameWorld.WorldState.Routes.Add(reverseRoute);
             Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
-            AddRouteToLocationConnections(reverseRoute);
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.WorldState.Routes.Count}");
     }
 
-    private void AddRouteToLocationConnections(RouteOption route)
-    {
-        Console.WriteLine($"[PackageLoader] Adding route {route.Id} to location connections...");
-
-        // Find the origin location for this route
-        string originLocationId = GetLocationIdFromSpotId(route.OriginLocationSpot);
-        string destinationLocationId = GetLocationIdFromSpotId(route.DestinationLocationSpot);
-
-        Console.WriteLine($"[PackageLoader] Route {route.Id}: Origin spot '{route.OriginLocationSpot}' -> Location '{originLocationId}', Destination spot '{route.DestinationLocationSpot}' -> Location '{destinationLocationId}'");
-
-        if (originLocationId == null || destinationLocationId == null)
-        {
-            throw new Exception($"[PackageLoader] Route {route.Id} has spots without LocationId. Origin: {route.OriginLocationSpot} -> {originLocationId}, Destination: {route.DestinationLocationSpot} -> {destinationLocationId}");
-        }
-
-        // Find the origin location
-        Location? originLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == originLocationId);
-        if (originLocation == null)
-        {
-            Console.WriteLine($"[PackageLoader] Warning: Could not find origin location {originLocationId} for route {route.Id}");
-            return;
-        }
-
-        // Find or create a connection to the destination location
-        LocationConnection? connection = originLocation.Connections.FirstOrDefault(c => c.DestinationLocationId == destinationLocationId);
-        if (connection == null)
-        {
-            connection = new LocationConnection
-            {
-                DestinationLocationId = destinationLocationId,
-                RouteOptions = new List<RouteOption>()
-            };
-            originLocation.Connections.Add(connection);
-            Console.WriteLine($"[PackageLoader] Created new connection from {originLocationId} to {destinationLocationId}");
-        }
-        else
-        {
-            Console.WriteLine($"[PackageLoader] Found existing connection from {originLocationId} to {destinationLocationId}");
-        }
-
-        // Add the route to the connection
-        if (!connection.RouteOptions.Any(r => r.Id == route.Id))
-        {
-            connection.RouteOptions.Add(route);
-            Console.WriteLine($"[PackageLoader] Added route {route.Id} to connection. Connection now has {connection.RouteOptions.Count} routes");
-        }
-        else
-        {
-            Console.WriteLine($"[PackageLoader] Route {route.Id} already exists in connection");
-        }
-    }
-
-    private string GetLocationIdFromSpotId(string spotId)
+    private string GetVenueIdFromSpotId(string spotId)
     {
         LocationSpot? spot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.Id == spotId);
         if (spot == null)
         {
-            Console.WriteLine($"[PackageLoader] GetLocationIdFromSpotId: Spot '{spotId}' not found in WorldState.locationSpots");
+            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: Spot '{spotId}' not found in WorldState.locationSpots");
             Console.WriteLine($"[PackageLoader] Available spots: {string.Join(", ", _gameWorld.WorldState.locationSpots.Select(s => s.Id))}");
         }
-        else if (string.IsNullOrEmpty(spot.LocationId))
+        else if (string.IsNullOrEmpty(spot.VenueId))
         {
-            Console.WriteLine($"[PackageLoader] GetLocationIdFromSpotId: Spot '{spotId}' found but has no LocationId set");
+            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: Spot '{spotId}' found but has no VenueId set");
         }
         else
         {
-            Console.WriteLine($"[PackageLoader] GetLocationIdFromSpotId: Found spot '{spotId}' with LocationId '{spot.LocationId}'");
+            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: Found spot '{spotId}' with VenueId '{spot.VenueId}'");
         }
-        return spot?.LocationId;
+        return spot?.VenueId;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
@@ -1016,7 +960,7 @@ public class PackageLoader
                     PathCardEntry? eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
                     if (eventCardEntry != null)
                     {
-                        dto.EventCards.Add(eventCardentry);
+                        dto.EventCards.Add(eventCardEntry.Card);
                     }
                 }
             }
@@ -1045,7 +989,7 @@ public class PackageLoader
                     PathCardEntry? pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
                     if (pathCardEntry != null)
                     {
-                        dto.PathCards.Add(pathCardentry);
+                        dto.PathCards.Add(pathCardEntry.Card);
                     }
                 }
             }
@@ -1183,7 +1127,7 @@ public class PackageLoader
                         ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
                         if (exchangeEntry != null)
                         {
-                            ExchangeCard exchangeCard = exchangeEntry;
+                            ExchangeCard exchangeCard = exchangeEntry.Card;
                             // Add the specified number of copies to the deck
                             for (int i = 0; i < count; i++)
                             {
@@ -1247,13 +1191,13 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
+    private void LoadLocationActions(List<VenueActionDTO> locationActionDtos, bool allowSkeletons)
     {
         if (locationActionDtos == null) return;
 
-        foreach (LocationActionDTO dto in locationActionDtos)
+        foreach (VenueActionDTO dto in locationActionDtos)
         {
-            LocationAction locationAction = ConvertLocationActionDTOToModel(dto);
+            LocationSpotAction locationAction = ConvertLocationActionDTOToModel(dto);
             _gameWorld.LocationActions.Add(locationAction);
         }
     }
@@ -1387,9 +1331,9 @@ public class PackageLoader
         };
     }
 
-    private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
+    private LocationSpotAction ConvertLocationActionDTOToModel(VenueActionDTO dto)
     {
-        LocationAction action = new LocationAction
+        LocationSpotAction action = new LocationSpotAction
         {
             Id = dto.Id ?? "",
             Name = dto.Name ?? "",
@@ -1440,50 +1384,6 @@ public class PackageLoader
         }
 
         return action;
-    }
-
-    private void LoadInvestigationRewards(List<ObservationRewardDTO> investigationRewardDtos, bool allowSkeletons)
-    {
-        if (investigationRewardDtos == null) return;
-
-        foreach (ObservationRewardDTO dto in investigationRewardDtos)
-        {
-            // Find the target location
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
-            if (location != null)
-            {
-                // Convert DTO to domain model
-                ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
-                location.ObservationRewards.Add(reward);
-            }
-            else
-            {
-                // Create skeleton location if not found
-                Location skeletonLocation = SkeletonGenerator.GenerateSkeletonLocation(dto.LocationId, $"investigation_reward_{dto.LocationId}");
-                ObservationReward reward = ConvertObservationRewardDTOToModel(dto);
-                skeletonLocation.ObservationRewards.Add(reward);
-                _gameWorld.Locations.Add(skeletonLocation);
-                _gameWorld.SkeletonRegistry.AddSkeleton(dto.LocationId, "Location");
-            }
-        }
-    }
-
-    private ObservationReward ConvertObservationRewardDTOToModel(ObservationRewardDTO dto)
-    {
-        return new ObservationReward
-        {
-            LocationId = dto.LocationId,
-            FamiliarityRequired = dto.FamiliarityRequired,
-            PriorObservationRequired = dto.PriorObservationRequired,
-            ObservationCard = new ObservationCardReward
-            {
-                Id = dto.ObservationCard.Id,
-                Title = dto.ObservationCard.Name,
-                TargetNpcId = dto.ObservationCard.TargetNpcId,
-                Effect = dto.ObservationCard.Effect,
-                Description = dto.ObservationCard.Description
-            }
-        };
     }
 
     private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons)
@@ -1590,7 +1490,7 @@ public class PackageLoader
 
     /// <summary>
     /// Validates that crossroads configuration is correct:
-    /// 1. Each location has exactly one spot with Crossroads property
+    /// 1. Each Venue has exactly one spot with Crossroads property
     /// 2. All route origin and destination spots have Crossroads property
     /// </summary>
     /// <summary>
@@ -1600,20 +1500,20 @@ public class PackageLoader
     /// </summary>
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
-        // Extract location IDs from the spot IDs for naming
-        string originLocationId = GetLocationIdFromSpotId(forwardRoute.OriginLocationSpot);
-        string destLocationId = GetLocationIdFromSpotId(forwardRoute.DestinationLocationSpot);
+        // Extract Venue IDs from the spot IDs for naming
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationSpot);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationSpot);
 
         // Generate reverse route ID by swapping origin and destination
         string[] idParts = forwardRoute.Id.Split("_to_");
         string reverseId = idParts.Length == 2
             ? $"{idParts[1]}_to_{idParts[0]}"
-            : $"{destLocationId}_to_{originLocationId}";
+            : $"{destVenueId}_to_{originVenueId}";
 
         RouteOption reverseRoute = new RouteOption
         {
             Id = reverseId,
-            Name = $"Return to {GetLocationNameFromId(originLocationId)}",
+            Name = $"Return to {GetLocationNameFromId(originVenueId)}",
             // Swap origin and destination
             OriginLocationSpot = forwardRoute.DestinationLocationSpot,
             DestinationLocationSpot = forwardRoute.OriginLocationSpot,
@@ -1626,7 +1526,7 @@ public class PackageLoader
             DepartureTime = forwardRoute.DepartureTime,
             IsDiscovered = forwardRoute.IsDiscovered,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
-            Description = $"Return journey from {GetLocationNameFromId(destLocationId)} to {GetLocationNameFromId(originLocationId)}",
+            Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
             AccessRequirement = forwardRoute.AccessRequirement,
             RouteType = forwardRoute.RouteType,
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
@@ -1678,32 +1578,32 @@ public class PackageLoader
         return reverseRoute;
     }
 
-    private string GetLocationNameFromId(string locationId)
+    private string GetLocationNameFromId(string venueId)
     {
-        // Helper to get friendly location name from ID for route naming
-        if (string.IsNullOrEmpty(locationId))
+        // Helper to get friendly Venue name from ID for route naming
+        if (string.IsNullOrEmpty(venueId))
         {
             return "Unknown Location";
         }
 
-        Location? location = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == locationId);
-        return location?.Name ?? locationId.Replace("_", " ").Replace("-", " ");
+        Venue? venue = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == venueId);
+        return venue?.Name ?? venueId.Replace("_", " ").Replace("-", " ");
     }
 
     private void ValidateCrossroadsConfiguration()
     {
         Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
 
-        // Group spots by location using tuples
-        List<(string LocationId, List<LocationSpot> Spots)> spotsByLocation = new List<(string LocationId, List<LocationSpot> Spots)>();
+        // Group spots by Venue using tuples
+        List<(string VenueId, List<LocationSpot> Spots)> spotsByLocation = new List<(string VenueId, List<LocationSpot> Spots)>();
         foreach (LocationSpot spot in _gameWorld.WorldState.locationSpots)
         {
-            int groupIndex = spotsByLocation.FindIndex(g => g.LocationId == spot.LocationId);
+            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == spot.VenueId);
             if (groupIndex == -1)
             {
                 List<LocationSpot> spots = new List<LocationSpot>();
                 spots.Add(spot);
-                spotsByLocation.Add((spot.LocationId, spots));
+                spotsByLocation.Add((spot.VenueId, spots));
             }
             else
             {
@@ -1711,13 +1611,13 @@ public class PackageLoader
             }
         }
 
-        // Validate each location has exactly one crossroads spot
-        foreach (Location location in _gameWorld.WorldState.locations)
+        // Validate each venue has exactly one crossroads spot
+        foreach (Venue venue in _gameWorld.WorldState.locations)
         {
-            (string LocationId, List<LocationSpot> Spots) locationGroup = spotsByLocation.FirstOrDefault(g => g.LocationId == location.Id);
-            if (locationGroup.LocationId == null)
+            (string VenueId, List<LocationSpot> Spots) locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
+            if (locationGroup.VenueId == null)
             {
-                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has no spots defined");
+                throw new InvalidOperationException($"Venue '{venue.Id}' ({venue.Name}) has no spots defined");
             }
 
             List<LocationSpot> locationSpots = locationGroup.Spots;
@@ -1727,15 +1627,15 @@ public class PackageLoader
 
             if (crossroadsSpots.Count == 0)
             {
-                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has no spots with Crossroads property. Every location must have exactly one crossroads spot for travel.");
+                throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has no spots with Crossroads property. Every Venue must have exactly one crossroads spot for travel.");
             }
             else if (crossroadsSpots.Count > 1)
             {
                 string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Id}' ({s.Name})"));
-                throw new InvalidOperationException($"Location '{location.Id}' ({location.Name}) has {crossroadsSpots.Count} spots with Crossroads property: {spotsInfo}. Only one crossroads spot is allowed per location.");
+                throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has {crossroadsSpots.Count} spots with Crossroads property: {spotsInfo}. Only one crossroads spot is allowed per location.");
             }
 
-            Console.WriteLine($"[PackageLoader] Location '{location.Id}' has valid crossroads spot: '{crossroadsSpots[0].Id}'");
+            Console.WriteLine($"[PackageLoader] Venue '{venue.Id}' has valid crossroads spot: '{crossroadsSpots[0].Id}'");
         }
 
         // Validate all route spots have crossroads property

@@ -23,7 +23,7 @@ HIGHLANDER PRINCIPLE: ONE implementation for universal card-based gameplay patte
 Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) systems
 */
 
-/* ===== CONTEXT HEADER (NPC Bar / Location Bar) ===== */
+/* ===== CONTEXT HEADER (NPC Bar / Venue Bar) ===== */
 
 .context-header {
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);

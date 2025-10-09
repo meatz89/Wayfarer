@@ -48,7 +48,7 @@ public enum BonusType
     Mastery,
 
     /// <summary>
-    /// Familiarity bonus (Mental - repeated location investigation)
+    /// Familiarity bonus (Mental - repeated Venue investigation)
     /// Reduces Exposure at familiar locations
     /// </summary>
     Familiarity,

@@ -8,7 +8,7 @@ public class WorldState
     public List<District> Districts { get; set; } = new();
 
     // Core data collections
-    public List<Location> locations { get; set; } = new();
+    public List<Venue> locations { get; set; } = new();
     public List<LocationSpot> locationSpots { get; set; } = new();
     public List<NPC> NPCs { get; set; } = new();
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
@@ -26,37 +26,37 @@ public class WorldState
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 
-    // Card system removed - using conversation and location action systems
+    // Card system removed - using conversation and Venue action systems
 
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
 
 
 
-    public string GetLocationIdForSpot(string locationSpotId)
+    public string GetVenueIdForSpot(string locationSpotId)
     {
-        string? locationId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.LocationId).FirstOrDefault();
-        return locationId;
+        string? venueId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.VenueId).FirstOrDefault();
+        return venueId;
     }
 
-    public void RecordLocationVisit(string locationId)
+    public void RecordLocationVisit(string venueId)
     {
-        if (!LocationVisitCounts.ContainsKey(locationId))
+        if (!LocationVisitCounts.ContainsKey(venueId))
         {
-            LocationVisitCounts[locationId] = 0;
+            LocationVisitCounts[venueId] = 0;
         }
 
-        LocationVisitCounts[locationId]++;
+        LocationVisitCounts[venueId]++;
     }
 
-    public int GetLocationVisitCount(string locationId)
+    public int GetLocationVisitCount(string venueId)
     {
-        return LocationVisitCounts.TryGetValue(locationId, out int count) ? count : 0;
+        return LocationVisitCounts.TryGetValue(venueId, out int count) ? count : 0;
     }
 
-    public bool IsFirstVisit(string locationId)
+    public bool IsFirstVisit(string venueId)
     {
-        return GetLocationVisitCount(locationId) == 0;
+        return GetLocationVisitCount(venueId) == 0;
     }
 
 
@@ -108,13 +108,13 @@ public class WorldState
     }
 
     // Hierarchy lookup methods
-    public District GetDistrictForLocation(string locationId)
+    public District GetDistrictForLocation(string venueId)
     {
-        Location? location = locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null || string.IsNullOrEmpty(location.District))
+        Venue? venue = locations.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null || string.IsNullOrEmpty(venue.District))
             return null;
 
-        return Districts.FirstOrDefault(d => d.Id == location.District);
+        return Districts.FirstOrDefault(d => d.Id == venue.District);
     }
 
     public Region GetRegionForDistrict(string districtId)
@@ -126,18 +126,18 @@ public class WorldState
         return Regions.FirstOrDefault(r => r.Id == district.RegionId);
     }
 
-    public string GetFullLocationPath(string locationId)
+    public string GetFullLocationPath(string venueId)
     {
-        Location? location = locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null) return "";
+        Venue? venue = locations.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null) return "";
 
-        District district = GetDistrictForLocation(locationId);
-        if (district == null) return location.Name;
+        District district = GetDistrictForLocation(venueId);
+        if (district == null) return venue.Name;
 
         Region region = GetRegionForDistrict(district.Id);
-        if (region == null) return $"{location.Name}, {district.Name}";
+        if (region == null) return $"{venue.Name}, {district.Name}";
 
-        return $"{location.Name}, {district.Name}, {region.Name}";
+        return $"{venue.Name}, {district.Name}, {region.Name}";
     }
 
 }

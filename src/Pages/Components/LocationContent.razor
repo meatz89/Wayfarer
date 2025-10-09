@@ -5,7 +5,7 @@
 @if (CurrentSpot != null)
 {
 
-    <!-- Location Header -->
+    <!-- Venue Header -->
     <div class="location-header">
         <div class="location-path">
             @if (!string.IsNullOrEmpty(CurrentLocation?.Name))
@@ -104,7 +104,7 @@
                     </div>
                 }
 
-                <!-- Dynamic Location Actions -->
+                <!-- Dynamic Venue Actions -->
                 @foreach (var action in LocationActions)
                 {
                     <div class="action-card @(!action.IsAvailable ? "unavailable" : "") @(action.ActionType == "travel" ? "travel" : "")" 

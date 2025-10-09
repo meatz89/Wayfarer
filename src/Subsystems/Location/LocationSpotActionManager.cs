@@ -6,14 +6,14 @@ using System.Linq;
 /// Manages location-specific actions and generates action options for spots.
 /// Handles work, rest, services, and other location-based activities.
 /// </summary>
-public class LocationActionManager
+public class LocationSpotActionManager
 {
     private readonly GameWorld _gameWorld;
     private readonly ActionGenerator _actionGenerator;
     private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
 
-    public LocationActionManager(
+    public LocationSpotActionManager(
         GameWorld gameWorld,
         ActionGenerator actionGenerator,
         TimeManager timeManager,
@@ -26,14 +26,14 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Get available actions for a location and spot.
+    /// Get available actions for a Venue and spot.
     /// </summary>
-    public List<LocationActionViewModel> GetLocationActions(Location location, LocationSpot spot)
+    public List<LocationActionViewModel> GetLocationSpotActions(Venue venue, LocationSpot spot)
     {
-        if (location == null || spot == null) return new List<LocationActionViewModel>();
+        if (venue == null || spot == null) return new List<LocationActionViewModel>();
 
         // Get dynamic actions from GameWorld data
-        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(location.Id, spot.Id);
+        List<LocationActionViewModel> dynamicActions = GetDynamicLocationSpotActions(venue.Id, spot.Id);
 
         // Get actions from ActionGenerator (only needs LocationSpot - all gameplay properties are there)
         List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(spot);
@@ -47,9 +47,9 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Get dynamic location actions from GameWorld data using property matching.
+    /// Get dynamic Venue actions from GameWorld data using property matching.
     /// </summary>
-    private List<LocationActionViewModel> GetDynamicLocationActions(string locationId, string spotId)
+    private List<LocationActionViewModel> GetDynamicLocationSpotActions(string venueId, string spotId)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
@@ -59,14 +59,14 @@ public class LocationActionManager
         if (spot == null) return actions;
 
         // Get actions that match this spot's properties
-        List<LocationAction> availableActions = _gameWorld.LocationActions
+        List<LocationSpotAction> availableActions = _gameWorld.LocationActions
             .Where(action => action.MatchesSpot(spot, currentTime) &&
                             IsTimeAvailable(action, currentTime))
             .OrderBy(action => action.Priority)
             .ThenBy(action => action.Name)
             .ToList();
 
-        foreach (LocationAction? action in availableActions)
+        foreach (LocationSpotAction? action in availableActions)
         {
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
@@ -86,7 +86,7 @@ public class LocationActionManager
     /// <summary>
     /// Check if action is available at the current time.
     /// </summary>
-    private bool IsTimeAvailable(LocationAction action, TimeBlocks currentTime)
+    private bool IsTimeAvailable(LocationSpotAction action, TimeBlocks currentTime)
     {
         if (action.Availability.Count == 0) return true; // Available at all times
 
@@ -107,7 +107,7 @@ public class LocationActionManager
     /// <summary>
     /// Check if the player can perform this action.
     /// </summary>
-    private bool CanPerformAction(LocationAction action)
+    private bool CanPerformAction(LocationSpotAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -301,7 +301,7 @@ public class LocationActionManager
     {
         if (string.IsNullOrEmpty(actionType) || spot == null) return false;
 
-        List<LocationActionViewModel> actions = GetLocationActions(null, spot);
+        List<LocationActionViewModel> actions = GetLocationSpotActions(null, spot);
         return actions.Any(a => a.ActionType.Equals(actionType, StringComparison.OrdinalIgnoreCase) && a.IsAvailable);
     }
 
@@ -340,7 +340,7 @@ public class LocationActionManager
     /// <summary>
     /// Evaluate goal prerequisites
     /// </summary>
-    private bool EvaluateGoalPrerequisites(ChallengeGoal goal, Player player, string currentLocationId)
+    private bool EvaluateGoalPrerequisites(ChallengeGoal goal, Player player, string currentVenueId)
     {
         if (goal.Requirements == null) return true;
 
@@ -358,7 +358,7 @@ public class LocationActionManager
 
         if (goal.Requirements.MinimumLocationFamiliarity > 0)
         {
-            int familiarity = player.GetLocationFamiliarity(currentLocationId);
+            int familiarity = player.GetLocationFamiliarity(currentVenueId);
             if (familiarity < goal.Requirements.MinimumLocationFamiliarity)
                 return false;
         }

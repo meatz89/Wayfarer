@@ -17,7 +17,7 @@ public class PackageLoadException : Exception
     public string EntityType { get; set; }
 
     /// <summary>
-    /// The specific missing dependency (e.g., card ID, NPC ID, location ID)
+    /// The specific missing dependency (e.g., card ID, NPC ID, Venue ID)
     /// </summary>
     public string MissingDependency { get; set; }
 

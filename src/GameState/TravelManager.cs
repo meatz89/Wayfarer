@@ -390,7 +390,7 @@ public class TravelManager
         // Clear the travel session
         _gameWorld.CurrentTravelSession = null;
 
-        // Player returns to origin location - no actual movement needed
+        // Player returns to origin Venue - no actual movement needed
         // as they haven't completed the journey
 
         return true;
@@ -497,19 +497,8 @@ public class TravelManager
     /// </summary>
     private RouteOption GetRoute(string routeId)
     {
-        // Find route in world state - need to search through location connections
-        foreach (Location location in _gameWorld.WorldState.locations)
-        {
-            foreach (LocationConnection connection in location.Connections)
-            {
-                RouteOption route = connection.RouteOptions.FirstOrDefault(r => r.Id == routeId);
-                if (route != null)
-                {
-                    return route;
-                }
-            }
-        }
-        return null;
+        // Find route in world state - routes are stored centrally in WorldState
+        return _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>
@@ -666,16 +655,16 @@ public class TravelManager
         {
             player.CurrentLocationSpot = targetSpot;
 
-            // Track location discovery
-            string locationId = targetSpot.LocationId;
-            if (!player.DiscoveredLocationIds.Contains(locationId))
+            // Track Venue discovery
+            string venueId = targetSpot.VenueId;
+            if (!player.DiscoveredVenueIds.Contains(venueId))
             {
-                player.DiscoveredLocationIds.Add(locationId);
+                player.DiscoveredVenueIds.Add(venueId);
             }
 
-            // Increment location familiarity (max 3)
-            int currentFamiliarity = player.GetLocationFamiliarity(locationId);
-            player.SetLocationFamiliarity(locationId, Math.Min(3, currentFamiliarity + 1));
+            // Increment Venue familiarity (max 3)
+            int currentFamiliarity = player.GetLocationFamiliarity(venueId);
+            player.SetLocationFamiliarity(venueId, Math.Min(3, currentFamiliarity + 1));
         }
 
         // Increase route familiarity (max 5)

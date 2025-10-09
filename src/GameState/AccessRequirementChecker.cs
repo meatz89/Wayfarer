@@ -28,7 +28,7 @@ public class AccessRequirementChecker
     }
 
     /// <summary>
-    /// Check if player meets access requirements for a location spot.
+    /// Check if player meets access requirements for a Venue spot.
     /// </summary>
     public AccessCheckResult CheckLocationSpotAccess(LocationSpot spot)
     {

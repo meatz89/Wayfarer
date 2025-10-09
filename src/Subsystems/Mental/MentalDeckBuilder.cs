@@ -51,8 +51,6 @@ public class MentalDeckBuilder
             return true;
         }).ToList();
 
-        // Get location and add signature deck knowledge cards to STARTING HAND
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
         return (deck, startingHand);
     }
 

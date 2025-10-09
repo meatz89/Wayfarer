@@ -197,7 +197,7 @@ body * {
     font-size: 16px;
 }
 
-/* Location Header */
+/* Venue Header */
 .location-header {
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
     border-bottom: 2px solid #a68b6f;
@@ -1082,7 +1082,7 @@ body * {
     color: #5c4a3a;
 }
 
-/* Location spot info */
+/* Venue spot info */
 .location-spot {
     font-size: 14px;
     color: #5c4a3a;

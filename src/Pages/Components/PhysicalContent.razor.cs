@@ -573,14 +573,14 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // LOCATION CONTEXT (SHARED ACROSS ALL CHALLENGES)
+        // Venue CONTEXT (SHARED ACROSS ALL CHALLENGES)
         // =============================================
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
             if (GameFacade == null) return ("Unknown Location", "", "");
 
-            Location currentLocation = GameFacade.GetCurrentLocation();
+            Venue currentLocation = GameFacade.GetCurrentLocation();
             LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)

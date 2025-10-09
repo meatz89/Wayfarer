@@ -30,7 +30,7 @@ public static class StrangerParser
         {
             ID = dto.Id ?? "",
             Name = dto.Name ?? "",
-            Location = dto.LocationId ?? "",
+            Venue = dto.VenueId ?? "",
             PersonalityType = personalityType,
             IsStranger = true,
             AvailableTimeBlock = timeBlock,

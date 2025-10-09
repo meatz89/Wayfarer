@@ -43,29 +43,29 @@ public class MarketFacade
     // ========== MARKET AVAILABILITY ==========
 
     /// <summary>
-    /// Check if a market is available at the given location during current time
+    /// Check if a market is available at the given Venue during current time
     /// </summary>
-    public bool IsMarketAvailable(string locationId)
+    public bool IsMarketAvailable(string venueId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _marketManager.IsMarketAvailable(locationId, currentTime);
+        return _marketManager.IsMarketAvailable(venueId, currentTime);
     }
 
     /// <summary>
     /// Get market availability status message for UI display
     /// </summary>
-    public string GetMarketStatus(string locationId)
+    public string GetMarketStatus(string venueId)
     {
-        return _marketManager.GetMarketAvailabilityStatus(locationId, _timeManager.GetCurrentTimeBlock());
+        return _marketManager.GetMarketAvailabilityStatus(venueId, _timeManager.GetCurrentTimeBlock());
     }
 
     /// <summary>
     /// Get traders currently available at a location
     /// </summary>
-    public List<NPC> GetAvailableTraders(string locationId)
+    public List<NPC> GetAvailableTraders(string venueId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _marketManager.GetAvailableTraders(locationId, currentTime);
+        return _marketManager.GetAvailableTraders(venueId, currentTime);
     }
 
     // ========== PRICING OPERATIONS ==========
@@ -73,33 +73,33 @@ public class MarketFacade
     /// <summary>
     /// Get the buy price for an item at a location
     /// </summary>
-    public int GetBuyPrice(string itemId, string locationId)
+    public int GetBuyPrice(string itemId, string venueId)
     {
-        return _priceManager.GetBuyPrice(itemId, locationId);
+        return _priceManager.GetBuyPrice(itemId, venueId);
     }
 
     /// <summary>
     /// Get the sell price for an item at a location
     /// </summary>
-    public int GetSellPrice(string itemId, string locationId)
+    public int GetSellPrice(string itemId, string venueId)
     {
-        return _priceManager.GetSellPrice(itemId, locationId);
+        return _priceManager.GetSellPrice(itemId, venueId);
     }
 
     /// <summary>
     /// Get complete pricing information for an item at a location
     /// </summary>
-    public PriceManager.PricingInfo GetPricingInfo(string itemId, string locationId)
+    public PriceManager.PricingInfo GetPricingInfo(string itemId, string venueId)
     {
-        return _priceManager.GetPricingInfo(itemId, locationId);
+        return _priceManager.GetPricingInfo(itemId, venueId);
     }
 
     /// <summary>
     /// Get pricing for all items at a location
     /// </summary>
-    public List<PriceManager.PricingInfo> GetAllPrices(string locationId)
+    public List<PriceManager.PricingInfo> GetAllPrices(string venueId)
     {
-        return _priceManager.GetLocationPrices(locationId);
+        return _priceManager.GetLocationPrices(venueId);
     }
 
     // ========== TRADING OPERATIONS ==========
@@ -107,30 +107,30 @@ public class MarketFacade
     /// <summary>
     /// Check if player can buy an item at a location
     /// </summary>
-    public bool CanBuyItem(string itemId, string locationId)
+    public bool CanBuyItem(string itemId, string venueId)
     {
-        return _marketManager.CanBuyItem(itemId, locationId);
+        return _marketManager.CanBuyItem(itemId, venueId);
     }
 
     /// <summary>
     /// Check if player can sell an item at a location
     /// </summary>
-    public bool CanSellItem(string itemId, string locationId)
+    public bool CanSellItem(string itemId, string venueId)
     {
-        return _marketManager.CanSellItem(itemId, locationId);
+        return _marketManager.CanSellItem(itemId, venueId);
     }
 
     /// <summary>
     /// Buy an item at a location
     /// </summary>
-    public MarketSubsystemManager.TradeResult BuyItem(string itemId, string locationId)
+    public MarketSubsystemManager.TradeResult BuyItem(string itemId, string venueId)
     {
-        MarketSubsystemManager.TradeResult result = _marketManager.BuyItem(itemId, locationId);
+        MarketSubsystemManager.TradeResult result = _marketManager.BuyItem(itemId, venueId);
 
         if (result.Success)
         {
             // Track the purchase in market state
-            _marketStateTracker.RecordPurchase(itemId, locationId, result.Price);
+            _marketStateTracker.RecordPurchase(itemId, venueId, result.Price);
         }
 
         return result;
@@ -139,14 +139,14 @@ public class MarketFacade
     /// <summary>
     /// Sell an item at a location
     /// </summary>
-    public MarketSubsystemManager.TradeResult SellItem(string itemId, string locationId)
+    public MarketSubsystemManager.TradeResult SellItem(string itemId, string venueId)
     {
-        MarketSubsystemManager.TradeResult result = _marketManager.SellItem(itemId, locationId);
+        MarketSubsystemManager.TradeResult result = _marketManager.SellItem(itemId, venueId);
 
         if (result.Success)
         {
             // Track the sale in market state
-            _marketStateTracker.RecordSale(itemId, locationId, result.Price);
+            _marketStateTracker.RecordSale(itemId, venueId, result.Price);
         }
 
         return result;
@@ -155,9 +155,9 @@ public class MarketFacade
     /// <summary>
     /// Get items available for purchase at a location
     /// </summary>
-    public List<MarketItem> GetAvailableItems(string locationId)
+    public List<MarketItem> GetAvailableItems(string venueId)
     {
-        return _marketManager.GetAvailableMarketItems(locationId);
+        return _marketManager.GetAvailableMarketItems(venueId);
     }
 
     // ========== ARBITRAGE ANALYSIS ==========
@@ -191,25 +191,25 @@ public class MarketFacade
     /// <summary>
     /// Get supply level for an item at a location
     /// </summary>
-    public float GetSupplyLevel(string itemId, string locationId)
+    public float GetSupplyLevel(string itemId, string venueId)
     {
-        return _marketStateTracker.GetSupplyLevel(itemId, locationId);
+        return _marketStateTracker.GetSupplyLevel(itemId, venueId);
     }
 
     /// <summary>
     /// Get demand level for an item at a location
     /// </summary>
-    public float GetDemandLevel(string itemId, string locationId)
+    public float GetDemandLevel(string itemId, string venueId)
     {
-        return _marketStateTracker.GetDemandLevel(itemId, locationId);
+        return _marketStateTracker.GetDemandLevel(itemId, venueId);
     }
 
     /// <summary>
     /// Get complete market conditions for a location
     /// </summary>
-    public MarketStateTracker.MarketConditions GetMarketConditions(string locationId)
+    public MarketStateTracker.MarketConditions GetMarketConditions(string venueId)
     {
-        return _marketStateTracker.GetMarketConditions(locationId);
+        return _marketStateTracker.GetMarketConditions(venueId);
     }
 
     /// <summary>
@@ -223,9 +223,9 @@ public class MarketFacade
     /// <summary>
     /// Get recent trades at a specific location
     /// </summary>
-    public List<MarketStateTracker.TradeRecord> GetLocationTradeHistory(string locationId)
+    public List<MarketStateTracker.TradeRecord> GetLocationTradeHistory(string venueId)
     {
-        return _marketStateTracker.GetLocationTradeHistory(locationId);
+        return _marketStateTracker.GetLocationTradeHistory(venueId);
     }
 
     // ========== INVENTORY INTEGRATION ==========
@@ -266,7 +266,7 @@ public class MarketFacade
     /// </summary>
     public List<MarketSubsystemManager.TradeRecommendation> GetTradeRecommendations()
     {
-        string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.LocationId;
+        string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.VenueId;
         return _marketManager.GetTradeRecommendations(currentLocation);
     }
 
@@ -282,9 +282,9 @@ public class MarketFacade
     /// <summary>
     /// Get market summary for a location
     /// </summary>
-    public MarketSubsystemManager.MarketSummary GetMarketSummary(string locationId)
+    public MarketSubsystemManager.MarketSummary GetMarketSummary(string venueId)
     {
-        return _marketManager.GetMarketSummary(locationId);
+        return _marketManager.GetMarketSummary(venueId);
     }
 
 }

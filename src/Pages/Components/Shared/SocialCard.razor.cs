@@ -30,15 +30,15 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected bool IsObservationExpired()
         {
-            return Card.SocialCardTemplate.IsGoalCard == CardTypes.Observation &&
-                   Card.Context?.ObservationDecayState == nameof(ObservationDecayState.Expired);
+            // Observation decay system has been removed
+            return false;
         }
 
         protected string GetCardStatClass()
         {
-            // Request cards use CardType for styling
-            if (Card?.SocialCardTemplate?.IsGoalCard == CardTypes.Request)
-                return Card.SocialCardTemplate.IsGoalCard.ToString().ToLower();
+            // Request cards use special styling
+            if (!string.IsNullOrEmpty(Card?.SocialCardTemplate?.RequestId))
+                return "request";
 
             // Conversation cards use BoundStat for styling
             if (Card?.SocialCardTemplate?.BoundStat == null) return "";

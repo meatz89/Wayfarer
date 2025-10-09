@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// </summary>
 public class TravelViewModel
 {
-    public string CurrentLocationId { get; init; }
+    public string CurrentVenueId { get; init; }
     public string CurrentLocationName { get; init; }
 
     // Travel context status
@@ -40,7 +40,7 @@ public class TravelStatusViewModel
 /// </summary>
 public class DestinationViewModel
 {
-    public string LocationId { get; init; }
+    public string VenueId { get; init; }
     public string LocationName { get; init; }
     public bool IsCurrent { get; init; }
 

@@ -22,11 +22,11 @@ public class NPCService
     /// <summary>
     /// Get time block service planning data for UI display
     /// </summary>
-    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string venueId)
     {
         List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-        List<NPC> locationNPCs = _repository.GetNPCsForLocation(locationId).ToList();
+        List<NPC> locationNPCs = _repository.GetNPCsForLocation(venueId).ToList();
 
         foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
@@ -46,21 +46,21 @@ public class NPCService
     }
 
     /// <summary>
-    /// Get all unique services available at a location across all time blocks
+    /// Get all unique services available at a Venue across all time blocks
     /// </summary>
-    public List<ServiceTypes> GetAllLocationServices(string locationId)
+    public List<ServiceTypes> GetAllLocationServices(string venueId)
     {
-        IEnumerable<NPC> locationNPCs = _repository.GetNPCsForLocation(locationId);
+        IEnumerable<NPC> locationNPCs = _repository.GetNPCsForLocation(venueId);
         return locationNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
     }
 
     /// <summary>
     /// Get service availability summary for a specific service across all time blocks
     /// </summary>
-    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string locationId, ServiceTypes service)
+    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string venueId, ServiceTypes service)
     {
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-        List<NPC> locationNPCs = _repository.GetNPCsForLocation(locationId).ToList();
+        List<NPC> locationNPCs = _repository.GetNPCsForLocation(venueId).ToList();
         List<NPC> serviceProviders = locationNPCs.Where(npc => npc.ProvidedServices.Contains(service)).ToList();
 
         List<TimeBlocks> availableTimeBlocks = new List<TimeBlocks>();
@@ -83,12 +83,12 @@ public class NPCService
     /// <summary>
     /// Find NPCs that can provide a specific service at the current time
     /// </summary>
-    public IEnumerable<NPC> GetAvailableServiceProviders(ServiceTypes service, string locationId)
+    public IEnumerable<NPC> GetAvailableServiceProviders(ServiceTypes service, string venueId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        IEnumerable<NPC> npcs = string.IsNullOrWhiteSpace(locationId)
+        IEnumerable<NPC> npcs = string.IsNullOrWhiteSpace(venueId)
             ? _repository.GetAvailableNPCs(currentTime)
-            : _repository.GetNPCsForLocationAndTime(locationId, currentTime);
+            : _repository.GetNPCsForLocationAndTime(venueId, currentTime);
 
         return npcs.Where(n => n.CanProvideService(service));
     }
@@ -110,7 +110,7 @@ public class NPCService
     }
 
     /// <summary>
-    /// Get NPCs available for interaction at a specific location spot
+    /// Get NPCs available for interaction at a specific Venue spot
     /// </summary>
     public IEnumerable<NPCInteractionInfo> GetAvailableInteractions(string locationSpotId)
     {

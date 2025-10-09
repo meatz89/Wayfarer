@@ -31,11 +31,11 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate atmosphere text for a location spot.
+    /// Generate atmosphere text for a Venue spot.
     /// </summary>
     public string GenerateAtmosphereText(
         LocationSpot spot,
-        Location location,
+        Venue venue,
         TimeBlocks currentTime,
         int npcsPresent)
     {
@@ -43,9 +43,9 @@ public class LocationNarrativeGenerator
         {
             return GenerateSpotAtmosphere(spot, currentTime, npcsPresent);
         }
-        else if (location != null)
+        else if (venue != null)
         {
-            return GenerateLocationAtmosphere(location, currentTime);
+            return GenerateLocationAtmosphere(venue, currentTime);
         }
 
         return "An undefined location.";
@@ -75,33 +75,33 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate atmosphere text for a general location.
+    /// Generate atmosphere text for a general venue.
     /// </summary>
-    private string GenerateLocationAtmosphere(Location location, TimeBlocks currentTime)
+    private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == location.Id).Description))
+        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id).Description))
         {
-            return GenerateDefaultLocationDescription(location, currentTime);
+            return GenerateDefaultLocationDescription(venue, currentTime);
         }
 
         // Add time-specific modifiers to the base description
         string timeModifier = GetTimeModifier(currentTime);
         if (!string.IsNullOrEmpty(timeModifier))
         {
-            return $"{location.Description} {timeModifier}";
+            return $"{venue.Description} {timeModifier}";
         }
 
-        return location.Description;
+        return venue.Description;
     }
 
     /// <summary>
     /// Generate a default description when none is provided.
     /// </summary>
-    private string GenerateDefaultLocationDescription(Location location, TimeBlocks currentTime)
+    private string GenerateDefaultLocationDescription(Venue venue, TimeBlocks currentTime)
     {
         string timeDesc = GetTimeDescription(currentTime);
 
-        return $"{timeDesc} at {location.Name}.";
+        return $"{timeDesc} at {venue.Name}.";
     }
 
     /// <summary>
@@ -139,11 +139,11 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate a brief description for entering a new location.
+    /// Generate a brief description for entering a new venue.
     /// </summary>
-    public string GenerateArrivalText(Location location, LocationSpot entrySpot)
+    public string GenerateArrivalText(Venue venue, LocationSpot entrySpot)
     {
-        if (location == null) return "You arrive at an unknown location.";
+        if (venue == null) return "You arrive at an unknown venue.";
 
         string spotDesc = "";
         if (entrySpot != null)
@@ -151,15 +151,15 @@ public class LocationNarrativeGenerator
             spotDesc = $" at {entrySpot.Name}";
         }
 
-        return $"You arrive at {location.Name}{spotDesc}.";
+        return $"You arrive at {venue.Name}{spotDesc}.";
     }
 
     /// <summary>
-    /// Generate text for leaving a location.
+    /// Generate text for leaving a venue.
     /// </summary>
-    public string GenerateDepartureText(Location location, LocationSpot exitSpot)
+    public string GenerateDepartureText(Venue venue, LocationSpot exitSpot)
     {
-        if (location == null) return "You depart from your current location.";
+        if (venue == null) return "You depart from your current venue.";
 
         string spotDesc = "";
         if (exitSpot != null)
@@ -167,7 +167,7 @@ public class LocationNarrativeGenerator
             spotDesc = $" from {exitSpot.Name}";
         }
 
-        return $"You leave {location.Name}{spotDesc}.";
+        return $"You leave {venue.Name}{spotDesc}.";
     }
 
     /// <summary>
@@ -235,7 +235,7 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate observation prompt text.
     /// </summary>
-    public string GenerateObservationPrompt(Location location, LocationSpot spot)
+    public string GenerateObservationPrompt(Venue venue, LocationSpot spot)
     {
         if (spot != null)
         {

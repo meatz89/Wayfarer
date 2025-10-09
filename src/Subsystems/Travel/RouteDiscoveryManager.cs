@@ -24,10 +24,10 @@ public class RouteDiscoveryManager
     /// <summary>
     /// Attempt to discover a new route.
     /// </summary>
-    public bool AttemptRouteDiscovery(string fromLocationId, string toLocationId)
+    public bool AttemptRouteDiscovery(string fromVenueId, string toVenueId)
     {
         // Check if route exists
-        RouteOption route = _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
+        RouteOption route = _routeManager.GetRouteBetweenLocations(fromVenueId, toVenueId);
         if (route == null)
         {
             _messageSystem.AddSystemMessage(
@@ -70,13 +70,13 @@ public class RouteDiscoveryManager
     public DiscoveryProgressInfo GetDiscoveryProgress()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = player.CurrentLocationSpot?.LocationId;
-        if (currentLocationId == null)
+        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        if (currentVenueId == null)
         {
             return new DiscoveryProgressInfo(0, 0);
         }
 
-        List<RouteOption> allRoutes = _routeManager.GetRoutesFromLocation(currentLocationId);
+        List<RouteOption> allRoutes = _routeManager.GetRoutesFromLocation(currentVenueId);
         int discoveredCount = allRoutes.Count(r => _routeManager.IsRouteDiscovered(r.Id));
 
         return new DiscoveryProgressInfo(discoveredCount, allRoutes.Count);

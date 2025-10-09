@@ -1,5 +1,5 @@
 /// <summary>
-/// Domain tags for categorizing location spots
+/// Domain tags for categorizing Venue spots
 /// </summary>
 public enum DomainTag
 {

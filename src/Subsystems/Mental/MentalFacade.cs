@@ -76,7 +76,7 @@ public class MentalFacade
         _currentInvestigationId = investigationId;
 
         Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+        LocationSpot spot = player.CurrentLocationSpot;
 
         // PROGRESSION SYSTEM: Focus cost for Mental investigations
         int focusCost = engagement.FocusCost ?? 10;
@@ -87,18 +87,18 @@ public class MentalFacade
         player.Focus -= focusCost;
         Console.WriteLine($"[MentalFacade] Paid {focusCost} Focus to start investigation (remaining: {player.Focus})");
 
-        // Get location's persisted exposure (Mental debt system)
-        int baseExposure = location?.Exposure ?? 0;
+        // Get spot's persisted exposure (Mental debt system)
+        int baseExposure = spot?.Exposure ?? 0;
 
         _currentSession = new MentalSession
         {
             InvestigationId = engagement.Id,
-            LocationId = locationId,
+            VenueId = spot?.VenueId,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
             CurrentProgress = 0,
-            CurrentExposure = baseExposure, // Start with persisted exposure from location
+            CurrentExposure = baseExposure, // Start with persisted exposure from venue
             MaxExposure = engagement.DangerThreshold,
             VictoryThreshold = engagement.VictoryThreshold
         };
@@ -113,7 +113,7 @@ public class MentalFacade
             _sessionDeck.DrawToHand(cardsToDrawStartingSized);
         }
 
-        Console.WriteLine($"[MentalFacade] Started session with {baseExposure} base exposure from location, {startingHand.Count} knowledge cards in starting hand");
+        Console.WriteLine($"[MentalFacade] Started session with {baseExposure} base exposure from venue, {startingHand.Count} knowledge cards in starting hand");
 
         return _currentSession;
     }
@@ -321,29 +321,25 @@ public class MentalFacade
             CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
         }
 
-        // PROGRESSION SYSTEM: Award location familiarity on success
-        if (success && !string.IsNullOrEmpty(_currentSession.LocationId))
+        Player player = _gameWorld.GetPlayer();
+
+        // PROGRESSION SYSTEM: Award Venue familiarity on success
+        if (success && !string.IsNullOrEmpty(_currentSession.VenueId))
         {
-            Player player = _gameWorld.GetPlayer();
-            int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_currentSession.LocationId);
+            int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_currentSession.VenueId);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.LocationFamiliarity.SetFamiliarity(_currentSession.LocationId, newFamiliarity);
-            Console.WriteLine($"[MentalFacade] Increased familiarity with location '{_currentSession.LocationId}' to {newFamiliarity}");
+            player.LocationFamiliarity.SetFamiliarity(_currentSession.VenueId, newFamiliarity);
+            Console.WriteLine($"[MentalFacade] Increased familiarity with Venue '{_currentSession.VenueId}' to {newFamiliarity}");
         }
 
-        // Persist exposure to location (Mental debt system)
-        // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
-        // Find location by searching spots for goals with this investigation
-        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s =>
-            s.Spot.Goals != null && s.Spot.Goals.Any(g => g.ChallengeTypeId == _currentSession.InvestigationId));
-        Location location = spotEntry != null
-            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
-            : null;
+        // Persist exposure to LocationSpot (Mental debt system)
+        // Exposure accumulates - next Mental engagement at this spot starts with elevated baseline
+        LocationSpot currentSpot = player.CurrentLocationSpot;
 
-        if (location != null)
+        if (currentSpot != null)
         {
-            location.Exposure = _currentSession.CurrentExposure;
-            Console.WriteLine($"[MentalFacade] Persisted {location.Exposure} exposure to location {location.Id}");
+            currentSpot.Exposure = _currentSession.CurrentExposure;
+            Console.WriteLine($"[MentalFacade] Persisted {currentSpot.Exposure} exposure to spot {currentSpot.Id}");
         }
 
         // Clear investigation context

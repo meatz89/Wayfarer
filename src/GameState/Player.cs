@@ -29,9 +29,9 @@
     // Relationships with characters
     public RelationshipList Relationships { get; set; } = new();
 
-    // Location knowledge - Moved from action system
+    // Venue knowledge - Moved from action system
     public List<string> LocationActionAvailability { get; set; } = new List<string>();
-    public List<string> DiscoveredLocationIds { get; set; } = new List<string>();
+    public List<string> DiscoveredVenueIds { get; set; } = new List<string>();
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
@@ -60,14 +60,14 @@
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
     // Token Favor System
-    public List<string> UnlockedLocationIds { get; set; } = new List<string>();
+    public List<string> UnlockedVenueIds { get; set; } = new List<string>();
 
     // Route Familiarity System (0-5 scale per route)
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
     public List<FamiliarityEntry> RouteFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
-    // Location Familiarity System (Work Packet 1)
-    // ID is location ID, level is familiarity level (0-3)
+    // Venue Familiarity System (Work Packet 1)
+    // ID is Venue ID, level is familiarity level (0-3)
     public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
     // Observation tracking - IDs of observation cards collected
@@ -132,19 +132,19 @@
     }
 
     /// <summary>
-    /// Get familiarity level for a location (0-3 scale)
+    /// Get familiarity level for a Venue (0-3 scale)
     /// </summary>
-    public int GetLocationFamiliarity(string locationId)
+    public int GetLocationFamiliarity(string venueId)
     {
-        return LocationFamiliarity.GetFamiliarity(locationId);
+        return LocationFamiliarity.GetFamiliarity(venueId);
     }
 
     /// <summary>
-    /// Set location familiarity to a specific value (max 3)
+    /// Set Venue familiarity to a specific value (max 3)
     /// </summary>
-    public void SetLocationFamiliarity(string locationId, int value)
+    public void SetLocationFamiliarity(string venueId, int value)
     {
-        LocationFamiliarity.SetFamiliarity(locationId, Math.Min(3, Math.Max(0, value)));
+        LocationFamiliarity.SetFamiliarity(venueId, Math.Min(3, Math.Max(0, value)));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
@@ -369,11 +369,11 @@
         return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
-    public void AddKnownLocation(string locationId)
+    public void AddKnownLocation(string venueId)
     {
-        if (!DiscoveredLocationIds.Contains(locationId))
+        if (!DiscoveredVenueIds.Contains(venueId))
         {
-            DiscoveredLocationIds.Add(locationId);
+            DiscoveredVenueIds.Add(venueId);
         }
     }
 

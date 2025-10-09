@@ -1,6 +1,6 @@
 /// <summary>
 /// Investigation discipline - categorical card property that determines specialization.
-/// Cards with discipline matching location profile get specialist bonuses.
+/// Cards with discipline matching Venue profile get specialist bonuses.
 /// Parser must convert JSON strings to these enum values.
 ///
 /// Parallel to ConversationalMove in Social system - this is a CARD PROPERTY,

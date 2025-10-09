@@ -5,7 +5,7 @@ public class TravelObstacleDTO
     public string Name { get; set; }
     public string Description { get; set; }
     public string Type { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string RouteId { get; set; }
 
     public List<ObstacleApproachDTO> Approaches { get; set; }

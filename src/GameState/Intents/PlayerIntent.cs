@@ -18,7 +18,7 @@ public abstract class PlayerIntent
 }
 
 /// <summary>
-/// Intent to move to a different location spot
+/// Intent to move to a different Venue spot
 /// </summary>
 public class MoveIntent : PlayerIntent
 {
@@ -97,7 +97,7 @@ public class ExploreAreaIntent : PlayerIntent
 
 
 /// <summary>
-/// Intent to travel to another location via a route
+/// Intent to travel to another Venue via a route
 /// </summary>
 public class TravelIntent : PlayerIntent
 {

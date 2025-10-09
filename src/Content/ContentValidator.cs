@@ -11,34 +11,19 @@
     {
         ContentValidationResult result = new ContentValidationResult();
 
-        // Check locations have valid location spot references
-        foreach (Location location in _worldState.locations)
+        // Check venues have valid Venue spot references
+        foreach (Venue venue in _worldState.locations)
         {
-            foreach (string locationSpotId in location.LocationSpotIds)
+            foreach (string locationSpotId in venue.LocationSpotIds)
             {
                 if (!_worldState.locationSpots.Any(ls => ls.Id == locationSpotId))
                 {
-                    result.AddMissingLocationSpot(locationSpotId, location);
+                    result.AddMissingLocationSpot(locationSpotId, venue);
                 }
             }
         }
 
-        foreach (Location location in _worldState.locations)
-        {
-            if (location.ConnectedLocationIds != null)
-            {
-                foreach (string connectedLocationId in location.ConnectedLocationIds)
-                {
-                    if (!_worldState.locations.Any(l =>
-                    {
-                        return l.Id == connectedLocationId;
-                    }))
-                    {
-                        result.AddMissingConnectedLocation(connectedLocationId, location);
-                    }
-                }
-            }
-        }
+        // ConnectedVenueIds validation removed - connections are on LocationSpots, not Venues
 
         return result;
     }

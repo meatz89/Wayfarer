@@ -431,6 +431,7 @@ public class SocialFacade
             request.ChallengeTypeId,
             npc,
             session,
+            new List<CardInstance>(), // observationCards - empty for now
             ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
             _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());

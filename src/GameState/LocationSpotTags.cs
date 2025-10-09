@@ -14,7 +14,7 @@ public enum TierLevel
 }
 
 /// <summary>
-/// Location tags that enable specific observation actions during conversations
+/// Venue tags that enable specific observation actions during conversations
 /// These are NOT atmosphere modifiers - they determine what can be observed
 /// </summary>
 public enum LocationTag
@@ -95,7 +95,7 @@ public static class LocationTagObservations
     };
 
     /// <summary>
-    /// Get available observation actions for a set of location tags
+    /// Get available observation actions for a set of Venue tags
     /// </summary>
     public static List<ObservationAction> GetObservationActions(IEnumerable<LocationTag> tags)
     {
@@ -190,7 +190,7 @@ public class TierRequirement
 }
 
 /// <summary>
-/// Extension to add location tags to locations
+/// Extension to add Venue tags to locations
 /// </summary>
 public static class LocationTagExtensions
 {
@@ -205,10 +205,10 @@ public static class LocationTagExtensions
         ["city_gates"] = new() { LocationTag.Public, LocationTag.GuardPatrol, LocationTag.Crowded }
     };
 
-    public static List<LocationTag> GetLocationTags(string locationId)
+    public static List<LocationTag> GetLocationTags(string venueId)
     {
-        return LocationTagMap.ContainsKey(locationId?.ToLower())
-            ? LocationTagMap[locationId.ToLower()]
+        return LocationTagMap.ContainsKey(venueId?.ToLower())
+            ? LocationTagMap[venueId.ToLower()]
             : new List<LocationTag>();
     }
 }

@@ -40,14 +40,14 @@ public class ObservationSystem
                 // Group observations by location, then by spot
                 IEnumerable<IGrouping<string, Observation>> locationGroups = _gameWorld.Observations.GroupBy(obs =>
                 {
-                    // Since observations don't have locationId directly, we'll use a default grouping
-                    // In the future, observations should be enhanced to have location context
+                    // Since observations don't have venueId directly, we'll use a default grouping
+                    // In the future, observations should be enhanced to have Venue context
                     return "default_location";
                 });
 
                 foreach (IGrouping<string, Observation> locationGroup in locationGroups)
                 {
-                    string locationId = locationGroup.Key;
+                    string venueId = locationGroup.Key;
                     Dictionary<string, List<Observation>> spotObservations = new Dictionary<string, List<Observation>>();
 
                     // Group observations by spot within this location
@@ -61,8 +61,8 @@ public class ObservationSystem
                         spotObservations[spotId].Add(obs);
                     }
 
-                    observationsByLocationAndSpot[locationId] = spotObservations;
-                    Console.WriteLine($"[ObservationSystem] Grouped observations for location {locationId}: {string.Join(", ", spotObservations.Select(s => $"{s.Key}({s.Value.Count})"))}");
+                    observationsByLocationAndSpot[venueId] = spotObservations;
+                    Console.WriteLine($"[ObservationSystem] Grouped observations for Venue {venueId}: {string.Join(", ", spotObservations.Select(s => $"{s.Key}({s.Value.Count})"))}");
                 }
             }
             else
@@ -80,42 +80,42 @@ public class ObservationSystem
     }
 
     /// <summary>
-    /// Get observations for a specific location and spot
+    /// Get observations for a specific Venue and spot
     /// </summary>
-    public List<Observation> GetObservationsForLocationSpot(string locationId, string spotId)
+    public List<Observation> GetObservationsForLocationSpot(string venueId, string spotId)
     {
-        Console.WriteLine($"[ObservationSystem] Looking for observations at {locationId}/{spotId}");
+        Console.WriteLine($"[ObservationSystem] Looking for observations at {venueId}/{spotId}");
 
-        if (_observationsByLocationAndSpot.TryGetValue(locationId, out Dictionary<string, List<Observation>>? spotMap))
+        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
         {
-            Console.WriteLine($"[ObservationSystem] Found location {locationId}, available spots: {string.Join(", ", spotMap.Keys)}");
+            Console.WriteLine($"[ObservationSystem] Found Venue {venueId}, available spots: {string.Join(", ", spotMap.Keys)}");
 
             if (spotMap.TryGetValue(spotId, out List<Observation>? observations))
             {
-                Console.WriteLine($"[ObservationSystem] Found {observations.Count} observations for {locationId}/{spotId}");
+                Console.WriteLine($"[ObservationSystem] Found {observations.Count} observations for {venueId}/{spotId}");
                 return observations;
             }
         }
 
-        Console.WriteLine($"[ObservationSystem] No observations found for {locationId}/{spotId}");
+        Console.WriteLine($"[ObservationSystem] No observations found for {venueId}/{spotId}");
         return new List<Observation>();
     }
 
     /// <summary>
-    /// Get all observations for a location (all spots combined)
+    /// Get all observations for a Venue (all spots combined)
     /// </summary>
-    public List<Observation> GetAllObservationsForLocation(string locationId)
+    public List<Observation> GetAllObservationsForLocation(string venueId)
     {
-        Console.WriteLine($"[ObservationSystem] Getting all observations for location: {locationId}");
+        Console.WriteLine($"[ObservationSystem] Getting all observations for location: {venueId}");
 
-        if (_observationsByLocationAndSpot.TryGetValue(locationId, out Dictionary<string, List<Observation>>? spotMap))
+        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
         {
             List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList();
-            Console.WriteLine($"[ObservationSystem] Found {allObservations.Count} total observations for {locationId}");
+            Console.WriteLine($"[ObservationSystem] Found {allObservations.Count} total observations for {venueId}");
             return allObservations;
         }
 
-        Console.WriteLine($"[ObservationSystem] No observations found for {locationId}");
+        Console.WriteLine($"[ObservationSystem] No observations found for {venueId}");
         return new List<Observation>();
     }
 

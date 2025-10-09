@@ -12,7 +12,7 @@ public enum DiscoveryTriggerType
     ImmediateVisibility,
 
     /// <summary>
-    /// Investigation revealed through examining location features
+    /// Investigation revealed through examining Venue features
     /// Prerequisites: location_familiarity(X) >= N, examining specific spot
     /// Example: Hidden damage noticed after thorough exploration
     /// </summary>

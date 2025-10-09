@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Data Transfer Object for deserializing location spot data from JSON.
+/// Data Transfer Object for deserializing Venue spot data from JSON.
 /// Maps to the structure in location_spots.json.
 /// </summary>
 public class LocationSpotDTO
@@ -12,7 +12,7 @@ public class LocationSpotDTO
     public string Type { get; set; }
     public string Description { get; set; }
     public string InitialState { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public List<string> CurrentTimeBlocks { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();
 

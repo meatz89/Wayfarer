@@ -187,14 +187,14 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(destinationSpot))
                 return "Unknown Destination";
 
-            // Get location spot and location name
+            // Get Venue spot and Venue name
             LocationSpot spot = GameFacade.GetLocationSpot(destinationSpot);
             if (spot != null)
             {
-                Location location = GameFacade.GetLocationById(spot.LocationId);
-                if (location != null)
+                Venue venue = GameFacade.GetLocationById(spot.VenueId);
+                if (venue != null)
                 {
-                    return location.Name;
+                    return venue.Name;
                 }
             }
 
@@ -277,7 +277,7 @@ namespace Wayfarer.Pages.Components
             bool success = TravelManager.TurnBack();
             if (success)
             {
-                // Navigate back to location since journey was cancelled
+                // Navigate back to Venue since journey was cancelled
                 await OnNavigate.InvokeAsync("location");
             }
         }
@@ -518,7 +518,7 @@ namespace Wayfarer.Pages.Components
         {
             if (TravelFacade.FinishRoute())
             {
-                // Navigate back to location screen
+                // Navigate back to Venue screen
                 await OnNavigate.InvokeAsync("location");
             }
         }

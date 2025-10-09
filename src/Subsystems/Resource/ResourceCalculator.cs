@@ -2,7 +2,7 @@ using System;
 
 /// <summary>
 /// Calculates resource formulas and interdependencies.
-/// Central location for all resource calculation logic.
+/// Central Venue for all resource calculation logic.
 /// </summary>
 public class ResourceCalculator
 {

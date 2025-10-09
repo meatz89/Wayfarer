@@ -18,9 +18,9 @@ public class ObservationTemplates
     }
 
     /// <summary>
-    /// Generate an observation based on location tag and context
+    /// Generate an observation based on Venue tag and context
     /// </summary>
-    public string GenerateObservation(LocationTag tag, string locationId, int seed = 0)
+    public string GenerateObservation(LocationTag tag, string venueId, int seed = 0)
     {
         if (!_templates.ContainsKey(tag))
             return "You notice nothing unusual.";
@@ -34,7 +34,7 @@ public class ObservationTemplates
         string templateText = template.Variations[rnd.Next(template.Variations.Count)];
 
         // Get location-specific detail
-        string detail = GetLocationDetail(tag, locationId, rnd);
+        string detail = GetLocationDetail(tag, venueId, rnd);
 
         // Replace placeholder
         return templateText.Replace("{detail}", detail);
@@ -126,10 +126,10 @@ public class ObservationTemplates
         };
     }
 
-    private string GetLocationDetail(LocationTag tag, string locationId, Random rnd)
+    private string GetLocationDetail(LocationTag tag, string venueId, Random rnd)
     {
         // Location-specific details based on tag and location
-        List<string> details = GetDetailsForLocation(tag, locationId);
+        List<string> details = GetDetailsForLocation(tag, venueId);
 
         if (details.Any())
             return details[rnd.Next(details.Count)];
@@ -138,9 +138,9 @@ public class ObservationTemplates
         return GetGenericDetail(tag, rnd);
     }
 
-    private List<string> GetDetailsForLocation(LocationTag tag, string locationId)
+    private List<string> GetDetailsForLocation(LocationTag tag, string venueId)
     {
-        string key = $"{locationId}_{tag}";
+        string key = $"{venueId}_{tag}";
 
         Dictionary<string, List<string>> locationDetails = new Dictionary<string, List<string>>
         {

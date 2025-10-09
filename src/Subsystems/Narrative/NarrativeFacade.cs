@@ -156,19 +156,19 @@ public class NarrativeFacade
     }
 
     /// <summary>
-    /// Generate location arrival narrative
+    /// Generate venue arrival narrative
     /// </summary>
-    public string GenerateArrivalText(Location location, LocationSpot entrySpot)
+    public string GenerateArrivalText(Venue venue, LocationSpot entrySpot)
     {
-        return _locationNarrativeGenerator.GenerateArrivalText(location, entrySpot);
+        return _locationNarrativeGenerator.GenerateArrivalText(venue, entrySpot);
     }
 
     /// <summary>
-    /// Generate location departure narrative
+    /// Generate venue departure narrative
     /// </summary>
-    public string GenerateDepartureText(Location location, LocationSpot exitSpot)
+    public string GenerateDepartureText(Venue venue, LocationSpot exitSpot)
     {
-        return _locationNarrativeGenerator.GenerateDepartureText(location, exitSpot);
+        return _locationNarrativeGenerator.GenerateDepartureText(venue, exitSpot);
     }
 
     /// <summary>

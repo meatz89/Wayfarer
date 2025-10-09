@@ -33,7 +33,7 @@ namespace Wayfarer.Pages.Components
             return GameWorld.Locations.Count;
         }
 
-        protected List<Location> GetDiscoveredLocations()
+        protected List<Venue> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
             return GameWorld.Locations
@@ -42,15 +42,15 @@ namespace Wayfarer.Pages.Components
                 .ToList();
         }
 
-        protected int GetFamiliarity(string locationId)
+        protected int GetFamiliarity(string venueId)
         {
-            return GameWorld.GetPlayer().GetLocationFamiliarity(locationId);
+            return GameWorld.GetPlayer().GetLocationFamiliarity(venueId);
         }
 
-        protected double GetFamiliarityPercent(string locationId, int max)
+        protected double GetFamiliarityPercent(string venueId, int max)
         {
             if (max == 0) return 0;
-            return (double)GetFamiliarity(locationId) / max * 100.0;
+            return (double)GetFamiliarity(venueId) / max * 100.0;
         }
 
         protected int GetCollectedObservationCount()
@@ -160,10 +160,10 @@ namespace Wayfarer.Pages.Components
 
             foreach (InvestigationPhaseDefinition phase in activePhases)
             {
-                // Derive location from spot (SpotId is globally unique)
+                // Derive Venue from spot (SpotId is globally unique)
                 LocationSpotEntry spotEntry = GameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phase.SpotId);
-                Location loc = spotEntry != null
-                    ? GameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.LocationId)
+                Venue loc = spotEntry != null
+                    ? GameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
                     : null;
 
                 if (loc != null && spotEntry != null)

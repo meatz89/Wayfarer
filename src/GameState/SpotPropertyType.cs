@@ -1,5 +1,5 @@
 /// <summary>
-/// Categorical properties of location spots that affect conversation mechanics
+/// Categorical properties of Venue spots that affect conversation mechanics
 /// These properties influence flow modifiers, card availability, and NPC willingness
 /// </summary>
 public enum SpotPropertyType
@@ -43,9 +43,9 @@ public enum SpotPropertyType
     Rest,           // Rest area, enables rest actions
     Lodging,        // Lodging available, sleep/room actions
 
-    // Location type properties
-    Tavern,         // Tavern location type
-    Market,         // Market location type
+    // Venue type properties
+    Tavern,         // Tavern Venue type
+    Market,         // Market Venue type
     Temple,         // Temple/religious location
     Noble,          // Noble district location
 

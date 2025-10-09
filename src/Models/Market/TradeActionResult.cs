@@ -7,7 +7,7 @@ public class TradeActionResult
     public string Message { get; set; }
     public string Action { get; set; }
     public string ItemId { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public int CoinsChanged { get; set; }
     public int QuantityChanged { get; set; }
     public int CoinsBefore { get; set; }

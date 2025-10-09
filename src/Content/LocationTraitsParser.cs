@@ -5,7 +5,7 @@ using System.Linq;
 public static class LocationTraitsParser
 {
     /// <summary>
-    /// Parse location traits from environmental properties and domain tags
+    /// Parse Venue traits from environmental properties and domain tags
     /// LocationSpot is the gameplay entity with all mechanical properties
     /// </summary>
     public static List<string> ParseLocationTraits(LocationSpot spot, TimeBlocks currentTime)

@@ -466,8 +466,8 @@ namespace Wayfarer.Pages.Components
             if ((int)npc.Profession != 0)
                 status.Add(npc.Profession.ToString());
 
-            // Get current location name
-            Location? currentLocation = GameFacade?.GetCurrentLocation();
+            // Get current Venue name
+            Venue? currentLocation = GameFacade?.GetCurrentLocation();
             if (!string.IsNullOrEmpty(currentLocation?.Name))
                 status.Add(currentLocation.Name);
 
@@ -486,13 +486,13 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get the location context data for display in the location bar
+        /// Get the Venue context data for display in the Venue bar
         /// </summary>
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
             if (GameFacade == null) return ("Unknown Location", "", "");
 
-            Location currentLocation = GameFacade.GetCurrentLocation();
+            Venue currentLocation = GameFacade.GetCurrentLocation();
             LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)

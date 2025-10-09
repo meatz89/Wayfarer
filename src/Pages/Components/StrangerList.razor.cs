@@ -11,7 +11,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
 
-        [Parameter] public string LocationId { get; set; }
+        [Parameter] public string VenueId { get; set; }
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
@@ -30,16 +30,16 @@ namespace Wayfarer.Pages.Components
 
         protected void RefreshStrangers()
         {
-            if (string.IsNullOrEmpty(LocationId))
+            if (string.IsNullOrEmpty(VenueId))
             {
-                // Get current location if not specified
-                Location currentLocation = GameFacade.GetCurrentLocation();
-                LocationId = currentLocation?.Id;
+                // Get current Venue if not specified
+                Venue currentLocation = GameFacade.GetCurrentLocation();
+                VenueId = currentLocation?.Id;
             }
 
-            if (!string.IsNullOrEmpty(LocationId))
+            if (!string.IsNullOrEmpty(VenueId))
             {
-                AvailableStrangers = GameFacade.GetAvailableStrangers(LocationId);
+                AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
             }
             else
             {

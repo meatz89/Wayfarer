@@ -97,7 +97,7 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for location spot entries (replaces Dictionary<string, LocationSpot>)
+/// Helper class for Venue spot entries (replaces Dictionary<string, LocationSpot>)
 /// </summary>
 public class LocationSpotEntry
 {

@@ -25,7 +25,7 @@ public class SchemaValidator : IContentValidator
             ["location_spots.json"] = new FileSchema
             {
                 IsArray = true,
-                RequiredFields = new[] { "id", "name", "locationId", "type" },
+                RequiredFields = new[] { "id", "name", "venueId", "type" },
                 OptionalFields = new[] { "description", "initialState", "domainTags",
                                            "CurrentTimeBlocks", "accessRequirement" }
             },

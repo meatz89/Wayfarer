@@ -12,8 +12,8 @@ public class ActionGenerator
     }
 
     /// <summary>
-    /// Generate actions for a location spot based on its properties
-    /// LocationSpot is the gameplay entity - Location is just a container
+    /// Generate actions for a Venue spot based on its properties
+    /// LocationSpot is the gameplay entity - Venue is just a container
     /// </summary>
     public List<LocationActionViewModel> GenerateActionsForSpot(LocationSpot spot)
     {
@@ -123,9 +123,8 @@ public class ActionGenerator
 
     private string GetRestTitle(LocationSpot locationSpot)
     {
-        var location = locationSpot.Location;
-        if (locationSpot.LocationType == LocationTypes.Landmark) return "Quiet Rest";
-        if (locationSpot.LocationType == LocationTypes.Forest) return "Rest in Shade";
+        if (locationSpot.LocationType == LocationSpotTypes.Landmark) return "Quiet Rest";
+        if (locationSpot.LocationType == LocationSpotTypes.Forest) return "Rest in Shade";
         return "Take a Seat";
     }
 
@@ -137,7 +136,7 @@ public class ActionGenerator
 
     private string GetRestCost(LocationSpot locationSpot)
     {
-        if (locationSpot.LocationType == LocationTypes.Landmark) return "1c"; // Donation
+        if (locationSpot.LocationType == LocationSpotTypes.Landmark) return "1c"; // Donation
         return "FREE";
     }
 

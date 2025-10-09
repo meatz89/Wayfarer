@@ -18,7 +18,7 @@ public class InvestigationDiscoveryEvaluator
 
     /// <summary>
     /// Evaluate all Potential investigations and return those ready to be discovered
-    /// Called on: location entry, knowledge gain, item acquisition, obligation acceptance
+    /// Called on: Venue entry, knowledge gain, item acquisition, obligation acceptance
     /// </summary>
     public List<Investigation> EvaluateDiscoverableInvestigations(Player player)
     {

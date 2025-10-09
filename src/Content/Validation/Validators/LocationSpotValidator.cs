@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Text.Json;
 
 /// <summary>
-/// Validates location spot JSON content files.
+/// Validates Venue spot JSON content files.
 /// </summary>
 public class LocationSpotValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "locationId"
+            "id", "name", "venueId"
         };
 
     public bool CanValidate(string fileName)
@@ -49,7 +49,7 @@ public class LocationSpotValidator : IContentValidator
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate location spots: {ex.Message}",
+                $"Failed to validate Venue spots: {ex.Message}",
                 ValidationSeverity.Critical));
         }
 
@@ -67,7 +67,7 @@ public class LocationSpotValidator : IContentValidator
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{spotId}",
-                    $"Duplicate location spot ID: {spotId}",
+                    $"Duplicate Venue spot ID: {spotId}",
                     ValidationSeverity.Critical));
             }
         }

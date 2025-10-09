@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// </summary>
 public class MessageContext
 {
-    public string Location { get; set; }
+    public string Venue { get; set; }
     public string Time { get; set; }
     public bool Urgency { get; set; }
     public string NpcName { get; set; }
@@ -126,9 +126,9 @@ public class MessageSystemManager
         string contextualMessage = baseMessage;
 
         // Add contextual elements
-        if (!string.IsNullOrEmpty(context?.Location))
+        if (!string.IsNullOrEmpty(context?.Venue))
         {
-            contextualMessage = $"At {context.Location}: {contextualMessage}";
+            contextualMessage = $"At {context.Venue}: {contextualMessage}";
         }
 
         if (!string.IsNullOrEmpty(context?.Time))

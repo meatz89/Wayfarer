@@ -17,8 +17,8 @@ public class RouteRepository : IRouteRepository
     }
 
 
-    // Get routes from a specific location (by checking all spots in that location)
-    public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
+    // Get routes from a specific Venue (by checking all spots in that location)
+    public IEnumerable<RouteOption> GetRoutesFromLocation(string venueId)
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
@@ -32,7 +32,7 @@ public class RouteRepository : IRouteRepository
                 if (!string.IsNullOrEmpty(route.OriginLocationSpot))
                 {
                     LocationSpot originSpot = _gameWorld.GetSpot(route.OriginLocationSpot);
-                    if (originSpot != null && originSpot.LocationId == locationId)
+                    if (originSpot != null && originSpot.VenueId == venueId)
                     {
                         allRoutes.Add(route);
                     }
@@ -58,7 +58,7 @@ public class RouteRepository : IRouteRepository
     }
 
     // Get available routes from the player's current spot
-    public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
+    public IEnumerable<RouteOption> GetAvailableRoutes(string fromVenueId, Player player)
     {
         // Get routes from the player's current spot
         LocationSpot currentSpot = player.CurrentLocationSpot;

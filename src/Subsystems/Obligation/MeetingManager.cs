@@ -265,7 +265,7 @@ public class MeetingManager
         if (!IsPlayerAtNPCLocation(meeting.RequesterId))
         {
             result.Success = false;
-            result.ErrorMessage = $"You must be at {meeting.RequesterName}'s location to meet";
+            result.ErrorMessage = $"You must be at {meeting.RequesterName}'s Venue to meet";
             return result;
         }
 
@@ -335,7 +335,7 @@ public class MeetingManager
         Player player = _gameWorld.GetPlayer();
         if (player.CurrentLocationSpot == null) return false;
 
-        // Get current time block for NPC location checking
+        // Get current time block for NPC Venue checking
         TimeBlocks currentTime = GetCurrentTimeBlock();
         List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationSpotAndTime(
             player.CurrentLocationSpot.Id,

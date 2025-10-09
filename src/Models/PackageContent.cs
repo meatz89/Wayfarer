@@ -26,12 +26,12 @@ public class PackageContent
     public List<NPCDTO> Npcs { get; set; }
 
     /// <summary>
-    /// Location definitions - uses existing LocationDTO
+    /// Venue definitions - containers for LocationSpots
     /// </summary>
-    public List<LocationDTO> Locations { get; set; }
+    public List<VenueDTO> Venues { get; set; }
 
     /// <summary>
-    /// Location spot definitions - uses existing LocationSpotDTO
+    /// Venue spot definitions - uses existing LocationSpotDTO
     /// </summary>
     public List<LocationSpotDTO> Spots { get; set; }
 
@@ -46,7 +46,7 @@ public class PackageContent
     public List<ObservationDTO> Observations { get; set; }
 
     /// <summary>
-    /// Investigation rewards - defines what observation cards are earned from location familiarity
+    /// Investigation rewards - defines what observation cards are earned from Venue familiarity
     /// </summary>
     public List<ObservationRewardDTO> InvestigationRewards { get; set; }
 
@@ -86,9 +86,9 @@ public class PackageContent
     public List<ItemDTO> Items { get; set; }
 
     /// <summary>
-    /// Location actions - uses LocationActionDTO for consistency
+    /// Venue actions - uses LocationActionDTO for consistency
     /// </summary>
-    public List<LocationActionDTO> LocationActions { get; set; }
+    public List<VenueActionDTO> LocationActions { get; set; }
 
     /// <summary>
     /// Deck compositions - defines how many copies of each card in decks

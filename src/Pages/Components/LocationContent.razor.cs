@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Wayfarer.Pages.Components
 {
     /// <summary>
-    /// Location screen component that displays the current location, available spots, NPCs, and actions.
+    /// Venue screen component that displays the current location, available spots, NPCs, and actions.
     /// 
     /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
     /// ================================================
@@ -24,7 +24,7 @@ namespace Wayfarer.Pages.Components
     /// IMPLEMENTATION REQUIREMENTS:
     /// - RefreshLocationData() fetches display data only (no mutations)
     /// - All actions go through GameScreen parent via CascadingValue pattern
-    /// - Location state read from GameWorld.GetPlayer().CurrentLocationSpot
+    /// - Venue state read from GameWorld.GetPlayer().CurrentLocationSpot
     /// - NPCs, actions, observations fetched fresh each render (read-only)
     /// </summary>
     public class LocationContentBase : ComponentBase
@@ -48,7 +48,7 @@ namespace Wayfarer.Pages.Components
         protected List<WorkAction> AvailableWorkActions { get; set; } = new();
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
-        protected Location CurrentLocation { get; set; }
+        protected Venue CurrentLocation { get; set; }
         protected List<ChallengeGoal> AvailableSocialGoals { get; set; } = new();
         protected List<ChallengeGoal> AvailableMentalGoals { get; set; } = new();
         protected List<ChallengeGoal> AvailablePhysicalGoals { get; set; } = new();
@@ -65,11 +65,11 @@ namespace Wayfarer.Pages.Components
 
         private async Task RefreshLocationData()
         {
-            // Evaluate investigation discovery when location refreshes
+            // Evaluate investigation discovery when Venue refreshes
             GameFacade.EvaluateInvestigationDiscovery();
 
-            Location location = GameFacade.GetCurrentLocation();
-            CurrentLocation = location;
+            Venue venue = GameFacade.GetCurrentLocation();
+            CurrentLocation = venue;
             LocationSpot? spot = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = spot;
             TimeInfo timeInfo = GameFacade.GetTimeInfo();
@@ -152,12 +152,12 @@ namespace Wayfarer.Pages.Components
                 TakenObservations = takenObservations;
             }
 
-            // Get other spots in this location from GameWorld
+            // Get other spots in this Venue from GameWorld
             AvailableSpots.Clear();
-            if (location != null && GameWorld != null)
+            if (venue != null && GameWorld != null)
             {
                 IEnumerable<LocationSpot> allSpots = GameWorld.Spots.GetAllSpots()
-                    .Where(s => s.LocationId == location.Id);
+                    .Where(s => s.VenueId == venue.Id);
                 AvailableSpots = allSpots
                     .Where(s => s != spot)
                     .Select(s => new SpotViewModel
@@ -175,23 +175,23 @@ namespace Wayfarer.Pages.Components
             // Check if can work at this spot
             CanWork = spot?.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
 
-            // Get dynamic location actions
+            // Get dynamic Venue actions
             LocationActions.Clear();
-            if (location != null && spot != null)
+            if (venue != null && spot != null)
             {
                 try
                 {
-                    LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
+                    LocationSpotActionManager locationActionManager = GameFacade.GetLocationActionManager();
                     if (locationActionManager != null)
                     {
-                        List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(location, spot);
+                        List<LocationActionViewModel> actions = locationActionManager.GetLocationSpotActions(venue, spot);
                         LocationActions = actions ?? new List<LocationActionViewModel>();
-                        Console.WriteLine($"[LocationContent] Got {LocationActions.Count} location actions");
+                        Console.WriteLine($"[LocationContent] Got {LocationActions.Count} Venue actions");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[LocationContent] Error getting location actions: {ex.Message}");
+                    Console.WriteLine($"[LocationContent] Error getting Venue actions: {ex.Message}");
                     LocationActions = new List<LocationActionViewModel>();
                 }
             }
@@ -327,7 +327,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
-            Console.WriteLine($"[LocationContent] Executing location action: {action.ActionType}");
+            Console.WriteLine($"[LocationContent] Executing Venue action: {action.ActionType}");
 
             // Special handling for travel action
             if (action.ActionType == "travel")
@@ -355,14 +355,14 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Investigate the current location to gain familiarity. Costs 1 attention and 1 segment.
+        /// Investigate the current Venue to gain familiarity. Costs 1 attention and 1 segment.
         /// Familiarity gain depends on spot properties.
         /// </summary>
         protected async Task InvestigateLocation()
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current location or spot");
+                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or spot");
                 return;
             }
 
@@ -393,10 +393,10 @@ namespace Wayfarer.Pages.Components
             if (CurrentLocation == null || CurrentSpot == null) return false;
 
 
-            // Check if location is already at max familiarity
+            // Check if Spot is already at max familiarity
             Player player = GameWorld.GetPlayer();
             int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
-            return currentFamiliarity < CurrentLocation.MaxFamiliarity;
+            return currentFamiliarity < CurrentSpot.MaxFamiliarity;
         }
 
 
@@ -431,15 +431,15 @@ namespace Wayfarer.Pages.Components
                 return NPCsAtSpot;
             }
 
-            // For other spots, get all NPCs at the current location and filter by spot
-            Location currentLocation = GameFacade.GetCurrentLocation();
+            // For other spots, get all NPCs at the current Venue and filter by spot
+            Venue currentLocation = GameFacade.GetCurrentLocation();
             if (currentLocation == null) return new List<NPC>();
 
             // Get the spot we're checking
-            LocationSpot? spot = GameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.LocationId == currentLocation.Id && s.Name == spotId);
+            LocationSpot? spot = GameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == spotId);
             if (spot == null) return new List<NPC>();
 
-            // Get ALL NPCs at this location and filter by SpotId
+            // Get ALL NPCs at this Venue and filter by SpotId
             List<NPC> npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
             return npcsAtLocation.Where(n => n.SpotId == spot.Id).ToList();
         }
@@ -534,7 +534,7 @@ namespace Wayfarer.Pages.Components
 
         protected string GetTimeOfDayTrait()
         {
-            // Show time-specific location traits based on current time and location context
+            // Show time-specific Venue traits based on current time and Venue context
             string timeStr = CurrentTime switch
             {
                 TimeBlocks.Dawn => "Dawn",
@@ -546,7 +546,7 @@ namespace Wayfarer.Pages.Components
                 _ => "Unknown"
             };
 
-            // Add context-specific modifiers based on location and time
+            // Add context-specific modifiers based on Venue and time
             string modifier = GetLocationTimeModifier();
 
             return string.IsNullOrEmpty(modifier) ? timeStr : $"{timeStr}: {modifier}";
@@ -554,7 +554,7 @@ namespace Wayfarer.Pages.Components
 
         protected string GetLocationTimeModifier()
         {
-            // Generate time-specific location traits based on location type and current time
+            // Generate time-specific Venue traits based on Venue type and current time
             if (CurrentLocation == null) return "";
 
             string locationName = CurrentLocation.Name?.ToLower() ?? "";
@@ -630,7 +630,7 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current location or spot");
+                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or spot");
                 return;
             }
 

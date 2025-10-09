@@ -91,7 +91,7 @@ test.describe('Find Elena Location', () => {
       console.log(`Letter/conversation element: "${text}"`);
     }
 
-    console.log('Search complete. Elena location not immediately found.');
+    console.log('Search complete. Elena Venue not immediately found.');
     await page.screenshot({ path: 'search-complete.png' });
   });
 

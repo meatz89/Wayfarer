@@ -19,7 +19,7 @@ public class Equipment : Item
             Categories = item.Categories,
             Weight = item.Weight,
             Size = item.Size,
-            LocationId = item.LocationId,
+            VenueId = item.VenueId,
             SpotId = item.SpotId,
             Description = item.Description,
             TokenGenerationModifiers = item.TokenGenerationModifiers,

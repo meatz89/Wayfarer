@@ -5,22 +5,22 @@
 public record TravelRoute
 {
     /// <summary>
-    /// The starting location ID
+    /// The starting Venue ID
     /// </summary>
-    public string FromLocationId { get; init; }
+    public string FromVenueId { get; init; }
 
     /// <summary>
-    /// The destination location ID
+    /// The destination Venue ID
     /// </summary>
-    public string ToLocationId { get; init; }
+    public string ToVenueId { get; init; }
 
     /// <summary>
     /// Create a travel route
     /// </summary>
-    public TravelRoute(string fromLocationId, string toLocationId)
+    public TravelRoute(string fromVenueId, string toVenueId)
     {
-        FromLocationId = fromLocationId;
-        ToLocationId = toLocationId;
+        FromVenueId = fromVenueId;
+        ToVenueId = toVenueId;
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public record TravelRoute
     /// </summary>
     public override int GetHashCode()
     {
-        return HashCode.Combine(FromLocationId, ToLocationId);
+        return HashCode.Combine(FromVenueId, ToVenueId);
     }
 
     /// <summary>
@@ -36,6 +36,6 @@ public record TravelRoute
     /// </summary>
     public override string ToString()
     {
-        return $"{FromLocationId} -> {ToLocationId}";
+        return $"{FromVenueId} -> {ToVenueId}";
     }
 }

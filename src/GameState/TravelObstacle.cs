@@ -11,7 +11,7 @@ public class TravelObstacle
     public string Name { get; set; }
     public string Description { get; set; }
     public ObstacleType Type { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string RouteId { get; set; }
 
     public List<ObstacleApproach> Approaches { get; set; } = new List<ObstacleApproach>();

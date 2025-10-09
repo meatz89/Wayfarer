@@ -9,7 +9,7 @@ public class StrangerNPCDTO
     public string Name { get; set; }
     public int Level { get; set; }
     public string Personality { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string TimeBlock { get; set; }
     public StrangerRequestDTO Request { get; set; } // Single request per stranger
 }

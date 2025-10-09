@@ -19,33 +19,33 @@ public class RouteManager
     /// <summary>
     /// Get all routes from a specific location.
     /// </summary>
-    public List<RouteOption> GetRoutesFromLocation(string locationId)
+    public List<RouteOption> GetRoutesFromLocation(string venueId)
     {
-        return _routeRepository.GetRoutesFromLocation(locationId).ToList();
+        return _routeRepository.GetRoutesFromLocation(venueId).ToList();
     }
 
     /// <summary>
     /// Get a specific route between two locations.
     /// </summary>
-    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
     {
-        List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
+        List<RouteOption> routes = GetRoutesFromLocation(fromVenueId);
         // RouteOption uses DestinationLocationSpot to track where it goes
         // We need to find routes that go to any spot in the target location
         return routes.FirstOrDefault(r =>
         {
             // Get the destination spot and check if it belongs to the target location
             LocationSpot destSpot = _gameWorld.GetSpot(r.DestinationLocationSpot);
-            return destSpot?.LocationId == toLocationId;
+            return destSpot?.VenueId == toVenueId;
         });
     }
 
     /// <summary>
     /// Check if a route exists between two locations.
     /// </summary>
-    public bool RouteExists(string fromLocationId, string toLocationId)
+    public bool RouteExists(string fromVenueId, string toVenueId)
     {
-        return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
+        return GetRouteBetweenLocations(fromVenueId, toVenueId) != null;
     }
 
     /// <summary>
@@ -54,12 +54,12 @@ public class RouteManager
     public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = player.CurrentLocationSpot?.LocationId;
-        if (currentLocationId == null)
+        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        if (currentVenueId == null)
         {
             return new List<RouteOption>();
         }
-        return GetRoutesFromLocation(currentLocationId);
+        return GetRoutesFromLocation(currentVenueId);
     }
 
     /// <summary>

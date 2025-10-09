@@ -11,7 +11,7 @@ public class MarketStateTracker
     private readonly GameWorld _gameWorld;
     private readonly ItemRepository _itemRepository;
 
-    // Track supply and demand per location per item
+    // Track supply and demand per Venue per item
     private Dictionary<string, Dictionary<string, MarketMetrics>> _marketMetrics;
 
     // Track trade history for trend analysis
@@ -47,7 +47,7 @@ public class MarketStateTracker
     public class TradeRecord
     {
         public DateTime Timestamp { get; set; }
-        public string LocationId { get; set; }
+        public string VenueId { get; set; }
         public string ItemId { get; set; }
         public TradeType Type { get; set; }
         public int Price { get; set; }
@@ -66,7 +66,7 @@ public class MarketStateTracker
     /// </summary>
     public class MarketConditions
     {
-        public string LocationId { get; set; }
+        public string VenueId { get; set; }
         public int TotalItems { get; set; }
         public int ScarcityItems { get; set; } // Items with low supply
         public int AbundantItems { get; set; } // Items with high supply
@@ -82,27 +82,27 @@ public class MarketStateTracker
     /// <summary>
     /// Get supply level for an item at a location
     /// </summary>
-    public float GetSupplyLevel(string itemId, string locationId)
+    public float GetSupplyLevel(string itemId, string venueId)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
         return metrics.SupplyLevel;
     }
 
     /// <summary>
     /// Get demand level for an item at a location
     /// </summary>
-    public float GetDemandLevel(string itemId, string locationId)
+    public float GetDemandLevel(string itemId, string venueId)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
         return metrics.DemandLevel;
     }
 
     /// <summary>
     /// Update supply level based on market activity
     /// </summary>
-    private void UpdateSupplyLevel(string locationId, string itemId, TradeType tradeType)
+    private void UpdateSupplyLevel(string venueId, string itemId, TradeType tradeType)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
 
         if (tradeType == TradeType.Purchase)
         {
@@ -119,9 +119,9 @@ public class MarketStateTracker
     /// <summary>
     /// Update demand level based on market activity
     /// </summary>
-    private void UpdateDemandLevel(string locationId, string itemId, TradeType tradeType)
+    private void UpdateDemandLevel(string venueId, string itemId, TradeType tradeType)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
 
         if (tradeType == TradeType.Purchase)
         {
@@ -140,12 +140,12 @@ public class MarketStateTracker
     /// <summary>
     /// Record a purchase transaction
     /// </summary>
-    public void RecordPurchase(string itemId, string locationId, int price)
+    public void RecordPurchase(string itemId, string venueId, int price)
     {
         TradeRecord record = new TradeRecord
         {
             Timestamp = DateTime.Now,
-            LocationId = locationId,
+            VenueId = venueId,
             ItemId = itemId,
             Type = TradeType.Purchase,
             Price = price,
@@ -154,10 +154,10 @@ public class MarketStateTracker
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(locationId, itemId, TradeType.Purchase);
-        UpdateDemandLevel(locationId, itemId, TradeType.Purchase);
+        UpdateSupplyLevel(venueId, itemId, TradeType.Purchase);
+        UpdateDemandLevel(venueId, itemId, TradeType.Purchase);
 
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
         metrics.RecentPurchases++;
         metrics.LastTradeTime = DateTime.Now;
         UpdateAveragePrice(metrics, price);
@@ -166,12 +166,12 @@ public class MarketStateTracker
     /// <summary>
     /// Record a sale transaction
     /// </summary>
-    public void RecordSale(string itemId, string locationId, int price)
+    public void RecordSale(string itemId, string venueId, int price)
     {
         TradeRecord record = new TradeRecord
         {
             Timestamp = DateTime.Now,
-            LocationId = locationId,
+            VenueId = venueId,
             ItemId = itemId,
             Type = TradeType.Sale,
             Price = price,
@@ -180,10 +180,10 @@ public class MarketStateTracker
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(locationId, itemId, TradeType.Sale);
-        UpdateDemandLevel(locationId, itemId, TradeType.Sale);
+        UpdateSupplyLevel(venueId, itemId, TradeType.Sale);
+        UpdateDemandLevel(venueId, itemId, TradeType.Sale);
 
-        MarketMetrics metrics = GetOrCreateMetrics(locationId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
         metrics.RecentSales++;
         metrics.LastTradeTime = DateTime.Now;
         UpdateAveragePrice(metrics, price);
@@ -224,15 +224,15 @@ public class MarketStateTracker
     /// <summary>
     /// Get complete market conditions for a location
     /// </summary>
-    public MarketConditions GetMarketConditions(string locationId)
+    public MarketConditions GetMarketConditions(string venueId)
     {
         MarketConditions conditions = new MarketConditions
         {
-            LocationId = locationId,
+            VenueId = venueId,
             TrendingItems = new List<string>()
         };
 
-        if (!_marketMetrics.ContainsKey(locationId))
+        if (!_marketMetrics.ContainsKey(venueId))
         {
             // Return default conditions if no data
             conditions.OverallSupplyIndex = 1.0f;
@@ -240,7 +240,7 @@ public class MarketStateTracker
             return conditions;
         }
 
-        Dictionary<string, MarketMetrics> locationMetrics = _marketMetrics[locationId];
+        Dictionary<string, MarketMetrics> locationMetrics = _marketMetrics[venueId];
 
         float totalSupply = 0;
         float totalDemand = 0;
@@ -282,12 +282,12 @@ public class MarketStateTracker
     /// <summary>
     /// Get items with best profit margins at a location
     /// </summary>
-    public List<string> GetHighMarginItems(string locationId, int topN = 5)
+    public List<string> GetHighMarginItems(string venueId, int topN = 5)
     {
-        if (!_marketMetrics.ContainsKey(locationId))
+        if (!_marketMetrics.ContainsKey(venueId))
             return new List<string>();
 
-        return _marketMetrics[locationId]
+        return _marketMetrics[venueId]
             .Where(kvp => kvp.Value.DemandLevel > 1.2f && kvp.Value.SupplyLevel < 0.8f)
             .OrderByDescending(kvp => kvp.Value.DemandLevel / kvp.Value.SupplyLevel)
             .Take(topN)
@@ -298,12 +298,12 @@ public class MarketStateTracker
     /// <summary>
     /// Get items that are oversupplied at a location
     /// </summary>
-    public List<string> GetOversuppliedItems(string locationId)
+    public List<string> GetOversuppliedItems(string venueId)
     {
-        if (!_marketMetrics.ContainsKey(locationId))
+        if (!_marketMetrics.ContainsKey(venueId))
             return new List<string>();
 
-        return _marketMetrics[locationId]
+        return _marketMetrics[venueId]
             .Where(kvp => kvp.Value.SupplyLevel > 1.5f && kvp.Value.DemandLevel < 1.0f)
             .Select(kvp => kvp.Key)
             .ToList();
@@ -322,9 +322,9 @@ public class MarketStateTracker
     /// <summary>
     /// Get trade history for a specific location
     /// </summary>
-    public List<TradeRecord> GetLocationTradeHistory(string locationId)
+    public List<TradeRecord> GetLocationTradeHistory(string venueId)
     {
-        return _tradeHistory.Where(t => t.LocationId == locationId).ToList();
+        return _tradeHistory.Where(t => t.VenueId == venueId).ToList();
     }
 
     /// <summary>
@@ -347,24 +347,24 @@ public class MarketStateTracker
     }
 
     /// <summary>
-    /// Calculate trade volume for a location in a time period
+    /// Calculate trade volume for a Venue in a time period
     /// </summary>
-    public int GetTradeVolume(string locationId, TimeSpan period)
+    public int GetTradeVolume(string venueId, TimeSpan period)
     {
         DateTime cutoff = DateTime.Now - period;
         return _tradeHistory
-            .Where(t => t.LocationId == locationId && t.Timestamp > cutoff)
+            .Where(t => t.VenueId == venueId && t.Timestamp > cutoff)
             .Sum(t => t.Quantity);
     }
 
     /// <summary>
-    /// Calculate total trade value for a location in a time period
+    /// Calculate total trade value for a Venue in a time period
     /// </summary>
-    public int GetTradeValue(string locationId, TimeSpan period)
+    public int GetTradeValue(string venueId, TimeSpan period)
     {
         DateTime cutoff = DateTime.Now - period;
         return _tradeHistory
-            .Where(t => t.LocationId == locationId && t.Timestamp > cutoff)
+            .Where(t => t.VenueId == venueId && t.Timestamp > cutoff)
             .Sum(t => t.Price * t.Quantity);
     }
 
@@ -373,19 +373,19 @@ public class MarketStateTracker
     /// <summary>
     /// Get or create metrics for a location-item pair
     /// </summary>
-    private MarketMetrics GetOrCreateMetrics(string locationId, string itemId)
+    private MarketMetrics GetOrCreateMetrics(string venueId, string itemId)
     {
-        if (!_marketMetrics.ContainsKey(locationId))
+        if (!_marketMetrics.ContainsKey(venueId))
         {
-            _marketMetrics[locationId] = new Dictionary<string, MarketMetrics>();
+            _marketMetrics[venueId] = new Dictionary<string, MarketMetrics>();
         }
 
-        if (!_marketMetrics[locationId].ContainsKey(itemId))
+        if (!_marketMetrics[venueId].ContainsKey(itemId))
         {
-            _marketMetrics[locationId][itemId] = new MarketMetrics();
+            _marketMetrics[venueId][itemId] = new MarketMetrics();
         }
 
-        return _marketMetrics[locationId][itemId];
+        return _marketMetrics[venueId][itemId];
     }
 
     /// <summary>

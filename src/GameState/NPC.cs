@@ -9,7 +9,7 @@ public class NPC
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
-    public string Location { get; set; }
+    public string Venue { get; set; }
     public string SpotId { get; set; }
 
     // Skeleton tracking
@@ -48,9 +48,9 @@ public class NPC
     // DeliveryObligation offering system
 
     // Work and Home locations (for deeper world building)
-    public string WorkLocationId { get; set; }
+    public string WorkVenueId { get; set; }
     public string WorkSpotId { get; set; }
-    public string HomeLocationId { get; set; }
+    public string HomeVenueId { get; set; }
     public string HomeSpotId { get; set; }
 
     // Known routes (for HELP verb sharing)
@@ -138,7 +138,7 @@ public class NPC
     public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
     {
         // NPCs are always available by default
-        // Check if NPC is at the specified location spot
+        // Check if NPC is at the specified Venue spot
         return SpotId == locationSpotId && IsAvailable(currentTime);
     }
 

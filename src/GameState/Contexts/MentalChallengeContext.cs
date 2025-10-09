@@ -10,7 +10,7 @@ public class MentalChallengeContext
     public string InvestigationId { get; set; }
     public int PhaseIndex { get; set; }
     public MentalSession Session { get; set; }
-    public Location Location { get; set; }
+    public Venue Venue { get; set; }
     public ResourceState PlayerResources { get; set; }
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }

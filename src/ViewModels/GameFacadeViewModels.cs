@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class TravelDestinationViewModel
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string LocationName { get; set; }
     public string Description { get; set; }
     public bool CanTravel { get; set; }
@@ -170,7 +170,7 @@ public class RestOptionViewModel
 }
 
 /// <summary>
-/// ViewModel for a location action in rest context
+/// ViewModel for a Venue action in rest context
 /// </summary>
 public class RestLocationActionViewModel
 {
@@ -213,7 +213,7 @@ public class NPCRelationshipViewModel
     public string NPCId { get; set; }
     public string NPCName { get; set; }
     public string Role { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string LocationName { get; set; }
     public int ConnectionTokens { get; set; }
     public bool CanMakeDirectOffer { get; set; }
@@ -337,10 +337,10 @@ public class ObligationEffectViewModel
     public int Value { get; set; } // Effect magnitude
 }
 
-// ========== LOCATION ACTIONS VIEW MODELS ==========
+// ========== Venue ACTIONS VIEW MODELS ==========
 
 /// <summary>
-/// ViewModel for location actions display
+/// ViewModel for Venue actions display
 /// </summary>
 public class LocationActionsViewModel
 {

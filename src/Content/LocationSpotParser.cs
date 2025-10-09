@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 /// <summary>
-/// Parser for deserializing location spot data from JSON.
+/// Parser for deserializing Venue spot data from JSON.
 /// </summary>
 public static class LocationSpotParser
 {
@@ -14,7 +14,7 @@ public static class LocationSpotParser
         LocationSpot spot = new LocationSpot(dto.Id, dto.Name)
         {
             InitialState = dto.InitialState ?? "",
-            LocationId = dto.LocationId ?? ""
+            VenueId = dto.VenueId ?? ""
         };
 
         // Parse time windows
@@ -115,7 +115,7 @@ public static class LocationSpotParser
         // Parse gameplay properties moved from Location
         spot.DomainTags = dto.DomainTags ?? new List<string>();
 
-        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
+        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationSpotTypes locationType))
         {
             spot.LocationType = locationType;
         }
@@ -162,7 +162,7 @@ public static class LocationSpotParser
                     Description = workDto.Description,
                     Type = Enum.TryParse<WorkType>(workDto.Type, out WorkType workType) ? workType : WorkType.Standard,
                     BaseCoins = workDto.BaseCoins,
-                    LocationId = workDto.LocationId,
+                    VenueId = workDto.VenueId,
                     SpotId = workDto.SpotId,
                     RequiredTokens = workDto.RequiredTokens,
                     RequiredTokenType = workDto.RequiredTokenType != null && Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out ConnectionType tokenType) ? tokenType : null,

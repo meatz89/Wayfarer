@@ -3,7 +3,7 @@
 /// </summary>
 public class MarketPriceInfo
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string LocationName { get; set; }
     public string ItemId { get; set; }
     public int BuyPrice { get; set; }

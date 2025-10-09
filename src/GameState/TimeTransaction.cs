@@ -7,7 +7,7 @@ using System.Linq;
 /// </summary>
 public class TransactionContext
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string NpcId { get; set; }
     public string DestinationId { get; set; }
     public int? TravelDistance { get; set; }

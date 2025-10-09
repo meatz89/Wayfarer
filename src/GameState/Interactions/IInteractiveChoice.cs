@@ -1,5 +1,5 @@
 /// <summary>
-/// Unified interface for ALL player interactions - conversations, observations, location actions
+/// Unified interface for ALL player interactions - conversations, observations, Venue actions
 /// This allows us to use the same UI component and attention system for everything
 /// </summary>
 public interface IInteractiveChoice
@@ -11,7 +11,7 @@ public interface IInteractiveChoice
     string DisplayText { get; }
 
 
-    /// <summary>Time cost in minutes (for location actions)</summary>
+    /// <summary>Time cost in minutes (for Venue actions)</summary>
     int TimeCostMinutes { get; }
 
     /// <summary>Type for styling and behavior</summary>
@@ -46,7 +46,7 @@ public enum InteractionType
     ObserveNPC,
     ObserveDetail,
 
-    // Location actions  
+    // Venue actions  
     LocationMove,
     LocationWait,
     LocationInteract,

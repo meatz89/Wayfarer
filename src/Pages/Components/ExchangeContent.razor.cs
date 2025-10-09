@@ -55,7 +55,7 @@ namespace Wayfarer.Pages.Components
         private string LastContextId { get; set; }
 
         /// <summary>
-        /// Gets the location context string for the header.
+        /// Gets the Venue context string for the header.
         /// </summary>
         protected string GetLocationContext()
         {
@@ -337,7 +337,7 @@ namespace Wayfarer.Pages.Components
             // Notify parent
             await OnExchangeEnd.InvokeAsync();
 
-            // Return to location through GameScreen
+            // Return to Venue through GameScreen
             if (GameScreen != null)
             {
                 await GameScreen.ReturnToLocation();

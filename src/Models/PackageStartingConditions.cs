@@ -11,7 +11,7 @@ public class PackageStartingConditions
     public PlayerInitialConfig PlayerConfig { get; set; }
 
     /// <summary>
-    /// Starting location spot ID
+    /// Starting Venue spot ID
     /// </summary>
     public string StartingSpotId { get; set; }
 

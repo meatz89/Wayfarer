@@ -116,23 +116,7 @@ public static class SocialCardEffectCatalog
     /// </summary>
     private static CardEffectFormula GetObservationEffect(PlayerStatType stat, int depth, string cardId)
     {
-        // For Foundation tier (depth 1-2), use card ID to determine if Momentum variant
-        if (depth <= 2)
-        {
-            // Deterministic hash: specific card IDs generate Momentum for universal access
-            // This achieves ~50% distribution between specialty and Momentum
-            if (ShouldGenerateMomentum(cardId))
-            {
-                return new CardEffectFormula
-                {
-                    FormulaType = EffectFormulaType.Fixed,
-                    TargetResource = SocialChallengeResourceType.Momentum,
-                    BaseValue = 1  // Non-specialists get +1 Momentum (Authority gets +2 as specialist)
-                };
-            }
-        }
-
-        // Otherwise use the stat's specialty effect (specialty variant or higher depths)
+        // Use the stat's specialty effect
         List<CardEffectFormula> variants = GetEffectVariants(stat, depth);
         return variants.FirstOrDefault() ?? throw new InvalidOperationException($"No effect found for {stat} depth {depth}");
     }

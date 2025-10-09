@@ -4,8 +4,8 @@ public class LocationSpot
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string LocationId { get; set; }
-    public Location Location { get; internal set; }
+    public string VenueId { get; set; }
+    public Venue Venue { get; internal set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -40,7 +40,7 @@ public class LocationSpot
     public Dictionary<TimeBlocks, List<Professions>> AvailableProfessionsByTime { get; set; } = new Dictionary<TimeBlocks, List<Professions>>();
     public Dictionary<TimeBlocks, List<string>> AvailableActions { get; private set; }
     public Dictionary<TimeBlocks, string> TimeSpecificDescription { get; private set; }
-    public List<string> ConnectedLocationIds { get; internal set; }
+    public List<string> ConnectedVenueIds { get; internal set; }
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }
 
@@ -55,7 +55,7 @@ public class LocationSpot
     // Gameplay properties moved from Location
     public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
     public List<string> DomainTags { get; set; } = new List<string>();
-    public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
+    public LocationSpotTypes LocationType { get; set; } = LocationSpotTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
     public string? Description { get; internal set; }
 

@@ -51,7 +51,7 @@ public class ExchangeValidator
         {
             result.IsVisible = false;
             result.IsValid = false;
-            result.ValidationMessage = "Wrong location for this exchange";
+            result.ValidationMessage = "Wrong Venue for this exchange";
             return result;
         }
 

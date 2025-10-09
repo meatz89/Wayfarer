@@ -90,10 +90,10 @@ public class GameFacade
         return _gameWorld.GetPlayer().Stats;
     }
 
-    public List<NPC> GetAvailableStrangers(string locationId)
+    public List<NPC> GetAvailableStrangers(string venueId)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        return _gameWorld.GetAvailableStrangers(locationId, currentTime);
+        return _gameWorld.GetAvailableStrangers(venueId, currentTime);
     }
 
     public SocialChallengeContext StartStrangerConversation(string strangerId)
@@ -163,9 +163,9 @@ public class GameFacade
     }
 
 
-    // ========== LOCATION OPERATIONS ==========
+    // ========== Venue OPERATIONS ==========
 
-    public Location GetCurrentLocation()
+    public Venue GetCurrentLocation()
     {
         return _locationFacade.GetCurrentLocation();
     }
@@ -180,16 +180,16 @@ public class GameFacade
         return _locationFacade.GetCurrentLocationSpot();
     }
 
-    public Location GetLocationById(string locationId)
+    public Venue GetLocationById(string venueId)
     {
-        return _locationFacade.GetLocationById(locationId);
+        return _locationFacade.GetLocationById(venueId);
     }
 
     public bool MoveToSpot(string spotName)
     {
         bool success = _locationFacade.MoveToSpot(spotName);
 
-        // Movement to new location may unlock investigation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
+        // Movement to new Venue may unlock investigation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
         {
             EvaluateInvestigationDiscovery();
@@ -208,9 +208,9 @@ public class GameFacade
         return _locationFacade.GetNPCById(npcId);
     }
 
-    public List<NPC> GetNPCsAtLocation(string locationId)
+    public List<NPC> GetNPCsAtLocation(string venueId)
     {
-        return _locationFacade.GetNPCsAtLocation(locationId);
+        return _locationFacade.GetNPCsAtLocation(venueId);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
@@ -362,7 +362,7 @@ public class GameFacade
                 if (destSpot != null)
                 {
                     player.CurrentLocationSpot = destSpot;
-                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.Id} at location: {destSpot.LocationId}");
+                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.Id} at location: {destSpot.VenueId}");
                 }
             }
 
@@ -377,14 +377,14 @@ public class GameFacade
                 SegmentsAdvanced = travelResult.SegmentCost
             });
 
-            // Get destination location name for the message
+            // Get destination Venue name for the message
             LocationSpot? finalDestSpot = _gameWorld.GetSpot(targetRoute.DestinationLocationSpot);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Location? destLocation = _gameWorld.WorldState.locations
-                    ?.FirstOrDefault(l => l.Id == finalDestSpot.LocationId);
+                Venue? destLocation = _gameWorld.WorldState.locations
+                    ?.FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
                 destinationName = destLocation?.Name ?? finalDestSpot.Name;
             }
 
@@ -651,7 +651,7 @@ public class GameFacade
         }
 
         // Get current location
-        Location? currentLocation = GetCurrentLocation();
+        Venue? currentLocation = GetCurrentLocation();
         LocationSpot? currentSpot = GetCurrentLocationSpot();
 
         // Get current time block
@@ -694,7 +694,7 @@ public class GameFacade
             },
             LocationInfo = new LocationInfo
             {
-                LocationId = currentSpot?.Id ?? "",
+                VenueId = currentSpot?.Id ?? "",
                 Name = currentLocation?.Name ?? "",
                 Description = currentLocation?.Description ?? ""
             },
@@ -704,7 +704,7 @@ public class GameFacade
             Session = new ExchangeSession
             {
                 NpcId = npcId,
-                LocationId = currentSpot?.Id ?? "",
+                VenueId = currentSpot?.Id ?? "",
                 AvailableExchanges = availableExchanges
             }
         };
@@ -746,14 +746,14 @@ public class GameFacade
             return;
         }
 
-        // Initialize player at starting location from GameWorld initial conditions
+        // Initialize player at starting Venue from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
         LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot != null)
         {
             player.CurrentLocationSpot = startingSpot;
-            Location? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == startingSpot.LocationId);
+            Venue? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == startingSpot.VenueId);
             Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
         }
         else
@@ -859,7 +859,7 @@ public class GameFacade
     /// <summary>
     /// Get the LocationActionManager for managing location-specific actions.
     /// </summary>
-    public LocationActionManager GetLocationActionManager()
+    public LocationSpotActionManager GetLocationActionManager()
     {
         return _locationFacade.GetLocationActionManager();
     }
@@ -877,9 +877,9 @@ public class GameFacade
     /// <summary>
     /// Gets the district containing a location
     /// </summary>
-    public District GetDistrictForLocation(string locationId)
+    public District GetDistrictForLocation(string venueId)
     {
-        return _gameWorld.WorldState.GetDistrictForLocation(locationId);
+        return _gameWorld.WorldState.GetDistrictForLocation(venueId);
     }
 
     /// <summary>
@@ -893,7 +893,7 @@ public class GameFacade
     /// <summary>
     /// Gets all locations in WorldState
     /// </summary>
-    public List<Location> GetAllLocations()
+    public List<Venue> GetAllLocations()
     {
         return _gameWorld.WorldState.locations;
     }
@@ -1048,7 +1048,7 @@ public class GameFacade
         }
     }
 
-    public void DebugTeleportToLocation(string locationId, string spotId)
+    public void DebugTeleportToLocation(string venueId, string spotId)
     {
         Player player = _gameWorld.GetPlayer();
         LocationSpot spot = _gameWorld.GetSpot(spotId);
@@ -1059,17 +1059,17 @@ public class GameFacade
             return;
         }
 
-        Location? location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null)
+        Venue? venue = _gameWorld.Locations.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null)
         {
-            _messageSystem.AddSystemMessage($"Location '{locationId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);
             return;
         }
 
-        player.CurrentLocationSpot = new LocationSpot(spotId, spot.Name) { LocationId = locationId };
-        player.AddKnownLocation(locationId);
+        player.CurrentLocationSpot = new LocationSpot(spotId, spot.Name) { VenueId = venueId };
+        player.AddKnownLocation(venueId);
 
-        _messageSystem.AddSystemMessage($"Teleported to {location.Name} - {spot.Name}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {spot.Name}", SystemMessageTypes.Success);
     }
 
     // ========== INVESTIGATION SYSTEM ==========

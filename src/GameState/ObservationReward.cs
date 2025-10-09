@@ -4,7 +4,7 @@
 /// </summary>
 public class ObservationReward
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public int FamiliarityRequired { get; set; }
     public int? PriorObservationRequired { get; set; }
     public ObservationCardReward ObservationCard { get; set; }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text.Json;
 
 /// <summary>
-/// Validates location JSON content files.
+/// Validates Venue JSON content files.
 /// </summary>
-public class LocationValidator : IContentValidator
+public class VenueValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
@@ -36,12 +36,12 @@ public class LocationValidator : IContentValidator
                 return errors;
             }
 
-            HashSet<string> locationIds = new HashSet<string>();
+            HashSet<string> venueIds = new HashSet<string>();
             int index = 0;
 
             foreach (JsonElement locationElement in root.EnumerateArray())
             {
-                ValidateLocation(locationElement, index, fileName, errors, locationIds);
+                ValidateLocation(locationElement, index, fileName, errors, venueIds);
                 index++;
             }
         }
@@ -56,18 +56,18 @@ public class LocationValidator : IContentValidator
         return errors;
     }
 
-    private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, HashSet<string> locationIds)
+    private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, HashSet<string> venueIds)
     {
-        string locationId = GetStringProperty(location, "id") ?? $"Location[{index}]";
+        string venueId = GetStringProperty(location, "id") ?? $"Location[{index}]";
 
         // Check for duplicate IDs
-        if (!string.IsNullOrEmpty(locationId) && locationId != $"Location[{index}]")
+        if (!string.IsNullOrEmpty(venueId) && venueId != $"Location[{index}]")
         {
-            if (!locationIds.Add(locationId))
+            if (!venueIds.Add(venueId))
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{locationId}",
-                    $"Duplicate location ID: {locationId}",
+                    $"{fileName}:{venueId}",
+                    $"Duplicate Venue ID: {venueId}",
                     ValidationSeverity.Critical));
             }
         }
@@ -78,7 +78,7 @@ public class LocationValidator : IContentValidator
             if (!location.TryGetProperty(field, out _))
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{locationId}",
+                    $"{fileName}:{venueId}",
                     $"Missing required field: {field}",
                     ValidationSeverity.Critical));
             }
@@ -90,7 +90,7 @@ public class LocationValidator : IContentValidator
             if (connectedTo.ValueKind != JsonValueKind.Array)
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{locationId}",
+                    $"{fileName}:{venueId}",
                     "connectedTo must be an array",
                     ValidationSeverity.Critical));
             }
@@ -102,7 +102,7 @@ public class LocationValidator : IContentValidator
             if (locationSpots.ValueKind != JsonValueKind.Array)
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{locationId}",
+                    $"{fileName}:{venueId}",
                     "locationSpots must be an array",
                     ValidationSeverity.Critical));
             }
@@ -118,7 +118,7 @@ public class LocationValidator : IContentValidator
                 if (!EnumParser.TryParse<TimeBlocks>(timeBlock.Name, out _))
                 {
                     errors.Add(new ValidationError(
-                        $"{fileName}:{locationId}",
+                        $"{fileName}:{venueId}",
                         $"Invalid time block: '{timeBlock.Name}'",
                         ValidationSeverity.Warning));
                 }
@@ -135,7 +135,7 @@ public class LocationValidator : IContentValidator
                                 !EnumParser.TryParse<Professions>(profStr, out _))
                             {
                                 errors.Add(new ValidationError(
-                                    $"{fileName}:{locationId}",
+                                    $"{fileName}:{venueId}",
                                     $"Invalid profession: '{profStr}'",
                                     ValidationSeverity.Warning));
                             }

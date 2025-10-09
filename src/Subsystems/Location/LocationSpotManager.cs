@@ -9,56 +9,250 @@ using System.Linq;
 public class LocationSpotManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly LocationManager _locationManager;
+    private readonly LocationSpotManager _locationManager;
 
-    public LocationSpotManager(GameWorld gameWorld, LocationManager locationManager)
+    public LocationSpotManager(GameWorld gameWorld, LocationSpotManager locationManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _locationManager = locationManager ?? throw new ArgumentNullException(nameof(locationManager));
     }
 
     /// <summary>
-    /// Find a spot within a location by name or ID.
+    /// Get the player's current Venue based on their current spot.
     /// </summary>
-    public LocationSpot FindSpotInLocation(Location location, string spotIdentifier)
+    public Venue GetCurrentLocation()
     {
-        if (location == null || string.IsNullOrEmpty(spotIdentifier)) return null;
+        Player player = _gameWorld.GetPlayer();
+        if (player.CurrentLocationSpot == null) return null;
+        return GetVenue(player.CurrentLocationSpot.VenueId);
+    }
 
-        LocationSpot targetSpot;
+    /// <summary>
+    /// Get the player's current Venue spot.
+    /// </summary>
+    public LocationSpot GetCurrentLocationSpot()
+    {
+        return _gameWorld.GetPlayer().CurrentLocationSpot;
+    }
 
-        // Get spots from GameWorld's primary dictionary for this location
-        List<LocationSpot> spotsInLocation = GetSpotsForLocation(location.Id);
-        targetSpot = spotsInLocation?.FirstOrDefault(s =>
-            s.Name.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-            s.Id.Equals(spotIdentifier, StringComparison.OrdinalIgnoreCase));
+    /// <summary>
+    /// Get a Venue by its ID.
+    /// </summary>
+    public Venue GetVenue(string venueId)
+    {
+        if (string.IsNullOrEmpty(venueId)) return null;
 
-        return targetSpot;
+        Venue venue = _gameWorld.WorldState.locations.FirstOrDefault(l =>
+            l.Id.Equals(venueId, StringComparison.OrdinalIgnoreCase));
+
+        return venue;
+    }
+
+
+    /// <summary>
+    /// Get all locations in the world.
+    /// </summary>
+    public List<Venue> GetAllLocations()
+    {
+        return _gameWorld.WorldState.locations ?? new List<Venue>();
     }
 
     /// <summary>
     /// Get all spots for a specific location.
     /// </summary>
-    public List<LocationSpot> GetSpotsForLocation(string locationId)
+    public List<LocationSpot> GetSpotsForVenue(string venueId)
     {
-        if (string.IsNullOrEmpty(locationId)) return new List<LocationSpot>();
-
+        if (string.IsNullOrEmpty(venueId)) return new List<LocationSpot>();
         // Get from GameWorld's primary Spots dictionary
         return _gameWorld.Spots.GetAllSpots()
-            .Where(s => s.LocationId.Equals(locationId, StringComparison.OrdinalIgnoreCase))
+            .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
     /// <summary>
-    /// Build the location path hierarchy for display.
+    /// Get a specific spot within a location.
     /// </summary>
-    public List<string> BuildLocationPath(Location location, LocationSpot spot)
+    public LocationSpot GetSpot(string venueId, string spotId)
+    {
+        Venue venue = GetVenue(venueId);
+        // Get spot directly from GameWorld's primary storage
+        return _gameWorld.GetSpot(spotId);
+    }
+
+
+    /// <summary>
+    /// Add a new venue to the world.
+    /// </summary>
+    public void AddLocation(Venue venue)
+    {
+        if (venue == null) throw new ArgumentNullException(nameof(venue));
+
+        if (_gameWorld.WorldState.locations.Any(l =>
+            l.Id.Equals(venue.Id, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException($"Venue '{venue.Id}' already exists.");
+        }
+
+        _gameWorld.WorldState.locations.Add(venue);
+    }
+
+    /// <summary>
+    /// Add a new Venue spot to the world.
+    /// </summary>
+    public void AddLocationSpot(LocationSpot spot)
+    {
+        if (spot == null) throw new ArgumentNullException(nameof(spot));
+
+        if (_gameWorld.WorldState.locationSpots.Any(s =>
+            s.VenueId.Equals(spot.VenueId, StringComparison.OrdinalIgnoreCase) &&
+            s.Id.Equals(spot.Id, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException($"Spot '{spot.Id}' already exists in '{spot.VenueId}'.");
+        }
+
+        _gameWorld.WorldState.locationSpots.Add(spot);
+    }
+
+    /// <summary>
+    /// Set the player's current venue and spot.
+    /// </summary>
+    public void SetCurrentLocation(Venue venue, LocationSpot spot)
+    {
+        if (venue == null) throw new ArgumentNullException(nameof(venue));
+
+        // Validate that the spot belongs to the venue
+        if (spot != null && !spot.VenueId.Equals(venue.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Spot {spot.Id} does not belong to venue {venue.Id}");
+        }
+
+        _gameWorld.GetPlayer().CurrentLocationSpot = spot;
+    }
+
+    /// <summary>
+    /// Set the player's current spot directly.
+    /// </summary>
+    public void SetCurrentSpot(LocationSpot spot)
+    {
+        _gameWorld.GetPlayer().CurrentLocationSpot = spot;
+    }
+
+    /// <summary>
+    /// Record that the player has visited a location.
+    /// </summary>
+    public void RecordLocationVisit(string venueId)
+    {
+        if (string.IsNullOrEmpty(venueId)) return;
+        _gameWorld.WorldState.RecordLocationVisit(venueId);
+    }
+
+    /// <summary>
+    /// Check if this is the player's first visit to a location.
+    /// </summary>
+    public bool IsFirstVisit(string venueId)
+    {
+        if (string.IsNullOrEmpty(venueId)) return false;
+        return _gameWorld.WorldState.IsFirstVisit(venueId);
+    }
+
+    /// <summary>
+    /// Check if a Venue exists.
+    /// </summary>
+    public bool LocationExists(string venueId)
+    {
+        return GetVenue(venueId) != null;
+    }
+
+    /// <summary>
+    /// Check if a spot exists within a location.
+    /// </summary>
+    public bool SpotExists(string venueId, string spotId)
+    {
+        return GetSpot(venueId, spotId) != null;
+    }
+
+    /// <summary>
+    /// Get all Venue spots in the world (from WorldState).
+    /// </summary>
+    public List<LocationSpot> GetAllLocationSpots()
+    {
+        return _gameWorld.WorldState.locationSpots ?? new List<LocationSpot>();
+    }
+
+    /// <summary>
+    /// Get Venue spots filtered by Venue ID.
+    /// </summary>
+    public List<LocationSpot> GetLocationSpotsForLocation(string venueId)
+    {
+        if (string.IsNullOrEmpty(venueId)) return new List<LocationSpot>();
+
+        return _gameWorld.WorldState.locationSpots
+            .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Check if player knows a specific Venue spot.
+    /// </summary>
+    public bool IsSpotKnown(string spotId)
+    {
+        if (string.IsNullOrEmpty(spotId)) return false;
+
+        Player player = _gameWorld.GetPlayer();
+        return player.LocationActionAvailability?.Contains(spotId) == true;
+    }
+
+    /// <summary>
+    /// Get the travel hub spot for a location.
+    /// </summary>
+    public LocationSpot GetTravelHubSpot(string venueId)
+    {
+        Venue venue = GetVenue(venueId);
+        if (venue == null) return null;
+
+        // Look for spots with Crossroads property
+        List<LocationSpot> spots = GetSpotsForLocation(venueId);
+        return spots.FirstOrDefault(s => s.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true);
+    }
+
+    /// <summary>
+    /// Check if a spot is the travel hub for its location.
+    /// </summary>
+    public bool IsTravelHub(LocationSpot spot)
+    {
+        if (spot == null) return false;
+
+        Venue venue = GetVenue(spot.VenueId);
+        if (venue == null) return false;
+
+        // Travel happens at any spot with Crossroads property
+        return spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
+    }
+
+    /// <summary>
+    /// Get all spots for a specific location.
+    /// </summary>
+    public List<LocationSpot> GetSpotsForLocation(string venueId)
+    {
+        if (string.IsNullOrEmpty(venueId)) return new List<LocationSpot>();
+
+        // Get from GameWorld's primary Spots dictionary
+        return _gameWorld.Spots.GetAllSpots()
+            .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Build the Venue path hierarchy for display.
+    /// </summary>
+    public List<string> BuildLocationPath(Venue location, LocationSpot spot)
     {
         List<string> path = new List<string>();
 
         if (location != null)
         {
-            // Build path from location hierarchy
-            // For now, use location name as the primary path element
+            // Build path from Venue hierarchy
+            // For now, use Venue name as the primary path element
             path.Add(location.Name);
         }
 
@@ -71,10 +265,10 @@ public class LocationSpotManager
     }
 
     /// <summary>
-    /// Get location traits for display based on current time.
+    /// Get Venue traits for display based on current time.
     /// LocationSpot is the gameplay entity with all properties.
     /// </summary>
-    public List<string> GetLocationTraits(Location location, LocationSpot spot, TimeBlocks currentTime)
+    public List<string> GetLocationTraits(Venue location, LocationSpot spot, TimeBlocks currentTime)
     {
         if (spot == null) return new List<string>();
 
@@ -83,10 +277,10 @@ public class LocationSpotManager
     }
 
     /// <summary>
-    /// Get all areas within a location for navigation.
+    /// Get all areas within a Venue for navigation.
     /// </summary>
-    public List<AreaWithinLocationViewModel> GetAreasWithinLocation(
-        Location location,
+    public List<AreaWithinLocationViewModel> GetAreasWithinVenue(
+        Venue location,
         LocationSpot currentSpot,
         TimeBlocks currentTime,
         NPCRepository npcRepository)
@@ -121,7 +315,7 @@ public class LocationSpotManager
                 Detail = detail,
                 SpotId = spot.Id,
                 IsCurrent = false, // Never current since we skip the current spot
-                IsTravelHub = IsSpotTravelHub(spot, location)
+                IsTravelHub = IsSpotTravelHub(spot)
             });
         }
 
@@ -164,10 +358,8 @@ public class LocationSpotManager
     /// <summary>
     /// Check if a spot is a travel hub.
     /// </summary>
-    public bool IsSpotTravelHub(LocationSpot spot, Location location)
+    public bool IsSpotTravelHub(LocationSpot spot)
     {
-        if (spot == null || location == null) return false;
-
         // Travel happens at any spot with Crossroads property
         return spot.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true;
     }
@@ -193,9 +385,9 @@ public class LocationSpotManager
     /// <summary>
     /// Get all spots with a specific property in a location.
     /// </summary>
-    public List<LocationSpot> GetSpotsWithProperty(string locationId, SpotPropertyType property, TimeBlocks timeBlock)
+    public List<LocationSpot> GetSpotsWithProperty(string venueId, SpotPropertyType property, TimeBlocks timeBlock)
     {
-        List<LocationSpot> spots = GetSpotsForLocation(locationId);
+        List<LocationSpot> spots = GetSpotsForLocation(venueId);
         return spots.Where(s => SpotHasProperty(s, property, timeBlock)).ToList();
     }
 
@@ -227,13 +419,12 @@ public class LocationSpotManager
     /// <summary>
     /// Get the default entrance spot for a location.
     /// </summary>
-    public LocationSpot GetDefaultEntranceSpot(string locationId)
+    public LocationSpot GetDefaultEntranceSpot(string venueId)
     {
-        Location location = _locationManager.GetLocation(locationId);
-        if (location == null) return null;
+        Venue Venue = _locationManager.GetVenue(venueId);
 
         // Look for spots with Crossroads property
-        List<LocationSpot> spots = GetSpotsForLocation(locationId);
+        List<LocationSpot> spots = GetSpotsForLocation(venueId);
         LocationSpot? crossroads = spots.FirstOrDefault(s => s.SpotProperties?.Contains(SpotPropertyType.Crossroads) == true);
         if (crossroads != null) return crossroads;
 
@@ -248,9 +439,9 @@ public class LocationSpotManager
     {
         if (currentSpot == null) return new List<LocationSpot>();
 
-        // For now, all spots in the same location are accessible
+        // For now, all spots in the same Venue are accessible
         // This could be enhanced with specific connectivity rules
-        return GetSpotsForLocation(currentSpot.LocationId)
+        return GetSpotsForLocation(currentSpot.VenueId)
             .Where(s => s.Id != currentSpot.Id)
             .ToList();
     }
@@ -258,9 +449,9 @@ public class LocationSpotManager
     /// <summary>
     /// Get spots that provide a specific service.
     /// </summary>
-    public List<LocationSpot> GetServiceSpots(string locationId, ServiceTypes service, TimeBlocks timeBlock)
+    public List<LocationSpot> GetServiceSpots(string venueId, ServiceTypes service, TimeBlocks timeBlock)
     {
-        List<LocationSpot> spots = GetSpotsForLocation(locationId);
+        List<LocationSpot> spots = GetSpotsForLocation(venueId);
         List<LocationSpot> serviceSpots = new List<LocationSpot>();
 
         foreach (LocationSpot spot in spots)

@@ -93,14 +93,14 @@ public class ExchangeHandler
         if (npc.ExchangeDeck == null || !npc.ExchangeDeck.Any())
             return exchanges;
 
-        // Get current location and time for availability check
-        string currentLocationId = spotDomainTags?.FirstOrDefault();
+        // Get current Venue and time for availability check
+        string currentVenueId = spotDomainTags?.FirstOrDefault();
         TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         foreach (ExchangeCard card in npc.ExchangeDeck)
         {
-            // Check if exchange is available at this location and time
-            if (!card.IsAvailable(currentLocationId, currentTimeBlock))
+            // Check if exchange is available at this Venue and time
+            if (!card.IsAvailable(currentVenueId, currentTimeBlock))
                 continue;
 
             // Check token requirements (minimum tokens required to even see the exchange)

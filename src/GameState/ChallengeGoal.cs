@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Goal available at a location spot that spawns tactical engagement
+/// Goal available at a Venue spot that spawns tactical engagement
 /// Parallel to NPCRequest but for location-based Mental/Physical challenges
 /// </summary>
 public class ChallengeGoal

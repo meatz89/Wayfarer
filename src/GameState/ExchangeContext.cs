@@ -37,7 +37,7 @@ public class ExchangeContext
     public NpcInfo NpcInfo { get; set; }
 
     /// <summary>
-    /// Current location information.
+    /// Current Venue information.
     /// </summary>
     public LocationInfo LocationInfo { get; set; }
 
@@ -56,7 +56,7 @@ public class ExchangeContext
             return new List<ExchangeCard>();
 
         return Session.AvailableExchanges
-            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo?.LocationId, CurrentTimeBlock))
+            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo?.VenueId, CurrentTimeBlock))
             .Select(e => e.ExchangeCard)
             .ToList();
     }
@@ -234,11 +234,11 @@ public class NpcInfo
 }
 
 /// <summary>
-/// Basic location information for exchange context.
+/// Basic Venue information for exchange context.
 /// </summary>
 public class LocationInfo
 {
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 }

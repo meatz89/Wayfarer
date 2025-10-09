@@ -33,8 +33,8 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.GreaterThan(0), "Skeletons should be created");
 
             // Verify skeleton locations exist and are marked as skeletons
-            Location? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
-            Assert.That(mysteriousTower, Is.Not.Null, "Skeleton location should exist");
+            Venue? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
+            Assert.That(mysteriousTower, Is.Not.Null, "Skeleton Venue should exist");
             Assert.That(mysteriousTower.IsSkeleton, Is.True, "Location should be marked as skeleton");
             Assert.That(mysteriousTower.SkeletonSource, Contains.Substring("npc_"), "Should track what created the skeleton");
 
@@ -62,8 +62,8 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.LessThan(initialSkeletonCount), "Some skeletons should be resolved");
 
             // Verify real locations replaced skeletons
-            Location? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
-            Assert.That(mysteriousTower, Is.Not.Null, "Real location should exist");
+            Venue? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
+            Assert.That(mysteriousTower, Is.Not.Null, "Real Venue should exist");
             Assert.That(mysteriousTower.IsSkeleton, Is.False, "Location should no longer be skeleton");
             Assert.That(mysteriousTower.Name, Is.EqualTo("The Tower of Echoes"), "Should have real name");
 
@@ -80,8 +80,8 @@ namespace Wayfarer.Tests
             string source = "test_source";
 
             // Act - generate same skeleton twice
-            Location skeleton1 = SkeletonGenerator.GenerateSkeletonLocation(testId, source);
-            Location skeleton2 = SkeletonGenerator.GenerateSkeletonLocation(testId, source);
+            Venue skeleton1 = SkeletonGenerator.GenerateSkeletonVenue(testId, source);
+            Venue skeleton2 = SkeletonGenerator.GenerateSkeletonVenue(testId, source);
 
             // Assert - should generate identical content (deterministic based on ID)
             Assert.That(skeleton1.Name, Is.EqualTo(skeleton2.Name), "Names should be identical");
@@ -147,16 +147,16 @@ namespace Wayfarer.Tests
 
             // Act - verify game is still playable
             NPC? npc = gameWorld.NPCs.FirstOrDefault();
-            Location? location = gameWorld.WorldState.locations.FirstOrDefault();
+            Venue? Venue = gameWorld.WorldState.locations.FirstOrDefault();
 
             // Assert - basic game mechanics should work
             Assert.That(npc, Is.Not.Null, "Should have NPCs");
             Assert.That(location, Is.Not.Null, "Should have locations (including skeletons)");
             Assert.That(Enum.IsDefined(typeof(PersonalityType), npc.PersonalityType), Is.True, "NPC should have valid personality");
-            Assert.That(Enum.IsDefined(typeof(LocationTypes), location.LocationType), Is.True, "Location should have valid type");
+            Assert.That(Enum.IsDefined(typeof(LocationSpotTypes), location.LocationType), Is.True, "Location should have valid type");
 
             // Skeleton locations should be navigable
-            Location? skeletonLocation = gameWorld.WorldState.locations.FirstOrDefault(l => l.IsSkeleton);
+            Venue? skeletonLocation = gameWorld.WorldState.locations.FirstOrDefault(l => l.IsSkeleton);
         }
     }
 }

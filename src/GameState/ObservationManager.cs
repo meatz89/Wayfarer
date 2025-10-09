@@ -134,7 +134,7 @@ public class ObservationManager
 
     /// <summary>
     /// Get all taken observations for the current time block
-    /// Tracks which location observations the player has taken this time block
+    /// Tracks which Venue observations the player has taken this time block
     /// </summary>
     public List<TakenObservation> GetTakenObservations()
     {
@@ -188,7 +188,7 @@ public class ObservationManager
         }
 
         // Create new observation card based on template with observation-specific properties
-        SocialCard baseCard = entry.Card;
+        SocialCard baseCard = entry;
         string description = !string.IsNullOrEmpty(baseCard.Title) ? baseCard.Title :
                            !string.IsNullOrEmpty(observation.Text) ? observation.Text : observation.Description;
 
@@ -240,116 +240,6 @@ public class ObservationManager
         double segmentAsHours = gameSegment * 0.5; // Convert segments to hours for DateTime
 
         return baseDate.AddDays(gameDay - 1).AddHours(segmentAsHours);
-    }
-
-    /// <summary>
-    /// Get available observation rewards for a location based on familiarity and completion status
-    /// </summary>
-    public List<ObservationReward> GetAvailableObservationRewards(string locationId)
-    {
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null)
-        {
-            return new List<ObservationReward>();
-        }
-
-        Player player = _gameWorld.GetPlayer();
-        int currentFamiliarity = player.GetLocationFamiliarity(locationId);
-        int highestCompleted = location.HighestObservationCompleted;
-
-        List<ObservationReward> availableRewards = new List<ObservationReward>();
-
-        foreach (ObservationReward reward in location.ObservationRewards)
-        {
-            // Check familiarity requirement
-            if (currentFamiliarity < reward.FamiliarityRequired)
-            {
-                continue;
-            }
-
-            // Check prior observation requirement
-            if (reward.PriorObservationRequired.HasValue && highestCompleted < reward.PriorObservationRequired.Value)
-            {
-                continue;
-            }
-
-            availableRewards.Add(reward);
-        }
-
-        return availableRewards;
-    }
-
-    /// <summary>
-    /// Complete an observation reward and add the card to the target NPC's observation deck
-    /// </summary>
-    public bool CompleteObservationReward(string locationId, ObservationReward reward)
-    {
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null)
-        {
-            Console.WriteLine($"[ObservationManager] Location {locationId} not found");
-            return false;
-        }
-
-        // Find target NPC
-        NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == reward.ObservationCard.TargetNpcId);
-        if (targetNpc == null)
-        {
-            Console.WriteLine($"[ObservationManager] Target NPC {reward.ObservationCard.TargetNpcId} not found");
-            return false;
-        }
-
-        // Create observation card and add to NPC's observation deck
-        ObservationCard observationCard = CreateObservationCardForNPC(reward.ObservationCard);
-        targetNpc.ObservationDeck.Add(observationCard);
-
-        // Update highest observation completed (assume sequential 1, 2, 3...)
-        int observationNumber = reward.FamiliarityRequired; // Use familiarity required as observation number for now
-        if (observationNumber > location.HighestObservationCompleted)
-        {
-            location.HighestObservationCompleted = observationNumber;
-        }
-
-        Console.WriteLine($"[ObservationManager] Added observation card {observationCard.Id} to {targetNpc.Name}'s observation deck");
-        return true;
-    }
-
-    /// <summary>
-    /// Create a conversation card from an observation card reward
-    /// </summary>
-    public ObservationCard CreateObservationCardForNPC(ObservationCardReward cardReward)
-    {
-        // Parse the effect string to determine categorical effect type
-        SuccessEffectType successType = ParseObservationEffectType(cardReward.Effect);
-
-        return new ObservationCard
-        {
-            Id = cardReward.Id,
-            Title = cardReward.Title,
-            DialogueText = cardReward.Description,
-            InitiativeCost = 0, // Observations cost 0 focus according to Work Packet 3
-            Persistence = PersistenceType.Statement, // Observations persist through LISTEN
-            SuccessType = successType
-        };
-    }
-
-    /// <summary>
-    /// Parse observation effect string into a categorical effect type
-    /// </summary>
-    private SuccessEffectType ParseObservationEffectType(string effectString)
-    {
-        // Simple effect parsing for now - can be expanded based on needs
-        if (effectString == "AdvanceToNeutralState")
-        {
-            return SuccessEffectType.None; // Will set atmosphere based on magnitude
-        }
-        else if (effectString == "UnlockExchange")
-        {
-            return SuccessEffectType.Strike; // Unlock exchange by adding momentum
-        }
-
-        // Default to no effect
-        return SuccessEffectType.None;
     }
 
     /// <summary>

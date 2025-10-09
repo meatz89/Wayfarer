@@ -10,7 +10,7 @@ public class District
     public string RegionId { get; set; }
 
     // Districts contain multiple locations
-    public List<string> LocationIds { get; set; } = new List<string>();
+    public List<string> VenueIds { get; set; } = new List<string>();
 
     // District-level properties
     public string DistrictType { get; set; } // e.g., "Trade Quarter", "Noble Quarter", "Industrial Zone"

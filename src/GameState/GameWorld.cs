@@ -10,10 +10,10 @@ public class GameWorld
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
-    public List<Location> Locations { get; set; } = new List<Location>();
+    public List<Venue> Locations { get; set; } = new List<Venue>();
     public List<LocationSpotEntry> Spots { get; set; } = new List<LocationSpotEntry>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
-    public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+    public List<LocationSpotAction> LocationActions { get; set; } = new List<LocationSpotAction>();
 
     // TimeBlock tracking for stranger refresh
     private TimeBlocks _lastTimeBlock = TimeBlocks.Dawn;
@@ -162,7 +162,7 @@ public class GameWorld
         return NPCs ?? new List<NPC>();
     }
 
-    /// Get a location spot by ID from primary storage
+    /// Get a Venue spot by ID from primary storage
     /// </summary>
     public LocationSpot GetSpot(string spotId)
     {
@@ -183,23 +183,23 @@ public class GameWorld
     /// <summary>
     /// Add a stranger NPC to a specific location
     /// </summary>
-    public void AddStrangerToLocation(string locationId, NPC stranger)
+    public void AddStrangerToLocation(string venueId, NPC stranger)
     {
         if (stranger == null) return;
-        stranger.Location = locationId;
+        stranger.Venue = venueId;
         stranger.IsStranger = true;
         NPCs.Add(stranger);
     }
 
     /// <summary>
-    /// Get available strangers at a location for the current time block
+    /// Get available strangers at a Venue for the current time block
     /// </summary>
-    public List<NPC> GetAvailableStrangers(string locationId, TimeBlocks currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(string venueId, TimeBlocks currentTimeBlock)
     {
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.Location == locationId && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Venue == venueId && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }

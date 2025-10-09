@@ -4,16 +4,16 @@ using System.Linq;
 
 /// <summary>
 /// Public facade for all location-related operations.
-/// Coordinates between location managers and provides a clean API for GameFacade.
+/// Coordinates between Venue managers and provides a clean API for GameFacade.
 /// </summary>
 public class LocationFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly LocationManager _locationManager;
+    private readonly LocationSpotManager _locationManager;
     private readonly LocationSpotManager _spotManager;
     private readonly MovementValidator _movementValidator;
     private readonly NPCLocationTracker _npcTracker;
-    private readonly LocationActionManager _actionManager;
+    private readonly LocationSpotActionManager _actionManager;
     private readonly LocationNarrativeGenerator _narrativeGenerator;
 
     // External dependencies for references
@@ -28,11 +28,11 @@ public class LocationFacade
 
     public LocationFacade(
         GameWorld gameWorld,
-        LocationManager locationManager,
+        LocationSpotManager locationManager,
         LocationSpotManager spotManager,
         MovementValidator movementValidator,
         NPCLocationTracker npcTracker,
-        LocationActionManager actionManager,
+        LocationSpotActionManager actionManager,
         LocationNarrativeGenerator narrativeGenerator,
         ObservationSystem observationSystem,
         ObservationManager observationManager,
@@ -63,13 +63,13 @@ public class LocationFacade
     /// <summary>
     /// Get the player's current location.
     /// </summary>
-    public Location GetCurrentLocation()
+    public Venue GetCurrentLocation()
     {
         return _locationManager.GetCurrentLocation();
     }
 
     /// <summary>
-    /// Get the player's current location spot.
+    /// Get the player's current Venue spot.
     /// </summary>
     public LocationSpot GetCurrentLocationSpot()
     {
@@ -77,16 +77,16 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get a specific location by ID.
+    /// Get a specific Venue by ID.
     /// </summary>
-    public Location GetLocationById(string locationId)
+    public Venue GetLocationById(string venueId)
     {
-        return _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == locationId);
+        return _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == venueId);
     }
 
     /// <summary>
     /// Move player to a different spot within the current location.
-    /// Movement between spots within a location is FREE (no attention cost).
+    /// Movement between spots within a Venue is FREE (no attention cost).
     /// </summary>
     public bool MoveToSpot(string spotName)
     {
@@ -99,7 +99,7 @@ public class LocationFacade
 
         // Get current state
         Player player = _gameWorld.GetPlayer();
-        Location currentLocation = GetCurrentLocation();
+        Venue currentLocation = GetCurrentLocation();
         LocationSpot currentSpot = GetCurrentLocationSpot();
 
         if (!_movementValidator.ValidateCurrentState(player, currentLocation, currentSpot))
@@ -114,8 +114,9 @@ public class LocationFacade
             return true; // Already there - no-op success
         }
 
-        // Find target spot
-        LocationSpot targetSpot = _spotManager.FindSpotInLocation(currentLocation, spotName);
+        // Find target spot by name
+        List<LocationSpot> spots = _spotManager.GetSpotsForVenue(currentLocation.Id);
+        LocationSpot targetSpot = spots.FirstOrDefault(s => s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase));
         if (targetSpot == null)
         {
             _messageSystem.AddSystemMessage($"Spot '{spotName}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
@@ -139,7 +140,7 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get the complete location screen view model with all location data.
+    /// Get the complete Venue screen view model with all Venue data.
     /// </summary>
     /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
     public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
@@ -147,19 +148,19 @@ public class LocationFacade
         Console.WriteLine("[LocationFacade.GetLocationScreen] Starting...");
 
         Player player = _gameWorld.GetPlayer();
-        Location location = GetCurrentLocation();
+        Venue venue = GetCurrentLocation();
         LocationSpot spot = GetCurrentLocationSpot();
 
-        Console.WriteLine($"[LocationFacade.GetLocationScreen] Location: {location?.Name}, Spot: {spot?.Name} ({spot?.Id})");
+        Console.WriteLine($"[LocationFacade.GetLocationScreen] Venue: {venue?.Name}, Spot: {spot?.Name} ({spot?.Id})");
 
         LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
-            LocationPath = _spotManager.BuildLocationPath(location, spot),
-            LocationName = location?.Name ?? "Unknown Location",
+            LocationPath = _spotManager.BuildLocationPath(venue, spot),
+            LocationName = venue?.Name ?? "Unknown Location",
             CurrentSpotName = spot?.Name,
-            LocationTraits = _spotManager.GetLocationTraits(location, spot, _timeManager.GetCurrentTimeBlock()),
-            AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, location, _timeManager.GetCurrentTimeBlock(), GetNPCCountAtSpot(spot)),
+            LocationTraits = _spotManager.GetLocationTraits(venue, spot, _timeManager.GetCurrentTimeBlock()),
+            AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, venue, _timeManager.GetCurrentTimeBlock(), GetNPCCountAtSpot(spot)),
             QuickActions = new List<LocationActionViewModel>(),
             NPCsPresent = new List<NPCInteractionViewModel>(),
             Observations = new List<ObservationViewModel>(),
@@ -167,23 +168,23 @@ public class LocationFacade
             Routes = new List<RouteOptionViewModel>()
         };
 
-        if (location != null && spot != null)
+        if (venue != null && spot != null)
         {
             // Add location-specific actions
-            viewModel.QuickActions = _actionManager.GetLocationActions(location, spot);
+            viewModel.QuickActions = _actionManager.GetLocationSpotActions(venue, spot);
 
             // Add NPCs with connection states
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             viewModel.NPCsPresent = GetNPCsWithInteractions(spot, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.Id, spot.Id);
+            viewModel.Observations = GetLocationObservations(venue.Id, spot.Id);
 
             // Add areas within location
-            viewModel.AreasWithinLocation = _spotManager.GetAreasWithinLocation(location, spot, currentTime, _npcRepository);
+            viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, spot, currentTime, _npcRepository);
 
             // Add routes to other locations
-            viewModel.Routes = GetRoutesFromLocation(location);
+            viewModel.Routes = GetRoutesFromLocation(venue);
         }
 
         Console.WriteLine($"[LocationFacade.GetLocationScreen] Returning viewModel with {viewModel.NPCsPresent.Count} NPCs");
@@ -191,7 +192,7 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Refresh the current location state.
+    /// Refresh the current Venue state.
     /// </summary>
     public void RefreshLocationState()
     {
@@ -205,9 +206,9 @@ public class LocationFacade
     /// <summary>
     /// Get all NPCs at a specific location.
     /// </summary>
-    public List<NPC> GetNPCsAtLocation(string locationId)
+    public List<NPC> GetNPCsAtLocation(string venueId)
     {
-        return _npcTracker.GetNPCsAtLocation(locationId);
+        return _npcTracker.GetNPCsAtLocation(venueId);
     }
 
     /// <summary>
@@ -324,13 +325,13 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<ObservationViewModel> GetLocationObservations(string locationId, string currentSpotId)
+    private List<ObservationViewModel> GetLocationObservations(string venueId, string currentSpotId)
     {
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {locationId}, spot {currentSpotId}");
+        Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {venueId}, spot {currentSpotId}");
 
-        List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(locationId, currentSpotId);
+        List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, currentSpotId);
 
         Console.WriteLine($"[LocationFacade.GetLocationObservations] Got {locationObservations?.Count ?? 0} observations");
 
@@ -379,15 +380,15 @@ public class LocationFacade
         return "";
     }
 
-    private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
+    private List<RouteOptionViewModel> GetRoutesFromLocation(Venue venue)
     {
         List<RouteOptionViewModel> routes = new List<RouteOptionViewModel>();
-        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(location.Id);
+        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(venue.Id);
 
         foreach (RouteOption route in availableRoutes)
         {
             LocationSpot? destSpot = _gameWorld.WorldState.locationSpots.FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
-            Location? destination = destSpot != null ? _locationManager.GetLocation(destSpot.LocationId) : null;
+            Venue? destination = destSpot != null ? _locationManager.GetVenue(destSpot.VenueId) : null;
 
             if (destination != null)
             {
@@ -418,9 +419,9 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get the LocationActionManager for direct access to location actions.
+    /// Get the LocationActionManager for direct access to Venue actions.
     /// </summary>
-    public LocationActionManager GetLocationActionManager()
+    public LocationSpotActionManager GetLocationActionManager()
     {
         return _actionManager;
     }
@@ -451,243 +452,29 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Investigate a location to gain familiarity. Costs 1 attention and takes 1 segment.
+    /// Investigate a Venue to gain familiarity. Costs 1 attention and takes 1 segment.
     /// Familiarity gain depends on spot properties: Quiet spots +2, Busy spots +1, others +1.
     /// Familiarity is capped at the location's MaxFamiliarity (typically 3).
     /// </summary>
-    /// <param name="locationId">ID of the location to investigate</param>
+    /// <param name="venueId">ID of the Venue to investigate</param>
     /// <param name="spotId">ID of the spot where investigation takes place</param>
     /// <returns>True if investigation was successful, false if not possible</returns>
-    public bool InvestigateLocation(string locationId, string spotId)
+    public bool InvestigateLocation(string venueId, string spotId)
     {
-        return InvestigateLocation(locationId, spotId, InvestigationApproach.Standard);
+        return InvestigateLocation(venueId, spotId, InvestigationApproach.Standard);
     }
 
     /// <summary>
     /// OLD V2 Investigation - Stubbed out (replaced by V3 card-based system)
     /// </summary>
-    /// <param name="locationId">ID of the location to investigate</param>
+    /// <param name="venueId">ID of the Venue to investigate</param>
     /// <param name="spotId">ID of the spot where investigation takes place</param>
     /// <param name="approach">Investigation approach to use</param>
     /// <returns>Always returns false - V2 investigation system removed</returns>
-    public bool InvestigateLocation(string locationId, string spotId, InvestigationApproach approach)
+    public bool InvestigateLocation(string venueId, string spotId, InvestigationApproach approach)
     {
         // V2 Investigation system removed - replaced by V3 card-based investigation
         _messageSystem.AddSystemMessage("Investigation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);
         return false;
-    }
-
-    /// <summary>
-    /// Check and grant observation rewards when reaching new familiarity levels
-    /// </summary>
-    private void CheckAndGrantObservationRewards(Location location, Player player, int oldFamiliarity, int newFamiliarity)
-    {
-        // Check each familiarity level between old and new (in case of multi-level jumps)
-        for (int level = oldFamiliarity + 1; level <= newFamiliarity; level++)
-        {
-            // Find observation rewards for this familiarity level
-            List<ObservationReward> applicableRewards = location.ObservationRewards
-                .Where(r => r.FamiliarityRequired == level)
-                .Where(r => !r.PriorObservationRequired.HasValue ||
-                           location.HighestObservationCompleted >= r.PriorObservationRequired.Value)
-                .ToList();
-
-            foreach (ObservationReward reward in applicableRewards)
-            {
-                if (reward.ObservationCard != null)
-                {
-                    // Grant the observation card to the player
-                    GrantObservationCard(reward.ObservationCard, player);
-
-                    // Update the highest observation completed
-                    location.HighestObservationCompleted = Math.Max(location.HighestObservationCompleted, level);
-
-                    // Notify player
-                    _messageSystem.AddSystemMessage(
-                        $"Discovered observation: {reward.ObservationCard.Title}",
-                        SystemMessageTypes.Success
-                    );
-
-                    Console.WriteLine($"[LocationFacade] Granted observation card '{reward.ObservationCard.Title}' for reaching familiarity {level} at {location.Name}");
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Grant an observation card to the player by adding it to the target NPC's observation deck
-    /// </summary>
-    private void GrantObservationCard(ObservationCardReward card, Player player)
-    {
-        // Find the target NPC
-        NPC targetNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == card.TargetNpcId);
-        if (targetNpc == null)
-        {
-            Console.WriteLine($"[LocationFacade] Warning: Could not find target NPC '{card.TargetNpcId}' for observation card");
-            return;
-        }
-
-        // Create the observation card
-        ObservationCard observationCard = new ObservationCard()
-        {
-            Id = card.Id,
-            Title = card.Title,
-            LocationDiscovered = player.CurrentLocationSpot?.LocationId ?? "Unknown",
-            ItemName = card.Title,
-            ObservationId = card.Id,
-            TimeDiscovered = _timeManager.GetCurrentTimeBlock().ToString(),
-            TokenType = ConnectionType.None, // Default for observations
-            SuccessType = ParseSuccessType(card.Effect),
-            DialogueText = card.Description
-        };
-
-        // Add the observation card to the NPC's observation deck
-        targetNpc.ObservationDeck.Add(observationCard);
-
-        Console.WriteLine($"[LocationFacade] Added observation card '{card.Title}' to {targetNpc.Name}'s observation deck");
-    }
-
-    /// <summary>
-    /// Parse effect string into success type for observation cards
-    /// </summary>
-    private SuccessEffectType ParseSuccessType(string effect)
-    {
-        if (string.IsNullOrEmpty(effect))
-            return SuccessEffectType.None;
-
-        string lowerEffect = effect.ToLower();
-        if (lowerEffect.Contains("rapport") || lowerEffect.Contains("momentum"))
-            return SuccessEffectType.Strike;
-        if (lowerEffect.Contains("thread") || lowerEffect.Contains("draw"))
-            return SuccessEffectType.Threading;
-        if (lowerEffect.Contains("soothe") || lowerEffect.Contains("doubt"))
-            return SuccessEffectType.Soothe;
-        if (lowerEffect.Contains("double"))
-            return SuccessEffectType.DoubleMomentum;
-
-        return SuccessEffectType.None;
-    }
-
-    /// <summary>
-    /// Handle the LocalInquiry approach bonus - reveal which NPCs want observations from this location
-    /// </summary>
-    private void HandleLocalInquiryBonus(string locationId)
-    {
-        // This would integrate with the observation system to reveal NPC preferences
-        // For now, just add a message indicating the benefit
-        _messageSystem.AddSystemMessage(
-            "Through local inquiries, you learn which NPCs are interested in observations from this area",
-            SystemMessageTypes.Info
-        );
-    }
-
-    // ========== WORK SYSTEM ==========
-
-    /// <summary>
-    /// Get available work actions at the current location
-    /// </summary>
-    public List<WorkAction> GetAvailableWork(string locationId)
-    {
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null) return new List<WorkAction>();
-
-        List<WorkAction> availableWork = new List<WorkAction>();
-        Player player = _gameWorld.GetPlayer();
-
-        foreach (WorkAction work in location.AvailableWork)
-        {
-            // Check requirements
-            if (work.RequiredTokens.HasValue && work.RequiredTokenType.HasValue)
-            {
-                // Token checking should be done at a higher level (GameFacade)
-                // For now, skip token-gated work until GameFacade can filter it
-                continue;
-            }
-
-            if (!string.IsNullOrEmpty(work.RequiredPermit))
-            {
-                if (!player.Inventory.HasItem(work.RequiredPermit))
-                    continue;
-            }
-
-            availableWork.Add(work);
-        }
-
-        return availableWork;
-    }
-
-    /// <summary>
-    /// Perform work action, consuming entire time block and generating coins
-    /// </summary>
-    public bool PerformWork(string workActionId, string locationId)
-    {
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null) return false;
-
-        WorkAction work = location.AvailableWork.FirstOrDefault(w => w.Id == workActionId);
-        if (work == null) return false;
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Calculate coin output based on hunger
-        int currentHunger = player.Hunger;
-        int hungerPenalty = currentHunger / 25; // floor(hunger/25)
-        int coinsEarned = Math.Max(0, work.BaseCoins - hungerPenalty);
-
-        // Apply rewards
-        player.ModifyCoins(coinsEarned);
-
-        // Apply additional benefits for service work
-        if (work.HungerReduction.HasValue)
-        {
-            player.ReduceHunger(work.HungerReduction.Value);
-        }
-
-        if (work.HealthRestore.HasValue)
-        {
-            player.ModifyHealth(work.HealthRestore.Value);
-        }
-
-        if (!string.IsNullOrEmpty(work.GrantedItem))
-        {
-            player.Inventory.AddItem(work.GrantedItem);
-        }
-
-        // Advance time by entire block (4 segments)
-        _timeManager.JumpToNextPeriod();
-
-        // Send success message
-        string workTypeText = work.Type == WorkType.Service ? "service" : "work";
-        _messageSystem.AddSystemMessage(
-            $"Completed {work.Name} - earned {coinsEarned} coins (base {work.BaseCoins} - {hungerPenalty} hunger penalty)",
-            SystemMessageTypes.Success
-        );
-
-        Console.WriteLine($"[LocationFacade.PerformWork] {player.Name} completed {work.Name} at {location.Name}, earned {coinsEarned} coins");
-
-        return true;
-    }
-
-    /// <summary>
-    /// Check if player can afford to work (has time in current block)
-    /// </summary>
-    public bool CanAffordWork()
-    {
-        // Work consumes entire block, so just check if we're not at the last segment
-        // The TimeManager will handle advancing to next block
-        return true; // Let TimeManager handle block advancement logic
-    }
-
-    /// <summary>
-    /// Get work efficiency preview showing hunger impact
-    /// </summary>
-    public (int baseCoins, int hungerPenalty, int actualCoins) CalculateWorkOutput(WorkAction work)
-    {
-        Player player = _gameWorld.GetPlayer();
-        int currentHunger = player.Hunger;
-        int hungerPenalty = currentHunger / 25;
-        int actualCoins = Math.Max(0, work.BaseCoins - hungerPenalty);
-
-        return (work.BaseCoins, hungerPenalty, actualCoins);
     }
 }

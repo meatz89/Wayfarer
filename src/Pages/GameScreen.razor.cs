@@ -48,7 +48,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public string CurrentTime { get; set; }
     public string TimePeriod { get; set; }
 
-    // Location Display
+    // Venue Display
     protected string CurrentLocationPath { get; set; }
     protected string CurrentSpot { get; set; }
 
@@ -110,13 +110,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task RefreshLocationDisplay()
     {
-        Location location = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation();
         LocationSpot spot = GameFacade.GetCurrentLocationSpot();
 
-        if (location != null)
+        if (venue != null)
         {
-            // Build location breadcrumb path based on location name
-            CurrentLocationPath = BuildLocationPath(location.Name);
+            // Build venue breadcrumb path based on venue name
+            CurrentLocationPath = BuildLocationPath(venue.Name);
 
             if (spot != null)
             {
@@ -131,17 +131,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private string BuildLocationPath(string locationName)
     {
-        // Get the current location directly from GameFacade by ID
-        Location location = GameFacade.GetCurrentLocation();
-        if (location == null) return locationName;
+        // Get the current venue directly from GameFacade by ID
+        Venue venue = GameFacade.GetCurrentLocation();
+        if (venue == null) return locationName;
 
-        // Get the district from the location's district ID
-        if (string.IsNullOrEmpty(location.District))
-            return location.Name;
+        // Get the district from the venue's district ID
+        if (string.IsNullOrEmpty(venue.District))
+            return venue.Name;
 
-        District district = GameFacade.GetDistrictById(location.District);
+        District district = GameFacade.GetDistrictById(venue.District);
         if (district == null)
-            return location.Name;
+            return venue.Name;
 
         // Get the region from the district
         Region region = GameFacade.GetRegionForDistrict(district.Id);
@@ -153,7 +153,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             path.Add(region.Name);
 
         path.Add(district.Name);
-        path.Add(location.Name);
+        path.Add(venue.Name);
 
         return string.Join(" → ", path);
     }
@@ -416,7 +416,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
             ChallengeTypeId = challengeTypeId,
             Session = session,
-            Location = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -467,7 +467,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
             ChallengeTypeId = challengeTypeId,
             Session = session,
-            Location = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -564,8 +564,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected string GetCurrentLocation()
     {
-        Location location = GameFacade.GetCurrentLocation();
-        return location?.Name ?? "Unknown";
+        Venue venue = GameFacade.GetCurrentLocation();
+        return venue?.Name ?? "Unknown";
     }
 
     protected async Task RefreshUI()
@@ -804,7 +804,7 @@ public class ScreenContext
 public class ScreenStateData
 {
     public string NpcId { get; set; }
-    public string LocationId { get; set; }
+    public string VenueId { get; set; }
     public string TravelDestination { get; set; }
     public string RequestId { get; set; }
     public string SelectedCardId { get; set; }

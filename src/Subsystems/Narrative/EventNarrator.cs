@@ -220,14 +220,14 @@ public class EventNarrator
         return penaltyNarratives[_random.Next(penaltyNarratives.Length)];
     }
 
-    // ========== LOCATION NARRATIVES ==========
+    // ========== Venue NARRATIVES ==========
 
     /// <summary>
-    /// Generate location arrival narrative
+    /// Generate venue arrival narrative
     /// </summary>
-    public string GenerateArrivalText(Location location, LocationSpot entrySpot)
+    public string GenerateArrivalText(Venue venue, LocationSpot entrySpot)
     {
-        if (location == null) return "You arrive at an unknown location.";
+        if (venue == null) return "You arrive at an unknown venue.";
 
         string spotDesc = "";
         if (entrySpot != null)
@@ -235,15 +235,15 @@ public class EventNarrator
             spotDesc = $" at {entrySpot.Name}";
         }
 
-        return $"You arrive at {location.Name}{spotDesc}.";
+        return $"You arrive at {venue.Name}{spotDesc}.";
     }
 
     /// <summary>
-    /// Generate location departure narrative
+    /// Generate venue departure narrative
     /// </summary>
-    public string GenerateDepartureText(Location location, LocationSpot exitSpot)
+    public string GenerateDepartureText(Venue venue, LocationSpot exitSpot)
     {
-        if (location == null) return "You depart from your current location.";
+        if (venue == null) return "You depart from your current venue.";
 
         string spotDesc = "";
         if (exitSpot != null)
@@ -251,7 +251,7 @@ public class EventNarrator
             spotDesc = $" from {exitSpot.Name}";
         }
 
-        return $"You leave {location.Name}{spotDesc}.";
+        return $"You leave {venue.Name}{spotDesc}.";
     }
 
     /// <summary>

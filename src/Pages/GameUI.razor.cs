@@ -102,7 +102,7 @@ public class GameUIBase : ComponentBase, IDisposable
 
     private CurrentViews GetDefaultView()
     {
-        // Show location screen as the main gameplay view
+        // Show Venue screen as the main gameplay view
         return CurrentViews.LocationScreen;
     }
 

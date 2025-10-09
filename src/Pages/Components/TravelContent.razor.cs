@@ -67,7 +67,7 @@ namespace Wayfarer.Pages.Components
 
         private void LoadAvailableRoutes()
         {
-            Location currentLoc = GameFacade.GetCurrentLocation();
+            Venue currentLoc = GameFacade.GetCurrentLocation();
             if (currentLoc == null) return;
 
             List<RouteOption> routes = GameFacade.GetAvailableRoutes();
@@ -91,20 +91,20 @@ namespace Wayfarer.Pages.Components
 
         private string GetDestinationLocationName(string destinationSpotId)
         {
-            // Get the actual location spot from GameWorld to find its name
+            // Get the actual Venue spot from GameWorld to find its name
             LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
-            Location location = GameFacade.GetLocationById(spot.LocationId);
+            Venue venue = GameFacade.GetLocationById(spot.VenueId);
 
-            if (location != null)
+            if (venue != null)
             {
-                return location.Name;
+                return venue.Name;
             }
             return "Unknown Location";
         }
 
         private string GetDestinationLocationSpotName(string destinationSpotId)
         {
-            // Get the actual location spot from GameWorld to find its name
+            // Get the actual Venue spot from GameWorld to find its name
             LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
             return spot?.Name ?? destinationSpotId;
         }
@@ -112,16 +112,16 @@ namespace Wayfarer.Pages.Components
         private string GetDestinationDistrict(string destinationSpotId)
         {
             // Get all locations from GameFacade
-            List<Location> locations = GameFacade.GetAllLocations();
+            List<Venue> locations = GameFacade.GetAllLocations();
             if (locations == null) return "City Center";
 
-            // Find the location containing this spot
-            foreach (Location location in locations)
+            // Find the venue containing this spot
+            foreach (Venue venue in locations)
             {
-                if (location.LocationSpotIds.Contains(destinationSpotId))
+                if (venue.LocationSpotIds.Contains(destinationSpotId))
                 {
-                    // Get the district for this location
-                    District district = GameFacade.GetDistrictForLocation(location.Id);
+                    // Get the district for this venue
+                    District district = GameFacade.GetDistrictForLocation(venue.Id);
                     if (district != null)
                     {
                         // Get the region for this district
@@ -422,8 +422,8 @@ namespace Wayfarer.Pages.Components
     {
         public string Id { get; set; }
         public string Name { get; set; }  // The route name from JSON
-        public string DestinationName { get; set; }  // The actual location name
-        public string DestinationSpotName { get; set; }  // The actual location spot name
+        public string DestinationName { get; set; }  // The actual Venue name
+        public string DestinationSpotName { get; set; }  // The actual Venue spot name
         public string District { get; set; }
         public string TransportType { get; set; }
         public int TravelTime { get; set; }
