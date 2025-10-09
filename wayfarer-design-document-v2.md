@@ -175,12 +175,12 @@ Simple quest log tracking active requests from NPCs. No complex management - obl
 Investigations are multi-phase mysteries resolved through Mental, Physical, and Social tactical challenges. Each phase spawns a LocationGoal at a specific location, bridging strategic planning to tactical execution.
 
 **Three Challenge Types:**
-- **Mental Challenges**: Observation-based investigation at location spots (examine scenes, deduce patterns, search thoroughly)
+- **Mental Challenges**: Observation-based investigation at locations (examine scenes, deduce patterns, search thoroughly)
   - Resources: Progress (builder), Attention (session budget from Focus), Exposure (threshold), Leads (observation flow)
   - Actions: ACT (generate Leads through action) / OBSERVE (follow Leads through observation)
   - Card Flow: ACT generates Leads by depth (1-2 = +1, 3-4 = +2, 5-6 = +3), OBSERVE draws exactly Leads count
 
-- **Physical Challenges**: Strength-based obstacles at location spots (climb carefully, leverage tools, precise movement)
+- **Physical Challenges**: Strength-based obstacles at locations (climb carefully, leverage tools, precise movement)
   - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold), Aggression (balance)
   - Actions: EXECUTE (lock cards, increase Aggression) / ASSESS (trigger combo, decrease Aggression, exhaust hand, draw fresh)
   - Card Flow: EXECUTE locks cards as prepared sequence while building aggressive momentum, ASSESS executes combo and returns to balanced state
@@ -259,7 +259,7 @@ Investigation exists as template but not yet discovered by player. Waiting for t
 - Location-inherent investigation opportunities
 
 **Environmental Observation** - Triggered by examining location features
-- Player examines specific location spot, reveals hidden investigation
+- Player examines specific location, reveals hidden investigation
 - "You notice something unusual about the mill mechanism..."
 - Requires player attention, rewards thorough exploration
 
@@ -292,7 +292,7 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **System Type**: Mental, Physical, or Social challenge
 - **Challenge Type**: Specific challenge configuration (victory threshold, danger threshold, deck)
 - **Requirements**: Knowledge, equipment, stats, completed phases
-- **Location Assignment**: Where to find this phase (location + spot for Mental/Physical, NPC for Social)
+- **Location Assignment**: Where to find this phase (venue + location for Mental/Physical, NPC for Social)
 - **Progress Threshold**: Victory points needed to complete phase
 - **Completion Reward**: Discoveries granted, phases unlocked, narrative reveals
 
@@ -303,7 +303,7 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **Stats**: Minimum Observation, Strength, Rapport thresholds
 
 **Phase Spawning:**
-When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at location spots as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
+When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at locations as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
 
 ### Three Challenge Systems Detailed
 
@@ -409,7 +409,7 @@ Accumulate Progress threshold (10-20 typical) across one or more visits to locat
 
 ### Example Phase
 
-"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, 15 Progress threshold, at Mill Waterwheel spot, requires 10 Focus, costs 1 time segment per session
+"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, 15 Progress threshold, at Mill Waterwheel location, requires 10 Focus, costs 1 time segment per session
 
 ---
 
