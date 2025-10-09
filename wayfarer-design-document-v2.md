@@ -103,7 +103,7 @@ Wayfarer operates on two distinct layers that separate decision-making from exec
 
 ### Strategic Layer
 The strategic layer handles **what** and **where** decisions:
-- **Location Selection**: Choose which location to visit from travel map
+- **Venue Selection**: Choose which venue to visit from travel map
 - **Goal Selection**: Choose which investigation phase or NPC request to pursue
 - **Resource Planning**: Evaluate equipment, knowledge, and stat requirements
 - **Risk Assessment**: Consider danger levels, time limits, exposure thresholds
@@ -136,7 +136,7 @@ The systems differentiate through distinct card mechanics that respect verisimil
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statements to Spoken pile (said aloud) while Echoes reshuffle (fleeting thoughts). LISTEN draws while your hand persists - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
 ### Bridge: LocationGoals
-LocationGoals bridge the strategic and tactical layers. When a player selects an investigation phase or NPC request (strategic decision), the system spawns a LocationGoal at the specified location. Visiting that location reveals the goal as a card option, which when selected launches the appropriate tactical challenge (Mental, Physical, or Social).
+LocationGoals bridge the strategic and tactical layers. When a player selects an investigation phase or NPC request (strategic decision), the system spawns a LocationGoal at the specified location. Visiting that venue reveals the goal as a card option, which when selected launches the appropriate tactical challenge (Mental, Physical, or Social).
 
 This architecture ensures:
 - **Clear Separation**: Strategic planning never mixes with tactical execution
@@ -164,11 +164,11 @@ Simple quest log tracking active requests from NPCs. No complex management - obl
 
 **Structure:**
 - Accept delivery/task from NPC
-- Destination becomes adventure location
+- Destination becomes adventure venue
 - Weather/time creates natural urgency
 - Completion provides payment, relationships, access
 
-**Purpose:** Drive player toward interesting content (dangerous routes, mysterious locations, challenging investigations).
+**Purpose:** Drive player toward interesting content (dangerous routes, mysterious venues, challenging investigations).
 
 ### Investigation & Travel (Three Challenge Systems)
 
@@ -199,7 +199,7 @@ Each system is a distinct tactical game following the same architectural pattern
 4. **Tactical Execution**: Visit location, select goal card, complete Mental/Physical/Social challenge
 5. **Progression**: Victory grants discoveries, unlocks subsequent phases, builds toward completion
 
-**AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (locations, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
+**AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
 
 **Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
 
@@ -253,7 +253,7 @@ Investigation exists as template but not yet discovered by player. Waiting for t
 
 **2. Discovery Triggers (Five Types)**
 
-**Immediate Visibility** - Investigation visible upon entering location
+**Immediate Visibility** - Investigation visible upon entering venue
 - Obvious environmental features (collapsed bridge, abandoned waterwheel)
 - Public knowledge mysteries (town's water problem, missing merchant)
 - Location-inherent investigation opportunities
@@ -611,7 +611,7 @@ Reach Momentum threshold (8-16 typical) before Doubt reaches 10 (which ends conv
 
 ### Example Phase
 
-"Question the mill owner about sabotage" - Social challenge, Proud personality, 12 Momentum threshold, targets Mill_Owner NPC at Mill location, costs 0 resources, takes 1+ time segments
+"Question the mill owner about sabotage" - Social challenge, Proud personality, 12 Momentum threshold, targets Mill_Owner NPC at Mill venue, costs 0 resources, takes 1+ time segments
 
 ---
 
@@ -779,7 +779,7 @@ Knowledge entries are structured discoveries that connect investigations, unlock
 
 **World State** - Knowledge alters NPC behavior and available options
 - NPCs react differently when you possess certain knowledge
-- Locations reveal additional options based on what you know
+- Venues reveal additional options based on what you know
 - Knowledge creates emergent narrative consequences
 
 ### AI-Generated Investigation Content
@@ -796,7 +796,8 @@ Investigation: Waterwheel Mystery
 ```
 
 **AI-Generated Content:**
-- **Specific locations**: Mill, Waterwheel Spot, Mill Owner's House
+- **Specific venues**: Mill, Mill Owner's House
+- **Specific locations**: Waterwheel
 - **Specific NPCs**: Mill Owner (Proud personality), Miller's Apprentice (Devoted)
 - **Narrative text**: Phase descriptions, completion narratives, discovery text
 - **Card text**: Challenge-specific card descriptions matching investigation theme
@@ -804,13 +805,13 @@ Investigation: Waterwheel Mystery
 
 **Generation Constraints:**
 - Must respect mechanical template structure (phase count, challenge types, thresholds)
-- Must create valid location/NPC references that exist in world
+- Must create valid venue/location/NPC references that exist in world
 - Must generate knowledge IDs used by subsequent phases
 - Must maintain narrative coherence across phases
 - Must balance difficulty progression (early phases easier than late phases)
 
 **Content Validation:**
-- Parser validates all references exist in GameWorld (locations, NPCs, challenge types)
+- Parser validates all references exist in GameWorld (venues, locations, NPCs, challenge types)
 - [Oracle] principle: Fail at load time, not runtime
 - Clear error messages identify specific validation failures
 
@@ -852,7 +853,7 @@ Ancient Ruin Investigation (4 phases, equipment requirements)
 Player discovers investigation → Modal appears with investigation name, description, initial phase visibility
 - "New Investigation: The Waterwheel Mystery"
 - "The waterwheel has stopped turning. The mill owner seems worried."
-- Shows Phase 1 requirements and location
+- Shows Phase 1 requirements and venue
 
 **Journal Integration**
 Investigation added to Journal's Investigations tab:
@@ -862,7 +863,7 @@ Investigation added to Journal's Investigations tab:
 - Tracks discovered knowledge related to this investigation
 
 **Phase Completion**
-Complete tactical challenge → Return to location screen → Modal appears:
+Complete tactical challenge → Return to venue screen → Modal appears:
 - "Phase Complete: Examine Waterwheel"
 - Narrative text describing what you learned
 - Knowledge gained: "Mechanism Damaged"
@@ -885,7 +886,7 @@ Travel presents real obstacles requiring preparation, equipment, knowledge, and 
 ### Route Structure
 
 **Visible Paths:**
-When approaching travel between locations, visible options show:
+When approaching travel between venues, visible options show:
 - Basic description of path type
 - General difficulty indication
 - Obvious requirements (if any)
@@ -990,11 +991,11 @@ Build capability:
 - Total: 24 segments per day
 
 **Block Properties:**
-- Morning: Fresh start, NPCs in regular locations, quiet investigations
-- Midday: Full activity, busy locations, normal operations
-- Afternoon: Winding down, some locations closing, changing availability
-- Evening: Social time, taverns busy, offices closed, different NPC locations
-- Night: Most locations closed, investigation opportunities, travel risks
+- Morning: Fresh start, NPCs in regular venues, quiet investigations
+- Midday: Full activity, busy venues, normal operations
+- Afternoon: Winding down, some venues closing, changing availability
+- Evening: Social time, taverns busy, offices closed, different NPC venues
+- Night: Most venues closed, investigation opportunities, travel risks
 - Late Night: Sleep recommended, exhaustion penalties, emergency only
 
 **Activity Costs:**
@@ -1049,7 +1050,7 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 - Increases: 20 per time block (affects all activities equally)
 - Maximum: 100
 - **Effects**: At 75+ hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
-- **Management**: Food costs coins, has weight, must be carried or purchased at locations
+- **Management**: Food costs coins, has weight, must be carried or purchased at venues
 - **Integration**: Creates pressure to work for income vs. pursue investigations/relationships
 - **Verisimilitude**: Everyone needs to eat, regardless of activity type
 
@@ -1341,7 +1342,7 @@ All deterministic systems:
 
 Memorable moments identical for all players:
 - NPC introduction scenes (first meeting)
-- Location first-visit vignettes (atmospheric establishment)
+- Venue first-visit vignettes (atmospheric establishment)
 - Relationship milestone scenes (at relationship thresholds)
 - High-difficulty investigation discoveries (lore payoffs)
 
@@ -1358,7 +1359,7 @@ Dynamic narration adapting to exact game state:
 - Travel narration noting preparation and conditions
 - Work scenes showing world continuity
 - NPC reactions to player reputation and past actions
-- Location descriptions deepening with familiarity
+- Venue descriptions deepening with familiarity
 
 **Constraint:** AI flavors mechanics, never invents consequences. Provides context and atmosphere for deterministic outcomes.
 
@@ -1446,7 +1447,7 @@ State persistence means failed attempts aren't wasted - you return better prepar
 **Morning:**
 - Fresh start, full resources
 - Quiet investigations (better conditions)
-- Regular NPC locations
+- Regular NPC venues
 - Planning for day ahead
 
 **Midday/Afternoon:**
@@ -1462,7 +1463,7 @@ State persistence means failed attempts aren't wasted - you return better prepar
 - Preparation for tomorrow
 
 **Night:**
-- Special investigations (when locations empty)
+- Special investigations (when venues empty)
 - Emergency travel if needed
 - Sleep and full recovery
 - Day boundary
@@ -1496,7 +1497,7 @@ This maintains immersion and verisimilitude.
 
 Content structured as modular packages:
 - Core game foundation
-- Expansion locations and NPCs
+- Expansion venues and NPCs
 - AI-generated contextual content
 
 ### Skeleton System
@@ -1511,7 +1512,7 @@ Missing references create functional placeholders:
 
 AI creates packages filling gaps:
 - New NPCs with proper deck structure
-- Additional locations with investigations
+- Additional venues with investigations
 - Route connections and obstacles
 - Observation rewards and discoveries
 - Always follows mechanical templates
@@ -1555,7 +1556,7 @@ AI creates packages filling gaps:
 **Always Possible:**
 - Earn coins through work
 - Progress relationships with any NPC
-- Access locations through alternatives
+- Access venues through alternatives
 - Recover from resource depletion
 - Continue after failures
 
