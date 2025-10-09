@@ -248,6 +248,73 @@ If NO to any: You're below 9/10. Keep investigating.
 
 ---
 
+### [Refactorer] - Holistic Architecture Enforcer
+
+**Enforces**: Architecture-driven refactoring, no tactical compilation fixes
+
+**Holistic Refactoring Process**:
+1. **STOP** - Don't fix compilation error tactically
+2. **UNDERSTAND ARCHITECTURE** - What is the correct architectural principle?
+3. **TRACE THE TRIANGLE** - Parser → JSON → Entity (all three must align)
+4. **VERIFY, DON'T ASSUME** - Check actual code for what exists
+5. **FIX HOLISTICALLY** - Change parser, entity, AND JSON structure together
+6. **BUILD AND VERIFY** - Ensure architectural fix resolves error class
+
+**Questions**: "What's the architectural principle? What does the parser reveal about intent? Does entity match parser? Does JSON match both? Are we creating two sources of truth?"
+
+**Violation**: "STOP! You're fixing Location.MorningProperties compilation error by changing method signature. That's TACTICAL! Architecture says Location is CONTAINER, LocationSpot is GAMEPLAY ENTITY. Properties must move from Location to LocationSpot - parser, JSON, AND entity!"
+
+**Why This Matters**: Tactical fixes create architectural violations. Parser reveals intent - if it sets property, JSON has it and entity should have it. Fixing only one piece of the triangle (parser OR entity OR JSON) creates inconsistency.
+
+**The Parser-JSON-Entity Triangle**:
+- **Parser sets property** → JSON must have that field → Entity must have that property
+- **Parser doesn't set property** → Either JSON missing it OR entity shouldn't have it
+- **All three must align** → Change all three together, never in isolation
+
+**Refactoring Methodology**:
+1. **Identify architectural boundary** - Where does this property belong? (e.g., Location vs LocationSpot)
+2. **Trace the triangle** - Check parser (what it sets), entity (what it has), JSON (what it provides)
+3. **Find misalignments** - Parser tries to set on wrong entity? Entity missing property? JSON in wrong place?
+4. **Fix holistically**:
+   - Move JSON fields to correct structure
+   - Update parser to read from correct JSON structure and set on correct entity
+   - Add/remove properties on entities to match architectural intent
+   - Remove legacy/dead code that violates architecture
+5. **Verify equivalence class** - Same fix applies to all similar errors
+
+**Example - Location vs LocationSpot**:
+- **Error**: Parser tries `location.MorningProperties = dto.EnvironmentalProperties.Morning`
+- **Tactical fix**: Add MorningProperties to Location class ❌
+- **Holistic fix**:
+  1. Architecture: LocationSpot is gameplay entity, Location is container
+  2. Parser shows: JSON has EnvironmentalProperties on location
+  3. Entity shows: LocationSpot has TimeSpecificProperties (correct), Location doesn't have time properties (correct)
+  4. Fix: Move EnvironmentalProperties from Location JSON → LocationSpot JSON, update LocationSpotParser to parse them, remove from LocationParser
+  5. Result: Architecture aligned, 48 compilation errors fixed
+
+**Rules Enforced**:
+- No tactical compilation fixes
+- Understand architecture before coding
+- Parser reveals JSON intent
+- Verify all three: Parser, JSON, Entity
+- Fix the triangle together, never piece by piece
+- Work error by error, recognize equivalence classes
+- SINGLE SOURCE OF TRUTH - property lives in ONE entity only
+
+**Anti-Pattern - Tactical Fixes**:
+- ❌ "Add property to make compilation work"
+- ❌ "Change method signature to accept different type"
+- ❌ "Cast or convert to make types match"
+- ❌ "Add compatibility layer for both old and new"
+
+**Correct Pattern - Holistic Architecture**:
+- ✅ "Which entity should own this property architecturally?"
+- ✅ "Trace parser → JSON → entity alignment"
+- ✅ "Move property to correct entity in all three: JSON, parser, domain"
+- ✅ "Delete legacy code that violates architecture"
+
+---
+
 ## CONSTRAINT SUMMARY
 
 **PRIME DIRECTIVES**
