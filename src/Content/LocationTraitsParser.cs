@@ -6,39 +6,33 @@ public static class LocationTraitsParser
 {
     /// <summary>
     /// Parse location traits from environmental properties and domain tags
+    /// LocationSpot is the gameplay entity with all mechanical properties
     /// </summary>
-    public static List<string> ParseLocationTraits(Location location, TimeBlocks currentTime)
+    public static List<string> ParseLocationTraits(LocationSpot spot, TimeBlocks currentTime)
     {
         List<string> traits = new List<string>();
 
-        if (location == null)
+        if (spot == null)
             return traits;
 
-        // Parse environmental properties for current time based on TimeBlocks
-        List<string> properties = currentTime switch
+        // Parse time-specific SpotPropertyType enums from TimeSpecificProperties dictionary
+        if (spot.TimeSpecificProperties.ContainsKey(currentTime))
         {
-            TimeBlocks.Dawn => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Morning => location.MorningProperties ?? new List<string>(),
-            TimeBlocks.Midday => location.AfternoonProperties ?? new List<string>(),
-            TimeBlocks.Afternoon => location.EveningProperties ?? new List<string>(),
-            TimeBlocks.Evening => location.NightProperties ?? new List<string>(),
-            TimeBlocks.Night => location.NightProperties ?? new List<string>(),
-            _ => location.AfternoonProperties ?? new List<string>()
-        };
-
-        foreach (string prop in properties)
-        {
-            string trait = prop.ToString(); // Direct conversion
-            if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
+            List<SpotPropertyType> properties = spot.TimeSpecificProperties[currentTime];
+            foreach (SpotPropertyType prop in properties)
             {
-                traits.Add(trait);
+                string trait = prop.ToString();
+                if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
+                {
+                    traits.Add(trait);
+                }
             }
         }
 
-        // Parse domain tags (these are strings in Location)
-        if (location.DomainTags != null)
+        // Parse domain tags from LocationSpot
+        if (spot.DomainTags != null)
         {
-            foreach (string tag in location.DomainTags)
+            foreach (string tag in spot.DomainTags)
             {
                 string trait = tag?.ToUpper() switch
                 {
@@ -60,8 +54,8 @@ public static class LocationTraitsParser
             }
         }
 
-        // Add location-type specific traits
-        string locationTypeTrait = !string.IsNullOrEmpty(location.LocationTypeString) ? location.LocationTypeString : "";
+        // Add location-type specific traits from LocationSpot
+        string locationTypeTrait = spot.LocationType.ToString();
         if (!string.IsNullOrEmpty(locationTypeTrait) && !traits.Contains(locationTypeTrait))
         {
             traits.Add(locationTypeTrait);

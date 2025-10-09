@@ -25,11 +25,10 @@ public class LocationSpot
 
     public int FlowModifier { get; set; } = 0;
     public int Tier { get; set; } = 1;
-    
-    public List<string> MorningProperties { get; set; } = new List<string>();
-    public List<string> AfternoonProperties { get; set; } = new List<string>();
-    public List<string> EveningProperties { get; set; } = new List<string>();
-    public List<string> NightProperties { get; set; } = new List<string>();
+
+    // DELETED: Legacy time properties (use TimeSpecificProperties dictionary instead)
+    // MorningProperties, AfternoonProperties, EveningProperties, NightProperties
+
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
@@ -53,8 +52,11 @@ public class LocationSpot
 
     public int Exposure { get; set; } = 0;
 
+    // Gameplay properties moved from Location
     public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
-    public bool DomainTags { get; internal set; }
+    public List<string> DomainTags { get; set; } = new List<string>();
+    public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
+    public bool IsStartingLocation { get; set; } = false;
     public string? Description { get; internal set; }
 
     public LocationSpot(string id, string name)

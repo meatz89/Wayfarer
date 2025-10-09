@@ -72,13 +72,14 @@ public class LocationSpotManager
 
     /// <summary>
     /// Get location traits for display based on current time.
+    /// LocationSpot is the gameplay entity with all properties.
     /// </summary>
     public List<string> GetLocationTraits(Location location, LocationSpot spot, TimeBlocks currentTime)
     {
-        if (location == null) return new List<string>();
+        if (spot == null) return new List<string>();
 
-        // Use LocationTraitsParser for systematic trait generation from JSON data
-        return LocationTraitsParser.ParseLocationTraits(location, currentTime);
+        // Use LocationTraitsParser for systematic trait generation from LocationSpot
+        return LocationTraitsParser.ParseLocationTraits(spot, currentTime);
     }
 
     /// <summary>

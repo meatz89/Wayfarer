@@ -28,4 +28,11 @@ public class LocationSpotDTO
     public int WorkPay { get; set; }
 
     public AccessRequirementDTO AccessRequirement { get; set; }
+
+    // Gameplay properties moved from LocationDTO
+    public string LocationType { get; set; }
+    public bool IsStartingLocation { get; set; }
+    public string InvestigationProfile { get; set; }
+    public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
+    public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
 }

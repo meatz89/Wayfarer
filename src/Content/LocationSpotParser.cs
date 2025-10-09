@@ -112,6 +112,69 @@ public static class LocationSpotParser
             spot.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
         }
 
+        // Parse gameplay properties moved from Location
+        spot.DomainTags = dto.DomainTags ?? new List<string>();
+
+        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
+        {
+            spot.LocationType = locationType;
+        }
+
+        spot.IsStartingLocation = dto.IsStartingLocation;
+
+        if (!string.IsNullOrEmpty(dto.InvestigationProfile))
+        {
+            if (System.Enum.TryParse<InvestigationDiscipline>(dto.InvestigationProfile, out InvestigationDiscipline investigationProfile))
+            {
+                spot.InvestigationProfile = investigationProfile;
+            }
+        }
+
+        // Parse available professions by time
+        if (dto.AvailableProfessionsByTime != null)
+        {
+            foreach (KeyValuePair<string, List<string>> kvp in dto.AvailableProfessionsByTime)
+            {
+                if (EnumParser.TryParse<TimeBlocks>(kvp.Key, out TimeBlocks timeBlock))
+                {
+                    List<Professions> professions = new List<Professions>();
+                    foreach (string professionStr in kvp.Value)
+                    {
+                        if (EnumParser.TryParse<Professions>(professionStr, out Professions profession))
+                        {
+                            professions.Add(profession);
+                        }
+                    }
+                    spot.AvailableProfessionsByTime[timeBlock] = professions;
+                }
+            }
+        }
+
+        // Parse available work actions
+        if (dto.AvailableWork != null)
+        {
+            foreach (WorkActionDTO workDto in dto.AvailableWork)
+            {
+                WorkAction workAction = new WorkAction
+                {
+                    Id = workDto.Id,
+                    Name = workDto.Name,
+                    Description = workDto.Description,
+                    Type = Enum.TryParse<WorkType>(workDto.Type, out WorkType workType) ? workType : WorkType.Standard,
+                    BaseCoins = workDto.BaseCoins,
+                    LocationId = workDto.LocationId,
+                    SpotId = workDto.SpotId,
+                    RequiredTokens = workDto.RequiredTokens,
+                    RequiredTokenType = workDto.RequiredTokenType != null && Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out ConnectionType tokenType) ? tokenType : null,
+                    RequiredPermit = workDto.RequiredPermit,
+                    HungerReduction = workDto.HungerReduction,
+                    HealthRestore = workDto.HealthRestore,
+                    GrantedItem = workDto.GrantedItem
+                };
+                spot.AvailableWork.Add(workAction);
+            }
+        }
+
         return spot;
     }
 
