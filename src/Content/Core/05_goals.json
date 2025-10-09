@@ -15,7 +15,6 @@
         "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek",
         "systemType": "Social",
         "npcId": "elena",
-        "npcRequestId": "elena_aldric_delivery",
         "deckId": "desperate_request",
         "isAvailable": true,
         "isCompleted": false,

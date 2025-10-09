@@ -36,7 +36,6 @@ public static class GoalParser
             DeckId = dto.DeckId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
-            NpcRequestId = dto.NpcRequestId,
             InvestigationId = dto.InvestigationId,
             IsIntroAction = dto.IsIntroAction,
             IsAvailable = dto.IsAvailable,

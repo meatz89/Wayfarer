@@ -310,7 +310,6 @@ public class InvestigationActivity
             DeckId = phaseDef.ChallengeTypeId, // Use DeckId (challengeTypeId is actually deckId now)
             LocationId = phaseDef.LocationId,
             NpcId = phaseDef.NpcId,
-            NpcRequestId = phaseDef.RequestId,
             InvestigationId = investigationId,
             Requirements = phaseDef.Requirements,
             IsAvailable = true,
@@ -458,7 +457,6 @@ public class InvestigationActivity
             DeckId = intro.ChallengeTypeId, // Use DeckId (challengeTypeId is actually deckId now)
             LocationId = intro.LocationId,
             NpcId = intro.NpcId,
-            NpcRequestId = intro.RequestId,
             InvestigationId = investigation.Id,
             IsIntroAction = true,  // Flag to identify intro actions
             IsAvailable = true,

@@ -218,11 +218,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartSocialGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.NpcRequestId}'");
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' (ID: '{goal.Id}') with NPC: '{goal.NpcId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversationSession(goal.NpcId, goal.NpcRequestId);
+                await GameScreen.StartConversationSession(goal.NpcId, goal.Id);
             }
             else
             {
@@ -424,7 +424,7 @@ namespace Wayfarer.Pages.Components
             return conversationTypeId switch
             {
                 "friendly_chat" => "Talk",
-                "request" => "Request", // Actual label comes from NPCRequest.Name
+                "request" => "Request", // Actual label comes from Goal.Name
                 "delivery" => "Deliver Letter",
                 "resolution" => "Make Amends",
                 _ => conversationTypeId

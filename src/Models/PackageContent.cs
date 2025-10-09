@@ -68,12 +68,6 @@ public class PackageContent
     public List<GoalCardDTO> NpcGoalCards { get; set; }
 
     /// <summary>
-    /// NPC requests - bundles of request and promise cards for one-time requests
-    /// DEPRECATED: Being replaced by Goal system
-    /// </summary>
-    public List<NPCRequestDTO> NpcRequests { get; set; }
-
-    /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments
     /// </summary>
     public List<SocialCardDTO> PromiseCards { get; set; }

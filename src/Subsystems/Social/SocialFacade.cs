@@ -104,8 +104,8 @@ public class SocialFacade
 
         Console.WriteLine($"[ConversationFacade] Starting resources - Understanding: {startingUnderstanding}, Momentum: {startingMomentum}, Initiative: {startingInitiative} (highest stat: {highestStat}, bonus: {statBonus})");
 
-        // Get request text from the request
-        string requestText = goal.NpcRequestText;
+        // Get request text from the goal description
+        string requestText = goal.Description;
 
         // Create session with new properties
         _currentSession = new SocialSession

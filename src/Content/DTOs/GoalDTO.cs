@@ -31,11 +31,6 @@ public class GoalDTO
     public string NpcId { get; set; }
 
     /// <summary>
-    /// Request ID for Social system goals (references NPCRequest for conversation content)
-    /// </summary>
-    public string NpcRequestId { get; set; }
-
-    /// <summary>
     /// Investigation ID for UI grouping and label display
     /// </summary>
     public string InvestigationId { get; set; }

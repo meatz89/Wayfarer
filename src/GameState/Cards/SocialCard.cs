@@ -53,7 +53,7 @@ public class SocialCard
     // Promise card specific properties
     public int QueuePosition { get; init; } = 0; // Position to force in queue (usually 1)
     public int InstantMomentum { get; init; } = 0; // Momentum gained from burning tokens
-    public string RequestId { get; init; } // Links card to its parent NPCRequest
+    public string RequestId { get; init; } // DEPRECATED: Legacy property, no longer used (Goals replaced NPCRequests)
 
     // Display properties
     public string DialogueText { get; init; }

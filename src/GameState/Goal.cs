@@ -23,11 +23,6 @@ public class Goal
     public string Description { get; set; }
 
     /// <summary>
-    /// The text displayed when presenting this goal (for Social system)
-    /// </summary>
-    public string NpcRequestText { get; set; }
-
-    /// <summary>
     /// THREE PARALLEL SYSTEMS - which tactical system this goal uses
     /// </summary>
     public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
@@ -46,11 +41,6 @@ public class Goal
     /// NPC ID for Social system goals
     /// </summary>
     public string NpcId { get; set; }
-
-    /// <summary>
-    /// Request ID for Social system goals (references NPCRequest for conversation content)
-    /// </summary>
-    public string NpcRequestId { get; set; }
 
     /// <summary>
     /// Investigation ID for UI grouping and label display

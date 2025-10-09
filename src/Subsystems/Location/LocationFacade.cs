@@ -307,7 +307,7 @@ public class LocationFacade
         string displayText = conversationType switch
         {
             "friendly_chat" => "Friendly Chat",
-            "request" => "Request", // Actual text comes from NPCRequest.Name
+            "request" => "Request", // Actual text comes from Goal.Name
             "delivery" => "Deliver Letter",
             "resolution" => "Make Amends",
             _ => "Talk"
