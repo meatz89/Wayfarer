@@ -437,6 +437,9 @@ If NO to any: You're below 9/10. Keep investigating.
 - No string/ID matching (use mechanical properties)
 - All content from JSON files
 - Parsers must parse (no JsonElement passthrough)
+- **JSON field names MUST match C# property names EXACTLY**
+- **NEVER use JsonPropertyName to map mismatched names**
+- If JSON and C# don't match → FIX THE JSON, not the code
 - Dependency analysis REQUIRED before changing files
 - Use search tools to find ALL references
 - Check dependencies
@@ -449,6 +452,9 @@ If NO to any: You're below 9/10. Keep investigating.
 - Packages load atomically
 - Split references break loading, create broken skeletons, make game unusable
 - Hardcoded content violates data-driven design and requires code recompilation
+- **JsonPropertyName is a code smell that hides mismatches and creates confusion**
+- **Name mismatches indicate incomplete refactoring or poor design**
+- **Fix the source data, not the deserialization layer**
 
 ---
 
@@ -495,7 +501,7 @@ One mechanic, one purpose | Verisimilitude (fiction supports mechanics) | Perfec
 Dumb display only (no game logic in UI) | All choices are cards, not buttons | Backend determines availability | Unified screen architecture | Separate CSS files | Clean specificity (no !important hacks) | Resources always visible
 
 **CONTENT**
-Package cohesion (references in same package) | Lazy loading with skeletons | No hardcoded content | No string/ID matching | All content from JSON | Parsers must parse (no JsonElement passthrough)
+Package cohesion (references in same package) | Lazy loading with skeletons | No hardcoded content | No string/ID matching | All content from JSON | Parsers must parse (no JsonElement passthrough) | JSON field names MUST match C# property names (NO JsonPropertyName workarounds)
 
 **ASYNC**
 Always async/await | Never .Wait(), .Result, .GetAwaiter().GetResult() | No Task.Run or parallel operations | If method calls async, it must be async | No synchronous wrappers | Propagate async to UI

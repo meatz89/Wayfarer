@@ -8,7 +8,7 @@
     "version": "5.0.0"
   },
   "content": {
-    "locations": [
+    "venues": [
       {
         "id": "old_mill",
         "name": "The Old Mill",
@@ -35,7 +35,7 @@
         ]
       }
     ],
-    "spots": [
+    "locations": [
       {
         "id": "mill_entrance",
         "venueId": "old_mill",

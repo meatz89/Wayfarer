@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 /// <summary>
 /// Container for all game content in a package - uses DTOs consistently
@@ -29,13 +28,11 @@ public class PackageContent
     /// <summary>
     /// Venue definitions - containers for locations
     /// </summary>
-    [JsonPropertyName("locations")]
     public List<VenueDTO> Venues { get; set; }
 
     /// <summary>
     /// Venue location definitions - uses existing LocationDTO
     /// </summary>
-    [JsonPropertyName("spots")]
     public List<LocationDTO> Locations { get; set; }
 
     /// <summary>
