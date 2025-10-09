@@ -84,52 +84,40 @@ public static class SkeletonGenerator
 
     /// <summary>
     /// Generate a skeleton location with mechanical defaults
+    /// Location is a CONTAINER - gameplay properties belong on LocationSpot
     /// </summary>
     public static Location GenerateSkeletonLocation(string id, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
         LocationTypes[] locationTypes = Enum.GetValues<LocationTypes>();
+        LocationTypes selectedType = locationTypes[hash % locationTypes.Length];
 
         Location location = new Location(id, $"{GenericLocationNames[hash % GenericLocationNames.Length]} #{hash % 100}")
         {
             Description = "This place remains to be discovered.",
             IsSkeleton = true,
             SkeletonSource = source,
-
-            // Random but deterministic mechanical values
-            LocationType = locationTypes[hash % locationTypes.Length],
-            Tier = 1 + (hash % 3), // Tier 1-3
-            TravelTimeSegments = 1 + (hash % 5), // 1-5 segments
-            Difficulty = 1 + (hash % 3),
-
-            // Empty collections
-            DomainTags = new List<string>(),
-            AvailableServices = new List<ServiceTypes>(),
-            LocationSpotIds = new List<string> { $"{id}_hub" }
+            Tier = 1 + (hash % 3), // Organizational tier 1-3
+            LocationTypeString = selectedType.ToString(), // Display string only
+            LocationSpotIds = new List<string> { $"{id}_hub" } // Reference to hub spot
         };
 
-        // Add services based on location type
-        switch (location.LocationType)
-        {
-            case LocationTypes.Town:
-            case LocationTypes.City:
-                location.AvailableServices.Add(ServiceTypes.Trade);
-                location.AvailableServices.Add(ServiceTypes.Rest);
-                break;
-            case LocationTypes.Outpost:
-                location.AvailableServices.Add(ServiceTypes.Information);
-                break;
-        }
+        // All gameplay properties (LocationType enum, TravelTimeSegments, Difficulty,
+        // DomainTags, AvailableServices) belong on the hub LocationSpot,
+        // not on the Location container.
 
         return location;
     }
 
     /// <summary>
     /// Generate a skeleton location spot with mechanical defaults
+    /// LocationSpot is the gameplay entity with all mechanical properties
     /// </summary>
     public static LocationSpot GenerateSkeletonSpot(string id, string locationId, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
+        LocationTypes[] locationTypes = Enum.GetValues<LocationTypes>();
+        LocationTypes selectedType = locationTypes[hash % locationTypes.Length];
 
         LocationSpot spot = new LocationSpot(id, $"{GenericSpotNames[hash % GenericSpotNames.Length]} #{hash % 100}")
         {
@@ -141,6 +129,13 @@ public static class SkeletonGenerator
             Tier = 1 + (hash % 3), // Tier 1-3
             FlowModifier = -1 + (hash % 3), // -1 to +1
             PlayerKnowledge = false,
+
+            // Gameplay properties moved from Location
+            LocationType = selectedType,
+            TravelTimeSegments = 1 + (hash % 5), // 1-5 segments
+            Difficulty = 1 + (hash % 3), // 1-3
+            DomainTags = new List<string>(),
+            AvailableServices = new List<ServiceTypes>(),
 
             // Add some random spot properties
             SpotProperties = new List<SpotPropertyType>()
@@ -156,6 +151,19 @@ public static class SkeletonGenerator
             {
                 spot.SpotProperties.Add(property);
             }
+        }
+
+        // Add services based on location type (moved from GenerateSkeletonLocation)
+        switch (spot.LocationType)
+        {
+            case LocationTypes.Town:
+            case LocationTypes.City:
+                spot.AvailableServices.Add(ServiceTypes.Trade);
+                spot.AvailableServices.Add(ServiceTypes.Rest);
+                break;
+            case LocationTypes.Outpost:
+                spot.AvailableServices.Add(ServiceTypes.Information);
+                break;
         }
 
         return spot;
