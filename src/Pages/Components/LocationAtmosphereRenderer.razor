@@ -1,22 +1,22 @@
 @* Maps Venue atmosphere categories to descriptive text *@
 
 @code {
-    [Parameter] public LocationSpot CurrentSpot { get; set; }
+    [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public TimeBlocks CurrentTime { get; set; }
     [Parameter] public List<NPC> NPCsPresent { get; set; }
 
-    private SpotDescriptionGenerator _descriptionGenerator = new SpotDescriptionGenerator();
+    private LocationDescriptionGenerator _descriptionGenerator = new LocationDescriptionGenerator();
 
     private string GetAtmosphereText()
     {
-        if (CurrentSpot == null)
+        if (CurrentLocation == null)
             return "An undefined location.";
 
         // Get active properties including time-specific ones
-        var activeProperties = new List<SpotPropertyType>(CurrentSpot.SpotProperties ?? new List<SpotPropertyType>());
-        if (CurrentSpot.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
+        var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
+        if (CurrentLocation.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
         {
-            activeProperties.AddRange(CurrentSpot.TimeSpecificProperties[CurrentTime]);
+            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties[CurrentTime]);
         }
 
         // Generate description from categorical properties
@@ -92,29 +92,29 @@
 
     private string? GetObservationHint()
     {
-        if (CurrentSpot == null)
+        if (CurrentLocation == null)
             return null;
 
-        var activeProperties = new List<SpotPropertyType>(CurrentSpot.SpotProperties ?? new List<SpotPropertyType>());
-        if (CurrentSpot.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
+        var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
+        if (CurrentLocation.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
         {
-            activeProperties.AddRange(CurrentSpot.TimeSpecificProperties[CurrentTime]);
+            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties[CurrentTime]);
         }
 
         // Generate hints based on view properties
-        if (activeProperties.Contains(SpotPropertyType.ViewsMarket))
+        if (activeProperties.Contains(LocationPropertyType.ViewsMarket))
             return "Diplomacy flows visibly. Merchant patterns emerge.";
 
-        if (activeProperties.Contains(SpotPropertyType.ViewsMainEntrance))
+        if (activeProperties.Contains(LocationPropertyType.ViewsMainEntrance))
             return "Guard rotations and arrivals draw your attention.";
 
-        if (activeProperties.Contains(SpotPropertyType.ViewsBackAlley))
+        if (activeProperties.Contains(LocationPropertyType.ViewsBackAlley))
             return "Discrete movements catch your eye.";
 
-        if (activeProperties.Contains(SpotPropertyType.ViewsTemple))
+        if (activeProperties.Contains(LocationPropertyType.ViewsTemple))
             return "Devotional patterns become apparent.";
 
-        if (activeProperties.Contains(SpotPropertyType.Crossroads))
+        if (activeProperties.Contains(LocationPropertyType.Crossroads))
             return "Multiple paths of activity intersect here.";
 
         return null;

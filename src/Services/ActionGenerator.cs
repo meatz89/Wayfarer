@@ -12,33 +12,33 @@ public class ActionGenerator
     }
 
     /// <summary>
-    /// Generate actions for a Venue spot based on its properties
-    /// LocationSpot is the gameplay entity - Venue is just a container
+    /// Generate actions for a Venue location based on its properties
+    /// Location is the gameplay entity - Venue is just a container
     /// </summary>
-    public List<LocationActionViewModel> GenerateActionsForSpot(LocationSpot spot)
+    public List<LocationActionViewModel> GenerateActionsForSpot(Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Generate spot-specific actions based on SpotProperties
-        if (spot != null)
+        // Generate location-specific actions based on SpotProperties
+        if (location != null)
         {
-            actions.AddRange(GenerateSpotActions(spot, currentTime));
+            actions.AddRange(GenerateLocationActions(location, currentTime));
         }
 
         return actions;
     }
 
-    private List<LocationActionViewModel> GenerateSpotActions(LocationSpot spot, TimeBlocks currentTime)
+    private List<LocationActionViewModel> GenerateLocationActions(Location location, TimeBlocks currentTime)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        // Generate actions based on spot's properties
-        if (spot.SpotProperties != null)
+        // Generate actions based on location's properties
+        if (location.LocationProperties != null)
         {
-            foreach (SpotPropertyType prop in spot.SpotProperties)
+            foreach (LocationPropertyType prop in location.LocationProperties)
             {
-                LocationActionViewModel action = GenerateTagAction(prop.ToString(), spot);
+                LocationActionViewModel action = GenerateTagAction(prop.ToString(), location);
                 if (action != null)
                     actions.Add(action);
             }
@@ -47,7 +47,7 @@ public class ActionGenerator
         return actions;
     }
 
-    private LocationActionViewModel GenerateTagAction(string tag, LocationSpot spot)
+    private LocationActionViewModel GenerateTagAction(string tag, Location location)
     {
         TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
@@ -121,22 +121,22 @@ public class ActionGenerator
         };
     }
 
-    private string GetRestTitle(LocationSpot locationSpot)
+    private string GetRestTitle(Location Location)
     {
-        if (locationSpot.LocationType == LocationSpotTypes.Landmark) return "Quiet Rest";
-        if (locationSpot.LocationType == LocationSpotTypes.Forest) return "Rest in Shade";
+        if (Location.LocationType == LocationTypes.Landmark) return "Quiet Rest";
+        if (Location.LocationType == LocationTypes.Forest) return "Rest in Shade";
         return "Take a Seat";
     }
 
-    private string GetRestDetail(LocationSpot locationSpot, TimeBlocks time)
+    private string GetRestDetail(Location Location, TimeBlocks time)
     {
         string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
         return $"1 Segement <span class='icon-bullet'></span> {detail}";
     }
 
-    private string GetRestCost(LocationSpot locationSpot)
+    private string GetRestCost(Location Location)
     {
-        if (locationSpot.LocationType == LocationSpotTypes.Landmark) return "1c"; // Donation
+        if (Location.LocationType == LocationTypes.Landmark) return "1c"; // Donation
         return "FREE";
     }
 

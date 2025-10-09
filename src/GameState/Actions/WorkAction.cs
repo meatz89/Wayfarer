@@ -10,7 +10,7 @@ public class WorkAction
     public WorkType Type { get; set; }
     public int BaseCoins { get; set; }
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 
     // Optional requirements
     public int? RequiredTokens { get; set; }

@@ -493,7 +493,7 @@ namespace Wayfarer.Pages.Components
             if (GameFacade == null) return ("Unknown Location", "", "");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
-            LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
+            Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
                 return ("Unknown Location", "", "");
@@ -506,16 +506,16 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get spot properties formatted for display
+        /// Get location properties formatted for display
         /// </summary>
-        private string GetSpotTraits(LocationSpot spot)
+        private string GetSpotTraits(Location location)
         {
-            if (spot?.SpotProperties == null || !spot.SpotProperties.Any())
+            if (location?.LocationProperties == null || !location.LocationProperties.Any())
                 return "";
 
             List<string> propertyDescriptions = new List<string>();
 
-            foreach (SpotPropertyType property in spot.SpotProperties)
+            foreach (LocationPropertyType property in location.LocationProperties)
             {
                 // Convert property enum to user-friendly description
                 string description = property.ToString();

@@ -6,20 +6,20 @@ public static class LocationTraitsParser
 {
     /// <summary>
     /// Parse Venue traits from environmental properties and domain tags
-    /// LocationSpot is the gameplay entity with all mechanical properties
+    /// Location is the gameplay entity with all mechanical properties
     /// </summary>
-    public static List<string> ParseLocationTraits(LocationSpot spot, TimeBlocks currentTime)
+    public static List<string> ParseLocationTraits(Location location, TimeBlocks currentTime)
     {
         List<string> traits = new List<string>();
 
-        if (spot == null)
+        if (location == null)
             return traits;
 
-        // Parse time-specific SpotPropertyType enums from TimeSpecificProperties dictionary
-        if (spot.TimeSpecificProperties.ContainsKey(currentTime))
+        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties dictionary
+        if (location.TimeSpecificProperties.ContainsKey(currentTime))
         {
-            List<SpotPropertyType> properties = spot.TimeSpecificProperties[currentTime];
-            foreach (SpotPropertyType prop in properties)
+            List<LocationPropertyType> properties = location.TimeSpecificProperties[currentTime];
+            foreach (LocationPropertyType prop in properties)
             {
                 string trait = prop.ToString();
                 if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
@@ -29,10 +29,10 @@ public static class LocationTraitsParser
             }
         }
 
-        // Parse domain tags from LocationSpot
-        if (spot.DomainTags != null)
+        // Parse domain tags from Location
+        if (location.DomainTags != null)
         {
-            foreach (string tag in spot.DomainTags)
+            foreach (string tag in location.DomainTags)
             {
                 string trait = tag?.ToUpper() switch
                 {
@@ -54,8 +54,8 @@ public static class LocationTraitsParser
             }
         }
 
-        // Add location-type specific traits from LocationSpot
-        string locationTypeTrait = spot.LocationType.ToString();
+        // Add location-type specific traits from Location
+        string locationTypeTrait = location.LocationType.ToString();
         if (!string.IsNullOrEmpty(locationTypeTrait) && !traits.Contains(locationTypeTrait))
         {
             traits.Add(locationTypeTrait);

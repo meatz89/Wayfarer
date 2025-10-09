@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
         protected List<Venue> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
-            return GameWorld.Locations
+            return GameWorld.WorldState.venues
                 .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
                 .OrderBy(l => l.Name)
                 .ToList();
@@ -160,15 +160,15 @@ namespace Wayfarer.Pages.Components
 
             foreach (InvestigationPhaseDefinition phase in activePhases)
             {
-                // Derive Venue from spot (SpotId is globally unique)
-                LocationSpotEntry spotEntry = GameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phase.SpotId);
+                // Derive Venue from location (LocationId is globally unique)
+                LocationEntry spotEntry = GameWorld.Locations.FirstOrDefault(s => s.location.Id == phase.LocationId);
                 Venue loc = spotEntry != null
-                    ? GameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
+                    ? GameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
                     : null;
 
                 if (loc != null && spotEntry != null)
                 {
-                    string locationKey = $"{loc.Name} - {spotEntry.Spot.Name}";
+                    string locationKey = $"{loc.Name} - {spotEntry.location.Name}";
                     if (!locationCounts.ContainsKey(locationKey))
                         locationCounts[locationKey] = 0;
                     locationCounts[locationKey]++;

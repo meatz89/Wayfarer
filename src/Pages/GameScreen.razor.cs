@@ -111,19 +111,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task RefreshLocationDisplay()
     {
         Venue venue = GameFacade.GetCurrentLocation();
-        LocationSpot spot = GameFacade.GetCurrentLocationSpot();
+        Location location = GameFacade.GetCurrentLocationSpot();
 
         if (venue != null)
         {
             // Build venue breadcrumb path based on venue name
             CurrentLocationPath = BuildLocationPath(venue.Name);
 
-            if (spot != null)
+            if (location != null)
             {
-                CurrentSpot = spot.Name;
-                if (spot.Properties != null && spot.Properties.Any())
+                CurrentSpot = location.Name;
+                if (location.Properties != null && location.Properties.Any())
                 {
-                    CurrentSpot += $" • {string.Join(", ", spot.Properties)}";
+                    CurrentSpot += $" • {string.Join(", ", location.Properties)}";
                 }
             }
         }

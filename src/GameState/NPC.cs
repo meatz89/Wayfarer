@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,7 +10,7 @@ public class NPC
     public string Role { get; set; }
     public string Description { get; set; }
     public string Venue { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -60,7 +60,7 @@ public class NPC
 
     // Relationship Flow (Single value 0-24 encoding both state and battery)
     // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
-    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ±4)
+    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at �4)
     public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
 
     // Calculated properties from single flow value
@@ -138,8 +138,8 @@ public class NPC
     public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
     {
         // NPCs are always available by default
-        // Check if NPC is at the specified Venue spot
-        return SpotId == locationSpotId && IsAvailable(currentTime);
+        // Check if NPC is at the specified Venue location
+        return LocationId == locationSpotId && IsAvailable(currentTime);
     }
 
     public bool CanProvideService(ServiceTypes requestedService)

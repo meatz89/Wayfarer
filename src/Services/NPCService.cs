@@ -110,12 +110,12 @@ public class NPCService
     }
 
     /// <summary>
-    /// Get NPCs available for interaction at a specific Venue spot
+    /// Get NPCs available for interaction at a specific Venue location
     /// </summary>
     public IEnumerable<NPCInteractionInfo> GetAvailableInteractions(string locationSpotId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        IEnumerable<NPC> npcs = _repository.GetNPCsForLocationSpotAndTime(locationSpotId, currentTime);
+        IEnumerable<NPC> npcs = _repository.GetNPCsForLocationAndTime(locationSpotId, currentTime);
 
         return npcs.Select(npc => new NPCInteractionInfo
         {

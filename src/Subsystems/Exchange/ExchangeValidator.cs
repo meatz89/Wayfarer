@@ -153,7 +153,7 @@ public class ExchangeValidator
             return true; // No domain requirements
         }
 
-        // Check if any required domain matches current spot domains
+        // Check if any required domain matches current location domains
         return exchange.RequiredDomains.Any(required =>
             currentSpotDomains.Contains(required, StringComparer.OrdinalIgnoreCase));
     }

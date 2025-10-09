@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Data Transfer Object for deserializing Venue spot data from JSON.
+/// Data Transfer Object for deserializing Venue location data from JSON.
 /// Maps to the structure in location_spots.json.
 /// </summary>
-public class LocationSpotDTO
+public class LocationDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -18,7 +18,7 @@ public class LocationSpotDTO
 
     // The JSON has a "properties" object with time-based keys
     [JsonPropertyName("properties")]
-    public SpotPropertiesDTO Properties { get; set; } = new SpotPropertiesDTO();
+    public LocationPropertiesDTO Properties { get; set; } = new LocationPropertiesDTO();
 
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }

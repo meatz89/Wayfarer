@@ -1,4 +1,4 @@
-﻿
+
 /// <summary>
 /// Types of market transactions
 /// </summary>
@@ -10,7 +10,7 @@ public enum TransactionType
 
 public enum TransactionClass
 {
-    Work,           // Work action at commercial spots
+    Work,           // Work action at commercial Locations
     Delivery,       // Letter delivery completion
     Exchange,       // Quick exchange trades
     Rest,           // Rest actions (buying attention/food)

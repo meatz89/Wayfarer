@@ -1,4 +1,4 @@
-﻿public enum LocationSpotTypes
+public enum LocationTypes
 {
     Hub,
     Connective,

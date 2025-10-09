@@ -79,17 +79,17 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ImmediateVisibility: Player is at required spot
-    /// Prerequisites: spotId (globally unique)
+    /// ImmediateVisibility: Player is at required location
+    /// Prerequisites: LocationId (globally unique)
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
     {
-        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required SpotID: '{prereqs.SpotId ?? "NULL"}', Player SpotID: '{player.CurrentLocationSpot?.Id ?? "NULL"}'");
+        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required LocationId: '{prereqs.LocationId ?? "NULL"}', Player LocationId: '{player.CurrentLocation?.Id ?? "NULL"}'");
 
-        // Check if player is at required spot (SpotId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.Id != prereqs.SpotId)
+        // Check if player is at required location (LocationId is globally unique)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
         {
-            Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required spot");
+            Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required location");
             return false;
         }
 
@@ -98,13 +98,13 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// EnvironmentalObservation: Player is at required spot
-    /// Prerequisites: spotId (globally unique)
+    /// EnvironmentalObservation: Player is at required location
+    /// Prerequisites: LocationId (globally unique)
     /// </summary>
     private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required spot (SpotId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.SpotId) && player.CurrentLocationSpot?.Id != prereqs.SpotId)
+        // Check if player is at required location (LocationId is globally unique)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
             return false;
 
         return true;

@@ -266,7 +266,7 @@ public class MarketFacade
     /// </summary>
     public List<MarketSubsystemManager.TradeRecommendation> GetTradeRecommendations()
     {
-        string currentLocation = _gameWorld.GetPlayer().CurrentLocationSpot?.VenueId;
+        string currentLocation = _gameWorld.GetPlayer().CurrentLocation?.VenueId;
         return _marketManager.GetTradeRecommendations(currentLocation);
     }
 

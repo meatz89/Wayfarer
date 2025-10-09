@@ -5,7 +5,7 @@
 public enum DiscoveryTriggerType
 {
     /// <summary>
-    /// Investigation visible immediately upon entering location/spot
+    /// Investigation visible immediately upon entering location/location
     /// Prerequisites: at_location_spot(X)
     /// Example: Broken waterwheel visible in courtyard
     /// </summary>
@@ -13,7 +13,7 @@ public enum DiscoveryTriggerType
 
     /// <summary>
     /// Investigation revealed through examining Venue features
-    /// Prerequisites: location_familiarity(X) >= N, examining specific spot
+    /// Prerequisites: location_familiarity(X) >= N, examining specific location
     /// Example: Hidden damage noticed after thorough exploration
     /// </summary>
     EnvironmentalObservation,

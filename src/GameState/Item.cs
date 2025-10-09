@@ -1,4 +1,4 @@
-﻿
+
 
 public enum ItemCategory
 {
@@ -51,7 +51,7 @@ public class Item
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
 
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
     public string Description { get; set; }
 
     // Token generation modifiers for equipment
@@ -93,7 +93,7 @@ public class Item
             if (!string.IsNullOrEmpty(CategoriesDescription))
                 descriptions.Add(CategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
-            return string.Join(" • ", descriptions);
+            return string.Join(" � ", descriptions);
         }
     }
 

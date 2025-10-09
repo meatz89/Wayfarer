@@ -31,11 +31,11 @@ public class RouteManager
     {
         List<RouteOption> routes = GetRoutesFromLocation(fromVenueId);
         // RouteOption uses DestinationLocationSpot to track where it goes
-        // We need to find routes that go to any spot in the target location
+        // We need to find routes that go to any location in the target location
         return routes.FirstOrDefault(r =>
         {
-            // Get the destination spot and check if it belongs to the target location
-            LocationSpot destSpot = _gameWorld.GetSpot(r.DestinationLocationSpot);
+            // Get the destination location and check if it belongs to the target location
+            Location destSpot = _gameWorld.GetLocation(r.DestinationLocationSpot);
             return destSpot?.VenueId == toVenueId;
         });
     }
@@ -54,7 +54,7 @@ public class RouteManager
     public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new List<RouteOption>();

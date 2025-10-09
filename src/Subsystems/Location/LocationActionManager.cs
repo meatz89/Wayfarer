@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Manages location-specific actions and generates action options for spots.
+/// Manages location-specific actions and generates action options for Locations.
 /// Handles work, rest, services, and other location-based activities.
 /// </summary>
-public class LocationSpotActionManager
+public class LocationActionManager
 {
     private readonly GameWorld _gameWorld;
     private readonly ActionGenerator _actionGenerator;
     private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
 
-    public LocationSpotActionManager(
+    public LocationActionManager(
         GameWorld gameWorld,
         ActionGenerator actionGenerator,
         TimeManager timeManager,
@@ -26,17 +26,17 @@ public class LocationSpotActionManager
     }
 
     /// <summary>
-    /// Get available actions for a Venue and spot.
+    /// Get available actions for a Venue and location.
     /// </summary>
-    public List<LocationActionViewModel> GetLocationSpotActions(Venue venue, LocationSpot spot)
+    public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
     {
-        if (venue == null || spot == null) return new List<LocationActionViewModel>();
+        if (venue == null || location == null) return new List<LocationActionViewModel>();
 
         // Get dynamic actions from GameWorld data
-        List<LocationActionViewModel> dynamicActions = GetDynamicLocationSpotActions(venue.Id, spot.Id);
+        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
 
-        // Get actions from ActionGenerator (only needs LocationSpot - all gameplay properties are there)
-        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(spot);
+        // Get actions from ActionGenerator (only needs Location - all gameplay properties are there)
+        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(location);
 
         // Combine both
         List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
@@ -49,24 +49,24 @@ public class LocationSpotActionManager
     /// <summary>
     /// Get dynamic Venue actions from GameWorld data using property matching.
     /// </summary>
-    private List<LocationActionViewModel> GetDynamicLocationSpotActions(string venueId, string spotId)
+    private List<LocationActionViewModel> GetDynamicLocationActions(string venueId, string LocationId)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Get the spot to check its properties
-        LocationSpot spot = _gameWorld.GetSpot(spotId);
-        if (spot == null) return actions;
+        // Get the location to check its properties
+        Location location = _gameWorld.GetLocation(LocationId);
+        if (location == null) return actions;
 
-        // Get actions that match this spot's properties
-        List<LocationSpotAction> availableActions = _gameWorld.LocationActions
-            .Where(action => action.MatchesSpot(spot, currentTime) &&
+        // Get actions that match this location's properties
+        List<LocationAction> availableActions = _gameWorld.LocationActions
+            .Where(action => action.MatchesLocation(location, currentTime) &&
                             IsTimeAvailable(action, currentTime))
             .OrderBy(action => action.Priority)
             .ThenBy(action => action.Name)
             .ToList();
 
-        foreach (LocationSpotAction? action in availableActions)
+        foreach (LocationAction? action in availableActions)
         {
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
@@ -86,7 +86,7 @@ public class LocationSpotActionManager
     /// <summary>
     /// Check if action is available at the current time.
     /// </summary>
-    private bool IsTimeAvailable(LocationSpotAction action, TimeBlocks currentTime)
+    private bool IsTimeAvailable(LocationAction action, TimeBlocks currentTime)
     {
         if (action.Availability.Count == 0) return true; // Available at all times
 
@@ -107,7 +107,7 @@ public class LocationSpotActionManager
     /// <summary>
     /// Check if the player can perform this action.
     /// </summary>
-    private bool CanPerformAction(LocationSpotAction action)
+    private bool CanPerformAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -122,41 +122,41 @@ public class LocationSpotActionManager
     }
 
     /// <summary>
-    /// Generate actions based on spot properties.
+    /// Generate actions based on location properties.
     /// </summary>
-    public List<LocationActionViewModel> GenerateSpotActions(LocationSpot spot)
+    public List<LocationActionViewModel> GenerateLocationActions(Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        if (spot == null) return actions;
+        if (location == null) return actions;
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
+        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Generate actions based on active properties
-        foreach (SpotPropertyType property in activeProperties)
+        foreach (LocationPropertyType property in activeProperties)
         {
-            List<LocationActionViewModel> propertyActions = GenerateActionsForProperty(property, spot);
+            List<LocationActionViewModel> propertyActions = GenerateActionsForProperty(property, location);
             actions.AddRange(propertyActions);
         }
 
         // Add NPC-specific actions
-        List<LocationActionViewModel> npcActions = GenerateNPCActions(spot, currentTime);
+        List<LocationActionViewModel> npcActions = GenerateNPCActions(location, currentTime);
         actions.AddRange(npcActions);
 
         return actions;
     }
 
     /// <summary>
-    /// Generate actions for a specific spot property.
+    /// Generate actions for a specific location property.
     /// </summary>
-    private List<LocationActionViewModel> GenerateActionsForProperty(SpotPropertyType property, LocationSpot spot)
+    private List<LocationActionViewModel> GenerateActionsForProperty(LocationPropertyType property, Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         switch (property)
         {
-            case SpotPropertyType.Commercial:
+            case LocationPropertyType.Commercial:
                 actions.Add(new LocationActionViewModel
                 {
                     ActionType = "work",
@@ -175,14 +175,14 @@ public class LocationSpotActionManager
     }
 
     /// <summary>
-    /// Generate NPC-specific actions for a spot.
+    /// Generate NPC-specific actions for a location.
     /// </summary>
-    private List<LocationActionViewModel> GenerateNPCActions(LocationSpot spot, TimeBlocks currentTime)
+    private List<LocationActionViewModel> GenerateNPCActions(Location location, TimeBlocks currentTime)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        // Get NPCs at this spot
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationSpotAndTime(spot.Id, currentTime);
+        // Get NPCs at this location
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
 
         foreach (NPC npc in npcs)
         {
@@ -246,11 +246,11 @@ public class LocationSpotActionManager
     /// <summary>
     /// Get a message for a closed service.
     /// </summary>
-    private string GetClosedServiceMessage(SpotPropertyType property, TimeBlocks currentTime)
+    private string GetClosedServiceMessage(LocationPropertyType property, TimeBlocks currentTime)
     {
         return property switch
         {
-            SpotPropertyType.Commercial => "Market closed at this hour",
+            LocationPropertyType.Commercial => "Market closed at this hour",
             _ => null
         };
     }
@@ -297,11 +297,11 @@ public class LocationSpotActionManager
     /// <summary>
     /// Check if a specific action is available at the current location.
     /// </summary>
-    public bool IsActionAvailable(string actionType, LocationSpot spot)
+    public bool IsActionAvailable(string actionType, Location location)
     {
-        if (string.IsNullOrEmpty(actionType) || spot == null) return false;
+        if (string.IsNullOrEmpty(actionType) || location == null) return false;
 
-        List<LocationActionViewModel> actions = GetLocationSpotActions(null, spot);
+        List<LocationActionViewModel> actions = GetLocationActions(null, location);
         return actions.Any(a => a.ActionType.Equals(actionType, StringComparison.OrdinalIgnoreCase) && a.IsAvailable);
     }
 
@@ -365,9 +365,9 @@ public class LocationSpotActionManager
 
         foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
         {
-            // Search across all spot goals (Spots are the only entity that matters)
-            ChallengeGoal requiredGoal = _gameWorld.Spots
-                .SelectMany(spotEntry => spotEntry.Spot.Goals ?? new List<ChallengeGoal>())
+            // Search across all location goals (Locations are the only entity that matters)
+            ChallengeGoal requiredGoal = _gameWorld.Locations
+                .SelectMany(spotEntry => spotEntry.location.Goals ?? new List<ChallengeGoal>())
                 .FirstOrDefault(g => g.Id == requiredGoalId);
 
             if (requiredGoal == null || !requiredGoal.IsCompleted)

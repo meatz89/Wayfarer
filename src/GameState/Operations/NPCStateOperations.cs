@@ -27,7 +27,7 @@ public static class NPCStateOperations
     /// <summary>
     /// Moves an NPC to a new location.
     /// </summary>
-    public static NPCOperationResult MoveToLocation(NPCState state, string venueId, string spotId)
+    public static NPCOperationResult MoveToLocation(NPCState state, string venueId, string LocationId)
     {
         if (state == null)
             return NPCOperationResult.Failure("NPC state cannot be null");
@@ -35,10 +35,10 @@ public static class NPCStateOperations
         if (string.IsNullOrWhiteSpace(venueId))
             return NPCOperationResult.Failure("Location ID cannot be empty");
 
-        if (state.Venue == venueId && state.SpotId == spotId)
+        if (state.Venue == venueId && state.LocationId == LocationId)
             return NPCOperationResult.Success(state, "NPC already at this location");
 
-        NPCState newState = state.WithLocation(venueId, spotId);
+        NPCState newState = state.WithLocation(venueId, LocationId);
         return NPCOperationResult.Success(newState,
             $"Moved {state.Name} from {state.Venue} to {venueId}");
     }

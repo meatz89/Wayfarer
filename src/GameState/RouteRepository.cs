@@ -17,7 +17,7 @@ public class RouteRepository : IRouteRepository
     }
 
 
-    // Get routes from a specific Venue (by checking all spots in that location)
+    // Get routes from a specific Venue (by checking all Locations in that location)
     public IEnumerable<RouteOption> GetRoutesFromLocation(string venueId)
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
@@ -25,13 +25,13 @@ public class RouteRepository : IRouteRepository
         // ONLY use WorldState.Routes as the single source of truth
         if (_gameWorld.WorldState.Routes != null)
         {
-            // Find all routes that originate from any spot in this location
+            // Find all routes that originate from any location in this location
             foreach (RouteOption route in _gameWorld.WorldState.Routes)
             {
-                // Look up the origin spot to get its location
+                // Look up the origin location to get its location
                 if (!string.IsNullOrEmpty(route.OriginLocationSpot))
                 {
-                    LocationSpot originSpot = _gameWorld.GetSpot(route.OriginLocationSpot);
+                    Location originSpot = _gameWorld.GetLocation(route.OriginLocationSpot);
                     if (originSpot != null && originSpot.VenueId == venueId)
                     {
                         allRoutes.Add(route);
@@ -57,14 +57,14 @@ public class RouteRepository : IRouteRepository
         return allRoutes.FirstOrDefault(r => r.Id == routeId);
     }
 
-    // Get available routes from the player's current spot
+    // Get available routes from the player's current location
     public IEnumerable<RouteOption> GetAvailableRoutes(string fromVenueId, Player player)
     {
-        // Get routes from the player's current spot
-        LocationSpot currentSpot = player.CurrentLocationSpot;
+        // Get routes from the player's current location
+        Location currentSpot = player.CurrentLocation;
         if (currentSpot == null) return new List<RouteOption>();
 
-        // Get all routes that start from the current spot
+        // Get all routes that start from the current location
         IEnumerable<RouteOption> allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.Id);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 

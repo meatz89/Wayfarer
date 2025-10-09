@@ -97,12 +97,12 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for Venue spot entries (replaces Dictionary<string, LocationSpot>)
+/// Helper class for Venue location entries (replaces Dictionary<string, Location>)
 /// </summary>
-public class LocationSpotEntry
+public class LocationEntry
 {
-    public string SpotId { get; set; }
-    public LocationSpot Spot { get; set; }
+    public string LocationId { get; set; }
+    public Location location { get; set; }
 }
 
 /// <summary>
@@ -232,7 +232,7 @@ public static class ListBasedHelperExtensions
         {
             System.Reflection.PropertyInfo? prop = typeof(T).GetProperty("Id") ??
                       typeof(T).GetProperty("CardId") ??
-                      typeof(T).GetProperty("SpotId") ??
+                      typeof(T).GetProperty("LocationId") ??
                       typeof(T).GetProperty("NpcId") ??
                       typeof(T).GetProperty("TypeId") ??
                       typeof(T).GetProperty("DeckId") ??
@@ -242,13 +242,13 @@ public static class ListBasedHelperExtensions
         });
     }
 
-    // LocationSpot helpers
-    public static IEnumerable<LocationSpot> GetAllSpots(this List<LocationSpotEntry> spots)
+    // Location helpers
+    public static IEnumerable<Location> GetAllSpots(this List<LocationEntry> Locations)
     {
-        return spots.Select(s => s.Spot);
+        return Locations.Select(s => s.location);
     }
 
-    // LocationSpotEntry lookups are handled by FindById
+    // LocationEntry lookups are handled by FindById
 
     // PathCollection helpers
     public static IEnumerable<PathCardCollectionDTO> GetAllCollections(this List<PathCollectionEntry> collections)
@@ -310,31 +310,31 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // LocationSpotEntry helpers
-    public static LocationSpot GetSpot(this List<LocationSpotEntry> spots, string spotId)
+    // LocationEntry helpers
+    public static Location GetLocation(this List<LocationEntry> Locations, string LocationId)
     {
-        return spots.FindById(spotId)?.Spot;
+        return Locations.FindById(LocationId)?.location;
     }
 
-    public static void AddOrUpdateSpot(this List<LocationSpotEntry> spots, string spotId, LocationSpot spot)
+    public static void AddOrUpdateSpot(this List<LocationEntry> Locations, string LocationId, Location location)
     {
-        LocationSpotEntry existing = spots.FindById(spotId);
+        LocationEntry existing = Locations.FindById(LocationId);
         if (existing != null)
         {
-            existing.Spot = spot;
+            existing.location = location;
         }
         else
         {
-            spots.Add(new LocationSpotEntry { SpotId = spotId, Spot = spot });
+            Locations.Add(new LocationEntry { LocationId = LocationId, location = location });
         }
     }
 
-    public static void RemoveSpot(this List<LocationSpotEntry> spots, string spotId)
+    public static void RemoveSpot(this List<LocationEntry> Locations, string LocationId)
     {
-        LocationSpotEntry entry = spots.FindById(spotId);
+        LocationEntry entry = Locations.FindById(LocationId);
         if (entry != null)
         {
-            spots.Remove(entry);
+            Locations.Remove(entry);
         }
     }
 

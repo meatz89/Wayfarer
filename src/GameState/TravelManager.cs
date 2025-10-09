@@ -648,12 +648,12 @@ public class TravelManager
         Player player = _gameWorld.GetPlayer();
 
         // Move player to destination
-        LocationSpot targetSpot = _gameWorld.WorldState.locationSpots
+        Location targetSpot = _gameWorld.WorldState.locations
             .FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
 
         if (targetSpot != null)
         {
-            player.CurrentLocationSpot = targetSpot;
+            player.CurrentLocation = targetSpot;
 
             // Track Venue discovery
             string venueId = targetSpot.VenueId;

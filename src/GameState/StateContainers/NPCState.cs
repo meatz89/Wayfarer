@@ -14,7 +14,7 @@ public sealed class NPCState
     public string Role { get; }
     public string Description { get; }
     public string Venue { get; }
-    public string SpotId { get; }
+    public string LocationId { get; }
 
     // Categorical Properties
     public Professions Profession { get; }
@@ -27,7 +27,7 @@ public sealed class NPCState
         string role,
         string description,
         string location,
-        string spotId,
+        string LocationId,
         Professions profession,
         IEnumerable<ServiceTypes> providedServices,
         NPCRelationship playerRelationship)
@@ -37,7 +37,7 @@ public sealed class NPCState
         Role = role;
         Description = description;
         Venue = location;
-        SpotId = spotId;
+        LocationId = LocationId;
         Profession = profession;
         ProvidedServices = providedServices?.ToImmutableList() ?? ImmutableList<ServiceTypes>.Empty;
         PlayerRelationship = playerRelationship;
@@ -49,7 +49,7 @@ public sealed class NPCState
     public NPCState WithRelationship(NPCRelationship relationship)
     {
         return new NPCState(
-        ID, Name, Role, Description, Venue, SpotId,
+        ID, Name, Role, Description, Venue, LocationId,
         Profession, ProvidedServices, relationship);
     }
 
@@ -69,7 +69,7 @@ public sealed class NPCState
     public NPCState WithAddedService(ServiceTypes service)
     {
         return new NPCState(
-        ID, Name, Role, Description, Venue, SpotId,
+        ID, Name, Role, Description, Venue, LocationId,
         Profession, ProvidedServices.Add(service), PlayerRelationship);
     }
 
@@ -84,7 +84,7 @@ public sealed class NPCState
             npc.Role,
             npc.Description,
             npc.Venue,
-            npc.SpotId,
+            npc.LocationId,
             npc.Profession,
             npc.ProvidedServices,
             npc.PlayerRelationship);

@@ -70,7 +70,7 @@ public class ArbitrageCalculator
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null) return null;
 
-        List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+        List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
         ArbitrageOpening bestOpening = null;
         int highestProfit = 0;
 
@@ -183,7 +183,7 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
@@ -192,7 +192,7 @@ public class ArbitrageCalculator
             int buyPrice = _priceManager.GetBuyPrice(item.Id, currentVenueId);
             if (buyPrice <= 0) continue;
 
-            List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
             foreach (Venue sellLocation in locations)
             {
                 if (sellLocation.Id == currentVenueId) continue;
@@ -239,7 +239,7 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesForInventory()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
         foreach (string itemId in player.Inventory.GetItemIds())
@@ -248,7 +248,7 @@ public class ArbitrageCalculator
             if (item == null) continue;
 
             int currentSellPrice = _priceManager.GetSellPrice(itemId, currentVenueId);
-            List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
 
             foreach (Venue sellLocation in locations)
             {
@@ -298,7 +298,7 @@ public class ArbitrageCalculator
     public TradeRoute PlanOptimalRoute(int maxStops = 3)
     {
         Player player = _gameWorld.GetPlayer();
-        string startLocation = player.CurrentLocationSpot?.VenueId;
+        string startLocation = player.CurrentLocation?.VenueId;
         int availableCapital = player.Coins;
 
         TradeRoute bestRoute = new TradeRoute();
@@ -346,7 +346,7 @@ public class ArbitrageCalculator
     {
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
-        List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+        List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
 
         foreach (Item item in allItems)
         {
@@ -468,7 +468,7 @@ public class ArbitrageCalculator
     /// </summary>
     private string GetLocationName(string venueId)
     {
-        Venue venue = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
         return venue?.Name ?? venueId;
     }
 

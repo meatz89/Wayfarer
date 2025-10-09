@@ -433,7 +433,7 @@ public class SocialFacade
             session,
             new List<CardInstance>(), // observationCards - empty for now
             ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
-            _gameWorld.GetPlayer().CurrentLocationSpot.ToString(),
+            _gameWorld.GetPlayer().CurrentLocation.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
 
         // Goal cards now handle domain logic - no context-specific initialization needed
@@ -1243,17 +1243,17 @@ public class SocialFacade
                 // This is intro completion - activate investigation
                 List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
 
-                // Add first goals to their respective spots (Spots are the only entity that matters)
+                // Add first goals to their respective Locations (Locations are the only entity that matters)
                 if (firstGoals.Count > 0)
                 {
                     foreach (ChallengeGoal goal in firstGoals)
                     {
-                        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == goal.SpotId);
+                        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
                         if (spotEntry != null)
                         {
-                            if (spotEntry.Spot.Goals == null)
-                                spotEntry.Spot.Goals = new List<ChallengeGoal>();
-                            spotEntry.Spot.Goals.Add(goal);
+                            if (spotEntry.location.Goals == null)
+                                spotEntry.location.Goals = new List<ChallengeGoal>();
+                            spotEntry.location.Goals.Add(goal);
                         }
                     }
                 }

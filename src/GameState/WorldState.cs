@@ -8,8 +8,8 @@ public class WorldState
     public List<District> Districts { get; set; } = new();
 
     // Core data collections
-    public List<Venue> locations { get; set; } = new();
-    public List<LocationSpot> locationSpots { get; set; } = new();
+    public List<Venue> venues { get; set; } = new();
+    public List<Location> locations { get; set; } = new();
     public List<NPC> NPCs { get; set; } = new();
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
@@ -33,9 +33,9 @@ public class WorldState
 
 
 
-    public string GetVenueIdForSpot(string locationSpotId)
+    public string GetVenueIdForLocation(string LocationId)
     {
-        string? venueId = locationSpots.Where(x => x.Id == locationSpotId).Select(x => x.VenueId).FirstOrDefault();
+        string? venueId = locations.Where(x => x.Id == LocationId).Select(x => x.VenueId).FirstOrDefault();
         return venueId;
     }
 
@@ -110,7 +110,7 @@ public class WorldState
     // Hierarchy lookup methods
     public District GetDistrictForLocation(string venueId)
     {
-        Venue? venue = locations.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null || string.IsNullOrEmpty(venue.District))
             return null;
 
@@ -128,7 +128,7 @@ public class WorldState
 
     public string GetFullLocationPath(string venueId)
     {
-        Venue? venue = locations.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null) return "";
 
         District district = GetDistrictForLocation(venueId);

@@ -1,4 +1,4 @@
-﻿public class SpotLevel
+public class LocationLevel
 {
     public int Level { get; set; }
     public string Description { get; set; }

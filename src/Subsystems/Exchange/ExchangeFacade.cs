@@ -79,11 +79,11 @@ public class ExchangeFacade
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
-        LocationSpot currentSpot = _gameWorld.WorldState.locationSpots
-            .FirstOrDefault(s => s.Id == player.CurrentLocationSpot?.Id);
+        Location currentSpot = _gameWorld.WorldState.locations
+            .FirstOrDefault(s => s.Id == player.CurrentLocation?.Id);
 
         // Convert SpotProperties to domain strings for validation
-        List<string> spotDomains = currentSpot?.SpotProperties?
+        List<string> spotDomains = currentSpot?.LocationProperties?
             .Select(p => p.ToString())
             .ToList() ?? new List<string>();
 

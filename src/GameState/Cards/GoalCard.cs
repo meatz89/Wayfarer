@@ -66,7 +66,7 @@ public class GoalCard
     /// </summary>
     public List<NPCRequestGoal> Goals { get; set; } = new List<NPCRequestGoal>();
     public string NpcId { get; internal set; }
-    public string LocationSpot { get; internal set; }
+    public string Location { get; internal set; }
 
     /// <summary>
     /// Check if this request is available to attempt

@@ -179,8 +179,8 @@ public class DebugLogger
         // Player state
         Player player = gameWorld.GetPlayer();
         report.Add("PLAYER STATE:");
-        report.Add($"  Location: {player.CurrentLocationSpot?.VenueId ?? "NULL"}");
-        report.Add($"  Spot: {player.CurrentLocationSpot?.Id ?? "NULL"}");
+        report.Add($"  Location: {player.CurrentLocation?.VenueId ?? "NULL"}");
+        report.Add($"  location: {player.CurrentLocation?.Id ?? "NULL"}");
         report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");
@@ -200,17 +200,17 @@ public class DebugLogger
 
         // NPCs at location
         report.Add("NPCS AT CURRENT LOCATION:");
-        if (player.CurrentLocationSpot != null)
+        if (player.CurrentLocation != null)
         {
             List<NPC> allNpcs = gameWorld.WorldState.NPCs;
-            List<NPC> locationNpcs = allNpcs.Where(n => n.Venue == player.CurrentLocationSpot.VenueId).ToList();
-            List<NPC> spotNpcs = locationNpcs.Where(n => n.SpotId == player.CurrentLocationSpot.Id).ToList();
+            List<NPC> locationNpcs = allNpcs.Where(n => n.Venue == player.CurrentLocation.VenueId).ToList();
+            List<NPC> spotNpcs = locationNpcs.Where(n => n.LocationId == player.CurrentLocation.Id).ToList();
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 
             report.Add($"  Total NPCs in game: {allNpcs.Count}");
-            report.Add($"  NPCs at Venue '{player.CurrentLocationSpot.VenueId}': {locationNpcs.Count}");
-            report.Add($"  NPCs at spot '{player.CurrentLocationSpot.Id}': {spotNpcs.Count}");
+            report.Add($"  NPCs at Venue '{player.CurrentLocation.VenueId}': {locationNpcs.Count}");
+            report.Add($"  NPCs at location '{player.CurrentLocation.Id}': {spotNpcs.Count}");
             report.Add($"  Available at time '{currentTime}': {availableNpcs.Count}");
 
             foreach (NPC? npc in availableNpcs)

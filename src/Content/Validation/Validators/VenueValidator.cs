@@ -9,7 +9,7 @@ public class VenueValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
-            "id", "name", "description", "connectedTo", "locationSpots"
+            "id", "name", "description", "connectedTo", "locations"
         };
 
     public bool CanValidate(string fileName)
@@ -96,14 +96,14 @@ public class VenueValidator : IContentValidator
             }
         }
 
-        // Validate locationSpots array
-        if (location.TryGetProperty("locationSpots", out JsonElement locationSpots))
+        // Validate locations array
+        if (location.TryGetProperty("locations", out JsonElement locations))
         {
-            if (locationSpots.ValueKind != JsonValueKind.Array)
+            if (locations.ValueKind != JsonValueKind.Array)
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{venueId}",
-                    "locationSpots must be an array",
+                    "locations must be an array",
                     ValidationSeverity.Critical));
             }
         }

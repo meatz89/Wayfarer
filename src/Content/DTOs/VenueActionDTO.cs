@@ -22,12 +22,12 @@ public class VenueActionDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Required spot properties (ALL must be present on the spot)
+    /// Required location properties (ALL must be present on the location)
     /// </summary>
     public List<string> RequiredProperties { get; set; } = new List<string>();
 
     /// <summary>
-    /// Optional spot properties (AT LEAST ONE must be present if specified)
+    /// Optional location properties (AT LEAST ONE must be present if specified)
     /// </summary>
     public List<string> OptionalProperties { get; set; } = new List<string>();
 

@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// DTO for the properties object structure in Venue spots JSON.
+/// DTO for the properties object structure in Venue Locations JSON.
 /// Maps time periods to property lists.
 /// </summary>
-public class SpotPropertiesDTO
+public class LocationPropertiesDTO
 {
     [JsonPropertyName("base")]
     public List<string> Base { get; set; } = new List<string>();

@@ -10,10 +10,10 @@ public class GameWorld
     // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
-    public List<Venue> Locations { get; set; } = new List<Venue>();
-    public List<LocationSpotEntry> Spots { get; set; } = new List<LocationSpotEntry>();
+    public List<Venue> Venues { get; set; } = new List<Venue>();
+    public List<LocationEntry> Locations { get; set; } = new List<LocationEntry>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
-    public List<LocationSpotAction> LocationActions { get; set; } = new List<LocationSpotAction>();
+    public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
     // TimeBlock tracking for stranger refresh
     private TimeBlocks _lastTimeBlock = TimeBlocks.Dawn;
@@ -162,11 +162,11 @@ public class GameWorld
         return NPCs ?? new List<NPC>();
     }
 
-    /// Get a Venue spot by ID from primary storage
+    /// Get a Venue location by ID from primary storage
     /// </summary>
-    public LocationSpot GetSpot(string spotId)
+    public Location GetLocation(string LocationId)
     {
-        return Spots.FindById(spotId)?.Spot;
+        return Locations.FindById(LocationId)?.location;
     }
 
     /// <summary>

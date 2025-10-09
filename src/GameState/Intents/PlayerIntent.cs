@@ -18,7 +18,7 @@ public abstract class PlayerIntent
 }
 
 /// <summary>
-/// Intent to move to a different Venue spot
+/// Intent to move to a different Venue location
 /// </summary>
 public class MoveIntent : PlayerIntent
 {

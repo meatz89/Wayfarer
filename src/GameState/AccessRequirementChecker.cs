@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Service for checking if a player meets access requirements for locations, spots, and routes.
+/// Service for checking if a player meets access requirements for locations, Locations, and routes.
 /// </summary>
 public class AccessRequirementChecker
 {
@@ -28,22 +28,22 @@ public class AccessRequirementChecker
     }
 
     /// <summary>
-    /// Check if player meets access requirements for a Venue spot.
+    /// Check if player meets access requirements for a Venue location.
     /// </summary>
-    public AccessCheckResult CheckLocationSpotAccess(LocationSpot spot)
+    public AccessCheckResult CheckLocationSpotAccess(Location location)
     {
-        if (spot.AccessRequirement == null)
+        if (location.AccessRequirement == null)
             return AccessCheckResult.Allowed();
 
-        return CheckRequirements(spot.AccessRequirement);
+        return CheckRequirements(location.AccessRequirement);
     }
 
     /// <summary>
     /// Alias for CheckLocationSpotAccess for cleaner API.
     /// </summary>
-    public AccessCheckResult CheckSpotAccess(LocationSpot spot)
+    public AccessCheckResult CheckSpotAccess(Location location)
     {
-        return CheckLocationSpotAccess(spot);
+        return CheckLocationSpotAccess(location);
     }
 
     /// <summary>

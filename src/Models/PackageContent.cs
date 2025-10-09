@@ -26,14 +26,14 @@ public class PackageContent
     public List<NPCDTO> Npcs { get; set; }
 
     /// <summary>
-    /// Venue definitions - containers for LocationSpots
+    /// Venue definitions - containers for locations
     /// </summary>
     public List<VenueDTO> Venues { get; set; }
 
     /// <summary>
-    /// Venue spot definitions - uses existing LocationSpotDTO
+    /// Venue location definitions - uses existing LocationDTO
     /// </summary>
-    public List<LocationSpotDTO> Spots { get; set; }
+    public List<LocationDTO> Locations { get; set; }
 
     /// <summary>
     /// Route definitions - uses existing RouteDTO

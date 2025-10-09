@@ -1,4 +1,4 @@
-﻿
+
 
 
 public class NPCRepository
@@ -136,50 +136,50 @@ public class NPCRepository
         return FilterByVisibility(serviceNpcs);
     }
 
-    public List<NPC> GetNPCsForLocationAndTime(string venueId, TimeBlocks currentTime)
+    public List<NPC> GetNPCsForVenueAndTime(string venueId, TimeBlocks currentTime)
     {
-        // Return all NPCs at location, regardless of availability
+        // Return all NPCs at venue, regardless of availability
         // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForLocationAndTime({venueId}, {currentTime})");
+            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForVenueAndTime({venueId}, {currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        List<NPC> locationNpcs = npcs.Where(n => n.Venue == venueId).ToList();
-        return FilterByVisibility(locationNpcs);
+        List<NPC> venueNpcs = npcs.Where(n => n.Venue == venueId).ToList();
+        return FilterByVisibility(venueNpcs);
     }
 
     /// <summary>
-    /// Gets NPCs available at a specific Venue spot and time
+    /// Gets NPCs available at a specific Venue location and time
     /// </summary>
-    public List<NPC> GetNPCsForLocationSpotAndTime(string locationSpotId, TimeBlocks currentTime)
+    public List<NPC> GetNPCsForLocationAndTime(string LocationId, TimeBlocks currentTime)
     {
-        // Return all NPCs at this spot, regardless of availability
+        // Return all NPCs at this location, regardless of availability
         // UI will handle whether they're interactable based on availability
         List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForLocationSpotAndTime({locationSpotId}, {currentTime})");
+            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForLocationAndTime({LocationId}, {currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
-        _debugLogger?.LogNPCActivity("GetNPCsForLocationSpotAndTime", null,
-            $"Looking for NPCs at spot '{locationSpotId}' during {currentTime}");
+        _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
+            $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 
-        List<NPC> npcsAtSpot = npcs.Where(n => n.SpotId == locationSpotId).ToList();
+        List<NPC> npcsAtLocation = npcs.Where(n => n.LocationId == LocationId).ToList();
 
         // Apply visibility filtering
-        npcsAtSpot = FilterByVisibility(npcsAtSpot);
+        npcsAtLocation = FilterByVisibility(npcsAtLocation);
 
-        _debugLogger?.LogDebug($"Found {npcsAtSpot.Count} NPCs at spot '{locationSpotId}': " +
-            string.Join(", ", npcsAtSpot.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
+        _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{LocationId}': " +
+            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
 
-        return npcsAtSpot;
+        return npcsAtLocation;
     }
 
     /// <summary>
-    /// Gets the primary NPC for a specific Venue spot if available at the current time
+    /// Gets the primary NPC for a specific Venue location if available at the current time
     /// </summary>
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
@@ -189,7 +189,7 @@ public class NPCRepository
             Console.WriteLine($"ERROR: Characters collection is null in GetPrimaryNPCForSpot({locationSpotId}, {currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        NPC? npc = npcs.FirstOrDefault(n => n.SpotId == locationSpotId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.LocationId == locationSpotId && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;

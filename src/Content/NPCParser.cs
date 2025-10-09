@@ -15,8 +15,8 @@ public static class NPCParser
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
         if (string.IsNullOrEmpty(dto.VenueId))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'VenueId' field");
-        if (string.IsNullOrEmpty(dto.SpotId))
-            throw new InvalidOperationException($"NPC {dto.Id} missing required 'SpotId' field");
+        if (string.IsNullOrEmpty(dto.LocationId))
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
 
         NPC npc = new NPC
         {
@@ -25,7 +25,7 @@ public static class NPCParser
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
             Venue = dto.VenueId,
-            SpotId = dto.SpotId,
+            LocationId = dto.LocationId,
             Tier = dto.Tier,
             Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1

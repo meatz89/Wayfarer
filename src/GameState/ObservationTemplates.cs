@@ -49,7 +49,7 @@ public class ObservationTemplates
                 Variations = new List<string>
                 {
                     "The press of bodies reveals {detail}",
-                    "Through the crowd, you spot {detail}",
+                    "Through the crowd, you location {detail}",
                     "Amid the bustle, {detail} catches your attention"
                 }
             },

@@ -51,9 +51,9 @@ public class TravelFacade
 
         foreach (RouteOption route in routes)
         {
-            // Extract Venue ID from destination spot (format: venueId.spotName)
+            // Extract Venue ID from destination location (format: venueId.spotName)
             string venueId = route.DestinationLocationSpot.Split('.')[0];
-            Venue? destination = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == venueId);
+            Venue? destination = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
             if (destination != null)
             {
                 bool canTravel = IsRouteDiscovered(route.Id);
@@ -96,7 +96,7 @@ public class TravelFacade
     public bool CanTravelTo(string venueId)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return false;
@@ -123,7 +123,7 @@ public class TravelFacade
     public TravelResult TravelTo(string venueId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new TravelResult
@@ -200,7 +200,7 @@ public class TravelFacade
     public bool AttemptRouteDiscovery(string toVenueId)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return false;
@@ -250,7 +250,7 @@ public class TravelFacade
     public int CalculateTravelTime(string toVenueId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return 0;
@@ -266,7 +266,7 @@ public class TravelFacade
     public Dictionary<string, int> GetTravelTimesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new Dictionary<string, int>();

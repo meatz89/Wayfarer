@@ -187,11 +187,11 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(destinationSpot))
                 return "Unknown Destination";
 
-            // Get Venue spot and Venue name
-            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpot);
-            if (spot != null)
+            // Get Venue location and Venue name
+            Location location = GameFacade.GetLocationSpot(destinationSpot);
+            if (location != null)
             {
-                Venue venue = GameFacade.GetLocationById(spot.VenueId);
+                Venue venue = GameFacade.GetLocationById(location.VenueId);
                 if (venue != null)
                 {
                     return venue.Name;

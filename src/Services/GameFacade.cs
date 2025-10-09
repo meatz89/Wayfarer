@@ -170,12 +170,12 @@ public class GameFacade
         return _locationFacade.GetCurrentLocation();
     }
 
-    public LocationSpot GetLocationSpot(string spotId)
+    public Location GetLocationSpot(string LocationId)
     {
-        return _gameWorld.GetSpot(spotId);
+        return _gameWorld.GetLocation(LocationId);
     }
 
-    public LocationSpot GetCurrentLocationSpot()
+    public Location GetCurrentLocationSpot()
     {
         return _locationFacade.GetCurrentLocationSpot();
     }
@@ -350,19 +350,19 @@ public class GameFacade
         if (travelResult.Success)
         {
 
-            // Get the actual destination spot from the route
+            // Get the actual destination location from the route
             RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
                 .FirstOrDefault(r => r.Id == routeId);
 
             if (actualRoute != null)
             {
-                // Find the destination spot by its ID from GameWorld's Spots dictionary
-                LocationSpot? destSpot = _gameWorld.GetSpot(actualRoute.DestinationLocationSpot);
+                // Find the destination location by its ID from GameWorld's Locations dictionary
+                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationSpot);
 
                 if (destSpot != null)
                 {
-                    player.CurrentLocationSpot = destSpot;
-                    Console.WriteLine($"[GameFacade] Player moved to spot: {destSpot.Id} at location: {destSpot.VenueId}");
+                    player.CurrentLocation = destSpot;
+                    Console.WriteLine($"[GameFacade] Player moved to location: {destSpot.Id} at location: {destSpot.VenueId}");
                 }
             }
 
@@ -378,12 +378,12 @@ public class GameFacade
             });
 
             // Get destination Venue name for the message
-            LocationSpot? finalDestSpot = _gameWorld.GetSpot(targetRoute.DestinationLocationSpot);
+            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationSpot);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Venue? destLocation = _gameWorld.WorldState.locations
+                Venue? destLocation = _gameWorld.WorldState.venues
                     ?.FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
                 destinationName = destLocation?.Name ?? finalDestSpot.Name;
             }
@@ -652,7 +652,7 @@ public class GameFacade
 
         // Get current location
         Venue? currentLocation = GetCurrentLocation();
-        LocationSpot? currentSpot = GetCurrentLocationSpot();
+        Location? currentSpot = GetCurrentLocationSpot();
 
         // Get current time block
         TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -749,16 +749,16 @@ public class GameFacade
         // Initialize player at starting Venue from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
-        LocationSpot? startingSpot = _gameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
+        Location? startingSpot = _gameWorld.Locations.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot != null)
         {
-            player.CurrentLocationSpot = startingSpot;
-            Venue? startingLocation = _gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+            player.CurrentLocation = startingSpot;
+            Venue? startingLocation = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
             Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
         }
         else
         {
-            Console.WriteLine($"[GameFacade.StartGameAsync] WARNING: Starting spot '{startingSpotId}' not found!");
+            Console.WriteLine($"[GameFacade.StartGameAsync] WARNING: Starting location '{startingSpotId}' not found!");
         }
 
         // Initialize player resources from GameWorld initial player config
@@ -859,7 +859,7 @@ public class GameFacade
     /// <summary>
     /// Get the LocationActionManager for managing location-specific actions.
     /// </summary>
-    public LocationSpotActionManager GetLocationActionManager()
+    public LocationActionManager GetLocationActionManager()
     {
         return _locationFacade.GetLocationActionManager();
     }
@@ -895,7 +895,7 @@ public class GameFacade
     /// </summary>
     public List<Venue> GetAllLocations()
     {
-        return _gameWorld.WorldState.locations;
+        return _gameWorld.WorldState.venues;
     }
 
     /// <summary>
@@ -1048,42 +1048,42 @@ public class GameFacade
         }
     }
 
-    public void DebugTeleportToLocation(string venueId, string spotId)
+    public void DebugTeleportToLocation(string venueId, string LocationId)
     {
         Player player = _gameWorld.GetPlayer();
-        LocationSpot spot = _gameWorld.GetSpot(spotId);
+        Location location = _gameWorld.GetLocation(LocationId);
 
-        if (spot == null)
+        if (location == null)
         {
-            _messageSystem.AddSystemMessage($"Spot '{spotId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{LocationId}' not found", SystemMessageTypes.Warning);
             return;
         }
 
-        Venue? venue = _gameWorld.Locations.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null)
         {
             _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);
             return;
         }
 
-        player.CurrentLocationSpot = new LocationSpot(spotId, spot.Name) { VenueId = venueId };
+        player.CurrentLocation = new Location(LocationId, location.Name) { VenueId = venueId };
         player.AddKnownLocation(venueId);
 
-        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {spot.Name}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
     }
 
     // ========== INVESTIGATION SYSTEM ==========
 
     /// <summary>
     /// Evaluate and trigger investigation discovery based on current player state
-    /// Called when player moves to new location/spot, gains knowledge, items, or accepts obligations
+    /// Called when player moves to new location/location, gains knowledge, items, or accepts obligations
     /// Discovered investigations will have their intro goals added to the appropriate location
     /// and discovery modals will be triggered via pending results
     /// </summary>
     public void EvaluateInvestigationDiscovery()
     {
         Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at spot: {player.CurrentLocationSpot?.Id ?? "NULL"}");
+        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at location: {player.CurrentLocation?.Id ?? "NULL"}");
 
         // Evaluate which investigations can be discovered
         List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
@@ -1097,18 +1097,18 @@ public class GameFacade
             // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
             ChallengeGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
 
-            // Add intro goal directly to the spot (Spots are the only entity that matters)
-            LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == investigation.IntroAction.SpotId);
+            // Add intro goal directly to the location (Locations are the only entity that matters)
+            LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == investigation.IntroAction.LocationId);
             if (spotEntry != null)
             {
-                if (spotEntry.Spot.Goals == null)
-                    spotEntry.Spot.Goals = new List<ChallengeGoal>();
-                spotEntry.Spot.Goals.Add(introGoal);
-                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to spot '{spotEntry.Spot.Id}' ({spotEntry.Spot.Name})");
+                if (spotEntry.location.Goals == null)
+                    spotEntry.location.Goals = new List<ChallengeGoal>();
+                spotEntry.location.Goals.Add(introGoal);
+                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to location '{spotEntry.location.Id}' ({spotEntry.location.Name})");
             }
             else
             {
-                Console.WriteLine($"[InvestigationDiscovery] ERROR: Could not find spot '{investigation.IntroAction.SpotId}' to add intro goal!");
+                Console.WriteLine($"[InvestigationDiscovery] ERROR: Could not find location '{investigation.IntroAction.LocationId}' to add intro goal!");
             }
 
             // Pending discovery result is now set in InvestigationActivity

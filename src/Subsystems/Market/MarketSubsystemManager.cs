@@ -485,7 +485,7 @@ public class MarketSubsystemManager
             if (sellPriceHere <= 0) continue;
 
             // Check if this is a good place to sell
-            List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
             int avgSellPrice = 0;
             int validLocations = 0;
 
@@ -532,7 +532,7 @@ public class MarketSubsystemManager
 
                 // Check profit potential
                 int buyPriceHere = item.BuyPrice;
-                List<Venue> locations = _gameWorld.WorldState.locations ?? new List<Venue>();
+                List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
                 int maxSellPrice = 0;
                 string bestSellLocation = null;
 
@@ -655,7 +655,7 @@ public class MarketSubsystemManager
     /// </summary>
     private string GetLocationName(string venueId)
     {
-        Venue venue = _gameWorld.WorldState.locations?.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
         return venue?.Name ?? venueId;
     }
 
@@ -676,7 +676,7 @@ public class MarketSubsystemManager
 
         // Check player location
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocationSpot?.VenueId != venueId)
+        if (player.CurrentLocation?.VenueId != venueId)
         {
             error = "You must be at the Venue to trade";
             return false;

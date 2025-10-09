@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 /// <summary>
 /// Data Transfer Object for deserializing venue data from JSON.
-/// Venue is a CONTAINER for LocationSpots - has minimal organizational properties only.
+/// Venue is a CONTAINER for locations - has minimal organizational properties only.
 /// </summary>
 public class VenueDTO
 {
@@ -11,7 +11,7 @@ public class VenueDTO
     public string DistrictId { get; set; }
     public int Tier { get; set; }
     public string LocationType { get; set; }
-    public List<string> LocationSpots { get; set; } = new List<string>();
+    public List<string> locations { get; set; } = new List<string>();
 }
 
 /// <summary>
@@ -25,7 +25,7 @@ public class WorkActionDTO
     public string Type { get; set; } // Standard, Enhanced, or Service
     public int BaseCoins { get; set; }
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
     public int? RequiredTokens { get; set; }
     public string RequiredTokenType { get; set; }
     public string RequiredPermit { get; set; }

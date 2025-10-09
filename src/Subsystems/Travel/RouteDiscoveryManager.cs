@@ -70,7 +70,7 @@ public class RouteDiscoveryManager
     public DiscoveryProgressInfo GetDiscoveryProgress()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocationSpot?.VenueId;
+        string currentVenueId = player.CurrentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new DiscoveryProgressInfo(0, 0);

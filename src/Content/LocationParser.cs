@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 /// <summary>
-/// Parser for deserializing Venue spot data from JSON.
+/// Parser for deserializing Venue location data from JSON.
 /// </summary>
-public static class LocationSpotParser
+public static class LocationParser
 {
     /// <summary>
-    /// Convert a LocationSpotDTO to a LocationSpot domain model
+    /// Convert a LocationDTO to a Location domain model
     /// </summary>
-    public static LocationSpot ConvertDTOToLocationSpot(LocationSpotDTO dto)
+    public static Location ConvertDTOToLocation(LocationDTO dto)
     {
-        LocationSpot spot = new LocationSpot(dto.Id, dto.Name)
+        Location location = new Location(dto.Id, dto.Name)
         {
             InitialState = dto.InitialState ?? "",
             VenueId = dto.VenueId ?? ""
@@ -24,39 +24,39 @@ public static class LocationSpotParser
             {
                 if (EnumParser.TryParse<TimeBlocks>(windowString, out TimeBlocks window))
                 {
-                    spot.CurrentTimeBlocks.Add(window);
+                    location.CurrentTimeBlocks.Add(window);
                 }
             }
         }
         else
         {
             // Add all time windows as default
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Morning);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Midday);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
-            spot.CurrentTimeBlocks.Add(TimeBlocks.Evening);
+            location.CurrentTimeBlocks.Add(TimeBlocks.Morning);
+            location.CurrentTimeBlocks.Add(TimeBlocks.Midday);
+            location.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
+            location.CurrentTimeBlocks.Add(TimeBlocks.Evening);
         }
 
-        // Parse spot properties from the new structure
+        // Parse location properties from the new structure
         if (dto.Properties != null)
         {
-            Console.WriteLine($"[LocationSpotParser] Parsing spot {spot.Id} properties");
+            Console.WriteLine($"[LocationParser] Parsing location {location.Id} properties");
 
             // Parse base properties (always active)
             if (dto.Properties.Base != null)
             {
-                Console.WriteLine($"[LocationSpotParser] Found {dto.Properties.Base.Count} base properties");
+                Console.WriteLine($"[LocationParser] Found {dto.Properties.Base.Count} base properties");
                 foreach (string propString in dto.Properties.Base)
                 {
-                    Console.WriteLine($"[LocationSpotParser] Trying to parse base property: {propString}");
-                    if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                    Console.WriteLine($"[LocationParser] Trying to parse base property: {propString}");
+                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
-                        Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
-                        spot.SpotProperties.Add(prop);
+                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
+                        location.LocationProperties.Add(prop);
                     }
                     else
                     {
-                        Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
                     }
                 }
             }
@@ -64,24 +64,24 @@ public static class LocationSpotParser
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
             {
-                Console.WriteLine($"[LocationSpotParser] Found {dto.Properties.All.Count} 'all' properties");
+                Console.WriteLine($"[LocationParser] Found {dto.Properties.All.Count} 'all' properties");
                 foreach (string propString in dto.Properties.All)
                 {
-                    Console.WriteLine($"[LocationSpotParser] Trying to parse 'all' property: {propString}");
-                    if (EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                    Console.WriteLine($"[LocationParser] Trying to parse 'all' property: {propString}");
+                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
-                        Console.WriteLine($"[LocationSpotParser] Successfully parsed: {prop}");
-                        spot.SpotProperties.Add(prop);
+                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
+                        location.LocationProperties.Add(prop);
                     }
                     else
                     {
-                        Console.WriteLine($"[LocationSpotParser] Failed to parse property: {propString}");
+                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
                     }
                 }
             }
 
             // Parse time-specific properties
-            Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
+            Dictionary<TimeBlocks, List<LocationPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<LocationPropertyType>>();
 
             // Morning properties
             ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
@@ -96,12 +96,12 @@ public static class LocationSpotParser
             // Dawn properties
             ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
 
-            // Assign to spot
-            foreach (KeyValuePair<TimeBlocks, List<SpotPropertyType>> kvp in timeProperties)
+            // Assign to location
+            foreach (KeyValuePair<TimeBlocks, List<LocationPropertyType>> kvp in timeProperties)
             {
                 if (kvp.Value.Count > 0)
                 {
-                    spot.TimeSpecificProperties[kvp.Key] = kvp.Value;
+                    location.TimeSpecificProperties[kvp.Key] = kvp.Value;
                 }
             }
         }
@@ -109,24 +109,24 @@ public static class LocationSpotParser
         // Parse access requirements
         if (dto.AccessRequirement != null)
         {
-            spot.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
+            location.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
         }
 
         // Parse gameplay properties moved from Location
-        spot.DomainTags = dto.DomainTags ?? new List<string>();
+        location.DomainTags = dto.DomainTags ?? new List<string>();
 
-        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationSpotTypes locationType))
+        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
         {
-            spot.LocationType = locationType;
+            location.LocationType = locationType;
         }
 
-        spot.IsStartingLocation = dto.IsStartingLocation;
+        location.IsStartingLocation = dto.IsStartingLocation;
 
         if (!string.IsNullOrEmpty(dto.InvestigationProfile))
         {
             if (System.Enum.TryParse<InvestigationDiscipline>(dto.InvestigationProfile, out InvestigationDiscipline investigationProfile))
             {
-                spot.InvestigationProfile = investigationProfile;
+                location.InvestigationProfile = investigationProfile;
             }
         }
 
@@ -145,7 +145,7 @@ public static class LocationSpotParser
                             professions.Add(profession);
                         }
                     }
-                    spot.AvailableProfessionsByTime[timeBlock] = professions;
+                    location.AvailableProfessionsByTime[timeBlock] = professions;
                 }
             }
         }
@@ -163,7 +163,7 @@ public static class LocationSpotParser
                     Type = Enum.TryParse<WorkType>(workDto.Type, out WorkType workType) ? workType : WorkType.Standard,
                     BaseCoins = workDto.BaseCoins,
                     VenueId = workDto.VenueId,
-                    SpotId = workDto.SpotId,
+                    LocationId = workDto.LocationId,
                     RequiredTokens = workDto.RequiredTokens,
                     RequiredTokenType = workDto.RequiredTokenType != null && Enum.TryParse<ConnectionType>(workDto.RequiredTokenType, out ConnectionType tokenType) ? tokenType : null,
                     RequiredPermit = workDto.RequiredPermit,
@@ -171,26 +171,26 @@ public static class LocationSpotParser
                     HealthRestore = workDto.HealthRestore,
                     GrantedItem = workDto.GrantedItem
                 };
-                spot.AvailableWork.Add(workAction);
+                location.AvailableWork.Add(workAction);
             }
         }
 
-        return spot;
+        return location;
     }
 
     /// <summary>
     /// Helper method to parse time-specific properties
     /// </summary>
-    private static void ParseTimeProperties(List<string> propertyStrings, TimeBlocks timeBlock, Dictionary<TimeBlocks, List<SpotPropertyType>> timeProperties)
+    private static void ParseTimeProperties(List<string> propertyStrings, TimeBlocks timeBlock, Dictionary<TimeBlocks, List<LocationPropertyType>> timeProperties)
     {
         if (propertyStrings == null || propertyStrings.Count == 0)
             return;
 
-        List<SpotPropertyType> properties = new List<SpotPropertyType>();
+        List<LocationPropertyType> properties = new List<LocationPropertyType>();
         foreach (string propString in propertyStrings)
         {
             if (!string.IsNullOrEmpty(propString) &&
-                EnumParser.TryParse<SpotPropertyType>(propString, out SpotPropertyType prop))
+                EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
             {
                 properties.Add(prop);
             }

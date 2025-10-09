@@ -3,9 +3,9 @@ using System.Linq;
 
 /// <summary>
 /// Represents a location-specific action that players can take.
-/// Uses property-based matching to dynamically determine availability at different spots.
+/// Uses property-based matching to dynamically determine availability at different locations.
 /// </summary>
-public class LocationSpotAction
+public class LocationAction
 {
     /// <summary>
     /// Unique identifier for this action
@@ -23,22 +23,22 @@ public class LocationSpotAction
     public string Description { get; set; }
 
     /// <summary>
-    /// Required spot properties for this action to be available.
-    /// The spot must have ALL of these properties for the action to appear.
+    /// Required location properties for this action to be available.
+    /// The location must have ALL of these properties for the action to appear.
     /// </summary>
-    public List<SpotPropertyType> RequiredProperties { get; set; } = new List<SpotPropertyType>();
+    public List<LocationPropertyType> RequiredProperties { get; set; } = new List<LocationPropertyType>();
 
     /// <summary>
-    /// Optional spot properties that enable this action.
-    /// The spot must have AT LEAST ONE of these properties (if specified).
+    /// Optional location properties that enable this action.
+    /// The location must have AT LEAST ONE of these properties (if specified).
     /// </summary>
-    public List<SpotPropertyType> OptionalProperties { get; set; } = new List<SpotPropertyType>();
+    public List<LocationPropertyType> OptionalProperties { get; set; } = new List<LocationPropertyType>();
 
     /// <summary>
     /// Properties that prevent this action from appearing.
-    /// If the spot has ANY of these properties, the action is unavailable.
+    /// If the location has ANY of these properties, the action is unavailable.
     /// </summary>
-    public List<SpotPropertyType> ExcludedProperties { get; set; } = new List<SpotPropertyType>();
+    public List<LocationPropertyType> ExcludedProperties { get; set; } = new List<LocationPropertyType>();
 
     /// <summary>
     /// Resource costs required to perform this action (e.g., attention, coins)
@@ -81,14 +81,14 @@ public class LocationSpotAction
     public string InvestigationId { get; set; }
 
     /// <summary>
-    /// Check if this action matches a given spot's properties
+    /// Check if this action matches a given location's properties
     /// </summary>
-    public bool MatchesSpot(LocationSpot spot, TimeBlocks currentTime)
+    public bool MatchesLocation(Location location, TimeBlocks currentTime)
     {
-        if (spot == null) return false;
+        if (location == null) return false;
 
         // Get all active properties for the current time
-        List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
+        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Check excluded properties first (fast rejection)
         if (ExcludedProperties.Any() && activeProperties.Any(p => ExcludedProperties.Contains(p)))

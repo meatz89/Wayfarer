@@ -11,5 +11,5 @@ public class ObservationDTO
     public int InitiativeCost { get; set; } = 1;
     public string Name { get; set; }
     public string Description { get; set; }
-    public string SpotId { get; internal set; }
+    public string LocationId { get; internal set; }
 }

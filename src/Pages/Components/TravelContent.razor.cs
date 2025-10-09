@@ -91,9 +91,9 @@ namespace Wayfarer.Pages.Components
 
         private string GetDestinationLocationName(string destinationSpotId)
         {
-            // Get the actual Venue spot from GameWorld to find its name
-            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
-            Venue venue = GameFacade.GetLocationById(spot.VenueId);
+            // Get the actual Venue location from GameWorld to find its name
+            Location location = GameFacade.GetLocationSpot(destinationSpotId);
+            Venue venue = GameFacade.GetLocationById(location.VenueId);
 
             if (venue != null)
             {
@@ -104,9 +104,9 @@ namespace Wayfarer.Pages.Components
 
         private string GetDestinationLocationSpotName(string destinationSpotId)
         {
-            // Get the actual Venue spot from GameWorld to find its name
-            LocationSpot spot = GameFacade.GetLocationSpot(destinationSpotId);
-            return spot?.Name ?? destinationSpotId;
+            // Get the actual Venue location from GameWorld to find its name
+            Location location = GameFacade.GetLocationSpot(destinationSpotId);
+            return location?.Name ?? destinationSpotId;
         }
 
         private string GetDestinationDistrict(string destinationSpotId)
@@ -115,7 +115,7 @@ namespace Wayfarer.Pages.Components
             List<Venue> locations = GameFacade.GetAllLocations();
             if (locations == null) return "City Center";
 
-            // Find the venue containing this spot
+            // Find the venue containing this location
             foreach (Venue venue in locations)
             {
                 if (venue.LocationSpotIds.Contains(destinationSpotId))
@@ -423,7 +423,7 @@ namespace Wayfarer.Pages.Components
         public string Id { get; set; }
         public string Name { get; set; }  // The route name from JSON
         public string DestinationName { get; set; }  // The actual Venue name
-        public string DestinationSpotName { get; set; }  // The actual Venue spot name
+        public string DestinationSpotName { get; set; }  // The actual Venue location name
         public string District { get; set; }
         public string TransportType { get; set; }
         public int TravelTime { get; set; }

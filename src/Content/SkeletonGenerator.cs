@@ -21,7 +21,7 @@ public static class SkeletonGenerator
     private static readonly string[] GenericLocationNames =
     {
         "Unknown District", "Unexplored Area", "Mysterious Place",
-        "Hidden Location", "Undiscovered Region", "Remote Spot"
+        "Hidden Location", "Undiscovered Region", "Remote location"
     };
 
     private static readonly string[] GenericSpotNames =
@@ -84,13 +84,13 @@ public static class SkeletonGenerator
 
     /// <summary>
     /// Generate a skeleton venue with mechanical defaults
-    /// Venue is a CONTAINER - gameplay properties belong on LocationSpot
+    /// Venue is a CONTAINER - gameplay properties belong on Location
     /// </summary>
     public static Venue GenerateSkeletonVenue(string id, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
-        LocationSpotTypes[] locationTypes = Enum.GetValues<LocationSpotTypes>();
-        LocationSpotTypes selectedType = locationTypes[hash % locationTypes.Length];
+        LocationTypes[] locationTypes = Enum.GetValues<LocationTypes>();
+        LocationTypes selectedType = locationTypes[hash % locationTypes.Length];
 
         Venue venue = new Venue(id, $"{GenericLocationNames[hash % GenericLocationNames.Length]} #{hash % 100}")
         {
@@ -99,23 +99,23 @@ public static class SkeletonGenerator
             SkeletonSource = source,
             Tier = 1 + (hash % 3), // Organizational tier 1-3
             LocationTypeString = selectedType.ToString(), // Display string only
-            LocationSpotIds = new List<string> { $"{id}_hub" } // Reference to hub spot
+            LocationSpotIds = new List<string> { $"{id}_hub" } // Reference to hub location
         };
 
         return venue;
     }
 
     /// <summary>
-    /// Generate a skeleton Venue spot with mechanical defaults
-    /// LocationSpot is the gameplay entity with all mechanical properties
+    /// Generate a skeleton Venue location with mechanical defaults
+    /// Location is the gameplay entity with all mechanical properties
     /// </summary>
-    public static LocationSpot GenerateSkeletonSpot(string id, string venueId, string source)
+    public static Location GenerateSkeletonSpot(string id, string venueId, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
-        LocationSpotTypes[] locationTypes = Enum.GetValues<LocationSpotTypes>();
-        LocationSpotTypes selectedType = locationTypes[hash % locationTypes.Length];
+        LocationTypes[] locationTypes = Enum.GetValues<LocationTypes>();
+        LocationTypes selectedType = locationTypes[hash % locationTypes.Length];
 
-        LocationSpot spot = new LocationSpot(id, $"{GenericSpotNames[hash % GenericSpotNames.Length]} #{hash % 100}")
+        Location location = new Location(id, $"{GenericSpotNames[hash % GenericSpotNames.Length]} #{hash % 100}")
         {
             VenueId = venueId,
             IsSkeleton = true,
@@ -133,36 +133,36 @@ public static class SkeletonGenerator
             DomainTags = new List<string>(),
             AvailableServices = new List<ServiceTypes>(),
 
-            // Add some random spot properties
-            SpotProperties = new List<SpotPropertyType>()
+            // Add some random location properties
+            LocationProperties = new List<LocationPropertyType>()
         };
 
         // Add 1-2 random properties
-        SpotPropertyType[] propertyValues = Enum.GetValues<SpotPropertyType>();
+        LocationPropertyType[] propertyValues = Enum.GetValues<LocationPropertyType>();
         int numProperties = 1 + (hash % 2);
         for (int i = 0; i < numProperties; i++)
         {
-            SpotPropertyType property = propertyValues[(hash + i * 13) % propertyValues.Length];
-            if (!spot.SpotProperties.Contains(property))
+            LocationPropertyType property = propertyValues[(hash + i * 13) % propertyValues.Length];
+            if (!location.LocationProperties.Contains(property))
             {
-                spot.SpotProperties.Add(property);
+                location.LocationProperties.Add(property);
             }
         }
 
         // Add services based on Venue type (moved from GenerateSkeletonLocation)
-        switch (spot.LocationType)
+        switch (location.LocationType)
         {
-            case LocationSpotTypes.Town:
-            case LocationSpotTypes.City:
-                spot.AvailableServices.Add(ServiceTypes.Trade);
-                spot.AvailableServices.Add(ServiceTypes.Rest);
+            case LocationTypes.Town:
+            case LocationTypes.City:
+                location.AvailableServices.Add(ServiceTypes.Trade);
+                location.AvailableServices.Add(ServiceTypes.Rest);
                 break;
-            case LocationSpotTypes.Outpost:
-                spot.AvailableServices.Add(ServiceTypes.Information);
+            case LocationTypes.Outpost:
+                location.AvailableServices.Add(ServiceTypes.Information);
                 break;
         }
 
-        return spot;
+        return location;
     }
 
 
@@ -238,9 +238,9 @@ public static class SkeletonGenerator
                 return true;
             }
         }
-        else if (typeof(T) == typeof(LocationSpot))
+        else if (typeof(T) == typeof(Location))
         {
-            if (!gameWorld.WorldState.locationSpots.Any(s => s.Id == id))
+            if (!gameWorld.WorldState.locations.Any(s => s.Id == id))
             {
                 // Need to find or create parent Venue first
                 string venueId = source.Contains("location_")

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Wayfarer.Pages.Components
 {
     /// <summary>
-    /// Venue screen component that displays the current location, available spots, NPCs, and actions.
+    /// Venue screen component that displays the current location, available Locations, NPCs, and actions.
     /// 
     /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
     /// ================================================
@@ -24,7 +24,7 @@ namespace Wayfarer.Pages.Components
     /// IMPLEMENTATION REQUIREMENTS:
     /// - RefreshLocationData() fetches display data only (no mutations)
     /// - All actions go through GameScreen parent via CascadingValue pattern
-    /// - Venue state read from GameWorld.GetPlayer().CurrentLocationSpot
+    /// - Venue state read from GameWorld.GetPlayer().CurrentLocation
     /// - NPCs, actions, observations fetched fresh each render (read-only)
     /// </summary>
     public class LocationContentBase : ComponentBase
@@ -37,7 +37,7 @@ namespace Wayfarer.Pages.Components
 
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
-        protected LocationSpot CurrentSpot { get; set; }
+        protected Location CurrentSpot { get; set; }
         protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
         protected List<LocationObservationViewModel> AvailableObservations { get; set; } = new();
         protected List<TakenObservation> TakenObservations { get; set; } = new();
@@ -70,17 +70,17 @@ namespace Wayfarer.Pages.Components
 
             Venue venue = GameFacade.GetCurrentLocation();
             CurrentLocation = venue;
-            LocationSpot? spot = GameFacade.GetCurrentLocationSpot();
-            CurrentSpot = spot;
+            Location? location = GameFacade.GetCurrentLocationSpot();
+            CurrentSpot = location;
             TimeInfo timeInfo = GameFacade.GetTimeInfo();
             CurrentTime = timeInfo.TimeBlock;
 
-            // Get NPCs at current spot
+            // Get NPCs at current location
             AvailableNpcs.Clear();
             NPCsAtSpot.Clear();
             if (CurrentSpot != null)
             {
-                // Get NPCs at the current spot for the current time
+                // Get NPCs at the current location for the current time
                 List<NPC> npcsAtSpot = GameFacade.GetNPCsAtCurrentSpot();
                 NPCsAtSpot = npcsAtSpot ?? new List<NPC>();
                 foreach (NPC npc in NPCsAtSpot)
@@ -152,14 +152,14 @@ namespace Wayfarer.Pages.Components
                 TakenObservations = takenObservations;
             }
 
-            // Get other spots in this Venue from GameWorld
+            // Get other Locations in this Venue from GameWorld
             AvailableSpots.Clear();
             if (venue != null && GameWorld != null)
             {
-                IEnumerable<LocationSpot> allSpots = GameWorld.Spots.GetAllSpots()
+                IEnumerable<Location> allSpots = GameWorld.Locations.GetAllSpots()
                     .Where(s => s.VenueId == venue.Id);
                 AvailableSpots = allSpots
-                    .Where(s => s != spot)
+                    .Where(s => s != location)
                     .Select(s => new SpotViewModel
                     {
                         Id = s.Name, // Use name as ID
@@ -168,23 +168,23 @@ namespace Wayfarer.Pages.Components
                     }).ToList();
             }
 
-            // Check if can travel from this spot
-            CanTravel = spot?.SpotProperties?.Contains(SpotPropertyType.Crossroads) ?? false;
-            Console.WriteLine($"[LocationContent] Spot: {spot?.Name}, Properties: {string.Join(", ", spot?.SpotProperties ?? new List<SpotPropertyType>())}, CanTravel: {CanTravel}");
+            // Check if can travel from this location
+            CanTravel = location?.LocationProperties?.Contains(LocationPropertyType.Crossroads) ?? false;
+            Console.WriteLine($"[LocationContent] location: {location?.Name}, Properties: {string.Join(", ", location?.LocationProperties ?? new List<LocationPropertyType>())}, CanTravel: {CanTravel}");
 
-            // Check if can work at this spot
-            CanWork = spot?.SpotProperties?.Contains(SpotPropertyType.Commercial) ?? false;
+            // Check if can work at this location
+            CanWork = location?.LocationProperties?.Contains(LocationPropertyType.Commercial) ?? false;
 
             // Get dynamic Venue actions
             LocationActions.Clear();
-            if (venue != null && spot != null)
+            if (venue != null && location != null)
             {
                 try
                 {
-                    LocationSpotActionManager locationActionManager = GameFacade.GetLocationActionManager();
+                    LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
                     if (locationActionManager != null)
                     {
-                        List<LocationActionViewModel> actions = locationActionManager.GetLocationSpotActions(venue, spot);
+                        List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(venue, location);
                         LocationActions = actions ?? new List<LocationActionViewModel>();
                         Console.WriteLine($"[LocationContent] Got {LocationActions.Count} Venue actions");
                     }
@@ -196,9 +196,9 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Get Social, Mental, and Physical investigation goals available at current spot
+            // Get Social, Mental, and Physical investigation goals available at current location
             // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
-            // Goals are stored directly on Spot - Spots are the only entity that matters
+            // Goals are stored directly on location - Locations are the only entity that matters
             AvailableSocialGoals.Clear();
             AvailableMentalGoals.Clear();
             AvailablePhysicalGoals.Clear();
@@ -274,7 +274,7 @@ namespace Wayfarer.Pages.Components
 
             if (GameScreen != null)
             {
-                await GameScreen.StartMentalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocationSpot.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartMentalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
@@ -288,7 +288,7 @@ namespace Wayfarer.Pages.Components
 
             if (GameScreen != null)
             {
-                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocationSpot.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
@@ -305,23 +305,23 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task MoveToSpot(string spotId)
+        protected async Task MoveToSpot(string LocationId)
         {
-            Console.WriteLine($"[LocationContent] Moving to spot: {spotId}");
+            Console.WriteLine($"[LocationContent] Moving to location: {LocationId}");
 
-            // Call GameFacade to move to the spot (free movement within location)
-            bool success = GameFacade.MoveToSpot(spotId);
+            // Call GameFacade to move to the location (free movement within location)
+            bool success = GameFacade.MoveToSpot(LocationId);
 
             if (success)
             {
-                Console.WriteLine($"[LocationContent] Successfully moved to spot {spotId}");
-                // Refresh the UI to show the new spot
+                Console.WriteLine($"[LocationContent] Successfully moved to location {LocationId}");
+                // Refresh the UI to show the new location
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to move to spot {spotId}");
+                Console.WriteLine($"[LocationContent] Failed to move to location {LocationId}");
             }
         }
 
@@ -356,13 +356,13 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Investigate the current Venue to gain familiarity. Costs 1 attention and 1 segment.
-        /// Familiarity gain depends on spot properties.
+        /// Familiarity gain depends on location properties.
         /// </summary>
         protected async Task InvestigateLocation()
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or spot");
+                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or location");
                 return;
             }
 
@@ -393,7 +393,7 @@ namespace Wayfarer.Pages.Components
             if (CurrentLocation == null || CurrentSpot == null) return false;
 
 
-            // Check if Spot is already at max familiarity
+            // Check if location is already at max familiarity
             Player player = GameWorld.GetPlayer();
             int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
             return currentFamiliarity < CurrentSpot.MaxFamiliarity;
@@ -423,25 +423,25 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected List<NPC> GetNPCsAtSpot(string spotId)
+        protected List<NPC> GetNPCsAtSpot(string LocationId)
         {
-            // For the current spot, use the cached NPCs
-            if (CurrentSpot != null && CurrentSpot.Name == spotId)
+            // For the current location, use the cached NPCs
+            if (CurrentSpot != null && CurrentSpot.Name == LocationId)
             {
                 return NPCsAtSpot;
             }
 
-            // For other spots, get all NPCs at the current Venue and filter by spot
+            // For other Locations, get all NPCs at the current Venue and filter by location
             Venue currentLocation = GameFacade.GetCurrentLocation();
             if (currentLocation == null) return new List<NPC>();
 
-            // Get the spot we're checking
-            LocationSpot? spot = GameWorld.Spots.GetAllSpots().FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == spotId);
-            if (spot == null) return new List<NPC>();
+            // Get the location we're checking
+            Location? location = GameWorld.Locations.GetAllSpots().FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == LocationId);
+            if (location == null) return new List<NPC>();
 
-            // Get ALL NPCs at this Venue and filter by SpotId
+            // Get ALL NPCs at this Venue and filter by LocationId
             List<NPC> npcsAtLocation = GameFacade.GetNPCsAtLocation(currentLocation.Id);
-            return npcsAtLocation.Where(n => n.SpotId == spot.Id).ToList();
+            return npcsAtLocation.Where(n => n.LocationId == location.Id).ToList();
         }
 
         protected string GetNPCName(string npcId)
@@ -525,7 +525,7 @@ namespace Wayfarer.Pages.Components
         }
 
 
-        protected string GetDoubtDisplay(NpcViewModel npc, LocationSpot spot)
+        protected string GetDoubtDisplay(NpcViewModel npc, Location location)
         {
             // Patience system removed - NPCs are always available
             return "Available";
@@ -601,26 +601,26 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
-        protected string GetSpotTraitClass(SpotPropertyType prop)
+        protected string GetSpotTraitClass(LocationPropertyType prop)
         {
             // Return a CSS class based on the property type
             return prop.ToString().ToLower().Replace("_", "-");
         }
 
-        protected string GetSpotTraitDisplay(SpotPropertyType prop)
+        protected string GetSpotTraitDisplay(LocationPropertyType prop)
         {
-            // Display spot properties with their mechanical effects
+            // Display location properties with their mechanical effects
             return prop switch
             {
-                SpotPropertyType.Private => "Private (+1 patience)",
-                SpotPropertyType.Public => "Public (-1 patience)",
-                SpotPropertyType.Discrete => "Discrete (+1 patience)",
-                SpotPropertyType.Exposed => "Exposed (-1 patience)",
-                SpotPropertyType.Crossroads => "Crossroads",
-                SpotPropertyType.Commercial => "Commercial",
-                SpotPropertyType.Quiet => "Quiet (+1 flow)",
-                SpotPropertyType.Loud => "Loud (-1 flow)",
-                SpotPropertyType.Warm => "Warm (+1 flow)",
+                LocationPropertyType.Private => "Private (+1 patience)",
+                LocationPropertyType.Public => "Public (-1 patience)",
+                LocationPropertyType.Discrete => "Discrete (+1 patience)",
+                LocationPropertyType.Exposed => "Exposed (-1 patience)",
+                LocationPropertyType.Crossroads => "Crossroads",
+                LocationPropertyType.Commercial => "Commercial",
+                LocationPropertyType.Quiet => "Quiet (+1 flow)",
+                LocationPropertyType.Loud => "Loud (-1 flow)",
+                LocationPropertyType.Warm => "Warm (+1 flow)",
                 _ => prop.ToString()
             };
         }
@@ -630,7 +630,7 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or spot");
+                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or location");
                 return;
             }
 

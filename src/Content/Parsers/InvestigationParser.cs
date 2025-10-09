@@ -45,7 +45,7 @@ public class InvestigationParser
             OutcomeNarrative = dto.OutcomeNarrative,
             SystemType = systemType,
             ChallengeTypeId = dto.ChallengeTypeId,
-            SpotId = dto.SpotId,
+            LocationId = dto.LocationId,
             NpcId = dto.NpcId,
             RequestId = dto.RequestId,
             Requirements = ParseRequirements(dto.Requirements),
@@ -136,7 +136,7 @@ public class InvestigationParser
             ActionText = dto.ActionText,
             SystemType = systemType,
             ChallengeTypeId = dto.ChallengeTypeId,
-            SpotId = dto.SpotId,
+            LocationId = dto.LocationId,
             NpcId = dto.NpcId,
             RequestId = dto.RequestId,
             IntroNarrative = dto.IntroNarrative
@@ -159,7 +159,7 @@ public class InvestigationParser
 
         return new InvestigationPrerequisites
         {
-            SpotId = dto.SpotId,
+            LocationId = dto.LocationId,
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             RequiredItems = dto.RequiredItems ?? new List<string>(),
             RequiredObligation = dto.RequiredObligation

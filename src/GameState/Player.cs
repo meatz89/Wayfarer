@@ -1,4 +1,4 @@
-﻿public class Player
+public class Player
 {
     // Core identity
     public string Name { get; set; }
@@ -42,7 +42,7 @@
     public PlayerStats Stats { get; private set; } = new();
     public PlayerKnowledge Knowledge { get; private set; } = new PlayerKnowledge();
 
-    public LocationSpot CurrentLocationSpot { get; set; }
+    public Location CurrentLocation { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
     public List<KnownRouteEntry> KnownRoutes { get; private set; } = new List<KnownRouteEntry>();
@@ -377,11 +377,11 @@
         }
     }
 
-    public void AddKnownLocationSpot(string spotId)
+    public void AddKnownLocationSpot(string LocationId)
     {
-        if (!LocationActionAvailability.Contains(spotId))
+        if (!LocationActionAvailability.Contains(LocationId))
         {
-            LocationActionAvailability.Add(spotId);
+            LocationActionAvailability.Add(LocationId);
         }
     }
 

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text.Json;
 
 /// <summary>
-/// Validates Venue spot JSON content files.
+/// Validates Venue location JSON content files.
 /// </summary>
-public class LocationSpotValidator : IContentValidator
+public class LocationValidator : IContentValidator
 {
     private readonly HashSet<string> _requiredFields = new HashSet<string>
         {
@@ -31,7 +31,7 @@ public class LocationSpotValidator : IContentValidator
             {
                 errors.Add(new ValidationError(
                     fileName,
-                    "Location spots file must contain a JSON array",
+                    "Location Locations file must contain a JSON array",
                     ValidationSeverity.Critical));
                 return errors;
             }
@@ -41,7 +41,7 @@ public class LocationSpotValidator : IContentValidator
 
             foreach (JsonElement spotElement in root.EnumerateArray())
             {
-                ValidateLocationSpot(spotElement, index, fileName, errors, spotIds);
+                ValidateLocation(spotElement, index, fileName, errors, spotIds);
                 index++;
             }
         }
@@ -49,25 +49,25 @@ public class LocationSpotValidator : IContentValidator
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate Venue spots: {ex.Message}",
+                $"Failed to validate Venue Locations: {ex.Message}",
                 ValidationSeverity.Critical));
         }
 
         return errors;
     }
 
-    private void ValidateLocationSpot(JsonElement spot, int index, string fileName, List<ValidationError> errors, HashSet<string> spotIds)
+    private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, HashSet<string> spotIds)
     {
-        string spotId = GetStringProperty(spot, "id") ?? $"LocationSpot[{index}]";
+        string LocationId = GetStringProperty(location, "id") ?? $"Location[{index}]";
 
         // Check for duplicate IDs
-        if (!string.IsNullOrEmpty(spotId) && spotId != $"LocationSpot[{index}]")
+        if (!string.IsNullOrEmpty(LocationId) && LocationId != $"Location[{index}]")
         {
-            if (!spotIds.Add(spotId))
+            if (!spotIds.Add(LocationId))
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{spotId}",
-                    $"Duplicate Venue spot ID: {spotId}",
+                    $"{fileName}:{LocationId}",
+                    $"Duplicate Venue location ID: {LocationId}",
                     ValidationSeverity.Critical));
             }
         }
@@ -75,10 +75,10 @@ public class LocationSpotValidator : IContentValidator
         // Check required fields
         foreach (string field in _requiredFields)
         {
-            if (!spot.TryGetProperty(field, out _))
+            if (!location.TryGetProperty(field, out _))
             {
                 errors.Add(new ValidationError(
-                    $"{fileName}:{spotId}",
+                    $"{fileName}:{LocationId}",
                     $"Missing required field: {field}",
                     ValidationSeverity.Critical));
             }
@@ -87,7 +87,7 @@ public class LocationSpotValidator : IContentValidator
         // Type field removed - no longer needed
 
         // Validate CurrentTimeBlocks array (capital C to match JSON)
-        if (spot.TryGetProperty("CurrentTimeBlocks", out JsonElement timeBlocks) &&
+        if (location.TryGetProperty("CurrentTimeBlocks", out JsonElement timeBlocks) &&
             timeBlocks.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement timeBlock in timeBlocks.EnumerateArray())
@@ -99,7 +99,7 @@ public class LocationSpotValidator : IContentValidator
                         !EnumParser.TryParse<TimeBlocks>(timeStr, out _))
                     {
                         errors.Add(new ValidationError(
-                            $"{fileName}:{spotId}",
+                            $"{fileName}:{LocationId}",
                             $"Invalid time block: '{timeStr}'",
                             ValidationSeverity.Warning));
                     }
@@ -108,7 +108,7 @@ public class LocationSpotValidator : IContentValidator
         }
 
         // Validate domainTags array
-        if (spot.TryGetProperty("domainTags", out JsonElement domainTags) &&
+        if (location.TryGetProperty("domainTags", out JsonElement domainTags) &&
             domainTags.ValueKind == JsonValueKind.Array)
         {
             foreach (JsonElement tag in domainTags.EnumerateArray())
@@ -120,7 +120,7 @@ public class LocationSpotValidator : IContentValidator
                         !EnumParser.TryParse<DomainTag>(tagStr, out _))
                     {
                         errors.Add(new ValidationError(
-                            $"{fileName}:{spotId}",
+                            $"{fileName}:{LocationId}",
                             $"Invalid domain tag: '{tagStr}'",
                             ValidationSeverity.Warning));
                     }

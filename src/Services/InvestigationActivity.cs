@@ -176,10 +176,10 @@ public class InvestigationActivity
                 // Create new goal for newly unlocked phase
                 ChallengeGoal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
 
-                // Derive venue from spot (SpotId is globally unique)
-                LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == phaseDef.SpotId);
+                // Derive venue from location (LocationId is globally unique)
+                LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == phaseDef.LocationId);
                 Venue venue = spotEntry != null
-                    ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
+                    ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
                     : null;
 
                 if (venue != null)
@@ -188,7 +188,7 @@ public class InvestigationActivity
                     {
                         GoalName = phaseDef.Name,
                         LocationName = venue.Name,
-                        SpotName = spotEntry.Spot.Name
+                        SpotName = spotEntry.location.Name
                     });
                 }
             }
@@ -308,7 +308,7 @@ public class InvestigationActivity
             Description = phaseDef.Description,
             SystemType = phaseDef.SystemType,
             ChallengeTypeId = phaseDef.ChallengeTypeId,
-            SpotId = phaseDef.SpotId,
+            LocationId = phaseDef.LocationId,
             NpcId = phaseDef.NpcId,
             NPCRequestId = phaseDef.RequestId,
             InvestigationId = investigationId,
@@ -384,13 +384,13 @@ public class InvestigationActivity
 
         // Create intro action as LocationGoal
         ChallengeGoal introGoal = CreateIntroGoalFromInvestigation(investigation);
-        Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', SpotID='{introGoal.SpotId}'");
+        Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', LocationId='{introGoal.LocationId}'");
 
-        // Derive venue from spot (SpotId is globally unique)
-        LocationSpotEntry spotEntry = _gameWorld.Spots.FirstOrDefault(s => s.Spot.Id == investigation.IntroAction.SpotId);
-        LocationSpot spot = spotEntry?.Spot;
+        // Derive venue from location (LocationId is globally unique)
+        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);
+        Location location = spotEntry?.location;
         Venue venue = spotEntry != null
-            ? _gameWorld.Locations.FirstOrDefault(l => l.Id == spotEntry.Spot.VenueId)
+            ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
             : null;
 
         // Create discovery result for UI modal
@@ -402,7 +402,7 @@ public class InvestigationActivity
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
             LocationName = venue?.Name ?? "Unknown Venue",
-            SpotName = spot?.Name ?? investigation.IntroAction.SpotId
+            SpotName = location?.Name ?? investigation.IntroAction.LocationId
         };
         _pendingDiscoveryResult = discoveryResult;
 
@@ -456,7 +456,7 @@ public class InvestigationActivity
             Description = $"Begin investigation: {investigation.Name}",
             SystemType = intro.SystemType,
             ChallengeTypeId = intro.ChallengeTypeId,
-            SpotId = intro.SpotId,
+            LocationId = intro.LocationId,
             NpcId = intro.NpcId,
             NPCRequestId = intro.RequestId,
             InvestigationId = investigation.Id,

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public class LocationSpot
+public class Location
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -11,7 +11,7 @@ public class LocationSpot
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    public Dictionary<TimeBlocks, List<SpotPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<SpotPropertyType>>();
+    public Dictionary<TimeBlocks, List<LocationPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<LocationPropertyType>>();
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
@@ -20,8 +20,8 @@ public class LocationSpot
     public AccessRequirement AccessRequirement { get; set; }
 
     public List<ChallengeGoal> Goals { get; set; } = new List<ChallengeGoal>();
-    public List<SpotPropertyType> SpotProperties { get; set; } = new List<SpotPropertyType>();
-    public List<string> Properties => SpotProperties.Select(p => p.ToString()).ToList();
+    public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
+    public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 
     public int FlowModifier { get; set; } = 0;
     public int Tier { get; set; } = 1;
@@ -55,11 +55,11 @@ public class LocationSpot
     // Gameplay properties moved from Location
     public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
     public List<string> DomainTags { get; set; } = new List<string>();
-    public LocationSpotTypes LocationType { get; set; } = LocationSpotTypes.Crossroads;
+    public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
     public string? Description { get; internal set; }
 
-    public LocationSpot(string id, string name)
+    public Location(string id, string name)
     {
         Id = id;
         Name = name;
@@ -68,9 +68,9 @@ public class LocationSpot
     /// <summary>
     /// Get active properties for the current time, combining base and time-specific
     /// </summary>
-    public List<SpotPropertyType> GetActiveProperties(TimeBlocks currentTime)
+    public List<LocationPropertyType> GetActiveProperties(TimeBlocks currentTime)
     {
-        List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(SpotProperties);
+        List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
 
         if (TimeSpecificProperties.ContainsKey(currentTime))
         {
@@ -81,57 +81,57 @@ public class LocationSpot
     }
 
     /// <summary>
-    /// Calculate the flow modifier for conversations at this spot
-    /// Based on spot properties and the NPC's personality
+    /// Calculate the flow modifier for conversations at this location
+    /// Based on location properties and the NPC's personality
     /// </summary>
     public int CalculateFlowModifier(PersonalityType npcPersonality, TimeBlocks currentTime)
     {
-        int modifier = FlowModifier; // Base modifier from spot
+        int modifier = FlowModifier; // Base modifier from location
 
         // Get all active properties (base + time-specific)
-        List<SpotPropertyType> activeProperties = new List<SpotPropertyType>(SpotProperties);
+        List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
         if (TimeSpecificProperties.ContainsKey(currentTime))
         {
             activeProperties.AddRange(TimeSpecificProperties[currentTime]);
         }
 
         // Apply property-based modifiers
-        foreach (SpotPropertyType property in activeProperties)
+        foreach (LocationPropertyType property in activeProperties)
         {
             switch (property)
             {
-                case SpotPropertyType.Private:
+                case LocationPropertyType.Private:
                     modifier += 2;
                     break;
-                case SpotPropertyType.Discrete:
+                case LocationPropertyType.Discrete:
                     modifier += 1;
                     break;
-                case SpotPropertyType.Exposed:
+                case LocationPropertyType.Exposed:
                     modifier -= 1;
                     break;
-                case SpotPropertyType.Quiet:
+                case LocationPropertyType.Quiet:
                     if (npcPersonality == PersonalityType.DEVOTED || npcPersonality == PersonalityType.CUNNING)
                         modifier += 1;
                     break;
-                case SpotPropertyType.Loud:
+                case LocationPropertyType.Loud:
                     if (npcPersonality == PersonalityType.MERCANTILE)
                         modifier += 1;
                     else
                         modifier -= 1;
                     break;
-                case SpotPropertyType.NobleFavored:
+                case LocationPropertyType.NobleFavored:
                     if (npcPersonality == PersonalityType.PROUD)
                         modifier += 1;
                     break;
-                case SpotPropertyType.CommonerHaunt:
+                case LocationPropertyType.CommonerHaunt:
                     if (npcPersonality == PersonalityType.STEADFAST)
                         modifier += 1;
                     break;
-                case SpotPropertyType.MerchantHub:
+                case LocationPropertyType.MerchantHub:
                     if (npcPersonality == PersonalityType.MERCANTILE)
                         modifier += 1;
                     break;
-                case SpotPropertyType.SacredGround:
+                case LocationPropertyType.SacredGround:
                     if (npcPersonality == PersonalityType.DEVOTED)
                         modifier += 1;
                     break;

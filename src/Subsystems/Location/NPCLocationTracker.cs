@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Tracks NPC positions and availability across locations and spots.
+/// Tracks NPC positions and availability across locations and Locations.
 /// Manages NPC scheduling and focus based on time blocks.
 /// </summary>
 public class NPCLocationTracker
@@ -40,25 +40,25 @@ public class NPCLocationTracker
     }
 
     /// <summary>
-    /// Get NPCs at a specific spot during a time block.
+    /// Get NPCs at a specific location during a time block.
     /// </summary>
-    public List<NPC> GetNPCsAtSpot(string spotId, TimeBlocks timeBlock)
+    public List<NPC> GetNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(spotId)) return new List<NPC>();
+        if (string.IsNullOrEmpty(LocationId)) return new List<NPC>();
 
-        // Use NPCRepository method for spot-specific NPCs
-        return _npcRepository.GetNPCsForLocationSpotAndTime(spotId, timeBlock);
+        // Use NPCRepository method for location-specific NPCs
+        return _npcRepository.GetNPCsForLocationAndTime(LocationId, timeBlock);
     }
 
     /// <summary>
-    /// Get the primary NPC for a spot if available.
+    /// Get the primary NPC for a location if available.
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string spotId, TimeBlocks timeBlock)
+    public NPC GetPrimaryNPCForSpot(string LocationId, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(spotId)) return null;
+        if (string.IsNullOrEmpty(LocationId)) return null;
 
         // Use NPCRepository method
-        return _npcRepository.GetPrimaryNPCForSpot(spotId, timeBlock);
+        return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
     }
 
     /// <summary>
@@ -84,14 +84,14 @@ public class NPCLocationTracker
     }
 
     /// <summary>
-    /// Check if an NPC is at a specific spot.
+    /// Check if an NPC is at a specific location.
     /// </summary>
-    public bool IsNPCAtSpot(string npcId, string spotId)
+    public bool IsNPCAtSpot(string npcId, string LocationId)
     {
-        if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(spotId)) return false;
+        if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
-        return npc?.SpotId?.Equals(spotId, StringComparison.OrdinalIgnoreCase) == true;
+        return npc?.LocationId?.Equals(LocationId, StringComparison.OrdinalIgnoreCase) == true;
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class NPCLocationTracker
             NPCId = npcId,
             NPCName = npc.Name,
             VenueId = npc.Venue,
-            SpotId = npc.SpotId,
+            LocationId = npc.LocationId,
             TimeSlots = new List<NPCTimeSlot>()
         };
 
@@ -132,7 +132,7 @@ public class NPCLocationTracker
                 TimeBlock = timeBlock,
                 IsAvailable = npc.IsAvailable(timeBlock),
                 VenueId = npc.Venue,
-                SpotId = npc.SpotId
+                LocationId = npc.LocationId
             });
         }
 
@@ -158,7 +158,7 @@ public class NPCLocationTracker
                         NPCId = npc.ID,
                         NPCName = npc.Name,
                         TimeBlock = timeBlock,
-                        SpotId = npc.SpotId
+                        LocationId = npc.LocationId
                     });
                 }
             }
@@ -182,7 +182,7 @@ public class NPCLocationTracker
             NPCId = npc.ID,
             NPCName = npc.Name,
             VenueId = npc.Venue,
-            SpotId = npc.SpotId,
+            LocationId = npc.LocationId,
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }
@@ -212,11 +212,11 @@ public class NPCLocationTracker
     }
 
     /// <summary>
-    /// Count NPCs at a spot during a specific time.
+    /// Count NPCs at a location during a specific time.
     /// </summary>
-    public int CountNPCsAtSpot(string spotId, TimeBlocks timeBlock)
+    public int CountNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
     {
-        return GetNPCsAtSpot(spotId, timeBlock).Count;
+        return GetNPCsAtSpot(LocationId, timeBlock).Count;
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ public class NPCSchedule
     public string NPCId { get; set; }
     public string NPCName { get; set; }
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
     public List<NPCTimeSlot> TimeSlots { get; set; }
 }
 
@@ -263,7 +263,7 @@ public class NPCTimeSlot
     public TimeBlocks TimeBlock { get; set; }
     public bool IsAvailable { get; set; }
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 }
 
 /// <summary>
@@ -274,7 +274,7 @@ public class FutureNPCFocus
     public string NPCId { get; set; }
     public string NPCName { get; set; }
     public TimeBlocks TimeBlock { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 }
 
 /// <summary>
@@ -285,6 +285,6 @@ public class NPCLocation
     public string NPCId { get; set; }
     public string NPCName { get; set; }
     public string VenueId { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
     public bool IsCurrentlyAvailable { get; set; }
 }

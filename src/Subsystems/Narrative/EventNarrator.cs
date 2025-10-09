@@ -225,7 +225,7 @@ public class EventNarrator
     /// <summary>
     /// Generate venue arrival narrative
     /// </summary>
-    public string GenerateArrivalText(Venue venue, LocationSpot entrySpot)
+    public string GenerateArrivalText(Venue venue, Location entrySpot)
     {
         if (venue == null) return "You arrive at an unknown venue.";
 
@@ -241,7 +241,7 @@ public class EventNarrator
     /// <summary>
     /// Generate venue departure narrative
     /// </summary>
-    public string GenerateDepartureText(Venue venue, LocationSpot exitSpot)
+    public string GenerateDepartureText(Venue venue, Location exitSpot)
     {
         if (venue == null) return "You depart from your current venue.";
 
@@ -255,9 +255,9 @@ public class EventNarrator
     }
 
     /// <summary>
-    /// Generate movement between spots narrative
+    /// Generate movement between Locations narrative
     /// </summary>
-    public string GenerateMovementText(LocationSpot fromSpot, LocationSpot toSpot)
+    public string GenerateMovementText(Location fromSpot, Location toSpot)
     {
         if (fromSpot == null || toSpot == null)
             return "You move to a new area.";

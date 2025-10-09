@@ -30,7 +30,7 @@ public enum LocationTag
     AleScented,     // Can notice who's drinking, loose tongues
     MusicDrifting,  // Can observe reactions to music, covered sounds
     Sunny,          // Can see clearly, notice visual details
-    Shadowed,       // Can spot hidden figures, concealed items
+    Shadowed,       // Can location hidden figures, concealed items
 
     // Activity types that provide context
     MarketDay,      // Can observe diplomacy, trades, deals

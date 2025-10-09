@@ -80,9 +80,9 @@ public class AreaWithinLocationViewModel
 {
     public string Name { get; set; }
     public string Detail { get; set; }
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
     public bool IsCurrent { get; set; }
-    public bool IsTravelHub { get; set; } // Indicates if this spot allows travel
+    public bool IsTravelHub { get; set; } // Indicates if this location allows travel
 }
 
 public class RouteOptionViewModel

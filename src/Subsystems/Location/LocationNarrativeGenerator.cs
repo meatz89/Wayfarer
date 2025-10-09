@@ -16,7 +16,7 @@ public class NarrativeContext
 }
 
 /// <summary>
-/// Generates narrative text and atmospheric descriptions for locations and spots.
+/// Generates narrative text and atmospheric descriptions for locations and Locations.
 /// Creates immersive descriptions based on time, properties, and context.
 /// </summary>
 public class LocationNarrativeGenerator
@@ -31,17 +31,17 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate atmosphere text for a Venue spot.
+    /// Generate atmosphere text for a Venue location.
     /// </summary>
     public string GenerateAtmosphereText(
-        LocationSpot spot,
+        Location location,
         Venue venue,
         TimeBlocks currentTime,
         int npcsPresent)
     {
-        if (spot != null)
+        if (location != null)
         {
-            return GenerateSpotAtmosphere(spot, currentTime, npcsPresent);
+            return GenerateSpotAtmosphere(location, currentTime, npcsPresent);
         }
         else if (venue != null)
         {
@@ -52,18 +52,18 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate atmosphere text specific to a spot.
+    /// Generate atmosphere text specific to a location.
     /// </summary>
     private string GenerateSpotAtmosphere(
-        LocationSpot spot,
+        Location location,
         TimeBlocks currentTime,
         int npcsPresent)
     {
-        SpotDescriptionGenerator descGenerator = new SpotDescriptionGenerator();
-        List<SpotPropertyType> activeProperties = spot.GetActiveProperties(currentTime);
+        LocationDescriptionGenerator descGenerator = new LocationDescriptionGenerator();
+        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Debug log
-        Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {spot.Id}");
+        Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {location.Id}");
         Console.WriteLine($"  Properties: {string.Join(", ", activeProperties)}");
         Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}");
 
@@ -79,7 +79,7 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id).Description))
+        if (string.IsNullOrEmpty(_gameWorld.WorldState.locations.FirstOrDefault(x => x.Id == venue.Id)?.Description))
         {
             return GenerateDefaultLocationDescription(venue, currentTime);
         }
@@ -141,7 +141,7 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate a brief description for entering a new venue.
     /// </summary>
-    public string GenerateArrivalText(Venue venue, LocationSpot entrySpot)
+    public string GenerateArrivalText(Venue venue, Location entrySpot)
     {
         if (venue == null) return "You arrive at an unknown venue.";
 
@@ -157,7 +157,7 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate text for leaving a venue.
     /// </summary>
-    public string GenerateDepartureText(Venue venue, LocationSpot exitSpot)
+    public string GenerateDepartureText(Venue venue, Location exitSpot)
     {
         if (venue == null) return "You depart from your current venue.";
 
@@ -171,9 +171,9 @@ public class LocationNarrativeGenerator
     }
 
     /// <summary>
-    /// Generate a description for movement between spots.
+    /// Generate a description for movement between Locations.
     /// </summary>
-    public string GenerateMovementText(LocationSpot fromSpot, LocationSpot toSpot)
+    public string GenerateMovementText(Location fromSpot, Location toSpot)
     {
         if (fromSpot == null || toSpot == null)
             return "You move to a new area.";
@@ -184,14 +184,14 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate contextual flavor text based on current conditions.
     /// </summary>
-    public string GenerateContextualFlavor(LocationSpot spot, NarrativeContext context)
+    public string GenerateContextualFlavor(Location location, NarrativeContext context)
     {
         List<string> flavorParts = new List<string>();
 
         // Check for weather effects
         if (!string.IsNullOrEmpty(context?.Weather))
         {
-            string weatherFlavor = GetWeatherFlavor(context.Weather, spot);
+            string weatherFlavor = GetWeatherFlavor(context.Weather, location);
             if (!string.IsNullOrEmpty(weatherFlavor))
                 flavorParts.Add(weatherFlavor);
         }
@@ -214,11 +214,11 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Get weather-specific flavor text.
     /// </summary>
-    private string GetWeatherFlavor(string weather, LocationSpot spot)
+    private string GetWeatherFlavor(string weather, Location location)
     {
-        // Assume we're outdoors unless spot has warm/shaded properties (indicating shelter)
-        bool isIndoor = spot?.SpotProperties?.Contains(SpotPropertyType.Warm) == true ||
-                       spot?.SpotProperties?.Contains(SpotPropertyType.Shaded) == true;
+        // Assume we're outdoors unless location has warm/shaded properties (indicating shelter)
+        bool isIndoor = location?.LocationProperties?.Contains(LocationPropertyType.Warm) == true ||
+                       location?.LocationProperties?.Contains(LocationPropertyType.Shaded) == true;
 
         return weather switch
         {
@@ -235,14 +235,14 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate observation prompt text.
     /// </summary>
-    public string GenerateObservationPrompt(Venue venue, LocationSpot spot)
+    public string GenerateObservationPrompt(Venue venue, Location location)
     {
-        if (spot != null)
+        if (location != null)
         {
-            List<SpotPropertyType> properties = spot.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
-            if (properties.Contains(SpotPropertyType.ViewsMarket))
+            List<LocationPropertyType> properties = location.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
+            if (properties.Contains(LocationPropertyType.ViewsMarket))
                 return "The area has several interesting details worth observing.";
-            if (properties.Contains(SpotPropertyType.Commercial))
+            if (properties.Contains(LocationPropertyType.Commercial))
                 return "The bustling diplomacy provides many things to notice.";
         }
 

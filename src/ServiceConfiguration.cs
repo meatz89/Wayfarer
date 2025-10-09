@@ -143,11 +143,11 @@ public static class ServiceConfiguration
         services.AddScoped<MusicService>();
 
         // Venue Subsystem
-        services.AddSingleton<LocationSpotManager>();
-        services.AddSingleton<LocationSpotManager>();
+        services.AddSingleton<LocationManager>();
+        services.AddSingleton<LocationManager>();
         services.AddSingleton<MovementValidator>();
         services.AddSingleton<NPCLocationTracker>();
-        services.AddSingleton<LocationSpotActionManager>();
+        services.AddSingleton<LocationActionManager>();
         services.AddSingleton<LocationNarrativeGenerator>();
         services.AddSingleton<LocationFacade>();
 

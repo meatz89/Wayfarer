@@ -113,11 +113,11 @@ public class DialogueGenerationService
     }
 
     /// <summary>
-    /// Generate atmosphere description from spot properties
+    /// Generate atmosphere description from location properties
     /// Returns categorical template, NOT English text
     /// </summary>
     public string GenerateAtmosphereDescription(
-        List<SpotPropertyType> properties,
+        List<LocationPropertyType> properties,
         TimeBlocks timeBlock,
         int urgentObligations,
         int npcsPresent)
@@ -128,7 +128,7 @@ public class DialogueGenerationService
         elements.Add($"time:{timeBlock.ToString().ToLower()}");
 
         // Add property-based elements
-        foreach (SpotPropertyType prop in properties)
+        foreach (LocationPropertyType prop in properties)
         {
             elements.Add($"property:{prop.ToString().ToLower()}");
         }

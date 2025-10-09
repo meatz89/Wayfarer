@@ -516,7 +516,7 @@ namespace Wayfarer.Pages.Components
             if (GameFacade == null) return ("Unknown Location", "", "");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
-            LocationSpot currentSpot = GameFacade.GetCurrentLocationSpot();
+            Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
                 return ("Unknown Location", "", "");
@@ -528,14 +528,14 @@ namespace Wayfarer.Pages.Components
             return (locationName, spotName, spotTraits);
         }
 
-        private string GetSpotTraits(LocationSpot spot)
+        private string GetSpotTraits(Location location)
         {
-            if (spot?.SpotProperties == null || !spot.SpotProperties.Any())
+            if (location?.LocationProperties == null || !location.LocationProperties.Any())
                 return "";
 
             List<string> propertyDescriptions = new List<string>();
 
-            foreach (SpotPropertyType property in spot.SpotProperties)
+            foreach (LocationPropertyType property in location.LocationProperties)
             {
                 string description = property.ToString();
                 propertyDescriptions.Add(description);

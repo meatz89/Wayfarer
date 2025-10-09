@@ -1,8 +1,8 @@
 /// <summary>
-/// Categorical properties of Venue spots that affect conversation mechanics
+/// Categorical properties of Venue locations that affect conversation mechanics
 /// These properties influence flow modifiers, card availability, and NPC willingness
 /// </summary>
-public enum SpotPropertyType
+public enum LocationPropertyType
 {
     // Privacy properties
     Private,        // +2 flow, enables intimate cards

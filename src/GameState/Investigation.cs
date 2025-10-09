@@ -54,8 +54,8 @@ public class InvestigationPhaseDefinition
     public TacticalSystemType SystemType { get; set; }
     public string ChallengeTypeId { get; set; }
 
-    // Spot assignment (SpotId is globally unique)
-    public string SpotId { get; set; }
+    // location assignment (LocationId is globally unique)
+    public string LocationId { get; set; }
 
     // NPC assignment (Social goals)
     public string NpcId { get; set; }
@@ -108,9 +108,9 @@ public class InvestigationIntroAction
     public string ChallengeTypeId { get; set; }
 
     /// <summary>
-    /// Spot where intro action appears (SpotId is globally unique)
+    /// location where intro action appears (LocationId is globally unique)
     /// </summary>
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 
     /// <summary>
     /// NPC for intro conversation (Social only)
@@ -135,9 +135,9 @@ public class InvestigationIntroAction
 public class InvestigationPrerequisites
 {
     /// <summary>
-    /// Required spot (SpotId is globally unique)
+    /// Required location (LocationId is globally unique)
     /// </summary>
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 
     /// <summary>
     /// Required knowledge IDs (ConversationalDiscovery)

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Goal available at a Venue spot that spawns tactical engagement
+/// Goal available at a Venue location that spawns tactical engagement
 /// Parallel to NPCRequest but for location-based Mental/Physical challenges
 /// </summary>
 public class ChallengeGoal
@@ -21,10 +21,10 @@ public class ChallengeGoal
     public string ChallengeTypeId { get; set; }
 
     /// <summary>
-    /// Spot ID where this goal is available (null = available at all spots in location)
+    /// location ID where this goal is available (null = available at all Locations in location)
     /// Mental/Physical use this
     /// </summary>
-    public string SpotId { get; set; }
+    public string LocationId { get; set; }
 
     /// <summary>
     /// NPC ID for Social system goals

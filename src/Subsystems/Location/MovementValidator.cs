@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 
 /// <summary>
-/// Validates movement between locations and spots.
+/// Validates movement between locations and Locations.
 /// Enforces movement rules and access requirements.
 /// </summary>
 public class MovementValidator
@@ -17,7 +17,7 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Validate that a spot name is valid.
+    /// Validate that a location name is valid.
     /// </summary>
     public bool ValidateSpotName(string spotName)
     {
@@ -27,13 +27,13 @@ public class MovementValidator
     /// <summary>
     /// Validate the current state before movement.
     /// </summary>
-    public bool ValidateCurrentState(Player player, Venue currentLocation, LocationSpot currentSpot)
+    public bool ValidateCurrentState(Player player, Venue currentLocation, Location currentSpot)
     {
         if (player == null) return false;
         if (currentSpot == null) return false;
         if (currentLocation == null) return false;
 
-        // Verify consistency between Venue and spot
+        // Verify consistency between Venue and location
         if (!currentSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -43,9 +43,9 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Check if the player is already at the target spot.
+    /// Check if the player is already at the target location.
     /// </summary>
-    public bool IsAlreadyAtSpot(LocationSpot currentSpot, string targetSpotIdentifier)
+    public bool IsAlreadyAtSpot(Location currentSpot, string targetSpotIdentifier)
     {
         if (currentSpot == null || string.IsNullOrEmpty(targetSpotIdentifier)) return false;
 
@@ -54,25 +54,25 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Validate movement from one spot to another.
+    /// Validate movement from one location to another.
     /// </summary>
-    public MovementValidationResult ValidateMovement(Venue currentLocation, LocationSpot currentSpot, LocationSpot targetSpot)
+    public MovementValidationResult ValidateMovement(Venue currentLocation, Location currentSpot, Location targetSpot)
     {
         MovementValidationResult result = new MovementValidationResult { IsValid = true };
 
-        // Check target spot exists
+        // Check target location exists
         if (targetSpot == null)
         {
             result.IsValid = false;
-            result.ErrorMessage = "Target spot does not exist";
+            result.ErrorMessage = "Target location does not exist";
             return result;
         }
 
-        // Verify spot belongs to current location
+        // Verify location belongs to current location
         if (!targetSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
         {
             result.IsValid = false;
-            result.ErrorMessage = "Cannot move to a spot in a different location";
+            result.ErrorMessage = "Cannot move to a location in a different location";
             return result;
         }
 
@@ -83,24 +83,24 @@ public class MovementValidator
             if (!accessCheck.IsAllowed)
             {
                 result.IsValid = false;
-                result.ErrorMessage = accessCheck.BlockedMessage ?? "Cannot access this spot";
+                result.ErrorMessage = accessCheck.BlockedMessage ?? "Cannot access this location";
                 return result;
             }
         }
 
-        // Check if movement is possible based on spot properties
+        // Check if movement is possible based on location properties
         if (!CanMoveFromSpot(currentSpot))
         {
             result.IsValid = false;
-            result.ErrorMessage = "Cannot move from current spot at this time";
+            result.ErrorMessage = "Cannot move from current location at this time";
             return result;
         }
 
-        // Check if target spot is accessible at current time
+        // Check if target location is accessible at current time
         if (!IsSpotAccessible(targetSpot))
         {
             result.IsValid = false;
-            result.ErrorMessage = "Target spot is not accessible at this time";
+            result.ErrorMessage = "Target location is not accessible at this time";
             return result;
         }
 
@@ -108,26 +108,26 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Check if movement is possible from a spot.
+    /// Check if movement is possible from a location.
     /// </summary>
-    public bool CanMoveFromSpot(LocationSpot spot)
+    public bool CanMoveFromSpot(Location location)
     {
-        if (spot == null) return false;
+        if (location == null) return false;
 
-        // Check if spot has any restrictions on leaving
-        // For now, all spots allow movement unless explicitly restricted
+        // Check if location has any restrictions on leaving
+        // For now, all Locations allow movement unless explicitly restricted
 
         return true;
     }
 
     /// <summary>
-    /// Check if a spot is accessible at the current time.
+    /// Check if a location is accessible at the current time.
     /// </summary>
-    public bool IsSpotAccessible(LocationSpot spot)
+    public bool IsSpotAccessible(Location location)
     {
-        if (spot == null) return false;
+        if (location == null) return false;
 
-        // Check if spot has time-based restrictions
+        // Check if location has time-based restrictions
         // These restrictions are now handled through time-specific properties
 
         return true;
