@@ -6,6 +6,123 @@ You're absolutely right. Claude Code only sees claude.md. Let me inline ALL the 
 
 ---
 
+## GITHUB PROJECTS BOARD - MANDATORY INFRASTRUCTURE
+
+**⚠️ ABSOLUTE REQUIREMENT - NO EXCEPTIONS ⚠️**
+
+**Board URL**: https://github.com/users/meatz89/projects/3
+**Name**: Wayfarer Development
+**Linked to**: meatz89/Wayfarer repository
+
+### MANDATORY BOARD WORKFLOW
+
+**EVERY SINGLE TASK MUST:**
+1. ✅ Exist as GitHub issue on the board
+2. ✅ Move through **Todo → In Progress → Done** workflow
+3. ✅ Have **Priority** set (🔴 High, 🟡 Medium, 🟢 Low)
+4. ✅ Have **Story Points** estimated (1, 2, 3, 5, 8, 13)
+5. ✅ Have **Sprint** field populated
+
+**NO WORK HAPPENS OFF THE BOARD. PERIOD.**
+
+If it's not on the board, it doesn't exist.
+If it's not moving through the workflow, it's not being tracked.
+If it's not tracked, you're causing chaos.
+
+### Board Fields Reference
+
+**Status** (MANDATORY Kanban workflow):
+- `Todo` - Ready to start, prioritized in backlog
+- `In Progress` - Currently being worked (ONLY ONE per person)
+- `Done` - Completed and validated by QA
+
+**Priority** (MANDATORY for planning):
+- 🔴 **High** - Blocking, critical, must complete this sprint
+- 🟡 **Medium** - Important, should complete this sprint
+- 🟢 **Low** - Nice to have, complete if time permits
+
+**Sprint** (MANDATORY for tracking):
+- Text field: "Sprint YYYY-MM-DD" or "Sprint N"
+- Every task MUST have sprint assigned
+
+**Story Points** (MANDATORY for velocity):
+- Fibonacci scale: 1, 2, 3, 5, 8, 13
+- 1 = Trivial (< 1 hour)
+- 2 = Simple (1-2 hours)
+- 3 = Moderate (2-4 hours)
+- 5 = Complex (4-8 hours)
+- 8 = Very complex (full day)
+- 13 = Epic (needs breakdown)
+
+### Sprint Phase Board Integration
+
+**PHASE 1: PLANNING**
+1. Create GitHub issue for EACH task (gh issue create)
+2. Add to board (gh project item-add)
+3. Set Priority, Story Points, Sprint
+4. Set Status = "Todo"
+5. ORDER by priority (High → Medium → Low)
+
+**PHASE 2: EXECUTION**
+**BEFORE touching ANY code:**
+1. Move ONE task: Todo → In Progress
+2. ONLY ONE task In Progress at a time
+3. Update board as work progresses
+
+**AFTER completing work:**
+1. Move task: In Progress → Done
+2. Add completion notes/PR link to issue
+
+**PHASE 3: REVIEW**
+QA-Engineer validates board matches reality:
+- ✅ Task in "Done" → stays in Done
+- ❌ Task incomplete → moves to "Todo" with feedback
+- Board status = source of truth
+
+**PHASE 4: RETROSPECTIVE**
+1. Count completed story points (velocity)
+2. Review board for sprint performance
+3. Document learnings
+4. Archive/close completed tasks
+
+### Critical Board Commands
+
+**Create task and add to board:**
+```bash
+gh issue create --repo meatz89/Wayfarer --title "..." --body "..."
+gh project item-add 3 --owner meatz89 --url [issue-url]
+```
+
+**View board:**
+```bash
+gh project view 3 --owner meatz89
+gh project item-list 3 --owner meatz89
+```
+
+**Move task (manual or via web UI)**:
+- Drag and drop in web UI is fastest
+- Or use: gh project item-edit commands
+
+### Why This Is MANDATORY
+
+**WITHOUT the board:**
+- ❌ Zero visibility into progress
+- ❌ Can't tell what's done vs. in-progress
+- ❌ No velocity measurements
+- ❌ Chaos, confusion, wasted time
+
+**WITH the board:**
+- ✅ Crystal clear sprint status
+- ✅ Every task tracked and visible
+- ✅ Accurate velocity metrics
+- ✅ Professional, organized workflow
+
+**USE THE BOARD OR FACE GORDON RAMSAY WRATH.**
+
+This is not a suggestion. This is not optional. This is MANDATORY infrastructure.
+
+---
+
 ## SPRINT PHASES
 
 ### PHASE 1: PLANNING (Context-Heavy)
