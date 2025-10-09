@@ -4,15 +4,15 @@ using System.Linq;
 /// <summary>
 /// Physical challenge mastery tracking - list-based, not dictionary.
 /// Parallel to NPCTokenEntry for Social system and FamiliarityEntry for Mental system.
-/// Each entry tracks mastery tokens earned for a specific physical challenge type.
+/// Each entry tracks mastery tokens earned for a specific physical challenge deck.
 /// </summary>
 public class MasteryTokenEntry
 {
     /// <summary>
-    /// References PhysicalChallengeType.Id (string, not enum).
+    /// References physical challenge deck ID (string).
     /// Examples: "combat", "athletics", "finesse", "endurance", "strength"
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     /// <summary>
     /// Number of mastery tokens earned for this challenge type.
@@ -29,23 +29,23 @@ public class MasteryTokenEntry
 public static class MasteryTokenExtensions
 {
     /// <summary>
-    /// Get mastery token count for a specific challenge type.
+    /// Get mastery token count for a specific challenge deck.
     /// Returns 0 if no entry exists.
     /// </summary>
-    public static int GetMastery(this List<MasteryTokenEntry> tokens, string challengeTypeId)
+    public static int GetMastery(this List<MasteryTokenEntry> tokens, string deckId)
     {
-        return tokens.FirstOrDefault(t => t.ChallengeTypeId == challengeTypeId)?.TokenCount ?? 0;
+        return tokens.FirstOrDefault(t => t.DeckId == deckId)?.TokenCount ?? 0;
     }
 
     /// <summary>
-    /// Add mastery tokens for a specific challenge type.
+    /// Add mastery tokens for a specific challenge deck.
     /// Creates new entry if it doesn't exist.
     /// </summary>
-    public static void AddMastery(this List<MasteryTokenEntry> tokens, string challengeTypeId, int count)
+    public static void AddMastery(this List<MasteryTokenEntry> tokens, string deckId, int count)
     {
-        if (count <= 0 || string.IsNullOrEmpty(challengeTypeId)) return;
+        if (count <= 0 || string.IsNullOrEmpty(deckId)) return;
 
-        MasteryTokenEntry entry = tokens.FirstOrDefault(t => t.ChallengeTypeId == challengeTypeId);
+        MasteryTokenEntry entry = tokens.FirstOrDefault(t => t.DeckId == deckId);
         if (entry != null)
         {
             entry.TokenCount += count;
@@ -54,21 +54,21 @@ public static class MasteryTokenExtensions
         {
             tokens.Add(new MasteryTokenEntry
             {
-                ChallengeTypeId = challengeTypeId,
+                DeckId = deckId,
                 TokenCount = count
             });
         }
     }
 
     /// <summary>
-    /// Set mastery token count for a specific challenge type (overwrite).
+    /// Set mastery token count for a specific challenge deck (overwrite).
     /// Creates new entry if it doesn't exist.
     /// </summary>
-    public static void SetMastery(this List<MasteryTokenEntry> tokens, string challengeTypeId, int count)
+    public static void SetMastery(this List<MasteryTokenEntry> tokens, string deckId, int count)
     {
-        if (string.IsNullOrEmpty(challengeTypeId)) return;
+        if (string.IsNullOrEmpty(deckId)) return;
 
-        MasteryTokenEntry entry = tokens.FirstOrDefault(t => t.ChallengeTypeId == challengeTypeId);
+        MasteryTokenEntry entry = tokens.FirstOrDefault(t => t.DeckId == deckId);
         if (entry != null)
         {
             entry.TokenCount = count;
@@ -77,7 +77,7 @@ public static class MasteryTokenExtensions
         {
             tokens.Add(new MasteryTokenEntry
             {
-                ChallengeTypeId = challengeTypeId,
+                DeckId = deckId,
                 TokenCount = count
             });
         }

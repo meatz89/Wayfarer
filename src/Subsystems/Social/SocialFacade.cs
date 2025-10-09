@@ -112,7 +112,7 @@ public class SocialFacade
         {
             NPC = npc,
             RequestId = requestId,
-            ChallengeTypeId = goal.DeckId,
+            DeckId = goal.DeckId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -1023,7 +1023,7 @@ public class SocialFacade
     private ConnectionType DetermineConnectionTypeFromConversation(SocialSession session)
     {
         // Map conversation types to their corresponding connection types
-        return session.ChallengeTypeId switch
+        return session.DeckId switch
         {
             // Diplomacy removed - exchanges use separate Exchange system
             "request" => ConnectionType.Trust, // Request bundles with promise cards

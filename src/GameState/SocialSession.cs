@@ -5,7 +5,7 @@ public class SocialSession
 {
     public NPC NPC { get; set; }
     public string RequestId { get; set; }
-    public string ChallengeTypeId { get; set; }  // THREE PARALLEL SYSTEMS: Social engagement type ID
+    public string DeckId { get; set; }  // THREE PARALLEL SYSTEMS: Social engagement deck ID
     public int CurrentMomentum { get; set; } = 0;
     public int CurrentDoubt { get; set; } = 0;
     public int MaxDoubt { get; set; } = 10;

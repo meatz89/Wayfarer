@@ -62,12 +62,6 @@ public class PackageContent
     public List<GoalDTO> Goals { get; set; }
 
     /// <summary>
-    /// NPC goal cards - goal cards specific to NPCs (promises, connection tokens, etc)
-    /// DEPRECATED: Being replaced by Goal system
-    /// </summary>
-    public List<GoalCardDTO> NpcGoalCards { get; set; }
-
-    /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments
     /// </summary>
     public List<SocialCardDTO> PromiseCards { get; set; }

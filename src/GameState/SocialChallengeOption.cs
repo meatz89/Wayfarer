@@ -12,9 +12,9 @@ public class SocialChallengeOption
     public string RequestId { get; set; }
 
     /// <summary>
-    /// THREE PARALLEL SYSTEMS: The engagement type ID from the request (Social system)
+    /// THREE PARALLEL SYSTEMS: The engagement deck ID from the request (Social system)
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     /// <summary>
     /// The specific card ID from the NPC's requests that will be used as the goal card

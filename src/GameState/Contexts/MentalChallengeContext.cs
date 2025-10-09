@@ -6,7 +6,7 @@ public class MentalChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
     public string InvestigationId { get; set; }
     public int PhaseIndex { get; set; }
     public MentalSession Session { get; set; }

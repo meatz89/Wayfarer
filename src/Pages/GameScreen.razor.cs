@@ -403,18 +403,18 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
     {
         Console.WriteLine($"[GameScreen] Starting Mental session: {goalId}");
 
-        MentalSession session = GameFacade.StartMentalSession(challengeTypeId, locationSpotId, goalId, investigationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
-            ChallengeTypeId = challengeTypeId,
+            DeckId = deckId,
             Session = session,
             Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
@@ -454,18 +454,18 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
     {
-        Console.WriteLine($"[GameScreen] Starting Physical session: {challengeTypeId}");
+        Console.WriteLine($"[GameScreen] Starting Physical session: {deckId}");
 
-        PhysicalSession session = GameFacade.StartPhysicalSession(challengeTypeId, locationSpotId, goalId, investigationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
-            ChallengeTypeId = challengeTypeId,
+            DeckId = deckId,
             Session = session,
             Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"

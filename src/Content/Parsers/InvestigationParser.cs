@@ -33,8 +33,8 @@ public class InvestigationParser
     {
         TacticalSystemType systemType = ParseSystemType(dto.SystemType);
 
-        // [Oracle] Validation: challengeTypeId must exist in GameWorld
-        ValidateChallengeTypeId(dto.ChallengeTypeId, systemType, dto.Id);
+        // [Oracle] Validation: deckId must exist in GameWorld
+        ValidateDeckId(dto.DeckId, systemType, dto.Id);
 
         return new InvestigationPhaseDefinition
         {
@@ -44,7 +44,7 @@ public class InvestigationParser
             Goal = dto.Goal,
             OutcomeNarrative = dto.OutcomeNarrative,
             SystemType = systemType,
-            ChallengeTypeId = dto.ChallengeTypeId,
+            DeckId = dto.DeckId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
             Requirements = ParseRequirements(dto.Requirements),
@@ -62,25 +62,25 @@ public class InvestigationParser
         };
     }
 
-    private void ValidateChallengeTypeId(string challengeTypeId, TacticalSystemType systemType, string phaseId)
+    private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
     {
-        if (string.IsNullOrEmpty(challengeTypeId))
+        if (string.IsNullOrEmpty(deckId))
         {
-            throw new InvalidOperationException($"Investigation phase '{phaseId}' has no challengeTypeId specified");
+            throw new InvalidOperationException($"Investigation phase '{phaseId}' has no deckId specified");
         }
 
         bool exists = systemType switch
         {
-            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.ContainsKey(challengeTypeId),
-            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.ContainsKey(challengeTypeId),
-            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.ContainsKey(challengeTypeId),
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.ContainsKey(deckId),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.ContainsKey(deckId),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.ContainsKey(deckId),
             _ => throw new InvalidOperationException($"Unknown TacticalSystemType: {systemType}")
         };
 
         if (!exists)
         {
             throw new InvalidOperationException(
-                $"Investigation phase '{phaseId}' references {systemType} engagement deck '{challengeTypeId}' which does not exist in GameWorld. " +
+                $"Investigation phase '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
                 $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
             );
         }
@@ -122,10 +122,10 @@ public class InvestigationParser
 
         TacticalSystemType systemType = ParseSystemType(dto.SystemType);
 
-        // [Oracle] Validation: challengeTypeId must exist for intro action
-        if (!string.IsNullOrEmpty(dto.ChallengeTypeId))
+        // [Oracle] Validation: deckId must exist for intro action
+        if (!string.IsNullOrEmpty(dto.DeckId))
         {
-            ValidateChallengeTypeId(dto.ChallengeTypeId, systemType, "intro");
+            ValidateDeckId(dto.DeckId, systemType, "intro");
         }
 
         return new InvestigationIntroAction
@@ -134,7 +134,7 @@ public class InvestigationParser
             TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites),
             ActionText = dto.ActionText,
             SystemType = systemType,
-            ChallengeTypeId = dto.ChallengeTypeId,
+            DeckId = dto.DeckId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
             IntroNarrative = dto.IntroNarrative

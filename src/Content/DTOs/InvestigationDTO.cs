@@ -36,7 +36,7 @@ public class InvestigationPhaseDTO
     public string OutcomeNarrative { get; set; }
     public int ProgressThreshold { get; set; }
     public string SystemType { get; set; } // "Social", "Mental", or "Physical"
-    public string ChallengeTypeId { get; set; } // Engagement type ID for Mental/Physical, or conversation type for Social
+    public string DeckId { get; set; } // Deck ID for Mental/Physical/Social challenges
 
     // location assignment (LocationId is globally unique)
     public string LocationId { get; set; }
@@ -91,7 +91,7 @@ public class InvestigationIntroActionDTO
     public InvestigationPrerequisitesDTO TriggerPrerequisites { get; set; }
     public string ActionText { get; set; }
     public string SystemType { get; set; } // "Mental", "Physical", "Social"
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
     public string LocationId { get; set; } // LocationId is globally unique
     public string NpcId { get; set; }
     public string IntroNarrative { get; set; }

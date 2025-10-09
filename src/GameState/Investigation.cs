@@ -52,7 +52,7 @@ public class InvestigationPhaseDefinition
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
     public TacticalSystemType SystemType { get; set; }
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     // location assignment (LocationId is globally unique)
     public string LocationId { get; set; }
@@ -102,9 +102,9 @@ public class InvestigationIntroAction
     public TacticalSystemType SystemType { get; set; }
 
     /// <summary>
-    /// Specific challenge type ID (mental_challenge, physical_challenge, social_challenge)
+    /// Deck ID for tactical challenge (mental_challenge, physical_challenge, social_challenge)
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     /// <summary>
     /// location where intro action appears (LocationId is globally unique)

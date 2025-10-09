@@ -414,16 +414,16 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Start a new Mental tactical session with specified engagement type
+    /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public MentalSession StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        if (!_gameWorld.MentalChallengeDecks.TryGetValue(challengeTypeId, out MentalChallengeDeck challengeDeck))
-            throw new InvalidOperationException($"MentalChallengeDeck {challengeTypeId} not found");
+        if (!_gameWorld.MentalChallengeDecks.TryGetValue(deckId, out MentalChallengeDeck challengeDeck))
+            throw new InvalidOperationException($"MentalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -487,16 +487,16 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Start a new Physical tactical session with specified engagement type
+    /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(challengeTypeId, out PhysicalChallengeDeck challengeDeck))
-            throw new InvalidOperationException($"PhysicalChallengeDeck {challengeTypeId} not found");
+        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(deckId, out PhysicalChallengeDeck challengeDeck))
+            throw new InvalidOperationException($"PhysicalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
