@@ -49,9 +49,9 @@ namespace Wayfarer.Pages.Components
         protected TimeBlocks CurrentTime { get; set; }
         protected List<NPC> NPCsAtSpot { get; set; } = new();
         protected Venue CurrentLocation { get; set; }
-        protected List<ChallengeGoal> AvailableSocialGoals { get; set; } = new();
-        protected List<ChallengeGoal> AvailableMentalGoals { get; set; } = new();
-        protected List<ChallengeGoal> AvailablePhysicalGoals { get; set; } = new();
+        protected List<Goal> AvailableSocialGoals { get; set; } = new();
+        protected List<Goal> AvailableMentalGoals { get; set; } = new();
+        protected List<Goal> AvailablePhysicalGoals { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -254,13 +254,13 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartSocialGoal(ChallengeGoal goal)
+        protected async Task StartSocialGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.NPCRequestId}'");
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' with NPC: '{goal.NpcId}', Request: '{goal.NpcRequestId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversationSession(goal.NpcId, goal.NPCRequestId);
+                await GameScreen.StartConversationSession(goal.NpcId, goal.NpcRequestId);
             }
             else
             {
@@ -268,7 +268,7 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartMentalGoal(ChallengeGoal goal)
+        protected async Task StartMentalGoal(Goal goal)
         {
             Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 
@@ -282,7 +282,7 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartPhysicalGoal(ChallengeGoal goal)
+        protected async Task StartPhysicalGoal(Goal goal)
         {
             Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
 

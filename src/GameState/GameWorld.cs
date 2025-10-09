@@ -42,7 +42,7 @@ public class GameWorld
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
     // Mental cards for investigation system
-    public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
+    public List<Goal> Goals { get; set; } = new List<Goal>();
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system

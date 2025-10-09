@@ -56,12 +56,20 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
 
     /// <summary>
+    /// Goals - strategic layer entities that define UI actions (replaces inline NPC requests)
+    /// Universal across all three tactical systems (Social/Mental/Physical)
+    /// </summary>
+    public List<GoalDTO> Goals { get; set; }
+
+    /// <summary>
     /// NPC goal cards - goal cards specific to NPCs (promises, connection tokens, etc)
+    /// DEPRECATED: Being replaced by Goal system
     /// </summary>
     public List<GoalCardDTO> NpcGoalCards { get; set; }
 
     /// <summary>
     /// NPC requests - bundles of request and promise cards for one-time requests
+    /// DEPRECATED: Being replaced by Goal system
     /// </summary>
     public List<NPCRequestDTO> NpcRequests { get; set; }
 

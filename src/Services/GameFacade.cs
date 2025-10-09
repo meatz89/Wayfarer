@@ -1037,14 +1037,14 @@ public class GameFacade
             Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
 
             // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
-            ChallengeGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
+            Goal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
 
             // Add intro goal directly to the location (Locations are the only entity that matters)
             LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == investigation.IntroAction.LocationId);
             if (spotEntry != null)
             {
                 if (spotEntry.location.Goals == null)
-                    spotEntry.location.Goals = new List<ChallengeGoal>();
+                    spotEntry.location.Goals = new List<Goal>();
                 spotEntry.location.Goals.Add(introGoal);
                 Console.WriteLine($"[InvestigationDiscovery] Added intro goal to location '{spotEntry.location.Id}' ({spotEntry.location.Name})");
             }

@@ -112,24 +112,32 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(GoalCard request)
+        protected string GetRewardsPreview(Goal goal)
         {
-            if (request?.Rewards == null || !request.Rewards.Any())
+            if (goal?.GoalCards == null || !goal.GoalCards.Any())
+            {
+                return "Experience and insights";
+            }
+
+            // Show first goal card's rewards as preview
+            GoalCard firstGoalCard = goal.GoalCards.First();
+            GoalCardRewards rewards = firstGoalCard.Rewards;
+
+            if (rewards == null)
             {
                 return "Experience and insights";
             }
 
             List<string> rewardTexts = new List<string>();
-            GoalReward reward = request.Rewards.First(); // Show first tier reward as preview
 
-            if (reward.Coins > 0)
-                rewardTexts.Add($"{reward.Coins} coins");
-            if (reward.Health > 0)
-                rewardTexts.Add($"+{reward.Health} health");
-            if (reward.Food > 0)
-                rewardTexts.Add($"+{reward.Food} food");
-            if (!string.IsNullOrEmpty(reward.Item))
-                rewardTexts.Add(reward.Item);
+            if (rewards.Coins.HasValue && rewards.Coins.Value > 0)
+                rewardTexts.Add($"{rewards.Coins.Value} coins");
+            if (rewards.Progress.HasValue && rewards.Progress.Value > 0)
+                rewardTexts.Add($"+{rewards.Progress.Value} progress");
+            if (rewards.Breakthrough.HasValue && rewards.Breakthrough.Value > 0)
+                rewardTexts.Add($"+{rewards.Breakthrough.Value} breakthrough");
+            if (!string.IsNullOrEmpty(rewards.Item))
+                rewardTexts.Add(rewards.Item);
 
             return rewardTexts.Any() ? string.Join(", ", rewardTexts) : "Experience and insights";
         }

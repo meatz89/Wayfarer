@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Goal available at a Venue location that spawns tactical engagement
-/// Parallel to NPCRequest but for location-based Mental/Physical challenges
+/// DTO for Goals - strategic layer that defines UI actions
+/// Universal across all three challenge types (Social/Mental/Physical)
 /// </summary>
-public class ChallengeGoal
+public class GoalDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -13,7 +13,7 @@ public class ChallengeGoal
     /// <summary>
     /// THREE PARALLEL SYSTEMS - which tactical system this goal uses
     /// </summary>
-    public TacticalSystemType SystemType { get; set; }
+    public string SystemType { get; set; }
 
     /// <summary>
     /// Which challenge type this goal spawns (ID within SystemType collection)
@@ -21,39 +21,29 @@ public class ChallengeGoal
     public string ChallengeTypeId { get; set; }
 
     /// <summary>
-    /// location ID where this goal is available (null = available at all Locations in location)
-    /// Mental/Physical use this
+    /// Location ID where this goal is available (Mental/Physical goals)
     /// </summary>
     public string LocationId { get; set; }
 
     /// <summary>
     /// NPC ID for Social system goals
-    /// Social goals target specific NPCs for investigation conversations
     /// </summary>
     public string NpcId { get; set; }
 
     /// <summary>
-    /// Request ID for Social system goals
-    /// Links to NPCRequest for conversation content
+    /// Request ID for Social system goals (references NPCRequest for conversation content)
     /// </summary>
-    public string NPCRequestId { get; set; }
+    public string NpcRequestId { get; set; }
 
     /// <summary>
     /// Investigation ID for UI grouping and label display
-    /// If set, this goal is part of an investigation
     /// </summary>
     public string InvestigationId { get; set; }
 
     /// <summary>
     /// Whether this goal is an investigation intro action
-    /// Intro actions move investigation from Discovered → Active when completed
     /// </summary>
     public bool IsIntroAction { get; set; } = false;
-
-    /// <summary>
-    /// Prerequisites for this goal to be available
-    /// </summary>
-    public GoalRequirements Requirements { get; set; }
 
     /// <summary>
     /// Whether this goal is currently available
@@ -64,16 +54,26 @@ public class ChallengeGoal
     /// Whether this goal has been completed
     /// </summary>
     public bool IsCompleted { get; set; } = false;
+
+    /// <summary>
+    /// Goal cards (tactical layer) - inline victory conditions
+    /// </summary>
+    public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
+
+    /// <summary>
+    /// Prerequisites for this goal to be available
+    /// </summary>
+    public GoalRequirementsDTO Requirements { get; set; }
 }
 
 /// <summary>
-/// Requirements for a goal to be available
+/// DTO for Goal requirements
 /// </summary>
-public class GoalRequirements
+public class GoalRequirementsDTO
 {
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
     public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public Dictionary<PlayerStatType, int> RequiredStats { get; set; } = new Dictionary<PlayerStatType, int>();
+    public Dictionary<string, int> RequiredStats { get; set; } = new Dictionary<string, int>();
     public int MinimumLocationFamiliarity { get; set; } = 0;
     public List<string> CompletedGoals { get; set; } = new List<string>();
 }

@@ -340,7 +340,7 @@ public class LocationActionManager
     /// <summary>
     /// Evaluate goal prerequisites
     /// </summary>
-    private bool EvaluateGoalPrerequisites(ChallengeGoal goal, Player player, string currentVenueId)
+    private bool EvaluateGoalPrerequisites(Goal goal, Player player, string currentVenueId)
     {
         if (goal.Requirements == null) return true;
 
@@ -366,8 +366,8 @@ public class LocationActionManager
         foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
         {
             // Search across all location goals (Locations are the only entity that matters)
-            ChallengeGoal requiredGoal = _gameWorld.Locations
-                .SelectMany(spotEntry => spotEntry.location.Goals ?? new List<ChallengeGoal>())
+            Goal requiredGoal = _gameWorld.Locations
+                .SelectMany(spotEntry => spotEntry.location.Goals ?? new List<Goal>())
                 .FirstOrDefault(g => g.Id == requiredGoalId);
 
             if (requiredGoal == null || !requiredGoal.IsCompleted)

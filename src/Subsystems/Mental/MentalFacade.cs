@@ -375,18 +375,18 @@ public class MentalFacade
         if (investigation != null && goalId == $"{investigationId}_intro")
         {
             // This is intro completion - activate investigation
-            List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
+            List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
 
             // Add first goals to their respective Locations (Locations are the only entity that matters)
             if (firstGoals.Count > 0)
             {
-                foreach (ChallengeGoal goal in firstGoals)
+                foreach (Goal goal in firstGoals)
                 {
                     LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
                     if (spotEntry != null)
                     {
                         if (spotEntry.location.Goals == null)
-                            spotEntry.location.Goals = new List<ChallengeGoal>();
+                            spotEntry.location.Goals = new List<Goal>();
                         spotEntry.location.Goals.Add(goal);
                     }
                 }

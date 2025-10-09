@@ -1,59 +1,58 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for NPC-specific goal cards that appear in conversations
-/// These are goal cards that NPCs offer when certain rapport thresholds are met
+/// DTO for GoalCards - tactical layer victory conditions
+/// Defined inline within goals (not separate reusable entities)
+/// Universal structure across all three challenge types
 /// </summary>
 public class GoalCardDTO
 {
     /// <summary>
-    /// The NPC who has this promise card in their request deck
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
-    /// Unique identifier for this promise card
+    /// Unique identifier for this goal card
     /// </summary>
     public string Id { get; set; }
 
     /// <summary>
-    /// Card type (usually "Promise" or "Request")
+    /// Card ID that references the actual card definition (for Social system)
     /// </summary>
-    public string Type { get; set; }
+    public string CardId { get; set; }
 
     /// <summary>
-    /// Initiative cost (usually 0 for promise cards)
+    /// Display name of this victory condition
     /// </summary>
-    public int InitiativeCost { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Token type for this promise (Trust, Diplomacy, Status, Shadow)
-    /// </summary>
-    public string ConnectionType { get; set; }
-
-    /// <summary>
-    /// Display name/description of the promise
+    /// Description of this victory condition
     /// </summary>
     public string Description { get; set; }
 
     /// <summary>
-    /// Difficulty level (usually VeryEasy for promise cards)
-    /// </summary>
-    public string Difficulty { get; set; }
-
-    /// <summary>
-    /// Momentum threshold required to make this card playable
+    /// Momentum threshold required to achieve this victory condition
     /// </summary>
     public int MomentumThreshold { get; set; }
 
-    // Categorical properties - define behavior through context
-    public string Category { get; set; } // Expression/Realization/Regulation (optional - auto-determined from effect type if not specified)
-    public string Persistence { get; set; } // Usually "Statement" for goal cards
-    public string SuccessType { get; set; } // Usually "Promising" or "Advancing"
-    public string FailureType { get; set; } // Usually "None" for goal cards
+    /// <summary>
+    /// Weight for deterministic selection (higher weight = more likely)
+    /// </summary>
+    public int Weight { get; set; } = 1;
 
     /// <summary>
-    /// Dialogue spoken when playing this card
+    /// Rewards granted when this victory condition is achieved
     /// </summary>
-    public string DialogueFragment { get; set; }
+    public GoalCardRewardsDTO Rewards { get; set; }
+}
+
+/// <summary>
+/// DTO for goal card rewards
+/// </summary>
+public class GoalCardRewardsDTO
+{
+    public int? Coins { get; set; }
+    public int? Progress { get; set; }
+    public int? Breakthrough { get; set; }
+    public string ObligationId { get; set; }
+    public string Item { get; set; }
+    public List<string> Knowledge { get; set; } = new List<string>();
+    public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
 }

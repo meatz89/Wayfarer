@@ -69,10 +69,10 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation - from centralized GameWorld storage
-        GoalCard request = _gameWorld.GoalCards.FirstOrDefault(r => r.Id == requestId);
-        if (request == null)
+        Goal goal = _gameWorld.Goals.FirstOrDefault(r => r.Id == requestId);
+        if (goal == null)
         {
-            throw new ArgumentException($"Request {requestId} not found in GameWorld.GoalCards");
+            throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
 
         // Get connection state from NPC for session initialization
@@ -105,14 +105,14 @@ public class SocialFacade
         Console.WriteLine($"[ConversationFacade] Starting resources - Understanding: {startingUnderstanding}, Momentum: {startingMomentum}, Initiative: {startingInitiative} (highest stat: {highestStat}, bonus: {statBonus})");
 
         // Get request text from the request
-        string requestText = request.NpcRequestText;
+        string requestText = goal.NpcRequestText;
 
         // Create session with new properties
         _currentSession = new SocialSession
         {
             NPC = npc,
             RequestId = requestId,
-            ChallengeTypeId = request.ChallengeTypeId,
+            ChallengeTypeId = goal.ChallengeTypeId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -417,10 +417,10 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost - from centralized GameWorld storage
-        GoalCard request = _gameWorld.GoalCards.FirstOrDefault(r => r.Id == requestId);
-        if (request == null)
+        Goal goal = _gameWorld.Goals.FirstOrDefault(r => r.Id == requestId);
+        if (goal == null)
         {
-            return SocialContextFactory.CreateInvalidContext($"Request {requestId} not found in GameWorld.GoalCards");
+            return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
         }
 
         // Start conversation with the request
@@ -428,7 +428,7 @@ public class SocialFacade
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
-            request.ChallengeTypeId,
+            goal.ChallengeTypeId,
             npc,
             session,
             new List<CardInstance>(), // observationCards - empty for now
@@ -1187,18 +1187,18 @@ public class SocialFacade
                 investigation.IntroAction.RequestId == requestId)
             {
                 // This is intro completion - activate investigation
-                List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
+                List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
 
                 // Add first goals to their respective Locations (Locations are the only entity that matters)
                 if (firstGoals.Count > 0)
                 {
-                    foreach (ChallengeGoal goal in firstGoals)
+                    foreach (Goal goal in firstGoals)
                     {
                         LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
                         if (spotEntry != null)
                         {
                             if (spotEntry.location.Goals == null)
-                                spotEntry.location.Goals = new List<ChallengeGoal>();
+                                spotEntry.location.Goals = new List<Goal>();
                             spotEntry.location.Goals.Add(goal);
                         }
                     }

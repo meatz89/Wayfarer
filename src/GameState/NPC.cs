@@ -72,6 +72,9 @@ public class NPC
     public List<BurdenCard> BurdenDeck { get; internal set; }
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
+    // Active goals for this NPC (Social challenges)
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+
     // Initial token values to be applied during game initialization
     public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
 
