@@ -77,32 +77,31 @@ public class LocationNarrativeGenerator
     /// <summary>
     /// Generate atmosphere text for a general location.
     /// </summary>
-    private string GenerateLocationAtmosphere(LocationSpot spot, TimeBlocks currentTime)
+    private string GenerateLocationAtmosphere(Location location, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == spot.LocationId).Description))
+        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == location.Id).Description))
         {
-            return GenerateDefaultLocationDescription(spot, currentTime);
+            return GenerateDefaultLocationDescription(location, currentTime);
         }
 
         // Add time-specific modifiers to the base description
         string timeModifier = GetTimeModifier(currentTime);
         if (!string.IsNullOrEmpty(timeModifier))
         {
-            return $"{spot.Description} {timeModifier}";
+            return $"{location.Description} {timeModifier}";
         }
 
-        return spot.Description;
+        return location.Description;
     }
 
     /// <summary>
     /// Generate a default description when none is provided.
     /// </summary>
-    private string GenerateDefaultLocationDescription(LocationSpot spot, TimeBlocks currentTime)
+    private string GenerateDefaultLocationDescription(Location location, TimeBlocks currentTime)
     {
         string timeDesc = GetTimeDescription(currentTime);
-        string locationType = DetermineLocationType(spot);
 
-        return $"{timeDesc} at {spot.Name}, {locationType}.";
+        return $"{timeDesc} at {location.Name}.";
     }
 
     /// <summary>
@@ -137,24 +136,6 @@ public class LocationNarrativeGenerator
             TimeBlocks.Night => "It's late at night",
             _ => "The time is uncertain"
         };
-    }
-
-    /// <summary>
-    /// Determine the type of location for generic descriptions.
-    /// </summary>
-    private string DetermineLocationType(LocationSpot spot)
-    {
-        // Check location tags or properties to determine type
-        if (spot.DomainTags?.Contains("Market") == true)
-            return "a bustling marketplace";
-        if (spot.DomainTags?.Contains("Inn") == true)
-            return "a welcoming inn";
-        if (spot.DomainTags?.Contains("Noble") == true)
-            return "an upscale district";
-        if (spot.DomainTags?.Contains("Dock") == true)
-            return "a busy port area";
-
-        return "an interesting location";
     }
 
     /// <summary>

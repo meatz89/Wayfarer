@@ -14,7 +14,7 @@ public class ActionGenerator
     /// <summary>
     /// Generate actions for a location based on its data and current time
     /// </summary>
-    public List<LocationActionViewModel> GenerateActionsForLocation(Location location, LocationSpot spot)
+    public List<LocationActionViewModel> GenerateActionsForLocationSpot(LocationSpot locationSpot, LocationSpot spot)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
@@ -29,10 +29,10 @@ public class ActionGenerator
         }
 
         // Generate time-based actions
-        actions.AddRange(GenerateTimeBasedActions(location, currentTime));
+        actions.AddRange(GenerateTimeBasedActions(locationSpot, currentTime));
 
         // Generate atmosphere-based actions
-        actions.AddRange(GenerateAtmosphereActions(location));
+        actions.AddRange(GenerateAtmosphereActions(locationSpot));
 
         // Limit to 4-5 actions max (per mockup)
         return actions.ToList();
@@ -232,99 +232,32 @@ public class ActionGenerator
         return actions;
     }
 
-    private List<LocationActionViewModel> GenerateAtmosphereActions(Location location)
+    private List<LocationActionViewModel> GenerateAtmosphereActions(LocationSpot locationSpot)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TierLevel playerTier = GetPlayerTier(_gameWorld.GetPlayer().Level);
 
         // Generate actions based on atmosphere
-        string? atmosphereValue = location.Atmosphere?.GetPropertyValue();
-        switch (atmosphereValue)
-        {
-            case "Guarded":
-                // Basic awareness is T1
-                actions.Add(CreateActionWithTierCheck(
-                    "<span class='icon-warning'></span>", "Stay Alert", "Watch carefully", "FREE",
-                    TierLevel.T1, playerTier, "alert"
-                ));
-                break;
-
-            case "Chaotic":
-                // Navigating chaos effectively requires T2
-                actions.Add(CreateActionWithTierCheck(
-                    "🎉", "Navigate Chaos", "Find your way", "1 seg",
-                    TierLevel.T2, playerTier, "navigate_chaos"
-                ));
-                break;
-
-            case "Formal":
-                // Formal settings require T2 for proper etiquette
-                actions.Add(CreateActionWithTierCheck(
-                    "🤫", "Respectful Silence", "Observe quietly", "FREE",
-                    TierLevel.T2, playerTier, "formal_observe"
-                ));
-                break;
-        }
-
-        // Generate actions based on physical properties
-        string? physicalValue = location.Physical?.GetPropertyValue();
-        switch (physicalValue)
-        {
-            case "Expansive":
-                // Basic surveying is T1
-                actions.Add(CreateActionWithTierCheck(
-                    "👀", "Survey Area", "Get bearings", "1 seg",
-                    TierLevel.T1, playerTier, "survey"
-                ));
-                break;
-
-            case "Confined":
-                // Finding hidden exits requires T2
-                actions.Add(CreateActionWithTierCheck(
-                    "🚪", "Find Exit", "Note escape routes", "FREE",
-                    TierLevel.T2, playerTier, "find_exits"
-                ));
-                break;
-
-            case "Hazardous":
-                // Basic safety is T1
-                actions.Add(CreateActionWithTierCheck(
-                    "<span class='icon-warning'></span>", "Check Safety", "Avoid dangers", "FREE",
-                    TierLevel.T1, playerTier, "safety_check"
-                ));
-                break;
-        }
-
         return actions;
     }
 
-    // Helper methods for generating contextual details
-    private string GetRestIcon(Location location)
+    private string GetRestTitle(LocationSpot locationSpot)
     {
-        if (location.LocationType == LocationTypes.Landmark) return "🕯️";
-        if (location.LocationType == LocationTypes.Forest) return "🌳";
-        if (location.Physical?.GetPropertyValue() == "Expansive") return "⛲";
-        return "🪑";
-    }
-
-    private string GetRestTitle(Location location)
-    {
-        if (location.LocationType == LocationTypes.Landmark) return "Quiet Rest";
-        if (location.LocationType == LocationTypes.Forest) return "Rest in Shade";
-        if (location.Physical?.GetPropertyValue() == "Expansive") return "Rest at Fountain";
+        var location = locationSpot.Location;
+        if (locationSpot.LocationType == LocationTypes.Landmark) return "Quiet Rest";
+        if (locationSpot.LocationType == LocationTypes.Forest) return "Rest in Shade";
         return "Take a Seat";
     }
 
-    private string GetRestDetail(Location location, TimeBlocks time)
+    private string GetRestDetail(LocationSpot locationSpot, TimeBlocks time)
     {
-        string baseTime = location.Physical?.GetPropertyValue() == "Expansive" ? "1 segment" : "1 segment";
         string detail = time == TimeBlocks.Morning ? "Clear head" : "Catch breath";
-        return $"{baseTime} <span class='icon-bullet'></span> {detail}";
+        return $"1 Segement <span class='icon-bullet'></span> {detail}";
     }
 
-    private string GetRestCost(Location location)
+    private string GetRestCost(LocationSpot locationSpot)
     {
-        if (location.LocationType == LocationTypes.Landmark) return "1c"; // Donation
+        if (locationSpot.LocationType == LocationTypes.Landmark) return "1c"; // Donation
         return "FREE";
     }
 

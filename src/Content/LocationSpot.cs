@@ -4,8 +4,8 @@ public class LocationSpot
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    // Description removed - generated from SpotPropertyType combinations
     public string LocationId { get; set; }
+    public Location Location { get; internal set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -33,7 +33,6 @@ public class LocationSpot
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public LocationTypes LocationType { get; set; } = LocationTypes.Connective;
     public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
