@@ -18,21 +18,7 @@
         "locationType": "Ruin",
         "travelHubSpotId": "courtyard",
         "baseFamiliarity": 0,
-        "maxFamiliarity": 3,
-        "goals": [
-          {
-            "id": "notice_waterwheel",
-            "name": "Notice the silent waterwheel",
-            "description": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling.",
-            "systemType": "Mental",
-            "challengeTypeId": "mental_challenge",
-            "spotId": "courtyard",
-            "investigationId": "waterwheel_mystery",
-            "isIntroAction": true,
-            "isAvailable": true,
-            "isCompleted": false
-          }
-        ]
+        "maxFamiliarity": 3
       }
     ],
     "locations": [

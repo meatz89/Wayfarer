@@ -62,7 +62,6 @@ public static class SkeletonGenerator
         };
 
         // Initialize card decks (required for NPC to function)
-        npc.Requests = new List<GoalCard>();
         npc.ExchangeDeck = new List<ExchangeCard>();
 
         // Add a default service based on profession

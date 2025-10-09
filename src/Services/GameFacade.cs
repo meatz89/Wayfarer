@@ -96,64 +96,6 @@ public class GameFacade
         return _gameWorld.GetAvailableStrangers(venueId, currentTime);
     }
 
-    public SocialChallengeContext StartStrangerConversation(string strangerId)
-    {
-        // Find the stranger
-        NPC stranger = _gameWorld.GetStrangerById(strangerId);
-
-        if (stranger == null || !stranger.HasAvailableRequests())
-        {
-            return null;
-        }
-
-        // Get the first available request (strangers have single request)
-        GoalCard request = stranger.GetAvailableRequests().FirstOrDefault();
-        if (request == null || string.IsNullOrEmpty(request.ChallengeTypeId))
-        {
-            return null;
-        }
-
-        // THREE PARALLEL SYSTEMS: Get Social engagement type
-        if (!_gameWorld.SocialChallengeTypes.TryGetValue(request.ChallengeTypeId, out SocialChallengeType challengeType))
-        {
-            return null;
-        }
-
-        // Mark stranger as encountered
-        stranger.MarkAsEncountered();
-
-        // Create conversation context (goal cards now handle domain logic)
-        SocialChallengeContext context = new SocialChallengeContext
-        {
-            IsValid = true,
-            Npc = stranger,
-            NpcId = stranger.ID,
-            ConversationTypeId = challengeType.Id,  // Using SocialChallengeType
-            RequestId = request.Id,
-            RequestText = request.Description,
-            InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
-        };
-
-        return context;
-    }
-
-    public bool CanAffordStrangerConversation(string requestId)
-    {
-        // Find stranger with this request
-        foreach (NPC stranger in _gameWorld.GetAllStrangers())
-        {
-            GoalCard request = stranger.GetRequestById(requestId);
-            if (request != null && !string.IsNullOrEmpty(request.ChallengeTypeId))
-            {
-                // THREE PARALLEL SYSTEMS: Check if Social engagement type exists
-                if (_gameWorld.SocialChallengeTypes.ContainsKey(request.ChallengeTypeId))
-                {
-                    return true; // No attention cost check needed
-                }
-            }
-        }
-        return false;
-    }
 
 
     public List<InvestigationApproach> GetAvailableInvestigationApproaches()

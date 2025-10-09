@@ -68,11 +68,11 @@ public class SocialFacade
             throw new ArgumentException($"NPC with ID {npcId} not found");
         }
 
-        // Get the request that drives this conversation
-        GoalCard request = npc.GetRequestById(requestId);
+        // Get the request that drives this conversation - from centralized GameWorld storage
+        GoalCard request = _gameWorld.GoalCards.FirstOrDefault(r => r.Id == requestId);
         if (request == null)
         {
-            throw new ArgumentException($"Request {requestId} not found for NPC {npc.Name}");
+            throw new ArgumentException($"Request {requestId} not found in GameWorld.GoalCards");
         }
 
         // Get connection state from NPC for session initialization
@@ -416,11 +416,11 @@ public class SocialFacade
             return SocialContextFactory.CreateInvalidContext("NPC not found");
         }
 
-        // Get request to determine attention cost
-        GoalCard request = npc.GetRequestById(requestId);
+        // Get request to determine attention cost - from centralized GameWorld storage
+        GoalCard request = _gameWorld.GoalCards.FirstOrDefault(r => r.Id == requestId);
         if (request == null)
         {
-            return SocialContextFactory.CreateInvalidContext($"Request {requestId} not found");
+            return SocialContextFactory.CreateInvalidContext($"Request {requestId} not found in GameWorld.GoalCards");
         }
 
         // Start conversation with the request
@@ -459,71 +459,17 @@ public class SocialFacade
 
     /// <summary>
     /// Get available conversation options for an NPC with specific goal cards
+    /// ARCHITECTURE: NPCs no longer have inline requests - goals come from GameWorld.GoalCards
+    /// This method is now DEPRECATED and returns empty list
+    /// TODO: Replace with Location-based goal lookup
     /// </summary>
     public List<SocialChallengeOption> GetAvailableConversationOptions(NPC npc)
     {
-        List<SocialChallengeOption> options = new List<SocialChallengeOption>();
-
-
-        // Get one-time requests as conversation options
-        if (npc.Requests != null && npc.Requests.Count > 0)
-        {
-            List<GoalCard> availableRequests = npc.GetAvailableRequests();
-
-            // Add each available request as a conversation option
-            foreach (GoalCard request in availableRequests)
-            {
-                // CRITICAL: All requests MUST have valid conversation types defined in JSON
-                if (string.IsNullOrEmpty(request.ChallengeTypeId))
-                {
-                    throw new InvalidOperationException($"NPCRequest '{request.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
-                }
-
-                // Verify the social challenge type actually exists
-                if (!_gameWorld.SocialChallengeTypes.ContainsKey(request.ChallengeTypeId))
-                {
-                    throw new InvalidOperationException($"NPCRequest '{request.Id}' references social challenge type '{request.ChallengeTypeId}' which does not exist in JSON. All social challenge types must be defined.");
-                }
-
-                options.Add(new SocialChallengeOption
-                {
-                    RequestId = request.Id, // Store the actual request ID
-                    ChallengeTypeId = request.ChallengeTypeId, // Use the actual conversation type from JSON
-                    GoalCardId = request.Id, // Use request ID to identify which request
-                    DisplayName = request.Title,
-                    Description = request.Description,
-                    TokenType = ConnectionType.Trust, // Default token type
-                    MomentumThreshold = 0, // Will check individual card thresholds
-                });
-            }
-        }
-
-        return options;
+        // DEPRECATED: NPCs no longer have inline requests
+        // Goals now come from GameWorld.GoalCards and are location-based
+        // Return empty list until new architecture is implemented
+        return new List<SocialChallengeOption>();
     }
-
-    /// <summary>
-    /// Get available requests for an NPC that can be started as conversations
-    /// </summary>
-    public List<GoalCard> GetAvailableRequests(NPC npc)
-    {
-        List<GoalCard> available = new List<GoalCard>();
-
-
-        // Get all available requests from the NPC
-        foreach (GoalCard request in npc.Requests)
-        {
-            if (request.IsAvailable())
-            {
-                available.Add(request);
-            }
-        }
-
-        return available;
-    }
-
-    /// <summary>
-    /// Get attention cost for a request's conversation type
-    /// </summary>
 
     /// <summary>
     /// Check if a card can be played in the current conversation

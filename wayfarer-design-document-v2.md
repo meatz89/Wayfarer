@@ -135,14 +135,45 @@ The systems differentiate through distinct card mechanics that respect verisimil
 
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statements to Spoken pile (said aloud) while Echoes reshuffle (fleeting thoughts). LISTEN draws while your hand persists - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
-### Bridge: LocationGoals
-LocationGoals bridge the strategic and tactical layers. When a player selects an investigation phase or NPC request (strategic decision), the system spawns a LocationGoal at the specified location. Visiting that venue reveals the goal as a card option, which when selected launches the appropriate tactical challenge (Mental, Physical, or Social).
+### Bridge: Goals and GoalCards
+
+**Two-Layer Goal System** bridges strategic planning to tactical execution:
+
+**Goals (Strategic Layer - Defines UI Actions)**:
+- First-class entities in JSON (separate from NPCs/locations)
+- Creates ONE action button in venue UI per goal
+- Has: `id`, `name`, `description`, `systemType` (Social/Mental/Physical), `challengeTypeId`, assignment via `npcId` OR `locationId`
+- Contains: Inline array of GoalCards (`goalCards` property) defining victory conditions
+- Assignment: Goals reference NPCs/locations (not inline within them)
+- Storage: `NPC.ActiveGoals` and `Location.ActiveGoals` lists
+- Purpose: Defines WHAT tactical engagement is available WHERE
+
+**GoalCards (Tactical Layer - Victory Conditions)**:
+- Defined inline within goal JSON (not separate entities)
+- Has: `id`, `name`, `description`, `momentumThreshold`, `rewards`
+- Universal: Same structure across all three challenge types (Social/Mental/Physical)
+- Purpose: Tiered victory conditions - when momentum threshold reached, goal card becomes playable
+- Playing goal card: Completes challenge with specified rewards
+- Contextual: Cannot be reused across goals - bound to parent goal
+
+**Architectural Flow**:
+```
+JSON → GoalDTO → GoalParser → Goal (with inline GoalCards) → NPC.ActiveGoals / Location.ActiveGoals
+```
+
+**Key Distinctions**:
+- Goals define WHERE actions appear (strategic placement)
+- GoalCards define WHEN victory occurs (tactical thresholds)
+- Each goal creates ONE button in UI (not multiple buttons per goal card)
+- Goals assigned to entities via reference (not inline definitions)
+- `GameWorld.Goals` dictionary stores all goals for investigation spawning
 
 This architecture ensures:
 - **Clear Separation**: Strategic planning never mixes with tactical execution
 - **Perfect Information**: All requirements visible before committing to tactical challenge
 - **Architectural Consistency**: Three systems follow same structural pattern
 - **Mechanical Diversity**: Each system offers distinct tactical gameplay
+- **Dynamic Assignment**: Investigations can spawn goals at NPCs/locations when phases activate
 
 ## Three Core Loops
 
@@ -202,6 +233,193 @@ Each system is a distinct tactical game following the same architectural pattern
 **AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
 
 **Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
+
+## Goal and GoalCard System Architecture
+
+### Two-Layer Design Philosophy
+
+Wayfarer separates **strategic placement** (Goals) from **tactical victory conditions** (GoalCards) to enable dynamic content generation while maintaining clear mechanical boundaries.
+
+### Goals (Strategic Layer)
+
+**Definition**: First-class entities that create action opportunities at specific locations or NPCs.
+
+**Key Properties**:
+- **System Type**: Which tactical system (Social/Mental/Physical)
+- **Challenge Type ID**: Which challenge configuration to use
+- **Assignment**: `npcId` OR `locationId` (mutually exclusive)
+- **Goal Cards**: Inline array of victory condition cards
+- **Requirements**: Knowledge, equipment, stats, completed phases (optional)
+
+**Assignment Models**:
+- **NPC Goals**: Social challenges assigned via `npcId`, stored in `NPC.ActiveGoals`
+- **Location Goals**: Mental/Physical challenges assigned via `locationId`, stored in `Location.ActiveGoals`
+- **Reference Pattern**: Goals reference entities, NOT inline definitions within entities
+
+**Storage and Access**:
+- `GameWorld.Goals` dictionary: All goals indexed by ID for investigation spawning
+- `NPC.ActiveGoals` list: Social goals currently available at this NPC
+- `Location.ActiveGoals` list: Mental/Physical goals currently available at this location
+
+**UI Presentation**:
+- Each goal creates ONE action button in venue UI
+- Button displays goal name and description
+- Clicking button launches appropriate tactical challenge (Social/Mental/Physical)
+- Goal cards NOT directly visible until inside challenge
+
+### GoalCards (Tactical Layer)
+
+**Definition**: Tiered victory conditions defined inline within parent goal.
+
+**Properties**:
+- **Momentum Threshold**: When this card becomes playable (8, 12, 16 typical)
+- **Rewards**: What player receives on completion (coins, knowledge, obligations, items)
+- **Contextual**: Bound to parent goal, cannot be reused across goals
+- **Universal Structure**: Same structure across all three challenge types
+
+**Tactical Flow**:
+1. Player enters challenge (Mental/Physical/Social)
+2. Player builds momentum through card play
+3. When momentum reaches threshold, goal card becomes playable
+4. Playing goal card completes challenge with specified rewards
+5. Multiple goal cards per goal create tiered victory options
+
+**Why Inline Definition**:
+- Goal cards are contextual to their parent goal (not reusable entities)
+- Tiered rewards specific to this exact challenge
+- Simplifies content authoring (rewards defined where goal defined)
+- Prevents card reuse across incompatible contexts
+
+### Three Parallel Systems Integration
+
+**Social Goals** (NPC-based):
+```json
+{
+  "id": "elena_delivery",
+  "systemType": "Social",
+  "npcId": "elena",
+  "challengeTypeId": "desperate_request",
+  "goalCards": [...]
+}
+```
+- Assigned to NPCs via `npcId`
+- Stored in `NPC.ActiveGoals`
+- Launches Social challenge (conversation)
+- Goal cards unlock at momentum thresholds during conversation
+
+**Mental Goals** (Location-based investigation):
+```json
+{
+  "id": "notice_waterwheel",
+  "systemType": "Mental",
+  "locationId": "courtyard",
+  "challengeTypeId": "mental_challenge",
+  "goalCards": [...]
+}
+```
+- Assigned to locations via `locationId`
+- Stored in `Location.ActiveGoals`
+- Launches Mental challenge (investigation)
+- Goal cards unlock at progress thresholds during investigation
+
+**Physical Goals** (Location-based obstacle):
+```json
+{
+  "id": "climb_waterwheel",
+  "systemType": "Physical",
+  "locationId": "courtyard",
+  "challengeTypeId": "physical_challenge",
+  "goalCards": [...]
+}
+```
+- Assigned to locations via `locationId`
+- Stored in `Location.ActiveGoals`
+- Launches Physical challenge (obstacle)
+- Goal cards unlock at breakthrough thresholds during challenge
+
+### Investigation System Integration
+
+**Dynamic Goal Spawning**:
+Investigations spawn goals dynamically when phases activate:
+
+```
+Investigation Phase Requirements Met
+    ↓
+Investigation System Adds Goal to Entity
+    ↓
+Goal Appears in NPC.ActiveGoals OR Location.ActiveGoals
+    ↓
+UI Displays Goal as Action Button
+    ↓
+Player Clicks Button → Tactical Challenge Launches
+    ↓
+Player Completes Challenge via Goal Card
+    ↓
+Investigation Phase Marked Complete → Next Phase Unlocks
+```
+
+**Multi-Phase Example**:
+```
+Waterwheel Mystery Investigation
+├─ Phase 1: Mental goal added to Location.ActiveGoals at "courtyard"
+├─ Phase 2: Social goal added to NPC.ActiveGoals for "mill_owner"
+├─ Phase 3: Physical goal added to Location.ActiveGoals at "mill_interior"
+└─ Phase 4: Social goal added to NPC.ActiveGoals for "suspect_npc"
+```
+
+Each phase completion spawns next phase's goals dynamically across the game world.
+
+### Content Authoring Pattern
+
+**Goals Defined Separately** (04_goals.json):
+```json
+{
+  "goals": [
+    { "id": "goal1", "npcId": "elena", ... },
+    { "id": "goal2", "locationId": "courtyard", ... }
+  ]
+}
+```
+
+**NPCs/Locations Reference Goals** (via assignment):
+- Parser reads goal definition
+- Parser checks `npcId` or `locationId`
+- Parser adds goal to appropriate `ActiveGoals` list
+- Entity now has available action
+
+**NOT This Pattern** (inline goals in entities):
+```json
+{
+  "npcs": [
+    {
+      "id": "elena",
+      "goals": [ ... ]  // ❌ WRONG - goals not inline
+    }
+  ]
+}
+```
+
+### Architectural Benefits
+
+**Clear Separation**:
+- Strategic layer (Goals) handles WHERE actions appear
+- Tactical layer (GoalCards) handles WHEN victory occurs
+- No confusion between placement and victory conditions
+
+**Dynamic Assignment**:
+- Investigations can spawn goals anywhere in world
+- Goals move between entities as investigations progress
+- Single goal can be reassigned (though rare in practice)
+
+**Universal Victory Conditions**:
+- GoalCards work identically across all three systems
+- Same momentum threshold concept (Progress/Breakthrough/Momentum)
+- Same reward structure regardless of system type
+
+**Content Scalability**:
+- AI can generate goals following mechanical templates
+- Goals reference existing NPCs/locations via IDs
+- GoalCards inline definition keeps context localized
 
 ## NPC System
 
@@ -302,8 +520,13 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **Equipment**: Must possess specific items ("rope", "crowbar")
 - **Stats**: Minimum Observation, Strength, Rapport thresholds
 
-**Phase Spawning:**
-When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at locations as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
+**Phase Spawning (Dynamic Goal Assignment):**
+When phase requirements are met, the investigation system dynamically assigns goals to NPCs or locations:
+- **Mental/Physical Phases**: Goal added to `Location.ActiveGoals` list at specified location
+- **Social Phases**: Goal added to `NPC.ActiveGoals` list for specified NPC
+- Goals become available in venue UI as action buttons (one button per goal)
+- Completing goal advances investigation to next phase
+- Investigations can spawn multiple goals simultaneously across different locations/NPCs
 
 ### Three Challenge Systems Detailed
 
@@ -629,7 +852,7 @@ All three systems follow the same core structure (creating equivalent tactical d
 - **5 Tactical Modifiers** → Fundamental gameplay variety (Profiles, Challenge Types, Personalities)
 - **Expertise Tokens** → Mechanical benefits from repeated success (Familiarity, Mastery, Connection)
 - **Progression Levels** → Cumulative expertise tracking (Depth, Proficiency, Connection)
-- **Goal Cards** → Victory condition cards unlock at thresholds
+- **Goal Cards** → Universal victory condition cards unlock at momentum thresholds (same structure across all three systems)
 
 **Intentional Differences** (justified by verisimilitude):
 - **Session Models**: Mental (pauseable), Physical (one-shot), Social (session-bounded)

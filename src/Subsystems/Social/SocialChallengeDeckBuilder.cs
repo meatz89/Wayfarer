@@ -27,11 +27,11 @@ public class SocialChallengeDeckBuilder
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Get the request which drives everything
-        GoalCard request = npc.GetRequestById(requestId);
+        // Get the request which drives everything - from centralized GameWorld storage
+        GoalCard request = _gameWorld.GoalCards.FirstOrDefault(r => r.Id == requestId);
         if (request == null)
         {
-            throw new ArgumentException($"Request {requestId} not found for NPC {npc.ID}");
+            throw new ArgumentException($"Request {requestId} not found in GameWorld.GoalCards");
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement type and conversation deck

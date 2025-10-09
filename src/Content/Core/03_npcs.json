@@ -23,42 +23,7 @@
         "initialTokens": {
           "Trust": 0
         },
-        "conversationDifficulty": 2,
-        "requests": [
-          {
-            "id": "elena_aldric_delivery",
-            "conversationTypeId": "desperate_request",
-            "name": "Delivery to Farmer Aldric",
-            "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek. She'll pay well, and there might be more to this errand than meets the eye.",
-            "goals": [
-              {
-                "id": "elena_basic_delivery",
-                "cardId": "elena_basic_delivery",
-                "name": "Simple Delivery",
-                "description": "Deliver the package to Aldric",
-                "momentumThreshold": 8,
-                "weight": 1,
-                "rewards": {
-                  "coins": 20,
-                  "obligationId": "delivery_to_aldric"
-                }
-              },
-              {
-                "id": "elena_enhanced_delivery",
-                "cardId": "elena_enhanced_delivery",
-                "name": "Delivery + Investigation Offer",
-                "description": "Deliver the package and Elena shares something about the old mill",
-                "momentumThreshold": 12,
-                "weight": 2,
-                "rewards": {
-                    "coins": 25,
-                    "obligationId": "delivery_to_aldric",
-                    "knowledge": [ "mill_has_secrets" ]
-                }
-              }
-            ]
-          }
-        ]
+        "conversationDifficulty": 2
       },
       {
         "id": "aldric",
@@ -74,16 +39,7 @@
         "initialTokens": {
           "Trust": 0
         },
-        "conversationDifficulty": 1,
-        "requests": [
-          {
-            "id": "aldric_friendly_chat",
-            "conversationTypeId": "friendly_chat",
-            "name": "Casual chat",
-            "description": "Have a friendly conversation with Aldric",
-            "goals": []
-          }
-        ]
+        "conversationDifficulty": 1
       }
     ]
   }

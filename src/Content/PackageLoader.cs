@@ -167,7 +167,6 @@ public class PackageLoader
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
-        InitializeNPCRequests(package.Content.NpcRequests, package.Content.NpcGoalCards, package.Content.DeckCompositions);
         InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
         // 7. Complex entities
@@ -443,23 +442,6 @@ public class PackageLoader
         }
     }
 
-    private void LoadGoalCards(Dictionary<string, List<GoalCardDTO>> goalCards, bool allowSkeletons)
-    {
-        if (goalCards == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
-        foreach (KeyValuePair<string, List<GoalCardDTO>> kvp in goalCards)
-        {
-            string npcId = kvp.Key;
-            foreach (GoalCardDTO dto in kvp.Value)
-            {
-                GoalCard card = GoalCardParser.ParseCard(dto);
-                _gameWorld.GoalCards.Add(card);
-                Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
-            }
-        }
-    }
-
     private void LoadSocialCards(List<SocialCardDTO> cardDtos, bool allowSkeletons)
     {
         if (cardDtos == null) return;
@@ -726,13 +708,11 @@ public class PackageLoader
 
                 // Preserve all cards from the persistent decks
                 List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
-                List<GoalCard> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<GoalCard>();
 
                 int totalPreservedCards = preservedExchangeCards.Count;
 
                 Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
                 Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
-                Console.WriteLine($"  - Requests: {preservedRequests.Count} request objects");
 
                 // Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
@@ -750,13 +730,6 @@ public class PackageLoader
                 if (preservedExchangeCards.Any())
                 {
                     npc.ExchangeDeck.AddRange(preservedExchangeCards);
-                }
-
-                if (preservedRequests.Any())
-                {
-                    // Merge preserved requests with new NPC's requests
-                    // Note: This assumes no ID conflicts between preserved and new requests
-                    npc.Requests.AddRange(preservedRequests);
                 }
 
                 Console.WriteLine($"[PackageLoader] Successfully replaced skeleton with real NPC and preserved all persistent deck cards");
@@ -1012,72 +985,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading collections. Path collections: {_gameWorld.AllPathCollections.Count}, Event collections: {_gameWorld.AllEventCollections.Count}");
     }
 
-
-
-    /// <summary>
-    /// Initialize one-time requests for NPCs from NpcGoalCards and deck compositions
-    /// </summary>
-    private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<GoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
-    {
-        Console.WriteLine($"[PackageLoader] Initializing NPC one-time requests... npcRequestDtos={npcRequestDtos?.Count ?? 0}, npcGoalCardDtos={npcGoalCardDtos?.Count ?? 0}");
-        List<string> validationErrors = new List<string>();
-
-        // First load NPCRequest bundles from npcRequests section
-        if (npcRequestDtos != null && npcRequestDtos.Count > 0)
-        {
-            Console.WriteLine($"[PackageLoader] Processing {npcRequestDtos.Count} NPC requests from npcRequests section...");
-            foreach (NPCRequestDTO requestDto in npcRequestDtos)
-            {
-                try
-                {
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requestDto.NpcId);
-                    if (npc == null)
-                    {
-                        // Check if this is a skeleton NPC
-                        if (!_gameWorld.SkeletonRegistry.Any(s => s.SkeletonKey == requestDto.NpcId))
-                        {
-                            throw PackageLoadException.CreateMissingDependency(
-                                _currentPackageId,
-                                "NPCRequest",
-                                requestDto.Id,
-                                $"NPC '{requestDto.NpcId}'",
-                                $"Ensure NPC '{requestDto.NpcId}' is defined in the npcs section of this or a dependency package");
-                        }
-                        continue; // Skip skeleton NPCs for now
-                    }
-
-                    GoalCard request = new GoalCard
-                    {
-                        Id = requestDto.Id,
-                        Title = requestDto.Name,
-                        Description = requestDto.Description,
-                        NpcRequestText = requestDto.NpcRequestText,
-                        Status = GoalStatus.Available
-                    };
-
-                    // Add request to NPC (cards are created from goals during NPC parsing)
-                    npc.Requests.Add(request);
-                    Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.Goals.Count} goals");
-                }
-                catch (PackageLoadException)
-                {
-                    throw; // Re-throw PackageLoadException as-is
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}", ex);
-                }
-            }
-
-            // If we collected any validation errors, throw them all at once
-            if (validationErrors.Count > 0)
-            {
-                throw PackageLoadException.MultipleValidationErrors(_currentPackageId, validationErrors);
-            }
-
-            Console.WriteLine($"[PackageLoader] Loaded {npcRequestDtos.Count} NPC request bundles");
-        }
-    }
 
 
     /// <summary>

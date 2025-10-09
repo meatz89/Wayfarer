@@ -1,0 +1,76 @@
+{
+  "packageId": "core_goals",
+  "metadata": {
+    "name": "Core Goals - POC Only",
+    "timestamp": "2025-09-16T00:00:00Z",
+    "description": "Goal definitions for Social/Mental/Physical systems at Old Mill venue",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "goals": [
+      {
+        "id": "elena_delivery",
+        "name": "Delivery for Elena",
+        "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek",
+        "systemType": "Social",
+        "npcId": "elena",
+        "npcRequestId": "elena_aldric_delivery",
+        "challengeTypeId": "desperate_request",
+        "isAvailable": true,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "elena_basic_delivery",
+            "cardId": "elena_basic_delivery",
+            "name": "Simple Delivery",
+            "description": "Deliver the package to Aldric",
+            "momentumThreshold": 8,
+            "weight": 1,
+            "rewards": {
+              "coins": 20,
+              "obligationId": "delivery_to_aldric"
+            }
+          },
+          {
+            "id": "elena_enhanced_delivery",
+            "cardId": "elena_enhanced_delivery",
+            "name": "Delivery + Investigation Offer",
+            "description": "Deliver the package and Elena shares something about the old mill",
+            "momentumThreshold": 12,
+            "weight": 2,
+            "rewards": {
+              "coins": 25,
+              "obligationId": "delivery_to_aldric",
+              "knowledge": [
+                "mill_has_secrets"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "notice_waterwheel",
+        "name": "Notice the silent waterwheel",
+        "description": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling.",
+        "systemType": "Mental",
+        "challengeTypeId": "mental_challenge",
+        "locationId": "courtyard",
+        "investigationId": "waterwheel_mystery",
+        "isIntroAction": true,
+        "isAvailable": true,
+        "isCompleted": false
+      },
+      {
+        "id": "climb_waterwheel",
+        "name": "Climb the waterwheel",
+        "description": "Scale the rusted waterwheel to reach the upper levels of the mill",
+        "systemType": "Physical",
+        "challengeTypeId": "physical_challenge",
+        "locationId": "courtyard",
+        "isAvailable": true,
+        "isCompleted": false
+      }
+    ]
+  }
+}

@@ -60,7 +60,7 @@ public class NPC
 
     // Relationship Flow (Single value 0-24 encoding both state and battery)
     // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
-    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ±4)
+    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ï¿½4)
     public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
 
     // Calculated properties from single flow value
@@ -71,7 +71,6 @@ public class NPC
     public List<ObservationCard> ObservationDeck { get; internal set; }
     public List<BurdenCard> BurdenDeck { get; internal set; }
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
-    public List<GoalCard> Requests { get; set; } = new List<GoalCard>();
 
     // Initial token values to be applied during game initialization
     public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
@@ -190,63 +189,6 @@ public class NPC
             RelationshipFlow--; // Move down toward neutral
         }
         // If at neutral (12), stay there
-    }
-
-    /// <summary>
-    /// Get available one-time requests
-    /// </summary>
-    public List<GoalCard> GetAvailableRequests()
-    {
-        List<GoalCard> available = new List<GoalCard>();
-        if (Requests != null)
-        {
-            foreach (GoalCard request in Requests)
-            {
-                if (request.IsAvailable())
-                {
-                    available.Add(request);
-                }
-            }
-        }
-        return available;
-    }
-
-    /// <summary>
-    /// Check if NPC has any available one-time requests
-    /// </summary>
-    public bool HasAvailableRequests()
-    {
-        return GetAvailableRequests().Count > 0;
-    }
-
-    /// <summary>
-    /// Get a specific request by ID
-    /// </summary>
-    public GoalCard GetRequestById(string requestId)
-    {
-        if (Requests != null)
-        {
-            foreach (GoalCard request in Requests)
-            {
-                if (request.Id == requestId)
-                {
-                    return request;
-                }
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Mark a request as completed
-    /// </summary>
-    public void CompleteRequest(string requestId)
-    {
-        GoalCard request = GetRequestById(requestId);
-        if (request != null)
-        {
-            request.Complete();
-        }
     }
 
     // Stranger-specific methods
