@@ -35,8 +35,8 @@ public class LocationActionManager
         // Get dynamic actions from GameWorld data
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(location.Id, spot.Id);
 
-        // Get actions from ActionGenerator
-        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForLocation(location, spot);
+        // Get actions from ActionGenerator (only needs LocationSpot - all gameplay properties are there)
+        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(spot);
 
         // Combine both
         List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
