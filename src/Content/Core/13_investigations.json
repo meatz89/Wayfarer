@@ -50,7 +50,7 @@
             "progressThreshold": 8,
             "systemType": "Social",
             "npcId": "elena",
-            "deckId": "social_challenge",
+            "deckId": "friendly_chat",
             "spotId": "main_hall",
             "requirements": {
               "completedGoals": ["phase_1_examine"],
