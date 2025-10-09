@@ -280,11 +280,10 @@ public class InvestigationActivity
                 player.Coins += investigation.CompletionRewards.Coins;
             }
 
-            // Grant XP (TODO: Implement XP system when ready)
-            // Grant reputation (TODO: Implement reputation system when ready)
+            // XP and reputation systems not yet implemented
         }
 
-        // Grant observation cards (TODO: Implement observation card creation when ready)
+        // Observation card creation deferred until ObservationManager supports it
         if (investigation.ObservationCardRewards != null)
         {
             foreach (ObservationCardReward reward in investigation.ObservationCardRewards)

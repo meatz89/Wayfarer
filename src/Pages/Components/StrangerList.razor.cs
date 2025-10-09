@@ -47,16 +47,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task StartStrangerConversation(string strangerId, string conversationType)
-        {
-            // DEPRECATED: Strangers no longer have inline requests
-            // GameFacade.StartStrangerConversation has been removed
-            // TODO: Implement location-based goal lookup
-            GameFacade.GetMessageSystem().AddSystemMessage(
-                "Stranger conversations temporarily unavailable (legacy code removed)",
-                SystemMessageTypes.Info);
-            await Task.CompletedTask;
-        }
 
         protected bool CanAffordConversation(string requestId)
         {

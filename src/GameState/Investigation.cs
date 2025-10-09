@@ -59,7 +59,6 @@ public class InvestigationPhaseDefinition
 
     // NPC assignment (Social goals)
     public string NpcId { get; set; }
-    public string RequestId { get; set; }
 
     // Prerequisites for this goal to spawn
     public GoalRequirements Requirements { get; set; } = new GoalRequirements();
@@ -116,11 +115,6 @@ public class InvestigationIntroAction
     /// NPC for intro conversation (Social only)
     /// </summary>
     public string NpcId { get; set; }
-
-    /// <summary>
-    /// Request ID for intro conversation (Social only)
-    /// </summary>
-    public string RequestId { get; set; }
 
     /// <summary>
     /// Narrative shown after completing intro action

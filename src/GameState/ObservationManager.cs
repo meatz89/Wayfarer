@@ -206,7 +206,6 @@ public class ObservationManager
             MomentumThreshold = baseCard.MomentumThreshold,
             QueuePosition = baseCard.QueuePosition,
             InstantMomentum = baseCard.InstantMomentum,
-            RequestId = baseCard.RequestId,
             RequiredTokenType = baseCard.RequiredTokenType,
             // Override for observation cards
             Persistence = PersistenceType.Statement, // Observations persist through LISTEN

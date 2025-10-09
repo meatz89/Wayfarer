@@ -170,16 +170,6 @@ public class TokenMechanicsManager
         return tokensWithNPC.GetValueOrDefault(type, 0);
     }
 
-    // Add tokens without NPC context (DEPRECATED - tokens must be NPC-specific)
-    public void AddTokens(ConnectionType type, int count)
-    {
-        // This method violates the relational token architecture
-        // Tokens must always be associated with a specific NPC
-        _messageSystem.AddSystemMessage(
-            $"ERROR: Cannot add tokens without NPC context. Tokens are relational.",
-            SystemMessageTypes.Danger
-        );
-    }
 
     /// <summary>
     /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player

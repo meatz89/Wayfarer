@@ -50,7 +50,6 @@
             "progressThreshold": 8,
             "systemType": "Social",
             "npcId": "elena",
-            "requestId": "elena_investigate_offer",
             "deckId": "social_challenge",
             "spotId": "main_hall",
             "requirements": {

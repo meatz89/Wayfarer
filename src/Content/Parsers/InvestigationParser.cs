@@ -47,7 +47,6 @@ public class InvestigationParser
             ChallengeTypeId = dto.ChallengeTypeId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
-            RequestId = dto.RequestId,
             Requirements = ParseRequirements(dto.Requirements),
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
@@ -138,7 +137,6 @@ public class InvestigationParser
             ChallengeTypeId = dto.ChallengeTypeId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
-            RequestId = dto.RequestId,
             IntroNarrative = dto.IntroNarrative
         };
     }

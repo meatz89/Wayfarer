@@ -43,7 +43,6 @@ public class InvestigationPhaseDTO
 
     // NPC assignment (for Social goals)
     public string NpcId { get; set; }
-    public string RequestId { get; set; }
 
     public PhaseRequirementsDTO Requirements { get; set; } = new PhaseRequirementsDTO();
     public PhaseCompletionRewardDTO CompletionReward { get; set; }
@@ -95,7 +94,6 @@ public class InvestigationIntroActionDTO
     public string ChallengeTypeId { get; set; }
     public string LocationId { get; set; } // LocationId is globally unique
     public string NpcId { get; set; }
-    public string RequestId { get; set; }
     public string IntroNarrative { get; set; }
 }
 

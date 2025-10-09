@@ -140,8 +140,7 @@ public class InvestigationDiscoveryEvaluator
         {
             foreach (string itemId in prereqs.RequiredItems)
             {
-                // TODO: Implement item checking when inventory system exists
-                // For now, return false if items required
+                // Item checking deferred until inventory system is implemented
                 return false;
             }
         }

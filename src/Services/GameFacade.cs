@@ -162,30 +162,8 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        List<NPCConversationOptions> npcConversationOptions = GetNPCConversationOptionsForCurrentLocation();
-        return _locationFacade.GetLocationScreen(npcConversationOptions);
-    }
-
-    private List<NPCConversationOptions> GetNPCConversationOptionsForCurrentLocation()
-    {
-        List<NPC> npcs = _locationFacade.GetNPCsAtCurrentSpot();
-        List<NPCConversationOptions> options = new List<NPCConversationOptions>();
-
-        foreach (NPC npc in npcs)
-        {
-            List<SocialChallengeOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
-            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ChallengeTypeId).Distinct().ToList();
-
-            options.Add(new NPCConversationOptions
-            {
-                NpcId = npc.ID,
-                NpcName = npc.Description,
-                AvailableTypes = conversationTypeIds,
-                CanAfford = true
-            });
-        }
-
-        return options;
+        // NPCs no longer have inline conversation options - goals are location-based in GameWorld.Goals
+        return _locationFacade.GetLocationScreen(new List<NPCConversationOptions>());
     }
 
     // ========== TIME OPERATIONS ==========
@@ -374,14 +352,6 @@ public class GameFacade
         return await _conversationFacade.CreateConversationContext(npcId, requestId);
     }
 
-    public List<SocialChallengeOption> GetAvailableConversationOptions(string npcId)
-    {
-        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc == null)
-            return new List<SocialChallengeOption>();
-
-        return _conversationFacade.GetAvailableConversationOptions(npc);
-    }
 
     /// <summary>
     /// Play a conversation card - proper architectural flow through GameFacade

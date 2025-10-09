@@ -458,20 +458,6 @@ public class SocialFacade
     }
 
     /// <summary>
-    /// Get available conversation options for an NPC with specific goal cards
-    /// ARCHITECTURE: NPCs no longer have inline requests - goals come from GameWorld.GoalCards
-    /// This method is now DEPRECATED and returns empty list
-    /// TODO: Replace with Location-based goal lookup
-    /// </summary>
-    public List<SocialChallengeOption> GetAvailableConversationOptions(NPC npc)
-    {
-        // DEPRECATED: NPCs no longer have inline requests
-        // Goals now come from GameWorld.GoalCards and are location-based
-        // Return empty list until new architecture is implemented
-        return new List<SocialChallengeOption>();
-    }
-
-    /// <summary>
     /// Check if a card can be played in the current conversation
     /// </summary>
     public bool CanPlayCard(CardInstance card, SocialSession session)
@@ -1184,7 +1170,7 @@ public class SocialFacade
             if (investigation?.IntroAction != null &&
                 investigation.IntroAction.SystemType == TacticalSystemType.Social &&
                 investigation.IntroAction.NpcId == npcId &&
-                investigation.IntroAction.RequestId == requestId)
+                $"{investigation.Id}_intro" == requestId)
             {
                 // This is intro completion - activate investigation
                 List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
@@ -1219,7 +1205,7 @@ public class SocialFacade
             InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p =>
                 p.SystemType == TacticalSystemType.Social &&
                 p.NpcId == npcId &&
-                p.RequestId == requestId);
+                p.Id == requestId);
 
             if (matchingPhase != null)
             {

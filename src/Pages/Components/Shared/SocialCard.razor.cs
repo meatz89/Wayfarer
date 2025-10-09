@@ -36,9 +36,9 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardStatClass()
         {
-            // Request cards use special styling
-            if (!string.IsNullOrEmpty(Card?.SocialCardTemplate?.RequestId))
-                return "request";
+            // Goal cards use special styling
+            if (Card?.CardType == CardTypes.Goal)
+                return "goal";
 
             // Conversation cards use BoundStat for styling
             if (Card?.SocialCardTemplate?.BoundStat == null) return "";

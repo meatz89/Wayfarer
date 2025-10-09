@@ -64,10 +64,10 @@ public class SocialEffectResolver
     /// </summary>
     public bool CheckCardSuccess(CardInstance card, SocialSession session)
     {
-        // Goal cards (Requests) succeed if momentum threshold is met
-        if (!string.IsNullOrEmpty(card.SocialCardTemplate.RequestId))
+        // Goal cards succeed if momentum threshold is met
+        if (card.CardType == CardTypes.Goal)
         {
-            return session.CurrentMomentum >= card.SocialCardTemplate.MomentumThreshold;
+            return session.CurrentMomentum >= card.GoalCardTemplate.MomentumThreshold;
         }
 
         // Regular conversation cards ALWAYS succeed - no failure possible
