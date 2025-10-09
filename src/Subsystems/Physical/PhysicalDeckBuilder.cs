@@ -16,20 +16,17 @@ public class PhysicalDeckBuilder
     }
 
     /// <summary>
-    /// Build deck from engagement type's specific deck (parallel to Social system)
+    /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge and injury cards)
     /// </summary>
     public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(
-        PhysicalChallengeType challengeType, Player player)
+        PhysicalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
-        // THREE PARALLEL SYSTEMS: Get Physical engagement deck from engagement type
-        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(challengeType.DeckId, out PhysicalChallengeDeck deckDefinition))
-        {
-            throw new InvalidOperationException($"[PhysicalDeckBuilder] Physical engagement deck '{challengeType.DeckId}' not found in GameWorld.PhysicalChallengeDecks");
-        }
+        // THREE PARALLEL SYSTEMS: Use Physical engagement deck directly (no lookup needed)
+        PhysicalChallengeDeck deckDefinition = challengeDeck;
 
         // Build card instances from engagement deck (parallel to ConversationDeckBuilder pattern)
         List<CardInstance> deck = deckDefinition.BuildCardInstances(_gameWorld);

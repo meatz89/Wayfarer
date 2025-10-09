@@ -63,7 +63,7 @@ public class PhysicalFacade
         return _sessionDeck?.PlayedCards.Count ?? 0;
     }
 
-    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, 
+    public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         string goalId, string investigationId)
     {
         if (IsSessionActive())

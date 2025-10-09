@@ -72,28 +72,28 @@ public class InvestigationParser
 
         bool exists = systemType switch
         {
-            TacticalSystemType.Mental => _gameWorld.MentalChallengeTypes.ContainsKey(challengeTypeId),
-            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeTypes.ContainsKey(challengeTypeId),
-            TacticalSystemType.Social => _gameWorld.SocialChallengeTypes.ContainsKey(challengeTypeId),
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.ContainsKey(challengeTypeId),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.ContainsKey(challengeTypeId),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.ContainsKey(challengeTypeId),
             _ => throw new InvalidOperationException($"Unknown TacticalSystemType: {systemType}")
         };
 
         if (!exists)
         {
             throw new InvalidOperationException(
-                $"Investigation phase '{phaseId}' references {systemType} challenge type '{challengeTypeId}' which does not exist in GameWorld. " +
-                $"Available {systemType} challenge types: {string.Join(", ", GetAvailableChallengeTypeIds(systemType))}"
+                $"Investigation phase '{phaseId}' references {systemType} engagement deck '{challengeTypeId}' which does not exist in GameWorld. " +
+                $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
             );
         }
     }
 
-    private IEnumerable<string> GetAvailableChallengeTypeIds(TacticalSystemType systemType)
+    private IEnumerable<string> GetAvailableChallengeDeckIds(TacticalSystemType systemType)
     {
         return systemType switch
         {
-            TacticalSystemType.Mental => _gameWorld.MentalChallengeTypes.Keys,
-            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeTypes.Keys,
-            TacticalSystemType.Social => _gameWorld.SocialChallengeTypes.Keys,
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Keys,
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Keys,
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Keys,
             _ => new List<string>()
         };
     }

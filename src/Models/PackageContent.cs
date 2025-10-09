@@ -175,11 +175,8 @@ public class PackageContent
     /// </summary>
     public List<PhysicalCardDTO> PhysicalCards { get; set; }
 
-    // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
-    public List<SocialChallengeTypeDTO> SocialChallengeTypes { get; set; } = new List<SocialChallengeTypeDTO>();
+    // THREE PARALLEL TACTICAL SYSTEMS - Decks only (no Types, they're redundant)
     public List<SocialChallengeDeckDTO> SocialChallengeDecks { get; set; } = new List<SocialChallengeDeckDTO>();
-    public List<MentalChallengeTypeDTO> MentalChallengeTypes { get; set; } = new List<MentalChallengeTypeDTO>();
     public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
-    public List<PhysicalChallengeTypeDTO> PhysicalChallengeTypes { get; set; } = new List<PhysicalChallengeTypeDTO>();
     public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
 }

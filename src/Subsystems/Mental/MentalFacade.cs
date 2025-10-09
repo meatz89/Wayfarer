@@ -63,7 +63,7 @@ public class MentalFacade
         return _sessionDeck?.PlayedCards.Count ?? 0;
     }
 
-    public MentalSession StartSession(MentalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, 
+    public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         string goalId, string investigationId)
     {
         if (IsSessionActive())

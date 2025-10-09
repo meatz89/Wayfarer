@@ -21,7 +21,7 @@
           },
           "actionText": "Investigate the silent waterwheel",
           "systemType": "Mental",
-          "challengeTypeId": "mental_challenge",
+          "deckId": "mental_challenge",
           "spotId": "courtyard",
           "introNarrative": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling. Something is clearly wrong—and someone needs to investigate."
         },
@@ -36,7 +36,7 @@
             "outcomeNarrative": "The gear teeth show clear marks of deliberate damage. This was no accident—someone wanted the mill to stop working. The scoring pattern suggests a chisel or similar tool, wielded with intent to disable but not destroy completely.",
             "progressThreshold": 10,
             "systemType": "Mental",
-            "challengeTypeId": "mental_challenge",
+            "deckId": "mental_challenge",
             "spotId": "courtyard",
             "completionReward": {
               "knowledgeGranted": ["waterwheel_sabotage_evidence"]
@@ -51,7 +51,7 @@
             "systemType": "Social",
             "npcId": "elena",
             "requestId": "elena_investigate_offer",
-            "challengeTypeId": "social_challenge",
+            "deckId": "social_challenge",
             "spotId": "main_hall",
             "requirements": {
               "completedGoals": ["phase_1_examine"],
@@ -68,7 +68,7 @@
             "outcomeNarrative": "With effort, you clear away the accumulated debris and use your tools to repair the damaged gears. The waterwheel groans back to life, water driving the mechanism once more. The mill's heart beats again.",
             "progressThreshold": 10,
             "systemType": "Physical",
-            "challengeTypeId": "physical_challenge",
+            "deckId": "physical_challenge",
             "spotId": "courtyard",
             "requirements": {
               "completedGoals": ["phase_2_question"],

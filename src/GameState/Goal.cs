@@ -33,9 +33,9 @@ public class Goal
     public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
 
     /// <summary>
-    /// The challenge type ID this goal uses (ID within SystemType collection)
+    /// The deck ID this goal uses for challenge generation
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     /// <summary>
     /// Location ID where this goal is available (Mental/Physical goals)

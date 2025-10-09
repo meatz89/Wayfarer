@@ -232,11 +232,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartMentalGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
+            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with deckId: '{goal.DeckId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartMentalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartMentalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
@@ -246,11 +246,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartPhysicalGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with engagementTypeId: '{goal.ChallengeTypeId}'");
+            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with deckId: '{goal.DeckId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartPhysicalSession(goal.ChallengeTypeId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartPhysicalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {

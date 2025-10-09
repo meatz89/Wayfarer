@@ -18,8 +18,8 @@ public static class GoalParser
             throw new InvalidOperationException($"Goal {dto.Id} missing required 'Name' field");
         if (string.IsNullOrEmpty(dto.SystemType))
             throw new InvalidOperationException($"Goal {dto.Id} missing required 'SystemType' field");
-        if (string.IsNullOrEmpty(dto.ChallengeTypeId))
-            throw new InvalidOperationException($"Goal {dto.Id} missing required 'ChallengeTypeId' field");
+        if (string.IsNullOrEmpty(dto.DeckId))
+            throw new InvalidOperationException($"Goal {dto.Id} missing required 'DeckId' field");
 
         // Parse system type
         if (!Enum.TryParse<TacticalSystemType>(dto.SystemType, true, out TacticalSystemType systemType))
@@ -33,7 +33,7 @@ public static class GoalParser
             Name = dto.Name,
             Description = dto.Description,
             SystemType = systemType,
-            ChallengeTypeId = dto.ChallengeTypeId,
+            DeckId = dto.DeckId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
             NpcRequestId = dto.NpcRequestId,

@@ -16,9 +16,9 @@ public class GoalDTO
     public string SystemType { get; set; }
 
     /// <summary>
-    /// Which challenge type this goal spawns (ID within SystemType collection)
+    /// Which deck this goal uses for challenge generation
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public string DeckId { get; set; }
 
     /// <summary>
     /// Location ID where this goal is available (Mental/Physical goals)

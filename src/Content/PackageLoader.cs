@@ -146,12 +146,9 @@ public class PackageLoader
         LoadSocialCards(package.Content.Cards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
-        // THREE PARALLEL TACTICAL SYSTEMS
-        LoadSocialChallengeTypes(package.Content.SocialChallengeTypes, allowSkeletons);
+        // THREE PARALLEL TACTICAL SYSTEMS - Decks only, no Types
         LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, allowSkeletons);
-        LoadMentalChallengeTypes(package.Content.MentalChallengeTypes, allowSkeletons);
         LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
-        LoadPhysicalChallengeTypes(package.Content.PhysicalChallengeTypes, allowSkeletons);
         LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
 
         // 3.5 Investigation Templates (strategic multi-phase activities)
@@ -489,19 +486,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading physical cards. Total: {_gameWorld.PhysicalCards.Count}");
     }
 
-    private void LoadSocialChallengeTypes(List<SocialChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading social engagement types...");
-        foreach (SocialChallengeTypeDTO dto in challengeTypes)
-        {
-            SocialChallengeType challengeType = dto.ToDomain();
-            _gameWorld.SocialChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded social engagement type '{challengeType.Id}': {challengeType.Name}");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading social engagement types. Total: {_gameWorld.SocialChallengeTypes.Count}");
-    }
 
     private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, bool allowSkeletons)
     {
@@ -517,19 +501,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading conversation engagement decks. Total: {_gameWorld.SocialChallengeDecks.Count}");
     }
 
-    private void LoadMentalChallengeTypes(List<MentalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading mental engagement types...");
-        foreach (MentalChallengeTypeDTO dto in challengeTypes)
-        {
-            MentalChallengeType challengeType = dto.ToDomain();
-            _gameWorld.MentalChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded mental engagement type '{challengeType.Id}': {challengeType.Name}");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading mental engagement types. Total: {_gameWorld.MentalChallengeTypes.Count}");
-    }
 
     private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, bool allowSkeletons)
     {
@@ -545,19 +516,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading mental engagement decks. Total: {_gameWorld.MentalChallengeDecks.Count}");
     }
 
-    private void LoadPhysicalChallengeTypes(List<PhysicalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading physical engagement types...");
-        foreach (PhysicalChallengeTypeDTO dto in challengeTypes)
-        {
-            PhysicalChallengeType challengeType = dto.ToDomain();
-            _gameWorld.PhysicalChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded physical engagement type '{challengeType.Id}': {challengeType.Name}");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading physical engagement types. Total: {_gameWorld.PhysicalChallengeTypes.Count}");
-    }
 
     private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
     {

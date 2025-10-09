@@ -142,11 +142,12 @@ The systems differentiate through distinct card mechanics that respect verisimil
 **Goals (Strategic Layer - Defines UI Actions)**:
 - First-class entities in JSON (separate from NPCs/locations)
 - Creates ONE action button in venue UI per goal
-- Has: `id`, `name`, `description`, `systemType` (Social/Mental/Physical), `challengeTypeId`, assignment via `npcId` OR `locationId`
+- Has: `id`, `name`, `description`, `systemType` (Social/Mental/Physical), `deckId` (direct deck reference), assignment via `npcId` OR `locationId`
 - Contains: Inline array of GoalCards (`goalCards` property) defining victory conditions
 - Assignment: Goals reference NPCs/locations (not inline within them)
 - Storage: `NPC.ActiveGoals` and `Location.ActiveGoals` lists
 - Purpose: Defines WHAT tactical engagement is available WHERE
+- **Direct Deck Reference**: Goals reference ChallengeDeck directly via `deckId` (no intermediary ChallengeType entity)
 
 **GoalCards (Tactical Layer - Victory Conditions)**:
 - Defined inline within goal JSON (not separate entities)
@@ -155,6 +156,7 @@ The systems differentiate through distinct card mechanics that respect verisimil
 - Purpose: Tiered victory conditions - when momentum threshold reached, goal card becomes playable
 - Playing goal card: Completes challenge with specified rewards
 - Contextual: Cannot be reused across goals - bound to parent goal
+- **Self-Contained**: GoalCards are complete cards with no external references - created directly as `CardInstance(goalCard)`
 
 **Architectural Flow**:
 ```
@@ -246,9 +248,9 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
 
 **Key Properties**:
 - **System Type**: Which tactical system (Social/Mental/Physical)
-- **Challenge Type ID**: Which challenge configuration to use
+- **Deck ID**: Which challenge deck to use (direct reference, no intermediary)
 - **Assignment**: `npcId` OR `locationId` (mutually exclusive)
-- **Goal Cards**: Inline array of victory condition cards
+- **Goal Cards**: Inline array of victory condition cards (self-contained, no external references)
 - **Requirements**: Knowledge, equipment, stats, completed phases (optional)
 
 **Assignment Models**:
@@ -298,13 +300,13 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
   "id": "elena_delivery",
   "systemType": "Social",
   "npcId": "elena",
-  "challengeTypeId": "desperate_request",
+  "deckId": "desperate_request",
   "goalCards": [...]
 }
 ```
 - Assigned to NPCs via `npcId`
 - Stored in `NPC.ActiveGoals`
-- Launches Social challenge (conversation)
+- Launches Social challenge (conversation) using specified deck
 - Goal cards unlock at momentum thresholds during conversation
 
 **Mental Goals** (Location-based investigation):
@@ -313,13 +315,13 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
   "id": "notice_waterwheel",
   "systemType": "Mental",
   "locationId": "courtyard",
-  "challengeTypeId": "mental_challenge",
+  "deckId": "mental_challenge",
   "goalCards": [...]
 }
 ```
 - Assigned to locations via `locationId`
 - Stored in `Location.ActiveGoals`
-- Launches Mental challenge (investigation)
+- Launches Mental challenge (investigation) using specified deck
 - Goal cards unlock at progress thresholds during investigation
 
 **Physical Goals** (Location-based obstacle):
@@ -328,13 +330,13 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
   "id": "climb_waterwheel",
   "systemType": "Physical",
   "locationId": "courtyard",
-  "challengeTypeId": "physical_challenge",
+  "deckId": "physical_challenge",
   "goalCards": [...]
 }
 ```
 - Assigned to locations via `locationId`
 - Stored in `Location.ActiveGoals`
-- Launches Physical challenge (obstacle)
+- Launches Physical challenge (obstacle) using specified deck
 - Goal cards unlock at breakthrough thresholds during challenge
 
 ### Investigation System Integration
@@ -1529,22 +1531,28 @@ Conversations are **Social Challenges** - the third and most complex parallel ta
 - **Observation Cards**: Knowledge from investigations injects special cards into conversation decks
 - **Request Cards**: NPC-specific cards that drive conversation toward specific outcomes
 
-**SocialChallengeType Configuration:**
-Each SocialChallengeType defines:
-- **Deck ID**: Which card deck to use (investigation conversations, casual chats, negotiations, etc.)
-- **Victory Threshold**: Momentum needed to complete conversation successfully (8-16 typical)
-- **Danger Threshold**: Doubt limit before conversation failure (10 standard)
+**ChallengeDeck Configuration (Direct Reference):**
+Goals reference ChallengeDeck entities directly via `deckId`. Each ChallengeDeck defines:
+- **Deck ID**: Unique identifier (e.g., "desperate_request", "mental_challenge", "athletics_challenge")
+- **Card IDs**: Which cards are in this deck (conversation cards, investigation cards, physical action cards)
+- **Description**: Narrative context for this challenge type
+- **Victory Threshold**: Builder resource needed to complete challenge (Momentum/Progress/Breakthrough, typically 8-20)
 - **Initial Hand Size**: Starting cards (typically 5)
 - **Max Hand Size**: Maximum hand capacity (typically 7)
 
-**Context-Specific Social Challenges:**
-- **Investigation Conversations**: Social phases of investigations (question witnesses, confront suspects)
-- **NPC Requests**: Conversations triggered by accepting obligations (deliveries, tasks)
-- **Relationship Building**: Casual conversations deepening NPC connections
-- **Information Gathering**: Conversations focused on discovering knowledge
-- **Negotiation**: Trade and deal-making conversations
+**Architectural Simplification:**
+- **Before**: Goal → ChallengeType (intermediary) → ChallengeDeck (two-step lookup)
+- **After**: Goal → ChallengeDeck (direct reference, one-step lookup)
+- **Result**: ChallengeType entities eliminated - unnecessary intermediary providing no unique value
+- Decks now own all their configuration (VictoryThreshold, Description, HandSizes)
+- Single source of truth for challenge configuration
 
-All of the three tactical systems should provide the SAME depth. All three follow the same architectural pattern (builder/threshold/session resources + binary actions + system-specific card flow mechanics).
+**Context-Specific Challenge Decks:**
+- **Social Decks**: Investigation conversations, NPC requests, relationship building, information gathering, negotiation
+- **Mental Decks**: Location investigations, evidence examination, pattern analysis, deduction challenges
+- **Physical Decks**: Combat, Athletics, Finesse, Endurance, Strength challenges
+
+All three tactical systems provide the SAME depth through parallel architecture (builder/threshold/session resources + binary actions + system-specific card flow mechanics).
 
 ## Three-Layer Content Architecture
 

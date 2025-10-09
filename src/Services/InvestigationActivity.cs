@@ -307,7 +307,7 @@ public class InvestigationActivity
             Name = phaseDef.Name,
             Description = phaseDef.Description,
             SystemType = phaseDef.SystemType,
-            ChallengeTypeId = phaseDef.ChallengeTypeId,
+            DeckId = phaseDef.ChallengeTypeId, // Use DeckId (challengeTypeId is actually deckId now)
             LocationId = phaseDef.LocationId,
             NpcId = phaseDef.NpcId,
             NpcRequestId = phaseDef.RequestId,
@@ -455,7 +455,7 @@ public class InvestigationActivity
             Name = intro.ActionText,
             Description = $"Begin investigation: {investigation.Name}",
             SystemType = intro.SystemType,
-            ChallengeTypeId = intro.ChallengeTypeId,
+            DeckId = intro.ChallengeTypeId, // Use DeckId (challengeTypeId is actually deckId now)
             LocationId = intro.LocationId,
             NpcId = intro.NpcId,
             NpcRequestId = intro.RequestId,

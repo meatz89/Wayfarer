@@ -112,7 +112,7 @@ public class SocialFacade
         {
             NPC = npc,
             RequestId = requestId,
-            ChallengeTypeId = goal.ChallengeTypeId,
+            ChallengeTypeId = goal.DeckId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -428,7 +428,7 @@ public class SocialFacade
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
-            goal.ChallengeTypeId,
+            goal.DeckId,
             npc,
             session,
             new List<CardInstance>(), // observationCards - empty for now

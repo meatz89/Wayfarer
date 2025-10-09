@@ -452,16 +452,16 @@ public class GameFacade
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        if (!_gameWorld.MentalChallengeTypes.TryGetValue(challengeTypeId, out MentalChallengeType challengeType))
-            throw new InvalidOperationException($"MentalChallengeType {challengeTypeId} not found");
+        if (!_gameWorld.MentalChallengeDecks.TryGetValue(challengeTypeId, out MentalChallengeDeck challengeDeck))
+            throw new InvalidOperationException($"MentalChallengeDeck {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, player);
+            .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
+        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId);
     }
 
     /// <summary>
@@ -525,16 +525,16 @@ public class GameFacade
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        if (!_gameWorld.PhysicalChallengeTypes.TryGetValue(challengeTypeId, out PhysicalChallengeType challengeType))
-            throw new InvalidOperationException($"PhysicalChallengeType {challengeTypeId} not found");
+        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(challengeTypeId, out PhysicalChallengeDeck challengeDeck))
+            throw new InvalidOperationException($"PhysicalChallengeDeck {challengeTypeId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, player);
+            .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
+        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId);
     }
 
     /// <summary>

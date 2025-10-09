@@ -48,18 +48,10 @@ public class GameWorld
     // Physical cards for physical challenge system
     public List<PhysicalCard> PhysicalCards { get; set; } = new List<PhysicalCard>();
 
-    // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
-
-    // Social system (Conversation)
-    public Dictionary<string, SocialChallengeType> SocialChallengeTypes { get; private set; } = new Dictionary<string, SocialChallengeType>();
+    // THREE PARALLEL TACTICAL SYSTEMS - Decks only (no Types, they're redundant)
+    // Decks contain all necessary configuration for tactical engagements
     public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; private set; } = new Dictionary<string, SocialChallengeDeck>();
-
-    // Mental system
-    public Dictionary<string, MentalChallengeType> MentalChallengeTypes { get; private set; } = new Dictionary<string, MentalChallengeType>();
     public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; private set; } = new Dictionary<string, MentalChallengeDeck>();
-
-    // Physical system
-    public Dictionary<string, PhysicalChallengeType> PhysicalChallengeTypes { get; private set; } = new Dictionary<string, PhysicalChallengeType>();
     public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; private set; } = new Dictionary<string, PhysicalChallengeDeck>();
 
     // Observations from packages
