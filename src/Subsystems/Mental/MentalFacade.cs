@@ -273,7 +273,7 @@ public class MentalFacade
         }
 
         _sessionDeck.PlayCard(card);
-        _sessionDeck.DrawToHand(projection.CardsToDraw);
+        // NO DRAWING - Methods move to Applied pile, only OBSERVE draws cards
 
         string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
 
