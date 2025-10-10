@@ -77,9 +77,8 @@
             <div class="action-section">
                 @if (!IsInvestigationEnded)
                 {
-                <div class="action-button @(IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteObserve"
-                     disabled="@(IsProcessing)">
+                <div class="action-button"
+                     @onclick="ExecuteObserve">
                     OBSERVE
                     @if (SelectedCard != null)
                     {

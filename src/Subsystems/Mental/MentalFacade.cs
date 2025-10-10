@@ -105,6 +105,7 @@ public class MentalFacade
 
         // Use MentalSessionDeck with Pile abstraction
         _sessionDeck = MentalSessionDeck.CreateFromInstances(deck, startingHand);
+        _currentSession.Deck = _sessionDeck;
 
         // SYMMETRY RESTORATION: Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
         if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))

@@ -10,6 +10,7 @@ public class MentalSession
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public string InvestigationId { get; set; }
     public string VenueId { get; set; } // Track Venue for familiarity bonuses
+    public MentalSessionDeck Deck { get; set; }
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
 
     // Session Resources

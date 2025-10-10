@@ -9,6 +9,7 @@ public class PhysicalSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public string ChallengeId { get; set; }
+    public PhysicalSessionDeck Deck { get; set; }
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
 
     // Session Resources

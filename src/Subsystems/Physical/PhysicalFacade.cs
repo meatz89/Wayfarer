@@ -92,6 +92,7 @@ public class PhysicalFacade
 
         // Use PhysicalSessionDeck with Pile abstraction
         _sessionDeck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
+        _currentSession.Deck = _sessionDeck;
 
         // Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
         if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))

@@ -79,9 +79,8 @@
                 </div>
             </div>
             <div class="action-section">
-                <div class="action-button @(IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteAssess"
-                     disabled="@(IsProcessing)">
+                <div class="action-button"
+                     @onclick="ExecuteAssess">
                     ASSESS
                     @if (SelectedCard != null)
                     {
