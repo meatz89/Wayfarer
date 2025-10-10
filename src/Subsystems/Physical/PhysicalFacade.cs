@@ -126,8 +126,9 @@ public class PhysicalFacade
     }
 
     /// <summary>
-    /// ASSESS: Trigger all locked cards as combo, decrease Aggression, shuffle everything back, draw fresh
+    /// ASSESS: Trigger all locked cards as combo, shuffle everything back, draw fresh
     /// CORE PHYSICAL MECHANIC: Locked cards execute together, then all cards cycle back through Situation deck
+    /// PROJECTION PRINCIPLE: Apply full projection for each locked card (Breakthrough, Danger, Aggression with approach)
     /// </summary>
     public async Task<PhysicalTurnResult> ExecuteAssess()
     {
@@ -142,18 +143,19 @@ public class PhysicalFacade
         // Get all locked cards for combo execution
         List<CardInstance> lockedCards = _sessionDeck.LockedCards.ToList();
 
-        // TRIGGER COMBO: Apply all locked cards' effects
+        // TRIGGER COMBO: Apply full projection for each locked card
         foreach (CardInstance card in lockedCards)
         {
             if (card.PhysicalCardTemplate != null)
             {
-                // Get projection for this card
+                // PROJECTION PRINCIPLE: Get projection for this card with Assess action
                 PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, PhysicalActionType.Assess);
 
-                // Apply card effects (Breakthrough, Danger, etc.)
-                // NOTE: Exertion was already spent on EXECUTE, don't subtract again
+                // Apply FULL projection: Breakthrough, Danger, Aggression (includes action -2 + card approach)
+                // NOTE: Exertion was already spent on EXECUTE, projection.ExertionChange should be 0 here
                 _currentSession.CurrentBreakthrough += projection.BreakthroughChange;
                 _currentSession.CurrentDanger += projection.DangerChange;
+                _currentSession.Aggression += projection.BalanceChange; // Includes action -2 AND card approach modifier
 
                 // Award XP for this card
                 if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
@@ -161,13 +163,11 @@ public class PhysicalFacade
                     player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
                 }
 
-                Console.WriteLine($"[PhysicalFacade] COMBO: {card.PhysicalCardTemplate.Id} -> Breakthrough +{projection.BreakthroughChange}, Danger +{projection.DangerChange}");
+                Console.WriteLine($"[PhysicalFacade] COMBO: {card.PhysicalCardTemplate.Id} -> Breakthrough +{projection.BreakthroughChange}, Danger +{projection.DangerChange}, Aggression {projection.BalanceChange:+#;-#;0}");
             }
         }
 
-        // Decrease Aggression after careful assessment
-        _currentSession.Aggression -= 2;
-        Console.WriteLine($"[PhysicalFacade] ASSESS: Aggression decreased (-2) to {_currentSession.Aggression}");
+        Console.WriteLine($"[PhysicalFacade] ASSESS: All {lockedCards.Count} locked cards triggered, Aggression now {_currentSession.Aggression}");
 
         // Shuffle exhaust (locked cards) + hand back to deck, draw fresh
         _sessionDeck.ShuffleExhaustAndHandBackToDeck();
@@ -200,6 +200,7 @@ public class PhysicalFacade
     /// <summary>
     /// EXECUTE: Lock card for combo, spend Exertion, increase Aggression
     /// Card effects (Breakthrough, Danger) DON'T apply yet - they trigger on ASSESS
+    /// PROJECTION PRINCIPLE: Use projection to check affordability and apply Exertion + Aggression + costs
     /// </summary>
     public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
     {
@@ -221,10 +222,14 @@ public class PhysicalFacade
         _timeManager.AdvanceSegments(1);
         Player player = _gameWorld.GetPlayer();
 
-        // Check Exertion cost
-        if (_currentSession.CurrentExertion < card.PhysicalCardTemplate.ExertionCost)
+        // PROJECTION PRINCIPLE: Get projection from resolver (single source of truth)
+        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, PhysicalActionType.Execute);
+
+        // Check Exertion cost from projection (includes modifiers like fatigue penalties, Foundation generation)
+        if (_currentSession.CurrentExertion + projection.ExertionChange < 0)
         {
-            throw new InvalidOperationException($"Insufficient Exertion. Need {card.PhysicalCardTemplate.ExertionCost}, have {_currentSession.CurrentExertion}");
+            int actualCost = -projection.ExertionChange;
+            throw new InvalidOperationException($"Insufficient Exertion. Need {actualCost}, have {_currentSession.CurrentExertion}");
         }
 
         // Special case: GoalCard ends session immediately with effects applied
@@ -245,13 +250,28 @@ public class PhysicalFacade
             };
         }
 
-        // EXECUTE: Lock card, spend Exertion, increase Aggression
+        // EXECUTE: Lock card for combo
         _sessionDeck.LockCard(card);
-        _currentSession.CurrentExertion -= card.PhysicalCardTemplate.ExertionCost;
-        _currentSession.Aggression += 1; // EXECUTE increases Aggression
+
+        // Apply PARTIAL projection: Exertion + Aggression + strategic costs
+        // DON'T apply Breakthrough/Danger yet (they trigger on ASSESS)
+        _currentSession.CurrentExertion += projection.ExertionChange;
+        if (_currentSession.CurrentExertion > _currentSession.MaxExertion)
+        {
+            _currentSession.CurrentExertion = _currentSession.MaxExertion;
+        }
+
+        // Apply Aggression from projection (includes action +1 AND card approach modifier)
+        _currentSession.Aggression += projection.BalanceChange;
+
+        // Apply strategic resource costs
+        if (projection.HealthCost > 0) player.Health -= projection.HealthCost;
+        if (projection.StaminaCost > 0) player.Stamina -= projection.StaminaCost;
+        if (projection.CoinsCost > 0) player.Coins -= projection.CoinsCost;
+
         _currentSession.ApproachHistory++;
 
-        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, spent {card.PhysicalCardTemplate.ExertionCost} Exertion, Aggression +1 (now {_currentSession.Aggression})");
+        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, Exertion {projection.ExertionChange:+#;-#;0}, Aggression {projection.BalanceChange:+#;-#;0} (now {_currentSession.Aggression})");
 
         string executeNarrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
 
@@ -347,6 +367,62 @@ public class PhysicalFacade
         _sessionDeck?.Clear();
 
         return outcome;
+    }
+
+    /// <summary>
+    /// PROJECTION PRINCIPLE: ONLY place where projections become reality
+    /// Parallel to MentalFacade.ApplyProjectionToSession() and ConversationFacade.ApplyProjectionToSession()
+    /// </summary>
+    private void ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
+    {
+        // Builder resource: Exertion (can be negative for cost, positive for generation)
+        session.CurrentExertion += projection.ExertionChange;
+        if (session.CurrentExertion > session.MaxExertion)
+        {
+            session.CurrentExertion = session.MaxExertion;
+        }
+        if (session.CurrentExertion < 0)
+        {
+            session.CurrentExertion = 0;
+        }
+
+        // Victory resource: Breakthrough
+        if (projection.BreakthroughChange != 0)
+        {
+            session.CurrentBreakthrough += projection.BreakthroughChange;
+        }
+
+        // Consequence resource: Danger
+        if (projection.DangerChange != 0)
+        {
+            session.CurrentDanger += projection.DangerChange;
+        }
+
+        // Balance tracker: Aggression (includes action balance + card approach)
+        if (projection.BalanceChange != 0)
+        {
+            session.Aggression += projection.BalanceChange;
+        }
+
+        // Persistent progress: Understanding
+        if (projection.ReadinessChange != 0)
+        {
+            session.CurrentUnderstanding += projection.ReadinessChange;
+        }
+
+        // Strategic resource costs
+        if (projection.HealthCost > 0)
+        {
+            player.Health -= projection.HealthCost;
+        }
+        if (projection.StaminaCost > 0)
+        {
+            player.Stamina -= projection.StaminaCost;
+        }
+        if (projection.CoinsCost > 0)
+        {
+            player.Coins -= projection.CoinsCost;
+        }
     }
 
     /// <summary>

@@ -211,10 +211,11 @@ public class MentalFacade
         // DUAL BALANCE: Pass action type to combine with card Method
         MentalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, actionType);
 
-        // Check Attention cost BEFORE applying
-        if (_currentSession.CurrentAttention < card.MentalCardTemplate.AttentionCost)
+        // Check Attention cost from projection (includes modifiers if any exist)
+        if (_currentSession.CurrentAttention + projection.AttentionChange < 0)
         {
-            throw new InvalidOperationException($"Insufficient Attention. Need {card.MentalCardTemplate.AttentionCost}, have {_currentSession.CurrentAttention}");
+            int actualCost = -projection.AttentionChange;
+            throw new InvalidOperationException($"Insufficient Attention. Need {actualCost}, have {_currentSession.CurrentAttention}");
         }
 
         // Apply projection to session state
