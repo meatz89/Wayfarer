@@ -1,7 +1,7 @@
 @namespace Wayfarer.Pages.Components.Shared
 @inherits PhysicalCardBase
 
-<div class="card @GetCardCategoryClass() @(!IsSelectable ? "disabled" : "") @(IsSelected ? "selected" : "")"
+<div class="card @GetCardCategoryClass() @(!IsSelectable ? "disabled" : "") @(IsSelected ? "selected" : "") @(IsLocked ? "locked" : "")"
      @onclick="HandleClick">
     <div class="card-content">
         <div class="card-top-row">

@@ -147,6 +147,37 @@
             </div>
         </div>
 
+        <!-- Locked Cards Display (Prepared Combo) -->
+        @if (GetLockedCards().Count > 0)
+        {
+            <div class="locked-cards-section">
+                <div class="pile-display">
+                    <div class="pile-count">
+                        <span>Locked Options (Combo):</span>
+                        <span class="pile-number">@GetLockedCards().Count</span>
+                    </div>
+                </div>
+
+                <div class="card-grid locked-cards-container">
+                    @foreach (var lockedCard in GetLockedCards())
+                    {
+                        <PhysicalCard Card="@lockedCard"
+                                      IsLocked="true"
+                                      IsSelectable="false"
+                                      Session="@Session"
+                                      OnCardClick="@(() => {})">
+                            <SystemSpecificBadges>
+                                <span class="card-approach" title="Physical approach">
+                                    @lockedCard.PhysicalCardTemplate.Approach
+                                </span>
+                                <span class="locked-badge">LOCKED</span>
+                            </SystemSpecificBadges>
+                        </PhysicalCard>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Hand Display -->
         <div class="cards-section">
             <div class="pile-display">

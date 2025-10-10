@@ -14,6 +14,7 @@ namespace Wayfarer.Pages.Components.Shared
         [Parameter] public CardInstance Card { get; set; }
         [Parameter] public bool IsSelected { get; set; }
         [Parameter] public bool IsSelectable { get; set; } = true;
+        [Parameter] public bool IsLocked { get; set; }
         [Parameter] public EventCallback OnCardClick { get; set; }
         [Parameter] public RenderFragment SystemSpecificBadges { get; set; }
 

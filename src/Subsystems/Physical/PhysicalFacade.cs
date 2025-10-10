@@ -63,6 +63,11 @@ public class PhysicalFacade
         return _sessionDeck?.LockedCards.Count ?? 0;
     }
 
+    public List<CardInstance> GetLockedCards()
+    {
+        return _sessionDeck?.LockedCards.ToList() ?? new List<CardInstance>();
+    }
+
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         string goalId, string investigationId)
     {

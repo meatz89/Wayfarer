@@ -133,6 +133,13 @@ namespace Wayfarer.Pages.Components
                 : 0;
         }
 
+        protected List<CardInstance> GetLockedCards()
+        {
+            return GameFacade?.IsPhysicalSessionActive() == true
+                ? GameFacade.GetPhysicalFacade().GetLockedCards()
+                : new List<CardInstance>();
+        }
+
         protected void SelectCard(CardInstance card)
         {
             SelectedCard = (SelectedCard == card) ? null : card;
