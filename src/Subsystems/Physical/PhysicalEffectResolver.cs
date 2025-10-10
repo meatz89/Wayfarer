@@ -144,9 +144,9 @@ public class PhysicalEffectResolver
             });
         }
 
-        // BONUS 3: Balance Modifier (High positive balance increases Danger)
-        int projectedBalance = session.Commitment + result.BalanceChange;
-        if (projectedBalance > 5)
+        // BONUS 3: Balance Modifier (High positive Aggression increases Danger)
+        int projectedAggression = session.Aggression + result.BalanceChange;
+        if (projectedAggression > 5)
         {
             result.DangerBonuses.Add(new EffectBonus
             {

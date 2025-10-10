@@ -8,19 +8,17 @@ using System.Linq;
 /// </summary>
 public class PhysicalSessionDeck
 {
-    // Pile system: Deck → Hand → Played
+    // THREE-PILE SYSTEM: Deck (draw) → Hand (active) → Locked (exhaust)
     private readonly Pile deckPile = new();
     private readonly Pile handPile = new();
-    private readonly Pile playedPile = new();
     private readonly Pile requestPile = new();  // GOAL CARDS for this engagement
-    private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // Cards locked for combo execution on ASSESS
+    private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // EXHAUST PILE - locked for combo execution on ASSESS
 
     public PhysicalSessionDeck() { }
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
     public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
-    public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
     public IReadOnlyList<CardInstance> LockedCards => lockedCards.AsReadOnly();
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;
@@ -75,21 +73,6 @@ public class PhysicalSessionDeck
             CardInstance card = deckPile.DrawTop();
             handPile.Add(card);
         }
-    }
-
-    /// <summary>
-    /// Play card from hand
-    /// </summary>
-    public void PlayCard(CardInstance card)
-    {
-        if (card == null || !handPile.Contains(card))
-        {
-            Console.WriteLine($"[PhysicalSessionDeck] ERROR: Card not in hand");
-            return;
-        }
-
-        handPile.Remove(card);
-        playedPile.Add(card);
     }
 
     /// <summary>
@@ -169,13 +152,42 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
+    /// Shuffle exhaust pile (locked cards) and hand back to deck
+    /// Used on ASSESS to reset card flow: exhaust + hand → deck → shuffle → draw fresh
+    /// CORE PHYSICAL MECHANIC: All cards cycle back through Situation deck
+    /// </summary>
+    public void ShuffleExhaustAndHandBackToDeck()
+    {
+        int exhaustCount = lockedCards.Count;
+        int handCount = handPile.Count;
+
+        // Move all locked cards (exhaust pile) to deck
+        foreach (CardInstance card in lockedCards.ToList())
+        {
+            deckPile.Add(card);
+        }
+        lockedCards.Clear();
+
+        // Move all hand cards to deck
+        foreach (CardInstance card in handPile.Cards.ToList())
+        {
+            handPile.Remove(card);
+            deckPile.Add(card);
+        }
+
+        // Shuffle deck
+        deckPile.Shuffle();
+
+        Console.WriteLine($"[PhysicalSessionDeck] ASSESS: Shuffled {exhaustCount} exhaust + {handCount} hand cards back to deck ({deckPile.Count} total)");
+    }
+
+    /// <summary>
     /// Clear all piles
     /// </summary>
     public void Clear()
     {
         deckPile.Clear();
         handPile.Clear();
-        playedPile.Clear();
         requestPile.Clear();
         lockedCards.Clear();
     }

@@ -58,9 +58,9 @@ public class PhysicalFacade
         return _sessionDeck?.RemainingDeckCards ?? 0;
     }
 
-    public int GetDiscardCount()
+    public int GetExhaustCount()
     {
-        return _sessionDeck?.PlayedCards.Count ?? 0;
+        return _sessionDeck?.LockedCards.Count ?? 0;
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
@@ -86,7 +86,7 @@ public class PhysicalFacade
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
             MaxDanger = engagement.DangerThreshold,
-            Commitment = 0
+            Aggression = 0
         };
 
         // Use PhysicalSessionDeck with Pile abstraction
@@ -125,6 +125,10 @@ public class PhysicalFacade
         return _currentSession;
     }
 
+    /// <summary>
+    /// ASSESS: Trigger all locked cards as combo, decrease Aggression, shuffle everything back, draw fresh
+    /// CORE PHYSICAL MECHANIC: Locked cards execute together, then all cards cycle back through Situation deck
+    /// </summary>
     public async Task<PhysicalTurnResult> ExecuteAssess()
     {
         if (!IsSessionActive())
@@ -132,44 +136,72 @@ public class PhysicalFacade
             throw new InvalidOperationException("No active physical session");
         }
 
-        // Advance time by 1 segment per action (per documentation)
         _timeManager.AdvanceSegments(1);
+        Player player = _gameWorld.GetPlayer();
 
-        // Calculate cards to draw
+        // Get all locked cards for combo execution
+        List<CardInstance> lockedCards = _sessionDeck.LockedCards.ToList();
+
+        // TRIGGER COMBO: Apply all locked cards' effects
+        foreach (CardInstance card in lockedCards)
+        {
+            if (card.PhysicalCardTemplate != null)
+            {
+                // Get projection for this card
+                PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, PhysicalActionType.Assess);
+
+                // Apply card effects (Breakthrough, Danger, etc.)
+                // NOTE: Exertion was already spent on EXECUTE, don't subtract again
+                _currentSession.CurrentBreakthrough += projection.BreakthroughChange;
+                _currentSession.CurrentDanger += projection.DangerChange;
+
+                // Award XP for this card
+                if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
+                {
+                    player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
+                }
+
+                Console.WriteLine($"[PhysicalFacade] COMBO: {card.PhysicalCardTemplate.Id} -> Breakthrough +{projection.BreakthroughChange}, Danger +{projection.DangerChange}");
+            }
+        }
+
+        // Decrease Aggression after careful assessment
+        _currentSession.Aggression -= 2;
+        Console.WriteLine($"[PhysicalFacade] ASSESS: Aggression decreased (-2) to {_currentSession.Aggression}");
+
+        // Shuffle exhaust (locked cards) + hand back to deck, draw fresh
+        _sessionDeck.ShuffleExhaustAndHandBackToDeck();
+
         int cardsToDraw = _currentSession.GetDrawCount();
-
-        // Draw cards to hand
         _sessionDeck.DrawToHand(cardsToDraw);
 
         // Check and unlock goal cards if Breakthrough threshold met
         _sessionDeck.CheckGoalThresholds(_currentSession.CurrentBreakthrough);
 
+        // Check if danger threshold reached
+        bool sessionEnded = false;
+        if (_currentSession.ShouldEnd())
+        {
+            ApplyDangerConsequences(player);
+            EndSession();
+            sessionEnded = true;
+        }
+
         return new PhysicalTurnResult
         {
             Success = true,
-            Narrative = "You carefully assess the situation and consider your options.",
+            Narrative = $"You assess the situation. {lockedCards.Count} prepared actions execute as a combo.",
             CurrentBreakthrough = _currentSession.CurrentBreakthrough,
             CurrentDanger = _currentSession.CurrentDanger,
-            SessionEnded = false
+            SessionEnded = sessionEnded
         };
     }
 
-    public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
-    {
-        // Advance time by 1 segment per action (per documentation)
-        _timeManager.AdvanceSegments(1);
-
-        return await ExecuteCard(card, PhysicalActionType.Execute);
-    }
-
     /// <summary>
-    /// PROJECTION PRINCIPLE: Execute card using projection pattern
-    /// 1. Get projection from resolver (single source of truth)
-    /// 2. Apply projection to session
-    /// DUAL BALANCE: Action type (Assess/Execute) combined with card Approach
-    /// Parallel to ConversationFacade.SelectCard() and MentalFacade.ExecuteCard()
+    /// EXECUTE: Lock card for combo, spend Exertion, increase Aggression
+    /// Card effects (Breakthrough, Danger) DON'T apply yet - they trigger on ASSESS
     /// </summary>
-    private async Task<PhysicalTurnResult> ExecuteCard(CardInstance card, PhysicalActionType actionType)
+    public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
     {
         if (!IsSessionActive())
         {
@@ -186,144 +218,51 @@ public class PhysicalFacade
             throw new InvalidOperationException("Card has no Physical template");
         }
 
+        _timeManager.AdvanceSegments(1);
         Player player = _gameWorld.GetPlayer();
 
-        // PROJECTION PRINCIPLE: Get projection from resolver (single source of truth)
-        // DUAL BALANCE: Pass action type to combine with card Approach
-        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, actionType);
-
-        // Check Exertion cost BEFORE applying
+        // Check Exertion cost
         if (_currentSession.CurrentExertion < card.PhysicalCardTemplate.ExertionCost)
         {
             throw new InvalidOperationException($"Insufficient Exertion. Need {card.PhysicalCardTemplate.ExertionCost}, have {_currentSession.CurrentExertion}");
         }
 
-        // Apply projection to session state
-        ApplyProjectionToSession(projection, _currentSession, player);
-
-        // Check and unlock goal cards if Breakthrough threshold met
-        List<CardInstance> unlockedGoals = _sessionDeck.CheckGoalThresholds(_currentSession.CurrentBreakthrough);
-        foreach (CardInstance goalCard in unlockedGoals)
-        {
-            Console.WriteLine($"[PhysicalFacade] Goal card unlocked: {goalCard.PhysicalCardTemplate?.Id} (Breakthrough threshold met)");
-        }
-
-        // If player played a GoalCard, end session immediately (match Social pattern)
+        // Special case: GoalCard ends session immediately with effects applied
         if (card.CardType == CardTypes.Goal)
         {
-            Console.WriteLine($"[PhysicalFacade] GoalCard played - ending session with success");
-            _sessionDeck.PlayCard(card); // Mark card as played
-
-            string completionNarrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
-
-            EndSession(); // Immediate end on GoalCard play
+            // GoalCards execute immediately (not locked for combo)
+            _sessionDeck.Hand.ToList().Remove(card); // Remove from hand
+            string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
+            EndSession();
 
             return new PhysicalTurnResult
             {
                 Success = true,
-                Narrative = completionNarrative,
+                Narrative = narrative,
                 CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
                 CurrentDanger = _currentSession?.CurrentDanger ?? 0,
                 SessionEnded = true
             };
         }
 
-        // Track approach history for Decisive card requirements
-        if (actionType == PhysicalActionType.Execute)
-        {
-            _currentSession.ApproachHistory++;
-        }
+        // EXECUTE: Lock card, spend Exertion, increase Aggression
+        _sessionDeck.LockCard(card);
+        _currentSession.CurrentExertion -= card.PhysicalCardTemplate.ExertionCost;
+        _currentSession.Aggression += 1; // EXECUTE increases Aggression
+        _currentSession.ApproachHistory++;
 
-        // PROGRESSION SYSTEM: Award XP to bound stat (XP pre-calculated at parse time)
-        if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
-        {
-            player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
-            Console.WriteLine($"[PhysicalFacade] Awarded {card.PhysicalCardTemplate.XPReward} XP to {card.PhysicalCardTemplate.BoundStat} (Depth {card.PhysicalCardTemplate.Depth})");
-        }
+        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, spent {card.PhysicalCardTemplate.ExertionCost} Exertion, Aggression +1 (now {_currentSession.Aggression})");
 
-        _sessionDeck.PlayCard(card);
-        _sessionDeck.DrawToHand(projection.CardsToDraw);
-
-        string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
-
-        // Check victory/consequence thresholds
-        bool sessionEnded = false;
-        if (_currentSession.ShouldEnd())
-        {
-            // Apply consequences if Danger threshold reached
-            if (_currentSession.CurrentDanger >= _currentSession.MaxDanger)
-            {
-                ApplyDangerConsequences(player);
-            }
-
-            EndSession();
-            sessionEnded = true;
-        }
+        string executeNarrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
 
         return new PhysicalTurnResult
         {
             Success = true,
-            Narrative = narrative,
-            CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
-            CurrentDanger = _currentSession?.CurrentDanger ?? 0,
-            SessionEnded = sessionEnded
+            Narrative = executeNarrative,
+            CurrentBreakthrough = _currentSession.CurrentBreakthrough,
+            CurrentDanger = _currentSession.CurrentDanger,
+            SessionEnded = false
         };
-    }
-
-    /// <summary>
-    /// PROJECTION PRINCIPLE: ONLY place where projections become reality
-    /// Parallel to ConversationFacade.ApplyProjectionToSession() and MentalFacade.ApplyProjectionToSession()
-    /// </summary>
-    private void ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
-    {
-        // Builder resource: Exertion
-        session.CurrentExertion += projection.ExertionChange;
-        if (session.CurrentExertion > session.MaxExertion)
-        {
-            session.CurrentExertion = session.MaxExertion;
-        }
-        if (session.CurrentExertion < 0)
-        {
-            session.CurrentExertion = 0;
-        }
-
-        // Victory resource: Breakthrough (stored as Progress in session)
-        if (projection.BreakthroughChange != 0)
-        {
-            session.CurrentBreakthrough += projection.BreakthroughChange;
-        }
-
-        // Consequence resource: Danger
-        if (projection.DangerChange != 0)
-        {
-            session.CurrentDanger += projection.DangerChange;
-        }
-
-        // Balance resource
-        if (projection.BalanceChange != 0)
-        {
-            session.Commitment += projection.BalanceChange;
-        }
-
-        // Persistent progress: Readiness (stored as Understanding in session)
-        if (projection.ReadinessChange != 0)
-        {
-            session.CurrentUnderstanding += projection.ReadinessChange;
-        }
-
-        // Strategic resource costs
-        if (projection.HealthCost > 0)
-        {
-            player.Health -= projection.HealthCost;
-        }
-        if (projection.StaminaCost > 0)
-        {
-            player.Stamina -= projection.StaminaCost;
-        }
-        if (projection.CoinsCost > 0)
-        {
-            player.Coins -= projection.CoinsCost;
-        }
     }
 
     /// <summary>
@@ -365,8 +304,8 @@ public class PhysicalFacade
             return null;
         }
 
-        // Success determined by whether player played a GoalCard (match Social pattern)
-        bool success = _sessionDeck.PlayedCards.Any(c => c.CardType == CardTypes.Goal);
+        // Success determined by GoalCard play (GoalCards end session immediately in ExecuteExecute)
+        bool success = !string.IsNullOrEmpty(_currentGoalId);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {

@@ -22,7 +22,7 @@ public class PhysicalSession
     // Challenge-Local Resources (reset between challenges)
     public int CurrentBreakthrough { get; set; } = 0; // Breakthrough toward victory threshold
     public int CurrentDanger { get; set; } = 0; // Cumulative risk/exposure
-    public int Commitment { get; set; } = 0; // Range -10 to +10, balance tracker
+    public int Aggression { get; set; } = 0; // Range -10 to +10, balance tracker (EXECUTE increases, ASSESS decreases)
     public int ApproachHistory { get; set; } = 0; // Count of Execute actions (for Decisive card requirements)
     public Dictionary<DiscoveryType, List<string>> Discoveries { get; set; } = new Dictionary<DiscoveryType, List<string>>();
 
@@ -32,17 +32,17 @@ public class PhysicalSession
     // Balance States
     public bool IsRecklessBalance()
     {
-        return Commitment >= 5;
+        return Aggression >= 5;
     }
 
     public bool IsOvercautiousBalance()
     {
-        return Commitment <= -5;
+        return Aggression <= -5;
     }
 
     public bool IsNeutralBalance()
     {
-        return Commitment > -5 && Commitment < 5;
+        return Aggression > -5 && Aggression < 5;
     }
 
     // Tier and Category Methods

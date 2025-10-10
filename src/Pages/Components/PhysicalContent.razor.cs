@@ -84,9 +84,9 @@ namespace Wayfarer.Pages.Components
             return Session?.MaxDanger ?? 10;
         }
 
-        protected int GetCurrentCommitment()
+        protected int GetCurrentAggression()
         {
-            return Session?.Commitment ?? 0;
+            return Session?.Aggression ?? 0;
         }
 
         protected int GetBreakthroughPercentage()
@@ -104,18 +104,18 @@ namespace Wayfarer.Pages.Components
             return (int)((Session.CurrentDanger / (double)Session.MaxDanger) * 100);
         }
 
-        protected int GetCommitmentExertion()
+        protected int GetAggressionValue()
         {
-            // Returns exertion on -10 to +10 scale as 0-20 for UI display
-            int commitment = Session?.Commitment ?? 0;
-            return commitment + 10; // Convert -10..10 to 0..20
+            // Returns Aggression on -10 to +10 scale as 0-20 for UI display
+            int aggression = Session?.Aggression ?? 0;
+            return aggression + 10; // Convert -10..10 to 0..20
         }
 
-        protected string GetCommitmentClass()
+        protected string GetAggressionClass()
         {
-            int commitment = Session?.Commitment ?? 0;
-            if (commitment < -5) return "hesitant";
-            if (commitment > 5) return "decisive";
+            int aggression = Session?.Aggression ?? 0;
+            if (aggression < -5) return "overcautious";
+            if (aggression > 5) return "reckless";
             return "balanced";
         }
 
@@ -126,10 +126,10 @@ namespace Wayfarer.Pages.Components
                 : 0;
         }
 
-        protected int GetDiscardCount()
+        protected int GetExhaustCount()
         {
             return GameFacade?.IsPhysicalSessionActive() == true
-                ? GameFacade.GetPhysicalFacade().GetDiscardCount()
+                ? GameFacade.GetPhysicalFacade().GetExhaustCount()
                 : 0;
         }
 
@@ -522,24 +522,24 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // COMMITMENT BALANCE STATE DISPLAY
+        // AGGRESSION BALANCE STATE DISPLAY
         // =============================================
 
-        protected string GetCommitmentState()
+        protected string GetAggressionState()
         {
             if (Session == null) return "Balanced";
 
-            if (Session.IsRecklessBalance()) return "Decisive";
-            if (Session.IsOvercautiousBalance()) return "Hesitant";
+            if (Session.IsRecklessBalance()) return "Reckless";
+            if (Session.IsOvercautiousBalance()) return "Overcautious";
             return "Balanced";
         }
 
-        protected string GetCommitmentStateClass()
+        protected string GetAggressionStateClass()
         {
             if (Session == null) return "balanced";
 
-            if (Session.IsRecklessBalance()) return "decisive";
-            if (Session.IsOvercautiousBalance()) return "hesitant";
+            if (Session.IsRecklessBalance()) return "reckless";
+            if (Session.IsOvercautiousBalance()) return "overcautious";
             return "balanced";
         }
 
@@ -740,14 +740,14 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // COMMITMENT SCALE DISPLAY
+        // AGGRESSION SCALE DISPLAY
         // =============================================
 
-        protected string GetCommitmentSegmentClass(int segmentValue)
+        protected string GetAggressionSegmentClass(int segmentValue)
         {
-            // Commitment scale: -10 (Hesitant) to +10 (Decisive)
-            if (segmentValue < -5) return "hesitant";
-            if (segmentValue > 5) return "decisive";
+            // Aggression scale: -10 (Overcautious) to +10 (Reckless)
+            if (segmentValue < -5) return "overcautious";
+            if (segmentValue > 5) return "reckless";
             return "balanced";
         }
 
