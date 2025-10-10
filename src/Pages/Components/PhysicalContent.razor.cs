@@ -137,7 +137,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteAssess()
         {
-            if (SelectedCard == null || IsProcessing || Session == null)
+            if (Session == null || IsProcessing)
                 return;
 
             IsProcessing = true;
@@ -145,7 +145,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalTurnResult result = await GameFacade.ExecuteAssess(SelectedCard);
+                PhysicalTurnResult result = await GameFacade.ExecuteAssess();
 
                 if (result == null)
                 {

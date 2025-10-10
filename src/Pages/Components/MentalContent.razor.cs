@@ -117,12 +117,15 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteObserve()
         {
+            if (Session == null || IsProcessing)
+                return;
+
             IsProcessing = true;
             StateHasChanged();
 
             try
             {
-                MentalTurnResult result = await GameFacade.ExecuteObserve(SelectedCard);
+                MentalTurnResult result = await GameFacade.ExecuteObserve();
 
                 if (result == null)
                 {

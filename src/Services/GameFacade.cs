@@ -437,7 +437,7 @@ public class GameFacade
     /// <summary>
     /// Execute observe action in current Mental investigation
     /// </summary>
-    public async Task<MentalTurnResult> ExecuteObserve(CardInstance card)
+    public async Task<MentalTurnResult> ExecuteObserve()
     {
         if (_mentalFacade == null)
             throw new InvalidOperationException("MentalFacade not available");
@@ -445,7 +445,7 @@ public class GameFacade
         if (!_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("No active mental session");
 
-        return await _mentalFacade.ExecuteObserve(card);
+        return await _mentalFacade.ExecuteObserve();
     }
 
     /// <summary>
@@ -510,7 +510,7 @@ public class GameFacade
     /// <summary>
     /// Execute assess action in current Physical challenge
     /// </summary>
-    public async Task<PhysicalTurnResult> ExecuteAssess(CardInstance card)
+    public async Task<PhysicalTurnResult> ExecuteAssess()
     {
         if (_physicalFacade == null)
             throw new InvalidOperationException("PhysicalFacade not available");
@@ -518,7 +518,7 @@ public class GameFacade
         if (!_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("No active physical session");
 
-        return await _physicalFacade.ExecuteAssess(card);
+        return await _physicalFacade.ExecuteAssess();
     }
 
     /// <summary>

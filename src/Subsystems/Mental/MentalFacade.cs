@@ -140,12 +140,33 @@ public class MentalFacade
         return _currentSession;
     }
 
-    public async Task<MentalTurnResult> ExecuteObserve(CardInstance card)
+    public async Task<MentalTurnResult> ExecuteObserve()
     {
+        if (!IsSessionActive())
+        {
+            throw new InvalidOperationException("No active mental session");
+        }
+
         // Advance time by 1 segment per action (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        return await ExecuteCard(card, MentalActionType.Observe);
+        // Calculate cards to draw
+        int cardsToDraw = _currentSession.GetDrawCount();
+
+        // Draw cards to hand
+        _sessionDeck.DrawToHand(cardsToDraw);
+
+        // Check and unlock goal cards if Progress threshold met
+        _sessionDeck.CheckGoalThresholds(_currentSession.CurrentProgress);
+
+        return new MentalTurnResult
+        {
+            Success = true,
+            Narrative = "You observe carefully, gathering information.",
+            CurrentProgress = _currentSession.CurrentProgress,
+            CurrentExposure = _currentSession.CurrentExposure,
+            SessionEnded = false
+        };
     }
 
     public async Task<MentalTurnResult> ExecuteAct(CardInstance card)

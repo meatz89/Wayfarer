@@ -13,6 +13,7 @@
                 "id": "mental_challenge",
                 "name": "Mental Challenge Deck",
                 "description": "Mental challenges requiring observation and deduction",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "mental_examine_scene",
                     "mental_examine_scene",
@@ -36,6 +37,7 @@
                 "id": "physical_challenge",
                 "name": "Physical Challenge Deck",
                 "description": "Physical challenges requiring strength and dexterity",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "physical_climb_carefully",
                     "physical_climb_carefully",

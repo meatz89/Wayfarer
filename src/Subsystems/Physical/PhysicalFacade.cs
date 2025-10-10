@@ -126,12 +126,33 @@ public class PhysicalFacade
         return _currentSession;
     }
 
-    public async Task<PhysicalTurnResult> ExecuteAssess(CardInstance card)
+    public async Task<PhysicalTurnResult> ExecuteAssess()
     {
+        if (!IsSessionActive())
+        {
+            throw new InvalidOperationException("No active physical session");
+        }
+
         // Advance time by 1 segment per action (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        return await ExecuteCard(card, PhysicalActionType.Assess);
+        // Calculate cards to draw
+        int cardsToDraw = _currentSession.GetDrawCount();
+
+        // Draw cards to hand
+        _sessionDeck.DrawToHand(cardsToDraw);
+
+        // Check and unlock goal cards if Breakthrough threshold met
+        _sessionDeck.CheckGoalThresholds(_currentSession.CurrentBreakthrough);
+
+        return new PhysicalTurnResult
+        {
+            Success = true,
+            Narrative = "You carefully assess the situation and consider your options.",
+            CurrentBreakthrough = _currentSession.CurrentBreakthrough,
+            CurrentDanger = _currentSession.CurrentDanger,
+            SessionEnded = false
+        };
     }
 
     public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
