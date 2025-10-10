@@ -1,18 +1,18 @@
 {
   "packageId": "core_goals",
   "metadata": {
-    "name": "Core Goals - POC Only",
+    "name": "Core Goals - Miller's Daughter POC",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Goal definitions for Social/Mental/Physical systems at Old Mill venue",
+    "description": "Goal definitions: Permanent goals assigned at initialization + Investigation-dynamic goals spawned by waterwheel mystery",
     "author": "Wayfarer Team",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "goals": [
       {
-        "id": "elena_delivery",
+        "id": "elena_delivery_request",
         "name": "Delivery for Elena",
-        "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek",
+        "description": "Elena needs urgent legal documents delivered to Farmer Aldric's stead before the rains come. The route is dangerous - you'll need to choose between crossing Widow's Creek or passing through the abandoned mill.",
         "systemType": "Social",
         "npcId": "elena",
         "deckId": "desperate_request",
@@ -20,34 +20,128 @@
         "isCompleted": false,
         "goalCards": [
           {
-            "id": "elena_basic_delivery",
-            "name": "Simple Delivery",
-            "description": "Deliver the package to Aldric",
+            "id": "elena_accept_delivery",
+            "name": "Accept the Delivery",
+            "description": "Agree to deliver the documents. Elena provides weatherproof case and warns about the deadline - heavy rains in three days will make the creek impassable.",
             "threshold": 8,
             "rewards": {
-              "coins": 20,
+              "coins": 0,
               "obligationId": "delivery_to_aldric"
             }
           },
           {
-            "id": "elena_enhanced_delivery",
-            "name": "Delivery + Investigation Offer",
-            "description": "Deliver the package and Elena shares something about the old mill",
+            "id": "elena_full_briefing",
+            "name": "Get Full Details",
+            "description": "Build enough rapport that Elena shares everything - route dangers, why it's urgent, her concerns about the mill path, and offers extra payment for safe delivery.",
             "threshold": 12,
             "rewards": {
-              "coins": 25,
+              "coins": 5,
               "obligationId": "delivery_to_aldric",
-              "knowledge": [
-                "mill_has_secrets"
-              ]
+              "knowledge": ["elena_trusts_you", "creek_deadline_three_days"]
             }
           }
         ]
       },
       {
-        "id": "notice_waterwheel",
-        "name": "Notice the silent waterwheel",
-        "description": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling.",
+        "id": "martha_route_information",
+        "name": "Ask Martha about the routes",
+        "description": "Martha grew up in the area before moving to town. She knows the countryside, the dangers of Widow's Creek, and has personal history with the old mill.",
+        "systemType": "Social",
+        "npcId": "martha",
+        "deckId": "friendly_chat",
+        "isAvailable": true,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "martha_basic_info",
+            "name": "Basic Route Information",
+            "description": "Martha warns about Widow's Creek current and mentions the mill path has a safer crossing upstream. She's hesitant to discuss the mill itself.",
+            "threshold": 8,
+            "rewards": {
+              "coins": 0,
+              "knowledge": ["creek_dangerous", "mill_has_crossing"]
+            }
+          },
+          {
+            "id": "martha_full_story",
+            "name": "Martha's Full Story",
+            "description": "Build enough trust that Martha shares the painful truth - her daughter Anna disappeared near the mill a decade ago, investigating something. The mechanism was dangerous even when operational. She warns you to be careful if you go there.",
+            "threshold": 12,
+            "rewards": {
+              "coins": 0,
+              "knowledge": ["creek_dangerous", "mill_has_crossing", "anna_disappeared_at_mill", "mill_mechanism_dangerous", "bring_light_source"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "observe_mill_exterior",
+        "name": "Observe the mill structure",
+        "description": "The abandoned mill looms ahead, wheel frozen mid-rotation. The building shows structural damage - gaps in walls, sagging roofline. A careful observer might notice details others miss.",
+        "systemType": "Mental",
+        "deckId": "mental_challenge",
+        "locationId": "courtyard",
+        "isAvailable": true,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "mill_surface_observation",
+            "name": "Surface Assessment",
+            "description": "Notice the obvious - wheel is frozen, building is damaged, path overgrown. The front door appears partially collapsed.",
+            "threshold": 8,
+            "rewards": {
+              "coins": 0,
+              "knowledge": ["mill_structurally_damaged"]
+            }
+          },
+          {
+            "id": "mill_detailed_analysis",
+            "name": "Structural Analysis",
+            "description": "Careful observation reveals critical details: upper floor is dangerously unstable, the mechanism has accessible gear housing, and there are RECENT FOOTPRINTS in the dust near the side entrance. Someone has been here.",
+            "threshold": 12,
+            "rewards": {
+              "coins": 0,
+              "knowledge": ["mill_structurally_damaged", "upper_floor_dangerous", "gear_housing_accessible", "recent_activity_at_mill"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "test_waterwheel_mechanism",
+        "name": "Test the waterwheel mechanism",
+        "description": "The massive waterwheel and grinding mechanism dominate the mill. Years of rust and decay, but the structure might reveal its secrets to someone willing to climb and investigate.",
+        "systemType": "Physical",
+        "deckId": "physical_challenge",
+        "locationId": "courtyard",
+        "isAvailable": true,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "wheel_basic_test",
+            "name": "Basic Structural Test",
+            "description": "Climb carefully to test the wheel's stability. It's rusted solid but the frame could support weight. Notice the gear housing has a corroded access panel.",
+            "threshold": 10,
+            "rewards": {
+              "coins": 0,
+              "knowledge": ["wheel_structurally_sound", "access_panel_exists"]
+            }
+          },
+          {
+            "id": "wheel_thorough_analysis",
+            "name": "Complete Mechanism Analysis",
+            "description": "Use rope to secure position and conduct thorough examination. The gear housing panel is accessible with tools. The shaft connects to interior grinding mechanism. Upper loft is reachable via the wheel framework but floor condition is questionable.",
+            "threshold": 15,
+            "rewards": {
+              "coins": 5,
+              "knowledge": ["wheel_structurally_sound", "access_panel_exists", "panel_needs_tools", "loft_accessible_via_wheel"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "investigation_intro_search_entry",
+        "name": "Search for safe entry to the mill",
+        "description": "The front door is partially collapsed and dangerous. There must be another way in - perhaps a loading door or service entrance that's more stable.",
         "systemType": "Mental",
         "deckId": "mental_challenge",
         "locationId": "courtyard",
@@ -57,20 +151,21 @@
         "isCompleted": false,
         "goalCards": [
           {
-            "id": "notice_waterwheel_basic",
-            "name": "Basic Observation",
-            "description": "Notice something is wrong with the waterwheel",
+            "id": "find_side_door",
+            "name": "Discover Side Loading Door",
+            "description": "Careful search around the perimeter reveals a side loading door. It's wedged shut but could be forced open with rope leverage without risking collapse.",
             "threshold": 8,
             "rewards": {
-              "coins": 0
+              "coins": 0,
+              "knowledge": ["side_door_location"]
             }
           }
         ]
       },
       {
-        "id": "phase_1_examine",
-        "name": "Examine the broken gear mechanism",
-        "description": "Carefully inspect the waterwheel mechanism to understand what went wrong",
+        "id": "phase_1_examine_interior",
+        "name": "Examine the mill interior",
+        "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. A loft above with questionable flooring. Fresh disturbance in the dust - someone has been here recently.",
         "systemType": "Mental",
         "deckId": "mental_challenge",
         "locationId": "courtyard",
@@ -79,29 +174,97 @@
         "isCompleted": false,
         "goalCards": [
           {
-            "id": "examine_mechanism_basic",
-            "name": "Surface Examination",
-            "description": "Notice obvious damage to the mechanism",
+            "id": "interior_quick_look",
+            "name": "Quick Assessment",
+            "description": "Notice the key features - massive mechanism, unstable loft, recent disturbance. Someone is investigating this place.",
             "threshold": 8,
             "rewards": {
-              "coins": 5
+              "coins": 5,
+              "knowledge": ["mechanism_has_compartment", "recent_disturbance"]
             }
           },
           {
-            "id": "examine_mechanism_thorough",
+            "id": "interior_thorough_search",
             "name": "Thorough Investigation",
-            "description": "Identify deliberate sabotage marks",
+            "description": "Careful examination reveals the grinding mechanism has a hidden access panel in the gear housing. Fresh footprints lead to both the mechanism and the loft ladder. Whoever was here had specific targets.",
             "threshold": 12,
             "rewards": {
-              "coins": 10
+              "coins": 10,
+              "knowledge": ["mechanism_has_compartment", "hidden_access_panel", "recent_disturbance", "investigator_targets_known"]
             }
           }
         ]
       },
       {
-        "id": "phase_2_question",
-        "name": "Question Elena about who has access to tools",
-        "description": "Speak with Elena about what she knows regarding the waterwheel failure",
+        "id": "phase_2_access_compartment",
+        "name": "Access the mechanism's hidden compartment",
+        "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable. Wrong approach could trigger collapse.",
+        "systemType": "Physical",
+        "deckId": "physical_challenge",
+        "locationId": "courtyard",
+        "investigationId": "waterwheel_mystery",
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "compartment_quick_access",
+            "name": "Force Panel Open",
+            "description": "Pry the panel open quickly. Risk of partial collapse but fast access to whatever's hidden inside.",
+            "threshold": 10,
+            "rewards": {
+              "coins": 5,
+              "knowledge": ["smuggling_ledgers_found"]
+            }
+          },
+          {
+            "id": "compartment_safe_access",
+            "name": "Stabilize and Open Safely",
+            "description": "Use rope to stabilize the structure and work the panel loose carefully. Takes time but eliminates collapse risk. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved.",
+            "threshold": 15,
+            "rewards": {
+              "coins": 10,
+              "knowledge": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "phase_3_investigate_loft",
+        "name": "Investigate the upper loft",
+        "description": "The loft is accessible but the floor is dangerously unstable after years of decay. Someone has been up there recently - you can see disturbed dust on the ladder.",
+        "systemType": "Physical",
+        "deckId": "physical_challenge",
+        "locationId": "courtyard",
+        "investigationId": "waterwheel_mystery",
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "loft_risky_search",
+            "name": "Risk the Unstable Floor",
+            "description": "Climb up without securing the floor. Quick search reveals signs of recent occupation - someone is actively using this loft.",
+            "threshold": 10,
+            "rewards": {
+              "coins": 5,
+              "knowledge": ["loft_recently_occupied"]
+            }
+          },
+          {
+            "id": "loft_secured_search",
+            "name": "Secure Floor and Search Thoroughly",
+            "description": "Use rope to test and secure the floor before full search. Discover bedroll, journal, and sketching materials. The journal belongs to someone researching their aunt's disappearance - Martha's granddaughter is investigating Anna's fate.",
+            "threshold": 15,
+            "rewards": {
+              "coins": 10,
+              "knowledge": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"]
+            }
+          }
+        ]
+      },
+      {
+        "id": "phase_4_confront_with_evidence",
+        "name": "Confront Elena about the smuggling evidence",
+        "description": "The ledgers from the mill reveal a smuggling operation from a decade ago. Names include a current town elder. Elena might know more about this history than she let on.",
         "systemType": "Social",
         "deckId": "friendly_chat",
         "npcId": "elena",
@@ -110,65 +273,26 @@
         "isCompleted": false,
         "goalCards": [
           {
-            "id": "question_elena_basic",
-            "name": "Basic Questions",
-            "description": "Get Elena to share what she knows",
+            "id": "elena_direct_confrontation",
+            "name": "Direct Confrontation",
+            "description": "Show Elena the ledgers directly and demand answers. She's defensive at first but admits the town has old secrets some would prefer stayed buried.",
             "threshold": 8,
             "rewards": {
-              "coins": 5
+              "coins": 0,
+              "knowledge": ["elena_knew_about_smuggling"]
             }
           },
           {
-            "id": "question_elena_detailed",
-            "name": "Detailed Questioning",
-            "description": "Elena reveals suspects and tool access",
+            "id": "elena_careful_approach",
+            "name": "Careful Questioning",
+            "description": "Approach diplomatically, showing concern for safety rather than accusation. Elena reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
             "threshold": 12,
             "rewards": {
-              "coins": 10
+              "coins": 20,
+              "knowledge": ["elena_knew_about_smuggling", "elder_responsible_for_anna", "justice_possible"]
             }
           }
         ]
-      },
-      {
-        "id": "phase_3_repair",
-        "name": "Clear debris and repair the waterwheel",
-        "description": "Remove the obstructions and fix the damaged mechanism",
-        "systemType": "Physical",
-        "deckId": "physical_challenge",
-        "locationId": "courtyard",
-        "investigationId": "waterwheel_mystery",
-        "isAvailable": false,
-        "isCompleted": false,
-        "goalCards": [
-          {
-            "id": "repair_basic",
-            "name": "Basic Repair",
-            "description": "Clear debris and fix obvious damage",
-            "threshold": 10,
-            "rewards": {
-              "coins": 10
-            }
-          },
-          {
-            "id": "repair_complete",
-            "name": "Complete Restoration",
-            "description": "Fully restore the waterwheel mechanism",
-            "threshold": 15,
-            "rewards": {
-              "coins": 20
-            }
-          }
-        ]
-      },
-      {
-        "id": "climb_waterwheel",
-        "name": "Climb the waterwheel",
-        "description": "Scale the rusted waterwheel to reach the upper levels of the mill",
-        "systemType": "Physical",
-        "deckId": "physical_challenge",
-        "locationId": "courtyard",
-        "isAvailable": true,
-        "isCompleted": false
       }
     ]
   }

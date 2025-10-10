@@ -12,67 +12,81 @@
       {
         "id": "waterwheel_mystery",
         "name": "The Waterwheel Mystery",
-        "description": "Investigate why the Old Mill's waterwheel has stopped turning",
+        "description": "Uncover the dark secrets hidden within the abandoned mill - a decade-old disappearance, a smuggling operation, and the dangerous truth Martha's granddaughter is pursuing",
         "colorCode": "#5a7a8b",
         "intro": {
           "triggerType": "ImmediateVisibility",
           "triggerPrerequisites": {
             "spotId": "courtyard"
           },
-          "actionText": "Investigate the silent waterwheel",
+          "actionText": "Search for safe entry to the mill",
           "systemType": "Mental",
           "deckId": "mental_challenge",
           "spotId": "courtyard",
-          "introNarrative": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling. Something is clearly wrong—and someone needs to investigate."
+          "introNarrative": "The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside."
         },
         "personality": "SequentialSite",
         "exposureThreshold": 8,
         "timeLimit": 0,
         "phases": [
           {
-            "id": "phase_1_examine",
-            "name": "Examine the broken gear mechanism",
-            "description": "Carefully inspect the waterwheel mechanism to understand what went wrong",
-            "outcomeNarrative": "The gear teeth show clear marks of deliberate damage. This was no accident—someone wanted the mill to stop working. The scoring pattern suggests a chisel or similar tool, wielded with intent to disable but not destroy completely.",
-            "goalId": "phase_1_examine",
+            "id": "phase_1_examine_interior",
+            "name": "Examine the mill interior",
+            "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
+            "outcomeNarrative": "Your careful examination reveals a hidden access panel in the gear housing. Fresh footprints lead to both the mechanism and the loft ladder. Whoever was here had specific targets - they knew exactly what they were looking for.",
+            "goalId": "phase_1_examine_interior",
             "completionReward": {
-              "knowledgeGranted": ["waterwheel_sabotage_evidence"]
+              "knowledgeGranted": ["mechanism_has_compartment", "hidden_access_panel", "recent_disturbance", "investigator_targets_known"]
             }
           },
           {
-            "id": "phase_2_question",
-            "name": "Question Elena about who has access to tools",
-            "description": "Speak with Elena about what she knows regarding the waterwheel failure",
-            "outcomeNarrative": "Elena mentions that only three people have regular access to the workshop tools: herself, her apprentice Aldric, and the mill's elderly caretaker. Her eyes dart away when mentioning Aldric.",
-            "goalId": "phase_2_question",
+            "id": "phase_2_access_compartment",
+            "name": "Access the mechanism's hidden compartment",
+            "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
+            "outcomeNarrative": "You carefully stabilize the structure and work the panel loose. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved. One name stands out - a current town elder. Anna must have found this evidence.",
+            "goalId": "phase_2_access_compartment",
             "requirements": {
-              "completedGoals": ["phase_1_examine"],
-              "requiredKnowledge": ["waterwheel_sabotage_evidence"]
+              "completedGoals": ["phase_1_examine_interior"],
+              "requiredKnowledge": ["mechanism_has_compartment"]
             },
             "completionReward": {
-              "knowledgeGranted": ["waterwheel_suspect_identified"]
+              "knowledgeGranted": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"]
             }
           },
           {
-            "id": "phase_3_repair",
-            "name": "Clear debris and repair the waterwheel",
-            "description": "Remove the obstructions and fix the damaged mechanism",
-            "outcomeNarrative": "With effort, you clear away the accumulated debris and use your tools to repair the damaged gears. The waterwheel groans back to life, water driving the mechanism once more. The mill's heart beats again.",
-            "goalId": "phase_3_repair",
+            "id": "phase_3_investigate_loft",
+            "name": "Investigate the upper loft",
+            "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently - disturbed dust on the ladder.",
+            "outcomeNarrative": "You secure the floor with rope and conduct a thorough search. A bedroll, journal, and sketching materials reveal the truth: Martha's granddaughter is here, investigating her aunt Anna's disappearance. The journal shows she's piecing together the same evidence you've found.",
+            "goalId": "phase_3_investigate_loft",
             "requirements": {
-              "completedGoals": ["phase_2_question"],
-              "requiredKnowledge": ["waterwheel_suspect_identified"]
+              "completedGoals": ["phase_2_access_compartment"],
+              "requiredKnowledge": ["anna_found_evidence"]
             },
             "completionReward": {
-              "knowledgeGranted": ["waterwheel_repaired"]
+              "knowledgeGranted": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"]
+            }
+          },
+          {
+            "id": "phase_4_confront_evidence",
+            "name": "Confront Elena about the smuggling evidence",
+            "description": "The ledgers reveal a smuggling operation from a decade ago. Elena might know more about this history than she let on.",
+            "outcomeNarrative": "You approach Elena diplomatically, showing concern rather than accusation. She reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
+            "goalId": "phase_4_confront_with_evidence",
+            "requirements": {
+              "completedGoals": ["phase_3_investigate_loft"],
+              "requiredKnowledge": ["smuggling_ledgers_found", "granddaughter_investigating"]
+            },
+            "completionReward": {
+              "knowledgeGranted": ["elena_knew_about_smuggling", "elder_responsible_for_anna", "justice_possible"]
             }
           }
         ],
-        "completionNarrative": "You've uncovered the truth behind the waterwheel's sabotage. The evidence points clearly to the culprit, and Elena now knows what happened to her mill.",
+        "completionNarrative": "You've uncovered the dark truth behind Anna's disappearance and the smuggling operation that led to her fate. The evidence is damning, and Elena finally has what she needs to seek justice. Martha's granddaughter can now find closure, and the town elder's crimes will not remain hidden.",
         "completionRewards": {
-          "coins": 25,
-          "experience": 50,
-          "reputation": {"elena": 2}
+          "coins": 50,
+          "experience": 100,
+          "reputation": {"elena": 3}
         },
         "observationCardRewards": []
       }
