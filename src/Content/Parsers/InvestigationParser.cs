@@ -31,10 +31,19 @@ public class InvestigationParser
 
     private InvestigationPhaseDefinition ParsePhaseDefinition(InvestigationPhaseDTO dto, string investigationId)
     {
-        TacticalSystemType systemType = ParseSystemType(dto.SystemType);
+        // [Oracle] Validation: goalId must reference existing goal in GameWorld.Goals
+        if (string.IsNullOrEmpty(dto.GoalId))
+        {
+            throw new InvalidOperationException(
+                $"Investigation phase '{dto.Id}' in investigation '{investigationId}' missing required 'goalId' field");
+        }
 
-        // [Oracle] Validation: deckId must exist in GameWorld
-        ValidateDeckId(dto.DeckId, systemType, dto.Id);
+        if (!_gameWorld.Goals.ContainsKey(dto.GoalId))
+        {
+            throw new InvalidOperationException(
+                $"Investigation phase '{dto.Id}' references goal '{dto.GoalId}' which does not exist in GameWorld.Goals. " +
+                $"Available goals: {string.Join(", ", _gameWorld.Goals.Keys)}");
+        }
 
         return new InvestigationPhaseDefinition
         {
@@ -43,10 +52,7 @@ public class InvestigationParser
             Description = dto.Description,
             Goal = dto.Goal,
             OutcomeNarrative = dto.OutcomeNarrative,
-            SystemType = systemType,
-            DeckId = dto.DeckId,
-            LocationId = dto.LocationId,
-            NpcId = dto.NpcId,
+            GoalId = dto.GoalId, // Store reference to goal
             Requirements = ParseRequirements(dto.Requirements),
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
@@ -66,7 +72,7 @@ public class InvestigationParser
     {
         if (string.IsNullOrEmpty(deckId))
         {
-            throw new InvalidOperationException($"Investigation phase '{phaseId}' has no deckId specified");
+            throw new InvalidOperationException($"Investigation intro action '{phaseId}' has no deckId specified");
         }
 
         bool exists = systemType switch
@@ -80,7 +86,7 @@ public class InvestigationParser
         if (!exists)
         {
             throw new InvalidOperationException(
-                $"Investigation phase '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
+                $"Investigation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
                 $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
             );
         }

@@ -66,10 +66,10 @@ public class MentalDeckBuilder
             // Create CardInstance directly from GoalCard (self-contained template)
             CardInstance instance = new CardInstance(goalCard);
 
-            // Set context for threshold checking (Mental system uses Progress = MomentumThreshold)
+            // Set context for threshold checking (Mental system uses Progress threshold)
             instance.Context = new CardContext
             {
-                MomentumThreshold = goalCard.MomentumThreshold,
+                threshold = goalCard.threshold,
                 RequestId = goal.Id
             };
 

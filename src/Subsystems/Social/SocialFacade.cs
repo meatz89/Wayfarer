@@ -69,8 +69,7 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(r => r.Id == requestId);
-        if (goal == null)
+        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
         {
             throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
@@ -417,8 +416,7 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(r => r.Id == requestId);
-        if (goal == null)
+        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
         {
             return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
         }
@@ -485,7 +483,7 @@ public class SocialFacade
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
             {
-                int momentumThreshold = card.Context?.MomentumThreshold ?? 0;
+                int momentumThreshold = card.Context?.threshold ?? 0;
                 int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
                 return currentMomentum >= momentumThreshold;
             }
@@ -1084,7 +1082,7 @@ public class SocialFacade
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
-                int momentumThreshold = card.Context?.MomentumThreshold ?? 0;
+                int momentumThreshold = card.Context?.threshold ?? 0;
 
                 if (currentMomentum >= momentumThreshold)
                 {
@@ -1170,27 +1168,13 @@ public class SocialFacade
             if (investigation?.IntroAction != null &&
                 investigation.IntroAction.SystemType == TacticalSystemType.Social &&
                 investigation.IntroAction.NpcId == npcId &&
-                $"{investigation.Id}_intro" == requestId)
+                requestId == "notice_waterwheel")
             {
                 // This is intro completion - activate investigation
-                List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(discoveredId);
+                // CompleteIntroAction spawns goals directly to ActiveGoals
+                _investigationActivity.CompleteIntroAction(discoveredId);
 
-                // Add first goals to their respective Locations (Locations are the only entity that matters)
-                if (firstGoals.Count > 0)
-                {
-                    foreach (Goal goal in firstGoals)
-                    {
-                        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
-                        if (spotEntry != null)
-                        {
-                            if (spotEntry.location.Goals == null)
-                                spotEntry.location.Goals = new List<Goal>();
-                            spotEntry.location.Goals.Add(goal);
-                        }
-                    }
-                }
-
-                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' ACTIVATED");
                 return;
             }
         }
@@ -1202,10 +1186,18 @@ public class SocialFacade
             if (investigation == null) continue;
 
             // Find phase that matches this npcId + requestId
+            // Phase definitions reference goals - look up goal properties
             InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p =>
-                p.SystemType == TacticalSystemType.Social &&
-                p.NpcId == npcId &&
-                p.Id == requestId);
+            {
+                // Look up referenced goal from GameWorld.Goals
+                if (!_gameWorld.Goals.ContainsKey(p.GoalId))
+                    return false;
+
+                Goal goal = _gameWorld.Goals[p.GoalId];
+                return goal.SystemType == TacticalSystemType.Social &&
+                       goal.NpcId == npcId &&
+                       p.Id == requestId;
+            });
 
             if (matchingPhase != null)
             {

@@ -90,6 +90,18 @@ public class MentalFacade
         // Get location's persisted exposure (Mental debt system)
         int baseExposure = location?.Exposure ?? 0;
 
+        // Get victory threshold from Goal's minimum GoalCard threshold
+        int victoryThreshold = 20; // Default fallback
+        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+        {
+            if (goal.GoalCards != null && goal.GoalCards.Any())
+            {
+                // Use minimum threshold from GoalCards (first tier)
+                victoryThreshold = goal.GoalCards.Min(gc => gc.threshold);
+                Console.WriteLine($"[MentalFacade] Victory threshold from GoalCard: {victoryThreshold}");
+            }
+        }
+
         _currentSession = new MentalSession
         {
             InvestigationId = engagement.Id,
@@ -100,7 +112,7 @@ public class MentalFacade
             CurrentProgress = 0,
             CurrentExposure = baseExposure, // Start with persisted exposure from venue
             MaxExposure = engagement.DangerThreshold,
-            VictoryThreshold = engagement.VictoryThreshold
+            VictoryThreshold = victoryThreshold // From GoalCard.threshold
         };
 
         // Use MentalSessionDeck with Pile abstraction
@@ -305,7 +317,7 @@ public class MentalFacade
             return null;
         }
 
-        bool success = _currentSession.CurrentProgress >= 20;
+        bool success = _currentSession.CurrentProgress >= _currentSession.VictoryThreshold;
 
         MentalOutcome outcome = new MentalOutcome
         {
@@ -372,27 +384,13 @@ public class MentalFacade
     {
         // Check if this is an intro action (Discovered → Active transition)
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation != null && goalId == $"{investigationId}_intro")
+        if (investigation != null && goalId == "notice_waterwheel")
         {
             // This is intro completion - activate investigation
-            List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
+            // CompleteIntroAction spawns goals directly to ActiveGoals
+            _investigationActivity.CompleteIntroAction(investigationId);
 
-            // Add first goals to their respective Locations (Locations are the only entity that matters)
-            if (firstGoals.Count > 0)
-            {
-                foreach (Goal goal in firstGoals)
-                {
-                    LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
-                    if (spotEntry != null)
-                    {
-                        if (spotEntry.location.Goals == null)
-                            spotEntry.location.Goals = new List<Goal>();
-                        spotEntry.location.Goals.Add(goal);
-                    }
-                }
-            }
-
-            Console.WriteLine($"[MentalFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+            Console.WriteLine($"[MentalFacade] Investigation '{investigation.Name}' ACTIVATED");
             return;
         }
 

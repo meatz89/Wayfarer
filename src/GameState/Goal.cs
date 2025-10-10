@@ -78,6 +78,14 @@ public class Goal
     public bool IsCompleted { get; set; } = false;
 
     /// <summary>
+    /// Whether this goal should be deleted from ActiveGoals on successful completion.
+    /// Investigation progression goals: true (one-time, remove after complete)
+    /// Repeatable goals: false (persist for retry)
+    /// Default: true (investigation progression pattern)
+    /// </summary>
+    public bool DeleteOnSuccess { get; set; } = true;
+
+    /// <summary>
     /// Prerequisites for this goal to be available
     /// </summary>
     public GoalRequirements Requirements { get; set; }

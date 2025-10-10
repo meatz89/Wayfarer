@@ -367,7 +367,7 @@ public class LocationActionManager
         {
             // Search across all location goals (Locations are the only entity that matters)
             Goal requiredGoal = _gameWorld.Locations
-                .SelectMany(spotEntry => spotEntry.location.Goals ?? new List<Goal>())
+                .SelectMany(spotEntry => spotEntry.location.ActiveGoals ?? new List<Goal>())
                 .FirstOrDefault(g => g.Id == requiredGoalId);
 
             if (requiredGoal == null || !requiredGoal.IsCompleted)

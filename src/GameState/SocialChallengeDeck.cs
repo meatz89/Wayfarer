@@ -11,7 +11,6 @@ public class SocialChallengeDeck
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public int VictoryThreshold { get; set; }
     public int InitialHandSize { get; set; }
     public int MaxHandSize { get; set; }
     public List<string> CardIds { get; set; } = new List<string>();

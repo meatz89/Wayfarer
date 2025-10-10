@@ -96,7 +96,7 @@ public class MentalSessionDeck
     public List<CardInstance> CheckGoalThresholds(int currentProgress)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.MomentumThreshold <= currentProgress)  // Reusing MomentumThreshold field for Progress
+            .Where(c => c.Context?.threshold <= currentProgress)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();

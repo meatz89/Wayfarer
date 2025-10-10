@@ -160,8 +160,14 @@ namespace Wayfarer.Pages.Components
 
             foreach (InvestigationPhaseDefinition phase in activePhases)
             {
+                // Look up goal from GameWorld.Goals using phase's goalId
+                if (!GameWorld.Goals.ContainsKey(phase.GoalId))
+                    continue;
+
+                Goal goal = GameWorld.Goals[phase.GoalId];
+
                 // Derive Venue from location (LocationId is globally unique)
-                LocationEntry spotEntry = GameWorld.Locations.FirstOrDefault(s => s.location.Id == phase.LocationId);
+                LocationEntry spotEntry = GameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
                 Venue loc = spotEntry != null
                     ? GameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
                     : null;

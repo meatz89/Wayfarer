@@ -74,10 +74,10 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Activate investigation - creates LocationGoals from PhaseDefinitions
+    /// Activate investigation - looks up goals and spawns them at locations/NPCs
     /// Moves investigation from Pending → Active in GameWorld.InvestigationJournal
     /// </summary>
-    public List<Goal> ActivateInvestigation(string investigationId)
+    public void ActivateInvestigation(string investigationId)
     {
         // Load investigation template from GameWorld
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
@@ -86,10 +86,11 @@ public class InvestigationActivity
             throw new ArgumentException($"Investigation '{investigationId}' not found in GameWorld");
         }
 
-        // Remove from potential (if still there, might already be in Discovered)
+        // Remove from potential and discovered
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
+        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Remove(investigationId);
 
-        // Add to active
+        // Create active investigation
         ActiveInvestigation activeInvestigation = new ActiveInvestigation
         {
             InvestigationId = investigationId,
@@ -97,23 +98,68 @@ public class InvestigationActivity
         };
         _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
 
-        // Create goals from phase definitions
-        List<Goal> createdGoals = new List<Goal>();
+        // Spawn initial goals (prerequisites met)
         foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
         {
-            // Check if prerequisites met (initially only phases with no requirements)
             if (ArePrerequisitesMet(phaseDef.Requirements, new List<string>()))
             {
-                Goal goal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
-                createdGoals.Add(goal);
+                SpawnGoalForPhase(phaseDef, investigationId);
             }
         }
 
         _messageSystem.AddSystemMessage(
             $"Investigation activated: {investigation.Name}",
             SystemMessageTypes.Info);
+    }
 
-        return createdGoals;
+    /// <summary>
+    /// Spawn goal for phase - looks up goal and adds to ActiveGoals
+    /// </summary>
+    private void SpawnGoalForPhase(InvestigationPhaseDefinition phaseDef, string investigationId)
+    {
+        // Look up goal from GameWorld.Goals dictionary
+        if (!_gameWorld.Goals.TryGetValue(phaseDef.GoalId, out Goal goal))
+        {
+            throw new InvalidOperationException(
+                $"Phase '{phaseDef.Id}' references goal '{phaseDef.GoalId}' which doesn't exist in GameWorld.Goals");
+        }
+
+        // Set investigation-specific properties
+        goal.InvestigationId = investigationId;
+        goal.Requirements = phaseDef.Requirements;
+        goal.IsAvailable = true;
+
+        // Add to appropriate ActiveGoals list
+        if (!string.IsNullOrEmpty(goal.NpcId))
+        {
+            // Social goal → NPC.ActiveGoals
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+            if (npc == null)
+                throw new InvalidOperationException($"Goal '{goal.Id}' references NPC '{goal.NpcId}' which doesn't exist");
+
+            if (!npc.ActiveGoals.Any(g => g.Id == goal.Id))
+            {
+                npc.ActiveGoals.Add(goal);
+                Console.WriteLine($"[Investigation] Spawned Social goal '{goal.Name}' at NPC '{npc.Name}'");
+            }
+        }
+        else if (!string.IsNullOrEmpty(goal.LocationId))
+        {
+            // Mental/Physical goal → Location.ActiveGoals
+            Location location = _gameWorld.GetLocation(goal.LocationId);
+            if (location == null)
+                throw new InvalidOperationException($"Goal '{goal.Id}' references location '{goal.LocationId}' which doesn't exist");
+
+            if (!location.ActiveGoals.Any(g => g.Id == goal.Id))
+            {
+                location.ActiveGoals.Add(goal);
+                Console.WriteLine($"[Investigation] Spawned {goal.SystemType} goal '{goal.Name}' at location '{location.Name}'");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException($"Goal '{goal.Id}' has neither NpcId nor LocationId");
+        }
     }
 
     /// <summary>
@@ -166,31 +212,62 @@ public class InvestigationActivity
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
         foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
         {
-            // Skip if already completed or already has goal created
+            // Skip if already completed
             if (activeInv.CompletedGoalIds.Contains(phaseDef.Id))
                 continue;
 
-            // Check if this phase's prerequisites are now met
+            // Look up goal to check if already spawned
+            if (!_gameWorld.Goals.TryGetValue(phaseDef.GoalId, out Goal goal))
+                continue;
+
+            // Check if already spawned (in ActiveGoals)
+            bool alreadySpawned = false;
+            if (!string.IsNullOrEmpty(goal.NpcId))
+            {
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                alreadySpawned = npc?.ActiveGoals.Any(g => g.Id == goal.Id) ?? false;
+            }
+            else if (!string.IsNullOrEmpty(goal.LocationId))
+            {
+                Location location = _gameWorld.GetLocation(goal.LocationId);
+                alreadySpawned = location?.ActiveGoals.Any(g => g.Id == goal.Id) ?? false;
+            }
+
+            if (alreadySpawned)
+                continue;
+
+            // Check if prerequisites now met
             if (ArePrerequisitesMet(phaseDef.Requirements, activeInv.CompletedGoalIds))
             {
-                // Create new goal for newly unlocked phase
-                Goal newGoal = CreateGoalFromPhaseDefinition(phaseDef, investigationId);
+                SpawnGoalForPhase(phaseDef, investigationId);
 
-                // Derive venue from location (LocationId is globally unique)
-                LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == phaseDef.LocationId);
-                Venue venue = spotEntry != null
-                    ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
-                    : null;
-
-                if (venue != null)
+                // Build new lead info for UI
+                NewLeadInfo newLead = new NewLeadInfo
                 {
-                    newLeads.Add(new NewLeadInfo
-                    {
-                        GoalName = phaseDef.Name,
-                        LocationName = venue.Name,
-                        SpotName = spotEntry.location.Name
-                    });
+                    GoalName = phaseDef.Name,
+                    LocationName = "", // Will be populated below
+                    SpotName = ""      // Will be populated below
+                };
+
+                // Derive location info for UI display
+                if (!string.IsNullOrEmpty(goal.LocationId))
+                {
+                    LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == goal.LocationId);
+                    Venue venue = spotEntry != null
+                        ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
+                        : null;
+
+                    newLead.LocationName = venue?.Name ?? "Unknown";
+                    newLead.SpotName = spotEntry?.location.Name ?? goal.LocationId;
                 }
+                else if (!string.IsNullOrEmpty(goal.NpcId))
+                {
+                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                    newLead.LocationName = npc?.Name ?? "Unknown NPC";
+                    newLead.SpotName = "";
+                }
+
+                newLeads.Add(newLead);
             }
         }
 
@@ -296,29 +373,6 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Create LocationGoal from InvestigationPhaseDefinition
-    /// </summary>
-    private Goal CreateGoalFromPhaseDefinition(InvestigationPhaseDefinition phaseDef, string investigationId)
-    {
-        Goal goal = new Goal
-        {
-            Id = phaseDef.Id,
-            Name = phaseDef.Name,
-            Description = phaseDef.Description,
-            SystemType = phaseDef.SystemType,
-            DeckId = phaseDef.DeckId,
-            LocationId = phaseDef.LocationId,
-            NpcId = phaseDef.NpcId,
-            InvestigationId = investigationId,
-            Requirements = phaseDef.Requirements,
-            IsAvailable = true,
-            IsCompleted = false
-        };
-
-        return goal;
-    }
-
-    /// <summary>
     /// Check if prerequisites are met for a phase
     /// </summary>
     private bool ArePrerequisitesMet(GoalRequirements requirements, List<string> completedGoalIds)
@@ -360,11 +414,10 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Discover investigation - moves Potential → Discovered, spawns intro action
-    /// Returns LocationGoal for intro action to be added to location
+    /// Discover investigation - moves Potential → Discovered, spawns intro goal
     /// Sets pending discovery result for UI modal display
     /// </summary>
-    public Goal DiscoverInvestigation(string investigationId)
+    public void DiscoverInvestigation(string investigationId)
     {
         Console.WriteLine($"[InvestigationActivity] DiscoverInvestigation called for '{investigationId}'");
 
@@ -380,9 +433,8 @@ public class InvestigationActivity
         _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
         Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
 
-        // Create intro action as LocationGoal
-        Goal introGoal = CreateIntroGoalFromInvestigation(investigation);
-        Console.WriteLine($"[InvestigationActivity] Created intro goal: ID='{introGoal.Id}', Name='{introGoal.Name}', LocationId='{introGoal.LocationId}'");
+        // Spawn intro goal (look up and add to ActiveGoals)
+        SpawnIntroGoalForInvestigation(investigation);
 
         // Derive venue from location (LocationId is globally unique)
         LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);
@@ -407,23 +459,61 @@ public class InvestigationActivity
         _messageSystem.AddSystemMessage(
             $"Investigation discovered: {investigation.Name}",
             SystemMessageTypes.Info);
+    }
 
-        return introGoal;
+    /// <summary>
+    /// Spawn intro goal - finds intro goal by investigationId and IsIntroAction flag
+    /// </summary>
+    private void SpawnIntroGoalForInvestigation(Investigation investigation)
+    {
+        // Find intro goal in GameWorld.Goals
+        Goal introGoal = _gameWorld.Goals.Values
+            .FirstOrDefault(g => g.InvestigationId == investigation.Id && g.IsIntroAction);
+
+        if (introGoal == null)
+        {
+            throw new InvalidOperationException(
+                $"Investigation '{investigation.Id}' has no intro goal. " +
+                $"Create Goal with InvestigationId='{investigation.Id}' and IsIntroAction=true in 05_goals.json");
+        }
+
+        // Add to appropriate ActiveGoals
+        if (!string.IsNullOrEmpty(introGoal.LocationId))
+        {
+            Location location = _gameWorld.GetLocation(introGoal.LocationId);
+            if (location == null)
+                throw new InvalidOperationException($"Intro goal '{introGoal.Id}' references location '{introGoal.LocationId}' which doesn't exist");
+
+            if (!location.ActiveGoals.Any(g => g.Id == introGoal.Id))
+            {
+                location.ActiveGoals.Add(introGoal);
+                Console.WriteLine($"[Investigation] Spawned intro goal '{introGoal.Name}' at location '{location.Name}'");
+            }
+        }
+        else if (!string.IsNullOrEmpty(introGoal.NpcId))
+        {
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == introGoal.NpcId);
+            if (npc == null)
+                throw new InvalidOperationException($"Intro goal '{introGoal.Id}' references NPC '{introGoal.NpcId}' which doesn't exist");
+
+            if (!npc.ActiveGoals.Any(g => g.Id == introGoal.Id))
+            {
+                npc.ActiveGoals.Add(introGoal);
+                Console.WriteLine($"[Investigation] Spawned intro goal '{introGoal.Name}' at NPC '{npc.Name}'");
+            }
+        }
     }
 
     /// <summary>
     /// Complete intro action - moves Discovered → Active, spawns first goals
     /// Called from tactical session completion (Mental/Physical/SocialFacade)
     /// </summary>
-    public List<Goal> CompleteIntroAction(string investigationId)
+    public void CompleteIntroAction(string investigationId)
     {
-        // Move Discovered → Active
-        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Remove(investigationId);
-
-        // Call existing ActivateInvestigation to create first goals
-        List<Goal> firstGoals = ActivateInvestigation(investigationId);
-
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+
+        // Call ActivateInvestigation to spawn first goals
+        ActivateInvestigation(investigationId);
 
         // Create activation result for UI modal
         _pendingActivationResult = new InvestigationActivationResult
@@ -436,30 +526,6 @@ public class InvestigationActivity
         _messageSystem.AddSystemMessage(
             $"Investigation activated: {investigation?.Name}",
             SystemMessageTypes.Success);
-
-        return firstGoals;
     }
 
-    /// <summary>
-    /// Create intro action goal from investigation
-    /// </summary>
-    private Goal CreateIntroGoalFromInvestigation(Investigation investigation)
-    {
-        InvestigationIntroAction intro = investigation.IntroAction;
-
-        return new Goal
-        {
-            Id = $"{investigation.Id}_intro",
-            Name = intro.ActionText,
-            Description = $"Begin investigation: {investigation.Name}",
-            SystemType = intro.SystemType,
-            DeckId = intro.DeckId,
-            LocationId = intro.LocationId,
-            NpcId = intro.NpcId,
-            InvestigationId = investigation.Id,
-            IsIntroAction = true,  // Flag to identify intro actions
-            IsAvailable = true,
-            IsCompleted = false
-        };
-    }
 }

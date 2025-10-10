@@ -572,7 +572,7 @@ public class PackageLoader
             Goal goal = GoalParser.ConvertDTOToGoal(dto, _gameWorld);
 
             // Add to centralized GameWorld.Goals storage
-            _gameWorld.Goals.Add(goal);
+            _gameWorld.Goals[goal.Id] = goal;
             Console.WriteLine($"[PackageLoader] Parsed goal '{goal.Id}': {goal.Name} ({goal.SystemType})");
 
             // Assign goal to NPC or Location based on npcId/locationId
@@ -595,14 +595,14 @@ public class PackageLoader
             }
             else if (!string.IsNullOrEmpty(goal.LocationId))
             {
-                // Mental/Physical goal - assign to Location.Goals
+                // Mental/Physical goal - assign to Location.ActiveGoals
                 Location location = _gameWorld.GetLocation(goal.LocationId);
                 if (location != null)
                 {
-                    if (location.Goals == null)
-                        location.Goals = new List<Goal>();
+                    if (location.ActiveGoals == null)
+                        location.ActiveGoals = new List<Goal>();
 
-                    location.Goals.Add(goal);
+                    location.ActiveGoals.Add(goal);
                     Console.WriteLine($"[PackageLoader] Assigned {goal.SystemType} goal '{goal.Name}' to location '{location.Name}'");
                 }
                 else

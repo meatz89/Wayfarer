@@ -257,7 +257,7 @@ public class SocialSessionCardDeck
     public List<CardInstance> CheckRequestThresholds(int currentMomentum)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.MomentumThreshold <= currentMomentum)
+            .Where(c => c.Context?.threshold <= currentMomentum)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();

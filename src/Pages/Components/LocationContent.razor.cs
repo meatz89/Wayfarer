@@ -164,21 +164,21 @@ namespace Wayfarer.Pages.Components
             AvailableSocialGoals.Clear();
             AvailableMentalGoals.Clear();
             AvailablePhysicalGoals.Clear();
-            if (CurrentSpot != null && CurrentSpot.Goals != null)
+            if (CurrentSpot != null && CurrentSpot.ActiveGoals != null)
             {
-                AvailableSocialGoals = CurrentSpot.Goals
+                AvailableSocialGoals = CurrentSpot.ActiveGoals
                     .Where(g => g.SystemType == TacticalSystemType.Social)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailableMentalGoals = CurrentSpot.Goals
+                AvailableMentalGoals = CurrentSpot.ActiveGoals
                     .Where(g => g.SystemType == TacticalSystemType.Mental)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailablePhysicalGoals = CurrentSpot.Goals
+                AvailablePhysicalGoals = CurrentSpot.ActiveGoals
                     .Where(g => g.SystemType == TacticalSystemType.Physical)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals

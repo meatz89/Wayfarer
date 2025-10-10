@@ -1006,22 +1006,9 @@ public class GameFacade
         {
             Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
 
-            // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
-            Goal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
-
-            // Add intro goal directly to the location (Locations are the only entity that matters)
-            LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == investigation.IntroAction.LocationId);
-            if (spotEntry != null)
-            {
-                if (spotEntry.location.Goals == null)
-                    spotEntry.location.Goals = new List<Goal>();
-                spotEntry.location.Goals.Add(introGoal);
-                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to location '{spotEntry.location.Id}' ({spotEntry.location.Name})");
-            }
-            else
-            {
-                Console.WriteLine($"[InvestigationDiscovery] ERROR: Could not find location '{investigation.IntroAction.LocationId}' to add intro goal!");
-            }
+            // DiscoverInvestigation moves Potential→Discovered and spawns intro goal at location
+            // No return value - goal is added directly to Location.ActiveGoals
+            _investigationActivity.DiscoverInvestigation(investigation.Id);
 
             // Pending discovery result is now set in InvestigationActivity
             // GameScreen will check for it and display the modal

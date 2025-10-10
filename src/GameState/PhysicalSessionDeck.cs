@@ -96,7 +96,7 @@ public class PhysicalSessionDeck
     public List<CardInstance> CheckGoalThresholds(int currentBreakthrough)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.MomentumThreshold <= currentBreakthrough)  // Reusing MomentumThreshold field for Breakthrough
+            .Where(c => c.Context?.threshold <= currentBreakthrough)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();

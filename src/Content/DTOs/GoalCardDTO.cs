@@ -23,14 +23,13 @@ public class GoalCardDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Momentum threshold required to achieve this victory condition
+    /// Universal threshold required to achieve this victory condition
+    /// Interpretation depends on Goal.systemType:
+    /// - Social: Momentum threshold
+    /// - Mental: Progress threshold
+    /// - Physical: Breakthrough threshold
     /// </summary>
-    public int MomentumThreshold { get; set; }
-
-    /// <summary>
-    /// Weight for deterministic selection (higher weight = more likely)
-    /// </summary>
-    public int Weight { get; set; } = 1;
+    public int threshold { get; set; }
 
     /// <summary>
     /// Rewards granted when this victory condition is achieved

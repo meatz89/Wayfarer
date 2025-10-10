@@ -39,8 +39,8 @@ public class Investigation
 }
 
 /// <summary>
-/// Phase definition - template for creating a LocationGoal or NPCGoal
-/// Contains all information needed to spawn a goal when prerequisites are met
+/// Phase definition - references an existing goal from GameWorld.Goals
+/// When prerequisites met, investigation system looks up goal and adds to ActiveGoals
 /// </summary>
 public class InvestigationPhaseDefinition
 {
@@ -48,17 +48,15 @@ public class InvestigationPhaseDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
-    public string Goal { get; set; } // Goal text
+    public string Goal { get; set; } // Goal text (narrative description)
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
-    public TacticalSystemType SystemType { get; set; }
-    public string DeckId { get; set; }
-
-    // location assignment (LocationId is globally unique)
-    public string LocationId { get; set; }
-
-    // NPC assignment (Social goals)
-    public string NpcId { get; set; }
+    /// <summary>
+    /// Goal ID - references existing goal in GameWorld.Goals dictionary
+    /// Investigation system looks up this goal and adds to ActiveGoals when requirements met
+    /// SystemType, DeckId, LocationId, NpcId all come from the referenced Goal entity
+    /// </summary>
+    public string GoalId { get; set; }
 
     // Prerequisites for this goal to spawn
     public GoalRequirements Requirements { get; set; } = new GoalRequirements();

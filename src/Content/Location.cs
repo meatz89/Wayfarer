@@ -19,7 +19,7 @@ public class Location
 
     public AccessRequirement AccessRequirement { get; set; }
 
-    public List<Goal> Goals { get; set; } = new List<Goal>();
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 

@@ -32,17 +32,14 @@ public class InvestigationPhaseDTO
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string Goal { get; set; }
+    public string Goal { get; set; } // Narrative description
     public string OutcomeNarrative { get; set; }
-    public int ProgressThreshold { get; set; }
-    public string SystemType { get; set; } // "Social", "Mental", or "Physical"
-    public string DeckId { get; set; } // Deck ID for Mental/Physical/Social challenges
 
-    // location assignment (LocationId is globally unique)
-    public string LocationId { get; set; }
-
-    // NPC assignment (for Social goals)
-    public string NpcId { get; set; }
+    /// <summary>
+    /// Goal ID - references existing goal in GameWorld.Goals dictionary
+    /// SystemType, DeckId, LocationId, NpcId come from referenced Goal entity
+    /// </summary>
+    public string GoalId { get; set; }
 
     public PhaseRequirementsDTO Requirements { get; set; } = new PhaseRequirementsDTO();
     public PhaseCompletionRewardDTO CompletionReward { get; set; }

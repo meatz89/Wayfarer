@@ -23,8 +23,7 @@
             "id": "elena_basic_delivery",
             "name": "Simple Delivery",
             "description": "Deliver the package to Aldric",
-            "momentumThreshold": 8,
-            "weight": 1,
+            "threshold": 8,
             "rewards": {
               "coins": 20,
               "obligationId": "delivery_to_aldric"
@@ -34,8 +33,7 @@
             "id": "elena_enhanced_delivery",
             "name": "Delivery + Investigation Offer",
             "description": "Deliver the package and Elena shares something about the old mill",
-            "momentumThreshold": 12,
-            "weight": 2,
+            "threshold": 12,
             "rewards": {
               "coins": 25,
               "obligationId": "delivery_to_aldric",
@@ -55,8 +53,112 @@
         "locationId": "courtyard",
         "investigationId": "waterwheel_mystery",
         "isIntroAction": true,
-        "isAvailable": true,
-        "isCompleted": false
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "notice_waterwheel_basic",
+            "name": "Basic Observation",
+            "description": "Notice something is wrong with the waterwheel",
+            "threshold": 8,
+            "rewards": {
+              "coins": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "phase_1_examine",
+        "name": "Examine the broken gear mechanism",
+        "description": "Carefully inspect the waterwheel mechanism to understand what went wrong",
+        "systemType": "Mental",
+        "deckId": "mental_challenge",
+        "locationId": "courtyard",
+        "investigationId": "waterwheel_mystery",
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "examine_mechanism_basic",
+            "name": "Surface Examination",
+            "description": "Notice obvious damage to the mechanism",
+            "threshold": 8,
+            "rewards": {
+              "coins": 5
+            }
+          },
+          {
+            "id": "examine_mechanism_thorough",
+            "name": "Thorough Investigation",
+            "description": "Identify deliberate sabotage marks",
+            "threshold": 12,
+            "rewards": {
+              "coins": 10
+            }
+          }
+        ]
+      },
+      {
+        "id": "phase_2_question",
+        "name": "Question Elena about who has access to tools",
+        "description": "Speak with Elena about what she knows regarding the waterwheel failure",
+        "systemType": "Social",
+        "deckId": "friendly_chat",
+        "npcId": "elena",
+        "investigationId": "waterwheel_mystery",
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "question_elena_basic",
+            "name": "Basic Questions",
+            "description": "Get Elena to share what she knows",
+            "threshold": 8,
+            "rewards": {
+              "coins": 5
+            }
+          },
+          {
+            "id": "question_elena_detailed",
+            "name": "Detailed Questioning",
+            "description": "Elena reveals suspects and tool access",
+            "threshold": 12,
+            "rewards": {
+              "coins": 10
+            }
+          }
+        ]
+      },
+      {
+        "id": "phase_3_repair",
+        "name": "Clear debris and repair the waterwheel",
+        "description": "Remove the obstructions and fix the damaged mechanism",
+        "systemType": "Physical",
+        "deckId": "physical_challenge",
+        "locationId": "courtyard",
+        "investigationId": "waterwheel_mystery",
+        "isAvailable": false,
+        "isCompleted": false,
+        "goalCards": [
+          {
+            "id": "repair_basic",
+            "name": "Basic Repair",
+            "description": "Clear debris and fix obvious damage",
+            "threshold": 10,
+            "rewards": {
+              "coins": 10
+            }
+          },
+          {
+            "id": "repair_complete",
+            "name": "Complete Restoration",
+            "description": "Fully restore the waterwheel mechanism",
+            "threshold": 15,
+            "rewards": {
+              "coins": 20
+            }
+          }
+        ]
       },
       {
         "id": "climb_waterwheel",

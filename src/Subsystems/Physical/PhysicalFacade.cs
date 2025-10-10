@@ -77,6 +77,18 @@ public class PhysicalFacade
 
         Player player = _gameWorld.GetPlayer();
 
+        // Get victory threshold from Goal's minimum GoalCard threshold
+        int victoryThreshold = 20; // Default fallback
+        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+        {
+            if (goal.GoalCards != null && goal.GoalCards.Any())
+            {
+                // Use minimum threshold from GoalCards (first tier)
+                victoryThreshold = goal.GoalCards.Min(gc => gc.threshold);
+                Console.WriteLine($"[PhysicalFacade] Victory threshold from GoalCard: {victoryThreshold}");
+            }
+        }
+
         _currentSession = new PhysicalSession
         {
             ChallengeId = engagement.Id,
@@ -86,7 +98,7 @@ public class PhysicalFacade
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
             MaxDanger = engagement.DangerThreshold,
-            VictoryThreshold = engagement.VictoryThreshold,
+            VictoryThreshold = victoryThreshold, // From GoalCard.threshold
             Commitment = 0
         };
 
@@ -304,7 +316,7 @@ public class PhysicalFacade
             return null;
         }
 
-        bool success = _currentSession.CurrentBreakthrough >= 20;
+        bool success = _currentSession.CurrentBreakthrough >= _currentSession.VictoryThreshold;
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
@@ -374,27 +386,13 @@ public class PhysicalFacade
     {
         // Check if this is an intro action (Discovered → Active transition)
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation != null && goalId == $"{investigationId}_intro")
+        if (investigation != null && goalId == "notice_waterwheel")
         {
             // This is intro completion - activate investigation
-            List<Goal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
+            // CompleteIntroAction spawns goals directly to ActiveGoals
+            _investigationActivity.CompleteIntroAction(investigationId);
 
-            // Add first goals to their respective Locations (Locations are the only entity that matters)
-            if (firstGoals.Count > 0)
-            {
-                foreach (Goal goal in firstGoals)
-                {
-                    LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
-                    if (spotEntry != null)
-                    {
-                        if (spotEntry.location.Goals == null)
-                            spotEntry.location.Goals = new List<Goal>();
-                        spotEntry.location.Goals.Add(goal);
-                    }
-                }
-            }
-
-            Console.WriteLine($"[PhysicalFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+            Console.WriteLine($"[PhysicalFacade] Investigation '{investigation.Name}' ACTIVATED");
             return;
         }
 

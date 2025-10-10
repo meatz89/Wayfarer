@@ -20,7 +20,6 @@
                     "mental_deduce_pattern",
                     "mental_trust_instinct"
                 ],
-                "victoryThreshold": 20,
                 "initialHandSize": 5,
                 "maxHandSize": 7
             }
@@ -37,7 +36,6 @@
                     "physical_brute_force",
                     "physical_precise_movement"
                 ],
-                "victoryThreshold": 20,
                 "initialHandSize": 5,
                 "maxHandSize": 7
             }
@@ -75,7 +73,6 @@
                     "cunning_feint",
                     "cunning_subtle_maneuver"
                 ],
-                "victoryThreshold": 20,
                 "initialHandSize": 5,
                 "maxHandSize": 7
             },
@@ -100,7 +97,6 @@
                     "cunning_bait",
                     "cunning_subtle_maneuver"
                 ],
-                "victoryThreshold": 20,
                 "initialHandSize": 5,
                 "maxHandSize": 7
             }

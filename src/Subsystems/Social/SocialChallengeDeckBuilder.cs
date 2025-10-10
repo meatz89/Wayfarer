@@ -28,8 +28,7 @@ public class SocialChallengeDeckBuilder
         string sessionId = Guid.NewGuid().ToString();
 
         // Get the goal which drives everything - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(r => r.Id == requestId);
-        if (goal == null)
+        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
         {
             throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
@@ -97,10 +96,10 @@ public class SocialChallengeDeckBuilder
             // Create CardInstance directly from GoalCard (self-contained template)
             CardInstance instance = new CardInstance(goalCard);
 
-            // Set context for momentum threshold checking
+            // Set context for threshold checking
             instance.Context = new CardContext
             {
-                MomentumThreshold = goalCard.MomentumThreshold,
+                threshold = goalCard.threshold,
                 RequestId = goal.Id
             };
 

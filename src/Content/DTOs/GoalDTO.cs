@@ -51,6 +51,12 @@ public class GoalDTO
     public bool IsCompleted { get; set; } = false;
 
     /// <summary>
+    /// Whether this goal should be deleted from ActiveGoals on successful completion.
+    /// Default: true (investigation progression pattern)
+    /// </summary>
+    public bool DeleteOnSuccess { get; set; } = true;
+
+    /// <summary>
     /// Goal cards (tactical layer) - inline victory conditions
     /// </summary>
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();

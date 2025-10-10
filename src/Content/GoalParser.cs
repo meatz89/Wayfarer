@@ -40,6 +40,7 @@ public static class GoalParser
             IsIntroAction = dto.IsIntroAction,
             IsAvailable = dto.IsAvailable,
             IsCompleted = dto.IsCompleted,
+            DeleteOnSuccess = dto.DeleteOnSuccess,
             GoalCards = new List<GoalCard>(),
             Requirements = ParseGoalRequirements(dto.Requirements)
         };
@@ -71,8 +72,7 @@ public static class GoalParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            MomentumThreshold = dto.MomentumThreshold,
-            Weight = dto.Weight > 0 ? dto.Weight : 1, // Default weight to 1
+            threshold = dto.threshold,
             Rewards = ParseGoalCardRewards(dto.Rewards),
             IsAchieved = false
         };

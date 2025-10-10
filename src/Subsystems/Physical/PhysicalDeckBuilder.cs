@@ -82,10 +82,10 @@ public class PhysicalDeckBuilder
             // Create CardInstance directly from GoalCard (self-contained template)
             CardInstance instance = new CardInstance(goalCard);
 
-            // Set context for threshold checking (Physical system uses Breakthrough = MomentumThreshold)
+            // Set context for threshold checking (Physical system uses Breakthrough threshold)
             instance.Context = new CardContext
             {
-                MomentumThreshold = goalCard.MomentumThreshold,
+                threshold = goalCard.threshold,
                 RequestId = goal.Id
             };
 

@@ -8,7 +8,6 @@ public class MentalChallengeDeckDTO
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public int VictoryThreshold { get; set; }
     public int DangerThreshold { get; set; }
     public int? FocusCost { get; set; }
     public int InitialHandSize { get; set; }
@@ -22,7 +21,6 @@ public class MentalChallengeDeckDTO
             Id = Id,
             Name = Name,
             Description = Description,
-            VictoryThreshold = VictoryThreshold,
             DangerThreshold = DangerThreshold,
             FocusCost = FocusCost,
             InitialHandSize = InitialHandSize,
