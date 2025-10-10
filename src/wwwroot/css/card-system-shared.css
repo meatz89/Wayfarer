@@ -420,6 +420,7 @@ Used by Social (Conversations), Mental (Investigations), Physical (Obstacles) sy
     flex-direction: column;
     gap: 10px;
     margin: 0 auto;
+    padding: 20px;
 }
 
 .card {
