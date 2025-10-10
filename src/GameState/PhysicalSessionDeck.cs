@@ -13,6 +13,7 @@ public class PhysicalSessionDeck
     private readonly Pile handPile = new();
     private readonly Pile playedPile = new();
     private readonly Pile requestPile = new();  // GOAL CARDS for this engagement
+    private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // Cards locked for combo execution on ASSESS
 
     public PhysicalSessionDeck() { }
 
@@ -20,6 +21,7 @@ public class PhysicalSessionDeck
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
     public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
+    public IReadOnlyList<CardInstance> LockedCards => lockedCards.AsReadOnly();
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;
 
@@ -114,6 +116,59 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
+    /// Exhaust all hand cards back to deck pile
+    /// Used on ASSESS before drawing fresh Options
+    /// </summary>
+    public void ExhaustHandToDeck()
+    {
+        List<CardInstance> cardsToMove = handPile.Cards.ToList();
+
+        foreach (CardInstance card in cardsToMove)
+        {
+            handPile.Remove(card);
+            deckPile.Add(card);
+        }
+
+        Console.WriteLine($"[PhysicalSessionDeck] Exhausted {cardsToMove.Count} cards from hand back to deck");
+    }
+
+    /// <summary>
+    /// Lock a card for combo execution
+    /// Used on EXECUTE - card is removed from hand and locked for ASSESS combo trigger
+    /// </summary>
+    public void LockCard(CardInstance card)
+    {
+        if (card == null || !handPile.Contains(card))
+        {
+            Console.WriteLine($"[PhysicalSessionDeck] ERROR: Card not in hand, cannot lock");
+            return;
+        }
+
+        handPile.Remove(card);
+        lockedCards.Add(card);
+        Console.WriteLine($"[PhysicalSessionDeck] Locked card {card.PhysicalCardTemplate?.Id} for combo execution");
+    }
+
+    /// <summary>
+    /// Get currently locked cards
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetLockedCards()
+    {
+        return lockedCards.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Clear locked cards after combo execution
+    /// Used after ASSESS triggers all locked cards
+    /// </summary>
+    public void ClearLockedCards()
+    {
+        int count = lockedCards.Count;
+        lockedCards.Clear();
+        Console.WriteLine($"[PhysicalSessionDeck] Cleared {count} locked cards after combo execution");
+    }
+
+    /// <summary>
     /// Clear all piles
     /// </summary>
     public void Clear()
@@ -122,5 +177,6 @@ public class PhysicalSessionDeck
         handPile.Clear();
         playedPile.Clear();
         requestPile.Clear();
+        lockedCards.Clear();
     }
 }

@@ -91,8 +91,11 @@ namespace Wayfarer.Pages.Components
 
         protected int GetBreakthroughPercentage()
         {
-            if (Session == null || Session.VictoryThreshold <= 0) return 0;
-            return (int)((Session.CurrentBreakthrough / (double)Session.VictoryThreshold) * 100);
+            if (Session == null) return 0;
+            // Physical victory is determined by GoalCard play, not thresholds
+            // This percentage is for UI display only (max progress ~20)
+            int maxProgress = 20;
+            return (int)((Session.CurrentBreakthrough / (double)maxProgress) * 100);
         }
 
         protected int GetDangerPercentage()
@@ -168,9 +171,9 @@ namespace Wayfarer.Pages.Components
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
-                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
-                            ? "Challenge complete!"
-                            : "Maximum danger reached";
+                        // Physical sessions only end on Danger threshold (failure)
+                        // Victory is determined by GoalCard play in facade
+                        EndReason = "Maximum danger reached";
                     }
                 }
             }
@@ -219,9 +222,9 @@ namespace Wayfarer.Pages.Components
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
-                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
-                            ? "Challenge complete!"
-                            : "Maximum danger reached";
+                        // Physical sessions only end on Danger threshold (failure)
+                        // Victory is determined by GoalCard play in facade
+                        EndReason = "Maximum danger reached";
                     }
                 }
             }
@@ -486,13 +489,16 @@ namespace Wayfarer.Pages.Components
 
         protected int GetVictoryThreshold()
         {
-            return Session?.VictoryThreshold ?? 20;
+            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // This is for UI display only
+            return 20;
         }
 
         protected bool IsChallengeComplete()
         {
-            if (Session == null) return false;
-            return Session.CurrentBreakthrough >= Session.VictoryThreshold;
+            // Physical sessions don't complete via Breakthrough threshold
+            // Victory is determined by GoalCard play (handled in facade)
+            return false;
         }
 
         protected bool IsChallengeFailed()
@@ -510,7 +516,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetBreakthroughThreshold()
         {
-            return Session?.VictoryThreshold ?? 20;
+            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // This is for UI display only (typical max progress ~20)
+            return 20;
         }
 
         // =============================================
@@ -691,11 +699,11 @@ namespace Wayfarer.Pages.Components
             if (Session == null) return "No active challenge";
 
             int breakthrough = Session.CurrentBreakthrough;
-            int threshold = Session.VictoryThreshold;
             int danger = Session.CurrentDanger;
             int maxDanger = Session.MaxDanger;
 
-            return $"Breakthrough: {breakthrough}/{threshold} | Danger: {danger}/{maxDanger}";
+            // Physical victory is determined by GoalCard play, not thresholds
+            return $"Breakthrough: {breakthrough} | Danger: {danger}/{maxDanger}";
         }
 
         protected bool ShouldShowVictoryIndicator()

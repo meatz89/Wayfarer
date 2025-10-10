@@ -58,10 +58,11 @@ public class PhysicalSession
 
     // Facade helper methods
     public int MaxDanger { get; set; } = 10;
-    public int VictoryThreshold { get; set; } = 20; // Configured via EngagementType
     public bool ShouldEnd()
     {
-        return CurrentBreakthrough >= VictoryThreshold || CurrentDanger >= MaxDanger;
+        // ONLY check failure condition - danger threshold reached
+        // Victory condition (GoalCard play) is handled by facade
+        return CurrentDanger >= MaxDanger;
     }
 
     public int GetDrawCount()

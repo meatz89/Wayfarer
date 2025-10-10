@@ -86,7 +86,6 @@ public class PhysicalFacade
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
             MaxDanger = engagement.DangerThreshold,
-            VictoryThreshold = 0, // Not used - GoalCard play determines success
             Commitment = 0
         };
 
