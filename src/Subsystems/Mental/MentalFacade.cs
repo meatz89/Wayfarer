@@ -90,18 +90,6 @@ public class MentalFacade
         // Get location's persisted exposure (Mental debt system)
         int baseExposure = location?.Exposure ?? 0;
 
-        // Get victory threshold from Goal's minimum GoalCard threshold
-        int victoryThreshold = 20; // Default fallback
-        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
-        {
-            if (goal.GoalCards != null && goal.GoalCards.Any())
-            {
-                // Use minimum threshold from GoalCards (first tier)
-                victoryThreshold = goal.GoalCards.Min(gc => gc.threshold);
-                Console.WriteLine($"[MentalFacade] Victory threshold from GoalCard: {victoryThreshold}");
-            }
-        }
-
         _currentSession = new MentalSession
         {
             InvestigationId = engagement.Id,
@@ -112,11 +100,32 @@ public class MentalFacade
             CurrentProgress = 0,
             CurrentExposure = baseExposure, // Start with persisted exposure from venue
             MaxExposure = engagement.DangerThreshold,
-            VictoryThreshold = victoryThreshold // From GoalCard.threshold
+            VictoryThreshold = 0 // Not used anymore - GoalCard play determines success
         };
 
         // Use MentalSessionDeck with Pile abstraction
         _sessionDeck = MentalSessionDeck.CreateFromInstances(deck, startingHand);
+
+        // SYMMETRY RESTORATION: Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
+        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+        {
+            if (goal.GoalCards != null && goal.GoalCards.Any())
+            {
+                foreach (GoalCard goalCard in goal.GoalCards)
+                {
+                    // Create CardInstance from GoalCard (constructor sets CardType automatically)
+                    CardInstance goalCardInstance = new CardInstance(goalCard)
+                    {
+                        Context = new CardContext { threshold = goalCard.threshold },
+                        IsPlayable = false // Unlocked when Progress reaches threshold
+                    };
+
+                    // Add to session deck's requestPile
+                    _sessionDeck.AddGoalCard(goalCardInstance);
+                    Console.WriteLine($"[MentalFacade] Added GoalCard '{goalCard.Name}' with threshold {goalCard.threshold}");
+                }
+            }
+        }
 
         // Draw remaining cards to reach InitialHandSize
         int cardsToDrawStartingSized = engagement.InitialHandSize - startingHand.Count;
@@ -190,6 +199,23 @@ public class MentalFacade
         foreach (CardInstance goalCard in unlockedGoals)
         {
             Console.WriteLine($"[MentalFacade] Goal card unlocked: {goalCard.MentalCardTemplate?.Id} (Progress threshold met)");
+        }
+
+        // SYMMETRY RESTORATION: If player played a GoalCard, end session immediately (match Social pattern)
+        if (card.CardType == CardTypes.Goal)
+        {
+            Console.WriteLine($"[MentalFacade] GoalCard played - ending session with success");
+            _sessionDeck.PlayCard(card); // Mark card as played
+            EndSession(); // Immediate end on GoalCard play
+
+            return new MentalTurnResult
+            {
+                Success = true,
+                Narrative = $"You completed the investigation: {card.GoalCardTemplate?.Name}",
+                CurrentProgress = _currentSession?.CurrentProgress ?? 0,
+                CurrentExposure = _currentSession?.CurrentExposure ?? 0,
+                SessionEnded = true
+            };
         }
 
         // Track categories for investigation depth
@@ -317,7 +343,8 @@ public class MentalFacade
             return null;
         }
 
-        bool success = _currentSession.CurrentProgress >= _currentSession.VictoryThreshold;
+        // SYMMETRY RESTORATION: Success determined by GoalCard play (match Social pattern)
+        bool success = _sessionDeck.PlayedCards.Any(c => c.CardType == CardTypes.Goal);
 
         MentalOutcome outcome = new MentalOutcome
         {

@@ -77,18 +77,6 @@ public class PhysicalFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // Get victory threshold from Goal's minimum GoalCard threshold
-        int victoryThreshold = 20; // Default fallback
-        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
-        {
-            if (goal.GoalCards != null && goal.GoalCards.Any())
-            {
-                // Use minimum threshold from GoalCards (first tier)
-                victoryThreshold = goal.GoalCards.Min(gc => gc.threshold);
-                Console.WriteLine($"[PhysicalFacade] Victory threshold from GoalCard: {victoryThreshold}");
-            }
-        }
-
         _currentSession = new PhysicalSession
         {
             ChallengeId = engagement.Id,
@@ -98,12 +86,32 @@ public class PhysicalFacade
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
             MaxDanger = engagement.DangerThreshold,
-            VictoryThreshold = victoryThreshold, // From GoalCard.threshold
+            VictoryThreshold = 0, // Not used - GoalCard play determines success
             Commitment = 0
         };
 
         // Use PhysicalSessionDeck with Pile abstraction
         _sessionDeck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
+
+        // Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
+        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+        {
+            if (goal.GoalCards != null && goal.GoalCards.Any())
+            {
+                foreach (GoalCard goalCard in goal.GoalCards)
+                {
+                    // Create CardInstance from GoalCard (constructor sets CardType automatically)
+                    CardInstance goalCardInstance = new CardInstance(goalCard)
+                    {
+                        Context = new CardContext { threshold = goalCard.threshold }
+                    };
+
+                    // Add to session deck's requestPile
+                    _sessionDeck.AddGoalCard(goalCardInstance);
+                    Console.WriteLine($"[PhysicalFacade] Added GoalCard '{goalCard.Name}' with threshold {goalCard.threshold}");
+                }
+            }
+        }
 
         // Draw remaining cards to reach InitialHandSize
         int cardsToDrawStartingSized = engagement.InitialHandSize - startingHand.Count;
@@ -177,6 +185,26 @@ public class PhysicalFacade
         foreach (CardInstance goalCard in unlockedGoals)
         {
             Console.WriteLine($"[PhysicalFacade] Goal card unlocked: {goalCard.PhysicalCardTemplate?.Id} (Breakthrough threshold met)");
+        }
+
+        // If player played a GoalCard, end session immediately (match Social pattern)
+        if (card.CardType == CardTypes.Goal)
+        {
+            Console.WriteLine($"[PhysicalFacade] GoalCard played - ending session with success");
+            _sessionDeck.PlayCard(card); // Mark card as played
+
+            string completionNarrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
+
+            EndSession(); // Immediate end on GoalCard play
+
+            return new PhysicalTurnResult
+            {
+                Success = true,
+                Narrative = completionNarrative,
+                CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
+                CurrentDanger = _currentSession?.CurrentDanger ?? 0,
+                SessionEnded = true
+            };
         }
 
         // Track approach history for Decisive card requirements
@@ -316,7 +344,8 @@ public class PhysicalFacade
             return null;
         }
 
-        bool success = _currentSession.CurrentBreakthrough >= _currentSession.VictoryThreshold;
+        // Success determined by whether player played a GoalCard (match Social pattern)
+        bool success = _sessionDeck.PlayedCards.Any(c => c.CardType == CardTypes.Goal);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
