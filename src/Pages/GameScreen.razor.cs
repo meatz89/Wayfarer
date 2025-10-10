@@ -287,20 +287,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             case "location":
                 await NavigateToScreen(ScreenMode.Location);
                 break;
-            case "obligationqueue":
-            case "obligations":
-            case "queue":
-                await NavigateToScreen(ScreenMode.ObligationQueue);
-                break;
             case "travel":
                 await NavigateToScreen(ScreenMode.Travel);
                 break;
         }
-    }
-
-    public async Task NavigateToQueue()
-    {
-        await NavigateToScreen(ScreenMode.ObligationQueue);
     }
 
     public async Task StartExchange(string npcId)
@@ -783,7 +773,6 @@ public enum ScreenMode
 {
     Location,
     Exchange,
-    ObligationQueue,
     Travel,
     DeckViewer, // Dev mode screen for viewing NPC decks
     SocialChallenge,

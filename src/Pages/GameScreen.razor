@@ -126,10 +126,6 @@
                     <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
                     break;
                     
-                case ScreenMode.ObligationQueue:
-                    <ObligationQueueContent OnNavigate="HandleNavigation" ReturnView="@PreviousScreen" />
-                    break;
-                    
                 case ScreenMode.Travel:
                     <TravelContent 
                         CurrentLocation="@GetCurrentLocation()"
