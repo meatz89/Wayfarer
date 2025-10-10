@@ -132,9 +132,9 @@ The systems differentiate through distinct card mechanics that respect verisimil
 
 ### Why Card Flow Matters
 
-**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth. OBSERVE Details draws exactly Leads count - zero Leads means zero draw. Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
+**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). **ACT does NOT draw cards** - it only generates Leads. OBSERVE Details draws exactly Leads count - zero Leads means zero draw. **OBSERVE is the ONLY action that draws cards.** Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression (careful evaluation), then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression (+1 base + card approach modifier) - setting up your stance, building momentum. **EXECUTE uses projection to determine affordability** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression (-2 base + approach modifiers), **applying full projection per card** (Breakthrough, Danger, Aggression), then exhausts all Options back to Situation and draws fresh Options for the changed context. **Locked cards displayed in UI above hand with "LOCKED" badge.** You want to stay balanced - both overcautious and reckless approaches create penalties.
 
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statement thoughts from Mind to Spoken pile (said aloud) while Echo thoughts return to Topics (fleeting thoughts that recirculate). LISTEN to Topics draws new cards while thoughts in Mind persist - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
@@ -601,12 +601,14 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 
 ### Action Pair
 
-- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk, move completed methods to Applied pile
-- **OBSERVE**: Follow investigative threads, draw Details equal to Leads count (zero Leads = zero draw), methods in Methods pile persist, does not spend Attention
+- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk, move completed methods to Applied pile. **Does NOT draw cards** - only generates Leads for future OBSERVE actions.
+- **OBSERVE**: Follow investigative threads, draw Details equal to Leads count (zero Leads = zero draw), methods in Methods pile persist, does not spend Attention. **This is the ONLY action that draws cards in Mental challenges**.
 
 ### Card Flow Mechanics
 
-**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. OBSERVE then follows those Leads by drawing Details equal to your total Leads count. Without Leads, you have no Details to observe.
+**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), representing how much investigative material that action uncovers. **ACT does NOT draw cards immediately** - it only generates Leads as investigative threads.
+
+OBSERVE then follows those Leads by drawing Details equal to your total Leads count. Without Leads, you have no Details to observe. **OBSERVE is the ONLY way to draw cards in Mental challenges** - you accumulate Leads through ACT, then follow them through OBSERVE.
 
 Methods already in Methods persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero. Successfully applied methods move to the Applied pile, representing investigative understanding that has been put into practice.
 
@@ -705,8 +707,8 @@ Physical challenges are immediate tests of current capability:
 
 ### Action Pair
 
-- **EXECUTE**: Lock Option as preparation, spend Exertion, increase Aggression (+1). Multiple EXECUTE actions build prepared sequence and aggressive momentum.
-- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together), decrease Aggression (-2), then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state.
+- **EXECUTE**: Lock Option as preparation, spend Exertion (from projection including modifiers like fatigue penalties and Foundation generation), increase Aggression (+1 base + card approach modifier from projection). Multiple EXECUTE actions build prepared sequence and aggressive momentum. **Uses projection to determine affordability** - Exertion cost includes all modifiers.
+- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together using full projection per card including Breakthrough, Danger, and Aggression modifiers), decrease Aggression (-2 base + card approach modifier per card from projection), then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state. **Applies full projection per locked card** including approach modifiers.
 
 ### Card Flow Mechanics
 
@@ -1354,14 +1356,17 @@ Methods in Methods persist when you OBSERVE because investigation knowledge does
 
 **Physical: You Prepare Actions Then Execute Them**
 
-EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1) as you commit to action.
+EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1 base, plus card approach modifier from projection) as you commit to action. **EXECUTE uses projection to determine affordability** - the Exertion cost includes modifiers like fatigue penalties and any Foundation generation effects.
 
-When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression (-2) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
+When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence, with **full projection applied per card** (Breakthrough, Danger, Aggression including approach modifiers). ASSESS decreases Aggression (-2 base, plus each card's approach modifier from projection) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
 
 **Pile Verisimilitude - Physical**:
 - **Situation** (input pile): The evolving physical challenge, what's currently possible
 - **Options** (hand): Available actions you're considering in this moment
-- **No discard pile**: All Options exhaust back to Situation - the challenge resets with new possibilities after each combo
+- **Locked Cards** (exhaust pile): Prepared sequence of actions ready to execute as combo, **displayed in UI above hand with special "LOCKED" styling**
+- **No traditional discard pile**: All Options exhaust back to Situation after combo execution - the challenge resets with new possibilities
+
+**Projection Principle**: EXECUTE and ASSESS use PhysicalEffectResolver projections as single source of truth for all effects. Projections include: Exertion changes (with modifiers like fatigue penalties or Foundation generation), Aggression changes (action balance + card approach modifier), Breakthrough/Danger changes, and all strategic resource costs. The facade applies projections to session state - never hardcodes values or reads directly from card templates.
 
 Aggression tracks your physical approach: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
 
