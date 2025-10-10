@@ -210,7 +210,7 @@ public class SocialSessionCardDeck
 
         // Validate total card count remains constant
         int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] After play - Mind: {mindPile.Count}, Deck: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
+        Console.WriteLine($"[SessionCardDeck] After play - Mind: {mindPile.Count}, Topics: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
 
         if (totalCardsBefore != totalCardsAfter)
         {
@@ -471,7 +471,7 @@ public class SocialSessionCardDeck
         // The difference between Standard and Banish is only in reshuffling behavior
 
         Console.WriteLine($"[SessionCardDeck] Processing persistence - ALL cards persist in refined system");
-        Console.WriteLine($"[SessionCardDeck] Current state - Mind: {mindPile.Count}, Spoken: {spokenPile.Count}, Deck: {deckPile.Count}");
+        Console.WriteLine($"[SessionCardDeck] Current state - Mind: {mindPile.Count}, Spoken: {spokenPile.Count}, Topics: {deckPile.Count}");
 
         // Nothing to process - all cards stay where they are during LISTEN
     }

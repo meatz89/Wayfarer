@@ -121,19 +121,22 @@ Each system is a distinct tactical game with unique resources and action pairs, 
 - **Builder Resource**: Primary progress toward victory (Progress, Breakthrough, Momentum)
 - **Threshold Resource**: Accumulating danger toward failure (Exposure, Danger, Doubt)
 - **Session Resource**: Tactical capacity for playing cards (Attention from Focus, Exertion from Stamina, Initiative from Foundation cards)
-- **Flow Mechanic**: System-specific card flow reflecting verisimilitude (Leads generation/observation, Preparation/execution combos, Statement/Echo persistence)
-- **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
+- **Flow Mechanic**: System-specific card flow reflecting verisimilitude through distinct pile naming:
+  - **Mental**: Details (input pile) → Methods (hand) → Applied (discard)
+  - **Physical**: Situation (input pile) → Options (hand) → exhausts back to Situation
+  - **Social**: Topics (input pile) → Mind (hand) → Spoken (discard)
+- **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, LISTEN/SPEAK)
 - **Understanding**: Shared tier-unlocking resource across all three systems
 
-The systems differentiate through distinct card mechanics that respect verisimilitude. Mental challenges generate investigative Leads through action then follow them through observation. Physical challenges prepare action sequences then execute them as combos. Social challenges accumulate thoughts that persist while you listen.
+The systems differentiate through distinct card mechanics that respect verisimilitude. Mental challenges OBSERVE Details to gather investigative threads, ACT on Methods to apply understanding, moving completed methods to Applied. Physical challenges ASSESS the Situation to evaluate context, EXECUTE Options from prepared choices, with all Options exhausting back to Situation for fresh assessment. Social challenges LISTEN to Topics from NPC words, SPEAK thoughts from Mind, moving Statement thoughts to Spoken while Echo thoughts return to Topics.
 
 ### Why Card Flow Matters
 
-**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT generates Leads (investigative threads) based on card depth. OBSERVE draws exactly Leads count - zero Leads means zero draw. Hands persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open.
+**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth. OBSERVE Details draws exactly Leads count - zero Leads means zero draw. Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks cards as preparation while increasing Aggression - setting up your stance, building momentum. ASSESS triggers all locked cards as a combo while decreasing Aggression (careful evaluation), then exhausts your entire hand and draws fresh. You want to stay balanced - both overcautious and reckless approaches create penalties.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression (careful evaluation), then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
 
-**Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statements to Spoken pile (said aloud) while Echoes reshuffle (fleeting thoughts). LISTEN draws while your hand persists - your mind doesn't empty when you pause to listen, it accumulates understanding.
+**Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statement thoughts from Mind to Spoken pile (said aloud) while Echo thoughts return to Topics (fleeting thoughts that recirculate). LISTEN to Topics draws new cards while thoughts in Mind persist - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
 ### Bridge: Goals and GoalCards
 
@@ -598,14 +601,14 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 
 ### Action Pair
 
-- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk
-- **OBSERVE**: Follow investigative threads, draw cards equal to Leads count (zero Leads = zero draw), plans in hand persist, does not spend Attention
+- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk, move completed methods to Applied pile
+- **OBSERVE**: Follow investigative threads, draw Details equal to Leads count (zero Leads = zero draw), methods in Methods pile persist, does not spend Attention
 
 ### Card Flow Mechanics
 
-**You cannot observe what you haven't investigated.** ACT cards generate investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. OBSERVE then follows those Leads by drawing cards equal to your total Leads count. Without Leads, you have nothing to observe.
+**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. OBSERVE then follows those Leads by drawing Details equal to your total Leads count. Without Leads, you have no Details to observe.
 
-Plans already in your hand persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero.
+Methods already in Methods persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero. Successfully applied methods move to the Applied pile, representing investigative understanding that has been put into practice.
 
 ### Stat Binding Examples
 
@@ -702,12 +705,12 @@ Physical challenges are immediate tests of current capability:
 
 ### Action Pair
 
-- **EXECUTE**: Lock card as preparation, spend Exertion, increase Aggression (+1). Multiple EXECUTE actions build prepared sequence and aggressive momentum.
-- **ASSESS**: Trigger all locked cards as combo (effects resolve together), decrease Aggression (-2), then exhaust entire hand and draw fresh. Careful assessment brings you back toward balanced state.
+- **EXECUTE**: Lock Option as preparation, spend Exertion, increase Aggression (+1). Multiple EXECUTE actions build prepared sequence and aggressive momentum.
+- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together), decrease Aggression (-2), then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state.
 
 ### Card Flow Mechanics
 
-**You prepare actions then execute them.** EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. You can EXECUTE multiple cards, building up a sequence of prepared actions. When you ASSESS, all locked cards trigger together as a combo, their effects resolving simultaneously. After the combo executes, you've fundamentally changed the situation - you exhausted your prepared sequence and the physical context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+**You prepare actions then execute them.** EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. You can EXECUTE multiple Options, building up a sequence of prepared actions. When you ASSESS the Situation, all locked Options trigger together as a combo, their effects resolving simultaneously. After the combo executes, you've fundamentally changed the physical context - all Options exhaust back to Situation because you've altered what's possible. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations you didn't act on in that moment.
 
 ### Stat Binding Examples
 
@@ -809,12 +812,12 @@ Conversations are real-time interactions with entities that have agency:
 
 ### Action Pair
 
-- **SPEAK**: Play card, advance conversation, increment Cadence (+1)
-- **LISTEN**: Reset action, draw cards (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
+- **SPEAK**: Play thought from Mind, advance conversation, increment Cadence (+1)
+- **LISTEN**: Hear Topics, draw cards to Mind (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
 
 ### Card Flow Mechanics
 
-**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud) while Echo cards reshuffle into the draw pile (fleeting thoughts that return to consideration). When you LISTEN, all cards already in your hand remain - your mind doesn't empty when you pause to listen. You draw additional cards (base 3 + Cadence bonuses) representing new thoughts and considerations. Your mind accumulates considerations, building up your understanding of the conversation as it progresses.
+**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts already in Mind remain - your mind doesn't empty when you pause to listen. You draw additional Topics into Mind (base 3 + Cadence bonuses) representing new thoughts and considerations from what you hear. Your Mind accumulates considerations, building up your understanding of the conversation as it progresses.
 
 ### Stat Binding Examples
 
@@ -863,8 +866,8 @@ These exist ONLY in Social because NPCs have agency to offer tasks, make demands
 
 ### Card Persistence Mechanics
 
-**Statement Cards**: Persist in Spoken pile when played (what you've said aloud stays said), count toward Statements total
-**Echo Cards**: Return to draw pile when played (fleeting thoughts that recirculate), can be played multiple times in conversation
+**Statement Cards**: Move from Mind to Spoken pile when played (what you've said aloud stays said), count toward Statements total
+**Echo Cards**: Return from Mind to Topics when played (fleeting thoughts that recirculate), can be played multiple times in conversation
 
 ### Victory Condition
 
@@ -901,9 +904,13 @@ All three systems follow the same core structure (creating equivalent tactical d
   - Physical Exertion: Derived from Stamina at start, finite budget, **minimal replenishment via specific Foundation cards only**
   - Social Initiative: Starts at 0, **actively builds during session via Foundation cards**, persists through LISTEN
 - **Card Flow Mechanics** (distinct per system, respecting verisimilitude):
-  - Mental: ACT generates Leads (depth-based), OBSERVE draws Leads count, plans in hand persist, Leads persist until completion
-  - Physical: EXECUTE locks cards as preparation (+Aggression), ASSESS triggers combo (-Aggression) then exhausts entire hand and draws fresh
-  - Social: SPEAK moves Statements to Spoken (Echoes reshuffle), LISTEN draws while hand persists, thoughts accumulate
+  - Mental: ACT on Methods generates Leads (depth-based), OBSERVE draws Details equal to Leads count, Methods persist in hand, Leads persist until completion, completed methods move to Applied pile
+  - Physical: EXECUTE locks Options as preparation (+Aggression), ASSESS Situation triggers combo (-Aggression) then exhausts all Options back to Situation and draws fresh Options
+  - Social: SPEAK moves Statement thoughts from Mind to Spoken (Echo thoughts return to Topics), LISTEN to Topics draws while Mind persists, thoughts accumulate in Mind
+- **Pile Naming** (reflects what system does):
+  - Mental: Details (scene evidence) → Methods (investigative approaches) → Applied (completed understanding)
+  - Physical: Situation (challenge evolution) → Options (available actions) → exhausts back to Situation (no discard - context resets)
+  - Social: Topics (NPC's words) → Mind (your thoughts) → Spoken (what you've said)
 - **Balance Trackers** (different penalty models):
   - Mental: No balance tracker (uses Leads flow instead)
   - Physical: Aggression (both extremes penalized - overcautious reduces Breakthrough, reckless increases Danger)
@@ -1336,23 +1343,38 @@ The three challenge systems achieve equivalent tactical depth (~1,000-1,100 line
 
 **Mental: You Cannot Observe What You Haven't Investigated**
 
-ACT cards generate Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). OBSERVE then follows those Leads by drawing cards equal to your total Leads. Zero Leads means zero draw because you have no investigative threads to follow.
+ACT on Methods generates Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). OBSERVE then follows those Leads by drawing Details equal to your total Leads. Zero Leads means zero draw because you have no investigative Details to observe.
 
-Plans in your hand persist when you OBSERVE because investigation knowledge doesn't vanish when you pause to examine evidence. Leads persist when you leave the location because uncovered threads remain available when you return. Only completing the investigation resets Leads - you've resolved the mystery, threads are no longer open.
+**Pile Verisimilitude - Mental**:
+- **Details** (input pile): Scene evidence, physical clues, observable facts waiting to be examined
+- **Methods** (hand): Investigative approaches held in mind, ready to apply to the scene
+- **Applied** (discard): Methods you've already used, investigative understanding put into practice
+
+Methods in Methods persist when you OBSERVE because investigation knowledge doesn't vanish when you pause to examine Details. Leads persist when you leave the location because uncovered threads remain available when you return. Only completing the investigation resets Leads - you've resolved the mystery, threads are no longer open. Successfully applied methods move to Applied pile, representing investigative techniques you've already employed.
 
 **Physical: You Prepare Actions Then Execute Them**
 
-EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple cards, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1) as you commit to action.
+EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1) as you commit to action.
 
-When you ASSESS, all locked cards trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression (-2) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical situation - you've exhausted your prepared actions and the context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression (-2) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
 
-**Aggression tracks your physical approach**: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
+**Pile Verisimilitude - Physical**:
+- **Situation** (input pile): The evolving physical challenge, what's currently possible
+- **Options** (hand): Available actions you're considering in this moment
+- **No discard pile**: All Options exhaust back to Situation - the challenge resets with new possibilities after each combo
+
+Aggression tracks your physical approach: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
 
 **Social: Thoughts Persist Because That's How Thinking Works**
 
-When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud stays said) while Echo cards reshuffle into the draw pile (fleeting thoughts that return to consideration). When you LISTEN, all cards in your hand remain - your mind doesn't empty when you pause to listen. You draw additional cards representing new thoughts and considerations. Your mind accumulates understanding as the conversation progresses.
+When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud stays said) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts in Mind remain - your mind doesn't empty when you pause to listen. You draw Topics into Mind representing new thoughts and considerations from what you hear. Your Mind accumulates understanding as the conversation progresses.
 
-**Cadence tracks conversation dominance**: Unlike Physical's symmetric penalties, Social's Cadence is asymmetric by design. Negative Cadence (deferential, giving space) REWARDS you with bonus card draw when you LISTEN. Positive Cadence (dominating) PENALIZES you with Doubt accumulation. Sometimes you intentionally go negative to gain card advantage.
+**Pile Verisimilitude - Social**:
+- **Topics** (input pile): The NPC's words, what they're saying that you can hear and consider
+- **Mind** (hand): Your thoughts, considerations, things you're thinking about saying
+- **Spoken** (discard): What you've said aloud, statements that cannot be unsaid
+
+Cadence tracks conversation dominance: Unlike Physical's symmetric penalties, Social's Cadence is asymmetric by design. Negative Cadence (deferential, giving space) REWARDS you with bonus card draw when you LISTEN. Positive Cadence (dominating) PENALIZES you with Doubt accumulation. Sometimes you intentionally go negative to gain card advantage.
 
 ### Balance Tracker Philosophy
 
@@ -1465,9 +1487,9 @@ Despite intentional differences, all three systems share:
 10. **Understanding**: Shared tier-unlocking resource
 
 **What Differentiates (verisimilitude-justified card flow):**
-- **Mental**: Leads generation (ACT by depth) → Leads-based draw (OBSERVE), plans persist, Leads persist until completion, no balance tracker
-- **Physical**: Preparation locking (EXECUTE +Aggression) → Combo execution (ASSESS -Aggression, exhausts all), Aggression penalizes both extremes
-- **Social**: Statement/Echo persistence (SPEAK) → Accumulating thoughts (LISTEN draws while hand persists), Cadence asymmetrically rewards negative
+- **Mental**: Leads generation (ACT on Methods by depth) → Leads-based draw (OBSERVE Details), Methods persist in hand, Leads persist until completion, Applied pile for completed methods, no balance tracker
+- **Physical**: Preparation locking (EXECUTE Options +Aggression) → Combo execution (ASSESS Situation -Aggression, exhausts all Options back to Situation), Aggression penalizes both extremes, no discard pile
+- **Social**: Statement/Echo persistence (SPEAK moves Statements from Mind to Spoken, Echoes to Topics) → Accumulating thoughts (LISTEN to Topics draws while Mind persists), Cadence asymmetrically rewards negative, three distinct piles (Topics/Mind/Spoken)
 
 **Result**: Three systems with equivalent tactical depth (~1,000-1,100 lines each) achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
 

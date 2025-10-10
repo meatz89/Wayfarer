@@ -68,7 +68,12 @@
 
         <!-- Action Section -->
         <div class="action-display">
-            <div></div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Details:</span>
+                    <span class="pile-number">@GetDeckCount()</span>
+                </div>
+            </div>
             <div class="action-section">
                 @if (!IsInvestigationEnded)
                 {
@@ -116,7 +121,12 @@
                     </div>
                 }
             </div>
-            <div></div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Applied:</span>
+                    <span class="pile-number">@GetDiscardCount()</span>
+                </div>
+            </div>
         </div>
 
         <!-- Attention Display (with glowing orbs matching mockup) -->
@@ -146,7 +156,7 @@
         <div class="cards-section">
             <div class="pile-display">
                 <div class="pile-count">
-                    <span>Hand:</span>
+                    <span>Methods:</span>
                     <span class="pile-number">@Hand.Count</span>
                 </div>
             </div>
