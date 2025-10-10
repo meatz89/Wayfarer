@@ -281,10 +281,18 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
 
 **Tactical Flow**:
 1. Player enters challenge (Mental/Physical/Social)
-2. Player builds momentum through card play
-3. When momentum reaches threshold, goal card becomes playable
-4. Playing goal card completes challenge with specified rewards
-5. Multiple goal cards per goal create tiered victory options
+2. Player builds builder resource through card play:
+   - **Social**: Momentum vs GoalCard.momentumThreshold
+   - **Mental**: Progress vs GoalCard.progressThreshold
+   - **Physical**: Breakthrough vs GoalCard.breakthroughThreshold
+3. When builder resource reaches threshold, goal card becomes playable
+4. **Player choice**: Player CAN play goal card or continue building to unlock better goal cards
+   - No forced completion - player chooses when to end challenge
+   - Higher thresholds unlock better rewards
+   - Strategic decision: Accept current reward or risk continuing
+5. Playing chosen goal card completes challenge with its specified rewards
+6. No partial success - must reach threshold to make card playable
+7. No weighted selection - player explicitly chooses which goal card to play
 
 **Why Inline Definition**:
 - Goal cards are contextual to their parent goal (not reusable entities)
@@ -468,8 +476,8 @@ Investigations are multi-phase mysteries that bridge strategic planning to tacti
 
 ### Investigation Lifecycle
 
-**1. Potential State**
-Investigation exists as template but not yet discovered by player. Waiting for trigger condition.
+**1. Unknown State**
+Investigation exists as template but not yet discovered by player. Not visible in UI. Waiting for discovery trigger.
 
 **2. Discovery Triggers (Five Types)**
 
@@ -498,11 +506,39 @@ Investigation exists as template but not yet discovered by player. Waiting for t
 - Investigation spawns when obligation accepted
 - Direct causal link between social commitment and investigation
 
-**3. Active State**
-Investigation discovered, phases available based on requirements. Player can see phase structure, requirements, current progress. Investigation persists across sessions - partial progress retained, can retreat and return prepared.
+**3. Pending State**
+Investigation discovered, intro goal spawned at appropriate location/NPC. Player sees investigation in journal but must complete intro goal to activate full investigation. Intro goal provides context and unlocks subsequent phases.
 
-**4. Completion**
-All required phases completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
+**4. Active State**
+Intro goal complete, investigation progressing. All goals tracked individually with their states. Player can see phase structure, requirements, and completion status for each goal. Investigation persists across sessions - partial progress retained, can retreat and return prepared. Active investigation displays list of all goals with their individual states in journal.
+
+**5. Completed State**
+All required goals completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
+
+### Goal Lifecycle
+
+**All goals defined in JSON:**
+- Parser creates all goals at game initialization from JSON
+- Goals stored in GameWorld.Goals dictionary
+- Initial assignment: Parser adds goals to NPC.ActiveGoals or Location.ActiveGoals based on npcId/locationId
+
+**Investigation phase assignment:**
+- Investigation phase definition references goal ID
+- When phase requirements met, investigation system looks up goal in GameWorld.Goals
+- Investigation system adds goal to appropriate NPC.ActiveGoals or Location.ActiveGoals
+- Goal becomes available as action button in venue UI
+
+**Goal completion behavior:**
+- Some goals: DELETED from entity's ActiveGoals on successful completion (investigation progression)
+- Some goals: NEVER deleted, remain in ActiveGoals (persistent/repeatable content)
+- On failure: Goal always REMAINS in ActiveGoals, player can retry
+- Delete-on-success property determines lifecycle behavior
+
+**Goal Tracking:**
+All goals tracked individually for investigation journal UI:
+- Active investigations display all goals with their states (requirements met, completed, blocked)
+- Player sees which goals completed, which remain, what requirements needed
+- Individual tracking enables meaningful progress display
 
 ### Phase Structure
 
@@ -618,9 +654,9 @@ Mental cards bind to stats based on investigative approach. ACT cards generate L
 6. **Coins**: Investigation completion rewards (5-20 coins typical)
 7. **Equipment**: Find items during investigations
 
-### Investigation Profiles (5 Tactical Modifiers)
+### Location Properties (5 Tactical Modifiers)
 
-Each location has an investigation profile that fundamentally alters tactics:
+Each location has properties that fundamentally alter investigation tactics:
 
 1. **Delicate** (fragile evidence, high Exposure risk): Exposure +2 per ACT, requires Cunning-focused approach to minimize footprint
 2. **Obscured** (degraded/hidden evidence): Progress -1 per ACT, requires high-depth Insight cards generating more Leads
@@ -726,9 +762,9 @@ Physical cards bind to stats based on physical approach. EXECUTE locks cards for
 6. **Stat XP**: Level unified stats via bound cards
 7. **Coins**: Challenge completion rewards (5-15 coins typical)
 
-### Challenge Type Profiles (5 Types of Physical Engagement)
+### Challenge Types (5 Types of Physical Engagement)
 
-Physical challenges are categorized by engagement type, affecting combo dynamics:
+Physical challenges are categorized by type, affecting combo dynamics:
 
 1. **Combat** (tactical fighting): Authority/Cunning/Insight-focused, high Danger from aggression, combo bonuses scale with sequence length
 2. **Athletics** (climbing/running/jumping): Insight/Rapport/Cunning-focused, Danger from falls, first card in combo reduces risk for subsequent cards
@@ -1536,7 +1572,6 @@ Goals reference ChallengeDeck entities directly via `deckId`. Each ChallengeDeck
 - **Deck ID**: Unique identifier (e.g., "desperate_request", "mental_challenge", "athletics_challenge")
 - **Card IDs**: Which cards are in this deck (conversation cards, investigation cards, physical action cards)
 - **Description**: Narrative context for this challenge type
-- **Victory Threshold**: Builder resource needed to complete challenge (Momentum/Progress/Breakthrough, typically 8-20)
 - **Initial Hand Size**: Starting cards (typically 5)
 - **Max Hand Size**: Maximum hand capacity (typically 7)
 
@@ -1544,8 +1579,8 @@ Goals reference ChallengeDeck entities directly via `deckId`. Each ChallengeDeck
 - **Before**: Goal → ChallengeType (intermediary) → ChallengeDeck (two-step lookup)
 - **After**: Goal → ChallengeDeck (direct reference, one-step lookup)
 - **Result**: ChallengeType entities eliminated - unnecessary intermediary providing no unique value
-- Decks now own all their configuration (VictoryThreshold, Description, HandSizes)
-- Single source of truth for challenge configuration
+- ChallengeDeck is ONLY card container (CardIds list)
+- GoalCard is single source of truth for victory conditions (thresholds, rewards)
 
 **Context-Specific Challenge Decks:**
 - **Social Decks**: Investigation conversations, NPC requests, relationship building, information gathering, negotiation
