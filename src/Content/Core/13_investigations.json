@@ -34,9 +34,52 @@
             "name": "Examine the mill interior",
             "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
             "outcomeNarrative": "Your careful examination reveals a hidden access panel in the gear housing. Fresh footprints lead to both the mechanism and the loft ladder. Whoever was here had specific targets - they knew exactly what they were looking for.",
-            "goalId": "phase_1_examine_interior",
             "completionReward": {
-              "knowledgeGranted": ["mechanism_has_compartment", "hidden_access_panel", "recent_disturbance", "investigator_targets_known"]
+              "knowledgeGranted": ["mechanism_has_compartment", "hidden_access_panel", "recent_disturbance", "investigator_targets_known"],
+              "obstaclesSpawned": [
+                {
+                  "targetType": "Location",
+                  "targetEntityId": "main_hall",
+                  "obstacle": {
+                    "id": "mill_mechanism_phase2",
+                    "name": "Corroded Mechanism Access",
+                    "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
+                    "physicalDanger": 2,
+                    "mentalComplexity": 1,
+                    "socialDifficulty": 0,
+                    "isPermanent": false,
+                    "goals": [
+                      {
+                        "id": "phase_2_access_compartment",
+                        "name": "Access the hidden compartment",
+                        "description": "Work the corroded panel loose and reach inside the mechanism",
+                        "placementLocationId": "main_hall",
+                        "systemType": "Physical",
+                        "deckId": "physical_challenge",
+                        "consequenceType": "Resolution",
+                        "setsResolutionMethod": "Preparation",
+                        "setsRelationshipOutcome": "Neutral",
+                        "investigationId": "waterwheel_mystery",
+                        "propertyRequirements": {
+                          "maxPhysicalDanger": 2,
+                          "maxMentalComplexity": 1
+                        },
+                        "goalCards": [
+                          {
+                            "id": "access_compartment_standard",
+                            "name": "Access Compartment",
+                            "description": "Successfully open the mechanism compartment",
+                            "threshold": 8,
+                            "rewards": {
+                              "progress": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -44,13 +87,80 @@
             "name": "Access the mechanism's hidden compartment",
             "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
             "outcomeNarrative": "You carefully stabilize the structure and work the panel loose. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved. One name stands out - a current town elder. Anna must have found this evidence.",
-            "goalId": "phase_2_access_compartment",
             "requirements": {
               "completedGoals": ["phase_1_examine_interior"],
-              "requiredKnowledge": ["mechanism_has_compartment"]
+              "knowledge": ["mechanism_has_compartment"]
             },
             "completionReward": {
-              "knowledgeGranted": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"]
+              "knowledgeGranted": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"],
+              "obstaclesSpawned": [
+                {
+                  "targetType": "Location",
+                  "targetEntityId": "main_hall",
+                  "obstacle": {
+                    "id": "mill_loft_phase3",
+                    "name": "Unstable Loft Access",
+                    "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently.",
+                    "physicalDanger": 3,
+                    "mentalComplexity": 1,
+                    "socialDifficulty": 0,
+                    "isPermanent": false,
+                    "goals": [
+                      {
+                        "id": "secure_floor_ropes",
+                        "name": "Get rope from workshop",
+                        "description": "Secure rope to reinforce the unstable loft floor",
+                        "placementLocationId": "workshop",
+                        "systemType": "Mental",
+                        "deckId": "mental_challenge",
+                        "consequenceType": "Modify",
+                        "setsResolutionMethod": "Preparation",
+                        "setsRelationshipOutcome": "Neutral",
+                        "propertyReduction": {
+                          "reducePhysicalDanger": 1
+                        },
+                        "goalCards": [
+                          {
+                            "id": "find_rope_standard",
+                            "name": "Find Rope",
+                            "description": "Locate suitable rope in the workshop",
+                            "threshold": 6,
+                            "rewards": {
+                              "progress": 1
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "phase_3_investigate_loft",
+                        "name": "Climb to loft",
+                        "description": "Access the loft and search for evidence",
+                        "placementLocationId": "main_hall",
+                        "systemType": "Physical",
+                        "deckId": "physical_challenge",
+                        "consequenceType": "Resolution",
+                        "setsResolutionMethod": "Boldness",
+                        "setsRelationshipOutcome": "Neutral",
+                        "investigationId": "waterwheel_mystery",
+                        "propertyRequirements": {
+                          "maxPhysicalDanger": 3
+                        },
+                        "goalCards": [
+                          {
+                            "id": "investigate_loft_standard",
+                            "name": "Search Loft",
+                            "description": "Successfully search the upper loft",
+                            "threshold": 10,
+                            "rewards": {
+                              "progress": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -58,13 +168,55 @@
             "name": "Investigate the upper loft",
             "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently - disturbed dust on the ladder.",
             "outcomeNarrative": "You secure the floor with rope and conduct a thorough search. A bedroll, journal, and sketching materials reveal the truth: Martha's granddaughter is here, investigating her aunt Anna's disappearance. The journal shows she's piecing together the same evidence you've found.",
-            "goalId": "phase_3_investigate_loft",
             "requirements": {
               "completedGoals": ["phase_2_access_compartment"],
-              "requiredKnowledge": ["anna_found_evidence"]
+              "knowledge": ["anna_found_evidence"]
             },
             "completionReward": {
-              "knowledgeGranted": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"]
+              "knowledgeGranted": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"],
+              "obstaclesSpawned": [
+                {
+                  "targetType": "NPC",
+                  "targetEntityId": "elena",
+                  "obstacle": {
+                    "id": "elena_confrontation_phase4",
+                    "name": "Elena's Guarded Secret",
+                    "description": "Elena knows more about the smuggling operation than she's admitted. Approaching her requires careful diplomacy.",
+                    "physicalDanger": 0,
+                    "mentalComplexity": 0,
+                    "socialDifficulty": 2,
+                    "isPermanent": false,
+                    "goals": [
+                      {
+                        "id": "phase_4_confront_with_evidence",
+                        "name": "Confront Elena about the evidence",
+                        "description": "Show Elena the smuggling ledgers and discuss what happened to Anna",
+                        "placementNpcId": "elena",
+                        "systemType": "Social",
+                        "deckId": "social_challenge",
+                        "consequenceType": "Resolution",
+                        "setsResolutionMethod": "Diplomacy",
+                        "setsRelationshipOutcome": "Positive",
+                        "investigationId": "waterwheel_mystery",
+                        "propertyRequirements": {
+                          "maxSocialDifficulty": 2
+                        },
+                        "goalCards": [
+                          {
+                            "id": "confront_elena_standard",
+                            "name": "Diplomatic Approach",
+                            "description": "Carefully present the evidence to Elena",
+                            "threshold": 8,
+                            "rewards": {
+                              "progress": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           {
@@ -72,10 +224,9 @@
             "name": "Confront Elena about the smuggling evidence",
             "description": "The ledgers reveal a smuggling operation from a decade ago. Elena might know more about this history than she let on.",
             "outcomeNarrative": "You approach Elena diplomatically, showing concern rather than accusation. She reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
-            "goalId": "phase_4_confront_with_evidence",
             "requirements": {
               "completedGoals": ["phase_3_investigate_loft"],
-              "requiredKnowledge": ["smuggling_ledgers_found", "granddaughter_investigating"]
+              "knowledge": ["smuggling_ledgers_found", "granddaughter_investigating"]
             },
             "completionReward": {
               "knowledgeGranted": ["elena_knew_about_smuggling", "elder_responsible_for_anna", "justice_possible"]
