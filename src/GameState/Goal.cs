@@ -97,6 +97,13 @@ public class Goal
     public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
 
     /// <summary>
+    /// Optional obstacle this goal targets (set by GoalParser from targetObstacleIndex)
+    /// Multiple goals can target the same obstacle (different tactical approaches)
+    /// null = standalone goal not targeting any obstacle
+    /// </summary>
+    public Obstacle TargetObstacle { get; set; }
+
+    /// <summary>
     /// Check if this goal is available to attempt
     /// </summary>
     public bool IsAvailableToAttempt()

@@ -1198,6 +1198,17 @@ public class PackageLoader
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
         }
 
+        // Parse obstacles on this route (bandits, flooding, difficult terrain)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        {
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
+            {
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id);
+                route.Obstacles.Add(obstacle);
+            }
+            Console.WriteLine($"[PackageLoader] Parsed {route.Obstacles.Count} obstacles for route '{route.Name}'");
+        }
+
         return route;
     }
 

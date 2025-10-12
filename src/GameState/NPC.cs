@@ -75,6 +75,9 @@ public class NPC
     // Active goals for this NPC (Social challenges)
     public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
 
+    // Obstacles for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+
     // Initial token values to be applied during game initialization
     public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
 

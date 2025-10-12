@@ -29,6 +29,9 @@ public class LocationDTO
 
     public AccessRequirementDTO AccessRequirement { get; set; }
 
+    // Obstacles at this location (Mental/Physical challenges)
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+
     // Gameplay properties moved from LocationDTO
     public string LocationType { get; set; }
     public bool IsStartingLocation { get; set; }

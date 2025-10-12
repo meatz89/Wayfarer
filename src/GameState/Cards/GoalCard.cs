@@ -55,4 +55,5 @@ public class GoalCardRewards
     public string Item { get; set; }
     public List<string> Knowledge { get; set; } = new List<string>();
     public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
+    public ObstaclePropertyReduction ObstacleReduction { get; set; }
 }

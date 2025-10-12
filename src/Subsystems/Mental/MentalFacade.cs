@@ -205,6 +205,27 @@ public class MentalFacade
         if (card.CardType == CardTypes.Goal)
         {
             Console.WriteLine($"[MentalFacade] GoalCard played - ending session with success");
+
+            // Apply obstacle property reductions (THREE PARALLEL SYSTEMS symmetry)
+            if (!string.IsNullOrEmpty(_currentGoalId) && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
+            {
+                // Check if goal targets an obstacle and card has reduction rewards
+                if (goal.TargetObstacle != null &&
+                    card.GoalCardTemplate?.Rewards?.ObstacleReduction != null)
+                {
+                    ObstaclePropertyReduction reduction = card.GoalCardTemplate.Rewards.ObstacleReduction;
+                    Console.WriteLine($"[MentalFacade] Applying obstacle reduction for goal '{goal.Name}' targeting '{goal.TargetObstacle.Name}'");
+
+                    // Apply the reduction using domain service
+                    bool obstacleCleared = ObstacleRewardService.ApplyPropertyReduction(goal.TargetObstacle, reduction);
+
+                    if (obstacleCleared)
+                    {
+                        Console.WriteLine($"[MentalFacade] Obstacle '{goal.TargetObstacle.Name}' has been cleared!");
+                    }
+                }
+            }
+
             _sessionDeck.PlayCard(card); // Mark card as played
             EndSession(); // Immediate end on GoalCard play
 

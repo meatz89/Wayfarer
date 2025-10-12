@@ -62,6 +62,13 @@ public class GoalDTO
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
 
     /// <summary>
+    /// Optional index into parent entity's Obstacles list
+    /// Parser uses this to set Goal.TargetObstacle reference
+    /// null = standalone goal not targeting any obstacle
+    /// </summary>
+    public int? TargetObstacleIndex { get; set; }
+
+    /// <summary>
     /// Prerequisites for this goal to be available
     /// </summary>
     public GoalRequirementsDTO Requirements { get; set; }

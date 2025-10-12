@@ -95,6 +95,9 @@ public class RouteOption
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
 
+    // Obstacles on this route (bandits, flooding, difficult terrain challenges)
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {
         // Use logical access system instead of efficiency calculations

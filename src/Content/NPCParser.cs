@@ -107,6 +107,29 @@ public static class NPCParser
             npc.InitialTokenValues = new Dictionary<string, int>(dto.InitialTokens);
         }
 
+        // Parse obstacles for this NPC (Social barriers only)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        {
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
+            {
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID);
+
+                // Validate: NPCs can ONLY have SocialDifficulty obstacles
+                if (obstacle.PhysicalDanger > 0 || obstacle.MentalComplexity > 0 ||
+                    obstacle.StaminaCost > 0 || obstacle.TimeCost > 0)
+                {
+                    throw new InvalidOperationException(
+                        $"NPC '{npc.Name}' (ID: {npc.ID}) has obstacle '{obstacle.Name}' with non-social properties. " +
+                        $"NPCs can ONLY have SocialDifficulty obstacles. " +
+                        $"Found: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
+                        $"StaminaCost={obstacle.StaminaCost}, TimeCost={obstacle.TimeCost}");
+                }
+
+                npc.Obstacles.Add(obstacle);
+            }
+            Console.WriteLine($"[NPCParser] Parsed {npc.Obstacles.Count} social obstacles for NPC '{npc.Name}'");
+        }
+
         return npc;
     }
 

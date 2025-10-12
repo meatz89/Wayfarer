@@ -175,6 +175,17 @@ public static class LocationParser
             }
         }
 
+        // Parse obstacles at this location (Mental/Physical challenges)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        {
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
+            {
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id);
+                location.Obstacles.Add(obstacle);
+            }
+            Console.WriteLine($"[LocationParser] Parsed {location.Obstacles.Count} obstacles for location '{location.Name}'");
+        }
+
         return location;
     }
 

@@ -55,6 +55,72 @@ public static class GoalParser
             }
         }
 
+        // Resolve targetObstacleIndex to actual Obstacle reference
+        if (dto.TargetObstacleIndex.HasValue)
+        {
+            int targetIndex = dto.TargetObstacleIndex.Value;
+
+            // Location-based goal (Mental/Physical challenges)
+            if (!string.IsNullOrEmpty(goal.LocationId))
+            {
+                LocationEntry locationEntry = gameWorld.Locations.FirstOrDefault(l => l.LocationId == goal.LocationId);
+                if (locationEntry != null && locationEntry.location != null)
+                {
+                    if (targetIndex >= 0 && targetIndex < locationEntry.location.Obstacles.Count)
+                    {
+                        goal.TargetObstacle = locationEntry.location.Obstacles[targetIndex];
+                        Console.WriteLine($"[GoalParser] Goal '{goal.Name}' targets obstacle '{goal.TargetObstacle.Name}' at location '{goal.LocationId}'");
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Goal '{goal.Id}' has targetObstacleIndex {targetIndex} but location '{goal.LocationId}' " +
+                            $"only has {locationEntry.location.Obstacles.Count} obstacles");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Goal '{goal.Id}' references location '{goal.LocationId}' which was not found in GameWorld");
+                }
+            }
+            // NPC-based goal (Social challenges)
+            else if (!string.IsNullOrEmpty(goal.NpcId))
+            {
+                NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                if (npc != null)
+                {
+                    if (targetIndex >= 0 && targetIndex < npc.Obstacles.Count)
+                    {
+                        goal.TargetObstacle = npc.Obstacles[targetIndex];
+                        Console.WriteLine($"[GoalParser] Goal '{goal.Name}' targets obstacle '{goal.TargetObstacle.Name}' for NPC '{goal.NpcId}'");
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Goal '{goal.Id}' has targetObstacleIndex {targetIndex} but NPC '{goal.NpcId}' " +
+                            $"only has {npc.Obstacles.Count} obstacles");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Goal '{goal.Id}' references NPC '{goal.NpcId}' which was not found in GameWorld");
+                }
+            }
+            // Investigation-based goals with obstacles will be handled in investigation spawning system (Tasks 21-23)
+            else if (!string.IsNullOrEmpty(goal.InvestigationId))
+            {
+                Console.WriteLine($"[GoalParser] Goal '{goal.Name}' has targetObstacleIndex but is investigation-based - " +
+                    "obstacle resolution will happen when investigation spawns obstacles");
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Goal '{goal.Id}' has targetObstacleIndex but no LocationId, NpcId, or InvestigationId");
+            }
+        }
+
         Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}) with {goal.GoalCards.Count} goal cards");
         return goal;
     }
@@ -96,7 +162,8 @@ public static class GoalParser
             ObligationId = dto.ObligationId,
             Item = dto.Item,
             Knowledge = dto.Knowledge != null ? new List<string>(dto.Knowledge) : new List<string>(),
-            Tokens = dto.Tokens != null ? new Dictionary<string, int>(dto.Tokens) : new Dictionary<string, int>()
+            Tokens = dto.Tokens != null ? new Dictionary<string, int>(dto.Tokens) : new Dictionary<string, int>(),
+            ObstacleReduction = dto.ObstacleReduction != null ? ObstacleParser.ConvertDTOToReduction(dto.ObstacleReduction) : null
         };
 
         return rewards;

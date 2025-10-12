@@ -766,6 +766,32 @@ public class SocialFacade
             ApplyProjectionToSession(projection, session);
         }
 
+        // Apply obstacle property reductions for goal cards
+        if (selectedCard.CardType == CardTypes.Goal)
+        {
+            // Get the Goal entity from GameWorld
+            if (_gameWorld.Goals.TryGetValue(session.RequestId, out Goal goal))
+            {
+                // Check if goal targets an obstacle and card has reduction rewards
+                if (goal.TargetObstacle != null &&
+                    selectedCard.GoalCardTemplate?.Rewards?.ObstacleReduction != null)
+                {
+                    ObstaclePropertyReduction reduction = selectedCard.GoalCardTemplate.Rewards.ObstacleReduction;
+                    Console.WriteLine($"[SocialFacade] Applying obstacle reduction for goal '{goal.Name}' targeting '{goal.TargetObstacle.Name}'");
+
+                    // Apply the reduction using domain service
+                    bool obstacleCleared = ObstacleRewardService.ApplyPropertyReduction(goal.TargetObstacle, reduction);
+
+                    if (obstacleCleared)
+                    {
+                        _messageSystem.AddSystemMessage(
+                            $"Obstacle '{goal.TargetObstacle.Name}' has been cleared!",
+                            SystemMessageTypes.Success);
+                    }
+                }
+            }
+        }
+
         // Check if card ends conversation (Request, Promise, Burden cards)
         bool endsConversation = selectedCard.CardType == CardTypes.Goal;
 

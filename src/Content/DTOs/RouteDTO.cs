@@ -24,6 +24,9 @@ public class RouteDTO
     public string Description { get; set; }
     public AccessRequirementDTO AccessRequirement { get; set; }
 
+    // Obstacles on this route (bandits, flooding, difficult terrain)
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+
     // Travel path cards system properties
     public int StartingStamina { get; set; } = 3;
     public List<RouteSegmentDTO> Segments { get; set; } = new List<RouteSegmentDTO>();
