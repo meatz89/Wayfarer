@@ -59,10 +59,10 @@ namespace Wayfarer.Services
         /// </summary>
         private void RemoveGoalFromActiveGoals(Goal goal)
         {
-            if (!string.IsNullOrEmpty(goal.NpcId))
+            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
             {
                 // Remove from NPC.ActiveGoals
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                 if (npc != null)
                 {
                     Goal goalToRemove = npc.ActiveGoals.FirstOrDefault(g => g.Id == goal.Id);
@@ -73,10 +73,10 @@ namespace Wayfarer.Services
                     }
                 }
             }
-            else if (!string.IsNullOrEmpty(goal.LocationId))
+            else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
             {
                 // Remove from Location.ActiveGoals
-                Location location = _gameWorld.GetLocation(goal.LocationId);
+                Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                 if (location != null)
                 {
                     Goal goalToRemove = location.ActiveGoals.FirstOrDefault(g => g.Id == goal.Id);

@@ -36,7 +36,8 @@
         "canInvestigate": true,
         "investigationScaling": {
           "default": 1
-        }
+        },
+        "obstacleIds": ["mill_entrance_blocked"]
       },
       {
         "id": "courtyard",
@@ -105,6 +106,73 @@
         "requiredProperties": [],
         "optionalProperties": [],
         "excludedProperties": []
+      }
+    ],
+    "obstacles": [
+      {
+        "id": "mill_entrance_blocked",
+        "name": "Boarded Door",
+        "description": "Heavy boards cover the main entrance. Someone didn't want anyone getting inside easily.",
+        "physicalDanger": 2,
+        "mentalComplexity": 1,
+        "socialDifficulty": 0,
+        "isPermanent": false,
+        "goals": [
+          {
+            "id": "force_door",
+            "name": "Force the door open",
+            "description": "Break through the boards with brute strength",
+            "placementLocationId": "mill_entrance",
+            "systemType": "Physical",
+            "deckId": "physical_challenge",
+            "consequenceType": "Resolution",
+            "setsResolutionMethod": "Violence",
+            "setsRelationshipOutcome": "Neutral",
+            "isAvailable": true,
+            "deleteOnSuccess": true,
+            "propertyRequirements": {
+              "maxPhysicalDanger": 2
+            },
+            "goalCards": [
+              {
+                "id": "force_door_standard",
+                "name": "Break Through",
+                "description": "Successfully force the door open",
+                "threshold": 8,
+                "rewards": {
+                  "progress": 1
+                }
+              }
+            ]
+          },
+          {
+            "id": "find_alternate_entry",
+            "name": "Find another way in",
+            "description": "Search for an unboarded window or side entrance",
+            "placementLocationId": "courtyard",
+            "systemType": "Mental",
+            "deckId": "mental_challenge",
+            "consequenceType": "Bypass",
+            "setsResolutionMethod": "Cleverness",
+            "setsRelationshipOutcome": "Neutral",
+            "isAvailable": true,
+            "deleteOnSuccess": true,
+            "propertyRequirements": {
+              "maxMentalComplexity": 1
+            },
+            "goalCards": [
+              {
+                "id": "find_entry_standard",
+                "name": "Alternative Found",
+                "description": "Discover accessible entry point",
+                "threshold": 6,
+                "rewards": {
+                  "progress": 1
+                }
+              }
+            ]
+          }
+        ]
       }
     ]
   }

@@ -36,7 +36,6 @@ public class InvestigationParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            Goal = dto.Goal,
             OutcomeNarrative = dto.OutcomeNarrative,
             Requirements = ParseRequirements(dto.Requirements),
             CompletionReward = ParseCompletionReward(dto.CompletionReward)

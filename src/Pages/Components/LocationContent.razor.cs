@@ -105,9 +105,17 @@ namespace Wayfarer.Pages.Components
 
             // Get obstacles at current location
             CurrentObstacles.Clear();
-            if (CurrentSpot != null && CurrentSpot.Obstacles != null)
+            if (CurrentSpot != null && CurrentSpot.ObstacleIds != null)
             {
-                CurrentObstacles = CurrentSpot.Obstacles;
+                // Lookup obstacles by ID from GameWorld
+                foreach (string obstacleId in CurrentSpot.ObstacleIds)
+                {
+                    Obstacle obstacle = GameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+                    if (obstacle != null)
+                    {
+                        CurrentObstacles.Add(obstacle);
+                    }
+                }
                 Console.WriteLine($"[LocationContent] Got {CurrentObstacles.Count} obstacles at {CurrentSpot.Name}");
             }
 
@@ -177,7 +185,7 @@ namespace Wayfarer.Pages.Components
             if (CurrentSpot != null)
             {
                 // Use ObstacleGoalFilter to aggregate ambient + filtered obstacle goals
-                List<Goal> allVisibleGoals = ObstacleGoalFilter.GetVisibleLocationGoals(CurrentSpot);
+                List<Goal> allVisibleGoals = ObstacleGoalFilter.GetVisibleLocationGoals(CurrentSpot, GameWorld);
 
                 AvailableSocialGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Social)
@@ -231,11 +239,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartSocialGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' (ID: '{goal.Id}') with NPC: '{goal.NpcId}'");
+            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' (ID: '{goal.Id}') with NPC: '{goal.PlacementNpcId}'");
 
             if (GameScreen != null)
             {
-                await GameScreen.StartConversationSession(goal.NpcId, goal.Id);
+                await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
             }
             else
             {

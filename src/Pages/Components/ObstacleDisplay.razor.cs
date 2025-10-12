@@ -56,9 +56,7 @@ namespace Wayfarer.Pages.Components
             if (Obstacle == null) return false;
             return Obstacle.PhysicalDanger > 0 ||
                    Obstacle.MentalComplexity > 0 ||
-                   Obstacle.SocialDifficulty > 0 ||
-                   Obstacle.StaminaCost > 0 ||
-                   Obstacle.TimeCost > 0;
+                   Obstacle.SocialDifficulty > 0;
         }
     }
 }

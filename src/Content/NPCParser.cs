@@ -104,7 +104,14 @@ public static class NPCParser
         {
             // These would be set during game initialization after player is created
             // For now, store the values to be applied later
-            npc.InitialTokenValues = new Dictionary<string, int>(dto.InitialTokens);
+            foreach (KeyValuePair<string, int> kvp in dto.InitialTokens)
+            {
+                npc.InitialTokenValues.Add(new InitialTokenValue
+                {
+                    TokenId = kvp.Key,
+                    Value = kvp.Value
+                });
+            }
         }
 
         // Parse obstacles for this NPC (Social barriers only)
@@ -115,19 +122,28 @@ public static class NPCParser
                 Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
 
                 // Validate: NPCs can ONLY have SocialDifficulty obstacles
-                if (obstacle.PhysicalDanger > 0 || obstacle.MentalComplexity > 0 ||
-                    obstacle.StaminaCost > 0 || obstacle.TimeCost > 0)
+                if (obstacle.PhysicalDanger > 0 || obstacle.MentalComplexity > 0)
                 {
                     throw new InvalidOperationException(
                         $"NPC '{npc.Name}' (ID: {npc.ID}) has obstacle '{obstacle.Name}' with non-social properties. " +
                         $"NPCs can ONLY have SocialDifficulty obstacles. " +
-                        $"Found: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
-                        $"StaminaCost={obstacle.StaminaCost}, TimeCost={obstacle.TimeCost}");
+                        $"Found: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}");
                 }
 
-                npc.Obstacles.Add(obstacle);
+                // Duplicate ID protection - prevent data corruption
+                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+                {
+                    gameWorld.Obstacles.Add(obstacle);
+                    npc.ObstacleIds.Add(obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in NPC '{npc.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
             }
-            Console.WriteLine($"[NPCParser] Parsed {npc.Obstacles.Count} social obstacles for NPC '{npc.Name}'");
+            Console.WriteLine($"[NPCParser] Parsed {npc.ObstacleIds.Count} social obstacles for NPC '{npc.Name}'");
         }
 
         return npc;

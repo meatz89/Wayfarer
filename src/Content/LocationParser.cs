@@ -101,7 +101,11 @@ public static class LocationParser
             {
                 if (kvp.Value.Count > 0)
                 {
-                    location.TimeSpecificProperties[kvp.Key] = kvp.Value;
+                    location.TimeSpecificProperties.Add(new TimeSpecificProperty
+                    {
+                        TimeBlock = kvp.Key,
+                        Properties = kvp.Value
+                    });
                 }
             }
         }
@@ -181,9 +185,21 @@ public static class LocationParser
             foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
                 Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id, gameWorld);
-                location.Obstacles.Add(obstacle);
+
+                // Duplicate ID protection - prevent data corruption
+                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+                {
+                    gameWorld.Obstacles.Add(obstacle);
+                    location.ObstacleIds.Add(obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in location '{location.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
             }
-            Console.WriteLine($"[LocationParser] Parsed {location.Obstacles.Count} obstacles for location '{location.Name}'");
+            Console.WriteLine($"[LocationParser] Parsed {location.ObstacleIds.Count} obstacles for location '{location.Name}'");
         }
 
         return location;

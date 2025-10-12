@@ -6,13 +6,12 @@ using System.Collections.Generic;
 /// </summary>
 public class ObstacleDTO
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int PhysicalDanger { get; set; }
     public int MentalComplexity { get; set; }
     public int SocialDifficulty { get; set; }
-    public int StaminaCost { get; set; }
-    public int TimeCost { get; set; }
     public bool IsPermanent { get; set; }
     public List<GoalDTO> Goals { get; set; } = new List<GoalDTO>();
 }

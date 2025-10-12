@@ -400,7 +400,18 @@ public class InvestigationActivity
                     Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Location '{spawnInfo.TargetEntityId}' not found");
                     return;
                 }
-                location.Obstacles.Add(spawnInfo.Obstacle);
+                // Duplicate ID protection - prevent data corruption
+                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
+                {
+                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
+                    location.ObstacleIds.Add(spawnInfo.Obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning at Location '{location.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
                 Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' at Location '{location.Name}'");
                 _messageSystem.AddSystemMessage(
                     $"New obstacle appeared at {location.Name}: {spawnInfo.Obstacle.Name}",
@@ -430,13 +441,23 @@ public class InvestigationActivity
                     return;
                 }
                 // Validate: NPCs can ONLY have SocialDifficulty obstacles
-                if (spawnInfo.Obstacle.PhysicalDanger > 0 || spawnInfo.Obstacle.MentalComplexity > 0 ||
-                    spawnInfo.Obstacle.StaminaCost > 0 || spawnInfo.Obstacle.TimeCost > 0)
+                if (spawnInfo.Obstacle.PhysicalDanger > 0 || spawnInfo.Obstacle.MentalComplexity > 0)
                 {
                     Console.WriteLine($"[InvestigationActivity] ERROR: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}' - NPCs can only have SocialDifficulty obstacles");
                     return;
                 }
-                npc.Obstacles.Add(spawnInfo.Obstacle);
+                // Duplicate ID protection - prevent data corruption
+                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
+                {
+                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
+                    npc.ObstacleIds.Add(spawnInfo.Obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on NPC '{npc.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
                 Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}'");
                 _messageSystem.AddSystemMessage(
                     $"New social obstacle with {npc.Name}: {spawnInfo.Obstacle.Name}",

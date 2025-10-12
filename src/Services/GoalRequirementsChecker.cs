@@ -31,7 +31,7 @@ namespace Wayfarer.Services
             bool knowledgeMet = CheckKnowledgeRequirements(goal.Requirements, player);
             bool equipmentMet = CheckEquipmentRequirements(goal.Requirements, player);
             bool statsMet = CheckStatsRequirements(goal.Requirements, player);
-            bool familiarityMet = CheckFamiliarityRequirement(goal.Requirements, player, goal.LocationId);
+            bool familiarityMet = CheckFamiliarityRequirement(goal.Requirements, player, goal.PlacementLocationId);
             bool completedGoalsMet = CheckCompletedGoalsRequirements(goal.Requirements);
 
             return knowledgeMet && equipmentMet && statsMet && familiarityMet && completedGoalsMet;
@@ -85,20 +85,20 @@ namespace Wayfarer.Services
             // Check stat requirements
             if (goal.Requirements.RequiredStats != null && goal.Requirements.RequiredStats.Any())
             {
-                foreach (KeyValuePair<PlayerStatType, int> statReq in goal.Requirements.RequiredStats)
+                foreach (StatRequirement statReq in goal.Requirements.RequiredStats)
                 {
-                    int currentLevel = player.Stats.GetLevel(statReq.Key);
-                    if (currentLevel < statReq.Value)
+                    int currentLevel = player.Stats.GetLevel(statReq.StatType);
+                    if (currentLevel < statReq.MinimumLevel)
                     {
-                        missingRequirements.Add($"{statReq.Key} Level {statReq.Value} required (you have {currentLevel})");
+                        missingRequirements.Add($"{statReq.StatType} Level {statReq.MinimumLevel} required (you have {currentLevel})");
                     }
                 }
             }
 
             // Check location familiarity requirement
-            if (goal.Requirements.MinimumLocationFamiliarity > 0 && !string.IsNullOrEmpty(goal.LocationId))
+            if (goal.Requirements.MinimumLocationFamiliarity > 0 && !string.IsNullOrEmpty(goal.PlacementLocationId))
             {
-                int currentFamiliarity = player.GetLocationFamiliarity(goal.LocationId);
+                int currentFamiliarity = player.GetLocationFamiliarity(goal.PlacementLocationId);
                 if (currentFamiliarity < goal.Requirements.MinimumLocationFamiliarity)
                 {
                     missingRequirements.Add($"Location familiarity {goal.Requirements.MinimumLocationFamiliarity} required (you have {currentFamiliarity})");
@@ -161,9 +161,9 @@ namespace Wayfarer.Services
             if (requirements.RequiredStats == null || !requirements.RequiredStats.Any())
                 return true;
 
-            foreach (KeyValuePair<PlayerStatType, int> statReq in requirements.RequiredStats)
+            foreach (StatRequirement statReq in requirements.RequiredStats)
             {
-                if (player.Stats.GetLevel(statReq.Key) < statReq.Value)
+                if (player.Stats.GetLevel(statReq.StatType) < statReq.MinimumLevel)
                     return false;
             }
 

@@ -207,43 +207,89 @@ public class MentalFacade
             Console.WriteLine($"[MentalFacade] GoalCard played - ending session with success");
 
             // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // Find parent obstacle containing this goal
+            // DISTRIBUTED INTERACTION: Find parent obstacle from GameWorld.Obstacles
             Player currentPlayer = _gameWorld.GetPlayer();
             Location location = currentPlayer.CurrentLocation;
 
-            Obstacle parentObstacle = location?.Obstacles
+            // Find obstacle containing this goal (from GameWorld.Obstacles list)
+            Obstacle parentObstacle = _gameWorld.Obstacles
                 .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentGoalId));
 
             if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
             {
-                if (goal.EffectType == GoalEffectType.ReduceProperties && goal.PropertyReduction != null)
-                {
-                    // Preparation goal - reduce properties
-                    Console.WriteLine($"[MentalFacade] Applying property reduction for goal '{goal.Name}' on obstacle '{parentObstacle.Name}'");
-                    bool cleared = ObstacleRewardService.ApplyPropertyReduction(parentObstacle, goal.PropertyReduction);
+                Console.WriteLine($"[MentalFacade] Applying consequence '{goal.ConsequenceType}' for goal '{goal.Name}' on obstacle '{parentObstacle.Name}'");
 
-                    if (cleared && !parentObstacle.IsPermanent)
-                    {
-                        location.Obstacles.Remove(parentObstacle);
-                        Console.WriteLine($"[MentalFacade] Obstacle '{parentObstacle.Name}' has been cleared and removed!");
-                    }
-                    else if (cleared && parentObstacle.IsPermanent)
-                    {
-                        Console.WriteLine($"[MentalFacade] Obstacle '{parentObstacle.Name}' cleared but persists (IsPermanent=true)");
-                    }
-                }
-                else if (goal.EffectType == GoalEffectType.RemoveObstacle)
+                // PHASE 2: Five Consequence Types
+                switch (goal.ConsequenceType)
                 {
-                    // Resolution goal - remove obstacle entirely (respects IsPermanent)
-                    if (!parentObstacle.IsPermanent)
-                    {
-                        location.Obstacles.Remove(parentObstacle);
-                        Console.WriteLine($"[MentalFacade] Obstacle '{parentObstacle.Name}' removed!");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[MentalFacade] Cannot remove permanent obstacle '{parentObstacle.Name}'");
-                    }
+                    case Wayfarer.GameState.Enums.ConsequenceType.Resolution:
+                        // Permanently overcome - mark as Resolved, remove from play
+                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Resolved;
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+
+                        if (!parentObstacle.IsPermanent)
+                        {
+                            location.ObstacleIds.Remove(parentObstacle.Id);
+                            Console.WriteLine($"[MentalFacade] RESOLUTION: Obstacle '{parentObstacle.Name}' permanently overcome and removed");
+                        }
+                        break;
+
+                    case Wayfarer.GameState.Enums.ConsequenceType.Bypass:
+                        // Player passes, obstacle persists
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        Console.WriteLine($"[MentalFacade] BYPASS: Passed obstacle '{parentObstacle.Name}', persists for world");
+                        break;
+
+                    case Wayfarer.GameState.Enums.ConsequenceType.Transform:
+                        // Fundamentally changed - properties to 0, new description
+                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
+                        parentObstacle.PhysicalDanger = 0;
+                        parentObstacle.MentalComplexity = 0;
+                        parentObstacle.SocialDifficulty = 0;
+
+                        if (!string.IsNullOrEmpty(goal.TransformDescription))
+                        {
+                            parentObstacle.TransformedDescription = goal.TransformDescription;
+                        }
+
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        Console.WriteLine($"[MentalFacade] TRANSFORM: Obstacle '{parentObstacle.Name}' fundamentally changed");
+                        break;
+
+                    case Wayfarer.GameState.Enums.ConsequenceType.Modify:
+                        // Properties reduced - other goals may unlock
+                        if (goal.PropertyReduction != null)
+                        {
+                            parentObstacle.PhysicalDanger = Math.Max(0,
+                                parentObstacle.PhysicalDanger - goal.PropertyReduction.ReducePhysicalDanger);
+                            parentObstacle.MentalComplexity = Math.Max(0,
+                                parentObstacle.MentalComplexity - goal.PropertyReduction.ReduceMentalComplexity);
+                            parentObstacle.SocialDifficulty = Math.Max(0,
+                                parentObstacle.SocialDifficulty - goal.PropertyReduction.ReduceSocialDifficulty);
+
+                            Console.WriteLine($"[MentalFacade] MODIFY: Reduced properties to P:{parentObstacle.PhysicalDanger} M:{parentObstacle.MentalComplexity} S:{parentObstacle.SocialDifficulty}");
+                        }
+
+                        parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
+
+                        // Check if all properties now at 0 (auto-transform)
+                        if (parentObstacle.PhysicalDanger == 0 &&
+                            parentObstacle.MentalComplexity == 0 &&
+                            parentObstacle.SocialDifficulty == 0)
+                        {
+                            parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
+                            Console.WriteLine($"[MentalFacade] MODIFY: All properties at 0, auto-transformed");
+                        }
+                        break;
+
+                    case Wayfarer.GameState.Enums.ConsequenceType.Grant:
+                        // Grant items/knowledge, no obstacle change
+                        // (Knowledge cards handled in Phase 3, items already handled by reward system)
+                        Console.WriteLine($"[MentalFacade] GRANT: Granted knowledge/items");
+                        break;
                 }
             }
             // Else: ambient goal with no obstacle parent

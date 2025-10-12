@@ -167,4 +167,10 @@ public class PackageContent
     public List<SocialChallengeDeckDTO> SocialChallengeDecks { get; set; } = new List<SocialChallengeDeckDTO>();
     public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
     public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
+
+    /// <summary>
+    /// Obstacle definitions - challenges with multiple resolution paths and property-based gating
+    /// Can be placed on Locations, NPCs, or Routes
+    /// </summary>
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 }

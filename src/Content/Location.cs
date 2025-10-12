@@ -11,7 +11,7 @@ public class Location
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    public Dictionary<TimeBlocks, List<LocationPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<LocationPropertyType>>();
+    public List<TimeSpecificProperty> TimeSpecificProperties { get; set; } = new List<TimeSpecificProperty>();
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
@@ -20,7 +20,7 @@ public class Location
     public AccessRequirement AccessRequirement { get; set; }
 
     public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    public List<string> ObstacleIds { get; set; } = new List<string>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 
@@ -73,9 +73,9 @@ public class Location
     {
         List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
 
-        if (TimeSpecificProperties.ContainsKey(currentTime))
+        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            activeProperties.AddRange(TimeSpecificProperties[currentTime]);
+            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
         }
 
         return activeProperties;
@@ -91,9 +91,9 @@ public class Location
 
         // Get all active properties (base + time-specific)
         List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
-        if (TimeSpecificProperties.ContainsKey(currentTime))
+        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            activeProperties.AddRange(TimeSpecificProperties[currentTime]);
+            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
         }
 
         // Apply property-based modifiers

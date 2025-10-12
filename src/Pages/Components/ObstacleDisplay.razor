@@ -48,22 +48,6 @@
                     <span class="property-value @GetPropertyClass(Obstacle.SocialDifficulty)">@Obstacle.SocialDifficulty</span>
                 </div>
             }
-
-            @if (Obstacle.StaminaCost > 0 || !HasActiveProperties())
-            {
-                <div class="property-row">
-                    <span class="property-label">Stamina Cost:</span>
-                    <span class="property-value @GetPropertyClass(Obstacle.StaminaCost)">@Obstacle.StaminaCost</span>
-                </div>
-            }
-
-            @if (Obstacle.TimeCost > 0 || !HasActiveProperties())
-            {
-                <div class="property-row">
-                    <span class="property-label">Time Cost:</span>
-                    <span class="property-value @GetPropertyClass(Obstacle.TimeCost)">@Obstacle.TimeCost</span>
-                </div>
-            }
         </div>
 
         @if (Obstacle.IsPermanent)

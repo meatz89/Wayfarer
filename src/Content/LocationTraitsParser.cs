@@ -15,10 +15,10 @@ public static class LocationTraitsParser
         if (location == null)
             return traits;
 
-        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties dictionary
-        if (location.TimeSpecificProperties.ContainsKey(currentTime))
+        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties list
+        if (location.TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            List<LocationPropertyType> properties = location.TimeSpecificProperties[currentTime];
+            List<LocationPropertyType> properties = location.TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties;
             foreach (LocationPropertyType prop in properties)
             {
                 string trait = prop.ToString();

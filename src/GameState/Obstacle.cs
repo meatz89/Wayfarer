@@ -1,13 +1,20 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
-/// Obstacle - Strategic information entity representing challenges that multiple tactical approaches can address
-/// Lives on Route/Location/NPC entities as List&lt;Obstacle&gt;
-/// Properties compose through simple addition (multiple obstacles sum their properties)
-/// Design principle: Obstacles are INFORMATION for player decision-making, NOT mechanical modifiers
+/// Obstacle - Strategic barrier with inline goals, property-based gating
+/// Lives in GameWorld.Obstacles list (single source of truth)
+/// Referenced by Location.ObstacleIds, NPC.ObstacleIds (distributed interaction pattern)
+/// Design principle: Location-agnostic obstacles with goals scattered across world
 /// </summary>
 public class Obstacle
 {
     /// <summary>
-    /// Narrative identifier for this obstacle
+    /// Unique identifier for this obstacle (used for lookups from ObstacleIds lists)
+    /// </summary>
+    public string Id { get; set; }
+
+    /// <summary>
+    /// Narrative name for this obstacle
     /// </summary>
     public string Name { get; set; }
 
@@ -31,21 +38,29 @@ public class Obstacle
     /// <summary>
     /// Interpersonal challenge - suspicious NPC, hostile faction, complex negotiation
     /// Natural meaning: actual social barrier difficulty
-    /// Note: NPCs can ONLY have SocialDifficulty obstacles (other properties = 0)
+    /// Scale: 0 (trivial) to 3 (severe)
     /// </summary>
     public int SocialDifficulty { get; set; }
 
     /// <summary>
-    /// Physical exertion required - distance, terrain difficulty, labor intensity
-    /// Natural meaning: actual stamina expenditure
+    /// Current state of obstacle
     /// </summary>
-    public int StaminaCost { get; set; }
+    public ObstacleState State { get; set; } = ObstacleState.Active;
 
     /// <summary>
-    /// Real-time duration - waiting, traveling, careful work
-    /// Natural meaning: actual time passage in game segments
+    /// How obstacle was overcome (provides AI narrative context)
     /// </summary>
-    public int TimeCost { get; set; }
+    public ResolutionMethod ResolutionMethod { get; set; } = ResolutionMethod.Unresolved;
+
+    /// <summary>
+    /// Social impact of resolution (affects future interactions)
+    /// </summary>
+    public RelationshipOutcome RelationshipOutcome { get; set; } = RelationshipOutcome.Neutral;
+
+    /// <summary>
+    /// New description after Transform consequence (if transformed)
+    /// </summary>
+    public string TransformedDescription { get; set; }
 
     /// <summary>
     /// Whether obstacle persists when all properties reach zero
@@ -63,23 +78,21 @@ public class Obstacle
     public List<Goal> Goals { get; set; } = new List<Goal>();
 
     /// <summary>
-    /// Check if obstacle is fully cleared (all properties at or below zero)
+    /// Check if obstacle is fully cleared (all three properties at or below zero)
     /// </summary>
     public bool IsCleared()
     {
         return PhysicalDanger <= 0 &&
                MentalComplexity <= 0 &&
-               SocialDifficulty <= 0 &&
-               StaminaCost <= 0 &&
-               TimeCost <= 0;
+               SocialDifficulty <= 0;
     }
 
     /// <summary>
-    /// Get total challenge magnitude (sum of all properties)
+    /// Get total challenge magnitude (sum of three core properties)
     /// Useful for UI display of overall difficulty
     /// </summary>
     public int GetTotalMagnitude()
     {
-        return PhysicalDanger + MentalComplexity + SocialDifficulty + StaminaCost + TimeCost;
+        return PhysicalDanger + MentalComplexity + SocialDifficulty;
     }
 }

@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Public API for the Conversation subsystem.
 /// Handles all conversation operations with functionality absorbed from ConversationOrchestrator and CardDeckManager.
@@ -283,46 +289,81 @@ public class SocialFacade
             Console.WriteLine($"[SocialFacade] GoalCard played - ending conversation with success");
 
             // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // Find parent obstacle containing this goal (Social searches NPC.Obstacles)
+            // Find parent obstacle containing this goal (distributed interaction pattern)
             NPC npc = _currentSession.NPC;
 
-            Obstacle parentObstacle = npc?.Obstacles
+            Obstacle parentObstacle = _gameWorld.Obstacles
                 .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentSession.RequestId));
 
             if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentSession.RequestId, out Goal goal))
             {
-                if (goal.EffectType == GoalEffectType.ReduceProperties && goal.PropertyReduction != null)
+                switch (goal.ConsequenceType)
                 {
-                    // Preparation goal - reduce properties
-                    Console.WriteLine($"[SocialFacade] Applying property reduction for goal '{goal.Name}' on obstacle '{parentObstacle.Name}'");
-                    bool cleared = ObstacleRewardService.ApplyPropertyReduction(parentObstacle, goal.PropertyReduction);
+                    case ConsequenceType.Resolution:
+                        // Permanently overcome
+                        parentObstacle.State = ObstacleState.Resolved;
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        // Remove from active play (but keep in GameWorld for history)
+                        if (!parentObstacle.IsPermanent)
+                        {
+                            npc.ObstacleIds.Remove(parentObstacle.Id);
+                        }
+                        _messageSystem.AddSystemMessage(
+                            $"Obstacle '{parentObstacle.Name}' permanently resolved via {goal.SetsResolutionMethod}",
+                            SystemMessageTypes.Success);
+                        break;
 
-                    if (cleared && !parentObstacle.IsPermanent)
-                    {
-                        npc.Obstacles.Remove(parentObstacle);
+                    case ConsequenceType.Bypass:
+                        // Player passes, obstacle persists
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        Console.WriteLine($"[SocialFacade] Bypassed obstacle '{parentObstacle.Name}', obstacle persists");
+                        break;
+
+                    case ConsequenceType.Transform:
+                        // Fundamentally changed
+                        parentObstacle.State = ObstacleState.Transformed;
+                        parentObstacle.PhysicalDanger = 0;
+                        parentObstacle.SocialDifficulty = 0;
+                        parentObstacle.MentalComplexity = 0;
+                        if (!string.IsNullOrEmpty(goal.TransformDescription))
+                            parentObstacle.TransformedDescription = goal.TransformDescription;
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
                         _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' has been cleared and removed!",
+                            $"Obstacle '{parentObstacle.Name}' transformed, properties set to 0",
                             SystemMessageTypes.Success);
-                    }
-                    else if (cleared && parentObstacle.IsPermanent)
-                    {
-                        Console.WriteLine($"[SocialFacade] Obstacle '{parentObstacle.Name}' cleared but persists (IsPermanent=true)");
-                    }
-                }
-                else if (goal.EffectType == GoalEffectType.RemoveObstacle)
-                {
-                    // Resolution goal - remove obstacle entirely (respects IsPermanent)
-                    if (!parentObstacle.IsPermanent)
-                    {
-                        npc.Obstacles.Remove(parentObstacle);
-                        _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' removed!",
-                            SystemMessageTypes.Success);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[SocialFacade] Cannot remove permanent obstacle '{parentObstacle.Name}'");
-                    }
+                        break;
+
+                    case ConsequenceType.Modify:
+                        // Properties reduced
+                        if (goal.PropertyReduction != null)
+                        {
+                            parentObstacle.PhysicalDanger = Math.Max(0,
+                                parentObstacle.PhysicalDanger - goal.PropertyReduction.ReducePhysicalDanger);
+                            parentObstacle.SocialDifficulty = Math.Max(0,
+                                parentObstacle.SocialDifficulty - goal.PropertyReduction.ReduceSocialDifficulty);
+                            parentObstacle.MentalComplexity = Math.Max(0,
+                                parentObstacle.MentalComplexity - goal.PropertyReduction.ReduceMentalComplexity);
+                        }
+                        parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
+                        // Check if all properties are now 0 (fully modified)
+                        if (parentObstacle.PhysicalDanger == 0 &&
+                            parentObstacle.SocialDifficulty == 0 &&
+                            parentObstacle.MentalComplexity == 0)
+                        {
+                            parentObstacle.State = ObstacleState.Transformed;
+                        }
+                        Console.WriteLine($"[SocialFacade] Modified obstacle '{parentObstacle.Name}', properties reduced");
+                        break;
+
+                    case ConsequenceType.Grant:
+                        // Grant knowledge/items, no obstacle change
+                        // Knowledge cards handled in Phase 3
+                        // Items already handled by existing reward system
+                        Console.WriteLine($"[SocialFacade] Grant consequence - items/knowledge granted");
+                        break;
                 }
             }
             // Else: ambient goal with no obstacle parent

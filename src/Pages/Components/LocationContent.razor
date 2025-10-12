@@ -184,7 +184,7 @@
                     <div class="npc-actions">
 
                         <!-- Social Goals from Location -->
-                        @foreach (var goal in AvailableSocialGoals.Where(g => g.NpcId == npc.Id))
+                        @foreach (var goal in AvailableSocialGoals.Where(g => g.PlacementNpcId == npc.Id))
                         {
                             <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
                                 <div class="goal-system-badge social">Social</div>

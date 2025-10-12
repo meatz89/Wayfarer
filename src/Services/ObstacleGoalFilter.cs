@@ -20,8 +20,9 @@ public class ObstacleGoalFilter
     /// Get all visible goals for a location
     /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
     /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// DISTRIBUTED INTERACTION: Obstacles stored in GameWorld.Obstacles, filtered by PlacementLocationId
     /// </summary>
-    public List<Goal> GetVisibleLocationGoals(Location location)
+    public List<Goal> GetVisibleLocationGoals(Location location, GameWorld gameWorld)
     {
         if (location == null)
             return new List<Goal>();
@@ -34,12 +35,33 @@ public class ObstacleGoalFilter
             visibleGoals.AddRange(location.ActiveGoals);
         }
 
-        // Add filtered obstacle-specific goals
-        if (location.Obstacles != null)
+        // Add filtered obstacle-specific goals (distributed interaction pattern)
+        if (location.ObstacleIds != null && gameWorld.Obstacles != null)
         {
-            foreach (Obstacle obstacle in location.Obstacles)
+            foreach (string obstacleId in location.ObstacleIds)
             {
-                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+                Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+                if (obstacle != null)
+                {
+                    // Filter goals where PlacementLocationId matches this location
+                    List<Goal> locationGoals = obstacle.Goals
+                        .Where(g => g.PlacementLocationId == location.Id)
+                        .ToList();
+
+                    foreach (Goal goal in locationGoals)
+                    {
+                        // Check property requirements and access requirements
+                        bool propertyRequirementsMet = goal.PropertyRequirements == null ||
+                                                      goal.PropertyRequirements.MeetsRequirements(obstacle);
+
+                        bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
+
+                        if (propertyRequirementsMet && accessRequirementsMet)
+                        {
+                            visibleGoals.Add(goal);
+                        }
+                    }
+                }
             }
         }
 
@@ -50,8 +72,9 @@ public class ObstacleGoalFilter
     /// Get all visible goals for an NPC
     /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
     /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// DISTRIBUTED INTERACTION: Obstacles stored in GameWorld.Obstacles, filtered by PlacementNpcId
     /// </summary>
-    public List<Goal> GetVisibleNPCGoals(NPC npc)
+    public List<Goal> GetVisibleNPCGoals(NPC npc, GameWorld gameWorld)
     {
         if (npc == null)
             return new List<Goal>();
@@ -64,12 +87,33 @@ public class ObstacleGoalFilter
             visibleGoals.AddRange(npc.ActiveGoals);
         }
 
-        // Add filtered obstacle-specific goals
-        if (npc.Obstacles != null)
+        // Add filtered obstacle-specific goals (distributed interaction pattern)
+        if (npc.ObstacleIds != null && gameWorld.Obstacles != null)
         {
-            foreach (Obstacle obstacle in npc.Obstacles)
+            foreach (string obstacleId in npc.ObstacleIds)
             {
-                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+                Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+                if (obstacle != null)
+                {
+                    // Filter goals where PlacementNpcId matches this NPC
+                    List<Goal> npcGoals = obstacle.Goals
+                        .Where(g => g.PlacementNpcId == npc.ID)
+                        .ToList();
+
+                    foreach (Goal goal in npcGoals)
+                    {
+                        // Check property requirements and access requirements
+                        bool propertyRequirementsMet = goal.PropertyRequirements == null ||
+                                                      goal.PropertyRequirements.MeetsRequirements(obstacle);
+
+                        bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
+
+                        if (propertyRequirementsMet && accessRequirementsMet)
+                        {
+                            visibleGoals.Add(goal);
+                        }
+                    }
+                }
             }
         }
 

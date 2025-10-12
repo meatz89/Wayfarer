@@ -21,14 +21,16 @@ public class GoalDTO
     public string DeckId { get; set; }
 
     /// <summary>
-    /// Location ID where this goal is available (Mental/Physical goals)
+    /// Location ID where this goal's button appears (distributed interaction pattern)
+    /// Semantic: WHERE the button is placed, not who owns the goal
     /// </summary>
-    public string LocationId { get; set; }
+    public string PlacementLocationId { get; set; }
 
     /// <summary>
-    /// NPC ID for Social system goals
+    /// NPC ID where this goal's button appears (Social system goals)
+    /// Semantic: WHERE the button is placed, not who owns the goal
     /// </summary>
-    public string NpcId { get; set; }
+    public string PlacementNpcId { get; set; }
 
     /// <summary>
     /// Investigation ID for UI grouping and label display
@@ -62,10 +64,27 @@ public class GoalDTO
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
 
     /// <summary>
-    /// What effect this goal has when completed
-    /// Values: "None", "ReduceProperties", "RemoveObstacle"
+    /// What consequence this goal has when completed
+    /// Values: "Resolution", "Bypass", "Transform", "Modify", "Grant"
     /// </summary>
-    public string EffectType { get; set; }
+    public string ConsequenceType { get; set; }
+
+    /// <summary>
+    /// Resolution method to set when goal is completed
+    /// Values: "Violence", "Diplomacy", "Stealth", "Authority", "Cleverness", "Preparation"
+    /// </summary>
+    public string ResolutionMethod { get; set; }
+
+    /// <summary>
+    /// Relationship outcome to set when goal is completed
+    /// Values: "Hostile", "Neutral", "Friendly", "Allied", "Obligated"
+    /// </summary>
+    public string RelationshipOutcome { get; set; }
+
+    /// <summary>
+    /// New description for obstacle after Transform consequence
+    /// </summary>
+    public string TransformDescription { get; set; }
 
     /// <summary>
     /// Property requirements for goal visibility (80 Days pattern)
@@ -91,7 +110,16 @@ public class GoalRequirementsDTO
 {
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
     public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public Dictionary<string, int> RequiredStats { get; set; } = new Dictionary<string, int>();
+    public List<StatRequirementDTO> RequiredStats { get; set; } = new List<StatRequirementDTO>();
     public int MinimumLocationFamiliarity { get; set; } = 0;
     public List<string> CompletedGoals { get; set; } = new List<string>();
+}
+
+/// <summary>
+/// DTO for stat requirements (strongly-typed, no Dictionary)
+/// </summary>
+public class StatRequirementDTO
+{
+    public string StatType { get; set; }
+    public int MinimumLevel { get; set; }
 }

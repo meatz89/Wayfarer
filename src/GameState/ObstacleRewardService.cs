@@ -22,17 +22,15 @@ public static class ObstacleRewardService
 
         Console.WriteLine($"[ObstacleRewardService] Applying reduction to obstacle '{obstacle.Name}':");
         Console.WriteLine($"  Before: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
-            $"SocialDifficulty={obstacle.SocialDifficulty}, StaminaCost={obstacle.StaminaCost}, TimeCost={obstacle.TimeCost}");
+            $"SocialDifficulty={obstacle.SocialDifficulty}");
 
         // Apply reductions with floor at 0
         obstacle.PhysicalDanger = Math.Max(0, obstacle.PhysicalDanger - reduction.ReducePhysicalDanger);
         obstacle.MentalComplexity = Math.Max(0, obstacle.MentalComplexity - reduction.ReduceMentalComplexity);
         obstacle.SocialDifficulty = Math.Max(0, obstacle.SocialDifficulty - reduction.ReduceSocialDifficulty);
-        obstacle.StaminaCost = Math.Max(0, obstacle.StaminaCost - reduction.ReduceStaminaCost);
-        obstacle.TimeCost = Math.Max(0, obstacle.TimeCost - reduction.ReduceTimeCost);
 
         Console.WriteLine($"  After: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
-            $"SocialDifficulty={obstacle.SocialDifficulty}, StaminaCost={obstacle.StaminaCost}, TimeCost={obstacle.TimeCost}");
+            $"SocialDifficulty={obstacle.SocialDifficulty}");
 
         // Check if obstacle is cleared
         bool isCleared = obstacle.IsCleared();

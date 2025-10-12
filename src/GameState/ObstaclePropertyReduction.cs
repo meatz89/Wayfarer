@@ -22,34 +22,21 @@ public class ObstaclePropertyReduction
     public int ReduceSocialDifficulty { get; set; }
 
     /// <summary>
-    /// Amount to reduce StaminaCost property
-    /// </summary>
-    public int ReduceStaminaCost { get; set; }
-
-    /// <summary>
-    /// Amount to reduce TimeCost property
-    /// </summary>
-    public int ReduceTimeCost { get; set; }
-
-    /// <summary>
     /// Check if this reduction has any non-zero values
     /// </summary>
     public bool HasAnyReduction()
     {
         return ReducePhysicalDanger > 0 ||
                ReduceMentalComplexity > 0 ||
-               ReduceSocialDifficulty > 0 ||
-               ReduceStaminaCost > 0 ||
-               ReduceTimeCost > 0;
+               ReduceSocialDifficulty > 0;
     }
 
     /// <summary>
-    /// Get total reduction magnitude (sum of all reductions)
+    /// Get total reduction magnitude (sum of three core reductions)
     /// Useful for UI display
     /// </summary>
     public int GetTotalReduction()
     {
-        return ReducePhysicalDanger + ReduceMentalComplexity + ReduceSocialDifficulty +
-               ReduceStaminaCost + ReduceTimeCost;
+        return ReducePhysicalDanger + ReduceMentalComplexity + ReduceSocialDifficulty;
     }
 }

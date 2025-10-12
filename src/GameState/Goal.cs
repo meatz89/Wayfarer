@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Goal - strategic layer that defines UI actions
+/// Goal - approach to overcome obstacle (lives inside obstacle as child)
 /// Universal across all three challenge types (Social/Mental/Physical)
-/// Determines WHERE actions appear (npcId or locationId)
+/// PlacementLocationId/PlacementNpcId determines WHERE button appears (not ownership)
 /// </summary>
 public class Goal
 {
@@ -33,14 +34,16 @@ public class Goal
     public string DeckId { get; set; }
 
     /// <summary>
-    /// Location ID where this goal is available (Mental/Physical goals)
+    /// Location ID where this goal's button appears in UI (semantic: placement, not ownership)
+    /// Used for Mental/Physical goals and distributed obstacle goals
     /// </summary>
-    public string LocationId { get; set; }
+    public string PlacementLocationId { get; set; }
 
     /// <summary>
-    /// NPC ID for Social system goals
+    /// NPC ID where this goal's button appears in UI (semantic: placement, not ownership)
+    /// Used for Social goals and distributed obstacle goals
     /// </summary>
-    public string NpcId { get; set; }
+    public string PlacementNpcId { get; set; }
 
     /// <summary>
     /// Investigation ID for UI grouping and label display
@@ -97,12 +100,29 @@ public class Goal
     public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
 
     /// <summary>
-    /// What effect this goal has when completed
-    /// None: Ambient repeatable goals
-    /// ReduceProperties: Preparation goals that reduce obstacle properties
-    /// RemoveObstacle: Resolution goals that remove parent obstacle
+    /// What consequence occurs when goal succeeds
+    /// Resolution: Obstacle permanently overcome, removed from play
+    /// Bypass: Player passes, obstacle persists
+    /// Transform: Obstacle fundamentally changed, properties set to 0
+    /// Modify: Obstacle properties reduced, other goals may unlock
+    /// Grant: Player receives knowledge/items, obstacle unchanged
     /// </summary>
-    public GoalEffectType EffectType { get; set; } = GoalEffectType.None;
+    public ConsequenceType ConsequenceType { get; set; } = ConsequenceType.Grant;
+
+    /// <summary>
+    /// Resolution method this goal sets when completed (for AI narrative context)
+    /// </summary>
+    public ResolutionMethod SetsResolutionMethod { get; set; } = ResolutionMethod.Unresolved;
+
+    /// <summary>
+    /// Relationship outcome this goal sets when completed (affects future interactions)
+    /// </summary>
+    public RelationshipOutcome SetsRelationshipOutcome { get; set; } = RelationshipOutcome.Neutral;
+
+    /// <summary>
+    /// New description for obstacle if Transform consequence (replaces obstacle description)
+    /// </summary>
+    public string TransformDescription { get; set; }
 
     /// <summary>
     /// Property requirements for goal visibility (80 Days pattern)
@@ -112,9 +132,9 @@ public class Goal
     public ObstaclePropertyRequirements PropertyRequirements { get; set; }
 
     /// <summary>
-    /// Property reduction to apply to parent obstacle (for ReduceProperties effect)
+    /// Property reduction to apply to parent obstacle (for Modify consequence)
     /// Unlocks better resolution options by lowering obstacle difficulty
-    /// null for RemoveObstacle and None effect types
+    /// null for Resolution, Bypass, Transform, and Grant consequence types
     /// </summary>
     public ObstaclePropertyReduction PropertyReduction { get; set; }
 
@@ -143,7 +163,16 @@ public class GoalRequirements
 {
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
     public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public Dictionary<PlayerStatType, int> RequiredStats { get; set; } = new Dictionary<PlayerStatType, int>();
+    public List<StatRequirement> RequiredStats { get; set; } = new List<StatRequirement>();
     public int MinimumLocationFamiliarity { get; set; } = 0;
     public List<string> CompletedGoals { get; set; } = new List<string>();
+}
+
+/// <summary>
+/// Stat requirement (strongly-typed, no Dictionary)
+/// </summary>
+public class StatRequirement
+{
+    public PlayerStatType StatType { get; set; }
+    public int MinimumLevel { get; set; }
 }

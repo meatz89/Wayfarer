@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Parser for converting GoalDTO to Goal domain model
@@ -27,8 +28,12 @@ public static class GoalParser
             throw new InvalidOperationException($"Goal {dto.Id} has invalid SystemType value: '{dto.SystemType}'");
         }
 
-        // Parse effect type
-        GoalEffectType effectType = ParseEffectType(dto.EffectType);
+        // Parse consequence type
+        ConsequenceType consequenceType = ParseConsequenceType(dto.ConsequenceType);
+
+        // Parse resolution method and relationship outcome
+        ResolutionMethod resolutionMethod = ParseResolutionMethod(dto.ResolutionMethod);
+        RelationshipOutcome relationshipOutcome = ParseRelationshipOutcome(dto.RelationshipOutcome);
 
         // Parse property requirements
         ObstaclePropertyRequirements propertyRequirements = ParsePropertyRequirements(dto.PropertyRequirements);
@@ -45,8 +50,8 @@ public static class GoalParser
             Description = dto.Description,
             SystemType = systemType,
             DeckId = dto.DeckId,
-            LocationId = dto.LocationId,
-            NpcId = dto.NpcId,
+            PlacementLocationId = dto.PlacementLocationId,
+            PlacementNpcId = dto.PlacementNpcId,
             InvestigationId = dto.InvestigationId,
             IsIntroAction = dto.IsIntroAction,
             IsAvailable = dto.IsAvailable,
@@ -54,7 +59,10 @@ public static class GoalParser
             DeleteOnSuccess = dto.DeleteOnSuccess,
             GoalCards = new List<GoalCard>(),
             Requirements = ParseGoalRequirements(dto.Requirements),
-            EffectType = effectType,
+            ConsequenceType = consequenceType,
+            SetsResolutionMethod = resolutionMethod,
+            SetsRelationshipOutcome = relationshipOutcome,
+            TransformDescription = dto.TransformDescription,
             PropertyRequirements = propertyRequirements,
             PropertyReduction = propertyReduction
         };
@@ -69,7 +77,7 @@ public static class GoalParser
             }
         }
 
-        Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}, Effect: {effectType}) with {goal.GoalCards.Count} goal cards");
+        Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}, Consequence: {consequenceType}) with {goal.GoalCards.Count} goal cards");
         return goal;
     }
 
@@ -129,23 +137,27 @@ public static class GoalParser
         {
             RequiredKnowledge = dto.RequiredKnowledge != null ? new List<string>(dto.RequiredKnowledge) : new List<string>(),
             RequiredEquipment = dto.RequiredEquipment != null ? new List<string>(dto.RequiredEquipment) : new List<string>(),
-            RequiredStats = new Dictionary<PlayerStatType, int>(),
+            RequiredStats = new List<StatRequirement>(),
             MinimumLocationFamiliarity = dto.MinimumLocationFamiliarity,
             CompletedGoals = dto.CompletedGoals != null ? new List<string>(dto.CompletedGoals) : new List<string>()
         };
 
-        // Parse required stats dictionary (string keys to PlayerStatType enum)
+        // Parse required stats list (strongly-typed, no Dictionary)
         if (dto.RequiredStats != null)
         {
-            foreach (KeyValuePair<string, int> stat in dto.RequiredStats)
+            foreach (StatRequirementDTO statDto in dto.RequiredStats)
             {
-                if (Enum.TryParse<PlayerStatType>(stat.Key, true, out PlayerStatType statType))
+                if (Enum.TryParse<PlayerStatType>(statDto.StatType, true, out PlayerStatType statType))
                 {
-                    requirements.RequiredStats[statType] = stat.Value;
+                    requirements.RequiredStats.Add(new StatRequirement
+                    {
+                        StatType = statType,
+                        MinimumLevel = statDto.MinimumLevel
+                    });
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalParser] Warning: Unknown stat type '{stat.Key}' in requirements, skipping");
+                    Console.WriteLine($"[GoalParser] Warning: Unknown stat type '{statDto.StatType}' in requirements, skipping");
                 }
             }
         }
@@ -154,20 +166,54 @@ public static class GoalParser
     }
 
     /// <summary>
-    /// Parse effect type from string
+    /// Parse consequence type from string
     /// </summary>
-    private static GoalEffectType ParseEffectType(string effectTypeString)
+    private static ConsequenceType ParseConsequenceType(string consequenceTypeString)
     {
-        if (string.IsNullOrEmpty(effectTypeString))
-            return GoalEffectType.None;
+        if (string.IsNullOrEmpty(consequenceTypeString))
+            return ConsequenceType.Grant;
 
-        if (Enum.TryParse<GoalEffectType>(effectTypeString, true, out GoalEffectType effectType))
+        if (Enum.TryParse<ConsequenceType>(consequenceTypeString, true, out ConsequenceType consequenceType))
         {
-            return effectType;
+            return consequenceType;
         }
 
-        Console.WriteLine($"[GoalParser] Warning: Unknown EffectType '{effectTypeString}', defaulting to None");
-        return GoalEffectType.None;
+        Console.WriteLine($"[GoalParser] Warning: Unknown ConsequenceType '{consequenceTypeString}', defaulting to Grant");
+        return ConsequenceType.Grant;
+    }
+
+    /// <summary>
+    /// Parse resolution method from string
+    /// </summary>
+    private static ResolutionMethod ParseResolutionMethod(string methodString)
+    {
+        if (string.IsNullOrEmpty(methodString))
+            return ResolutionMethod.Unresolved;
+
+        if (Enum.TryParse<ResolutionMethod>(methodString, true, out ResolutionMethod method))
+        {
+            return method;
+        }
+
+        Console.WriteLine($"[GoalParser] Warning: Unknown ResolutionMethod '{methodString}', defaulting to Unresolved");
+        return ResolutionMethod.Unresolved;
+    }
+
+    /// <summary>
+    /// Parse relationship outcome from string
+    /// </summary>
+    private static RelationshipOutcome ParseRelationshipOutcome(string outcomeString)
+    {
+        if (string.IsNullOrEmpty(outcomeString))
+            return RelationshipOutcome.Neutral;
+
+        if (Enum.TryParse<RelationshipOutcome>(outcomeString, true, out RelationshipOutcome outcome))
+        {
+            return outcome;
+        }
+
+        Console.WriteLine($"[GoalParser] Warning: Unknown RelationshipOutcome '{outcomeString}', defaulting to Neutral");
+        return RelationshipOutcome.Neutral;
     }
 
     /// <summary>
@@ -182,9 +228,7 @@ public static class GoalParser
         {
             MaxPhysicalDanger = dto.MaxPhysicalDanger,
             MaxMentalComplexity = dto.MaxMentalComplexity,
-            MaxSocialDifficulty = dto.MaxSocialDifficulty,
-            MaxStaminaCost = dto.MaxStaminaCost,
-            MaxTimeCost = dto.MaxTimeCost
+            MaxSocialDifficulty = dto.MaxSocialDifficulty
         };
     }
 }

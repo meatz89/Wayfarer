@@ -155,6 +155,7 @@ public class PackageLoader
         LoadInvestigations(package.Content.Investigations, allowSkeletons);
         LoadKnowledge(package.Content.Knowledge, allowSkeletons);
         LoadGoals(package.Content.Goals, allowSkeletons);
+        LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
         // 4. NPCs (reference locations, Locations, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -575,11 +576,11 @@ public class PackageLoader
             _gameWorld.Goals[goal.Id] = goal;
             Console.WriteLine($"[PackageLoader] Parsed goal '{goal.Id}': {goal.Name} ({goal.SystemType})");
 
-            // Assign goal to NPC or Location based on npcId/locationId
-            if (!string.IsNullOrEmpty(goal.NpcId))
+            // Assign goal to NPC or Location based on PlacementNpcId/PlacementLocationId
+            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
             {
                 // Social goal - assign to NPC.ActiveGoals
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                 if (npc != null)
                 {
                     if (npc.ActiveGoals == null)
@@ -590,13 +591,13 @@ public class PackageLoader
                 }
                 else
                 {
-                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references NPC '{goal.NpcId}' which doesn't exist yet");
+                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references NPC '{goal.PlacementNpcId}' which doesn't exist yet");
                 }
             }
-            else if (!string.IsNullOrEmpty(goal.LocationId))
+            else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
             {
                 // Mental/Physical goal - assign to Location.ActiveGoals
-                Location location = _gameWorld.GetLocation(goal.LocationId);
+                Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                 if (location != null)
                 {
                     if (location.ActiveGoals == null)
@@ -607,12 +608,40 @@ public class PackageLoader
                 }
                 else
                 {
-                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references location '{goal.LocationId}' which doesn't exist yet");
+                    Console.WriteLine($"[PackageLoader] WARNING: Goal '{goal.Id}' references location '{goal.PlacementLocationId}' which doesn't exist yet");
                 }
             }
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading goals. Total: {_gameWorld.Goals.Count}");
+    }
+
+    private void LoadObstacles(List<ObstacleDTO> obstacleDtos, bool allowSkeletons)
+    {
+        if (obstacleDtos == null) return;
+
+        Console.WriteLine($"[PackageLoader] Loading {obstacleDtos.Count} obstacles from package '{_currentPackageId}'...");
+
+        foreach (ObstacleDTO dto in obstacleDtos)
+        {
+            // Parse obstacle using ObstacleParser
+            Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(dto, _currentPackageId, _gameWorld);
+
+            // Duplicate ID protection - prevent data corruption
+            if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+            {
+                _gameWorld.Obstacles.Add(obstacle);
+                Console.WriteLine($"[PackageLoader] Loaded obstacle '{obstacle.Id}': {obstacle.Name} ({obstacle.Goals.Count} goals)");
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Duplicate obstacle ID '{obstacle.Id}' found in package '{_currentPackageId}'. " +
+                    $"Obstacle IDs must be globally unique across all packages.");
+            }
+        }
+
+        Console.WriteLine($"[PackageLoader] Completed loading obstacles. Total: {_gameWorld.Obstacles.Count}");
     }
 
     private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)

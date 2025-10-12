@@ -14,18 +14,20 @@ public static class ObstacleParser
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidOperationException($"Obstacle in entity '{parentEntityId}' missing required 'Id' field");
+
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidOperationException($"Obstacle in entity '{parentEntityId}' missing required 'Name' field");
+            throw new InvalidOperationException($"Obstacle '{dto.Id}' in entity '{parentEntityId}' missing required 'Name' field");
 
         Obstacle obstacle = new Obstacle
         {
+            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? string.Empty,
             PhysicalDanger = dto.PhysicalDanger,
             MentalComplexity = dto.MentalComplexity,
             SocialDifficulty = dto.SocialDifficulty,
-            StaminaCost = dto.StaminaCost,
-            TimeCost = dto.TimeCost,
             IsPermanent = dto.IsPermanent,
             Goals = new List<Goal>()
         };
@@ -60,9 +62,7 @@ public static class ObstacleParser
         {
             ReducePhysicalDanger = dto.ReducePhysicalDanger,
             ReduceMentalComplexity = dto.ReduceMentalComplexity,
-            ReduceSocialDifficulty = dto.ReduceSocialDifficulty,
-            ReduceStaminaCost = dto.ReduceStaminaCost,
-            ReduceTimeCost = dto.ReduceTimeCost
+            ReduceSocialDifficulty = dto.ReduceSocialDifficulty
         };
 
         return reduction;

@@ -100,6 +100,10 @@ public class GameWorld
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
     public List<PathCollectionEntry> AllEventCollections { get; set; } = new List<PathCollectionEntry>();
 
+    // OBSTACLE SYSTEM - Single source of truth for all obstacles
+    // Obstacles are location-agnostic, referenced by Location.ObstacleIds and NPC.ObstacleIds
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+
     /// <summary>
     /// Get a report of all skeletons that need to be populated
     /// </summary>

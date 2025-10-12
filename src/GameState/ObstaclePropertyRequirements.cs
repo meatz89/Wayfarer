@@ -9,8 +9,6 @@ public class ObstaclePropertyRequirements
     public int MaxPhysicalDanger { get; set; } = -1;
     public int MaxMentalComplexity { get; set; } = -1;
     public int MaxSocialDifficulty { get; set; } = -1;
-    public int MaxStaminaCost { get; set; } = -1;
-    public int MaxTimeCost { get; set; } = -1;
 
     /// <summary>
     /// Check if obstacle meets all requirements (AND logic)
@@ -29,12 +27,6 @@ public class ObstaclePropertyRequirements
             return false;
 
         if (MaxSocialDifficulty != -1 && obstacle.SocialDifficulty > MaxSocialDifficulty)
-            return false;
-
-        if (MaxStaminaCost != -1 && obstacle.StaminaCost > MaxStaminaCost)
-            return false;
-
-        if (MaxTimeCost != -1 && obstacle.TimeCost > MaxTimeCost)
             return false;
 
         return true;

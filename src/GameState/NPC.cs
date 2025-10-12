@@ -75,11 +75,12 @@ public class NPC
     // Active goals for this NPC (Social challenges)
     public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
 
-    // Obstacles for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
+    // References obstacles in GameWorld.Obstacles list
+    public List<string> ObstacleIds { get; set; } = new List<string>();
 
     // Initial token values to be applied during game initialization
-    public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
+    public List<InitialTokenValue> InitialTokenValues { get; set; } = new List<InitialTokenValue>();
 
     // Stranger-specific properties (for unnamed one-time NPCs)
     public bool IsStranger { get; set; } = false;

@@ -48,7 +48,6 @@ public class InvestigationPhaseDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
-    public string Goal { get; set; } // Goal text (narrative description)
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
     // Prerequisites for this phase to complete
