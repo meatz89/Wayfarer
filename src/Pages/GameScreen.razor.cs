@@ -729,8 +729,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string investigationId = _investigationDiscoveryResult.InvestigationId;
         _investigationDiscoveryResult = null;
 
-        // Auto-open journal to show discovered investigation
+        // Activate investigation and spawn Phase 1 obstacle
+        InvestigationActivity.CompleteIntroAction(investigationId);
+
+        // Refresh UI after activation
+        await RefreshLocationDisplay();
+
+        // Auto-open journal to show activated investigation
         _showJournal = true;
+
+        // Check for activation modal
+        await CheckForInvestigationResults();
 
         await InvokeAsync(StateHasChanged);
     }

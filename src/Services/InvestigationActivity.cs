@@ -360,26 +360,49 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Complete intro action - moves Discovered → Active, spawns first goals
-    /// Called from tactical session completion (Mental/Physical/SocialFacade)
+    /// Complete intro action - moves Discovered → Active, spawns Phase 1 obstacle
+    /// Called when player clicks intro action button in discovery modal
     /// </summary>
     public void CompleteIntroAction(string investigationId)
     {
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
+        {
+            throw new ArgumentException($"Investigation '{investigationId}' not found");
+        }
 
-        // Call ActivateInvestigation to spawn first goals
+        // Activate investigation (moves Discovered → Active)
         ActivateInvestigation(investigationId);
+
+        // Spawn obstacles from intro completion reward
+        if (investigation.IntroAction?.CompletionReward?.ObstaclesSpawned != null &&
+            investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        {
+            foreach (ObstacleSpawnInfo spawnInfo in investigation.IntroAction.CompletionReward.ObstaclesSpawned)
+            {
+                SpawnObstacle(spawnInfo);
+            }
+        }
+
+        // Grant knowledge from intro completion reward
+        if (investigation.IntroAction?.CompletionReward?.KnowledgeGranted != null)
+        {
+            foreach (string knowledgeId in investigation.IntroAction.CompletionReward.KnowledgeGranted)
+            {
+                _knowledgeService.GrantKnowledge(knowledgeId);
+            }
+        }
 
         // Create activation result for UI modal
         _pendingActivationResult = new InvestigationActivationResult
         {
             InvestigationId = investigationId,
-            InvestigationName = investigation?.Name ?? investigationId,
-            IntroNarrative = investigation?.IntroAction?.IntroNarrative ?? "Investigation activated."
+            InvestigationName = investigation.Name,
+            IntroNarrative = investigation.IntroAction.IntroNarrative
         };
 
         _messageSystem.AddSystemMessage(
-            $"Investigation activated: {investigation?.Name}",
+            $"Investigation activated: {investigation.Name}",
             SystemMessageTypes.Success);
     }
 

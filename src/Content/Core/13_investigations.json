@@ -23,7 +23,52 @@
           "systemType": "Mental",
           "deckId": "mental_challenge",
           "spotId": "courtyard",
-          "introNarrative": "The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside."
+          "introNarrative": "The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside.",
+          "completionReward": {
+            "obstaclesSpawned": [
+              {
+                "targetType": "Location",
+                "targetEntityId": "main_hall",
+                "obstacle": {
+                  "id": "mill_interior_phase1",
+                  "name": "Examine the mill interior",
+                  "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
+                  "physicalDanger": 0,
+                  "mentalComplexity": 2,
+                  "socialDifficulty": 0,
+                  "isPermanent": false,
+                  "goals": [
+                    {
+                      "id": "phase_1_examine_interior",
+                      "name": "Examine the interior carefully",
+                      "description": "Search the mill interior for clues about recent activity",
+                      "placementLocationId": "main_hall",
+                      "systemType": "Mental",
+                      "deckId": "mental_challenge",
+                      "consequenceType": "Resolution",
+                      "setsResolutionMethod": "Preparation",
+                      "setsRelationshipOutcome": "Neutral",
+                      "investigationId": "waterwheel_mystery",
+                      "propertyRequirements": {
+                        "maxMentalComplexity": 2
+                      },
+                      "goalCards": [
+                        {
+                          "id": "examine_interior_standard",
+                          "name": "Careful Examination",
+                          "description": "Methodically search the interior",
+                          "threshold": 8,
+                          "rewards": {
+                            "progress": 1
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
         },
         "personality": "SequentialSite",
         "exposureThreshold": 8,
@@ -87,10 +132,6 @@
             "name": "Access the mechanism's hidden compartment",
             "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
             "outcomeNarrative": "You carefully stabilize the structure and work the panel loose. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved. One name stands out - a current town elder. Anna must have found this evidence.",
-            "requirements": {
-              "completedGoals": ["phase_1_examine_interior"],
-              "knowledge": ["mechanism_has_compartment"]
-            },
             "completionReward": {
               "knowledgeGranted": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"],
               "obstaclesSpawned": [
@@ -168,10 +209,6 @@
             "name": "Investigate the upper loft",
             "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently - disturbed dust on the ladder.",
             "outcomeNarrative": "You secure the floor with rope and conduct a thorough search. A bedroll, journal, and sketching materials reveal the truth: Martha's granddaughter is here, investigating her aunt Anna's disappearance. The journal shows she's piecing together the same evidence you've found.",
-            "requirements": {
-              "completedGoals": ["phase_2_access_compartment"],
-              "knowledge": ["anna_found_evidence"]
-            },
             "completionReward": {
               "knowledgeGranted": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"],
               "obstaclesSpawned": [
@@ -224,10 +261,6 @@
             "name": "Confront Elena about the smuggling evidence",
             "description": "The ledgers reveal a smuggling operation from a decade ago. Elena might know more about this history than she let on.",
             "outcomeNarrative": "You approach Elena diplomatically, showing concern rather than accusation. She reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
-            "requirements": {
-              "completedGoals": ["phase_3_investigate_loft"],
-              "knowledge": ["smuggling_ledgers_found", "granddaughter_investigating"]
-            },
             "completionReward": {
               "knowledgeGranted": ["elena_knew_about_smuggling", "elder_responsible_for_anna", "justice_possible"]
             }

@@ -96,6 +96,7 @@ public class InvestigationIntroActionDTO
     public string LocationId { get; set; } // LocationId is globally unique
     public string NpcId { get; set; }
     public string IntroNarrative { get; set; }
+    public PhaseCompletionRewardDTO CompletionReward { get; set; } // Spawns Phase 1 obstacle when intro completes
 }
 
 /// <summary>

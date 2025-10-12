@@ -161,7 +161,8 @@ public class InvestigationParser
             DeckId = dto.DeckId,
             LocationId = dto.LocationId,
             NpcId = dto.NpcId,
-            IntroNarrative = dto.IntroNarrative
+            IntroNarrative = dto.IntroNarrative,
+            CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
     }
 

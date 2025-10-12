@@ -131,6 +131,12 @@ public class InvestigationIntroAction
     /// Narrative shown after completing intro action
     /// </summary>
     public string IntroNarrative { get; set; }
+
+    /// <summary>
+    /// Rewards granted when intro action completes
+    /// Typically spawns Phase 1 obstacle to begin investigation
+    /// </summary>
+    public PhaseCompletionReward CompletionReward { get; set; }
 }
 
 /// <summary>
