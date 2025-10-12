@@ -15,11 +15,9 @@ The town guard won't let strangers leave through the north gate without authoriz
 
 ### Obstacle: "Suspicious Gatekeeper"
 ```
-Location: Town North Gate
 PhysicalDanger: 2 (guard will resist forcefully)
 SocialDifficulty: 1 (can be negotiated with)
 MentalComplexity: 0 (no puzzle here)
-IsPermanent: true (guard always there)
 ```
 
 ### Available Approaches
@@ -73,11 +71,9 @@ The forest path to the miller's cottage is blocked by a fallen tree. Recent stor
 
 ### Obstacle: "Fallen Oak"
 ```
-Location: Forest Path
 PhysicalDanger: 2 (heavy tree, risk of injury moving it)
 SocialDifficulty: 0 (no one to talk to)
 MentalComplexity: 2 (could find way around)
-IsPermanent: false (removed once cleared)
 Requirements: Phase 1 resolved (got past gate)
 ```
 
@@ -132,11 +128,9 @@ The miller's cottage is surrounded by aggressive dogs. The miller is reclusive a
 
 ### Obstacle: "Miller's Guard Dogs"
 ```
-Location: Miller's Cottage Approach
 PhysicalDanger: 3 (dogs will attack)
 SocialDifficulty: 2 (miller might call them off)
 MentalComplexity: 2 (could find safe approach)
-IsPermanent: true (dogs always guard property)
 Requirements: Phase 2 resolved (crossed forest)
 ```
 
