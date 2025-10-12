@@ -219,6 +219,25 @@ public class PhysicalFacade
             throw new InvalidOperationException("Card not in hand");
         }
 
+        // Check goal card type BEFORE template check
+        // Goal cards have no PhysicalCardTemplate, so must be checked first
+        if (card.CardType == CardTypes.Goal)
+        {
+            // GoalCards execute immediately (not locked for combo)
+            _sessionDeck.Hand.ToList().Remove(card); // Remove from hand
+            string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
+            EndSession();
+
+            return new PhysicalTurnResult
+            {
+                Success = true,
+                Narrative = narrative,
+                CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
+                CurrentDanger = _currentSession?.CurrentDanger ?? 0,
+                SessionEnded = true
+            };
+        }
+
         if (card.PhysicalCardTemplate == null)
         {
             throw new InvalidOperationException("Card has no Physical template");
@@ -235,24 +254,6 @@ public class PhysicalFacade
         {
             int actualCost = -projection.ExertionChange;
             throw new InvalidOperationException($"Insufficient Exertion. Need {actualCost}, have {_currentSession.CurrentExertion}");
-        }
-
-        // Special case: GoalCard ends session immediately with effects applied
-        if (card.CardType == CardTypes.Goal)
-        {
-            // GoalCards execute immediately (not locked for combo)
-            _sessionDeck.Hand.ToList().Remove(card); // Remove from hand
-            string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
-            EndSession();
-
-            return new PhysicalTurnResult
-            {
-                Success = true,
-                Narrative = narrative,
-                CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
-                CurrentDanger = _currentSession?.CurrentDanger ?? 0,
-                SessionEnded = true
-            };
         }
 
         // EXECUTE: Lock card for combo

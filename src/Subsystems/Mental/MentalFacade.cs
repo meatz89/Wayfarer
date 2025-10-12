@@ -200,6 +200,24 @@ public class MentalFacade
             throw new InvalidOperationException("Card not in hand");
         }
 
+        // SYMMETRY RESTORATION: Check goal card type BEFORE template check
+        // Goal cards have no MentalCardTemplate, so must be checked first
+        if (card.CardType == CardTypes.Goal)
+        {
+            Console.WriteLine($"[MentalFacade] GoalCard played - ending session with success");
+            _sessionDeck.PlayCard(card); // Mark card as played
+            EndSession(); // Immediate end on GoalCard play
+
+            return new MentalTurnResult
+            {
+                Success = true,
+                Narrative = $"You completed the investigation: {card.GoalCardTemplate?.Name}",
+                CurrentProgress = _currentSession?.CurrentProgress ?? 0,
+                CurrentExposure = _currentSession?.CurrentExposure ?? 0,
+                SessionEnded = true
+            };
+        }
+
         if (card.MentalCardTemplate == null)
         {
             throw new InvalidOperationException("Card has no Mental template");
@@ -225,24 +243,7 @@ public class MentalFacade
         List<CardInstance> unlockedGoals = _sessionDeck.CheckGoalThresholds(_currentSession.CurrentProgress);
         foreach (CardInstance goalCard in unlockedGoals)
         {
-            Console.WriteLine($"[MentalFacade] Goal card unlocked: {goalCard.MentalCardTemplate?.Id} (Progress threshold met)");
-        }
-
-        // SYMMETRY RESTORATION: If player played a GoalCard, end session immediately (match Social pattern)
-        if (card.CardType == CardTypes.Goal)
-        {
-            Console.WriteLine($"[MentalFacade] GoalCard played - ending session with success");
-            _sessionDeck.PlayCard(card); // Mark card as played
-            EndSession(); // Immediate end on GoalCard play
-
-            return new MentalTurnResult
-            {
-                Success = true,
-                Narrative = $"You completed the investigation: {card.GoalCardTemplate?.Name}",
-                CurrentProgress = _currentSession?.CurrentProgress ?? 0,
-                CurrentExposure = _currentSession?.CurrentExposure ?? 0,
-                SessionEnded = true
-            };
+            Console.WriteLine($"[MentalFacade] Goal card unlocked: {goalCard.GoalCardTemplate?.Id} (Progress threshold met)");
         }
 
         // Track categories for investigation depth
