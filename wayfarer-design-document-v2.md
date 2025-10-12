@@ -434,6 +434,248 @@ Each phase completion spawns next phase's goals dynamically across the game worl
 - Goals reference existing NPCs/locations via IDs
 - GoalCards inline definition keeps context localized
 
+## Obstacle System - Strategic-Tactical Bridge
+
+### Design Philosophy
+
+**Obstacles are strategic information entities, not mechanical modifiers.**
+
+The Obstacle system solves the strategic-tactical disconnect: players encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
+
+**Core Purpose:**
+- Provide multiple tactical approaches to same strategic situation
+- Create persistent world state that multiple goals affect
+- Enable player choice of Physical/Mental/Social solution path
+- Show visible progress toward clearing challenges
+
+**Design Principle:** Obstacles are information for player decision-making, not formulas for mechanical modification. Properties serve strategic planning, not tactical execution.
+
+### Obstacle Entity Definition
+
+Obstacles are first-class entities with five numerical properties representing different challenge aspects:
+
+**Five Universal Properties:**
+- **PhysicalDanger** (int): Bodily harm risk - combat, falling, traps, structural hazards
+- **MentalComplexity** (int): Cognitive load - puzzle difficulty, pattern obscurity, evidence volume
+- **SocialDifficulty** (int): Interpersonal challenge - suspicious NPC, hostile faction, complex negotiation
+- **StaminaCost** (int): Physical exertion required - distance, terrain difficulty, labor intensity
+- **TimeCost** (int): Real-time duration - waiting, traveling, careful work
+
+**Additional Properties:**
+- **Name** (string): Narrative identifier ("Bandit Camp", "Collapsed Passage", "Suspicious Guard")
+- **Description** (string): What player sees and understands about this obstacle
+- **IsPermanent** (bool): Whether obstacle persists when properties reach zero
+  - false: Removed when cleared (investigation obstacles, quest obstacles)
+  - true: Persists even at zero, can increase again (weather obstacles, patrol obstacles)
+
+**Property Semantics:** Each property has natural world meaning - PhysicalDanger means actual physical danger, not an abstract difficulty modifier. Properties compose through simple addition (3 obstacles with PhysicalDanger = sum of all three).
+
+### Where Obstacles Live
+
+Obstacles exist on entities as strongly-typed lists:
+
+**Route.Obstacles: List\<Obstacle>**
+- Challenges on travel routes (bandits, flooding, difficult terrain)
+- Multiple obstacles per route accumulate properties
+- Player sees total challenge before traveling
+
+**Location.Obstacles: List\<Obstacle>**
+- Challenges at locations (structural instability, hidden mechanisms, dangerous conditions)
+- Mental/Physical goals target these obstacles
+- Clearing obstacles improves location accessibility
+
+**NPC.Obstacles: List\<Obstacle>**
+- Social barriers only (interpersonal trust barriers, hostility, communication gaps)
+- Social goals target these obstacles
+- NPCs can ONLY have SocialDifficulty obstacles (other properties = 0)
+- Verisimilitude: You don't physically challenge an NPC, you socially navigate them
+
+**Architecture Note:** Obstacles live directly on entities in GameWorld. No separate global Obstacles collection. No SharedData dictionaries. Clean entity ownership.
+
+### Goal-Obstacle Connection
+
+Goals optionally target one obstacle. Multiple goals can target same obstacle (different tactical approaches).
+
+**Goal Properties (New):**
+- **TargetObstacle** (Obstacle reference, optional): Which obstacle this goal affects
+- Goals with TargetObstacle = null are free-standing activities (conversations, knowledge-gathering)
+- Goals with TargetObstacle are obstacle-clearing
+
+**GoalCard Rewards (New):**
+```
+GoalCard.Rewards
+{
+    int Coins;
+    List<string> ItemIds;
+    List<string> GrantKnowledgeIds;
+    ObstaclePropertyReduction Reduction; // NEW
+}
+
+ObstaclePropertyReduction
+{
+    int ReducePhysicalDanger;
+    int ReduceMentalComplexity;
+    int ReduceSocialDifficulty;
+    int ReduceStaminaCost;
+    int ReduceTimeCost;
+}
+```
+
+**How It Works:**
+1. Player completes goal (reaches GoalCard threshold, plays card)
+2. Facade applies GoalCard.Rewards
+3. Finds parent Obstacle (goal knows which obstacle it targets)
+4. Reduces obstacle properties by amounts specified in GoalCard
+5. If all properties reach 0 and IsPermanent = false, remove obstacle from entity
+
+**Multiple Approaches Example:**
+"Bandit Camp" obstacle (PhysicalDanger=12, SocialDifficulty=8) has three goals:
+- "Confront Bandits" (Physical) → GoalCard reduces PhysicalDanger by 12
+- "Negotiate Passage" (Social) → GoalCard reduces SocialDifficulty by 8
+- "Scout Alternative Path" (Mental) → Discovers alternate route (doesn't modify this obstacle, creates new path)
+
+Player chooses approach based on capabilities, preferred playstyle, and available resources.
+
+### Investigation Integration
+
+**Investigations spawn obstacles dynamically as phase completion rewards.**
+
+**Investigation Flow:**
+1. Complete Phase 2 → Investigation spawns Obstacle at specified Location
+2. Investigation spawns Goals targeting that Obstacle
+3. Goals appear in Location.ActiveGoals (player sees them in UI)
+4. Phase 3 may require obstacle cleared (via Goal.Requirements.CompletedGoals)
+5. Player chooses which goal to attempt (Physical clearance OR Mental alternate route)
+6. Completing goal reduces obstacle properties
+7. When obstacle cleared, Phase 3 becomes accessible
+
+**Dynamic World Improvement:** Investigations don't just grant knowledge - they spawn persistent obstacles that change world state when cleared.
+
+### What Obstacles DON'T Do (Critical Design Boundaries)
+
+**To prevent over-design and maintain elegance:**
+
+**❌ Obstacles DON'T modify challenge difficulty**
+- Challenge difficulty comes from ChallengeDeck design (profiles, personalities, card depths)
+- Obstacle properties are strategic information, not tactical modifiers
+- Player evaluates "Can I handle PhysicalDanger=12 with my current Health/Stamina?" without formulas
+
+**❌ Obstacles DON'T gate access**
+- Obstacle properties inform player choice, don't block attempts
+- Player always CAN attempt goals at obstacles (respecting goal's own Requirements)
+- No "must have PhysicalDanger < 5 to attempt" rules
+- No soft-locks: Properties increase costs/consequences, never create impossibility
+
+**❌ Obstacles DON'T calculate costs through formulas**
+- Goals have their own costs (Physical costs Stamina, Mental costs Focus, Social costs time)
+- Obstacle properties don't feed into "effective cost = base * obstacleMultiplier" calculations
+- Clean separation: Obstacles are world state, goals define challenge costs
+
+**❌ Obstacles DON'T interact with each other mechanically**
+- Multiple obstacles at same location: properties simply sum for display
+- No "if Obstacle A cleared then Obstacle B gets easier" conditional logic
+- Interaction happens through goal Requirements (must clear Goal X before Goal Y appears)
+- Simple composition, no formula complexity
+
+**❌ Obstacles DON'T require equipment initially**
+- Equipment requirements live on Goals (Goal.Requirements.RequiredEquipment)
+- Obstacles describe the challenge, goals describe how to attempt it
+- Can add equipment interactions later where verisimilitude demands
+
+**❌ Knowledge DON'T directly reduce obstacle properties**
+- Knowledge doesn't have "reduces MentalComplexity by 3" effects
+- Knowledge affects tactical challenges contextually (if relevant knowledge exists, challenge might be easier)
+- But this is implementation detail, not part of Obstacle system design
+- Keep Obstacles simple: they're just property containers
+
+**Why These Boundaries Matter:** Obstacles solve ONE problem (multiple approaches to same strategic situation) elegantly. Adding mechanical complexity (difficulty formulas, access gates, conditional interactions) creates implementation burden without design benefit. If complexity proves necessary through playtesting, add it LATER as targeted solution to observed problem.
+
+**Parser Flow:**
+1. RouteParser/LocationParser/NPCParser loads entity with inline obstacles
+2. Creates entity with Obstacles list populated
+3. GoalParser loads goals
+4. Looks up entity by routeId/locationId/npcId
+5. Gets obstacle by targetObstacleIndex: entity.Obstacles[targetObstacleIndex]
+6. Sets Goal.TargetObstacle = obstacle (object reference, not ID string)
+
+Clean object graph, no cross-file ID references, strongly typed.
+
+### Player Experience Flow
+
+**1. Player Arrives at Location**
+- Sees obstacles with visible properties
+- "Structural Instability: PhysicalDanger 10, MentalComplexity 8"
+- "Caretaker Suspicion: SocialDifficulty 8"
+
+**2. Player Evaluates Capabilities**
+- "My Health is 60, Stamina is 80. Can I handle PhysicalDanger=10?"
+- "My Insight is only 2, MentalComplexity=8 seems hard."
+- "My Diplomacy is 4, maybe I can handle SocialDifficulty=8."
+- Perfect information, no hidden calculations
+
+**3. Player Chooses Tactical Approach**
+- Three goals available, all targeting "Structural Instability" obstacle
+- "Clear Debris" (Physical) - uses Health/Stamina, high risk
+- "Study Mechanism" (Mental) - uses Focus, takes time
+- "Ask Caretaker" (Social) - builds relationship, might unlock knowledge
+- Player choice reveals character priorities
+
+**4. Player Completes Challenge**
+- Reaches Physical Breakthrough=10 threshold
+- Plays GoalCard "Debris Cleared"
+- GoalCard.Rewards reduces obstacle.PhysicalDanger by 10
+- Obstacle.PhysicalDanger now 0 (was 10)
+- MentalComplexity still 8 (different goals target different properties)
+
+**5. Strategic Situation Improved**
+- Physical approach to location now safer (PhysicalDanger cleared)
+- Mental approach still complex (MentalComplexity remains)
+- Player made permanent world improvement
+- Future visits benefit from cleared obstacle
+
+**Emergent Narrative:** Story arises from player choice (Physical force vs Mental patience vs Social networking) and consequences (different properties cleared, different world states created). No authored branching, just mechanical choices creating narrative.
+
+### Design Principles Validation
+
+**Obstacles respect all Wayfarer core principles:**
+
+**✅ Elegance Over Complexity**
+- Five numerical properties, simple addition, no formulas
+- Goals reduce properties, that's the entire system
+- One purpose: enable multiple tactical approaches to same strategic challenge
+
+**✅ Verisimilitude Throughout**
+- Properties have natural meaning (PhysicalDanger = actual danger)
+- Different challenge types naturally target different properties
+- Obstacles persist in world, consequences visible
+- Player choice makes narrative sense (force vs analysis vs negotiation)
+
+**✅ Perfect Information**
+- All obstacle properties visible to player
+- All property reduction amounts visible in GoalCards
+- No hidden calculations or random outcomes
+- Player calculates exact benefit of completing each goal
+
+**✅ No Soft-Lock Architecture**
+- Properties inform, never block
+- Player always can attempt goals (subject to goal's Requirements)
+- Failed attempts don't make obstacles worse
+- Multiple approaches always available (Physical/Mental/Social)
+
+**✅ GameWorld Single Source of Truth**
+- Obstacles live on entities in GameWorld collections
+- No parallel storage, no SharedData dictionaries
+- Strong typing: List\<Obstacle>, not Dictionary\<string, object>
+- Clean entity ownership and referencing
+
+**✅ Mechanical Integration**
+- Obstacles integrate through property reduction (Tactical → Strategic flow)
+- Investigations spawn obstacles (Strategic content creation)
+- Goals target obstacles (Strategic-Tactical bridge)
+- Simple connections, no complex interdependencies
+
+**Result:** Obstacles elegantly bridge strategic-tactical disconnect while maintaining all Wayfarer design principles. System is complete enough to work, simple enough to understand, flexible enough to extend.
+
 ## NPC System
 
 ### Five Persistent Decks

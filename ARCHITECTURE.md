@@ -17,10 +17,12 @@
 
 ## SYSTEM OVERVIEW
 
-Wayfarer is a **conversation-based RPG** built with **C# ASP.NET Core** and **Blazor Server**. The architecture follows **clean architecture principles** with strict **dependency inversion** and **single responsibility** patterns.
+Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge systems** (Social, Mental, Physical) built with **C# ASP.NET Core** and **Blazor Server**. The architecture follows **clean architecture principles** with strict **dependency inversion** and **single responsibility** patterns.
 
 ### Core Design Philosophy
-- **GameWorld as Single Source of Truth**: All game state flows through GameWorld
+- **GameWorld as Single Source of Truth**: All game state flows through GameWorld with zero external dependencies
+- **Three Parallel Tactical Systems**: Social (conversations), Mental (investigations), Physical (obstacles) with equivalent depth
+- **Strategic-Tactical Bridge**: Goals are first-class entities that connect strategic planning to tactical execution
 - **Static Content Loading**: JSON content parsed once at startup without DI dependencies
 - **Facade Pattern**: Business logic coordinated through specialized facades
 - **Authoritative UI Pattern**: GameScreen owns all UI state, children communicate upward
@@ -34,18 +36,27 @@ Wayfarer is a **conversation-based RPG** built with **C# ASP.NET Core** and **Bl
 
 **Location**: `src/Content/Core/*.json`
 
+**Package Loading Order** (numbered files loaded alphabetically):
 ```
-01_foundation.json  → Base configuration, conversation types, card decks
-02_cards.json       → All conversation card definitions
-03_npcs.json        → NPC definitions with requests and personalities
-04_connections.json → Relationship and interaction rules
-05_gameplay.json    → Core gameplay mechanics
+01_foundation.json     → Player stats, time blocks, base configuration
+03_npcs.json          → NPC definitions with personalities and initial tokens
+04_connections.json   → Routes and travel connections
+05_goals.json         → Goal definitions (strategic-tactical bridge)
+06_gameplay.json      → Venues, locations, game rules
+07_equipment.json     → Items and equipment definitions
+08_social_cards.json  → Social challenge cards (conversations)
+09_mental_cards.json  → Mental challenge cards (investigations)
+10_physical_cards.json → Physical challenge cards (obstacles)
+12_challenge_decks.json → Deck configurations for all three systems
+13_investigations.json  → Multi-phase investigation templates
+14_knowledge.json      → Knowledge entries and discovery system
 ```
 
 **Content Relationships**:
-- Cards reference conversation types via `conversationTypeId`
-- NPCs have requests that specify `conversationTypeId`
-- Card decks group cards via `cardIds` arrays
+- **Goals**: First-class entities with `npcId` OR `locationId` for assignment
+- **Challenge Decks**: Reference card IDs for Social/Mental/Physical systems
+- **Investigations**: Reference goals via phase definitions
+- **Cards**: Bind to unified 5-stat system (Insight/Rapport/Authority/Diplomacy/Cunning)
 - All relationships use string IDs for loose coupling
 
 ### 2. Static Parser Layer
@@ -54,16 +65,24 @@ Wayfarer is a **conversation-based RPG** built with **C# ASP.NET Core** and **Bl
 
 **Parser Responsibilities**:
 ```csharp
-ConversationCardParser  → JsonElement → ConversationCard
-NPCParser              → JsonElement → NPC
-LocationParser         → JsonElement → Location/LocationSpot
+SocialCardParser     → SocialCardDTO → SocialCard
+MentalCardParser     → MentalCardDTO → MentalCard
+PhysicalCardParser   → PhysicalCardDTO → PhysicalCard
+NPCParser            → NPCDTO → NPC
+VenueParser          → VenueDTO → Venue
+LocationParser       → LocationDTO → Location
+GoalParser           → GoalDTO → Goal
+InvestigationParser  → InvestigationDTO → Investigation
+KnowledgeParser      → KnowledgeDTO → Knowledge
 ```
 
 **CRITICAL PARSER PRINCIPLES**:
 - **PARSE AT THE BOUNDARY**: JSON artifacts NEVER pollute domain layer
 - **NO JsonElement PASSTHROUGH**: Parsers MUST convert to strongly-typed objects
 - **NO Dictionary<string, object>**: Use proper typed properties on domain models
+- **JSON FIELD NAMES MUST MATCH C# PROPERTIES**: No JsonPropertyName attributes to hide mismatches
 - **STATELESS**: Parsers are static classes with no side effects
+- **SINGLE PASS**: Each parser converts DTO to domain entity in one operation
 
 ### 3. Content Loading Orchestration
 
@@ -93,18 +112,43 @@ Startup → GameWorldInitializer.CreateGameWorld()
 
 **State Collections**:
 ```csharp
+// Core Entities
 public List<NPC> NPCs { get; set; }
-public List<Location> Locations { get; set; }
-public CardDefinitionCollection AllCardDefinitions { get; set; }
-public ConversationTypeCollection ConversationTypes { get; set; }
-public Player GetPlayer() → Single player instance
+public List<Venue> Venues { get; set; }
+public List<LocationEntry> Locations { get; set; }
+private Player Player { get; set; }
+
+// Three Parallel Tactical Systems - Card Templates
+public List<SocialCard> SocialCards { get; set; }
+public List<MentalCard> MentalCards { get; set; }
+public List<PhysicalCard> PhysicalCards { get; set; }
+
+// Three Parallel Tactical Systems - Challenge Decks
+public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; }
+public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; }
+public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
+
+// Strategic-Tactical Bridge
+public Dictionary<string, Goal> Goals { get; }
+
+// Investigation System
+public List<Investigation> Investigations { get; }
+public InvestigationJournal InvestigationJournal { get; }
+public Dictionary<string, Knowledge> Knowledge { get; }
+
+// Player Stats System
+public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
+public StatProgression StatProgression { get; set; }
 ```
 
 **State Operations**:
 ```csharp
+GetPlayer() → Single player instance
 GetPlayerResourceState() → Current player resources
-GetAvailableStrangers() → NPCs available at location/time
+GetLocation(string locationId) → Location by ID
+GetAvailableStrangers() → NPCs available at venue/time
 RefreshStrangersForTimeBlock() → Time-based NPC availability
+ApplyInitialPlayerConfiguration() → Apply starting conditions from JSON
 ```
 
 ### CRITICAL GAMEWORLD PRINCIPLES
@@ -134,29 +178,44 @@ RefreshStrangersForTimeBlock() → Time-based NPC availability
 
 ```
 GameFacade (Pure Orchestrator)
-├── ConversationFacade (4-resource conversation system)
-├── LocationFacade (Movement and spot management)
-├── ResourceFacade (Health, hunger, coins)
-├── TimeFacade (Time progression and segments)
-├── TravelFacade (Route management and travel)
-├── TokenFacade (Relationship tokens)
-├── NarrativeFacade (Messages and observations)
-├── ObligationFacade (Letter queue management)
-└── ExchangeFacade (NPC trading system)
+├── THREE PARALLEL TACTICAL SYSTEMS
+│   ├── SocialFacade (Social challenges - conversations with NPCs)
+│   ├── MentalFacade (Mental challenges - investigations at locations)
+│   └── PhysicalFacade (Physical challenges - obstacles at locations)
+├── SUPPORTING SYSTEMS
+│   ├── LocationFacade (Movement and spot management)
+│   ├── ResourceFacade (Health, hunger, coins, stamina)
+│   ├── TimeFacade (Time progression and segments)
+│   ├── TravelFacade (Route management and travel)
+│   ├── TokenFacade (Relationship tokens)
+│   ├── NarrativeFacade (Messages and observations)
+│   └── ExchangeFacade (NPC trading system)
+└── INVESTIGATION & CONTENT
+    ├── InvestigationActivity (Multi-phase investigation management)
+    ├── InvestigationDiscoveryEvaluator (Discovery trigger evaluation)
+    ├── KnowledgeService (Knowledge grants and discovery)
+    └── GoalCompletionHandler (Goal completion and rewards)
 ```
 
 ### Facade Responsibilities
 
 **GameFacade** - Pure orchestrator for UI-Backend communication
 - Delegates ALL business logic to specialized facades
-- Coordinates cross-facade operations
+- Coordinates cross-facade operations (e.g., completing goals triggers investigations)
 - Handles UI-specific orchestration
 - NO business logic - only coordination
 
-**Specialized Facades** - Domain-specific business logic
-- `ConversationFacade`: Initiative/Momentum/Doubt/Cadence conversation mechanics
-- `ExchangeFacade`: Separate NPC trading system (not conversations)
-- `LocationFacade`: Movement validation and location-specific actions
+**Three Parallel Tactical System Facades** - Equivalent depth challenge systems
+- `SocialFacade`: Initiative/Momentum/Doubt/Cadence conversation mechanics with NPCs
+- `MentalFacade`: Progress/Attention/Exposure/Leads investigation mechanics at locations
+- `PhysicalFacade`: Breakthrough/Exertion/Danger/Aggression obstacle mechanics at locations
+- Each follows same architectural pattern: Builder/Threshold/Session resources + Binary actions
+- All three systems use unified 5-stat progression (Insight/Rapport/Authority/Diplomacy/Cunning)
+
+**Supporting Facades** - Game systems that integrate with tactical challenges
+- `ExchangeFacade`: Separate NPC trading system (instant exchanges, not conversations)
+- `LocationFacade`: Movement validation, location properties, spot management
+- `ResourceFacade`: Permanent resources (Health, Stamina, Hunger, Focus, Coins)
 - Each facade encapsulates ONE business domain
 
 ### Subsystem Organization
@@ -164,16 +223,24 @@ GameFacade (Pure Orchestrator)
 **Location**: `src/Subsystems/[Domain]/`
 
 ```
-Conversation/   → Card mechanics, momentum, conversation sessions
+THREE PARALLEL TACTICAL SYSTEMS (Equivalent Depth)
+Social/         → Social challenges: Card mechanics, momentum, conversation sessions
+Mental/         → Mental challenges: Investigation mechanics, leads, observation system
+Physical/       → Physical challenges: Obstacle mechanics, aggression, combo execution
+
+SUPPORTING SYSTEMS
 Exchange/       → NPC trading, inventory validation
 Location/       → Movement, spot properties, location actions
-Market/         → Economic systems, arbitrage calculation
-Narrative/      → Message system, observation rewards
-Obligation/     → Letter queue, deadline tracking, displacement
-Resource/       → Health, hunger, coins, stamina management
+Resource/       → Health, hunger, coins, stamina, focus management
 Time/           → Segment progression, time block transitions
 Token/          → Relationship tokens, connection tracking
 Travel/         → Route discovery, travel validation
+Narrative/      → Message system, observation rewards
+
+INVESTIGATION & CONTENT SYSTEMS
+Investigation/  → Multi-phase investigation lifecycle, goal spawning
+Knowledge/      → Knowledge discovery, secrets, world state changes
+Goals/          → Strategic-tactical bridge, victory conditions
 ```
 
 ---
@@ -192,11 +259,21 @@ Travel/         → Route discovery, travel validation
 
 **Child Components** - Screen-specific content only
 ```
+THREE PARALLEL TACTICAL SYSTEMS
+ConversationContent.razor  → Social challenges (conversations with NPCs)
+MentalContent.razor        → Mental challenges (investigations at locations)
+PhysicalContent.razor      → Physical challenges (obstacles at locations)
+
+SUPPORTING SCREENS
 LocationContent.razor      → Location exploration UI
-ConversationContent.razor  → 4-resource conversation interface
 ExchangeContent.razor      → NPC trading interface
-ObligationQueueContent.razor → Letter queue management
 TravelContent.razor        → Route selection and travel
+
+INVESTIGATION MODALS
+InvestigationDiscoveryModal.razor  → Investigation discovery notifications
+InvestigationActivationModal.razor → Investigation intro completion
+InvestigationProgressModal.razor   → Phase completion notifications
+InvestigationCompleteModal.razor   → Investigation completion rewards
 ```
 
 ### Component Communication Pattern
@@ -216,9 +293,15 @@ GameScreen.HandleTravelRoute(routeId)
 
 **Context Objects for Complex State**:
 ```csharp
-ConversationContext  → Complete conversation state
-ExchangeContext      → NPC trading session state
-TravelContext        → Route and destination state
+THREE PARALLEL TACTICAL SYSTEMS
+SocialChallengeContext   → Complete conversation state (Social challenge)
+MentalSession            → Investigation state (Mental challenge)
+PhysicalSession          → Obstacle state (Physical challenge)
+
+SUPPORTING CONTEXTS
+ExchangeContext          → NPC trading session state
+TravelDestinationViewModel → Route and destination display state
+LocationScreenViewModel  → Location exploration state
 ```
 
 ### CRITICAL UI PRINCIPLES
@@ -374,21 +457,54 @@ services.AddScoped<GameFacade>();
 
 ### Critical Integration Points
 
-**1. Conversation System Integration**
-- ConversationFacade manages 4-resource system (Initiative/Momentum/Doubt/Cadence)
-- Integrates with TokenFacade for relationship management
-- Integrates with ObligationFacade for letter generation
-- Integrates with NarrativeFacade for dialogue generation
+**1. Three Parallel Tactical Systems Integration**
+- **SocialFacade**: Social challenges (conversations) at NPCs
+  - Initiative/Momentum/Doubt/Cadence resource system
+  - Integrates with TokenFacade for relationship tokens
+  - Integrates with KnowledgeService for knowledge/secrets
+  - Personality rules (Proud, Devoted, Mercantile, Cunning, Steadfast)
 
-**2. Location System Integration**
-- LocationFacade coordinates with NPCService for character placement
+- **MentalFacade**: Mental challenges (investigations) at Locations
+  - Progress/Attention/Exposure/Leads resource system
+  - Pauseable session model (can leave and return)
+  - Location properties (Delicate, Obscured, Layered, Time-Sensitive, Resistant)
+
+- **PhysicalFacade**: Physical challenges (obstacles) at Locations
+  - Breakthrough/Exertion/Danger/Aggression resource system
+  - One-shot session model (must complete in single attempt)
+  - Challenge types (Combat, Athletics, Finesse, Endurance, Strength)
+
+**2. Goals as Strategic-Tactical Bridge**
+- Goals are first-class entities in `GameWorld.Goals` dictionary
+- Goals assigned to NPCs (`NPC.ActiveGoals`) for Social challenges
+- Goals assigned to Locations (`Location.ActiveGoals`) for Mental/Physical challenges
+- Investigations dynamically spawn goals when phase requirements met
+- GoalCards define tiered victory conditions (8/12/16 momentum thresholds)
+
+**3. Investigation System Integration**
+- InvestigationActivity manages multi-phase lifecycle (Potential → Discovered → Active → Complete)
+- Discovery triggers: ImmediateVisibility, EnvironmentalObservation, Conversational, Item, Obligation
+- Dynamic goal spawning: Phase completion spawns next phase's goals at NPCs/Locations
+- Knowledge system: Investigations grant knowledge that unlocks future phases
+
+**4. Unified 5-Stat Progression**
+- All cards across all three systems bind to: Insight/Rapport/Authority/Diplomacy/Cunning
+- Stat levels determine card depth access (Level 1: depths 1-2, Level 3: depths 1-4, etc.)
+- Playing cards grants XP to bound stat
+- Stats manifest differently per system (Insight = pattern recognition in Mental, structural analysis in Physical, reading people in Social)
+
+**5. Location System Integration**
+- LocationFacade coordinates NPC placement at locations
 - Integrates with TravelFacade for route validation
 - Coordinates with TimeFacade for time-based availability
+- Manages ActiveGoals for Mental/Physical challenges
 
-**3. Resource System Integration**
-- ResourceFacade manages health/hunger/coins/stamina
+**6. Resource System Integration**
+- ResourceFacade manages permanent resources (Health, Stamina, Focus, Hunger, Coins)
+- **Mental challenges cost Focus** (concentration depletes)
+- **Physical challenges cost Health + Stamina** (injury risk + exertion)
+- **Social challenges cost nothing permanent** (but take time)
 - Integrates with TimeFacade for time-based resource changes
-- Coordinates with TravelFacade for travel costs
 
 ---
 
