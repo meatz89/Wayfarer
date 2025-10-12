@@ -133,10 +133,6 @@
                         OnNavigate="HandleNavigation" />
                     break;
                     
-                case ScreenMode.DeckViewer:
-                    <NPCDeckViewer />
-                    break;
-
                 case ScreenMode.SocialChallenge:
                     <ConversationContent Context="@CurrentSocialContext" OnConversationEnd="HandleConversationEnd" />
                     break;

@@ -79,45 +79,47 @@
                 </div>
             </div>
             <div class="action-section">
-                <div class="action-button"
-                     @onclick="ExecuteAssess">
-                    ASSESS
-                    @if (SelectedCard != null)
-                    {
-                        <div class="tooltip card-effects-tooltip">
-                            <div class="tooltip-title">Assess</div>
-                            <div class="tooltip-section">
-                                <strong>Effects:</strong>
-                                <ul>
-                                    <li>Balance: -1 (toward Overcautious)</li>
-                                    <li>Play selected card</li>
-                                </ul>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteExecute"
-                     disabled="@(SelectedCard == null || IsProcessing)">
-                    EXECUTE
-                    @if (SelectedCard != null)
-                    {
-                        <div class="tooltip card-effects-tooltip">
-                            <div class="tooltip-title">Execute</div>
-                            <div class="tooltip-section">
-                                <strong>Effects:</strong>
-                                <ul>
-                                    <li>Balance: +1 (toward Reckless)</li>
-                                    <li>Play selected card</li>
-                                </ul>
-                            </div>
-                        </div>
-                    }
-                </div>
-                @if (Session.CurrentBreakthrough >= 20 || Session.CurrentDanger >= Session.MaxDanger)
+                @if (!IsChallengeEnded)
                 {
                     <div class="action-button"
-                         @onclick="EndChallenge">
+                         @onclick="ExecuteAssess">
+                        ASSESS
+                        @if (SelectedCard != null)
+                        {
+                            <div class="tooltip card-effects-tooltip">
+                                <div class="tooltip-title">Assess</div>
+                                <div class="tooltip-section">
+                                    <strong>Effects:</strong>
+                                    <ul>
+                                        <li>Balance: -1 (toward Overcautious)</li>
+                                        <li>Play selected card</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                         @onclick="ExecuteExecute"
+                         disabled="@(SelectedCard == null || IsProcessing)">
+                        EXECUTE
+                        @if (SelectedCard != null)
+                        {
+                            <div class="tooltip card-effects-tooltip">
+                                <div class="tooltip-title">Execute</div>
+                                <div class="tooltip-section">
+                                    <strong>Effects:</strong>
+                                    <ul>
+                                        <li>Balance: +1 (toward Reckless)</li>
+                                        <li>Play selected card</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="action-button primary" @onclick="EndChallenge">
                         END CHALLENGE
                     </div>
                 }

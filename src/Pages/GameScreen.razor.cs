@@ -774,7 +774,6 @@ public enum ScreenMode
     Location,
     Exchange,
     Travel,
-    DeckViewer, // Dev mode screen for viewing NPC decks
     SocialChallenge,
     MentalChallenge,
     PhysicalChallenge
