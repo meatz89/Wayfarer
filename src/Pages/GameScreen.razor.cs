@@ -330,28 +330,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.Location);
     }
 
-    public async Task NavigateToDeckViewer(string npcId)
-    {
-        Console.WriteLine($"[GameScreen] Navigating to deck viewer for NPC: {npcId}");
-
-        // Store the NPC ID for the deck viewer to use
-        CurrentDeckViewerNpcId = npcId;
-
-        // Store the NPC ID in the context for the deck viewer to use
-        ScreenContext context = new ScreenContext
-        {
-            Mode = ScreenMode.DeckViewer,
-            EnteredAt = DateTime.Now,
-            StateData = new ScreenStateData
-            {
-                NpcId = npcId
-            }
-        };
-        _navigationStack.Push(context);
-
-        await NavigateToScreen(ScreenMode.DeckViewer);
-    }
-
     public async Task StartConversationSession(string npcId, string goalId)
     {
         CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, goalId);
