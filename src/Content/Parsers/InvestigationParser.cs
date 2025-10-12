@@ -62,9 +62,43 @@ public class InvestigationParser
     {
         if (dto == null) return null;
 
-        return new PhaseCompletionReward
+        PhaseCompletionReward reward = new PhaseCompletionReward
         {
             KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>()
+        };
+
+        // Parse obstacle spawns
+        if (dto.ObstaclesSpawned != null && dto.ObstaclesSpawned.Count > 0)
+        {
+            foreach (ObstacleSpawnInfoDTO spawnDto in dto.ObstaclesSpawned)
+            {
+                ObstacleSpawnTargetType targetType = ParseObstacleSpawnTargetType(spawnDto.TargetType);
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId);
+
+                reward.ObstaclesSpawned.Add(new ObstacleSpawnInfo
+                {
+                    TargetType = targetType,
+                    TargetEntityId = spawnDto.TargetEntityId,
+                    Obstacle = obstacle
+                });
+            }
+        }
+
+        return reward;
+    }
+
+    private ObstacleSpawnTargetType ParseObstacleSpawnTargetType(string typeString)
+    {
+        if (string.IsNullOrEmpty(typeString))
+            throw new InvalidOperationException("ObstacleSpawnInfo missing required 'targetType' field");
+
+        return typeString.ToLowerInvariant() switch
+        {
+            "location" => ObstacleSpawnTargetType.Location,
+            "route" => ObstacleSpawnTargetType.Route,
+            "npc" => ObstacleSpawnTargetType.NPC,
+            _ => throw new InvalidOperationException(
+                $"Invalid ObstacleSpawnTargetType '{typeString}'. Valid values: Location, Route, NPC")
         };
     }
 

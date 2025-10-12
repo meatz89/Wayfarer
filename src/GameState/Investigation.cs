@@ -71,6 +71,27 @@ public class InvestigationPhaseDefinition
 public class PhaseCompletionReward
 {
     public List<string> KnowledgeGranted { get; set; } = new List<string>();
+    public List<ObstacleSpawnInfo> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfo>();
+}
+
+/// <summary>
+/// Defines where and what obstacle to spawn as investigation phase reward
+/// </summary>
+public class ObstacleSpawnInfo
+{
+    public ObstacleSpawnTargetType TargetType { get; set; }
+    public string TargetEntityId { get; set; }
+    public Obstacle Obstacle { get; set; }
+}
+
+/// <summary>
+/// Type of entity where obstacle should be spawned
+/// </summary>
+public enum ObstacleSpawnTargetType
+{
+    Location,
+    Route,
+    NPC
 }
 
 /// <summary>

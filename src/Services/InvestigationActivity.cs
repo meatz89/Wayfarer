@@ -208,6 +208,16 @@ public class InvestigationActivity
             }
         }
 
+        // Spawn obstacles from phase completion rewards
+        if (completedPhase.CompletionReward?.ObstaclesSpawned != null &&
+            completedPhase.CompletionReward.ObstaclesSpawned.Count > 0)
+        {
+            foreach (ObstacleSpawnInfo spawnInfo in completedPhase.CompletionReward.ObstaclesSpawned)
+            {
+                SpawnObstacle(spawnInfo);
+            }
+        }
+
         // Check for newly unlocked goals
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
         foreach (InvestigationPhaseDefinition phaseDef in investigation.PhaseDefinitions)
@@ -526,6 +536,78 @@ public class InvestigationActivity
         _messageSystem.AddSystemMessage(
             $"Investigation activated: {investigation?.Name}",
             SystemMessageTypes.Success);
+    }
+
+    /// <summary>
+    /// Spawn an obstacle at the specified target entity as investigation phase reward
+    /// </summary>
+    private void SpawnObstacle(ObstacleSpawnInfo spawnInfo)
+    {
+        if (spawnInfo?.Obstacle == null)
+            return;
+
+        switch (spawnInfo.TargetType)
+        {
+            case ObstacleSpawnTargetType.Location:
+                Location location = _gameWorld.GetLocation(spawnInfo.TargetEntityId);
+                if (location == null)
+                {
+                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Location '{spawnInfo.TargetEntityId}' not found");
+                    return;
+                }
+                location.Obstacles.Add(spawnInfo.Obstacle);
+                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' at Location '{location.Name}'");
+                _messageSystem.AddSystemMessage(
+                    $"New obstacle appeared at {location.Name}: {spawnInfo.Obstacle.Name}",
+                    SystemMessageTypes.Warning);
+                break;
+
+            case ObstacleSpawnTargetType.Route:
+                // Find route option by ID across all locations
+                RouteOption route = null;
+                foreach (LocationEntry locationEntry in _gameWorld.Locations)
+                {
+                    route = locationEntry.location.RouteOptions?.FirstOrDefault(r => r.Id == spawnInfo.TargetEntityId);
+                    if (route != null)
+                        break;
+                }
+                if (route == null)
+                {
+                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Route '{spawnInfo.TargetEntityId}' not found");
+                    return;
+                }
+                route.Obstacles.Add(spawnInfo.Obstacle);
+                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on Route '{route.Name}'");
+                _messageSystem.AddSystemMessage(
+                    $"New obstacle appeared on route to {route.Name}: {spawnInfo.Obstacle.Name}",
+                    SystemMessageTypes.Warning);
+                break;
+
+            case ObstacleSpawnTargetType.NPC:
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == spawnInfo.TargetEntityId);
+                if (npc == null)
+                {
+                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - NPC '{spawnInfo.TargetEntityId}' not found");
+                    return;
+                }
+                // Validate: NPCs can ONLY have SocialDifficulty obstacles
+                if (spawnInfo.Obstacle.PhysicalDanger > 0 || spawnInfo.Obstacle.MentalComplexity > 0 ||
+                    spawnInfo.Obstacle.StaminaCost > 0 || spawnInfo.Obstacle.TimeCost > 0)
+                {
+                    Console.WriteLine($"[InvestigationActivity] ERROR: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}' - NPCs can only have SocialDifficulty obstacles");
+                    return;
+                }
+                npc.Obstacles.Add(spawnInfo.Obstacle);
+                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}'");
+                _messageSystem.AddSystemMessage(
+                    $"New social obstacle with {npc.Name}: {spawnInfo.Obstacle.Name}",
+                    SystemMessageTypes.Warning);
+                break;
+
+            default:
+                Console.WriteLine($"[InvestigationActivity] ERROR: Unknown ObstacleSpawnTargetType: {spawnInfo.TargetType}");
+                break;
+        }
     }
 
 }

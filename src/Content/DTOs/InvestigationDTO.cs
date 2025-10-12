@@ -66,6 +66,17 @@ public class PhaseCompletionRewardDTO
     public List<string> DiscoveriesGranted { get; set; } = new List<string>();
     public List<string> KnowledgeGranted { get; set; } = new List<string>();
     public string UnlocksPhaseId { get; set; }
+    public List<ObstacleSpawnInfoDTO> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfoDTO>();
+}
+
+/// <summary>
+/// DTO for obstacle spawn information in investigation phase rewards
+/// </summary>
+public class ObstacleSpawnInfoDTO
+{
+    public string TargetType { get; set; } // "Location", "Route", or "NPC"
+    public string TargetEntityId { get; set; }
+    public ObstacleDTO Obstacle { get; set; }
 }
 
 /// <summary>
