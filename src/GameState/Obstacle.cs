@@ -55,6 +55,14 @@ public class Obstacle
     public bool IsPermanent { get; set; }
 
     /// <summary>
+    /// Goals that target this obstacle (inline children)
+    /// Two types: preparation goals (reduce properties) and resolution goals (remove obstacle)
+    /// Goals from investigation content are spawned with obstacle
+    /// Filtered by property requirements for visibility
+    /// </summary>
+    public List<Goal> Goals { get; set; } = new List<Goal>();
+
+    /// <summary>
     /// Check if obstacle is fully cleared (all properties at or below zero)
     /// </summary>
     public bool IsCleared()

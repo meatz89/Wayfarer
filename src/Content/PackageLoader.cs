@@ -664,7 +664,7 @@ public class PackageLoader
                 _gameWorld.Locations.RemoveSpot(dto.Id);
             }
 
-            Location location = LocationParser.ConvertDTOToLocation(dto);
+            Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
 
             // Add to primary Locations dictionary
             _gameWorld.Locations.AddOrUpdateSpot(location.Id, location);
@@ -1203,7 +1203,7 @@ public class PackageLoader
         {
             foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id);
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id, _gameWorld);
                 route.Obstacles.Add(obstacle);
             }
             Console.WriteLine($"[PackageLoader] Parsed {route.Obstacles.Count} obstacles for route '{route.Name}'");

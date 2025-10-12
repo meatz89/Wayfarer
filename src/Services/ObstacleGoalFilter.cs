@@ -1,0 +1,155 @@
+using System.Collections.Generic;
+using System.Linq;
+using Wayfarer.Services;
+
+/// <summary>
+/// Service for aggregating and filtering goals from ambient and obstacle sources
+/// Implements 80 Days-style property-based goal visibility gating
+/// Filters by both property requirements (obstacle properties) and access requirements (knowledge, equipment, stats)
+/// </summary>
+public class ObstacleGoalFilter
+{
+    private readonly GoalRequirementsChecker _requirementsChecker;
+
+    public ObstacleGoalFilter(GameWorld gameWorld)
+    {
+        _requirementsChecker = new GoalRequirementsChecker(gameWorld);
+    }
+
+    /// <summary>
+    /// Get all visible goals for a location
+    /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
+    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// </summary>
+    public List<Goal> GetVisibleLocationGoals(Location location)
+    {
+        if (location == null)
+            return new List<Goal>();
+
+        List<Goal> visibleGoals = new List<Goal>();
+
+        // Add ambient goals (always visible)
+        if (location.ActiveGoals != null)
+        {
+            visibleGoals.AddRange(location.ActiveGoals);
+        }
+
+        // Add filtered obstacle-specific goals
+        if (location.Obstacles != null)
+        {
+            foreach (Obstacle obstacle in location.Obstacles)
+            {
+                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+            }
+        }
+
+        return visibleGoals;
+    }
+
+    /// <summary>
+    /// Get all visible goals for an NPC
+    /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
+    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// </summary>
+    public List<Goal> GetVisibleNPCGoals(NPC npc)
+    {
+        if (npc == null)
+            return new List<Goal>();
+
+        List<Goal> visibleGoals = new List<Goal>();
+
+        // Add ambient goals (always visible)
+        if (npc.ActiveGoals != null)
+        {
+            visibleGoals.AddRange(npc.ActiveGoals);
+        }
+
+        // Add filtered obstacle-specific goals
+        if (npc.Obstacles != null)
+        {
+            foreach (Obstacle obstacle in npc.Obstacles)
+            {
+                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+            }
+        }
+
+        return visibleGoals;
+    }
+
+    /// <summary>
+    /// Get all visible goals for a route
+    /// Routes only have obstacle-specific goals (no ambient goals)
+    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// </summary>
+    public List<Goal> GetVisibleRouteGoals(RouteOption route)
+    {
+        if (route == null)
+            return new List<Goal>();
+
+        List<Goal> visibleGoals = new List<Goal>();
+
+        // Routes only have obstacle-specific goals (no ambient goals)
+        if (route.Obstacles != null)
+        {
+            foreach (Obstacle obstacle in route.Obstacles)
+            {
+                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+            }
+        }
+
+        return visibleGoals;
+    }
+
+    /// <summary>
+    /// Get visible goals from a single obstacle (filtered by property requirements and access requirements)
+    /// 80 Days pattern: Goals become visible as obstacle properties are reduced
+    /// Access requirements: Goals require knowledge, equipment, stats, familiarity, completed goals
+    /// </summary>
+    private List<Goal> GetVisibleGoalsFromObstacle(Obstacle obstacle)
+    {
+        List<Goal> visibleGoals = new List<Goal>();
+
+        if (obstacle?.Goals == null)
+            return visibleGoals;
+
+        foreach (Goal goal in obstacle.Goals)
+        {
+            // Goal visible if ALL conditions met:
+            // 1. Property requirements met (obstacle properties <= thresholds)
+            // 2. Access requirements met (knowledge, equipment, stats, familiarity, completed goals)
+            bool propertyRequirementsMet = goal.PropertyRequirements == null ||
+                                          goal.PropertyRequirements.MeetsRequirements(obstacle);
+
+            bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
+
+            if (propertyRequirementsMet && accessRequirementsMet)
+            {
+                visibleGoals.Add(goal);
+            }
+        }
+
+        return visibleGoals;
+    }
+
+    /// <summary>
+    /// Get all obstacles that have at least one visible goal
+    /// Useful for UI display to show which obstacles player can currently interact with
+    /// </summary>
+    public List<Obstacle> GetObstaclesWithVisibleGoals(List<Obstacle> obstacles)
+    {
+        if (obstacles == null)
+            return new List<Obstacle>();
+
+        return obstacles
+            .Where(o => GetVisibleGoalsFromObstacle(o).Count > 0)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Count visible goals for an obstacle (useful for UI badges/indicators)
+    /// </summary>
+    public int CountVisibleGoals(Obstacle obstacle)
+    {
+        return GetVisibleGoalsFromObstacle(obstacle).Count;
+    }
+}

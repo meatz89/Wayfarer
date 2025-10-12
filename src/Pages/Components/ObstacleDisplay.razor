@@ -1,0 +1,81 @@
+@inherits ObstacleDisplayBase
+
+@namespace Wayfarer.Pages.Components
+
+@if (Obstacle != null)
+{
+    <div class="obstacle-card @GetSeverityClass()">
+        <div class="obstacle-header">
+            <div class="obstacle-name">@Obstacle.Name</div>
+            @if (Obstacle.IsCleared())
+            {
+                <div class="obstacle-status cleared">Cleared</div>
+            }
+            else
+            {
+                <div class="obstacle-status active">Active</div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Obstacle.Description))
+        {
+            <div class="obstacle-description">@Obstacle.Description</div>
+        }
+
+        <div class="obstacle-properties">
+            <div class="section-subheader">Challenge Properties</div>
+
+            @if (Obstacle.PhysicalDanger > 0 || !HasActiveProperties())
+            {
+                <div class="property-row">
+                    <span class="property-label">Physical Danger:</span>
+                    <span class="property-value @GetPropertyClass(Obstacle.PhysicalDanger)">@Obstacle.PhysicalDanger</span>
+                </div>
+            }
+
+            @if (Obstacle.MentalComplexity > 0 || !HasActiveProperties())
+            {
+                <div class="property-row">
+                    <span class="property-label">Mental Complexity:</span>
+                    <span class="property-value @GetPropertyClass(Obstacle.MentalComplexity)">@Obstacle.MentalComplexity</span>
+                </div>
+            }
+
+            @if (Obstacle.SocialDifficulty > 0 || !HasActiveProperties())
+            {
+                <div class="property-row">
+                    <span class="property-label">Social Difficulty:</span>
+                    <span class="property-value @GetPropertyClass(Obstacle.SocialDifficulty)">@Obstacle.SocialDifficulty</span>
+                </div>
+            }
+
+            @if (Obstacle.StaminaCost > 0 || !HasActiveProperties())
+            {
+                <div class="property-row">
+                    <span class="property-label">Stamina Cost:</span>
+                    <span class="property-value @GetPropertyClass(Obstacle.StaminaCost)">@Obstacle.StaminaCost</span>
+                </div>
+            }
+
+            @if (Obstacle.TimeCost > 0 || !HasActiveProperties())
+            {
+                <div class="property-row">
+                    <span class="property-label">Time Cost:</span>
+                    <span class="property-value @GetPropertyClass(Obstacle.TimeCost)">@Obstacle.TimeCost</span>
+                </div>
+            }
+        </div>
+
+        @if (Obstacle.IsPermanent)
+        {
+            <div class="obstacle-permanence">@GetPermanenceDisplay()</div>
+        }
+
+        @if (Obstacle.Goals != null && Obstacle.Goals.Any())
+        {
+            <div class="obstacle-goals-info">
+                @Obstacle.Goals.Count approach(es) available
+            </div>
+        }
+    </div>
+}

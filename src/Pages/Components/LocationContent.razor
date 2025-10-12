@@ -135,6 +135,18 @@
             </div>
         }
 
+        <!-- Obstacles at This Location -->
+        @if (CurrentObstacles != null && CurrentObstacles.Any())
+        {
+            <div class="section-header">Obstacles at This Location</div>
+            <div class="obstacles-container">
+                @foreach (var obstacle in CurrentObstacles)
+                {
+                    <ObstacleDisplay Obstacle="@obstacle" />
+                }
+            </div>
+        }
+
         <!-- People at This Spot -->
         @if (AvailableNpcs.Any())
         {

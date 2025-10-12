@@ -282,23 +282,50 @@ public class SocialFacade
         {
             Console.WriteLine($"[SocialFacade] GoalCard played - ending conversation with success");
 
-            // Apply obstacle property reductions (THREE PARALLEL SYSTEMS symmetry)
-            if (_gameWorld.Goals.TryGetValue(_currentSession.RequestId, out Goal goal))
-            {
-                if (goal.TargetObstacle != null && selectedCard.GoalCardTemplate?.Rewards?.ObstacleReduction != null)
-                {
-                    ObstaclePropertyReduction reduction = selectedCard.GoalCardTemplate.Rewards.ObstacleReduction;
-                    Console.WriteLine($"[SocialFacade] Applying obstacle reduction for goal '{goal.Name}' targeting '{goal.TargetObstacle.Name}'");
+            // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
+            // Find parent obstacle containing this goal (Social searches NPC.Obstacles)
+            NPC npc = _currentSession.NPC;
 
-                    bool obstacleCleared = ObstacleRewardService.ApplyPropertyReduction(goal.TargetObstacle, reduction);
-                    if (obstacleCleared)
+            Obstacle parentObstacle = npc?.Obstacles
+                .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentSession.RequestId));
+
+            if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentSession.RequestId, out Goal goal))
+            {
+                if (goal.EffectType == GoalEffectType.ReduceProperties && goal.PropertyReduction != null)
+                {
+                    // Preparation goal - reduce properties
+                    Console.WriteLine($"[SocialFacade] Applying property reduction for goal '{goal.Name}' on obstacle '{parentObstacle.Name}'");
+                    bool cleared = ObstacleRewardService.ApplyPropertyReduction(parentObstacle, goal.PropertyReduction);
+
+                    if (cleared && !parentObstacle.IsPermanent)
                     {
+                        npc.Obstacles.Remove(parentObstacle);
                         _messageSystem.AddSystemMessage(
-                            $"Obstacle '{goal.TargetObstacle.Name}' has been cleared!",
+                            $"Obstacle '{parentObstacle.Name}' has been cleared and removed!",
                             SystemMessageTypes.Success);
+                    }
+                    else if (cleared && parentObstacle.IsPermanent)
+                    {
+                        Console.WriteLine($"[SocialFacade] Obstacle '{parentObstacle.Name}' cleared but persists (IsPermanent=true)");
+                    }
+                }
+                else if (goal.EffectType == GoalEffectType.RemoveObstacle)
+                {
+                    // Resolution goal - remove obstacle entirely (respects IsPermanent)
+                    if (!parentObstacle.IsPermanent)
+                    {
+                        npc.Obstacles.Remove(parentObstacle);
+                        _messageSystem.AddSystemMessage(
+                            $"Obstacle '{parentObstacle.Name}' removed!",
+                            SystemMessageTypes.Success);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[SocialFacade] Cannot remove permanent obstacle '{parentObstacle.Name}'");
                     }
                 }
             }
+            // Else: ambient goal with no obstacle parent
 
             _currentSession.Deck.PlayCard(selectedCard);
             EndConversation();
@@ -1227,19 +1254,9 @@ public class SocialFacade
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == activeInv.InvestigationId);
             if (investigation == null) continue;
 
-            // Find phase that matches this npcId + requestId
-            // Phase definitions reference goals - look up goal properties
-            InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p =>
-            {
-                // Look up referenced goal from GameWorld.Goals
-                if (!_gameWorld.Goals.ContainsKey(p.GoalId))
-                    return false;
-
-                Goal goal = _gameWorld.Goals[p.GoalId];
-                return goal.SystemType == TacticalSystemType.Social &&
-                       goal.NpcId == npcId &&
-                       p.Id == requestId;
-            });
+            // Find phase that matches this phase ID (phases no longer reference goals)
+            // Match directly by phase ID (phase.Id == requestId)
+            InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p => p.Id == requestId);
 
             if (matchingPhase != null)
             {

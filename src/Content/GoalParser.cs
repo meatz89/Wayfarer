@@ -27,6 +27,17 @@ public static class GoalParser
             throw new InvalidOperationException($"Goal {dto.Id} has invalid SystemType value: '{dto.SystemType}'");
         }
 
+        // Parse effect type
+        GoalEffectType effectType = ParseEffectType(dto.EffectType);
+
+        // Parse property requirements
+        ObstaclePropertyRequirements propertyRequirements = ParsePropertyRequirements(dto.PropertyRequirements);
+
+        // Parse property reduction
+        ObstaclePropertyReduction propertyReduction = dto.PropertyReduction != null
+            ? ObstacleParser.ConvertDTOToReduction(dto.PropertyReduction)
+            : null;
+
         Goal goal = new Goal
         {
             Id = dto.Id,
@@ -42,7 +53,10 @@ public static class GoalParser
             IsCompleted = dto.IsCompleted,
             DeleteOnSuccess = dto.DeleteOnSuccess,
             GoalCards = new List<GoalCard>(),
-            Requirements = ParseGoalRequirements(dto.Requirements)
+            Requirements = ParseGoalRequirements(dto.Requirements),
+            EffectType = effectType,
+            PropertyRequirements = propertyRequirements,
+            PropertyReduction = propertyReduction
         };
 
         // Parse goal cards (victory conditions)
@@ -55,73 +69,7 @@ public static class GoalParser
             }
         }
 
-        // Resolve targetObstacleIndex to actual Obstacle reference
-        if (dto.TargetObstacleIndex.HasValue)
-        {
-            int targetIndex = dto.TargetObstacleIndex.Value;
-
-            // Location-based goal (Mental/Physical challenges)
-            if (!string.IsNullOrEmpty(goal.LocationId))
-            {
-                LocationEntry locationEntry = gameWorld.Locations.FirstOrDefault(l => l.LocationId == goal.LocationId);
-                if (locationEntry != null && locationEntry.location != null)
-                {
-                    if (targetIndex >= 0 && targetIndex < locationEntry.location.Obstacles.Count)
-                    {
-                        goal.TargetObstacle = locationEntry.location.Obstacles[targetIndex];
-                        Console.WriteLine($"[GoalParser] Goal '{goal.Name}' targets obstacle '{goal.TargetObstacle.Name}' at location '{goal.LocationId}'");
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Goal '{goal.Id}' has targetObstacleIndex {targetIndex} but location '{goal.LocationId}' " +
-                            $"only has {locationEntry.location.Obstacles.Count} obstacles");
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Goal '{goal.Id}' references location '{goal.LocationId}' which was not found in GameWorld");
-                }
-            }
-            // NPC-based goal (Social challenges)
-            else if (!string.IsNullOrEmpty(goal.NpcId))
-            {
-                NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.NpcId);
-                if (npc != null)
-                {
-                    if (targetIndex >= 0 && targetIndex < npc.Obstacles.Count)
-                    {
-                        goal.TargetObstacle = npc.Obstacles[targetIndex];
-                        Console.WriteLine($"[GoalParser] Goal '{goal.Name}' targets obstacle '{goal.TargetObstacle.Name}' for NPC '{goal.NpcId}'");
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Goal '{goal.Id}' has targetObstacleIndex {targetIndex} but NPC '{goal.NpcId}' " +
-                            $"only has {npc.Obstacles.Count} obstacles");
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Goal '{goal.Id}' references NPC '{goal.NpcId}' which was not found in GameWorld");
-                }
-            }
-            // Investigation-based goals with obstacles will be handled in investigation spawning system (Tasks 21-23)
-            else if (!string.IsNullOrEmpty(goal.InvestigationId))
-            {
-                Console.WriteLine($"[GoalParser] Goal '{goal.Name}' has targetObstacleIndex but is investigation-based - " +
-                    "obstacle resolution will happen when investigation spawns obstacles");
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Goal '{goal.Id}' has targetObstacleIndex but no LocationId, NpcId, or InvestigationId");
-            }
-        }
-
-        Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}) with {goal.GoalCards.Count} goal cards");
+        Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}, Effect: {effectType}) with {goal.GoalCards.Count} goal cards");
         return goal;
     }
 
@@ -203,5 +151,40 @@ public static class GoalParser
         }
 
         return requirements;
+    }
+
+    /// <summary>
+    /// Parse effect type from string
+    /// </summary>
+    private static GoalEffectType ParseEffectType(string effectTypeString)
+    {
+        if (string.IsNullOrEmpty(effectTypeString))
+            return GoalEffectType.None;
+
+        if (Enum.TryParse<GoalEffectType>(effectTypeString, true, out GoalEffectType effectType))
+        {
+            return effectType;
+        }
+
+        Console.WriteLine($"[GoalParser] Warning: Unknown EffectType '{effectTypeString}', defaulting to None");
+        return GoalEffectType.None;
+    }
+
+    /// <summary>
+    /// Parse obstacle property requirements
+    /// </summary>
+    private static ObstaclePropertyRequirements ParsePropertyRequirements(ObstaclePropertyRequirementsDTO dto)
+    {
+        if (dto == null)
+            return null;
+
+        return new ObstaclePropertyRequirements
+        {
+            MaxPhysicalDanger = dto.MaxPhysicalDanger,
+            MaxMentalComplexity = dto.MaxMentalComplexity,
+            MaxSocialDifficulty = dto.MaxSocialDifficulty,
+            MaxStaminaCost = dto.MaxStaminaCost,
+            MaxTimeCost = dto.MaxTimeCost
+        };
     }
 }

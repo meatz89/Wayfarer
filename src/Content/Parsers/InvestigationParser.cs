@@ -31,20 +31,6 @@ public class InvestigationParser
 
     private InvestigationPhaseDefinition ParsePhaseDefinition(InvestigationPhaseDTO dto, string investigationId)
     {
-        // [Oracle] Validation: goalId must reference existing goal in GameWorld.Goals
-        if (string.IsNullOrEmpty(dto.GoalId))
-        {
-            throw new InvalidOperationException(
-                $"Investigation phase '{dto.Id}' in investigation '{investigationId}' missing required 'goalId' field");
-        }
-
-        if (!_gameWorld.Goals.ContainsKey(dto.GoalId))
-        {
-            throw new InvalidOperationException(
-                $"Investigation phase '{dto.Id}' references goal '{dto.GoalId}' which does not exist in GameWorld.Goals. " +
-                $"Available goals: {string.Join(", ", _gameWorld.Goals.Keys)}");
-        }
-
         return new InvestigationPhaseDefinition
         {
             Id = dto.Id,
@@ -52,7 +38,6 @@ public class InvestigationParser
             Description = dto.Description,
             Goal = dto.Goal,
             OutcomeNarrative = dto.OutcomeNarrative,
-            GoalId = dto.GoalId, // Store reference to goal
             Requirements = ParseRequirements(dto.Requirements),
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
@@ -73,7 +58,7 @@ public class InvestigationParser
             foreach (ObstacleSpawnInfoDTO spawnDto in dto.ObstaclesSpawned)
             {
                 ObstacleSpawnTargetType targetType = ParseObstacleSpawnTargetType(spawnDto.TargetType);
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId);
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId, _gameWorld);
 
                 reward.ObstaclesSpawned.Add(new ObstacleSpawnInfo
                 {

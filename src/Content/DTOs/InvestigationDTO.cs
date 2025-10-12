@@ -35,12 +35,6 @@ public class InvestigationPhaseDTO
     public string Goal { get; set; } // Narrative description
     public string OutcomeNarrative { get; set; }
 
-    /// <summary>
-    /// Goal ID - references existing goal in GameWorld.Goals dictionary
-    /// SystemType, DeckId, LocationId, NpcId come from referenced Goal entity
-    /// </summary>
-    public string GoalId { get; set; }
-
     public PhaseRequirementsDTO Requirements { get; set; } = new PhaseRequirementsDTO();
     public PhaseCompletionRewardDTO CompletionReward { get; set; }
 }

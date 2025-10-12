@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Parser for converting ObstacleDTO to Obstacle domain model
@@ -6,9 +7,9 @@ using System;
 public static class ObstacleParser
 {
     /// <summary>
-    /// Convert ObstacleDTO to Obstacle entity
+    /// Convert ObstacleDTO to Obstacle entity with inline goals
     /// </summary>
-    public static Obstacle ConvertDTOToObstacle(ObstacleDTO dto, string parentEntityId)
+    public static Obstacle ConvertDTOToObstacle(ObstacleDTO dto, string parentEntityId, GameWorld gameWorld)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
@@ -25,8 +26,24 @@ public static class ObstacleParser
             SocialDifficulty = dto.SocialDifficulty,
             StaminaCost = dto.StaminaCost,
             TimeCost = dto.TimeCost,
-            IsPermanent = dto.IsPermanent
+            IsPermanent = dto.IsPermanent,
+            Goals = new List<Goal>()
         };
+
+        // Parse inline goals (for investigation-spawned obstacles)
+        if (dto.Goals != null && dto.Goals.Count > 0)
+        {
+            foreach (GoalDTO goalDto in dto.Goals)
+            {
+                Goal goal = GoalParser.ConvertDTOToGoal(goalDto, gameWorld);
+                obstacle.Goals.Add(goal);
+
+                // Register goal in GameWorld.Goals for facade lookups
+                // DO NOT add to Location.ActiveGoals or NPC.ActiveGoals - obstacle-specific goals stay as children only
+                gameWorld.Goals[goal.Id] = goal;
+            }
+            Console.WriteLine($"[ObstacleParser] Parsed obstacle '{obstacle.Name}' with {obstacle.Goals.Count} inline goals (registered in GameWorld.Goals)");
+        }
 
         return obstacle;
     }

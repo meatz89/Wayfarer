@@ -90,6 +90,9 @@ public static class ServiceConfiguration
         services.AddSingleton<InvestigationDiscoveryEvaluator>();
         services.AddSingleton<KnowledgeService>();
 
+        // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
+        services.AddSingleton<ObstacleGoalFilter>();
+
         // NPC deck initialization handled directly in PackageLoader
 
         // Dialogue generation services (NO hardcoded text)

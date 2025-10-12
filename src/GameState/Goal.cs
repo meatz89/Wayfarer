@@ -97,11 +97,26 @@ public class Goal
     public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
 
     /// <summary>
-    /// Optional obstacle this goal targets (set by GoalParser from targetObstacleIndex)
-    /// Multiple goals can target the same obstacle (different tactical approaches)
-    /// null = standalone goal not targeting any obstacle
+    /// What effect this goal has when completed
+    /// None: Ambient repeatable goals
+    /// ReduceProperties: Preparation goals that reduce obstacle properties
+    /// RemoveObstacle: Resolution goals that remove parent obstacle
     /// </summary>
-    public Obstacle TargetObstacle { get; set; }
+    public GoalEffectType EffectType { get; set; } = GoalEffectType.None;
+
+    /// <summary>
+    /// Property requirements for goal visibility (80 Days pattern)
+    /// Goal visible only if parent obstacle properties meet these thresholds
+    /// null = always visible (for ambient goals)
+    /// </summary>
+    public ObstaclePropertyRequirements PropertyRequirements { get; set; }
+
+    /// <summary>
+    /// Property reduction to apply to parent obstacle (for ReduceProperties effect)
+    /// Unlocks better resolution options by lowering obstacle difficulty
+    /// null for RemoveObstacle and None effect types
+    /// </summary>
+    public ObstaclePropertyReduction PropertyReduction { get; set; }
 
     /// <summary>
     /// Check if this goal is available to attempt

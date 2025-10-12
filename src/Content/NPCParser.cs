@@ -112,7 +112,7 @@ public static class NPCParser
         {
             foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID);
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
 
                 // Validate: NPCs can ONLY have SocialDifficulty obstacles
                 if (obstacle.PhysicalDanger > 0 || obstacle.MentalComplexity > 0 ||

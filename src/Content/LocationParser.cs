@@ -9,7 +9,7 @@ public static class LocationParser
     /// <summary>
     /// Convert a LocationDTO to a Location domain model
     /// </summary>
-    public static Location ConvertDTOToLocation(LocationDTO dto)
+    public static Location ConvertDTOToLocation(LocationDTO dto, GameWorld gameWorld)
     {
         Location location = new Location(dto.Id, dto.Name)
         {
@@ -180,7 +180,7 @@ public static class LocationParser
         {
             foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id);
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id, gameWorld);
                 location.Obstacles.Add(obstacle);
             }
             Console.WriteLine($"[LocationParser] Parsed {location.Obstacles.Count} obstacles for location '{location.Name}'");

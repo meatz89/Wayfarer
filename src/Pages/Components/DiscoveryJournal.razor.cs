@@ -155,33 +155,11 @@ namespace Wayfarer.Pages.Components
 
         protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveInvestigation activeInv)
         {
-            Dictionary<string, int> locationCounts = new Dictionary<string, int>();
-            List<InvestigationPhaseDefinition> activePhases = GetActivePhases(activeInv);
-
-            foreach (InvestigationPhaseDefinition phase in activePhases)
-            {
-                // Look up goal from GameWorld.Goals using phase's goalId
-                if (!GameWorld.Goals.ContainsKey(phase.GoalId))
-                    continue;
-
-                Goal goal = GameWorld.Goals[phase.GoalId];
-
-                // Derive Venue from location (LocationId is globally unique)
-                LocationEntry spotEntry = GameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
-                Venue loc = spotEntry != null
-                    ? GameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
-                    : null;
-
-                if (loc != null && spotEntry != null)
-                {
-                    string locationKey = $"{loc.Name} - {spotEntry.location.Name}";
-                    if (!locationCounts.ContainsKey(locationKey))
-                        locationCounts[locationKey] = 0;
-                    locationCounts[locationKey]++;
-                }
-            }
-
-            return locationCounts;
+            // NOTE: Investigation phases no longer reference goals directly
+            // Goals are now contained within obstacles spawned by investigations
+            // This UI method needs redesign to show obstacle locations instead
+            // For now, return empty dictionary until obstacle-based UI is implemented
+            return new Dictionary<string, int>();
         }
     }
 

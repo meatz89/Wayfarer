@@ -223,25 +223,47 @@ public class PhysicalFacade
         // Goal cards have no PhysicalCardTemplate, so must be checked first
         if (card.CardType == CardTypes.Goal)
         {
-            // Apply obstacle property reductions (THREE PARALLEL SYSTEMS symmetry)
-            if (!string.IsNullOrEmpty(_currentGoalId) && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
+            // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
+            // Find parent obstacle containing this goal
+            Player currentPlayer = _gameWorld.GetPlayer();
+            Location location = currentPlayer.CurrentLocation;
+
+            Obstacle parentObstacle = location?.Obstacles
+                .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentGoalId));
+
+            if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
             {
-                // Check if goal targets an obstacle and card has reduction rewards
-                if (goal.TargetObstacle != null &&
-                    card.GoalCardTemplate?.Rewards?.ObstacleReduction != null)
+                if (goal.EffectType == GoalEffectType.ReduceProperties && goal.PropertyReduction != null)
                 {
-                    ObstaclePropertyReduction reduction = card.GoalCardTemplate.Rewards.ObstacleReduction;
-                    Console.WriteLine($"[PhysicalFacade] Applying obstacle reduction for goal '{goal.Name}' targeting '{goal.TargetObstacle.Name}'");
+                    // Preparation goal - reduce properties
+                    Console.WriteLine($"[PhysicalFacade] Applying property reduction for goal '{goal.Name}' on obstacle '{parentObstacle.Name}'");
+                    bool cleared = ObstacleRewardService.ApplyPropertyReduction(parentObstacle, goal.PropertyReduction);
 
-                    // Apply the reduction using domain service
-                    bool obstacleCleared = ObstacleRewardService.ApplyPropertyReduction(goal.TargetObstacle, reduction);
-
-                    if (obstacleCleared)
+                    if (cleared && !parentObstacle.IsPermanent)
                     {
-                        Console.WriteLine($"[PhysicalFacade] Obstacle '{goal.TargetObstacle.Name}' has been cleared!");
+                        location.Obstacles.Remove(parentObstacle);
+                        Console.WriteLine($"[PhysicalFacade] Obstacle '{parentObstacle.Name}' has been cleared and removed!");
+                    }
+                    else if (cleared && parentObstacle.IsPermanent)
+                    {
+                        Console.WriteLine($"[PhysicalFacade] Obstacle '{parentObstacle.Name}' cleared but persists (IsPermanent=true)");
+                    }
+                }
+                else if (goal.EffectType == GoalEffectType.RemoveObstacle)
+                {
+                    // Resolution goal - remove obstacle entirely (respects IsPermanent)
+                    if (!parentObstacle.IsPermanent)
+                    {
+                        location.Obstacles.Remove(parentObstacle);
+                        Console.WriteLine($"[PhysicalFacade] Obstacle '{parentObstacle.Name}' removed!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[PhysicalFacade] Cannot remove permanent obstacle '{parentObstacle.Name}'");
                     }
                 }
             }
+            // Else: ambient goal with no obstacle parent
 
             // GoalCards execute immediately (not locked for combo)
             _sessionDeck.Hand.ToList().Remove(card); // Remove from hand

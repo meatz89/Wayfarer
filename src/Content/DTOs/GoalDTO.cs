@@ -62,11 +62,21 @@ public class GoalDTO
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
 
     /// <summary>
-    /// Optional index into parent entity's Obstacles list
-    /// Parser uses this to set Goal.TargetObstacle reference
-    /// null = standalone goal not targeting any obstacle
+    /// What effect this goal has when completed
+    /// Values: "None", "ReduceProperties", "RemoveObstacle"
     /// </summary>
-    public int? TargetObstacleIndex { get; set; }
+    public string EffectType { get; set; }
+
+    /// <summary>
+    /// Property requirements for goal visibility (80 Days pattern)
+    /// Goal visible only if parent obstacle properties meet these thresholds
+    /// </summary>
+    public ObstaclePropertyRequirementsDTO PropertyRequirements { get; set; }
+
+    /// <summary>
+    /// Property reduction to apply to parent obstacle (for ReduceProperties effect)
+    /// </summary>
+    public ObstaclePropertyReductionDTO PropertyReduction { get; set; }
 
     /// <summary>
     /// Prerequisites for this goal to be available

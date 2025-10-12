@@ -51,14 +51,7 @@ public class InvestigationPhaseDefinition
     public string Goal { get; set; } // Goal text (narrative description)
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
-    /// <summary>
-    /// Goal ID - references existing goal in GameWorld.Goals dictionary
-    /// Investigation system looks up this goal and adds to ActiveGoals when requirements met
-    /// SystemType, DeckId, LocationId, NpcId all come from the referenced Goal entity
-    /// </summary>
-    public string GoalId { get; set; }
-
-    // Prerequisites for this goal to spawn
+    // Prerequisites for this phase to complete
     public GoalRequirements Requirements { get; set; } = new GoalRequirements();
 
     // Rewards granted on completion

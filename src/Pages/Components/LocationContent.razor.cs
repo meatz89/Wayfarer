@@ -32,6 +32,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected DevModeService DevMode { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected ObstacleGoalFilter ObstacleGoalFilter { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -52,6 +53,7 @@ namespace Wayfarer.Pages.Components
         protected List<Goal> AvailableSocialGoals { get; set; } = new();
         protected List<Goal> AvailableMentalGoals { get; set; } = new();
         protected List<Goal> AvailablePhysicalGoals { get; set; } = new();
+        protected List<Obstacle> CurrentObstacles { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -99,6 +101,14 @@ namespace Wayfarer.Pages.Components
                         ConnectionState = stateDisplay
                     });
                 }
+            }
+
+            // Get obstacles at current location
+            CurrentObstacles.Clear();
+            if (CurrentSpot != null && CurrentSpot.Obstacles != null)
+            {
+                CurrentObstacles = CurrentSpot.Obstacles;
+                Console.WriteLine($"[LocationContent] Got {CurrentObstacles.Count} obstacles at {CurrentSpot.Name}");
             }
 
             // Get available observations
@@ -160,25 +170,28 @@ namespace Wayfarer.Pages.Components
 
             // Get Social, Mental, and Physical investigation goals available at current location
             // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
-            // Goals are stored directly on location - Locations are the only entity that matters
+            // Aggregates: ambient goals (location.ActiveGoals) + obstacle-specific goals (filtered by property requirements)
             AvailableSocialGoals.Clear();
             AvailableMentalGoals.Clear();
             AvailablePhysicalGoals.Clear();
-            if (CurrentSpot != null && CurrentSpot.ActiveGoals != null)
+            if (CurrentSpot != null)
             {
-                AvailableSocialGoals = CurrentSpot.ActiveGoals
+                // Use ObstacleGoalFilter to aggregate ambient + filtered obstacle goals
+                List<Goal> allVisibleGoals = ObstacleGoalFilter.GetVisibleLocationGoals(CurrentSpot);
+
+                AvailableSocialGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Social)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailableMentalGoals = CurrentSpot.ActiveGoals
+                AvailableMentalGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Mental)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
                     .ToList();
 
-                AvailablePhysicalGoals = CurrentSpot.ActiveGoals
+                AvailablePhysicalGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Physical)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
