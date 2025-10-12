@@ -525,22 +525,46 @@ namespace Wayfarer.Pages.Components
             return string.Join(", ", propertyDescriptions);
         }
 
+        // =============================================
+        // GOAL CARD DETECTION & FILTERING
+        // =============================================
+
+        /// <summary>
+        /// Detect if a card is a goal card (self-contained victory condition)
+        /// Goal cards have Context.threshold but NO SocialCardTemplate
+        /// </summary>
+        protected bool IsGoalCard(CardInstance card)
+        {
+            if (card == null) return false;
+
+            // Goal cards have threshold in Context and no system-specific template
+            return card.Context?.threshold > 0 && card.SocialCardTemplate == null;
+        }
+
+        /// <summary>
+        /// Get all goal cards currently in hand (unlocked at Momentum thresholds)
+        /// </summary>
+        protected List<CardInstance> GetAvailableGoalCards()
+        {
+            List<CardInstance> handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            return handCards.Where(c => IsGoalCard(c)).ToList();
+        }
+
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
             // Static UI: Return simple list of current hand cards
             List<CardInstance> handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
 
-            // CRITICAL: Request cards MUST appear first (user requirement)
-            List<CardInstance> sortedCards = handCards
-                .ToList();
+            // FILTER OUT GOAL CARDS - they render separately
+            List<CardInstance> regularCards = handCards.Where(c => !IsGoalCard(c)).ToList();
 
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
-            foreach (CardInstance? card in sortedCards)
+            foreach (CardInstance? card in regularCards)
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
 
-            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards (request cards first)");
+            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards (goal cards filtered out)");
             return displayCards;
         }
 
@@ -776,6 +800,52 @@ namespace Wayfarer.Pages.Components
         {
             if (card?.SocialCardTemplate?.Move == null) return "move-remark";
             return $"move-{card.SocialCardTemplate.Move.ToString().ToLower()}";
+        }
+
+        // =============================================
+        // GOAL CARD PLAY
+        // =============================================
+
+        /// <summary>
+        /// Play a goal card to complete the conversation
+        /// Goal cards end the conversation immediately with success
+        /// </summary>
+        protected async Task PlayGoalCard(CardInstance goalCard)
+        {
+            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (IsProcessing || IsGeneratingNarrative) return;
+
+            IsProcessing = true;
+            StateHasChanged();
+
+            try
+            {
+                // Goal cards use PlayConversationCard - SocialFacade handles goal card logic
+                SocialTurnResult result = await GameFacade.PlayConversationCard(goalCard);
+
+                if (result != null && result.Success)
+                {
+                    LastNarrative = result.Narrative?.NarrativeText ?? "Request complete";
+                    IsConversationEnded = true;
+                    EndReason = "Request complete";
+
+                    // Refresh resource display
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConversationContent] Error playing goal card: {ex.Message}");
+                LastNarrative = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsProcessing = false;
+                StateHasChanged();
+            }
         }
     }
 }

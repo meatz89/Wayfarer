@@ -657,6 +657,30 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
+        // GOAL CARD DETECTION & FILTERING
+        // =============================================
+
+        /// <summary>
+        /// Detect if a card is a goal card (self-contained victory condition)
+        /// Goal cards have Context.threshold but NO PhysicalCardTemplate
+        /// </summary>
+        protected bool IsGoalCard(CardInstance card)
+        {
+            if (card == null) return false;
+
+            // Goal cards have threshold in Context and no system-specific template
+            return card.Context?.threshold > 0 && card.PhysicalCardTemplate == null;
+        }
+
+        /// <summary>
+        /// Get all goal cards currently in hand (unlocked at Breakthrough thresholds)
+        /// </summary>
+        protected List<CardInstance> GetAvailableGoalCards()
+        {
+            return Hand?.Where(c => IsGoalCard(c)).ToList() ?? new List<CardInstance>();
+        }
+
+        // =============================================
         // CARD DISPLAY LIST
         // =============================================
 
@@ -665,7 +689,8 @@ namespace Wayfarer.Pages.Components
             List<CardInstance> handCards = Hand ?? new List<CardInstance>();
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            foreach (CardInstance card in handCards)
+            // FILTER OUT GOAL CARDS - they render separately
+            foreach (CardInstance card in handCards.Where(c => !IsGoalCard(c)))
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
@@ -756,6 +781,52 @@ namespace Wayfarer.Pages.Components
             if (segmentValue < -5) return "overcautious";
             if (segmentValue > 5) return "reckless";
             return "balanced";
+        }
+
+        // =============================================
+        // GOAL CARD PLAY
+        // =============================================
+
+        /// <summary>
+        /// Play a goal card to complete the challenge
+        /// Goal cards end the session immediately with success
+        /// </summary>
+        protected async Task PlayGoalCard(CardInstance goalCard)
+        {
+            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (IsProcessing) return;
+
+            IsProcessing = true;
+            StateHasChanged();
+
+            try
+            {
+                // Goal cards use ExecuteExecute - PhysicalFacade handles goal card logic
+                PhysicalTurnResult result = await GameFacade.ExecuteExecute(goalCard);
+
+                if (result != null && result.Success)
+                {
+                    LastNarrative = result.Narrative;
+                    IsChallengeEnded = true;
+                    EndReason = "Challenge complete";
+
+                    // Refresh resource display
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PhysicalContent] Error playing goal card: {ex.Message}");
+                LastNarrative = $"Error: {ex.Message}";
+            }
+            finally
+            {
+                IsProcessing = false;
+                StateHasChanged();
+            }
         }
 
     }

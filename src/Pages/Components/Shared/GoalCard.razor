@@ -1,0 +1,98 @@
+@namespace Wayfarer.Pages.Components.Shared
+
+@* Universal GoalCard component - works for all three tactical systems *@
+
+<div class="goal-card-instance @GetPlayabilityClass()" @onclick="HandleClick">
+    <div class="goal-header">
+        <span class="goal-threshold-label">Threshold:</span>
+        <span class="goal-threshold-value">@Card.GoalCardTemplate.threshold</span>
+        <span class="goal-progress-status">@CurrentProgress / @Card.GoalCardTemplate.threshold</span>
+    </div>
+
+    <div class="goal-name">@Card.GoalCardTemplate.Name</div>
+
+    @if (!string.IsNullOrEmpty(Card.GoalCardTemplate.Description))
+    {
+        <div class="goal-description">@Card.GoalCardTemplate.Description</div>
+    }
+
+    @if (Card.GoalCardTemplate?.Rewards != null)
+    {
+        <div class="goal-rewards">
+            <strong>Rewards:</strong>
+            <div class="reward-list">
+                @if (Card.GoalCardTemplate.Rewards.Coins.HasValue && Card.GoalCardTemplate.Rewards.Coins.Value > 0)
+                {
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.Coins Coins</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.Progress.HasValue && Card.GoalCardTemplate.Rewards.Progress.Value > 0)
+                {
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.Progress Progress</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.Breakthrough.HasValue && Card.GoalCardTemplate.Rewards.Breakthrough.Value > 0)
+                {
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.Breakthrough Breakthrough</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.Knowledge != null && Card.GoalCardTemplate.Rewards.Knowledge.Any())
+                {
+                    @foreach (string knowledge in Card.GoalCardTemplate.Rewards.Knowledge)
+                    {
+                        <div class="reward-item">Knowledge: @knowledge</div>
+                    }
+                }
+                @if (!string.IsNullOrEmpty(Card.GoalCardTemplate.Rewards.Item))
+                {
+                    <div class="reward-item">Item: @Card.GoalCardTemplate.Rewards.Item</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.Tokens != null && Card.GoalCardTemplate.Rewards.Tokens.Any())
+                {
+                    @foreach (KeyValuePair<string, int> token in Card.GoalCardTemplate.Rewards.Tokens)
+                    {
+                        <div class="reward-item">+@token.Value @token.Key</div>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    @if (!IsPlayable)
+    {
+        <div class="goal-locked-overlay">
+            <span class="lock-icon">🔒</span>
+            <span class="lock-text">Need @GetProgressNeeded() more to unlock</span>
+        </div>
+    }
+    else
+    {
+        <div class="goal-playable-indicator">
+            ✓ Ready to Complete
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public CardInstance Card { get; set; }
+    [Parameter] public int CurrentProgress { get; set; }
+    [Parameter] public EventCallback<CardInstance> OnCardClick { get; set; }
+
+    private bool IsPlayable => CurrentProgress >= (Card?.GoalCardTemplate?.threshold ?? int.MaxValue);
+
+    private string GetPlayabilityClass()
+    {
+        return IsPlayable ? "playable" : "locked";
+    }
+
+    private int GetProgressNeeded()
+    {
+        int threshold = Card?.GoalCardTemplate?.threshold ?? 0;
+        return Math.Max(0, threshold - CurrentProgress);
+    }
+
+    private async Task HandleClick()
+    {
+        if (IsPlayable && OnCardClick.HasDelegate)
+        {
+            await OnCardClick.InvokeAsync(Card);
+        }
+    }
+}

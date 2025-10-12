@@ -151,6 +151,28 @@
             </div>
         </div>
 
+        <!-- Available Goal Cards (Victory Conditions) -->
+        @if (GetAvailableGoalCards().Any())
+        {
+            <div class="available-goals-section">
+                <div class="pile-display">
+                    <div class="pile-count">
+                        <span>Available Goals:</span>
+                        <span class="pile-number">@GetAvailableGoalCards().Count</span>
+                    </div>
+                </div>
+
+                <div class="goal-cards-grid">
+                    @foreach (var goalCard in GetAvailableGoalCards())
+                    {
+                        <GoalCard Card="@goalCard"
+                                  CurrentProgress="@Session.CurrentProgress"
+                                  OnCardClick="@PlayGoalCard" />
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Hand Display -->
         <div class="cards-section">
             <div class="pile-display">
