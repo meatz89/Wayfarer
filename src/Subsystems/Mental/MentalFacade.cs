@@ -539,14 +539,12 @@ public class MentalFacade
     private void CheckInvestigationProgress(string goalId, string investigationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation != null && goalId == "notice_waterwheel")
+        if (_gameWorld.Goals.TryGetValue(goalId, out Goal goal) && goal.IsIntroAction)
         {
-            // This is intro completion - activate investigation
-            // CompleteIntroAction spawns goals directly to ActiveGoals
+            // This is intro completion - activate investigation and spawn Phase 1
             _investigationActivity.CompleteIntroAction(investigationId);
 
-            Console.WriteLine($"[MentalFacade] Investigation '{investigation.Name}' ACTIVATED");
+            Console.WriteLine($"[MentalFacade] Intro action complete - Investigation '{investigationId}' ACTIVATED");
             return;
         }
 
