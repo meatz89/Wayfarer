@@ -140,11 +140,16 @@ public class ObstacleGoalFilter
         List<Goal> visibleGoals = new List<Goal>();
 
         // Routes only have obstacle-specific goals (no ambient goals)
-        if (route.Obstacles != null)
+        // DISTRIBUTED INTERACTION: Obstacles stored in GameWorld.Obstacles, referenced by route.ObstacleIds
+        if (route.ObstacleIds != null)
         {
-            foreach (Obstacle obstacle in route.Obstacles)
+            foreach (string obstacleId in route.ObstacleIds)
             {
-                visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+                Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+                if (obstacle != null)
+                {
+                    visibleGoals.AddRange(GetVisibleGoalsFromObstacle(obstacle));
+                }
             }
         }
 

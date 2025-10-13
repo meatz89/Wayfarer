@@ -96,7 +96,8 @@ public class RouteOption
     public int StartingStamina { get; set; } = 3;
 
     // Obstacles on this route (bandits, flooding, difficult terrain challenges)
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    // References obstacles in GameWorld.Obstacles (single source of truth)
+    public List<string> ObstacleIds { get; set; } = new List<string>();
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {

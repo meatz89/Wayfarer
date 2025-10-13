@@ -492,7 +492,18 @@ public class InvestigationActivity
                     Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Route '{spawnInfo.TargetEntityId}' not found");
                     return;
                 }
-                route.Obstacles.Add(spawnInfo.Obstacle);
+                // Duplicate ID protection - prevent data corruption
+                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
+                {
+                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
+                    route.ObstacleIds.Add(spawnInfo.Obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on Route '{route.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
                 Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on Route '{route.Name}'");
                 _messageSystem.AddSystemMessage(
                     $"New obstacle appeared on route to {route.Name}: {spawnInfo.Obstacle.Name}",

@@ -1233,9 +1233,21 @@ public class PackageLoader
             foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
                 Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id, _gameWorld);
-                route.Obstacles.Add(obstacle);
+
+                // Duplicate ID protection - prevent data corruption
+                if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+                {
+                    _gameWorld.Obstacles.Add(obstacle);
+                    route.ObstacleIds.Add(obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in route '{route.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
             }
-            Console.WriteLine($"[PackageLoader] Parsed {route.Obstacles.Count} obstacles for route '{route.Name}'");
+            Console.WriteLine($"[PackageLoader] Parsed {route.ObstacleIds.Count} obstacles for route '{route.Name}'");
         }
 
         return route;

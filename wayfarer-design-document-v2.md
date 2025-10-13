@@ -708,27 +708,82 @@ Obstacles are first-class entities with five numerical properties representing d
 
 **Property Semantics:** Each property has natural world meaning - PhysicalDanger means actual physical danger, not an abstract difficulty modifier. Properties compose through simple addition (3 obstacles with PhysicalDanger = sum of all three).
 
-### Where Obstacles Live
+### Where Obstacles Live: Ownership vs Placement
 
-Obstacles exist on entities as strongly-typed lists:
+**Motivation:** Enable distributed interaction pattern where one obstacle can have goals at multiple locations while maintaining single source of truth.
 
-**Route.Obstacles: List\<Obstacle>**
-- Challenges on travel routes (bandits, flooding, difficult terrain)
-- Multiple obstacles per route accumulate properties
-- Player sees total challenge before traveling
+**Problem (Ownership Anti-Pattern):**
+```
+Route.Obstacles: List<Obstacle>      // Route OWNS obstacles
+Location.Obstacles: List<Obstacle>    // Location OWNS obstacles
+NPC.Obstacles: List<Obstacle>         // NPC OWNS obstacles
+```
 
-**Location.Obstacles: List\<Obstacle>**
-- Challenges at locations (structural instability, hidden mechanisms, dangerous conditions)
-- Mental/Physical goals target these obstacles
-- Clearing obstacles improves location accessibility
+**Why this fails:**
+- **Multiple Sources of Truth**: Same obstacle type owned by three different containers
+- **No Distributed Interaction**: One obstacle cannot have goals at multiple locations
+- **Property Changes Don't Propagate**: Clearing obstacle property at Location A doesn't affect Location B
+- **Violates Single Responsibility**: Routes/Locations/NPCs manage both placement AND lifecycle
 
-**NPC.Obstacles: List\<Obstacle>**
-- Social barriers only (interpersonal trust barriers, hostility, communication gaps)
-- Social goals target these obstacles
-- NPCs can ONLY have SocialDifficulty obstacles (other properties = 0)
-- Verisimilitude: You don't physically challenge an NPC, you socially navigate them
+**Solution (Reference Pattern with Single Source):**
 
-**Architecture Note:** Obstacles live directly on entities in GameWorld. No separate global Obstacles collection. No SharedData dictionaries. Clean entity ownership.
+**OWNERSHIP (Lifecycle Control):**
+```
+GameWorld.Obstacles: List<Obstacle>    // SINGLE source of truth, flat list
+```
+- GameWorld owns ALL obstacles (both investigation-spawned and world-authored)
+- Obstacles created ONCE, stored ONCE
+- Property changes affect ALL placements simultaneously
+
+**PLACEMENT (Rendering Context):**
+```
+Route.ObstacleIds: List<string>       // References obstacles
+Location.ObstacleIds: List<string>    // References obstacles
+NPC.ObstacleIds: List<string>         // References obstacles
+```
+- Routes/Locations/NPCs reference obstacles by ID (not ownership)
+- ONE obstacle can be referenced by MULTIPLE entities
+- UI looks up obstacle from GameWorld.Obstacles by ID
+
+**Why this works:**
+- **Single Source of Truth**: GameWorld.Obstacles is authoritative
+- **Distributed Interaction**: One obstacle ID in multiple entity ObstacleIds lists
+- **Property Propagation**: Change obstacle properties → affects all placements automatically
+- **Clean Separation**: GameWorld controls lifecycle, entities control placement
+
+**Distributed Interaction Example:**
+```json
+GameWorld.Obstacles: [
+  {
+    "id": "gatekeeper_suspicion",
+    "socialDifficulty": 2,
+    "goals": [
+      {"id": "pay_fee", "placementLocationId": "north_gate"},
+      {"id": "show_pass", "placementLocationId": "north_gate"},
+      {"id": "ask_about_miller", "placementLocationId": "town_square"},
+      {"id": "get_official_pass", "placementLocationId": "town_hall"}
+    ]
+  }
+]
+
+Location["north_gate"].ObstacleIds = ["gatekeeper_suspicion"]
+Location["town_square"].ObstacleIds = ["gatekeeper_suspicion"]
+Location["town_hall"].ObstacleIds = ["gatekeeper_suspicion"]
+```
+
+Player discovers connections organically:
+1. North gate: sees "Pay Fee" (expensive)
+2. Explores → town square: sees "Ask About Miller" goal
+3. Completes that → discovers town hall goal
+4. Town hall: "Get Official Pass" reduces gatekeeper SocialDifficulty 2→0
+5. Returns to north gate: NOW sees "Show Pass" (free, unlocked by property reduction)
+
+**Architecture Notes:**
+- NO Route.Obstacles / Location.Obstacles / NPC.Obstacles ownership lists
+- ONLY ObstacleIds reference lists for placement
+- GameWorld.Obstacles is ONLY storage
+- Parsers add to GameWorld.Obstacles, then add ID references to entity.ObstacleIds
+- UI queries GameWorld.Obstacles by ID for display
 
 ### Goal-Obstacle Connection
 
