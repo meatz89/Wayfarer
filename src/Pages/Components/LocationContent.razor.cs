@@ -33,6 +33,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected DevModeService DevMode { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected ObstacleGoalFilter ObstacleGoalFilter { get; set; }
+        [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -299,13 +300,12 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartInvestigationIntro(Investigation investigation)
         {
-            Console.WriteLine($"[LocationContent] Starting investigation intro: '{investigation.Name}'");
+            Console.WriteLine($"[LocationContent] Setting pending intro for: '{investigation.Name}'");
 
-            // Call GameFacade to complete intro action (activates investigation + spawns Phase 1)
-            GameFacade.CompleteInvestigationIntro(investigation.Id);
+            // Set pending intro action (doesn't activate yet - just prepares modal)
+            InvestigationActivity.SetPendingIntroAction(investigation.Id);
 
-            // Refresh UI to show Phase 1 obstacles
-            await RefreshLocationData();
+            // Refresh UI so modal can detect pending result
             await OnActionExecuted.InvokeAsync();
         }
 

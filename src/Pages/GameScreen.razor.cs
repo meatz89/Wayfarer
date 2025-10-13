@@ -541,6 +541,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
+        await CheckForInvestigationResults();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -644,10 +645,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Investigation Modals
     protected bool _showInvestigationDiscoveryModal = false;
+    protected bool _showInvestigationIntroModal = false;
     protected bool _showInvestigationActivationModal = false;
     protected bool _showInvestigationProgressModal = false;
     protected bool _showInvestigationCompleteModal = false;
     protected InvestigationDiscoveryResult _investigationDiscoveryResult;
+    protected InvestigationIntroResult _investigationIntroResult;
     protected InvestigationActivationResult _investigationActivationResult;
     protected InvestigationProgressResult _investigationProgressResult;
     protected InvestigationCompleteResult _investigationCompleteResult;
@@ -659,6 +662,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         {
             _investigationDiscoveryResult = discoveryResult;
             _showInvestigationDiscoveryModal = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        InvestigationIntroResult introResult = InvestigationActivity.GetAndClearPendingIntroResult();
+        if (introResult != null)
+        {
+            _investigationIntroResult = introResult;
+            _showInvestigationIntroModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
@@ -751,6 +763,32 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         // Auto-open journal to show discovered investigation
         _showJournal = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task CloseInvestigationIntroModal()
+    {
+        _showInvestigationIntroModal = false;
+        _investigationIntroResult = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task CompleteInvestigationIntroAction()
+    {
+        _showInvestigationIntroModal = false;
+
+        string investigationId = _investigationIntroResult.InvestigationId;
+        _investigationIntroResult = null;
+
+        // Activate investigation and spawn Phase 1 obstacle
+        GameFacade.CompleteInvestigationIntro(investigationId);
+
+        // Refresh UI after activation
+        await RefreshLocationDisplay();
+
+        // Check for activation modal
+        await CheckForInvestigationResults();
 
         await InvokeAsync(StateHasChanged);
     }

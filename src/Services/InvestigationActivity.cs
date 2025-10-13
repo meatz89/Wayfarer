@@ -18,6 +18,7 @@ public class InvestigationActivity
     private InvestigationActivationResult _pendingActivationResult;
     private InvestigationProgressResult _pendingProgressResult;
     private InvestigationCompleteResult _pendingCompleteResult;
+    private InvestigationIntroResult _pendingIntroResult;
 
     public InvestigationActivity(
         GameWorld gameWorld,
@@ -71,6 +72,51 @@ public class InvestigationActivity
         InvestigationActivationResult result = _pendingActivationResult;
         _pendingActivationResult = null;
         return result;
+    }
+
+    /// <summary>
+    /// Get and clear pending intro result for UI modal display
+    /// Returns null if no result pending
+    /// </summary>
+    public InvestigationIntroResult GetAndClearPendingIntroResult()
+    {
+        InvestigationIntroResult result = _pendingIntroResult;
+        _pendingIntroResult = null;
+        return result;
+    }
+
+    /// <summary>
+    /// Set pending intro action - prepares quest acceptance modal but doesn't activate
+    /// RPG Pattern: Button click → Modal → "Begin Investigation" → Activate
+    /// </summary>
+    public void SetPendingIntroAction(string investigationId)
+    {
+        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+        if (investigation == null)
+            throw new ArgumentException($"Investigation '{investigationId}' not found");
+
+        if (investigation.IntroAction == null)
+            throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action");
+
+        // Derive venue from location
+        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);
+        Venue venue = spotEntry != null
+            ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
+            : null;
+
+        // Create intro result for quest acceptance modal
+        _pendingIntroResult = new InvestigationIntroResult
+        {
+            InvestigationId = investigationId,
+            InvestigationName = investigation.Name,
+            IntroNarrative = investigation.IntroAction.IntroNarrative,
+            IntroActionText = investigation.IntroAction.ActionText,
+            ColorCode = investigation.ColorCode,
+            LocationName = venue?.Name ?? "Unknown Venue",
+            SpotName = spotEntry?.location.Name ?? investigation.IntroAction.LocationId
+        };
+
+        Console.WriteLine($"[InvestigationActivity] Pending intro modal set for '{investigation.Name}'");
     }
 
     /// <summary>

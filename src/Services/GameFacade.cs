@@ -1028,6 +1028,23 @@ public class GameFacade
     }
 
     /// <summary>
+    /// Set pending intro action - prepares quest acceptance modal
+    /// RPG quest acceptance: Button → Modal → "Begin" → Activate
+    /// </summary>
+    public void SetPendingIntroAction(string investigationId)
+    {
+        _investigationActivity.SetPendingIntroAction(investigationId);
+    }
+
+    /// <summary>
+    /// Get pending intro result for modal display
+    /// </summary>
+    public InvestigationIntroResult GetPendingIntroResult()
+    {
+        return _investigationActivity.GetAndClearPendingIntroResult();
+    }
+
+    /// <summary>
     /// Get route by ID (V2 Travel Integration)
     /// </summary>
     public RouteOption GetRouteById(string routeId)
