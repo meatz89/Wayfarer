@@ -45,6 +45,7 @@ public class GoalCard
 
 /// <summary>
 /// Rewards for achieving a goal card
+/// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 /// </summary>
 public class GoalCardRewards
 {
@@ -53,7 +54,7 @@ public class GoalCardRewards
     public int? Breakthrough { get; set; }
     public string ObligationId { get; set; }
     public string Item { get; set; }
-    public List<string> Knowledge { get; set; } = new List<string>();
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
     public ObstaclePropertyReduction ObstacleReduction { get; set; }
 }

@@ -37,7 +37,7 @@ public class InvestigationParser
             Name = dto.Name,
             Description = dto.Description,
             OutcomeNarrative = dto.OutcomeNarrative,
-            Requirements = ParseRequirements(dto.Requirements),
+            // GoalRequirements system eliminated - phases progress through actual goal completion tracking
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
     }
@@ -48,7 +48,7 @@ public class InvestigationParser
 
         PhaseCompletionReward reward = new PhaseCompletionReward
         {
-            KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>()
+            UnderstandingReward = dto.UnderstandingReward
         };
 
         // Parse obstacle spawns
@@ -121,18 +121,6 @@ public class InvestigationParser
         };
     }
 
-    private GoalRequirements ParseRequirements(PhaseRequirementsDTO dto)
-    {
-        if (dto == null) return new GoalRequirements();
-
-        return new GoalRequirements
-        {
-            RequiredKnowledge = dto.Knowledge ?? new List<string>(),
-            RequiredEquipment = dto.Equipment ?? new List<string>(),
-            CompletedGoals = dto.CompletedGoals ?? new List<string>()
-        };
-    }
-
     private TacticalSystemType ParseSystemType(string systemTypeString)
     {
         return Enum.TryParse<TacticalSystemType>(systemTypeString, out TacticalSystemType type)
@@ -172,7 +160,7 @@ public class InvestigationParser
         return new InvestigationPrerequisites
         {
             LocationId = dto.LocationId,
-            RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
+            // Knowledge system eliminated
             RequiredItems = dto.RequiredItems ?? new List<string>(),
             RequiredObligation = dto.RequiredObligation
         };

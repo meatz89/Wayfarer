@@ -38,7 +38,10 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected SocialFacade ConversationFacade { get; set; }
         [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected ItemRepository ItemRepository { get; set; }
         [Inject] protected SocialNarrativeService NarrativeService { get; set; }
+        [Inject] protected DifficultyCalculationService DifficultyService { get; set; }
 
         /// <summary>
         /// PROJECTION PRINCIPLE: The CategoricalEffectResolver is a pure projection function
@@ -682,6 +685,38 @@ namespace Wayfarer.Pages.Components
         protected int GetMindCount()
         {
             return Session?.Deck?.HandSize ?? 0;
+        }
+
+        /// <summary>
+        /// Calculate difficulty for a goal card using DifficultyCalculationService
+        /// Returns calculated difficulty based on player's current modifiers (Understanding, tokens, familiarity)
+        /// </summary>
+        protected int GetGoalDifficulty(CardInstance goalCard)
+        {
+            if (goalCard?.GoalCardTemplate == null) return 0;
+            if (DifficultyService == null || ItemRepository == null) return goalCard.GoalCardTemplate.threshold;
+
+            // Find parent Goal from GameWorld by searching for GoalCard ID
+            Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
+            if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
+
+            // Calculate actual difficulty using DifficultyCalculationService with all modifiers
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, ItemRepository);
+            return result.FinalDifficulty;
+        }
+
+        private Goal FindParentGoal(string goalCardId)
+        {
+            if (GameWorld?.Goals == null) return null;
+
+            foreach (Goal goal in GameWorld.Goals.Values)
+            {
+                if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
+                {
+                    return goal;
+                }
+            }
+            return null;
         }
 
         /// <summary>

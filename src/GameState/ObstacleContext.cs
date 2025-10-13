@@ -80,11 +80,7 @@ public class ObstacleContext
     {
         List<string> reasons = new List<string>();
 
-        if (approach.KnowledgeRequirements != null && !approach.KnowledgeRequirements.MeetsRequirements(Player.Knowledge))
-        {
-            List<string> missing = approach.KnowledgeRequirements.GetMissingRequirements(Player.Knowledge);
-            reasons.AddRange(missing.Select(m => $"Missing knowledge: {m}"));
-        }
+        // Knowledge system eliminated
 
         if (approach.EquipmentRequirements != null && !approach.EquipmentRequirements.MeetsRequirements(Player, ItemRepository))
         {
@@ -132,7 +128,7 @@ public class ObstacleContext
                 TimeSegmentCost = approach.SuccessOutcome.TimeSegmentCost,
                 StaminaCost = approach.SuccessOutcome.StaminaCost,
                 HealthChange = approach.SuccessOutcome.HealthChange,
-                KnowledgeGained = approach.SuccessOutcome.KnowledgeGained,
+                // Knowledge system eliminated
                 HasRouteImprovement = approach.SuccessOutcome.RouteImprovement != null
             } : null,
             FailureOutcome = approach.FailureOutcome != null ? new ObstacleOutcomePreview
@@ -141,7 +137,7 @@ public class ObstacleContext
                 TimeSegmentCost = approach.FailureOutcome.TimeSegmentCost,
                 StaminaCost = approach.FailureOutcome.StaminaCost,
                 HealthChange = approach.FailureOutcome.HealthChange,
-                KnowledgeGained = approach.FailureOutcome.KnowledgeGained,
+                // Knowledge system eliminated
                 HasRouteImprovement = approach.FailureOutcome.RouteImprovement != null
             } : null
         };
@@ -172,6 +168,6 @@ public class ObstacleOutcomePreview
     public int TimeSegmentCost { get; set; }
     public int StaminaCost { get; set; }
     public int HealthChange { get; set; }
-    public List<string> KnowledgeGained { get; set; } = new List<string>();
+    // Knowledge system eliminated
     public bool HasRouteImprovement { get; set; }
 }

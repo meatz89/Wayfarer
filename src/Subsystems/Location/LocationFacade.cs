@@ -18,7 +18,7 @@ public class LocationFacade
 
     // External dependencies for references
     private readonly ObservationSystem _observationSystem;
-    private readonly ObservationManager _observationManager;
+    // ObservationManager eliminated - observation system removed
     private readonly RouteRepository _routeRepository;
     private readonly NPCRepository _npcRepository;
     private readonly TimeManager _timeManager;
@@ -35,7 +35,6 @@ public class LocationFacade
         LocationActionManager actionManager,
         LocationNarrativeGenerator narrativeGenerator,
         ObservationSystem observationSystem,
-        ObservationManager observationManager,
         RouteRepository routeRepository,
         NPCRepository npcRepository,
         TimeManager timeManager,
@@ -51,7 +50,7 @@ public class LocationFacade
         _actionManager = actionManager;
         _narrativeGenerator = narrativeGenerator;
         _observationSystem = observationSystem;
-        _observationManager = observationManager;
+        // ObservationManager eliminated
         _routeRepository = routeRepository;
         _npcRepository = npcRepository;
         _timeManager = timeManager;
@@ -357,7 +356,7 @@ public class LocationFacade
                     Text = obs.Text,
                     Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
                     Relevance = BuildRelevanceString(obs),
-                    IsObserved = _observationManager.HasTakenObservation(obs.Id)
+                    IsObserved = false // ObservationManager eliminated
                 });
             }
         }

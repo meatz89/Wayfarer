@@ -4,14 +4,12 @@ using System.Linq;
 public class TravelObstacleService
 {
     private readonly GameWorld _gameWorld;
-    private readonly KnowledgeService _knowledgeService;
     private readonly ItemRepository _itemRepository;
     private readonly TimeManager _timeManager;
 
-    public TravelObstacleService(GameWorld gameWorld, KnowledgeService knowledgeService, ItemRepository itemRepository, TimeManager timeManager)
+    public TravelObstacleService(GameWorld gameWorld, ItemRepository itemRepository, TimeManager timeManager)
     {
         _gameWorld = gameWorld;
-        _knowledgeService = knowledgeService;
         _itemRepository = itemRepository;
         _timeManager = timeManager;
     }
@@ -40,14 +38,7 @@ public class TravelObstacleService
                     }
                 }
 
-                if (approach.KnowledgeRequirements != null)
-                {
-                    List<string> missing = approach.KnowledgeRequirements.GetMissingRequirements(player.Knowledge);
-                    foreach (string m in missing)
-                    {
-                        reasons.Add(m);
-                    }
-                }
+                // Knowledge system eliminated - no knowledge requirements
 
                 if (player.Stamina < approach.StaminaRequired)
                 {
@@ -99,11 +90,7 @@ public class TravelObstacleService
         player.ModifyHealth(outcome.HealthChange);
         result.HealthChange = outcome.HealthChange;
 
-        foreach (string knowledge in outcome.KnowledgeGained)
-        {
-            _knowledgeService.GrantKnowledge(knowledge);
-            result.KnowledgeGained.Add(knowledge);
-        }
+        // Knowledge system eliminated - no knowledge rewards
 
         if (success && outcome.RouteImprovement != null)
         {
@@ -146,7 +133,7 @@ public class ObstacleAttemptResult
     public int StaminaCost { get; set; }
     public int HealthChange { get; set; }
 
-    public List<string> KnowledgeGained { get; set; } = new List<string>();
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
     public bool RouteImproved { get; set; }
     public string ImprovementDescription { get; set; }

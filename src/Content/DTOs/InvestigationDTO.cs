@@ -47,7 +47,7 @@ public class PhaseRequirementsDTO
     public Dictionary<string, int> DiscoveryQuantities { get; set; } = new Dictionary<string, int>();
     public List<string> SpecificDiscoveries { get; set; } = new List<string>();
     public List<string> Equipment { get; set; } = new List<string>();
-    public List<string> Knowledge { get; set; } = new List<string>();
+    // Knowledge system eliminated
 }
 
 /// <summary>
@@ -57,7 +57,7 @@ public class PhaseCompletionRewardDTO
 {
     public string Narrative { get; set; }
     public List<string> DiscoveriesGranted { get; set; } = new List<string>();
-    public List<string> KnowledgeGranted { get; set; } = new List<string>();
+    public int UnderstandingReward { get; set; } = 0; // Replaces KnowledgeGranted - 0-10 scale
     public string UnlocksPhaseId { get; set; }
     public List<ObstacleSpawnInfoDTO> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfoDTO>();
 }
@@ -104,7 +104,7 @@ public class InvestigationIntroActionDTO
 public class InvestigationPrerequisitesDTO
 {
     public string LocationId { get; set; } // LocationId is globally unique
-    public List<string> RequiredKnowledge { get; set; } = new List<string>();
+    // Knowledge system eliminated
     public List<string> RequiredItems { get; set; } = new List<string>();
     public string RequiredObligation { get; set; }
 }

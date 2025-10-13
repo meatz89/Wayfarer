@@ -43,6 +43,10 @@ public static class GoalParser
             ? ObstacleParser.ConvertDTOToReduction(dto.PropertyReduction)
             : null;
 
+        // Parse costs and difficulty modifiers
+        GoalCosts costs = ParseGoalCosts(dto.Costs);
+        List<DifficultyModifier> difficultyModifiers = ParseDifficultyModifiers(dto.DifficultyModifiers);
+
         Goal goal = new Goal
         {
             Id = dto.Id,
@@ -57,8 +61,11 @@ public static class GoalParser
             IsAvailable = dto.IsAvailable,
             IsCompleted = dto.IsCompleted,
             DeleteOnSuccess = dto.DeleteOnSuccess,
+            BaseDifficulty = dto.BaseDifficulty,
+            Costs = costs,
+            DifficultyModifiers = difficultyModifiers,
             GoalCards = new List<GoalCard>(),
-            Requirements = ParseGoalRequirements(dto.Requirements),
+            // GoalRequirements system eliminated - goals always visible, difficulty varies
             ConsequenceType = consequenceType,
             SetsResolutionMethod = resolutionMethod,
             SetsRelationshipOutcome = relationshipOutcome,
@@ -104,6 +111,7 @@ public static class GoalParser
 
     /// <summary>
     /// Parse goal card rewards
+    /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     /// </summary>
     private static GoalCardRewards ParseGoalCardRewards(GoalCardRewardsDTO dto)
     {
@@ -117,52 +125,12 @@ public static class GoalParser
             Breakthrough = dto.Breakthrough,
             ObligationId = dto.ObligationId,
             Item = dto.Item,
-            Knowledge = dto.Knowledge != null ? new List<string>(dto.Knowledge) : new List<string>(),
+            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
             Tokens = dto.Tokens != null ? new Dictionary<string, int>(dto.Tokens) : new Dictionary<string, int>(),
             ObstacleReduction = dto.ObstacleReduction != null ? ObstacleParser.ConvertDTOToReduction(dto.ObstacleReduction) : null
         };
 
         return rewards;
-    }
-
-    /// <summary>
-    /// Parse goal requirements
-    /// </summary>
-    private static GoalRequirements ParseGoalRequirements(GoalRequirementsDTO dto)
-    {
-        if (dto == null)
-            return null;
-
-        GoalRequirements requirements = new GoalRequirements
-        {
-            RequiredKnowledge = dto.RequiredKnowledge != null ? new List<string>(dto.RequiredKnowledge) : new List<string>(),
-            RequiredEquipment = dto.RequiredEquipment != null ? new List<string>(dto.RequiredEquipment) : new List<string>(),
-            RequiredStats = new List<StatRequirement>(),
-            MinimumLocationFamiliarity = dto.MinimumLocationFamiliarity,
-            CompletedGoals = dto.CompletedGoals != null ? new List<string>(dto.CompletedGoals) : new List<string>()
-        };
-
-        // Parse required stats list (strongly-typed, no Dictionary)
-        if (dto.RequiredStats != null)
-        {
-            foreach (StatRequirementDTO statDto in dto.RequiredStats)
-            {
-                if (Enum.TryParse<PlayerStatType>(statDto.StatType, true, out PlayerStatType statType))
-                {
-                    requirements.RequiredStats.Add(new StatRequirement
-                    {
-                        StatType = statType,
-                        MinimumLevel = statDto.MinimumLevel
-                    });
-                }
-                else
-                {
-                    Console.WriteLine($"[GoalParser] Warning: Unknown stat type '{statDto.StatType}' in requirements, skipping");
-                }
-            }
-        }
-
-        return requirements;
     }
 
     /// <summary>
@@ -229,6 +197,68 @@ public static class GoalParser
             MaxPhysicalDanger = dto.MaxPhysicalDanger,
             MaxMentalComplexity = dto.MaxMentalComplexity,
             MaxSocialDifficulty = dto.MaxSocialDifficulty
+        };
+    }
+
+    /// <summary>
+    /// Parse goal costs from DTO
+    /// </summary>
+    private static GoalCosts ParseGoalCosts(GoalCostsDTO dto)
+    {
+        if (dto == null)
+            return new GoalCosts();
+
+        return new GoalCosts
+        {
+            Time = dto.Time,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Coins = dto.Coins
+        };
+    }
+
+    /// <summary>
+    /// Parse difficulty modifiers list from DTOs
+    /// </summary>
+    private static List<DifficultyModifier> ParseDifficultyModifiers(List<DifficultyModifierDTO> dtos)
+    {
+        if (dtos == null || !dtos.Any())
+            return new List<DifficultyModifier>();
+
+        List<DifficultyModifier> modifiers = new List<DifficultyModifier>();
+        foreach (DifficultyModifierDTO dto in dtos)
+        {
+            DifficultyModifier modifier = ParseDifficultyModifier(dto);
+            if (modifier != null)
+            {
+                modifiers.Add(modifier);
+            }
+        }
+
+        return modifiers;
+    }
+
+    /// <summary>
+    /// Parse single difficulty modifier from DTO
+    /// </summary>
+    private static DifficultyModifier ParseDifficultyModifier(DifficultyModifierDTO dto)
+    {
+        if (dto == null)
+            return null;
+
+        // Parse modifier type
+        if (!Enum.TryParse<ModifierType>(dto.Type, true, out ModifierType modifierType))
+        {
+            Console.WriteLine($"[GoalParser] Warning: Unknown ModifierType '{dto.Type}', skipping modifier");
+            return null;
+        }
+
+        return new DifficultyModifier
+        {
+            Type = modifierType,
+            Context = dto.Context,
+            Threshold = dto.Threshold,
+            Effect = dto.Effect
         };
     }
 }

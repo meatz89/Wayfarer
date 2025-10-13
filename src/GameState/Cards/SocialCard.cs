@@ -76,8 +76,8 @@ public class SocialCard
     // NPC-specific targeting for signature cards
     public string NpcSpecific { get; init; }
 
-    // V2 Investigation System - Knowledge gained when card is played
-    public IReadOnlyList<string> KnowledgeGranted { get; init; } = new List<string>();
+    // V2 Investigation System - Understanding replaces KnowledgeGranted
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     public IReadOnlyList<string> SecretsGranted { get; init; } = new List<string>();
 
     // Get effective Initiative cost considering alternative costs

@@ -123,7 +123,7 @@ public static class SkeletonGenerator
             // Random but deterministic mechanical values
             Tier = 1 + (hash % 3), // Tier 1-3
             FlowModifier = -1 + (hash % 3), // -1 to +1
-            PlayerKnowledge = false,
+            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
             // Gameplay properties moved from Location
             LocationType = selectedType,

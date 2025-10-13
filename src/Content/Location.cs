@@ -15,7 +15,7 @@ public class Location
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
-    public bool PlayerKnowledge { get; set; }
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
     public AccessRequirement AccessRequirement { get; set; }
 
@@ -50,7 +50,7 @@ public class Location
     public int Familiarity { get; set; } = 0;
     public int MaxFamiliarity { get; set; } = 3;
     public int HighestObservationCompleted { get; set; } = 0;
-    public List<ObservationReward> ObservationRewards { get; set; } = new List<ObservationReward>();
+    // ObservationRewards system eliminated - replaced by transparent resource competition
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
     public int Exposure { get; set; } = 0;

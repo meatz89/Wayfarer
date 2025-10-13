@@ -87,11 +87,11 @@ public static class ServiceConfiguration
         // Investigation Activity - Strategic orchestrator for multi-phase investigations
         services.AddSingleton<InvestigationActivity>();
         services.AddSingleton<InvestigationDiscoveryEvaluator>();
-        services.AddSingleton<KnowledgeService>();
 
         // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
         services.AddSingleton<ObstacleGoalFilter>();
         services.AddSingleton<GoalCompletionHandler>();
+        services.AddSingleton<DifficultyCalculationService>();
 
         // NPC deck initialization handled directly in PackageLoader
 
@@ -126,10 +126,8 @@ public static class ServiceConfiguration
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
 
-        // Observation management system
-        services.AddSingleton<ObservationManager>();
-
         // Environmental Storytelling Systems
+        // ObservationManager eliminated - observation system removed
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();
 
@@ -137,7 +135,6 @@ public static class ServiceConfiguration
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<NarrativeService>();
         services.AddSingleton<RouteDiscoveryManager>();
-
 
         // Action generation service
         services.AddSingleton<ActionGenerator>();

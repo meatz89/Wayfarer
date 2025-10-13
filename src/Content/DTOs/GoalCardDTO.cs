@@ -39,6 +39,7 @@ public class GoalCardDTO
 
 /// <summary>
 /// DTO for goal card rewards
+/// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 /// </summary>
 public class GoalCardRewardsDTO
 {
@@ -47,7 +48,7 @@ public class GoalCardRewardsDTO
     public int? Breakthrough { get; set; }
     public string ObligationId { get; set; }
     public string Item { get; set; }
-    public List<string> Knowledge { get; set; } = new List<string>();
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
     public ObstaclePropertyReductionDTO ObstacleReduction { get; set; }
 }

@@ -45,10 +45,7 @@ public class PackageContent
     /// </summary>
     public List<ObservationDTO> Observations { get; set; }
 
-    /// <summary>
-    /// Investigation rewards - defines what observation cards are earned from Venue familiarity
-    /// </summary>
-    public List<ObservationRewardDTO> InvestigationRewards { get; set; }
+    // InvestigationRewards system eliminated - replaced by transparent resource competition
 
     /// <summary>
     /// Standing obligations - uses existing StandingObligationDTO
@@ -141,12 +138,6 @@ public class PackageContent
     /// V3: Now using InvestigationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
     /// </summary>
     public List<InvestigationDTO> Investigations { get; set; }
-
-    /// <summary>
-    /// Knowledge definitions - structured discoveries that connect investigations and enhance conversations
-    /// Serves as connective tissue: unlocks investigations, unlocks goals, grants observation cards
-    /// </summary>
-    public List<KnowledgeDTO> Knowledge { get; set; }
 
     /// <summary>
     /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)

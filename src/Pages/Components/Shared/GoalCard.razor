@@ -4,10 +4,12 @@
 
 <div class="goal-card-instance @GetPlayabilityClass()" @onclick="HandleClick">
     <div class="goal-header">
-        <span class="goal-threshold-label">Threshold:</span>
-        <span class="goal-threshold-value">@Card.GoalCardTemplate.threshold</span>
+        <span class="goal-threshold-label">Difficulty:</span>
+        <span class="goal-threshold-value">@GetDisplayDifficulty()</span>
         <span class="goal-progress-status">@CurrentProgress / @Card.GoalCardTemplate.threshold</span>
     </div>
+
+    @* Difficulty breakdown removed - simplified implementation returns BaseDifficulty only *@
 
     <div class="goal-name">@Card.GoalCardTemplate.Name</div>
 
@@ -33,13 +35,7 @@
                 {
                     <div class="reward-item">+@Card.GoalCardTemplate.Rewards.Breakthrough Breakthrough</div>
                 }
-                @if (Card.GoalCardTemplate.Rewards.Knowledge != null && Card.GoalCardTemplate.Rewards.Knowledge.Any())
-                {
-                    @foreach (string knowledge in Card.GoalCardTemplate.Rewards.Knowledge)
-                    {
-                        <div class="reward-item">Knowledge: @knowledge</div>
-                    }
-                }
+                @* Knowledge system eliminated - Understanding resource replaces Knowledge tokens *@
                 @if (!string.IsNullOrEmpty(Card.GoalCardTemplate.Rewards.Item))
                 {
                     <div class="reward-item">Item: @Card.GoalCardTemplate.Rewards.Item</div>
@@ -73,6 +69,8 @@
 @code {
     [Parameter] public CardInstance Card { get; set; }
     [Parameter] public int CurrentProgress { get; set; }
+    [Parameter] public int CalculatedDifficulty { get; set; } // NEW: Calculated difficulty from DifficultyCalculationService
+    [Parameter] public bool ShowModifiers { get; set; } = true; // NEW: Show difficulty breakdown
     [Parameter] public EventCallback<CardInstance> OnCardClick { get; set; }
 
     private bool IsPlayable => CurrentProgress >= (Card?.GoalCardTemplate?.threshold ?? int.MaxValue);
@@ -86,6 +84,20 @@
     {
         int threshold = Card?.GoalCardTemplate?.threshold ?? 0;
         return Math.Max(0, threshold - CurrentProgress);
+    }
+
+    /// <summary>
+    /// Get display difficulty (calculated if provided, fallback to threshold)
+    /// </summary>
+    private string GetDisplayDifficulty()
+    {
+        if (CalculatedDifficulty > 0)
+        {
+            // Show calculated difficulty from DifficultyCalculationService
+            return CalculatedDifficulty.ToString();
+        }
+        // Fallback to threshold (old system)
+        return Card?.GoalCardTemplate?.threshold.ToString() ?? "?";
     }
 
     private async Task HandleClick()

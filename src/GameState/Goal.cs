@@ -89,9 +89,28 @@ public class Goal
     public bool DeleteOnSuccess { get; set; } = true;
 
     /// <summary>
-    /// Prerequisites for this goal to be available
+    /// Resources player must pay to attempt this goal
+    /// Transparent costs create resource competition and strategic choices
+    /// Board game pattern: Goal A costs 20 Focus, Goal B costs 30 Focus - choose wisely
     /// </summary>
-    public GoalRequirements Requirements { get; set; }
+    public GoalCosts Costs { get; set; } = new GoalCosts();
+
+    /// <summary>
+    /// Base difficulty before any modifiers
+    /// Exposure for Mental challenges, Danger for Physical challenges, Doubt rate for Social challenges
+    /// Goal ALWAYS visible regardless of difficulty
+    /// Difficulty varies transparently based on player resources
+    /// </summary>
+    public int BaseDifficulty { get; set; } = 0;
+
+    /// <summary>
+    /// Difficulty modifiers that reduce/increase difficulty based on player state
+    /// Goal ALWAYS visible, difficulty varies transparently
+    /// Multiple paths to reduce difficulty create strategic choices
+    /// Example: Understanding 2 reduces Exposure by 3, Familiarity 2 reduces Exposure by 2
+    /// No boolean gates: All goals always visible, modifiers just change difficulty
+    /// </summary>
+    public List<DifficultyModifier> DifficultyModifiers { get; set; } = new List<DifficultyModifier>();
 
     /// <summary>
     /// Goal cards (tactical layer) - inline victory conditions
@@ -154,25 +173,4 @@ public class Goal
         Status = GoalStatus.Completed;
         IsCompleted = true;
     }
-}
-
-/// <summary>
-/// Requirements for a goal to be available
-/// </summary>
-public class GoalRequirements
-{
-    public List<string> RequiredKnowledge { get; set; } = new List<string>();
-    public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public List<StatRequirement> RequiredStats { get; set; } = new List<StatRequirement>();
-    public int MinimumLocationFamiliarity { get; set; } = 0;
-    public List<string> CompletedGoals { get; set; } = new List<string>();
-}
-
-/// <summary>
-/// Stat requirement (strongly-typed, no Dictionary)
-/// </summary>
-public class StatRequirement
-{
-    public PlayerStatType StatType { get; set; }
-    public int MinimumLevel { get; set; }
 }

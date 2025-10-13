@@ -24,7 +24,6 @@ public class ObstacleApproach
     public string Description { get; set; }
 
     public EquipmentRequirement EquipmentRequirements { get; set; }
-    public KnowledgeRequirement KnowledgeRequirements { get; set; }
     public int StaminaRequired { get; set; }
     public Dictionary<PlayerStatType, int> StatRequirements { get; set; } = new Dictionary<PlayerStatType, int>();
 
@@ -40,10 +39,7 @@ public class ObstacleApproach
             return false;
         }
 
-        if (KnowledgeRequirements != null && !KnowledgeRequirements.MeetsRequirements(player.Knowledge))
-        {
-            return false;
-        }
+        // Knowledge system eliminated - no knowledge requirements
 
         if (player.Stamina < StaminaRequired)
         {
@@ -70,7 +66,7 @@ public class ObstacleOutcome
     public int StaminaCost { get; set; }
     public int HealthChange { get; set; }
 
-    public List<string> KnowledgeGained { get; set; } = new List<string>();
+    // Knowledge system eliminated - no knowledge rewards
 
     public RouteImprovement RouteImprovement { get; set; }
 }

@@ -112,21 +112,14 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ConversationalDiscovery: Player has required knowledge from conversations
-    /// Prerequisites: requiredKnowledge list
+    /// ConversationalDiscovery: Investigation discovered through conversations
+    /// KNOWLEDGE SYSTEM ELIMINATED: No more boolean gates
+    /// Prerequisites: None (Knowledge system was deleted in Phase 2)
     /// </summary>
     private bool CheckConversationalDiscovery(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player has all required knowledge
-        if (prereqs.RequiredKnowledge != null && prereqs.RequiredKnowledge.Any())
-        {
-            foreach (string knowledgeId in prereqs.RequiredKnowledge)
-            {
-                if (!player.Knowledge.HasKnowledge(knowledgeId))
-                    return false;
-            }
-        }
-
+        // Knowledge system eliminated - no prerequisites to check
+        // ConversationalDiscovery now represents narrative triggers without gating
         return true;
     }
 

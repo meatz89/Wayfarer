@@ -18,11 +18,10 @@ public class SocialFacade
     private readonly SocialChallengeDeckBuilder _deckBuilder;
 
     // External dependencies
-    private readonly ObservationManager _observationManager;
+    // ObservationManager eliminated - observation system removed
     private readonly TimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
-    private readonly KnowledgeService _knowledgeService;
     private readonly InvestigationActivity _investigationActivity;
 
     private SocialSession _currentSession;
@@ -36,11 +35,9 @@ public class SocialFacade
         SocialEffectResolver effectResolver,
         SocialNarrativeService narrativeService,
         SocialChallengeDeckBuilder deckBuilder,
-        ObservationManager observationManager,
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        KnowledgeService knowledgeService,
         InvestigationActivity investigationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
@@ -49,11 +46,10 @@ public class SocialFacade
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
-        _observationManager = observationManager ?? throw new ArgumentNullException(nameof(observationManager));
+        // ObservationManager eliminated
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
         _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
     }
 
@@ -450,15 +446,7 @@ public class SocialFacade
             player.Stats.AddXP(selectedCard.SocialCardTemplate.BoundStat.Value, xpAmount);
         }
 
-        // 7b. Grant Knowledge and Secrets (V2 Investigation System)
-        foreach (string knowledge in selectedCard.SocialCardTemplate.KnowledgeGranted)
-        {
-            _knowledgeService.GrantKnowledge(knowledge);
-        }
-        foreach (string secret in selectedCard.SocialCardTemplate.SecretsGranted)
-        {
-            player.Knowledge.AddSecret(secret);
-        }
+        // Knowledge system eliminated - no knowledge/secret granting
 
         // 8. Record card played for personality tracking
         _personalityEnforcer?.OnCardPlayed(selectedCard);

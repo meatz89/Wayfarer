@@ -339,39 +339,12 @@ public class LocationActionManager
 
     /// <summary>
     /// Evaluate goal prerequisites
+    /// GoalRequirements system eliminated - goals always visible, difficulty varies via DifficultyModifiers
+    /// Boolean gate elimination: No more hiding goals based on equipment/knowledge/stats
     /// </summary>
     private bool EvaluateGoalPrerequisites(Goal goal, Player player, string currentVenueId)
     {
-        if (goal.Requirements == null) return true;
-
-        foreach (string knowledgeId in goal.Requirements.RequiredKnowledge)
-        {
-            if (!player.Knowledge.HasKnowledge(knowledgeId))
-                return false;
-        }
-
-        foreach (string equipmentId in goal.Requirements.RequiredEquipment)
-        {
-            if (!player.Inventory.HasItem(equipmentId))
-                return false;
-        }
-
-        if (goal.Requirements.MinimumLocationFamiliarity > 0)
-        {
-            int familiarity = player.GetLocationFamiliarity(currentVenueId);
-            if (familiarity < goal.Requirements.MinimumLocationFamiliarity)
-                return false;
-        }
-
-        foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
-        {
-            // Lookup required goal from GameWorld.Goals
-            if (!_gameWorld.Goals.TryGetValue(requiredGoalId, out Goal requiredGoal) || !requiredGoal.IsCompleted)
-            {
-                return false;
-            }
-        }
-
+        // Goals always visible - difficulty adjusts based on DifficultyModifiers instead
         return true;
     }
 }

@@ -41,10 +41,7 @@ public class TravelObstacleParser
             StaminaRequired = dto.StaminaRequired
         };
 
-        if (dto.KnowledgeRequirements != null)
-        {
-            approach.KnowledgeRequirements = ParseKnowledgeRequirement(dto.KnowledgeRequirements);
-        }
+        // Knowledge system eliminated - no knowledge requirements
 
         if (dto.EquipmentRequirements != null)
         {
@@ -83,8 +80,8 @@ public class TravelObstacleParser
             Description = dto.Description,
             TimeSegmentCost = dto.TimeSegmentCost,
             StaminaCost = dto.StaminaCost,
-            HealthChange = dto.HealthChange,
-            KnowledgeGained = dto.KnowledgeGained ?? new List<string>()
+            HealthChange = dto.HealthChange
+            // Knowledge system eliminated - no knowledge rewards
         };
 
         if (dto.RouteImprovement != null)
@@ -105,14 +102,7 @@ public class TravelObstacleParser
         };
     }
 
-    private KnowledgeRequirement ParseKnowledgeRequirement(KnowledgeRequirementDTO dto)
-    {
-        return new KnowledgeRequirement
-        {
-            RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
-            RequiredSecrets = dto.RequiredSecrets ?? new List<string>()
-        };
-    }
+    // Knowledge parsing deleted - Knowledge system eliminated
 
     private EquipmentRequirement ParseEquipmentRequirement(EquipmentRequirementDTO dto)
     {

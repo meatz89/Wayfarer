@@ -14,8 +14,31 @@
         "name": "Delivery for Elena",
         "description": "Elena needs urgent legal documents delivered to Farmer Aldric's stead before the rains come. The route is dangerous - you'll need to choose between crossing Widow's Creek or passing through the abandoned mill.",
         "systemType": "Social",
-        "npcId": "elena",
+        "placementNpcId": "elena",
         "deckId": "desperate_request",
+        "baseDifficulty": 10,
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "coins": 0
+        },
+        "difficultyModifiers": [
+          {
+            "type": "Understanding",
+            "threshold": 2,
+            "effect": -2
+          },
+          {
+            "type": "Familiarity",
+            "threshold": 2,
+            "effect": -1
+          },
+          {
+            "type": "ConnectionTokens",
+            "threshold": 5,
+            "effect": -2
+          }
+        ],
         "isAvailable": true,
         "isCompleted": false,
         "goalCards": [
@@ -36,8 +59,7 @@
             "threshold": 12,
             "rewards": {
               "coins": 5,
-              "obligationId": "delivery_to_aldric",
-              "knowledge": ["elena_trusts_you", "creek_deadline_three_days"]
+              "obligationId": "delivery_to_aldric"
             }
           }
         ]
@@ -47,8 +69,26 @@
         "name": "Ask Martha about the routes",
         "description": "Martha grew up in the area before moving to town. She knows the countryside, the dangers of Widow's Creek, and has personal history with the old mill.",
         "systemType": "Social",
-        "npcId": "martha",
+        "placementNpcId": "martha",
         "deckId": "friendly_chat",
+        "baseDifficulty": 8,
+        "costs": {
+          "stamina": 0,
+          "health": 0,
+          "coins": 0
+        },
+        "difficultyModifiers": [
+          {
+            "type": "Understanding",
+            "threshold": 2,
+            "effect": -2
+          },
+          {
+            "type": "ConnectionTokens",
+            "threshold": 5,
+            "effect": -2
+          }
+        ],
         "isAvailable": true,
         "isCompleted": false,
         "goalCards": [
@@ -58,8 +98,7 @@
             "description": "Martha warns about Widow's Creek current and mentions the mill path has a safer crossing upstream. She's hesitant to discuss the mill itself.",
             "threshold": 8,
             "rewards": {
-              "coins": 0,
-              "knowledge": ["creek_dangerous", "mill_has_crossing"]
+              "coins": 0
             }
           },
           {
@@ -68,8 +107,7 @@
             "description": "Build enough trust that Martha shares the painful truth - her daughter Anna disappeared near the mill a decade ago, investigating something. The mechanism was dangerous even when operational. She warns you to be careful if you go there.",
             "threshold": 12,
             "rewards": {
-              "coins": 0,
-              "knowledge": ["creek_dangerous", "mill_has_crossing", "anna_disappeared_at_mill", "mill_mechanism_dangerous", "bring_light_source"]
+              "coins": 0
             }
           }
         ]
@@ -81,6 +119,24 @@
         "systemType": "Mental",
         "deckId": "mental_challenge",
         "placementLocationId": "courtyard",
+        "baseDifficulty": 10,
+        "costs": {
+          "stamina": 5,
+          "health": 0,
+          "coins": 0
+        },
+        "difficultyModifiers": [
+          {
+            "type": "Understanding",
+            "threshold": 2,
+            "effect": -2
+          },
+          {
+            "type": "Familiarity",
+            "threshold": 2,
+            "effect": -2
+          }
+        ],
         "isAvailable": true,
         "isCompleted": false,
         "goalCards": [
@@ -90,8 +146,7 @@
             "description": "Notice the obvious - wheel is frozen, building is damaged, path overgrown. The front door appears partially collapsed.",
             "threshold": 8,
             "rewards": {
-              "coins": 0,
-              "knowledge": ["mill_structurally_damaged"]
+              "coins": 0
             }
           },
           {
@@ -100,8 +155,7 @@
             "description": "Careful observation reveals critical details: upper floor is dangerously unstable, the mechanism has accessible gear housing, and there are RECENT FOOTPRINTS in the dust near the side entrance. Someone has been here.",
             "threshold": 12,
             "rewards": {
-              "coins": 0,
-              "knowledge": ["mill_structurally_damaged", "upper_floor_dangerous", "gear_housing_accessible", "recent_activity_at_mill"]
+              "coins": 0
             }
           }
         ]
@@ -113,6 +167,29 @@
         "systemType": "Physical",
         "deckId": "physical_challenge",
         "placementLocationId": "courtyard",
+        "baseDifficulty": 12,
+        "costs": {
+          "stamina": 10,
+          "health": 0,
+          "coins": 0
+        },
+        "difficultyModifiers": [
+          {
+            "type": "Understanding",
+            "threshold": 2,
+            "effect": -1
+          },
+          {
+            "type": "Familiarity",
+            "threshold": 2,
+            "effect": -1
+          },
+          {
+            "type": "HasItemCategory",
+            "context": "climbing_gear",
+            "effect": -3
+          }
+        ],
         "isAvailable": true,
         "isCompleted": false,
         "goalCards": [
@@ -122,8 +199,7 @@
             "description": "Climb carefully to test the wheel's stability. It's rusted solid but the frame could support weight. Notice the gear housing has a corroded access panel.",
             "threshold": 10,
             "rewards": {
-              "coins": 0,
-              "knowledge": ["wheel_structurally_sound", "access_panel_exists"]
+              "coins": 0
             }
           },
           {
@@ -132,8 +208,7 @@
             "description": "Use rope to secure position and conduct thorough examination. The gear housing panel is accessible with tools. The shaft connects to interior grinding mechanism. Upper loft is reachable via the wheel framework but floor condition is questionable.",
             "threshold": 15,
             "rewards": {
-              "coins": 5,
-              "knowledge": ["wheel_structurally_sound", "access_panel_exists", "panel_needs_tools", "loft_accessible_via_wheel"]
+              "coins": 5
             }
           }
         ]

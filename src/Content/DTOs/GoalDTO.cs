@@ -64,6 +64,26 @@ public class GoalDTO
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
 
     /// <summary>
+    /// Base difficulty before any modifiers
+    /// Exposure for Mental challenges, Danger for Physical challenges, Doubt rate for Social challenges
+    /// Goal ALWAYS visible regardless of difficulty
+    /// </summary>
+    public int BaseDifficulty { get; set; }
+
+    /// <summary>
+    /// Resources player must pay to attempt this goal
+    /// Transparent costs create resource competition and strategic choices
+    /// </summary>
+    public GoalCostsDTO Costs { get; set; }
+
+    /// <summary>
+    /// Difficulty modifiers that reduce/increase difficulty based on player state
+    /// Multiple paths to reduce difficulty create strategic choices
+    /// No boolean gates: All goals always visible, modifiers just change difficulty
+    /// </summary>
+    public List<DifficultyModifierDTO> DifficultyModifiers { get; set; } = new List<DifficultyModifierDTO>();
+
+    /// <summary>
     /// What consequence this goal has when completed
     /// Values: "Resolution", "Bypass", "Transform", "Modify", "Grant"
     /// </summary>
@@ -96,30 +116,4 @@ public class GoalDTO
     /// Property reduction to apply to parent obstacle (for ReduceProperties effect)
     /// </summary>
     public ObstaclePropertyReductionDTO PropertyReduction { get; set; }
-
-    /// <summary>
-    /// Prerequisites for this goal to be available
-    /// </summary>
-    public GoalRequirementsDTO Requirements { get; set; }
-}
-
-/// <summary>
-/// DTO for Goal requirements
-/// </summary>
-public class GoalRequirementsDTO
-{
-    public List<string> RequiredKnowledge { get; set; } = new List<string>();
-    public List<string> RequiredEquipment { get; set; } = new List<string>();
-    public List<StatRequirementDTO> RequiredStats { get; set; } = new List<StatRequirementDTO>();
-    public int MinimumLocationFamiliarity { get; set; } = 0;
-    public List<string> CompletedGoals { get; set; } = new List<string>();
-}
-
-/// <summary>
-/// DTO for stat requirements (strongly-typed, no Dictionary)
-/// </summary>
-public class StatRequirementDTO
-{
-    public string StatType { get; set; }
-    public int MinimumLevel { get; set; }
 }

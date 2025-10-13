@@ -153,7 +153,6 @@ public class PackageLoader
 
         // 3.5 Investigation Templates (strategic multi-phase activities)
         LoadInvestigations(package.Content.Investigations, allowSkeletons);
-        LoadKnowledge(package.Content.Knowledge, allowSkeletons);
         LoadGoals(package.Content.Goals, allowSkeletons);
         LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
@@ -547,19 +546,6 @@ public class PackageLoader
         Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.Investigations.Count}");
     }
 
-    private void LoadKnowledge(List<KnowledgeDTO> knowledgeList, bool allowSkeletons)
-    {
-        if (knowledgeList == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading knowledge definitions...");
-        foreach (KnowledgeDTO dto in knowledgeList)
-        {
-            Knowledge knowledge = KnowledgeParser.ParseKnowledge(dto);
-            _gameWorld.Knowledge.Add(knowledge.Id, knowledge);
-            Console.WriteLine($"[PackageLoader] Loaded knowledge '{knowledge.Id}': {knowledge.DisplayName}");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading knowledge. Total: {_gameWorld.Knowledge.Count}");
-    }
 
     private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
     {
@@ -1253,47 +1239,7 @@ public class PackageLoader
         return route;
     }
 
-    private ObservationCard ConvertObservationDTOToCard(ObservationDTO dto)
-    {
-        ObservationCard observationCard = new()
-        {
-            Id = dto.Id,
-            Title = dto.DisplayText ?? "",
-            InitiativeCost = dto.InitiativeCost,
-            TokenType = ConnectionType.Trust,
-            Persistence = PersistenceType.Statement,
-            SuccessType = SuccessEffectType.None,
-            DialogueText = "",
-        };
-
-        return observationCard;
-    }
-
-    private Observation ConvertDTOToObservation(ObservationDTO dto)
-    {
-        // Parse observation type from category
-        ObservationType observationType = ObservationType.Normal;
-        if (dto.Category != null && Enum.TryParse<ObservationType>(dto.Category, out ObservationType parsedType))
-        {
-            observationType = parsedType;
-        }
-
-        return new Observation
-        {
-            Id = dto.Id ?? "",
-            Text = dto.DisplayText ?? dto.Description ?? dto.Name ?? "",
-            Type = observationType,
-            AttentionCost = 0, // From DTO or default to 0
-            RelevantNPCs = new string[0], // Empty by default - could be populated from properties
-            CreatesState = ConnectionState.NEUTRAL, // No state creation from DTO
-            CardTemplate = dto.Id ?? "", // Use ID as template
-            Description = dto.Description ?? dto.DisplayText ?? "",
-            ProvidesInfo = ObservationInfoType.Location, // Could be derived from properties
-            CreatesUrgency = false, // Default false
-            Automatic = false, // Default false
-            LocationId = dto.LocationId // Will be set by location-specific loading if needed
-        };
-    }
+    // ObservationCard system eliminated - ConvertObservationDTOToCard removed
 
     private LocationAction ConvertLocationActionDTOToModel(VenueActionDTO dto)
     {

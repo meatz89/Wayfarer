@@ -61,7 +61,6 @@ public class GameWorld
     public DialogueTemplates DialogueTemplates { get; set; }
     public List<Investigation> Investigations { get; private set; } = new List<Investigation>();
     public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
-    public Dictionary<string, Knowledge> Knowledge { get; private set; } = new Dictionary<string, Knowledge>();
 
     // Travel System
     public Dictionary<string, List<RouteImprovement>> RouteImprovements { get; private set; } = new Dictionary<string, List<RouteImprovement>>();

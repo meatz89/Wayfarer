@@ -35,7 +35,7 @@ public class SocialCardDTO
     // NPC-specific targeting for signature cards
     public string NpcSpecific { get; set; }
 
-    // V2 Investigation System - Knowledge gained when card is played
-    public List<string> KnowledgeGranted { get; set; }
+    // V2 Investigation System - Understanding replaces KnowledgeGranted
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     public List<string> SecretsGranted { get; set; }
 }

@@ -4,17 +4,16 @@ using System.Linq;
 /// <summary>
 /// Service for aggregating and filtering goals from ambient and obstacle sources
 /// Implements 80 Days-style property-based goal visibility gating
-/// Filters by both property requirements (obstacle properties) and access requirements (knowledge, equipment, stats)
+/// ALL GOALS ALWAYS VISIBLE - difficulty varies based on DifficultyModifiers
+/// Boolean gate elimination: No more knowledge/equipment hiding goals
 /// </summary>
 public class ObstacleGoalFilter
 {
-    private readonly GoalRequirementsChecker _requirementsChecker;
     private readonly GameWorld _gameWorld;
 
     public ObstacleGoalFilter(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new System.ArgumentNullException(nameof(gameWorld));
-        _requirementsChecker = new GoalRequirementsChecker(gameWorld);
     }
 
     /// <summary>
@@ -53,13 +52,12 @@ public class ObstacleGoalFilter
                         if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
                             goal.PlacementLocationId == location.Id)
                         {
-                            // Check property requirements and access requirements
+                            // Check property requirements only (boolean gates eliminated)
+                            // Goals always visible - difficulty varies via DifficultyModifiers
                             bool propertyRequirementsMet = goal.PropertyRequirements == null ||
                                                           goal.PropertyRequirements.MeetsRequirements(obstacle);
 
-                            bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
-
-                            if (propertyRequirementsMet && accessRequirementsMet)
+                            if (propertyRequirementsMet)
                             {
                                 visibleGoals.Add(goal);
                             }
@@ -108,13 +106,12 @@ public class ObstacleGoalFilter
                         if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
                             goal.PlacementNpcId == npc.ID)
                         {
-                            // Check property requirements and access requirements
+                            // Check property requirements only (boolean gates eliminated)
+                            // Goals always visible - difficulty varies via DifficultyModifiers
                             bool propertyRequirementsMet = goal.PropertyRequirements == null ||
                                                           goal.PropertyRequirements.MeetsRequirements(obstacle);
 
-                            bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
-
-                            if (propertyRequirementsMet && accessRequirementsMet)
+                            if (propertyRequirementsMet)
                             {
                                 visibleGoals.Add(goal);
                             }
@@ -157,9 +154,9 @@ public class ObstacleGoalFilter
     }
 
     /// <summary>
-    /// Get visible goals from a single obstacle (filtered by property requirements and access requirements)
+    /// Get visible goals from a single obstacle (filtered by property requirements only)
     /// 80 Days pattern: Goals become visible as obstacle properties are reduced
-    /// Access requirements: Goals require knowledge, equipment, stats, familiarity, completed goals
+    /// Boolean gate elimination: Goals always visible, difficulty varies via DifficultyModifiers
     /// </summary>
     private List<Goal> GetVisibleGoalsFromObstacle(Obstacle obstacle)
     {
@@ -173,15 +170,12 @@ public class ObstacleGoalFilter
             if (!_gameWorld.Goals.TryGetValue(goalId, out Goal goal))
                 continue;
 
-            // Goal visible if ALL conditions met:
-            // 1. Property requirements met (obstacle properties <= thresholds)
-            // 2. Access requirements met (knowledge, equipment, stats, familiarity, completed goals)
+            // Property requirements only (boolean gates eliminated)
+            // Goals always visible - difficulty varies via DifficultyModifiers
             bool propertyRequirementsMet = goal.PropertyRequirements == null ||
                                           goal.PropertyRequirements.MeetsRequirements(obstacle);
 
-            bool accessRequirementsMet = _requirementsChecker.CheckGoalRequirements(goal);
-
-            if (propertyRequirementsMet && accessRequirementsMet)
+            if (propertyRequirementsMet)
             {
                 visibleGoals.Add(goal);
             }

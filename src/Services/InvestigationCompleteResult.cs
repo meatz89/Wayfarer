@@ -10,7 +10,7 @@ public class InvestigationCompleteResult
     public string InvestigationName { get; set; }
     public string CompletionNarrative { get; set; }
     public InvestigationRewards Rewards { get; set; } = new InvestigationRewards();
-    public List<ObservationCardReward> ObservationCards { get; set; } = new List<ObservationCardReward>();
+    // ObservationCards system eliminated - replaced by transparent resource competition
 }
 
 /// <summary>

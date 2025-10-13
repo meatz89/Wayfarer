@@ -32,10 +32,7 @@ public class Investigation
     /// </summary>
     public InvestigationRewards CompletionRewards { get; set; } = new InvestigationRewards();
 
-    /// <summary>
-    /// Observation cards unlocked on completion
-    /// </summary>
-    public List<ObservationCardReward> ObservationCardRewards { get; set; } = new List<ObservationCardReward>();
+    // ObservationCardRewards system eliminated - replaced by transparent resource competition
 }
 
 /// <summary>
@@ -50,10 +47,8 @@ public class InvestigationPhaseDefinition
     public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
-    // Prerequisites for this phase to complete
-    public GoalRequirements Requirements { get; set; } = new GoalRequirements();
-
     // Rewards granted on completion
+    // GoalRequirements system eliminated - phases progress through actual goal completion tracking
     public PhaseCompletionReward CompletionReward { get; set; }
 }
 
@@ -62,7 +57,13 @@ public class InvestigationPhaseDefinition
 /// </summary>
 public class PhaseCompletionReward
 {
-    public List<string> KnowledgeGranted { get; set; } = new List<string>();
+    /// <summary>
+    /// Understanding points granted (1-3)
+    /// Cumulative Mental expertise resource (0-10 max)
+    /// Replaces Knowledge tokens (boolean gates eliminated)
+    /// </summary>
+    public int UnderstandingReward { get; set; } = 0;
+
     public List<ObstacleSpawnInfo> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfo>();
 }
 
@@ -135,12 +136,6 @@ public class InvestigationPrerequisites
     /// Required location (LocationId is globally unique)
     /// </summary>
     public string LocationId { get; set; }
-
-    /// <summary>
-    /// Required knowledge IDs (ConversationalDiscovery)
-    /// DEPRECATED: Use GoalCompletionTrigger instead - knowledge tokens are fragile
-    /// </summary>
-    public List<string> RequiredKnowledge { get; set; } = new List<string>();
 
     /// <summary>
     /// Required item IDs (ItemDiscovery)

@@ -40,7 +40,6 @@ public class Player
     public bool IsInitialized { get; set; } = false;
 
     public PlayerStats Stats { get; private set; } = new();
-    public PlayerKnowledge Knowledge { get; private set; } = new PlayerKnowledge();
 
     public Location CurrentLocation { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
@@ -87,6 +86,14 @@ public class Player
     // Below 30 Focus: Exposure accumulates faster (+1 per action)
     // Maximum: 100, Cost: 5-20 per investigation start
     public int Focus { get; set; } = 100;
+
+    // Mental resource - Understanding cumulative expertise (0-10 scale)
+    // Granted by ALL Mental challenges (+1 to +3 based on difficulty)
+    // Used by DifficultyModifiers to reduce Exposure baseline
+    // Never depletes - permanent player growth (Knowledge system replacement)
+    // Competition: Multiple investigations need it, limited Focus/Time to accumulate
+    // Strategic choice: Build Understanding through easy challenges, or attempt hard challenges early
+    public int Understanding { get; set; } = 0;
 
     public void AddKnownRoute(RouteOption route)
     {

@@ -12,7 +12,6 @@ public class InvestigationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly KnowledgeService _knowledgeService;
 
     private InvestigationDiscoveryResult _pendingDiscoveryResult;
     private InvestigationActivationResult _pendingActivationResult;
@@ -22,12 +21,10 @@ public class InvestigationActivity
 
     public InvestigationActivity(
         GameWorld gameWorld,
-        MessageSystem messageSystem,
-        KnowledgeService knowledgeService)
+        MessageSystem messageSystem)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _knowledgeService = knowledgeService ?? throw new ArgumentNullException(nameof(knowledgeService));
     }
 
     /// <summary>
@@ -190,13 +187,16 @@ public class InvestigationActivity
             activeInv.CompletedGoalIds.Add(goalId);
         }
 
-        // Grant knowledge from phase completion rewards
-        if (completedPhase.CompletionReward?.KnowledgeGranted != null)
+        // Grant Understanding from phase completion rewards (0-10 max)
+        if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.UnderstandingReward > 0)
         {
-            foreach (string knowledgeId in completedPhase.CompletionReward.KnowledgeGranted)
-            {
-                _knowledgeService.GrantKnowledge(knowledgeId);
-            }
+            Player player = _gameWorld.GetPlayer();
+            int newUnderstanding = Math.Min(10, player.Understanding + completedPhase.CompletionReward.UnderstandingReward);
+            player.Understanding = newUnderstanding;
+
+            _messageSystem.AddSystemMessage(
+                $"Understanding increased by {completedPhase.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                SystemMessageTypes.Success);
         }
 
         // Spawn obstacles from phase completion rewards
@@ -272,8 +272,8 @@ public class InvestigationActivity
             InvestigationId = investigationId,
             InvestigationName = investigation.Name,
             CompletionNarrative = investigation.CompletionNarrative,
-            Rewards = investigation.CompletionRewards,
-            ObservationCards = investigation.ObservationCardRewards
+            Rewards = investigation.CompletionRewards
+            // ObservationCardRewards eliminated - observation system removed
         };
 
         _pendingCompleteResult = result;
@@ -303,57 +303,7 @@ public class InvestigationActivity
             // XP and reputation systems not yet implemented
         }
 
-        // Observation card creation deferred until ObservationManager supports it
-        if (investigation.ObservationCardRewards != null)
-        {
-            foreach (ObservationCardReward reward in investigation.ObservationCardRewards)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"New observation unlocked for {reward.TargetNpcId}",
-                    SystemMessageTypes.Success);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Check if prerequisites are met for a phase
-    /// </summary>
-    private bool ArePrerequisitesMet(GoalRequirements requirements, List<string> completedGoalIds)
-    {
-        if (requirements == null)
-            return true;
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Check completed goals prerequisite
-        if (requirements.CompletedGoals != null && requirements.CompletedGoals.Count > 0)
-        {
-            if (completedGoalIds == null)
-                return false;
-
-            foreach (string requiredGoalId in requirements.CompletedGoals)
-            {
-                if (!completedGoalIds.Contains(requiredGoalId))
-                    return false;
-            }
-        }
-
-        // Check knowledge prerequisites
-        if (requirements.RequiredKnowledge != null && requirements.RequiredKnowledge.Count > 0)
-        {
-            foreach (string knowledgeId in requirements.RequiredKnowledge)
-            {
-                if (!player.Knowledge.HasKnowledge(knowledgeId))
-                    return false;
-            }
-        }
-
-        // Future: Check other prerequisites when systems are ready
-        // - RequiredEquipment (when inventory exists)
-        // - RequiredStats
-        // - MinimumLocationFamiliarity
-
-        return true;
+        // ObservationCardRewards system eliminated - replaced by transparent resource competition
     }
 
     /// <summary>
@@ -427,13 +377,17 @@ public class InvestigationActivity
             }
         }
 
-        // Grant knowledge from intro completion reward
-        if (investigation.IntroAction?.CompletionReward?.KnowledgeGranted != null)
+        // Grant Understanding from intro completion reward (0-10 max)
+        if (investigation.IntroAction?.CompletionReward != null &&
+            investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
-            foreach (string knowledgeId in investigation.IntroAction.CompletionReward.KnowledgeGranted)
-            {
-                _knowledgeService.GrantKnowledge(knowledgeId);
-            }
+            Player player = _gameWorld.GetPlayer();
+            int newUnderstanding = Math.Min(10, player.Understanding + investigation.IntroAction.CompletionReward.UnderstandingReward);
+            player.Understanding = newUnderstanding;
+
+            _messageSystem.AddSystemMessage(
+                $"Understanding increased by {investigation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                SystemMessageTypes.Success);
         }
 
         // Create activation result for UI modal

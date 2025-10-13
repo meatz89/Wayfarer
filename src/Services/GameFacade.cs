@@ -24,7 +24,6 @@ public class GameFacade
     private readonly PhysicalFacade _physicalFacade;
     private readonly InvestigationActivity _investigationActivity;
     private readonly InvestigationDiscoveryEvaluator _investigationDiscoveryEvaluator;
-    private readonly KnowledgeService _knowledgeService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -40,8 +39,7 @@ public class GameFacade
         MentalFacade mentalFacade,
         PhysicalFacade physicalFacade,
         InvestigationActivity investigationActivity,
-        InvestigationDiscoveryEvaluator investigationDiscoveryEvaluator,
-        KnowledgeService knowledgeService)
+        InvestigationDiscoveryEvaluator investigationDiscoveryEvaluator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -57,7 +55,6 @@ public class GameFacade
         _physicalFacade = physicalFacade;
         _investigationActivity = investigationActivity;
         _investigationDiscoveryEvaluator = investigationDiscoveryEvaluator;
-        _knowledgeService = knowledgeService;
     }
 
     // ========== CORE GAME STATE ==========
@@ -626,13 +623,7 @@ public class GameFacade
 
     // ========== NARRATIVE OPERATIONS ==========
 
-    public List<TakenObservation> GetTakenObservations()
-    {
-        // ARCHITECTURE: Observations are stored per-NPC, not globally
-        // This method returns empty as there's no global observation list
-        // Each NPC tracks their own observation cards in their ObservationDeck
-        return new List<TakenObservation>();
-    }
+    // ObservationDeck system eliminated - replaced by transparent resource competition
 
     // ========== GAME INITIALIZATION ==========
 

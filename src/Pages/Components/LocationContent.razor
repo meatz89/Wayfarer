@@ -80,6 +80,10 @@
                         {
                             <div class="goal-description">@goal.Description</div>
                         }
+                        <div class="goal-difficulty">
+                            <span class="difficulty-label">Exposure:</span>
+                            <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
+                        </div>
                         @if (!string.IsNullOrEmpty(goal.InvestigationId))
                         {
                             @if (goal.IsIntroAction)
@@ -104,6 +108,10 @@
                         {
                             <div class="goal-description">@goal.Description</div>
                         }
+                        <div class="goal-difficulty">
+                            <span class="difficulty-label">Danger:</span>
+                            <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
+                        </div>
                         @if (!string.IsNullOrEmpty(goal.InvestigationId))
                         {
                             @if (goal.IsIntroAction)
@@ -207,6 +215,10 @@
                                 {
                                     <div class="goal-description">@goal.Description</div>
                                 }
+                                <div class="goal-difficulty">
+                                    <span class="difficulty-label">Doubt Rate:</span>
+                                    <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
+                                </div>
                                 @if (!string.IsNullOrEmpty(goal.InvestigationId))
                                 {
                                     @if (goal.IsIntroAction)

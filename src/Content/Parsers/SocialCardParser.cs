@@ -189,7 +189,7 @@ public static class SocialCardParser
             Traits = traits,
             TokenRequirements = tokenRequirements,
             NpcSpecific = npcSpecific,
-            KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>(),
+            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
             SecretsGranted = dto.SecretsGranted ?? new List<string>()
         };
     }

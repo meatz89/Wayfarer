@@ -34,6 +34,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected ObstacleGoalFilter ObstacleGoalFilter { get; set; }
         [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
+        [Inject] protected DifficultyCalculationService DifficultyService { get; set; }
+        [Inject] protected ItemRepository ItemRepository { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -42,7 +44,7 @@ namespace Wayfarer.Pages.Components
         protected Location CurrentSpot { get; set; }
         protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
         protected List<LocationObservationViewModel> AvailableObservations { get; set; } = new();
-        protected List<TakenObservation> TakenObservations { get; set; } = new();
+        // TakenObservations eliminated - observation system removed
         protected List<SpotViewModel> AvailableSpots { get; set; } = new();
         protected bool CanTravel { get; set; }
         protected bool CanWork { get; set; }
@@ -123,16 +125,7 @@ namespace Wayfarer.Pages.Components
 
             // Get available observations
             AvailableObservations.Clear();
-            TakenObservations.Clear();
-
-            // Get taken observations
-            List<TakenObservation>? takenObservations = GameFacade.GetTakenObservations();
-            Console.WriteLine($"[LocationContent] Got {takenObservations?.Count ?? 0} taken observations");
-
-            if (takenObservations != null)
-            {
-                TakenObservations = takenObservations;
-            }
+            // TakenObservations eliminated - observation system removed
 
             // Get other Locations in this Venue from GameWorld
             AvailableSpots.Clear();
@@ -786,6 +779,21 @@ namespace Wayfarer.Pages.Components
                 5 => "#9e7c4a", // gold variant
                 _ => "#8b5a26"  // default
             };
+        }
+
+        /// <summary>
+        /// Get calculated difficulty for a goal (transparent difficulty system)
+        /// Shows players EXACT difficulty before starting challenge (Perfect Information principle)
+        /// </summary>
+        protected int GetGoalDifficulty(Goal goal)
+        {
+            if (goal == null) return 0;
+            if (DifficultyService == null || ItemRepository == null)
+                return goal.BaseDifficulty;
+
+            // Calculate actual difficulty with all modifiers
+            DifficultyResult result = DifficultyService.CalculateDifficulty(goal, ItemRepository);
+            return result.FinalDifficulty;
         }
 
     }

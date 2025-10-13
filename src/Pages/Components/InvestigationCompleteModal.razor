@@ -32,23 +32,6 @@
             </div>
         }
 
-        @if (Data.ObservationCards != null && Data.ObservationCards.Count > 0)
-        {
-            <div class="observation-rewards">
-                <div class="observation-title">
-                    <span>🎴</span>
-                    <span>Observation Cards Unlocked</span>
-                </div>
-                @foreach (ObservationCardReward obsCard in Data.ObservationCards)
-                {
-                    <div class="observation-card">
-                        <div class="observation-card-title">@obsCard.Title</div>
-                        <div class="observation-card-effect">Unlocked for conversations with @obsCard.TargetNpcId</div>
-                    </div>
-                }
-            </div>
-        }
-
         <button class="continue-journey-button" @onclick="CloseModal">Continue Your Journey</button>
     </div>
 </div>

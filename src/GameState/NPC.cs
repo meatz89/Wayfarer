@@ -68,8 +68,7 @@ public class NPC
 
 
     // NPC DECK ARCHITECTURE
-    public List<ObservationCard> ObservationDeck { get; internal set; }
-    public List<BurdenCard> BurdenDeck { get; internal set; }
+    // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
     // Active goal IDs for this NPC (Social challenges)

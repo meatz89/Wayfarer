@@ -255,6 +255,7 @@
                     {
                         <GoalCard Card="@goalCard"
                                   CurrentProgress="@Session.CurrentMomentum"
+                                  CalculatedDifficulty="@GetGoalDifficulty(goalCard)"
                                   OnCardClick="@PlayGoalCard" />
                     }
                 </div>

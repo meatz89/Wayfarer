@@ -26,15 +26,12 @@ public class PlayerDeckDefinitionDTO
     /// </summary>
     public Dictionary<string, int> ConversationDeck { get; set; }
 
-    /// <summary>
-    /// Player's starting observation cards (card ID -> count)
-    /// </summary>
-    public Dictionary<string, int> ObservationDeck { get; set; }
+    // ObservationDeck system eliminated - replaced by transparent resource competition
 
     public PlayerDeckDefinitionDTO()
     {
         ConversationDeck = new Dictionary<string, int>();
-        ObservationDeck = new Dictionary<string, int>();
+        // ObservationDeck system eliminated
     }
 }
 
