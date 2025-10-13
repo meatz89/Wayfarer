@@ -1,5 +1,3 @@
-You're absolutely right. Claude Code only sees claude.md. Let me inline ALL the actual rules directly:
-
 # General Game Design Principles for Wayfarer
 
 ## Principle 1: Single Source of Truth with Explicit Ownership
