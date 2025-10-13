@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Wayfarer.Services;
 
 /// <summary>
 /// Service for aggregating and filtering goals from ambient and obstacle sources

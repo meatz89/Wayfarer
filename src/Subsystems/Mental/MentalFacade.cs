@@ -10,7 +10,7 @@ public class MentalFacade
     private readonly MentalNarrativeService _narrativeService;
     private readonly MentalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
-    private readonly InvestigationActivity _investigationActivity;
+    private readonly GoalCompletionHandler _goalCompletionHandler;
 
     private MentalSession _currentSession;
     private MentalSessionDeck _sessionDeck;
@@ -23,14 +23,14 @@ public class MentalFacade
         MentalNarrativeService narrativeService,
         MentalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        InvestigationActivity investigationActivity)
+        GoalCompletionHandler goalCompletionHandler)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
+        _goalCompletionHandler = goalCompletionHandler ?? throw new ArgumentNullException(nameof(goalCompletionHandler));
     }
 
     public MentalSession GetCurrentSession()
@@ -294,6 +294,12 @@ public class MentalFacade
             }
             // Else: ambient goal with no obstacle parent
 
+            // Complete goal through GoalCompletionHandler (handles investigation progress)
+            if (_gameWorld.Goals.TryGetValue(_currentGoalId, out Goal completedGoal))
+            {
+                _goalCompletionHandler.CompleteGoal(completedGoal);
+            }
+
             _sessionDeck.PlayCard(card); // Mark card as played
             EndSession(); // Immediate end on GoalCard play
 
@@ -483,11 +489,7 @@ public class MentalFacade
             SessionSaved = false
         };
 
-        // Check for investigation progress if this was an investigation goal
-        if (success && !string.IsNullOrEmpty(_currentGoalId) && !string.IsNullOrEmpty(_currentInvestigationId))
-        {
-            CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
-        }
+        // Investigation progress now handled by GoalCompletionHandler (system-agnostic)
 
         Player player = _gameWorld.GetPlayer();
 
@@ -533,33 +535,4 @@ public class MentalFacade
         Console.WriteLine($"[MentalFacade] EXPOSURE THRESHOLD: Took {healthDamage} health damage from investigation consequences");
     }
 
-    /// <summary>
-    /// Check for investigation progress when Mental goal completes
-    /// </summary>
-    private void CheckInvestigationProgress(string goalId, string investigationId)
-    {
-        // Check if this is an intro action (Discovered → Active transition)
-        if (_gameWorld.Goals.TryGetValue(goalId, out Goal goal) && goal.IsIntroAction)
-        {
-            // This is intro completion - activate investigation and spawn Phase 1
-            _investigationActivity.CompleteIntroAction(investigationId);
-
-            Console.WriteLine($"[MentalFacade] Intro action complete - Investigation '{investigationId}' ACTIVATED");
-            return;
-        }
-
-        // Regular goal completion
-        InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
-
-        // Log progress for UI modal display (UI will handle modal)
-        Console.WriteLine($"[MentalFacade] Investigation progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
-
-        // Check if investigation is now complete
-        InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
-        if (completeResult != null)
-        {
-            // Investigation complete - UI will display completion modal
-            Console.WriteLine($"[MentalFacade] Investigation '{completeResult.InvestigationName}' COMPLETE!");
-        }
-    }
 }
