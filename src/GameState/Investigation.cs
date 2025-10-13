@@ -138,6 +138,7 @@ public class InvestigationPrerequisites
 
     /// <summary>
     /// Required knowledge IDs (ConversationalDiscovery)
+    /// DEPRECATED: Use GoalCompletionTrigger instead - knowledge tokens are fragile
     /// </summary>
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
 
@@ -150,4 +151,11 @@ public class InvestigationPrerequisites
     /// Required obligation ID (ObligationTriggered)
     /// </summary>
     public string RequiredObligation { get; set; }
+
+    /// <summary>
+    /// Required completed goal ID (GoalCompletionTrigger)
+    /// Checks actual game state - goal must be marked complete in GameWorld.Goals
+    /// PROPER ARCHITECTURE: Direct state checking, not invisible knowledge tokens
+    /// </summary>
+    public string CompletedGoalId { get; set; }
 }

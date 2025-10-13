@@ -15,13 +15,13 @@
         "description": "Uncover the dark secrets hidden within the abandoned mill - a decade-old disappearance, a smuggling operation, and the dangerous truth Martha's granddaughter is pursuing",
         "colorCode": "#5a7a8b",
         "intro": {
-          "triggerType": "ImmediateVisibility",
+          "triggerType": "GoalCompletionTrigger",
           "triggerPrerequisites": {
-            "spotId": "courtyard"
+            "completedGoalId": "martha_gather_information"
           },
           "actionText": "Search for safe entry to the mill",
           "locationId": "courtyard",
-          "introNarrative": "The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside.",
+          "introNarrative": "Martha's story about her daughter haunts you. The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside.",
           "completionReward": {
             "obstaclesSpawned": [
               {

@@ -74,6 +74,7 @@ public class InvestigationDiscoveryEvaluator
             DiscoveryTriggerType.ConversationalDiscovery => CheckConversationalDiscovery(prereqs, player),
             DiscoveryTriggerType.ItemDiscovery => CheckItemDiscovery(prereqs, player),
             DiscoveryTriggerType.ObligationTriggered => CheckObligationTriggered(prereqs, player),
+            DiscoveryTriggerType.GoalCompletionTrigger => CheckGoalCompletionTrigger(prereqs),
             _ => false
         };
     }
@@ -164,6 +165,37 @@ public class InvestigationDiscoveryEvaluator
                 return false;
         }
 
+        return true;
+    }
+
+    /// <summary>
+    /// GoalCompletionTrigger: Investigation revealed after completing specific goal
+    /// Prerequisites: CompletedGoalId
+    /// PROPER ARCHITECTURE: Checks actual game state (goal completion), not invisible knowledge tokens
+    /// Example: Martha's "Gather Information" goal completion reveals daughter's disappearance investigation
+    /// </summary>
+    private bool CheckGoalCompletionTrigger(InvestigationPrerequisites prereqs)
+    {
+        Console.WriteLine($"[InvestigationEvaluator] Checking GoalCompletionTrigger - Required GoalId: '{prereqs.CompletedGoalId ?? "NULL"}'");
+
+        // Check if required goal is completed
+        if (!string.IsNullOrEmpty(prereqs.CompletedGoalId))
+        {
+            // Look up goal in GameWorld.Goals dictionary
+            if (_gameWorld.Goals.TryGetValue(prereqs.CompletedGoalId, out Goal goal))
+            {
+                bool isComplete = goal.IsCompleted;
+                Console.WriteLine($"[InvestigationEvaluator] Goal '{goal.Name}' found - IsCompleted: {isComplete}");
+                return isComplete;
+            }
+            else
+            {
+                Console.WriteLine($"[InvestigationEvaluator] GoalCompletionTrigger FAILED - Goal '{prereqs.CompletedGoalId}' not found in GameWorld.Goals");
+                return false;
+            }
+        }
+
+        Console.WriteLine($"[InvestigationEvaluator] GoalCompletionTrigger - No CompletedGoalId specified");
         return true;
     }
 }

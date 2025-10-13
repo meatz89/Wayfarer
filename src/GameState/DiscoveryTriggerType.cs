@@ -37,5 +37,13 @@ public enum DiscoveryTriggerType
     /// Prerequisites: accepted_obligation(X)
     /// Example: Merchant asks you to investigate sabotage
     /// </summary>
-    ObligationTriggered
+    ObligationTriggered,
+
+    /// <summary>
+    /// Investigation revealed after completing specific goal
+    /// Prerequisites: goal_completed(X)
+    /// Example: Completing "Gather Information" with Martha reveals her daughter's disappearance
+    /// PROPER ARCHITECTURE: Checks actual game state (goal completion), not invisible knowledge tokens
+    /// </summary>
+    GoalCompletionTrigger
 }
