@@ -72,8 +72,9 @@ public class NPC
     public List<BurdenCard> BurdenDeck { get; internal set; }
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
-    // Active goals for this NPC (Social challenges)
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+    // Active goal IDs for this NPC (Social challenges)
+    // References goals in GameWorld.Goals dictionary (single source of truth)
+    public List<string> ActiveGoalIds { get; set; } = new List<string>();
 
     // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
     // References obstacles in GameWorld.Obstacles list

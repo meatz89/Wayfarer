@@ -230,7 +230,7 @@ public class PhysicalFacade
             Location location = currentPlayer.CurrentLocation;
 
             Obstacle parentObstacle = _gameWorld.Obstacles
-                .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentGoalId));
+                .FirstOrDefault(o => o.GoalIds.Contains(_currentGoalId));
 
             if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
             {

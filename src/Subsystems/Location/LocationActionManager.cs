@@ -365,13 +365,11 @@ public class LocationActionManager
 
         foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
         {
-            // Search across all location goals (Locations are the only entity that matters)
-            Goal requiredGoal = _gameWorld.Locations
-                .SelectMany(spotEntry => spotEntry.location.ActiveGoals ?? new List<Goal>())
-                .FirstOrDefault(g => g.Id == requiredGoalId);
-
-            if (requiredGoal == null || !requiredGoal.IsCompleted)
+            // Lookup required goal from GameWorld.Goals
+            if (!_gameWorld.Goals.TryGetValue(requiredGoalId, out Goal requiredGoal) || !requiredGoal.IsCompleted)
+            {
                 return false;
+            }
         }
 
         return true;

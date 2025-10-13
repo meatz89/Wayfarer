@@ -293,7 +293,7 @@ public class SocialFacade
             NPC npc = _currentSession.NPC;
 
             Obstacle parentObstacle = _gameWorld.Obstacles
-                .FirstOrDefault(o => o.Goals.Any(g => g.Id == _currentSession.RequestId));
+                .FirstOrDefault(o => o.GoalIds.Contains(_currentSession.RequestId));
 
             if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentSession.RequestId, out Goal goal))
             {

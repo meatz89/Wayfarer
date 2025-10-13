@@ -210,16 +210,19 @@
                         <!-- NPC Active Goals (Direct from NPC) -->
                         @{
                             var actualNpc = NPCsAtSpot.FirstOrDefault(n => n.ID == npc.Id);
-                            if (actualNpc?.ActiveGoals != null)
+                            if (actualNpc?.ActiveGoalIds != null)
                             {
-                                foreach (var goal in actualNpc.ActiveGoals)
+                                foreach (var goalId in actualNpc.ActiveGoalIds)
                                 {
-                                    <div class="npc-action" @onclick="async () => await StartConversationWithRequest(npc.Id, goal.Id)">
-                                        <span class="action-type">@goal.Name</span>
-                                        <span class="action-details">
-                                            <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
-                                        </span>
-                                    </div>
+                                    if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+                                    {
+                                        <div class="npc-action" @onclick="async () => await StartConversationWithRequest(npc.Id, goal.Id)">
+                                            <span class="action-type">@goal.Name</span>
+                                            <span class="action-details">
+                                                <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
+                                            </span>
+                                        </div>
+                                    }
                                 }
                             }
                         }

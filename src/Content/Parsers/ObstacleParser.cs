@@ -29,7 +29,7 @@ public static class ObstacleParser
             MentalComplexity = dto.MentalComplexity,
             SocialDifficulty = dto.SocialDifficulty,
             IsPermanent = dto.IsPermanent,
-            Goals = new List<Goal>()
+            GoalIds = new List<string>()
         };
 
         // Parse inline goals (for investigation-spawned obstacles)
@@ -38,13 +38,14 @@ public static class ObstacleParser
             foreach (GoalDTO goalDto in dto.Goals)
             {
                 Goal goal = GoalParser.ConvertDTOToGoal(goalDto, gameWorld);
-                obstacle.Goals.Add(goal);
 
-                // Register goal in GameWorld.Goals for facade lookups
-                // DO NOT add to Location.ActiveGoals or NPC.ActiveGoals - obstacle-specific goals stay as children only
+                // Register goal in GameWorld.Goals (single source of truth)
                 gameWorld.Goals[goal.Id] = goal;
+
+                // Store goal ID reference in obstacle
+                obstacle.GoalIds.Add(goal.Id);
             }
-            Console.WriteLine($"[ObstacleParser] Parsed obstacle '{obstacle.Name}' with {obstacle.Goals.Count} inline goals (registered in GameWorld.Goals)");
+            Console.WriteLine($"[ObstacleParser] Parsed obstacle '{obstacle.Name}' with {obstacle.GoalIds.Count} inline goals (registered in GameWorld.Goals)");
         }
 
         return obstacle;

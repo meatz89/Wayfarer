@@ -579,14 +579,14 @@ public class PackageLoader
             // Assign goal to NPC or Location based on PlacementNpcId/PlacementLocationId
             if (!string.IsNullOrEmpty(goal.PlacementNpcId))
             {
-                // Social goal - assign to NPC.ActiveGoals
+                // Social goal - assign to NPC.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                 if (npc != null)
                 {
-                    if (npc.ActiveGoals == null)
-                        npc.ActiveGoals = new List<Goal>();
+                    if (npc.ActiveGoalIds == null)
+                        npc.ActiveGoalIds = new List<string>();
 
-                    npc.ActiveGoals.Add(goal);
+                    npc.ActiveGoalIds.Add(goal.Id);
                     Console.WriteLine($"[PackageLoader] Assigned Social goal '{goal.Name}' to NPC '{npc.Name}'");
                 }
                 else
@@ -596,14 +596,14 @@ public class PackageLoader
             }
             else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
             {
-                // Mental/Physical goal - assign to Location.ActiveGoals
+                // Mental/Physical goal - assign to Location.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
                 Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                 if (location != null)
                 {
-                    if (location.ActiveGoals == null)
-                        location.ActiveGoals = new List<Goal>();
+                    if (location.ActiveGoalIds == null)
+                        location.ActiveGoalIds = new List<string>();
 
-                    location.ActiveGoals.Add(goal);
+                    location.ActiveGoalIds.Add(goal.Id);
                     Console.WriteLine($"[PackageLoader] Assigned {goal.SystemType} goal '{goal.Name}' to location '{location.Name}'");
                 }
                 else
@@ -631,7 +631,7 @@ public class PackageLoader
             if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
             {
                 _gameWorld.Obstacles.Add(obstacle);
-                Console.WriteLine($"[PackageLoader] Loaded obstacle '{obstacle.Id}': {obstacle.Name} ({obstacle.Goals.Count} goals)");
+                Console.WriteLine($"[PackageLoader] Loaded obstacle '{obstacle.Id}': {obstacle.Name} ({obstacle.GoalIds.Count} goals)");
             }
             else
             {

@@ -55,35 +55,33 @@ namespace Wayfarer.Services
         }
 
         /// <summary>
-        /// Remove goal from NPC.ActiveGoals or Location.ActiveGoals
+        /// Remove goal from NPC.ActiveGoalIds or Location.ActiveGoalIds
         /// </summary>
         private void RemoveGoalFromActiveGoals(Goal goal)
         {
             if (!string.IsNullOrEmpty(goal.PlacementNpcId))
             {
-                // Remove from NPC.ActiveGoals
+                // Remove from NPC.ActiveGoalIds
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                 if (npc != null)
                 {
-                    Goal goalToRemove = npc.ActiveGoals.FirstOrDefault(g => g.Id == goal.Id);
-                    if (goalToRemove != null)
+                    if (npc.ActiveGoalIds.Contains(goal.Id))
                     {
-                        npc.ActiveGoals.Remove(goalToRemove);
-                        Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from NPC '{npc.Name}' ActiveGoals");
+                        npc.ActiveGoalIds.Remove(goal.Id);
+                        Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from NPC '{npc.Name}' ActiveGoalIds");
                     }
                 }
             }
             else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
             {
-                // Remove from Location.ActiveGoals
+                // Remove from Location.ActiveGoalIds
                 Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                 if (location != null)
                 {
-                    Goal goalToRemove = location.ActiveGoals.FirstOrDefault(g => g.Id == goal.Id);
-                    if (goalToRemove != null)
+                    if (location.ActiveGoalIds.Contains(goal.Id))
                     {
-                        location.ActiveGoals.Remove(goalToRemove);
-                        Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from location '{location.Name}' ActiveGoals");
+                        location.ActiveGoalIds.Remove(goal.Id);
+                        Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from location '{location.Name}' ActiveGoalIds");
                     }
                 }
             }

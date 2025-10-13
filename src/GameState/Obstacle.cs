@@ -70,12 +70,13 @@ public class Obstacle
     public bool IsPermanent { get; set; }
 
     /// <summary>
-    /// Goals that target this obstacle (inline children)
+    /// Goal IDs that target this obstacle (references to GameWorld.Goals)
     /// Two types: preparation goals (reduce properties) and resolution goals (remove obstacle)
-    /// Goals from investigation content are spawned with obstacle
+    /// Goals from investigation content are registered in GameWorld.Goals when obstacle spawns
     /// Filtered by property requirements for visibility
+    /// Single source of truth: All goals live in GameWorld.Goals dictionary
     /// </summary>
-    public List<Goal> Goals { get; set; } = new List<Goal>();
+    public List<string> GoalIds { get; set; } = new List<string>();
 
     /// <summary>
     /// Check if obstacle is fully cleared (all three properties at or below zero)

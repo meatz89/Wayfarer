@@ -19,7 +19,9 @@ public class Location
 
     public AccessRequirement AccessRequirement { get; set; }
 
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+    // Active goal IDs for this location (Mental/Physical challenges)
+    // References goals in GameWorld.Goals dictionary (single source of truth)
+    public List<string> ActiveGoalIds { get; set; } = new List<string>();
     public List<string> ObstacleIds { get; set; } = new List<string>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
