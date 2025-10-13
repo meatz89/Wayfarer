@@ -467,11 +467,11 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
 Each system is a distinct tactical game following the same architectural pattern while respecting what you're actually doing through system-specific card flow mechanics.
 
 **Investigation Lifecycle:**
-1. **Discovery**: Triggered by observation, conversation, item discovery, or obligation
-2. **Phase Spawning**: Each phase creates LocationGoal at specified location with requirements
+1. **Discovery**: Through GoalCard rewards at momentum thresholds (costs time/resources to reach)
+2. **Phase Spawning**: Investigation rewards create obstacles with goals at specified locations
 3. **Strategic Planning**: Evaluate requirements (knowledge, equipment, stats, completed phases)
 4. **Tactical Execution**: Visit location, select goal card, complete Mental/Physical/Social challenge
-5. **Progression**: Victory grants discoveries, unlocks subsequent phases, builds toward completion
+5. **Progression**: Victory grants discoveries, enables subsequent phases, builds toward completion
 
 **AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
 
@@ -588,37 +588,85 @@ Wayfarer separates **strategic placement** (Goals) from **tactical victory condi
 - Launches Physical challenge (obstacle) using specified deck
 - Goal cards unlock at breakthrough thresholds during challenge
 
-### Investigation System Integration
+### Investigation System Integration: Motivation / Problem / Solution
 
-**Dynamic Goal Spawning**:
-Investigations spawn goals dynamically when phases activate:
+**Motivation:**
+Multi-phase investigations need to progress logically, with later phases becoming available as earlier ones complete, while maintaining strategic choice about when to pursue phases.
 
+**Problem (Hard-Coded Progression):**
+Traditional approaches:
+- All phases available immediately (no narrative progression)
+- Linear sequence enforced by code (no player choice)
+- Boolean flags checked continuously (`if completed_phase_1 then show_phase_2`)
+
+**Why this fails:**
+- No narrative pacing (everything available at once OR rigidly sequential)
+- No strategic choice (must do phases in fixed order)
+- Boolean gate checking (Cookie Clicker pattern)
+
+**Solution (Phase Prerequisites + GoalCard Rewards):**
+
+**Phase Prerequisites** enable later phases:
+```json
+{
+  "phase_2": {
+    "requirements": {
+      "completedPhases": ["phase_1"],
+      "knowledge": ["mill_mechanism_broken"]
+    }
+  }
+}
 ```
-Investigation Phase Requirements Met
+
+**GoalCard completion** applies phase completion rewards:
+- Knowledge granted
+- Next phase prerequisites satisfied
+- Investigation system creates obstacles for newly-available phases
+
+**Flow:**
+```
+Player completes Phase 1 Goal via GoalCard
     ↓
-Investigation System Adds Goal to Entity
+GoalCard reward applies: grants knowledge, marks phase complete
     ↓
-Goal Appears in NPC.ActiveGoals OR Location.ActiveGoals
+Investigation system checks prerequisites for all phases
     ↓
-UI Displays Goal as Action Button
+Phase 2 prerequisites NOW satisfied (Phase 1 complete + knowledge gained)
     ↓
-Player Clicks Button → Tactical Challenge Launches
+Investigation system creates Obstacle for Phase 2
     ↓
-Player Completes Challenge via Goal Card
+Obstacle goals placed at specified locations/NPCs
     ↓
-Investigation Phase Marked Complete → Next Phase Unlocks
+UI shows new action buttons where Phase 2 goals appear
 ```
 
-**Multi-Phase Example**:
+**Why this works:**
+- **No Boolean Checking**: Prerequisites use actual game state (phase completion, knowledge possession)
+- **Resource Cost**: Must spend time/resources completing Phase 1 before Phase 2 available
+- **Strategic Choice**: Player chooses WHEN to pursue available phases (not forced sequence)
+- **Property-Based**: Numerical/enum checks, not string matching
+- **Inter-Systemic**: Phase completion (goal system) affects investigation availability (investigation system)
+
+**Multi-Phase Example:**
 ```
 Waterwheel Mystery Investigation
-├─ Phase 1: Mental goal added to Location.ActiveGoals at "courtyard"
-├─ Phase 2: Social goal added to NPC.ActiveGoals for "mill_owner"
-├─ Phase 3: Physical goal added to Location.ActiveGoals at "mill_interior"
-└─ Phase 4: Social goal added to NPC.ActiveGoals for "suspect_npc"
+├─ Phase 1: Mental obstacle created at "courtyard" (available immediately)
+│   └─ Completion grants knowledge: "mechanism_damaged"
+├─ Phase 2: Social obstacle created at "mill_owner" (requires Phase 1 complete)
+│   └─ Completion grants knowledge: "owner_suspicious"
+├─ Phase 3: Physical obstacle created at "mill_interior" (requires Phase 1+2, "rope" item)
+│   └─ Completion grants knowledge: "sabotage_evidence"
+└─ Phase 4: Social obstacle created at "suspect_npc" (requires Phase 3, knowledge items)
+    └─ Investigation marked complete
 ```
 
-Each phase completion spawns next phase's goals dynamically across the game world.
+**Player agency:**
+- Phase 1 complete → Phase 2 available
+- Player can: pursue Phase 2 immediately OR delay (prepare, pursue other goals, return later)
+- Phase 2+3 available → choose which to tackle first based on resources/preparation
+- No forced sequence beyond prerequisites
+
+This follows the Core Design Principle: Prerequisites check game state properties, not boolean flags. Phase availability has resource cost (must complete earlier phases). Player has strategic choice about timing.
 
 ### Content Authoring Pattern
 
@@ -1628,15 +1676,18 @@ Knowledge entries are structured discoveries that connect investigations, unlock
 
 **Knowledge Functions:**
 
-**Phase Unlocking** - Knowledge gates investigation progression
-- Phase 3 requires knowledge from Phase 1 completion
-- Creates meaningful progression, prevents skipping ahead
-- Example: Can't question suspect until you've examined crime scene
+**Phase Prerequisites** - Knowledge as phase requirement (NOT unlock trigger)
+- Phase 3 prerequisites include knowledge from Phase 1 completion
+- Creates meaningful progression through property checking
+- Example: Can't question suspect without "crime_scene_examined" knowledge
+- **NOT boolean gate**: Prerequisites checked when phase rewards would apply, not continuously
+- Knowledge granted as GoalCard reward, prerequisites satisfied naturally
 
-**Investigation Discovery** - Knowledge triggers new investigations
-- Discovering "broken_cog" knowledge spawns "Sabotage Mystery" investigation
-- Creates investigation chains and narrative continuity
-- Knowledge from one investigation opens doors to related mysteries
+**Investigation Chains** - Knowledge enables future discovery opportunities
+- Completing Mill investigation grants "mill_sabotage_discovered" knowledge
+- Later, Martha's conversation at 10+ Momentum can grant "mill_mystery" investigation IF player has sabotage knowledge
+- **NOT automatic triggering**: Knowledge enables GoalCard rewards, doesn't trigger discovery directly
+- Creates narrative continuity through informed decision paths
 
 **Conversation Enhancement** - Knowledge adds observation cards to NPC decks
 - Discover "mill_sabotage" → gain observation card about sabotage
@@ -2237,7 +2288,7 @@ Memorable moments identical for all players:
 
 **Purpose:** Create identity, establish tone, provide structural peaks in slice-of-life flow.
 
-**Constraint:** No branching. Same content for everyone. Happens based on triggers (first visit, relationship level, calendar date).
+**Constraint:** No branching. Same content for everyone. Happens when property thresholds reached (first visit: visitCount==1, relationship milestone: connectionLevel>=threshold, calendar event: currentDate>=eventDate).
 
 ### AI Flavor Layer (Contextual, Pervasive)
 
