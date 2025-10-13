@@ -62,7 +62,6 @@ public static class ServiceConfiguration
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
 
-
         // ConversationSubsystem services
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<SocialEffectResolver>();
@@ -92,6 +91,7 @@ public static class ServiceConfiguration
 
         // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
         services.AddSingleton<ObstacleGoalFilter>();
+        services.AddSingleton<GoalCompletionHandler>();
 
         // NPC deck initialization handled directly in PackageLoader
 
