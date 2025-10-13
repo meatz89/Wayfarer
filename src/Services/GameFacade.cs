@@ -1019,6 +1019,15 @@ public class GameFacade
     }
 
     /// <summary>
+    /// Complete investigation intro action - activates investigation and spawns Phase 1
+    /// RPG quest acceptance pattern: Player clicks button → Investigation activates immediately
+    /// </summary>
+    public void CompleteInvestigationIntro(string investigationId)
+    {
+        _investigationActivity.CompleteIntroAction(investigationId);
+    }
+
+    /// <summary>
     /// Get route by ID (V2 Travel Integration)
     /// </summary>
     public RouteOption GetRouteById(string routeId)

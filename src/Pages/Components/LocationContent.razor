@@ -48,14 +48,28 @@
         @{
             bool hasLocationActions = LocationActions.Any();
             bool hasLocationGoals = AvailableSocialGoals.Any() || AvailableMentalGoals.Any() || AvailablePhysicalGoals.Any();
-            bool hasAnyActions = hasLocationGoals || hasLocationActions;
+            bool hasDiscoveredInvestigations = DiscoveredInvestigationsAtLocation.Any();
+            bool hasAnyActions = hasLocationGoals || hasLocationActions || hasDiscoveredInvestigations;
         }
 
         @if (hasAnyActions)
         {
             <div class="section-header">Actions Available Here</div>
             <div class="actions-grid">
-                
+
+                <!-- Discovered Investigations (RPG Quest Acceptance) -->
+                @foreach (var investigation in DiscoveredInvestigationsAtLocation)
+                {
+                    <div class="goal-action-btn intro-action" @onclick="async () => await StartInvestigationIntro(investigation)">
+                        <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                        <div class="goal-name">@investigation.IntroAction.ActionText</div>
+                        @if (!string.IsNullOrEmpty(investigation.IntroAction.IntroNarrative))
+                        {
+                            <div class="goal-description">@investigation.IntroAction.IntroNarrative</div>
+                        }
+                    </div>
+                }
+
                 <!-- Mental Goals -->
                 @foreach (var goal in AvailableMentalGoals)
                 {

@@ -1268,26 +1268,13 @@ public class SocialFacade
 
     /// <summary>
     /// Check if completed NPC request is part of an active investigation and trigger progress
+    /// RPG PATTERN: Intro actions are NOT goals - they're quest acceptance buttons
+    /// This method ONLY checks for phase goals in ACTIVE investigations
     /// </summary>
     private void CheckInvestigationProgress(string npcId, string requestId)
     {
-        // First check if this is an intro action for a discovered investigation
-        foreach (string discoveredId in _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.ToList())
-        {
-            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == discoveredId);
-            if (investigation?.IntroAction != null &&
-                investigation.IntroAction.SystemType == TacticalSystemType.Social &&
-                investigation.IntroAction.NpcId == npcId &&
-                requestId == "notice_waterwheel")
-            {
-                // This is intro completion - activate investigation
-                // CompleteIntroAction spawns goals directly to ActiveGoals
-                _investigationActivity.CompleteIntroAction(discoveredId);
-
-                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' ACTIVATED");
-                return;
-            }
-        }
+        // SCORCHED EARTH: Removed intro action check - intro is NOT a goal, it's a button
+        // Intro action completion happens via GameFacade.CompleteInvestigationIntro(), not through conversations
 
         // Search active investigations for a phase matching this npcId + requestId
         foreach (ActiveInvestigation activeInv in _gameWorld.InvestigationJournal.ActiveInvestigations)

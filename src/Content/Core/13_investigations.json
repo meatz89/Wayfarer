@@ -20,9 +20,7 @@
             "spotId": "courtyard"
           },
           "actionText": "Search for safe entry to the mill",
-          "systemType": "Mental",
-          "deckId": "mental_challenge",
-          "spotId": "courtyard",
+          "locationId": "courtyard",
           "introNarrative": "The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside.",
           "completionReward": {
             "obstaclesSpawned": [

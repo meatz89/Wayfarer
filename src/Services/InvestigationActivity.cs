@@ -311,7 +311,8 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Discover investigation - moves Potential → Discovered, spawns intro goal
+    /// Discover investigation - moves Potential → Discovered
+    /// Simple RPG pattern: Just discovery, no goal spawning (intro action is NOT a goal)
     /// Sets pending discovery result for UI modal display
     /// </summary>
     public void DiscoverInvestigation(string investigationId)
@@ -329,33 +330,6 @@ public class InvestigationActivity
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
         _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
         Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
-
-        // Spawn intro goal at location
-        // Intro goal already exists in GameWorld.Goals from 05_goals.json
-        // We need to: 1) make it available, 2) add it to location's ActiveGoalIds
-        Goal introGoal = _gameWorld.Goals.Values.FirstOrDefault(g =>
-            g.InvestigationId == investigationId && g.IsIntroAction);
-
-        if (introGoal != null)
-        {
-            introGoal.IsAvailable = true;
-
-            // Add intro goal to location's ActiveGoalIds so ObstacleGoalFilter can find it
-            LocationEntry locationEntry = _gameWorld.Locations.FirstOrDefault(loc => loc.LocationId == introGoal.PlacementLocationId);
-            if (locationEntry != null)
-            {
-                locationEntry.location.ActiveGoalIds.Add(introGoal.Id);
-                Console.WriteLine($"[InvestigationActivity] Made intro goal '{introGoal.Name}' available at location '{locationEntry.location.Name}'");
-            }
-            else
-            {
-                Console.WriteLine($"[InvestigationActivity] WARNING: Location '{introGoal.PlacementLocationId}' not found for intro goal");
-            }
-        }
-        else
-        {
-            Console.WriteLine($"[InvestigationActivity] WARNING: No intro goal found for investigation '{investigationId}'");
-        }
 
         // Derive venue from location (LocationId is globally unique)
         LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);

@@ -144,23 +144,12 @@ public class InvestigationParser
     {
         if (dto == null) return null;
 
-        TacticalSystemType systemType = ParseSystemType(dto.SystemType);
-
-        // [Oracle] Validation: deckId must exist for intro action
-        if (!string.IsNullOrEmpty(dto.DeckId))
-        {
-            ValidateDeckId(dto.DeckId, systemType, "intro");
-        }
-
         return new InvestigationIntroAction
         {
             TriggerType = ParseTriggerType(dto.TriggerType),
             TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites),
             ActionText = dto.ActionText,
-            SystemType = systemType,
-            DeckId = dto.DeckId,
             LocationId = dto.LocationId,
-            NpcId = dto.NpcId,
             IntroNarrative = dto.IntroNarrative,
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };

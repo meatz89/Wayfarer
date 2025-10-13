@@ -54,6 +54,7 @@ namespace Wayfarer.Pages.Components
         protected List<Goal> AvailableMentalGoals { get; set; } = new();
         protected List<Goal> AvailablePhysicalGoals { get; set; } = new();
         protected List<Obstacle> CurrentObstacles { get; set; } = new();
+        protected List<Investigation> DiscoveredInvestigationsAtLocation { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -176,6 +177,23 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
+            // Get discovered investigations with intro actions at this location
+            DiscoveredInvestigationsAtLocation.Clear();
+            if (CurrentSpot != null && GameWorld.InvestigationJournal != null)
+            {
+                foreach (string investigationId in GameWorld.InvestigationJournal.DiscoveredInvestigationIds)
+                {
+                    Investigation investigation = GameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+                    if (investigation != null &&
+                        investigation.IntroAction != null &&
+                        investigation.IntroAction.LocationId == CurrentSpot.Id)
+                    {
+                        DiscoveredInvestigationsAtLocation.Add(investigation);
+                    }
+                }
+                Console.WriteLine($"[LocationContent] Got {DiscoveredInvestigationsAtLocation.Count} discovered investigations at this location");
+            }
+
             // Get Social, Mental, and Physical investigation goals available at current location
             // THREE PARALLEL SYSTEMS: LocationGoals can spawn any tactical system type
             // Aggregates: ambient goals (location.ActiveGoals) + obstacle-specific goals (filtered by property requirements)
@@ -190,19 +208,19 @@ namespace Wayfarer.Pages.Components
                 AvailableSocialGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Social)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId)) // Hide ALL investigation goals (they're in obstacles now)
                     .ToList();
 
                 AvailableMentalGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Mental)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId)) // Hide ALL investigation goals (they're in obstacles now)
                     .ToList();
 
                 AvailablePhysicalGoals = allVisibleGoals
                     .Where(g => g.SystemType == TacticalSystemType.Physical)
                     .Where(g => g.IsAvailable && !g.IsCompleted)
-                    .Where(g => string.IsNullOrEmpty(g.InvestigationId) || g.IsIntroAction) // Show intro actions, hide regular investigation goals
+                    .Where(g => string.IsNullOrEmpty(g.InvestigationId)) // Hide ALL investigation goals (they're in obstacles now)
                     .ToList();
 
                 Console.WriteLine($"[LocationContent] Got {AvailableSocialGoals.Count} Social, {AvailableMentalGoals.Count} Mental, and {AvailablePhysicalGoals.Count} Physical goals available");
@@ -277,6 +295,18 @@ namespace Wayfarer.Pages.Components
             {
                 Console.WriteLine($"[LocationContent] GameScreen not available for Physical goal '{goal.Name}'");
             }
+        }
+
+        protected async Task StartInvestigationIntro(Investigation investigation)
+        {
+            Console.WriteLine($"[LocationContent] Starting investigation intro: '{investigation.Name}'");
+
+            // Call GameFacade to complete intro action (activates investigation + spawns Phase 1)
+            GameFacade.CompleteInvestigationIntro(investigation.Id);
+
+            // Refresh UI to show Phase 1 obstacles
+            await RefreshLocationData();
+            await OnActionExecuted.InvokeAsync();
         }
 
         protected async Task MoveToSpot(string LocationId)

@@ -88,7 +88,8 @@ public enum ObstacleSpawnTargetType
 
 /// <summary>
 /// Investigation intro action - defines discovery trigger and activation mechanics
-/// Intro action must be completed to move investigation from Discovered → Active
+/// Simple RPG quest acceptance pattern: Show button → Player clicks → Modal displays → Accept quest → Activate investigation
+/// NO CHALLENGE - intro action immediately activates investigation and spawns Phase 1
 /// </summary>
 public class InvestigationIntroAction
 {
@@ -103,37 +104,22 @@ public class InvestigationIntroAction
     public InvestigationPrerequisites TriggerPrerequisites { get; set; }
 
     /// <summary>
-    /// Action text shown to player ("Notice the silent waterwheel")
+    /// Button text shown to player ("Search for safe entry to the mill")
     /// </summary>
     public string ActionText { get; set; }
 
     /// <summary>
-    /// Which tactical system for intro challenge (Mental/Physical/Social)
-    /// </summary>
-    public TacticalSystemType SystemType { get; set; }
-
-    /// <summary>
-    /// Deck ID for tactical challenge (mental_challenge, physical_challenge, social_challenge)
-    /// </summary>
-    public string DeckId { get; set; }
-
-    /// <summary>
-    /// location where intro action appears (LocationId is globally unique)
+    /// Location where intro button appears (LocationId is globally unique)
     /// </summary>
     public string LocationId { get; set; }
 
     /// <summary>
-    /// NPC for intro conversation (Social only)
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
-    /// Narrative shown after completing intro action
+    /// Narrative shown in modal when button clicked (quest acceptance text)
     /// </summary>
     public string IntroNarrative { get; set; }
 
     /// <summary>
-    /// Rewards granted when intro action completes
+    /// Rewards granted when player accepts quest
     /// Typically spawns Phase 1 obstacle to begin investigation
     /// </summary>
     public PhaseCompletionReward CompletionReward { get; set; }
