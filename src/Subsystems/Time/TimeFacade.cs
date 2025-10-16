@@ -84,24 +84,11 @@ public class TimeFacade
 
     private void CheckAndProcessDeadlineFailures(int currentSegment)
     {
-        List<string> failedObligations = _gameWorld.CheckDeadlineFailures(currentSegment);
+        List<string> expiredObligations = _gameWorld.CheckDeadlines(currentSegment);
 
-        foreach (string obligationId in failedObligations)
+        foreach (string obligationId in expiredObligations)
         {
-            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
-            if (investigation != null && !string.IsNullOrEmpty(investigation.PatronNpcId))
-            {
-                // Remove StoryCubes from patron NPC (per refinement spec lines 940-945)
-                NPC patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == investigation.PatronNpcId);
-                if (patron != null)
-                {
-                    int cubeReduction = Math.Min(2, patron.StoryCubes); // Lose up to 2 cubes
-                    patron.StoryCubes = Math.Max(0, patron.StoryCubes - cubeReduction);
-                }
-
-                // Remove from active obligations
-                _gameWorld.CompleteObligation(obligationId);
-            }
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
         }
     }
 

@@ -686,6 +686,40 @@ public class TravelFacade
     {
         return _travelManager.FinishRoute();
     }
+
+    // ========== CORE LOOP: PATH FILTERING ==========
+
+    /// <summary>
+    /// Get available paths for route segment (filtered by exploration cubes)
+    /// Returns paths visible based on route ExplorationCubes threshold
+    /// Hidden paths revealed when route.ExplorationCubes >= path.HiddenUntilExploration
+    /// </summary>
+    public List<RoutePath> GetAvailablePaths(string routeId, int segmentNumber)
+    {
+        RouteOption route = GetRouteById(routeId);
+        if (route == null)
+            return new List<RoutePath>();
+
+        if (segmentNumber < 1 || segmentNumber > route.Segments.Count)
+            return new List<RoutePath>();
+
+        RouteSegment segment = route.Segments[segmentNumber - 1];
+        if (segment.AvailablePaths == null || segment.AvailablePaths.Count == 0)
+            return new List<RoutePath>();
+
+        int explorationCubes = route.ExplorationCubes;
+        List<RoutePath> availablePaths = new List<RoutePath>();
+
+        foreach (RoutePath path in segment.AvailablePaths)
+        {
+            if (path.HiddenUntilExploration <= explorationCubes)
+            {
+                availablePaths.Add(path);
+            }
+        }
+
+        return availablePaths;
+    }
 }
 
 /// <summary>

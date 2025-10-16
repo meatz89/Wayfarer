@@ -126,4 +126,67 @@ public class EquipmentFacade
 
         return totalReduction;
     }
+
+    // ============================================
+    // CORE LOOP: Equipment Economics
+    // ============================================
+
+    /// <summary>
+    /// Check if player can afford equipment
+    /// </summary>
+    public bool CanAffordEquipment(string itemId)
+    {
+        Item item = _itemRepository.GetItemById(itemId);
+        if (item == null)
+            return false;
+
+        Player player = _gameWorld.GetPlayer();
+        return player.Coins >= item.BuyPrice;
+    }
+
+    /// <summary>
+    /// Apply equipment to obstacle (mark as used if consumable)
+    /// Consumable equipment is removed from inventory after use
+    /// Permanent equipment stays in inventory
+    /// </summary>
+    public void ApplyEquipmentToObstacle(string equipmentId, string obstacleId)
+    {
+        Item item = _itemRepository.GetItemById(equipmentId);
+        if (item == null || !(item is Equipment equipment))
+        {
+            throw new InvalidOperationException($"Equipment '{equipmentId}' not found");
+        }
+
+        if (equipment.UsageType == EquipmentUsageType.Consumable)
+        {
+            Player player = _gameWorld.GetPlayer();
+            player.Inventory.RemoveItem(equipmentId);
+            Console.WriteLine($"[EquipmentFacade] Consumed '{equipment.Name}' on obstacle '{obstacleId}'");
+        }
+    }
+
+    /// <summary>
+    /// Repair exhausted equipment (future: costs coins)
+    /// Currently placeholder for future durability system
+    /// </summary>
+    public void RepairEquipment(string equipmentId, int coinCost)
+    {
+        Item item = _itemRepository.GetItemById(equipmentId);
+        if (item == null || !(item is Equipment equipment))
+        {
+            throw new InvalidOperationException($"Equipment '{equipmentId}' not found");
+        }
+
+        Player player = _gameWorld.GetPlayer();
+        if (player.Coins < coinCost)
+        {
+            throw new InvalidOperationException($"Not enough coins to repair '{equipment.Name}'. Need {coinCost}, have {player.Coins}");
+        }
+
+        player.ModifyCoins(-coinCost);
+        Console.WriteLine($"[EquipmentFacade] Repaired '{equipment.Name}' for {coinCost} coins");
+
+        // Future: restore equipment durability
+        // equipment.Durability = equipment.MaxDurability;
+    }
 }

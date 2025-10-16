@@ -69,6 +69,12 @@ public class Investigation
     /// </summary>
     public List<string> SpawnedObligationIds { get; set; } = new List<string>();
 
+    /// <summary>
+    /// Tracks whether this investigation failed to meet deadline
+    /// Set to true when ApplyDeadlineConsequences is called
+    /// </summary>
+    public bool IsFailed { get; set; } = false;
+
     // ObservationCardRewards system eliminated - replaced by transparent resource competition
 }
 
