@@ -81,12 +81,7 @@ public class TravelObstacleContext
         List<string> reasons = new List<string>();
 
         // Knowledge system eliminated
-
-        if (approach.EquipmentRequirements != null && !approach.EquipmentRequirements.MeetsRequirements(Player, ItemRepository))
-        {
-            List<string> missing = approach.EquipmentRequirements.GetMissingRequirements(Player, ItemRepository);
-            reasons.AddRange(missing.Select(m => $"Missing equipment: {m}"));
-        }
+        // EquipmentRequirement system eliminated - PRINCIPLE 4: Equipment reduces costs, never gates visibility
 
         if (Player.Stamina < approach.StaminaRequired)
         {

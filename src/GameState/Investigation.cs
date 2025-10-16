@@ -171,31 +171,16 @@ public class InvestigationIntroAction
 
 /// <summary>
 /// Prerequisites for investigation discovery trigger
-/// Different trigger types use different prerequisite fields
+/// Resource-based pattern: Investigations visible when player present at location
+/// NO boolean gates - all investigations immediately discoverable
 /// </summary>
 public class InvestigationPrerequisites
 {
     /// <summary>
     /// Required location (LocationId is globally unique)
+    /// Investigation becomes discoverable when player enters this location
     /// </summary>
     public string LocationId { get; set; }
-
-    /// <summary>
-    /// Required item IDs (ItemDiscovery)
-    /// </summary>
-    public List<string> RequiredItems { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Required obligation ID (ObligationTriggered)
-    /// </summary>
-    public string RequiredObligation { get; set; }
-
-    /// <summary>
-    /// Required completed goal ID (GoalCompletionTrigger)
-    /// Checks actual game state - goal must be marked complete in GameWorld.Goals
-    /// PROPER ARCHITECTURE: Direct state checking, not invisible knowledge tokens
-    /// </summary>
-    public string CompletedGoalId { get; set; }
 }
 
 /// <summary>

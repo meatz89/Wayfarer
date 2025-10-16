@@ -137,8 +137,7 @@ public class InvestigationActivity
         // Create active investigation
         ActiveInvestigation activeInvestigation = new ActiveInvestigation
         {
-            InvestigationId = investigationId,
-            CompletedGoalIds = new List<string>()
+            InvestigationId = investigationId
         };
         _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
 
@@ -182,12 +181,6 @@ public class InvestigationActivity
             throw new ArgumentException($"Phase '{goalId}' not found in investigation '{investigationId}'");
         }
 
-        // Mark goal as complete
-        if (!activeInv.CompletedGoalIds.Contains(goalId))
-        {
-            activeInv.CompletedGoalIds.Add(goalId);
-        }
-
         // Grant Understanding from phase completion rewards (0-10 max)
         if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.UnderstandingReward > 0)
         {
@@ -215,6 +208,11 @@ public class InvestigationActivity
         // New leads come from obstacle-spawned goals, not phase-spawned goals
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
 
+        // NOTE: Obstacles no longer have InvestigationId property - investigations tracked via Understanding resource
+        // Progress now measured by Understanding accumulated, not obstacle counts
+        int resolvedObstacleCount = 0; // Legacy - UI needs redesign
+        int totalObstacleCount = 1; // Legacy - UI needs redesign
+
         // Build result for UI modal
         InvestigationProgressResult result = new InvestigationProgressResult
         {
@@ -223,8 +221,8 @@ public class InvestigationActivity
             CompletedGoalName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
             NewLeads = newLeads,
-            CompletedGoalCount = activeInv.CompletedGoalIds.Count,
-            TotalGoalCount = investigation.PhaseDefinitions.Count
+            CompletedGoalCount = resolvedObstacleCount,
+            TotalGoalCount = totalObstacleCount
         };
 
         _pendingProgressResult = result;
@@ -254,10 +252,13 @@ public class InvestigationActivity
             return null;
         }
 
-        // Check if all phases complete
-        if (activeInv.CompletedGoalIds.Count < investigation.PhaseDefinitions.Count)
+        // NOTE: Obstacles no longer have InvestigationId property - investigations tracked via Understanding resource
+        // Completion now based on Understanding reaching requirement, not obstacle counts
+        // TODO: Add UnderstandingRequired property to Investigation model
+        int requiredUnderstanding = 10; // Default completion threshold
+        if (activeInv.UnderstandingAccumulated < requiredUnderstanding)
         {
-            return null; // Not yet complete
+            return null; // Not yet complete - need more Understanding
         }
 
         // Move from Active → Completed

@@ -17,8 +17,6 @@ public class Location
     public string InitialState { get; set; }
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
-    public AccessRequirement AccessRequirement { get; set; }
-
     // Active goal IDs for this location (Mental/Physical challenges)
     // References goals in GameWorld.Goals dictionary (single source of truth)
     public List<string> ActiveGoalIds { get; set; } = new List<string>();

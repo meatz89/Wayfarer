@@ -8,12 +8,10 @@ using System.Linq;
 public class MovementValidator
 {
     private readonly GameWorld _gameWorld;
-    private readonly AccessRequirementChecker _accessChecker;
 
-    public MovementValidator(GameWorld gameWorld, AccessRequirementChecker accessChecker)
+    public MovementValidator(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _accessChecker = accessChecker ?? throw new ArgumentNullException(nameof(accessChecker));
     }
 
     /// <summary>
@@ -76,17 +74,8 @@ public class MovementValidator
             return result;
         }
 
-        // Check access requirements
-        if (targetSpot.AccessRequirement != null)
-        {
-            AccessCheckResult accessCheck = _accessChecker.CheckSpotAccess(targetSpot);
-            if (!accessCheck.IsAllowed)
-            {
-                result.IsValid = false;
-                result.ErrorMessage = accessCheck.BlockedMessage ?? "Cannot access this location";
-                return result;
-            }
-        }
+        // AccessRequirement system eliminated - PRINCIPLE 4: All locations always accessible
+        // Economic affordability determines practical access (coins required for travel/entry)
 
         // Check if movement is possible based on location properties
         if (!CanMoveFromSpot(currentSpot))
@@ -149,19 +138,9 @@ public class MovementValidator
             return result;
         }
 
-        // Core Loop: All routes physically exist and are visible
-        // Route access is determined by actual requirements (tokens, permissions, etc.)
-        // defined in the route's AccessRequirement property, not by arbitrary tiers
-
-        // Check access requirements
-        AccessCheckResult accessCheck = _accessChecker.CheckRouteAccess(route);
-        if (!accessCheck.IsAllowed)
-        {
-            result.IsValid = false;
-            result.ErrorMessage = accessCheck.BlockedMessage ?? "Cannot access this route";
-            result.BlockedByAccess = true;
-            return result;
-        }
+        // Core Loop: All routes physically exist and are always visible
+        // PRINCIPLE 4: Economic affordability determines practical access (coins, stamina)
+        // No boolean gates - equipment reduces costs, never hides routes
 
         // Check coin cost
         if (route.BaseCoinCost > player.Coins)

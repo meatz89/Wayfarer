@@ -176,10 +176,7 @@ public class InvestigationParser
 
         return new InvestigationPrerequisites
         {
-            LocationId = dto.LocationId,
-            // Knowledge system eliminated
-            RequiredItems = dto.RequiredItems ?? new List<string>(),
-            RequiredObligation = dto.RequiredObligation
+            LocationId = dto.LocationId
         };
     }
 

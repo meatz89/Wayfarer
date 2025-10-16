@@ -136,7 +136,7 @@ public static class ServiceConfiguration
         services.AddSingleton<BindingObligationSystem>();
 
         // Transaction and Preview System
-        services.AddSingleton<AccessRequirementChecker>();
+        // AccessRequirementChecker eliminated - PRINCIPLE 4: Economic affordability determines access
         services.AddSingleton<NarrativeService>();
 
         // Action generation service

@@ -29,15 +29,7 @@ public class TravelObstacleService
             {
                 List<string> reasons = new List<string>();
 
-                if (approach.EquipmentRequirements != null)
-                {
-                    List<string> missing = approach.EquipmentRequirements.GetMissingRequirements(player, _itemRepository);
-                    foreach (string m in missing)
-                    {
-                        reasons.Add(m);
-                    }
-                }
-
+                // EquipmentRequirement system eliminated - PRINCIPLE 4: Equipment reduces costs, never gates visibility
                 // Knowledge system eliminated - no knowledge requirements
 
                 if (player.Stamina < approach.StaminaRequired)

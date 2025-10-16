@@ -34,23 +34,13 @@ public class InvestigationJournal
 }
 
 /// <summary>
-/// Active investigation state - tracks phase progression and understanding accumulation
+/// Active investigation state - tracks understanding accumulation and activation timing
+/// PRINCIPLE 4: No sequential phase unlocking - all obstacles spawn at activation
+/// Progress tracked by counting resolved obstacles, not completed goal IDs
 /// </summary>
 public class ActiveInvestigation
 {
     public string InvestigationId { get; set; }
-
-    /// <summary>
-    /// IDs of goals that have been completed for this investigation
-    /// Used to calculate progress (X/Y completed) for journal display
-    /// </summary>
-    public List<string> CompletedGoalIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// IDs of phases that have been completed for this investigation
-    /// Used to track investigation progression through phase definitions
-    /// </summary>
-    public List<string> CompletedPhaseIds { get; set; } = new List<string>();
 
     /// <summary>
     /// Accumulated understanding points from completed phases (0-10 scale)

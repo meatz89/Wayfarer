@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Service for aggregating and filtering goals from ambient and obstacle sources
-/// Implements 80 Days-style property-based goal visibility gating
-/// ALL GOALS ALWAYS VISIBLE - difficulty varies based on DifficultyModifiers
-/// Boolean gate elimination: No more knowledge/equipment hiding goals
+/// Service for aggregating goals from ambient and obstacle sources
+/// PRINCIPLE 4: ALL GOALS ALWAYS VISIBLE - difficulty varies based on DifficultyModifiers
+/// No boolean gates - equipment/resources reduce difficulty, never hide content
 /// </summary>
 public class ObstacleGoalFilter
 {
@@ -18,8 +17,7 @@ public class ObstacleGoalFilter
 
     /// <summary>
     /// Get all visible goals for a location
-    /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
-    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// Aggregates: ambient goals + obstacle goals (all always visible)
     /// DISTRIBUTED INTERACTION: Obstacles stored in GameWorld.Obstacles, filtered by PlacementLocationId
     /// </summary>
     public List<Goal> GetVisibleLocationGoals(Location location, GameWorld gameWorld)
@@ -52,15 +50,8 @@ public class ObstacleGoalFilter
                         if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
                             goal.PlacementLocationId == location.Id)
                         {
-                            // Check property requirements only (boolean gates eliminated)
-                            // Goals always visible - difficulty varies via DifficultyModifiers
-                            bool propertyRequirementsMet = goal.PropertyRequirements == null ||
-                                                          goal.PropertyRequirements.MeetsRequirements(obstacle);
-
-                            if (propertyRequirementsMet)
-                            {
-                                visibleGoals.Add(goal);
-                            }
+                            // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
+                            visibleGoals.Add(goal);
                         }
                     }
                 }
@@ -72,8 +63,7 @@ public class ObstacleGoalFilter
 
     /// <summary>
     /// Get all visible goals for an NPC
-    /// Aggregates: ambient goals (always visible) + obstacle goals (filtered by property requirements)
-    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// Aggregates: ambient goals + obstacle goals (all always visible)
     /// DISTRIBUTED INTERACTION: Obstacles stored in GameWorld.Obstacles, filtered by PlacementNpcId
     /// </summary>
     public List<Goal> GetVisibleNPCGoals(NPC npc, GameWorld gameWorld)
@@ -106,15 +96,8 @@ public class ObstacleGoalFilter
                         if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
                             goal.PlacementNpcId == npc.ID)
                         {
-                            // Check property requirements only (boolean gates eliminated)
-                            // Goals always visible - difficulty varies via DifficultyModifiers
-                            bool propertyRequirementsMet = goal.PropertyRequirements == null ||
-                                                          goal.PropertyRequirements.MeetsRequirements(obstacle);
-
-                            if (propertyRequirementsMet)
-                            {
-                                visibleGoals.Add(goal);
-                            }
+                            // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
+                            visibleGoals.Add(goal);
                         }
                     }
                 }
@@ -126,8 +109,7 @@ public class ObstacleGoalFilter
 
     /// <summary>
     /// Get all visible goals for a route
-    /// Routes only have obstacle-specific goals (no ambient goals)
-    /// Filters by requirements (knowledge, equipment, stats, familiarity, completed goals)
+    /// Routes only have obstacle-specific goals (all always visible, no ambient goals)
     /// </summary>
     public List<Goal> GetVisibleRouteGoals(RouteOption route)
     {
@@ -154,9 +136,9 @@ public class ObstacleGoalFilter
     }
 
     /// <summary>
-    /// Get visible goals from a single obstacle (filtered by property requirements only)
-    /// 80 Days pattern: Goals become visible as obstacle properties are reduced
-    /// Boolean gate elimination: Goals always visible, difficulty varies via DifficultyModifiers
+    /// Get visible goals from a single obstacle
+    /// PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
+    /// Equipment/resources reduce difficulty, never gate visibility
     /// </summary>
     private List<Goal> GetVisibleGoalsFromObstacle(Obstacle obstacle)
     {
@@ -170,15 +152,8 @@ public class ObstacleGoalFilter
             if (!_gameWorld.Goals.TryGetValue(goalId, out Goal goal))
                 continue;
 
-            // Property requirements only (boolean gates eliminated)
-            // Goals always visible - difficulty varies via DifficultyModifiers
-            bool propertyRequirementsMet = goal.PropertyRequirements == null ||
-                                          goal.PropertyRequirements.MeetsRequirements(obstacle);
-
-            if (propertyRequirementsMet)
-            {
-                visibleGoals.Add(goal);
-            }
+            // PRINCIPLE 4: All goals always visible
+            visibleGoals.Add(goal);
         }
 
         return visibleGoals;

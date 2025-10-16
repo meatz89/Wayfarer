@@ -124,71 +124,38 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ItemDiscovery: Player has acquired required item
-    /// Prerequisites: requiredItems list
+    /// ItemDiscovery: Investigation discovered through item-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// Prerequisites: None (RequiredItems system eliminated)
     /// </summary>
     private bool CheckItemDiscovery(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player has all required items
-        if (prereqs.RequiredItems != null && prereqs.RequiredItems.Any())
-        {
-            foreach (string itemId in prereqs.RequiredItems)
-            {
-                // Item checking deferred until inventory system is implemented
-                return false;
-            }
-        }
-
+        // RequiredItems system eliminated - no prerequisites to check
+        // ItemDiscovery now represents narrative triggers without gating
         return true;
     }
 
     /// <summary>
-    /// ObligationTriggered: Player has accepted required obligation
-    /// Prerequisites: requiredObligation
+    /// ObligationTriggered: Investigation discovered through obligation-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// Prerequisites: None (RequiredObligation system eliminated)
     /// </summary>
     private bool CheckObligationTriggered(InvestigationPrerequisites prereqs, Player player)
     {
-        // Check if player has accepted required obligation
-        if (!string.IsNullOrEmpty(prereqs.RequiredObligation))
-        {
-            bool hasObligation = player.StandingObligations
-                .Any(o => o.ID == prereqs.RequiredObligation);
-
-            if (!hasObligation)
-                return false;
-        }
-
+        // RequiredObligation system eliminated - no prerequisites to check
+        // ObligationTriggered now represents narrative triggers without gating
         return true;
     }
 
     /// <summary>
-    /// GoalCompletionTrigger: Investigation revealed after completing specific goal
-    /// Prerequisites: CompletedGoalId
-    /// PROPER ARCHITECTURE: Checks actual game state (goal completion), not invisible knowledge tokens
-    /// Example: Martha's "Gather Information" goal completion reveals daughter's disappearance investigation
+    /// GoalCompletionTrigger: Investigation discovered through goal-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// Prerequisites: None (CompletedGoalId system eliminated)
     /// </summary>
     private bool CheckGoalCompletionTrigger(InvestigationPrerequisites prereqs)
     {
-        Console.WriteLine($"[InvestigationEvaluator] Checking GoalCompletionTrigger - Required GoalId: '{prereqs.CompletedGoalId ?? "NULL"}'");
-
-        // Check if required goal is completed
-        if (!string.IsNullOrEmpty(prereqs.CompletedGoalId))
-        {
-            // Look up goal in GameWorld.Goals dictionary
-            if (_gameWorld.Goals.TryGetValue(prereqs.CompletedGoalId, out Goal goal))
-            {
-                bool isComplete = goal.IsCompleted;
-                Console.WriteLine($"[InvestigationEvaluator] Goal '{goal.Name}' found - IsCompleted: {isComplete}");
-                return isComplete;
-            }
-            else
-            {
-                Console.WriteLine($"[InvestigationEvaluator] GoalCompletionTrigger FAILED - Goal '{prereqs.CompletedGoalId}' not found in GameWorld.Goals");
-                return false;
-            }
-        }
-
-        Console.WriteLine($"[InvestigationEvaluator] GoalCompletionTrigger - No CompletedGoalId specified");
+        // CompletedGoalId system eliminated - no prerequisites to check
+        // GoalCompletionTrigger now represents narrative triggers without gating
         return true;
     }
 }

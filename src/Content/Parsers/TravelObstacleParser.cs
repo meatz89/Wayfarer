@@ -42,11 +42,7 @@ public class TravelObstacleParser
         };
 
         // Knowledge system eliminated - no knowledge requirements
-
-        if (dto.EquipmentRequirements != null)
-        {
-            approach.EquipmentRequirements = ParseEquipmentRequirement(dto.EquipmentRequirements);
-        }
+        // EquipmentRequirement system eliminated - no equipment gates
 
         if (dto.StatRequirements != null)
         {
@@ -102,13 +98,4 @@ public class TravelObstacleParser
         };
     }
 
-    // Knowledge parsing deleted - Knowledge system eliminated
-
-    private EquipmentRequirement ParseEquipmentRequirement(EquipmentRequirementDTO dto)
-    {
-        return new EquipmentRequirement
-        {
-            RequiredEquipment = dto.RequiredEquipment ?? new List<string>()
-        };
-    }
 }

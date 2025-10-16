@@ -206,11 +206,7 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Add tags based on access requirements
-            if (route.AccessRequirement != null)
-            {
-                tags.Add("RESTRICTED");
-            }
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             // Add tags based on transport method
             if (route.Method == TravelMethods.Walking)
@@ -255,13 +251,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Tier requirements removed - all routes accessible
-
-            // Add access requirements if any
-            if (route.AccessRequirement != null)
-            {
-                // Add specific access requirement descriptions based on the AccessRequirement
-                requirements.Add("Special access required");
-            }
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             return requirements;
         }

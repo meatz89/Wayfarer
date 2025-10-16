@@ -44,16 +44,28 @@ public class GoalCard
 }
 
 /// <summary>
-/// Runtime data for CreateObligation reward
+/// Runtime data for CreateObligation reward (Resource-Based Pattern)
+/// PRINCIPLE 4: No boolean gates - grants StoryCubes to PatronNPC
+/// Generic delivery goals become visible when NPC.StoryCubes >= threshold
 /// </summary>
 public class CreateObligationReward
 {
+    /// <summary>
+    /// NPC receiving StoryCubes (creates obligation with this patron)
+    /// </summary>
     public string PatronNpcId { get; set; }
-    public string DestinationLocationId { get; set; }
-    public List<string> RequiredGoalIds { get; set; } = new List<string>();
-    public int DeadlineSegment { get; set; }
+
+    /// <summary>
+    /// Number of StoryCubes granted to patron (typically 2-5)
+    /// Enables visibility of generic delivery goals when threshold met
+    /// </summary>
+    public int StoryCubesGranted { get; set; }
+
+    /// <summary>
+    /// Coins rewarded when delivery goal completes
+    /// Stored on NPC for generic goal reward calculation
+    /// </summary>
     public int RewardCoins { get; set; }
-    public int RewardStoryTokens { get; set; }
 }
 
 /// <summary>

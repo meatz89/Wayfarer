@@ -144,15 +144,8 @@ public class Goal
     public string TransformDescription { get; set; }
 
     /// <summary>
-    /// Property requirements for goal visibility (80 Days pattern)
-    /// Goal visible only if parent obstacle properties meet these thresholds
-    /// null = always visible (for ambient goals)
-    /// </summary>
-    public ObstaclePropertyRequirements PropertyRequirements { get; set; }
-
-    /// <summary>
     /// Property reduction to apply to parent obstacle (for Modify consequence)
-    /// Unlocks better resolution options by lowering obstacle difficulty
+    /// Reduces obstacle intensity, making other goals easier (NOT unlocking them)
     /// null for Resolution, Bypass, Transform, and Grant consequence types
     /// </summary>
     public ObstaclePropertyReduction PropertyReduction { get; set; }

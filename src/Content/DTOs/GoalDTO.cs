@@ -107,13 +107,8 @@ public class GoalDTO
     public string TransformDescription { get; set; }
 
     /// <summary>
-    /// Property requirements for goal visibility (80 Days pattern)
-    /// Goal visible only if parent obstacle properties meet these thresholds
-    /// </summary>
-    public ObstaclePropertyRequirementsDTO PropertyRequirements { get; set; }
-
-    /// <summary>
-    /// Property reduction to apply to parent obstacle (for ReduceProperties effect)
+    /// Property reduction to apply to parent obstacle (for Modify consequence)
+    /// Reduces obstacle intensity, making other goals easier (NOT unlocking them)
     /// </summary>
     public ObstaclePropertyReductionDTO PropertyReduction { get; set; }
 }

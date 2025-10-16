@@ -18,7 +18,6 @@ public class ObstacleApproachDTO
     public string Description { get; set; }
     public int SuccessProbability { get; set; }
 
-    public EquipmentRequirementDTO EquipmentRequirements { get; set; }
     public int StaminaRequired { get; set; }
     public Dictionary<string, int> StatRequirements { get; set; }
 

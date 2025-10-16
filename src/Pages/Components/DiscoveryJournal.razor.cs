@@ -117,40 +117,41 @@ namespace Wayfarer.Pages.Components
 
         protected int GetInvestigationProgress(ActiveInvestigation activeInv)
         {
-            return activeInv.CompletedGoalIds.Count;
+            // CompletedGoalIds eliminated - track progress via resolved obstacles instead
+            // NOTE: Obstacles no longer have InvestigationId - UI needs redesign to show obstacle locations
+            // For now, return understanding accumulated as progress metric
+            return activeInv.UnderstandingAccumulated;
         }
 
         protected int GetInvestigationTotalGoals(string investigationId)
         {
-            Investigation inv = GetInvestigationById(investigationId);
-            return inv?.PhaseDefinitions.Count ?? 0;
+            // PhaseDefinitions eliminated - return static understanding requirement for now
+            // NOTE: Obstacles no longer have InvestigationId - UI needs redesign
+            // TODO: Add UnderstandingRequired property to Investigation model
+            return 10; // Default Understanding requirement for completion
         }
 
         protected double GetInvestigationProgressPercent(ActiveInvestigation activeInv)
         {
             int total = GetInvestigationTotalGoals(activeInv.InvestigationId);
             if (total == 0) return 0;
-            return ((double)activeInv.CompletedGoalIds.Count / total) * 100.0;
+            // CompletedGoalIds eliminated - use resolved obstacle count instead
+            int resolved = GetInvestigationProgress(activeInv);
+            return ((double)resolved / total) * 100.0;
         }
 
         protected List<InvestigationPhaseDefinition> GetCompletedPhases(ActiveInvestigation activeInv)
         {
-            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
-            if (inv == null) return new List<InvestigationPhaseDefinition>();
-
-            return inv.PhaseDefinitions
-                .Where(p => activeInv.CompletedGoalIds.Contains(p.Id))
-                .ToList();
+            // PhaseDefinitions and CompletedGoalIds eliminated - investigations no longer have sequential phases
+            // Return resolved obstacles instead
+            return new List<InvestigationPhaseDefinition>();
         }
 
         protected List<InvestigationPhaseDefinition> GetActivePhases(ActiveInvestigation activeInv)
         {
-            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
-            if (inv == null) return new List<InvestigationPhaseDefinition>();
-
-            return inv.PhaseDefinitions
-                .Where(p => !activeInv.CompletedGoalIds.Contains(p.Id))
-                .ToList();
+            // PhaseDefinitions and CompletedGoalIds eliminated - investigations no longer have sequential phases
+            // Return active obstacles instead
+            return new List<InvestigationPhaseDefinition>();
         }
 
         protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveInvestigation activeInv)

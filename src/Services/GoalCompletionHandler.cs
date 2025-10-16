@@ -179,16 +179,26 @@ public class GoalCompletionHandler
                 Console.WriteLine($"[GoalCompletion] ExplorationCubes reward specified ({rewards.ExplorationCubes.Value}) but route context not available - requires goal to specify RouteId");
             }
 
-            // CREATE OBLIGATION - spawn NPCCommissioned investigation
+            // CREATE OBLIGATION - grant StoryCubes to patron NPC (RESOURCE-BASED PATTERN)
+            // PRINCIPLE 4: No boolean gates - visibility based on resource thresholds
             if (rewards.CreateObligationData != null)
             {
-                CreateObligationReward obligationData = rewards.CreateObligationData;
-                Console.WriteLine($"[GoalCompletion] Creating NPCCommissioned investigation for patron '{obligationData.PatronNpcId}' with destination '{obligationData.DestinationLocationId}'");
+                CreateObligationReward data = rewards.CreateObligationData;
 
-                // NOTE: This requires dynamic investigation creation from reward data
-                // Current architecture expects investigations to be pre-defined in JSON
-                // This is a design decision point: Do we allow dynamic investigations or require JSON pre-definition?
-                Console.WriteLine($"[GoalCompletion] WARNING: CreateObligationData reward requires dynamic investigation creation - not yet implemented");
+                NPC patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == data.PatronNpcId);
+                if (patron == null)
+                {
+                    Console.WriteLine($"[GoalCompletion] WARNING: Patron NPC '{data.PatronNpcId}' not found");
+                }
+                else
+                {
+                    // Grant StoryCubes to patron (max 10)
+                    int previousCubes = patron.StoryCubes;
+                    patron.StoryCubes = Math.Min(10, patron.StoryCubes + data.StoryCubesGranted);
+
+                    Console.WriteLine($"[GoalCompletion] Granted {data.StoryCubesGranted} StoryCubes to '{patron.Name}' ({previousCubes} → {patron.StoryCubes}/10)");
+                    Console.WriteLine($"[GoalCompletion] Generic delivery goals now visible where NPC.StoryCubes >= threshold");
+                }
             }
 
             // OBLIGATION ID - spawn existing investigation (SelfDiscovered or NPCCommissioned)

@@ -21,7 +21,6 @@ public class RouteDTO
     public List<string> TerrainCategories { get; set; } = new List<string>();
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
-    public AccessRequirementDTO AccessRequirement { get; set; }
 
     // Obstacles on this route (bandits, flooding, difficult terrain)
     public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();

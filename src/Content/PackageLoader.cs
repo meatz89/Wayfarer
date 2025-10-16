@@ -1443,7 +1443,7 @@ public class PackageLoader
             DepartureTime = forwardRoute.DepartureTime,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
             Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
-            AccessRequirement = forwardRoute.AccessRequirement,
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
             RouteType = forwardRoute.RouteType,
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
             StartingStamina = forwardRoute.StartingStamina

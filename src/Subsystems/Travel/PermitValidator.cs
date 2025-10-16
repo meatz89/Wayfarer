@@ -20,71 +20,22 @@ public class PermitValidator
 
     /// <summary>
     /// Check if player has required permit for a route.
+    /// AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
     /// </summary>
     public bool HasRequiredPermit(RouteOption route)
     {
-        // RouteOption has AccessRequirement (singular), not AccessRequirements (plural)
-        if (route.AccessRequirement == null)
-        {
-            return true; // No permits required
-        }
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if permit has been received (using HasReceivedPermit flag)
-        if (!route.AccessRequirement.HasReceivedPermit)
-        {
-            return false; // Permit letter required but not received
-        }
-
-        // Check if player has required items
-        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-        {
-            bool hasRequiredItem = route.AccessRequirement.RequiredItemIds
-                .Any(itemId => player.Inventory.GetAllItems().Contains(itemId));
-            if (!hasRequiredItem)
-            {
-                return false;
-            }
-        }
-
+        // AccessRequirement system eliminated - all routes accessible based on coins/stamina
         return true;
     }
 
     /// <summary>
     /// Get missing permits for a route.
+    /// AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
     /// </summary>
     public List<string> GetMissingPermits(RouteOption route)
     {
-        List<string> missingPermits = new List<string>();
-
-        if (route.AccessRequirement == null)
-        {
-            return missingPermits;
-        }
-
-        // Check if permit has not been received
-        if (!route.AccessRequirement.HasReceivedPermit)
-        {
-            string permitName = route.AccessRequirement.Name ?? "Travel Permit";
-            missingPermits.Add(permitName);
-        }
-
-        // Check for missing required items
-        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-        {
-            Player player = _gameWorld.GetPlayer();
-            foreach (string itemId in route.AccessRequirement.RequiredItemIds)
-            {
-                if (!player.Inventory.GetAllItems().Contains(itemId))
-                {
-                    Item item = _itemRepository.GetItemById(itemId);
-                    missingPermits.Add(item?.Name ?? itemId);
-                }
-            }
-        }
-
-        return missingPermits;
+        // AccessRequirement system eliminated - no permits gate routes
+        return new List<string>();
     }
 
     /// <summary>
@@ -115,31 +66,11 @@ public class PermitValidator
 
     /// <summary>
     /// Get access requirement description for UI.
+    /// AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
     /// </summary>
     public string GetAccessRequirementDescription(RouteOption route)
     {
-        if (route.AccessRequirement == null)
-        {
-            return "No special requirements";
-        }
-
-        List<string> descriptions = new List<string>();
-
-        if (!route.AccessRequirement.HasReceivedPermit)
-        {
-            string permitName = route.AccessRequirement.Name ?? "Special Permit";
-            descriptions.Add($"Requires: {permitName}");
-        }
-
-        if (route.AccessRequirement.RequiredItemIds != null && route.AccessRequirement.RequiredItemIds.Any())
-        {
-            foreach (string itemId in route.AccessRequirement.RequiredItemIds)
-            {
-                Item item = _itemRepository.GetItemById(itemId);
-                descriptions.Add($"Requires: {item?.Name ?? itemId}");
-            }
-        }
-
-        return string.Join(", ", descriptions);
+        // AccessRequirement system eliminated - routes show cost/stamina requirements instead
+        return "No special requirements";
     }
 }

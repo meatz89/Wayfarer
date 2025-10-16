@@ -69,8 +69,6 @@ public class RouteOption
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
 
-    // Enhanced Access Requirements (in addition to terrain categories)
-    public AccessRequirement AccessRequirement { get; set; }
     public RouteType RouteType { get; set; }
 
     // Track if this specific route has been unlocked via permit

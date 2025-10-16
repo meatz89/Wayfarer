@@ -27,8 +27,6 @@ public class LocationDTO
     public string WorkType { get; set; }
     public int WorkPay { get; set; }
 
-    public AccessRequirementDTO AccessRequirement { get; set; }
-
     // Obstacles at this location (Mental/Physical challenges)
     public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 

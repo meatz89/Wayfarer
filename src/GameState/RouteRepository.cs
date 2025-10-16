@@ -71,22 +71,11 @@ public class RouteRepository : IRouteRepository
         foreach (RouteOption route in allRoutes)
         {
             // Core Loop: All routes physically exist and are visible
-            // Check if route has special access requirements (unless unlocked by permit)
-            if (route.AccessRequirement != null && !route.HasPermitUnlock)
-                continue;
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             // Check if route is blocked
             if (IsRouteBlocked(route.Id))
                 continue;
-
-            // Check access requirements if any
-            if (route.AccessRequirement != null)
-            {
-                // For now, just check if permit has been received
-                // Transport permits will be handled in task 4
-                if (!route.AccessRequirement.HasReceivedPermit)
-                    continue;
-            }
 
             availableRoutes.Add(route);
         }

@@ -107,11 +107,7 @@ public static class LocationParser
             }
         }
 
-        // Parse access requirements
-        if (dto.AccessRequirement != null)
-        {
-            location.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
-        }
+        // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties moved from Location
         location.DomainTags = dto.DomainTags ?? new List<string>();

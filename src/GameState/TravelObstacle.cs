@@ -23,7 +23,6 @@ public class ObstacleApproach
     public string Name { get; set; }
     public string Description { get; set; }
 
-    public EquipmentRequirement EquipmentRequirements { get; set; }
     public int StaminaRequired { get; set; }
     public Dictionary<PlayerStatType, int> StatRequirements { get; set; } = new Dictionary<PlayerStatType, int>();
 
@@ -34,12 +33,8 @@ public class ObstacleApproach
 
     public bool CanUseApproach(Player player, ItemRepository itemRepository)
     {
-        if (EquipmentRequirements != null && !EquipmentRequirements.MeetsRequirements(player, itemRepository))
-        {
-            return false;
-        }
-
-        // Knowledge system eliminated - no knowledge requirements
+        // Equipment system eliminated - no equipment gates
+        // PRINCIPLE 4: Equipment reduces costs/difficulty, never gates visibility
 
         if (player.Stamina < StaminaRequired)
         {

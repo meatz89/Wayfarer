@@ -35,9 +35,6 @@ public static class GoalParser
         ResolutionMethod resolutionMethod = ParseResolutionMethod(dto.ResolutionMethod);
         RelationshipOutcome relationshipOutcome = ParseRelationshipOutcome(dto.RelationshipOutcome);
 
-        // Parse property requirements
-        ObstaclePropertyRequirements propertyRequirements = ParsePropertyRequirements(dto.PropertyRequirements);
-
         // Parse property reduction
         ObstaclePropertyReduction propertyReduction = dto.PropertyReduction != null
             ? ObstacleParser.ConvertDTOToReduction(dto.PropertyReduction)
@@ -70,7 +67,6 @@ public static class GoalParser
             SetsResolutionMethod = resolutionMethod,
             SetsRelationshipOutcome = relationshipOutcome,
             TransformDescription = dto.TransformDescription,
-            PropertyRequirements = propertyRequirements,
             PropertyReduction = propertyReduction
         };
 
@@ -137,13 +133,8 @@ public static class GoalParser
                 ? new CreateObligationReward
                 {
                     PatronNpcId = dto.CreateObligationData.PatronNpcId,
-                    DestinationLocationId = dto.CreateObligationData.DestinationLocationId,
-                    RequiredGoalIds = dto.CreateObligationData.RequiredGoalIds != null
-                        ? new List<string>(dto.CreateObligationData.RequiredGoalIds)
-                        : new List<string>(),
-                    DeadlineSegment = dto.CreateObligationData.DeadlineSegment,
-                    RewardCoins = dto.CreateObligationData.RewardCoins,
-                    RewardStoryTokens = dto.CreateObligationData.RewardStoryTokens
+                    StoryCubesGranted = dto.CreateObligationData.StoryCubesGranted,
+                    RewardCoins = dto.CreateObligationData.RewardCoins
                 }
                 : null,
             RouteSegmentUnlock = dto.RouteSegmentUnlock != null
@@ -210,20 +201,6 @@ public static class GoalParser
 
         Console.WriteLine($"[GoalParser] Warning: Unknown RelationshipOutcome '{outcomeString}', defaulting to Neutral");
         return RelationshipOutcome.Neutral;
-    }
-
-    /// <summary>
-    /// Parse obstacle property requirements
-    /// </summary>
-    private static ObstaclePropertyRequirements ParsePropertyRequirements(ObstaclePropertyRequirementsDTO dto)
-    {
-        if (dto == null)
-            return null;
-
-        return new ObstaclePropertyRequirements
-        {
-            MaxIntensity = dto.MaxIntensity
-        };
     }
 
     /// <summary>
