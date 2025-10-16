@@ -1182,7 +1182,8 @@ public class PackageLoader
                 RouteSegment segment = new RouteSegment
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
-                    Type = segmentType
+                    Type = segmentType,
+                    NarrativeDescription = segmentDto.NarrativeDescription
                 };
 
                 // Set collection properties based on segment type using normalized properties
@@ -1203,6 +1204,25 @@ public class PackageLoader
                     {
                         Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.EventCollectionId}'");
                     }
+                }
+
+                // Core Loop: Parse available paths within this segment
+                if (segmentDto.AvailablePaths != null)
+                {
+                    foreach (RoutePathDTO pathDto in segmentDto.AvailablePaths)
+                    {
+                        RoutePath path = new RoutePath
+                        {
+                            Id = pathDto.Id,
+                            TimeSegments = pathDto.TimeSegments,
+                            StaminaCost = pathDto.StaminaCost,
+                            OptionalObstacleId = pathDto.OptionalObstacleId,
+                            Description = pathDto.Description,
+                            HiddenUntilExploration = pathDto.HiddenUntilExploration
+                        };
+                        segment.AvailablePaths.Add(path);
+                    }
+                    Console.WriteLine($"[PackageLoader] Segment {segmentDto.SegmentNumber} has {segment.AvailablePaths.Count} path choices");
                 }
 
                 route.Segments.Add(segment);

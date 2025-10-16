@@ -16,12 +16,14 @@
       {
         "id": "courtyard_to_workshop_path",
         "name": "Path to Workshop",
-        "fromLocationId": "courtyard",
-        "toLocationId": "workshop",
+        "originVenueId": "old_mill",
+        "originSpotId": "courtyard",
+        "destinationVenueId": "old_mill",
+        "destinationSpotId": "workshop",
         "description": "Navigate through the mill's interior passages to reach the workshop",
         "segments": [
           {
-            "position": 1,
+            "segmentNumber": 1,
             "narrativeDescription": "The mill's main entrance corridor - dust motes float in shafts of light through cracked boards",
             "availablePaths": [
               {
@@ -55,12 +57,14 @@
       {
         "id": "courtyard_to_main_hall_path",
         "name": "Path to Main Hall",
-        "fromLocationId": "courtyard",
-        "toLocationId": "main_hall",
+        "originVenueId": "old_mill",
+        "originSpotId": "courtyard",
+        "destinationVenueId": "old_mill",
+        "destinationSpotId": "main_hall",
         "description": "Enter the mill's main hall through various passages",
         "segments": [
           {
-            "position": 1,
+            "segmentNumber": 1,
             "narrativeDescription": "Multiple entry points lead into the mill's cavernous main hall",
             "availablePaths": [
               {
@@ -94,12 +98,14 @@
       {
         "id": "example_multi_segment_route",
         "name": "Creek Crossing to Distant Farm",
-        "fromLocationId": "courtyard",
-        "toLocationId": "courtyard",
+        "originVenueId": "old_mill",
+        "originSpotId": "courtyard",
+        "destinationVenueId": "old_mill",
+        "destinationSpotId": "courtyard",
         "description": "Example route demonstrating multi-segment path system with obstacles (future content)",
         "segments": [
           {
-            "position": 1,
+            "segmentNumber": 1,
             "narrativeDescription": "Forest approach - the treeline is thick with brambles and fallen branches",
             "availablePaths": [
               {
@@ -129,7 +135,7 @@
             ]
           },
           {
-            "position": 2,
+            "segmentNumber": 2,
             "narrativeDescription": "Creek crossing - the water runs fast and cold, several feet deep in places",
             "availablePaths": [
               {
