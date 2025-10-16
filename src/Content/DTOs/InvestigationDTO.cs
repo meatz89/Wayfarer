@@ -51,14 +51,14 @@ public class InvestigationPhaseDTO
 
 /// <summary>
 /// DTO for Phase Requirements
+/// PRINCIPLE 4: All boolean gate requirements eliminated
+/// Phases complete based on Understanding accumulation, not prerequisite checks
 /// </summary>
 public class PhaseRequirementsDTO
 {
-    public List<string> CompletedGoals { get; set; } = new List<string>();
     public Dictionary<string, int> DiscoveryQuantities { get; set; } = new Dictionary<string, int>();
     public List<string> SpecificDiscoveries { get; set; } = new List<string>();
-    public List<string> Equipment { get; set; } = new List<string>();
-    // Knowledge system eliminated
+    // CompletedGoals, Equipment, Knowledge system eliminated - all boolean gates removed
 }
 
 /// <summary>
@@ -115,7 +115,6 @@ public class InvestigationIntroActionDTO
 public class InvestigationPrerequisitesDTO
 {
     public string LocationId { get; set; } // LocationId is globally unique
-    // Knowledge system eliminated
-    public List<string> RequiredItems { get; set; } = new List<string>();
-    public string RequiredObligation { get; set; }
+    // PRINCIPLE 4: Knowledge system, RequiredItems, and RequiredObligation eliminated
+    // All boolean gate prerequisites removed - investigations visible based on narrative context only
 }

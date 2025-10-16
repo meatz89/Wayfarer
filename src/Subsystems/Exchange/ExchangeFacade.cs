@@ -267,7 +267,7 @@ public class ExchangeFacade
             MinimumTokens = minimumTokens,
             RequiredTokenType = firstTokenType,
             RequiredDomains = exchange.RequiredDomains,
-            RequiredItems = exchange.Cost?.RequiredItemIds?.ToList() ?? new List<string>(),
+            ConsumedItems = exchange.Cost?.ConsumedItemIds?.ToList() ?? new List<string>(),
             TimeRestrictions = exchange.AvailableTimeBlocks
         };
     }
@@ -370,7 +370,7 @@ public class ExchangeRequirements
     public int MinimumTokens { get; set; }
     public ConnectionType? RequiredTokenType { get; set; }
     public List<string> RequiredDomains { get; set; }
-    public List<string> RequiredItems { get; set; }
+    public List<string> ConsumedItems { get; set; }
     public List<TimeBlocks> TimeRestrictions { get; set; }
 }
 

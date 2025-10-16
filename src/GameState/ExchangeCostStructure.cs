@@ -22,14 +22,9 @@ public class ExchangeCostStructure
     public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new Dictionary<ConnectionType, int>();
 
     /// <summary>
-    /// Optional item requirements for the exchange.
-    /// These items must be in inventory but are not necessarily consumed.
-    /// </summary>
-    public List<string> RequiredItemIds { get; set; } = new List<string>();
-
-    /// <summary>
     /// Items that will be consumed (removed from inventory) by this exchange.
-    /// Must be a subset of RequiredItemIds.
+    /// PRINCIPLE 4: Items are resource costs, not boolean gates.
+    /// If an exchange requires an item, it MUST consume it.
     /// </summary>
     public List<string> ConsumedItemIds { get; set; } = new List<string>();
 

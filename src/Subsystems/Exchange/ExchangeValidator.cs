@@ -73,14 +73,8 @@ public class ExchangeValidator
             return result;
         }
 
-        // Check item requirements
-        if (!CheckItemRequirements(exchange, playerResources))
-        {
-            result.IsVisible = true; // Show but disabled
-            result.IsValid = false;
-            result.ValidationMessage = GetItemRequirementMessage(exchange);
-            return result;
-        }
+        // Item requirements removed - PRINCIPLE 4: Items are resource costs (ConsumedItemIds), not boolean gates
+        // Affordability check below handles ConsumedItemIds as part of resource costs
 
         // Check affordability
         if (!CanAffordExchange(exchange, playerResources, npcTokens))
@@ -195,28 +189,6 @@ public class ExchangeValidator
     }
 
     /// <summary>
-    /// Check if player has required items
-    /// </summary>
-    private bool CheckItemRequirements(ExchangeCard exchange, PlayerResourceState playerResources)
-    {
-        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
-        {
-            return true; // No item requirements
-        }
-
-        foreach (string itemId in exchange.Cost.RequiredItemIds)
-        {
-            Player player = _gameWorld.GetPlayer();
-            if (!player.Inventory.HasItem(itemId))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
     /// Check NPC-specific state requirements
     /// </summary>
     private bool CheckNPCStateRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
@@ -292,16 +264,6 @@ public class ExchangeValidator
 
         KeyValuePair<ConnectionType, int> firstRequirement = exchange.Cost.TokenRequirements.First();
         return $"Requires {firstRequirement.Value} {firstRequirement.Key} tokens";
-    }
-
-    private string GetItemRequirementMessage(ExchangeCard exchange)
-    {
-        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
-        {
-            return "Missing required items";
-        }
-
-        return $"Requires: {string.Join(", ", exchange.Cost.RequiredItemIds)}";
     }
 }
 

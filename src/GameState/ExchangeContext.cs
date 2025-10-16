@@ -88,8 +88,8 @@ public class ExchangeContext
         if (!exchange.Cost.MeetsTokenRequirements(PlayerTokens))
             return false;
 
-        // Check item requirements
-        foreach (string itemId in exchange.Cost.RequiredItemIds)
+        // Check consumed item requirements (resource costs)
+        foreach (string itemId in exchange.Cost.ConsumedItemIds)
         {
             if (!PlayerInventory.ContainsKey(itemId) || PlayerInventory[itemId] <= 0)
                 return false;

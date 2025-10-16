@@ -435,12 +435,12 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Check item requirements
-            foreach (string itemId in exchange.Cost.RequiredItemIds)
+            // Check consumed item costs (resource costs, not boolean gates)
+            foreach (string itemId in exchange.Cost.ConsumedItemIds)
             {
                 if (!Context.PlayerInventory.ContainsKey(itemId) || Context.PlayerInventory[itemId] <= 0)
                 {
-                    return $"Requires {itemId}";
+                    return $"Requires {itemId} (will be consumed)";
                 }
             }
 
