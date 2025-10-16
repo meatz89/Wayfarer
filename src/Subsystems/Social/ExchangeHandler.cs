@@ -168,6 +168,17 @@ public class ExchangeHandler
             }
         }
 
+        // Apply item costs (consume items from inventory)
+        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        {
+            if (!player.Inventory.HasItem(itemId))
+            {
+                _messageSystem.AddSystemMessage($"Missing required item: {itemId}", SystemMessageTypes.Danger);
+                return false;
+            }
+            player.Inventory.RemoveItem(itemId);
+        }
+
         return true;
     }
 
@@ -210,6 +221,12 @@ public class ExchangeHandler
                     _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
                     break;
             }
+        }
+
+        // Apply item rewards (grant items to inventory)
+        foreach (string itemId in exchange.GetItemRewards())
+        {
+            player.Inventory.AddItem(itemId);
         }
     }
 

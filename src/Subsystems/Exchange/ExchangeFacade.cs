@@ -175,28 +175,42 @@ public class ExchangeFacade
             };
         }
 
-        // Process the exchange - return operation data for GameFacade to execute
-        ExchangeOperationData operationData = _processor.PrepareExchangeOperation(exchange, npc, playerResources);
-        ExchangeResult result = new ExchangeResult
-        {
-            Success = true,
-            Message = "Exchange ready for execution",
-            OperationData = operationData
-        };
+        // EXECUTE the exchange immediately (apply costs and rewards)
+        Player player = _gameWorld.GetPlayer();
 
-        // Track exchange history if successful
-        if (result.Success)
+        // Apply costs
+        if (!ApplyExchangeCosts(exchange, player, npc))
         {
-            _inventory.RecordExchange(npcId, exchangeId);
-
-            // Check if this was a single-use exchange
-            if (exchange.SingleUse)
+            return new ExchangeResult
             {
-                _inventory.RemoveExchange(npcId, exchangeId);
-            }
+                Success = false,
+                Message = "Failed to apply exchange costs"
+            };
         }
 
-        return result;
+        // Apply rewards
+        Dictionary<ResourceType, int> rewardsGranted = ApplyExchangeRewards(exchange, player, npc);
+        List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
+
+        // Track exchange history
+        _inventory.RecordExchange(npcId, exchangeId);
+
+        // Check if this was a single-use exchange
+        if (exchange.SingleUse)
+        {
+            _inventory.RemoveExchange(npcId, exchangeId);
+        }
+
+        // Generate success message
+        _messageSystem.AddSystemMessage($"Exchange with {npc.Name} completed successfully", SystemMessageTypes.Success);
+
+        return new ExchangeResult
+        {
+            Success = true,
+            Message = "Exchange completed",
+            RewardsGranted = rewardsGranted,
+            ItemsGranted = itemsGranted
+        };
     }
 
     /// <summary>
@@ -323,6 +337,99 @@ public class ExchangeFacade
             ResourceType.ShadowToken => "shadow",
             _ => type.ToString().ToLower()
         };
+    }
+
+    // ========== EXECUTION LOGIC ==========
+
+    /// <summary>
+    /// Apply exchange costs to player (resources + items)
+    /// </summary>
+    private bool ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
+    {
+        // Apply resource costs
+        foreach (ResourceAmount cost in exchange.GetCostAsList())
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    if (player.Coins < cost.Amount)
+                        return false;
+                    player.Coins -= cost.Amount;
+                    break;
+
+                case ResourceType.Health:
+                    if (player.Health < cost.Amount)
+                        return false;
+                    player.Health -= cost.Amount;
+                    break;
+
+                case ResourceType.Hunger:
+                    player.Hunger = Math.Min(player.MaxHunger, player.Hunger + cost.Amount);
+                    break;
+            }
+        }
+
+        // Apply item costs (consume items from inventory)
+        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        {
+            if (!player.Inventory.HasItem(itemId))
+            {
+                _messageSystem.AddSystemMessage($"Missing required item: {itemId}", SystemMessageTypes.Danger);
+                return false;
+            }
+            player.Inventory.RemoveItem(itemId);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Apply exchange resource rewards to player
+    /// </summary>
+    private Dictionary<ResourceType, int> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
+    {
+        Dictionary<ResourceType, int> rewardsGranted = new Dictionary<ResourceType, int>();
+
+        foreach (ResourceAmount reward in exchange.GetRewardAsList())
+        {
+            switch (reward.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins += reward.Amount;
+                    rewardsGranted[ResourceType.Coins] = reward.Amount;
+                    break;
+
+                case ResourceType.Health:
+                    int healthBefore = player.Health;
+                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
+                    rewardsGranted[ResourceType.Health] = player.Health - healthBefore;
+                    break;
+
+                case ResourceType.Hunger:
+                    int hungerBefore = player.Hunger;
+                    player.Hunger = Math.Max(0, player.Hunger - reward.Amount);
+                    rewardsGranted[ResourceType.Hunger] = hungerBefore - player.Hunger;
+                    break;
+            }
+        }
+
+        return rewardsGranted;
+    }
+
+    /// <summary>
+    /// Apply exchange item rewards to player
+    /// </summary>
+    private List<string> ApplyExchangeItemRewards(ExchangeCard exchange, Player player)
+    {
+        List<string> itemsGranted = new List<string>();
+
+        foreach (string itemId in exchange.GetItemRewards())
+        {
+            player.Inventory.AddItem(itemId);
+            itemsGranted.Add(itemId);
+        }
+
+        return itemsGranted;
     }
 }
 

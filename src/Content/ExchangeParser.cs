@@ -47,7 +47,8 @@ public static class ExchangeParser
                         Amount = dto.GiveAmount
                     }
                 } : new List<ResourceAmount>(),
-                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null
+                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null,
+                ConsumedItemIds = dto.ConsumedItems ?? new List<string>() // Parse item costs from JSON
             },
 
             // Parse reward structure
@@ -74,8 +75,8 @@ public static class ExchangeParser
                     }
                 } : new List<ResourceAmount>(),
 
-                // Handle specific item rewards
-                ItemIds = !string.IsNullOrEmpty(dto.ReceiveItem) ? new List<string> { dto.ReceiveItem } : new List<string>()
+                // Handle item rewards (support both legacy single item and new multi-item)
+                ItemIds = MergeItemRewards(dto)
             },
 
             // Default properties
@@ -100,7 +101,23 @@ public static class ExchangeParser
         return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {receiveText}";
     }
 
+    /// <summary>
+    /// Merge legacy single item reward (ReceiveItem) with new multi-item rewards (GrantedItems)
+    /// </summary>
+    private static List<string> MergeItemRewards(ExchangeDTO dto)
+    {
+        List<string> items = new List<string>();
 
+        // Support legacy single item field
+        if (!string.IsNullOrEmpty(dto.ReceiveItem))
+            items.Add(dto.ReceiveItem);
+
+        // Support new multi-item field
+        if (dto.GrantedItems != null && dto.GrantedItems.Any())
+            items.AddRange(dto.GrantedItems);
+
+        return items;
+    }
 
 
 

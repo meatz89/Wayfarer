@@ -610,6 +610,7 @@ public class GameFacade
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             PlayerTokens = npcTokens,
+            PlayerInventory = GetPlayerInventoryAsDictionary(),
             Session = new ExchangeSession
             {
                 NpcId = npcId,
@@ -775,6 +776,27 @@ public class GameFacade
         {
             _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);
         }
+    }
+
+    /// <summary>
+    /// Converts player inventory to Dictionary format for ExchangeContext
+    /// Key: ItemId, Value: Quantity
+    /// </summary>
+    private Dictionary<string, int> GetPlayerInventoryAsDictionary()
+    {
+        Player player = _gameWorld.GetPlayer();
+        Dictionary<string, int> inventoryDict = new Dictionary<string, int>();
+
+        List<string> allItems = player.Inventory.GetAllItems();
+        List<string> uniqueItemIds = player.Inventory.GetItemIds();
+
+        foreach (string itemId in uniqueItemIds)
+        {
+            int count = player.Inventory.GetItemCount(itemId);
+            inventoryDict[itemId] = count;
+        }
+
+        return inventoryDict;
     }
 
     /// <summary>
