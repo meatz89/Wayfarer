@@ -1,8 +1,10 @@
 @namespace Wayfarer.Pages.Components
 @inject GameWorld GameWorld
+@inject TimeFacade TimeFacade
 @*
 Day End Summary - Session evaluation screen
 Shows obligations met/failed, economy, progression, stats
+Core Loop: Consumes DayEndReport data structure from TimeFacade.EndDay()
 *@
 
 <div class="day-end-summary">
@@ -11,35 +13,35 @@ Shows obligations met/failed, economy, progression, stats
     <!-- Obligations Section -->
     <div class="summary-section obligations-section">
         <h3 class="section-title">Obligations</h3>
-        @if (!CompletedObligations.Any() && !FailedObligations.Any())
+        @if (!Summary.CompletedObligations.Any() && !Summary.FailedObligations.Any())
         {
             <p class="no-obligations">No obligations active</p>
         }
         else
         {
-            @if (CompletedObligations.Any())
+            @if (Summary.CompletedObligations.Any())
             {
                 <div class="completed-obligations">
                     <h4 class="subsection-title">✓ Completed</h4>
-                    @foreach (ObligationResult result in CompletedObligations)
+                    @foreach (CompletedObligationInfo result in Summary.CompletedObligations)
                     {
                         <div class="obligation-result success">
-                            <span class="obligation-name">@result.Name</span>
-                            <span class="obligation-reward">+@result.CoinsEarned coins, +@result.CubesEarned cubes</span>
+                            <span class="obligation-name">@result.ObligationName</span>
+                            <span class="obligation-reward">+@result.RewardCoins coins, +@result.RewardCubes cubes</span>
                         </div>
                     }
                 </div>
             }
 
-            @if (FailedObligations.Any())
+            @if (Summary.FailedObligations.Any())
             {
                 <div class="failed-obligations">
                     <h4 class="subsection-title">✗ Failed</h4>
-                    @foreach (ObligationResult result in FailedObligations)
+                    @foreach (FailedObligationInfo result in Summary.FailedObligations)
                     {
                         <div class="obligation-result failure">
-                            <span class="obligation-name">@result.Name</span>
-                            <span class="obligation-penalty">-@result.CubesLost Story cubes</span>
+                            <span class="obligation-name">@result.ObligationName</span>
+                            <span class="obligation-penalty">-@result.CubesRemoved Story cubes (from @result.PatronName)</span>
                         </div>
                     }
                 </div>
@@ -53,21 +55,21 @@ Shows obligations met/failed, economy, progression, stats
         <div class="economy-stats">
             <div class="economy-stat earned">
                 <span class="stat-label">Earned:</span>
-                <span class="stat-value">+@CoinsEarned coins</span>
+                <span class="stat-value">+@Summary.CoinsEarned coins</span>
             </div>
             <div class="economy-stat spent">
                 <span class="stat-label">Spent:</span>
-                <span class="stat-value">-@CoinsSpent coins</span>
+                <span class="stat-value">-@Summary.CoinsSpent coins</span>
             </div>
             <div class="economy-stat net">
                 <span class="stat-label">Net:</span>
-                <span class="stat-value @(NetCoins >= 0 ? "positive" : "negative")">
-                    @(NetCoins >= 0 ? "+" : "")@NetCoins coins
+                <span class="stat-value @(Summary.NetCoins >= 0 ? "positive" : "negative")">
+                    @(Summary.NetCoins >= 0 ? "+" : "")@Summary.NetCoins coins
                 </span>
             </div>
             <div class="economy-stat total">
                 <span class="stat-label">Total Coins:</span>
-                <span class="stat-value">@TotalCoins</span>
+                <span class="stat-value">@Summary.CurrentResources.Coins</span>
             </div>
         </div>
     </div>
@@ -75,25 +77,25 @@ Shows obligations met/failed, economy, progression, stats
     <!-- Progression Section -->
     <div class="summary-section progression-section">
         <h3 class="section-title">Progression</h3>
-        @if (NewObligationsDiscovered.Any())
+        @if (Summary.NewObligations.Any())
         {
             <div class="progression-item">
                 <h4 class="item-title">New Obligations:</h4>
                 <ul class="item-list">
-                    @foreach (string obligation in NewObligationsDiscovered)
+                    @foreach (NewObligationInfo obligation in Summary.NewObligations)
                     {
-                        <li>@obligation</li>
+                        <li>@obligation.ObligationName (@obligation.ObligationType)</li>
                     }
                 </ul>
             </div>
         }
 
-        @if (EquipmentAcquired.Any())
+        @if (Summary.NewEquipment.Any())
         {
             <div class="progression-item">
                 <h4 class="item-title">Equipment Acquired:</h4>
                 <ul class="item-list">
-                    @foreach (string equipment in EquipmentAcquired)
+                    @foreach (string equipment in Summary.NewEquipment)
                     {
                         <li>@equipment</li>
                     }
@@ -101,12 +103,12 @@ Shows obligations met/failed, economy, progression, stats
             </div>
         }
 
-        @if (StatsIncreased.Any())
+        @if (Summary.StatsIncreased.Any())
         {
             <div class="progression-item">
                 <h4 class="item-title">Stats Increased:</h4>
                 <ul class="item-list">
-                    @foreach (StatIncrease stat in StatsIncreased)
+                    @foreach (StatIncreaseInfo stat in Summary.StatsIncreased)
                     {
                         <li>@stat.StatName: @stat.OldLevel → @stat.NewLevel</li>
                     }
@@ -114,14 +116,14 @@ Shows obligations met/failed, economy, progression, stats
             </div>
         }
 
-        @if (CubesEarned.Any())
+        @if (Summary.CubesGained.Any())
         {
             <div class="progression-item">
                 <h4 class="item-title">Mastery Cubes Earned:</h4>
                 <ul class="item-list">
-                    @foreach (CubeGain cube in CubesEarned)
+                    @foreach (CubeGainInfo cube in Summary.CubesGained)
                     {
-                        <li>@cube.EntityName: +@cube.Amount @cube.CubeType cubes (total: @cube.NewTotal/10)</li>
+                        <li>@cube.EntityName: +@cube.Amount @cube.Type cubes</li>
                     }
                 </ul>
             </div>
@@ -134,28 +136,17 @@ Shows obligations met/failed, economy, progression, stats
         <div class="resource-summary">
             <div class="resource-item">
                 <span class="resource-label">Health:</span>
-                <span class="resource-value">@CurrentHealth/@MaxHealth</span>
+                <span class="resource-value">@Summary.CurrentResources.Health/6</span>
             </div>
             <div class="resource-item">
                 <span class="resource-label">Focus:</span>
-                <span class="resource-value">@CurrentFocus/@MaxFocus (restored)</span>
+                <span class="resource-value">@Summary.CurrentResources.Focus/6 (restored)</span>
             </div>
             <div class="resource-item">
                 <span class="resource-label">Stamina:</span>
-                <span class="resource-value">@CurrentStamina/@MaxStamina (restored)</span>
+                <span class="resource-value">@Summary.CurrentResources.Stamina/6 (restored)</span>
             </div>
         </div>
-    </div>
-
-    <!-- Next Session Preview -->
-    <div class="summary-section next-session-section">
-        <h3 class="section-title">Next Session</h3>
-        <ul class="next-session-goals">
-            @foreach (string goal in NextSessionGoals)
-            {
-                <li>@goal</li>
-            }
-        </ul>
     </div>
 
     <button class="btn-continue" @onclick="OnContinue">Continue to Next Day</button>
@@ -165,76 +156,11 @@ Shows obligations met/failed, economy, progression, stats
     [Parameter] public int DayNumber { get; set; }
     [Parameter] public EventCallback OnContinue { get; set; }
 
-    // Obligations
-    private List<ObligationResult> CompletedObligations { get; set; } = new();
-    private List<ObligationResult> FailedObligations { get; set; } = new();
-
-    // Economy
-    private int CoinsEarned { get; set; }
-    private int CoinsSpent { get; set; }
-    private int NetCoins => CoinsEarned - CoinsSpent;
-    private int TotalCoins { get; set; }
-
-    // Progression
-    private List<string> NewObligationsDiscovered { get; set; } = new();
-    private List<string> EquipmentAcquired { get; set; } = new();
-    private List<StatIncrease> StatsIncreased { get; set; } = new();
-    private List<CubeGain> CubesEarned { get; set; } = new();
-
-    // Resources
-    private int CurrentHealth { get; set; }
-    private int MaxHealth { get; set; }
-    private int CurrentFocus { get; set; }
-    private int MaxFocus { get; set; }
-    private int CurrentStamina { get; set; }
-    private int MaxStamina { get; set; }
-
-    // Next Session
-    private List<string> NextSessionGoals { get; set; } = new();
+    private DayEndReport Summary { get; set; } = new DayEndReport();
 
     protected override void OnInitialized()
     {
-        LoadSummaryData();
-    }
-
-    private void LoadSummaryData()
-    {
-        Player player = GameWorld.GetPlayer();
-
-        // Load resources
-        CurrentHealth = player.Health;
-        MaxHealth = player.MaxHealth;
-        CurrentFocus = player.Focus;
-        MaxFocus = 6;
-        CurrentStamina = player.Stamina;
-        MaxStamina = player.MaxStamina;
-
-        TotalCoins = player.Coins;
-
-        // TODO: Load actual session data
-        // This should be populated from session tracking
-    }
-
-    private class ObligationResult
-    {
-        public string Name { get; set; }
-        public int CoinsEarned { get; set; }
-        public int CubesEarned { get; set; }
-        public int CubesLost { get; set; }
-    }
-
-    private class StatIncrease
-    {
-        public string StatName { get; set; }
-        public int OldLevel { get; set; }
-        public int NewLevel { get; set; }
-    }
-
-    private class CubeGain
-    {
-        public string EntityName { get; set; }
-        public string CubeType { get; set; }
-        public int Amount { get; set; }
-        public int NewTotal { get; set; }
+        // Call TimeFacade.EndDay() to get complete day-end evaluation
+        Summary = TimeFacade.EndDay();
     }
 }

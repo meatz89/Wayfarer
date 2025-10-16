@@ -62,47 +62,4 @@ public class RouteManager
         return GetRoutesFromLocation(currentVenueId);
     }
 
-    /// <summary>
-    /// Check if player has discovered a specific route.
-    /// </summary>
-    public bool IsRouteDiscovered(string routeId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        return player.DiscoveredRoutes?.Contains(routeId) ?? false;
-    }
-
-    /// <summary>
-    /// Mark a route as discovered by the player.
-    /// </summary>
-    public void DiscoverRoute(string routeId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        if (player.DiscoveredRoutes == null)
-        {
-            player.DiscoveredRoutes = new List<string>();
-        }
-
-        if (!player.DiscoveredRoutes.Contains(routeId))
-        {
-            player.DiscoveredRoutes.Add(routeId);
-            Console.WriteLine($"[RouteManager] Player discovered route: {routeId}");
-        }
-    }
-
-    /// <summary>
-    /// Get all discovered routes for the player.
-    /// </summary>
-    public List<RouteOption> GetDiscoveredRoutes()
-    {
-        Player player = _gameWorld.GetPlayer();
-        if (player.DiscoveredRoutes == null || !player.DiscoveredRoutes.Any())
-        {
-            return new List<RouteOption>();
-        }
-
-        return player.DiscoveredRoutes
-            .Select(routeId => _routeRepository.GetRouteById(routeId))
-            .Where(route => route != null)
-            .ToList();
-    }
 }

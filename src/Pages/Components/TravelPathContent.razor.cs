@@ -643,6 +643,75 @@ namespace Wayfarer.Pages.Components
             return goalPreviews;
         }
 
+        // ========== CORE LOOP ROUTE PATH SUPPORT ==========
+
+        /// <summary>
+        /// Get available route paths for current segment (Core Loop system)
+        /// Paths filtered by ExplorationCubes - hidden paths revealed through familiarity
+        /// </summary>
+        protected List<RoutePath> GetAvailableRoutePaths()
+        {
+            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
+                return new List<RoutePath>();
+
+            return TravelFacade.GetAvailablePaths(
+                TravelContext.Session.RouteId,
+                TravelContext.Session.CurrentSegment
+            );
+        }
+
+        /// <summary>
+        /// Check if current segment uses Core Loop RoutePath system (NEW) vs PathCard system (OLD)
+        /// </summary>
+        protected bool IsCurrentSegmentRoutePathType()
+        {
+            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
+                return false;
+
+            int currentSegment = TravelContext.Session.CurrentSegment;
+            if (currentSegment < 1 || currentSegment > TravelContext.CurrentRoute.Segments.Count)
+                return false;
+
+            RouteSegment segment = TravelContext.CurrentRoute.Segments[currentSegment - 1];
+
+            // NEW system: has AvailablePaths
+            return segment.AvailablePaths != null && segment.AvailablePaths.Any();
+        }
+
+        /// <summary>
+        /// Select and apply a route path (Core Loop system)
+        /// Direct selection with perfect information - no reveal mechanic
+        /// </summary>
+        protected async Task SelectRoutePath(string routePathId)
+        {
+            if (TravelContext?.Session == null)
+                return;
+
+            bool success = TravelManager.SelectRoutePath(routePathId);
+            if (success)
+            {
+                await RefreshTravelContext();
+                StateHasChanged();
+            }
+        }
+
+        /// <summary>
+        /// Check if player can afford to select this route path
+        /// </summary>
+        protected bool CanSelectRoutePath(string routePathId)
+        {
+            if (TravelContext?.Session == null)
+                return false;
+
+            List<RoutePath> availablePaths = GetAvailableRoutePaths();
+            RoutePath path = availablePaths.FirstOrDefault(p => p.Id == routePathId);
+            if (path == null)
+                return false;
+
+            // Check stamina affordability
+            return TravelContext.Session.StaminaRemaining >= path.StaminaCost;
+        }
+
         /// <summary>
         /// Helper class for goal preview data
         /// </summary>

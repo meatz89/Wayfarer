@@ -149,17 +149,9 @@ public class MovementValidator
             return result;
         }
 
+        // Core Loop: All routes physically exist and are visible
         // Route access is determined by actual requirements (tokens, permissions, etc.)
         // defined in the route's AccessRequirement property, not by arbitrary tiers
-
-        // Check if route is discovered
-        if (!route.IsDiscovered)
-        {
-            result.IsValid = false;
-            result.ErrorMessage = "Route not yet discovered";
-            result.RequiresDiscovery = true;
-            return result;
-        }
 
         // Check access requirements
         AccessCheckResult accessCheck = _accessChecker.CheckRouteAccess(route);

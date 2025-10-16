@@ -145,6 +145,71 @@ public class EquipmentFacade
     }
 
     /// <summary>
+    /// Get all player equipment that applies to this obstacle's contexts
+    /// Returns equipment with matching ApplicableContexts
+    /// </summary>
+    public System.Collections.Generic.List<Equipment> GetApplicableEquipment(Obstacle obstacle, Player player)
+    {
+        if (obstacle == null || player == null)
+            return new System.Collections.Generic.List<Equipment>();
+
+        System.Collections.Generic.List<Equipment> applicableEquipment = new System.Collections.Generic.List<Equipment>();
+
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                Item item = _itemRepository.GetItemById(itemId);
+                if (item is Equipment equipment)
+                {
+                    // Check if equipment has any context matching obstacle contexts
+                    foreach (ObstacleContext obstacleContext in obstacle.Contexts)
+                    {
+                        if (equipment.ApplicableContexts.Contains(obstacleContext))
+                        {
+                            applicableEquipment.Add(equipment);
+                            break; // Count equipment once
+                        }
+                    }
+                }
+            }
+        }
+
+        return applicableEquipment;
+    }
+
+    /// <summary>
+    /// Calculate effective obstacle intensity after equipment reductions
+    /// Returns final intensity (minimum 0)
+    /// </summary>
+    public int CalculateEffectiveIntensity(Obstacle obstacle, System.Collections.Generic.List<Equipment> equipment)
+    {
+        if (obstacle == null)
+            return 0;
+
+        int baseIntensity = obstacle.Intensity;
+        int totalReduction = 0;
+
+        if (equipment != null)
+        {
+            foreach (Equipment eq in equipment)
+            {
+                // Check if this equipment applies to ANY of the obstacle's contexts
+                foreach (ObstacleContext obstacleContext in obstacle.Contexts)
+                {
+                    if (eq.ApplicableContexts.Contains(obstacleContext))
+                    {
+                        totalReduction += eq.IntensityReduction;
+                        break; // Count each equipment once
+                    }
+                }
+            }
+        }
+
+        return System.Math.Max(0, baseIntensity - totalReduction);
+    }
+
+    /// <summary>
     /// Apply equipment to obstacle (mark as used if consumable)
     /// Consumable equipment is removed from inventory after use
     /// Permanent equipment stays in inventory

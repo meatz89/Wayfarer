@@ -35,7 +35,6 @@ public class Player
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
-    public List<string> DiscoveredRoutes { get; set; } = new List<string>();
 
     public bool IsInitialized { get; set; } = false;
 
@@ -63,10 +62,9 @@ public class Player
     // References investigations in GameWorld.Investigations (single source of truth)
     public List<string> ActiveObligationIds { get; set; } = new List<string>();
 
-    // Owned equipment (Permanent and Consumable types) for context-specific obstacle reduction
-    // References Equipment entities in GameWorld.Equipment list (single source of truth)
-    // Equipment has CurrentState (Active/Exhausted) tracked here for persistence
-    public List<Equipment> OwnedEquipment { get; set; } = new List<Equipment>();
+    // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
+    // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
+    // No inline Equipment storage - references by ID only (architecture principle)
 
     // Token Favor System
     public List<string> UnlockedVenueIds { get; set; } = new List<string>();

@@ -70,10 +70,7 @@ public class RouteRepository : IRouteRepository
 
         foreach (RouteOption route in allRoutes)
         {
-            // Check if route is discovered
-            if (!route.IsDiscovered)
-                continue;
-
+            // Core Loop: All routes physically exist and are visible
             // Check if route has special access requirements (unless unlocked by permit)
             if (route.AccessRequirement != null && !route.HasPermitUnlock)
                 continue;

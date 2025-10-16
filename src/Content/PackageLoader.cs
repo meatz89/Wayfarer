@@ -1146,7 +1146,6 @@ public class PackageLoader
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
             TravelTimeSegments = dto.TravelTimeSegments,
-            IsDiscovered = dto.IsDiscovered,
             Description = dto.Description ?? "",
             MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
         };
@@ -1384,20 +1383,6 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {eventCount} events");
         }
 
-        // Initialize route discovery states
-        // Routes can start discovered based on IsDiscovered property
-        foreach (RouteOption route in _gameWorld.WorldState.Routes)
-        {
-            if (route.IsDiscovered)
-            {
-                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts discovered");
-            }
-            else
-            {
-                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts hidden, needs discovery");
-            }
-        }
-
         Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EventDeckPositions.Count} event decks");
     }
 
@@ -1456,7 +1441,6 @@ public class PackageLoader
             BaseStaminaCost = forwardRoute.BaseStaminaCost,
             TravelTimeSegments = forwardRoute.TravelTimeSegments,
             DepartureTime = forwardRoute.DepartureTime,
-            IsDiscovered = forwardRoute.IsDiscovered,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
             Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
             AccessRequirement = forwardRoute.AccessRequirement,

@@ -354,6 +354,128 @@ public class TravelManager
     }
 
     /// <summary>
+    /// Select and apply a route path from the current segment (Core Loop system)
+    /// Direct selection without reveal mechanic - perfect information
+    /// </summary>
+    public bool SelectRoutePath(string routePathId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null)
+        {
+            return false;
+        }
+
+        // Get route and validate segment
+        RouteOption route = GetRoute(session.RouteId);
+        if (route == null || session.CurrentSegment > route.Segments.Count)
+        {
+            return false;
+        }
+
+        RouteSegment segment = route.Segments[session.CurrentSegment - 1];
+
+        // Find the selected path in segment's AvailablePaths
+        RoutePath selectedPath = segment.AvailablePaths?.FirstOrDefault(p => p.Id == routePathId);
+        if (selectedPath == null)
+        {
+            return false;
+        }
+
+        // Check stamina affordability
+        if (session.StaminaRemaining < selectedPath.StaminaCost)
+        {
+            return false;
+        }
+
+        // Apply costs
+        if (selectedPath.StaminaCost > 0)
+        {
+            session.StaminaRemaining -= selectedPath.StaminaCost;
+            _messageSystem.AddSystemMessage($"Spent {selectedPath.StaminaCost} stamina for path choice", SystemMessageTypes.Info);
+        }
+
+        if (selectedPath.TimeSegments > 0)
+        {
+            session.SegmentsElapsed += selectedPath.TimeSegments;
+            _messageSystem.AddSystemMessage($"Journey time increased by {selectedPath.TimeSegments} segments", SystemMessageTypes.Info);
+        }
+
+        // Record path selection
+        session.SelectedPathId = routePathId;
+
+        // Update travel state based on stamina
+        UpdateTravelState(session);
+
+        // Handle optional obstacle - if present, obstacle must be resolved before progressing
+        if (!string.IsNullOrEmpty(selectedPath.OptionalObstacleId))
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == selectedPath.OptionalObstacleId);
+            if (obstacle != null && !obstacle.IsCleared())
+            {
+                // Store obstacle ID for UI to present resolution options
+                // Player must resolve obstacle (reduce intensity to 0) before segment completes
+                // Resolution handled through separate flow: Present obstacle goals, player completes them
+                session.PendingObstacleId = selectedPath.OptionalObstacleId;
+                _messageSystem.AddSystemMessage($"Encountered obstacle: {obstacle.Name}", SystemMessageTypes.Warning);
+
+                // Session stays on current segment until obstacle resolved
+                // UI will show obstacle goals, player resolves, then calls ResolveObstacle
+                return true;
+            }
+        }
+
+        // Check if we're on the last segment
+        if (session.CurrentSegment == route.Segments.Count)
+        {
+            // This was the last segment - mark journey as ready to complete
+            session.IsReadyToComplete = true;
+        }
+        else
+        {
+            // Move to next segment
+            AdvanceSegment(session);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Resolve pending obstacle after player completes obstacle goals
+    /// Called by GameFacade after obstacle intensity reaches 0
+    /// </summary>
+    public bool ResolveObstacle(string obstacleId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null || session.PendingObstacleId != obstacleId)
+        {
+            return false;
+        }
+
+        Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+        if (obstacle == null || !obstacle.IsCleared())
+        {
+            return false;
+        }
+
+        // Clear pending obstacle
+        session.PendingObstacleId = null;
+        _messageSystem.AddSystemMessage($"Obstacle resolved: {obstacle.Name}", SystemMessageTypes.Success);
+
+        // Now advance segment or complete route
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment == route.Segments.Count)
+        {
+            session.IsReadyToComplete = true;
+        }
+        else
+        {
+            AdvanceSegment(session);
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Rest to recover stamina during travel
     /// - Add 2 segments to travel time
     /// - Restore stamina to current capacity
@@ -639,6 +761,7 @@ public class TravelManager
 
     /// <summary>
     /// Complete the journey and update player location
+    /// Grants +1 ExplorationCube per completion (max 10 cubes total)
     /// </summary>
     private void CompleteJourney(TravelSession session)
     {
@@ -669,6 +792,15 @@ public class TravelManager
 
         // Increase route familiarity (max 5)
         player.IncreaseRouteFamiliarity(session.RouteId, 1);
+
+        // Grant ExplorationCubes for route mastery (max 10)
+        // Each completion grants +1 cube, revealing more hidden paths
+        int currentCubes = route.ExplorationCubes;
+        if (currentCubes < 10)
+        {
+            route.ExplorationCubes = currentCubes + 1;
+            _messageSystem.AddSystemMessage($"Route mastery increased: {route.ExplorationCubes}/10 exploration cubes", SystemMessageTypes.Success);
+        }
 
         // Apply travel time to game world
         _timeManager.AdvanceSegments(session.SegmentsElapsed);

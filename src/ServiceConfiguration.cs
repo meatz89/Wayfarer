@@ -138,7 +138,6 @@ public static class ServiceConfiguration
         // Transaction and Preview System
         services.AddSingleton<AccessRequirementChecker>();
         services.AddSingleton<NarrativeService>();
-        services.AddSingleton<RouteDiscoveryManager>();
 
         // Action generation service
         services.AddSingleton<ActionGenerator>();
@@ -172,7 +171,6 @@ public static class ServiceConfiguration
 
         // Travel Subsystem
         services.AddSingleton<RouteManager>();
-        services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<PermitValidator>();
         services.AddSingleton<TravelTimeCalculator>();
         services.AddSingleton<TravelFacade>();

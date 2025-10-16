@@ -62,7 +62,6 @@ public class RouteOption
     public int BaseStaminaCost { get; set; }
     public int TravelTimeSegments { get; set; }
     public TimeBlocks? DepartureTime { get; set; }
-    public bool IsDiscovered { get; set; } = true;
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }

@@ -105,8 +105,89 @@
         }
         
         <div class="path-grid">
-            @if (GetAvailablePathCards().Any())
+            @if (IsCurrentSegmentRoutePathType())
             {
+                @* NEW SYSTEM: Core Loop RoutePaths - Direct choice with perfect information *@
+                @foreach (var routePath in GetAvailableRoutePaths())
+                {
+                    var isAvailable = CanSelectRoutePath(routePath.Id);
+
+                    <div class="path-card core-loop @(isAvailable ? "" : "unavailable")"
+                         @onclick="async () => { if (isAvailable) await SelectRoutePath(routePath.Id); }">
+
+                        <div class="path-content">
+                            <div class="path-main">
+                                <div class="path-header">
+                                    <div class="path-name">@routePath.Description</div>
+                                    <div class="path-stamina">@routePath.StaminaCost</div>
+                                </div>
+
+                                @* Costs/Effects *@
+                                <div class="path-mechanics">
+                                    @if (routePath.TimeSegments > 0)
+                                    {
+                                        <div class="path-time"><span class="icon-clock"></span> @routePath.TimeSegments segments</div>
+                                    }
+                                    @if (routePath.StaminaCost > 0)
+                                    {
+                                        <div class="path-stamina-cost"><span class="icon-attention"></span> @routePath.StaminaCost stamina</div>
+                                    }
+                                </div>
+
+                                @* Core Loop: Goal Preview (challenges spawned by obstacle on this path) *@
+                                @if (!string.IsNullOrEmpty(routePath.OptionalObstacleId))
+                                {
+                                    var goalPreviews = GetGoalPreviewsForPath(routePath.OptionalObstacleId);
+                                    if (goalPreviews != null && goalPreviews.Any())
+                                    {
+                                        <div class="path-challenges-preview">
+                                            <div class="challenges-header">Challenges ahead:</div>
+
+                                            @foreach (var goalPreview in goalPreviews)
+                                            {
+                                                <div class="goal-preview-card">
+                                                    <div class="goal-preview-header">
+                                                        <span class="goal-preview-name">@goalPreview.Name</span>
+                                                        <span class="goal-preview-system">@goalPreview.SystemType</span>
+                                                    </div>
+
+                                                    @if (!string.IsNullOrEmpty(goalPreview.Description))
+                                                    {
+                                                        <div class="goal-preview-description">@goalPreview.Description</div>
+                                                    }
+
+                                                    @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
+                                                    {
+                                                        <div class="goal-preview-contexts">
+                                                            @foreach (var context in goalPreview.Contexts)
+                                                            {
+                                                                <ContextTag ContextName="@context.ToString()" IsMatch="false" />
+                                                            }
+                                                        </div>
+                                                    }
+
+                                                    @* Equipment Help Indicator *@
+                                                    @if (goalPreview.MatchingEquipment.Any())
+                                                    {
+                                                        <div class="goal-equipment-help">
+                                                            <span class="help-icon">⚙</span>
+                                                            <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
+                                                            <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else if (GetAvailablePathCards().Any())
+            {
+                @* OLD SYSTEM: PathCard rendering with reveal mechanic (UNCHANGED) *@
                 @foreach (var pathCardData in GetAvailablePathCards())
                 {
                     var card = pathCardData.Card;

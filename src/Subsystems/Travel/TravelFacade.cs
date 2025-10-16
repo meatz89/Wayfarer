@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Public facade for all travel-related operations.
@@ -10,28 +11,28 @@ public class TravelFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly RouteManager _routeManager;
-    private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly PermitValidator _permitValidator;
     private readonly TravelTimeCalculator _travelTimeCalculator;
     private readonly TravelManager _travelManager;
     private readonly MessageSystem _messageSystem;
+    private readonly ItemRepository _itemRepository;
 
     public TravelFacade(
         GameWorld gameWorld,
         RouteManager routeManager,
-        RouteDiscoveryManager routeDiscoveryManager,
         PermitValidator permitValidator,
         TravelTimeCalculator travelTimeCalculator,
         TravelManager travelManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _routeManager = routeManager;
-        _routeDiscoveryManager = routeDiscoveryManager;
         _permitValidator = permitValidator;
         _travelTimeCalculator = travelTimeCalculator;
         _travelManager = travelManager;
         _messageSystem = messageSystem;
+        _itemRepository = itemRepository;
     }
 
     // ========== ROUTE OPERATIONS ==========
@@ -56,15 +57,17 @@ public class TravelFacade
             Venue? destination = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
             if (destination != null)
             {
-                bool canTravel = IsRouteDiscovered(route.Id);
+                // Core Loop: All routes physically exist and are visible from game start
+                // Can travel unless missing permits
+                bool hasPermit = _permitValidator.HasRequiredPermit(route);
 
                 destinations.Add(new TravelDestinationViewModel
                 {
                     VenueId = destination.Id,
                     LocationName = destination.Name,
                     Description = destination.Description ?? "",
-                    CanTravel = canTravel,
-                    CannotTravelReason = !canTravel ? "Route not discovered" : null,
+                    CanTravel = hasPermit,
+                    CannotTravelReason = !hasPermit ? "Missing required permits" : null,
                     MinimumCost = CalculateTravelCost(route, TravelMethods.Walking),
                     MinimumTime = route.TravelTimeSegments,
                     IsCurrent = false,
@@ -76,19 +79,9 @@ public class TravelFacade
         return destinations;
     }
 
-    public List<RouteOption> GetDiscoveredRoutes()
-    {
-        return _routeManager.GetDiscoveredRoutes();
-    }
-
     public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
     {
         return _routeManager.GetRouteBetweenLocations(fromVenueId, toVenueId);
-    }
-
-    public bool IsRouteDiscovered(string routeId)
-    {
-        return _routeManager.IsRouteDiscovered(routeId);
     }
 
     // ========== TRAVEL OPERATIONS ==========
@@ -193,34 +186,6 @@ public class TravelFacade
             DestinationId = venueId,
             TransportMethod = transportMethod
         };
-    }
-
-    // ========== DISCOVERY OPERATIONS ==========
-
-    public bool AttemptRouteDiscovery(string toVenueId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
-        {
-            return false;
-        }
-        return _routeDiscoveryManager.AttemptRouteDiscovery(currentVenueId, toVenueId);
-    }
-
-    public List<RouteOption> GetUndiscoveredRoutes()
-    {
-        return _routeDiscoveryManager.GetUndiscoveredRoutesFromCurrentLocation();
-    }
-
-    public DiscoveryProgressInfo GetDiscoveryProgress()
-    {
-        return _routeDiscoveryManager.GetDiscoveryProgress();
-    }
-
-    public bool CanExploreFromCurrentLocation()
-    {
-        return _routeDiscoveryManager.CanExploreFromCurrentLocation();
     }
 
     // ========== PERMIT OPERATIONS ==========
@@ -687,6 +652,15 @@ public class TravelFacade
         return _travelManager.FinishRoute();
     }
 
+    /// <summary>
+    /// Resolve pending obstacle after player completes obstacle goals
+    /// Called after obstacle intensity reaches 0
+    /// </summary>
+    public bool ResolveObstacle(string obstacleId)
+    {
+        return _travelManager.ResolveObstacle(obstacleId);
+    }
+
     // ========== CORE LOOP: PATH FILTERING ==========
 
     /// <summary>
@@ -720,6 +694,110 @@ public class TravelFacade
 
         return availablePaths;
     }
+
+    /// <summary>
+    /// Calculate complete costs for a specific path including obstacle resolution
+    /// Perfect information: All costs visible to player BEFORE path selection
+    /// Formula: TotalCost = BaseTimeCost + BaseStaminaCost + ObstacleCost
+    /// Deterministic: Same inputs always produce same outputs
+    /// </summary>
+    public RoutePathCosts CalculatePathCosts(RoutePath path, Player player)
+    {
+        if (path == null)
+        {
+            return new RoutePathCosts
+            {
+                TimeSegmentsCost = 0,
+                StaminaCost = 0,
+                ObstacleIntensity = 0,
+                TotalCombinedCost = 0,
+                HasObstacle = false,
+                ObstacleId = null
+            };
+        }
+
+        int timeSegmentsCost = path.TimeSegments;
+        int staminaCost = path.StaminaCost;
+        int obstacleIntensity = 0;
+        string obstacleId = null;
+
+        if (!string.IsNullOrEmpty(path.OptionalObstacleId))
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == path.OptionalObstacleId);
+            if (obstacle != null)
+            {
+                obstacleId = obstacle.Id;
+                obstacleIntensity = CalculateObstacleIntensityWithEquipment(obstacle, player);
+            }
+        }
+
+        int totalCombinedCost = timeSegmentsCost + staminaCost + obstacleIntensity;
+
+        return new RoutePathCosts
+        {
+            TimeSegmentsCost = timeSegmentsCost,
+            StaminaCost = staminaCost,
+            ObstacleIntensity = obstacleIntensity,
+            TotalCombinedCost = totalCombinedCost,
+            HasObstacle = !string.IsNullOrEmpty(obstacleId),
+            ObstacleId = obstacleId
+        };
+    }
+
+    /// <summary>
+    /// Calculate obstacle intensity after equipment reductions
+    /// Uses equipment contexts to reduce base intensity
+    /// </summary>
+    private int CalculateObstacleIntensityWithEquipment(Obstacle obstacle, Player player)
+    {
+        int baseIntensity = obstacle.Intensity;
+        int totalReduction = 0;
+
+        foreach (ObstacleContext context in obstacle.Contexts)
+        {
+            int contextReduction = GetContextReductionFromEquipment(context, player);
+            totalReduction += contextReduction;
+        }
+
+        int finalIntensity = Math.Max(0, baseIntensity - totalReduction);
+        return finalIntensity;
+    }
+
+    /// <summary>
+    /// Get total intensity reduction for a context from player equipment
+    /// </summary>
+    private int GetContextReductionFromEquipment(ObstacleContext context, Player player)
+    {
+        int totalReduction = 0;
+
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                Item item = _itemRepository.GetItemById(itemId);
+                if (item is Equipment equipment && equipment.MatchesContext(context))
+                {
+                    totalReduction += equipment.IntensityReduction;
+                }
+            }
+        }
+
+        return totalReduction;
+    }
+}
+
+/// <summary>
+/// Complete cost breakdown for a route path
+/// Perfect information structure - player sees ALL variables
+/// </summary>
+public class RoutePathCosts
+{
+    public int TimeSegmentsCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int ObstacleIntensity { get; set; }
+    public int TotalCombinedCost { get; set; }
+    public bool HasObstacle { get; set; }
+    public string ObstacleId { get; set; }
 }
 
 /// <summary>

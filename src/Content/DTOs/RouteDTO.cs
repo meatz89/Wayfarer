@@ -18,7 +18,6 @@ public class RouteDTO
     public int CoinCost { get; set; }
     public string PermitRequired { get; set; }
     public string DepartureTime { get; set; }
-    public bool IsDiscovered { get; set; }
     public List<string> TerrainCategories { get; set; } = new List<string>();
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }

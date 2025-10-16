@@ -59,7 +59,6 @@ public class TravelRouteViewModel
     public string CannotTravelReason { get; set; }
 
     // New properties for enhanced UI
-    public bool IsDiscovered { get; set; }
     public bool IsBlocked { get; set; }
     public string BlockingReason { get; set; }
     public string HintMessage { get; set; }

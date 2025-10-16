@@ -29,6 +29,9 @@ public class TravelSession
 
     // Journey completion state - true when last segment is completed and ready to finish
     public bool IsReadyToComplete { get; set; } = false;
+
+    // Pending obstacle ID - set when path has obstacle that must be resolved before progressing
+    public string PendingObstacleId { get; set; }
 }
 
 public enum TravelState

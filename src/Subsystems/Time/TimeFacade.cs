@@ -234,5 +234,69 @@ public class TimeFacade
         return IsTimeBlockAvailable(GetCurrentTimeBlock(), availableTimes);
     }
 
+    // ========== DAY-END PROCESSING ==========
+
+    /// <summary>
+    /// End the current day - process deadlines, restore resources, generate summary
+    /// Called explicitly when player chooses to rest/sleep
+    /// </summary>
+    public DayEndReport EndDay()
+    {
+        Player player = _gameWorld.GetPlayer();
+        int currentSegment = GetCurrentSegment();
+
+        DayEndReport report = new DayEndReport();
+
+        // 1. Check for expired obligations (deadlines)
+        List<string> expiredObligationIds = _gameWorld.CheckDeadlines(currentSegment);
+
+        // 2. Apply deadline consequences and build failure report
+        foreach (string obligationId in expiredObligationIds)
+        {
+            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
+            if (investigation == null) continue;
+
+            NPC patron = null;
+            if (!string.IsNullOrEmpty(investigation.PatronNpcId))
+            {
+                patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == investigation.PatronNpcId);
+            }
+
+            int cubesBeforeConsequence = patron?.StoryCubes ?? 0;
+
+            // Apply consequences
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
+
+            int cubesAfterConsequence = patron?.StoryCubes ?? 0;
+
+            report.FailedObligations.Add(new FailedObligationInfo
+            {
+                ObligationName = investigation.Name,
+                PatronName = patron?.Name ?? "Unknown",
+                CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
+            });
+        }
+
+        // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
+        player.Focus = 6; // Hardcoded max per design
+        player.Stamina = player.MaxStamina;
+
+        // 4. Build current resource snapshot
+        report.CurrentResources = new ResourceSnapshot
+        {
+            Health = player.Health,
+            Focus = player.Focus,
+            Stamina = player.Stamina,
+            Coins = player.Coins
+        };
+
+        // NOTE: CoinsEarned, CoinsSpent, CompletedObligations, NewEquipment, StatsIncreased, CubesGained
+        // are NOT tracked by TimeFacade - these require tracking throughout the day
+        // This would require day-scoped state tracking which violates stateless facade principle
+        // For now, these fields remain empty - can be populated by caller if needed
+
+        return report;
+    }
+
     // ========== LEGACY COMPATIBILITY METHODS ==========
 }

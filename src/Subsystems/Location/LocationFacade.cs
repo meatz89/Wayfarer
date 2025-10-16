@@ -397,13 +397,13 @@ public class LocationFacade
                     Destination = destination.Name,
                     TravelTime = $"{route.TravelTimeSegments} seg",
                     Detail = route.Description ?? route.Name,
-                    IsLocked = !route.IsDiscovered,
-                    LockReason = !route.IsDiscovered ? "Route not yet discovered" : null,
+                    IsLocked = false, // Core Loop: All routes visible
+                    LockReason = null,
                     // Removed RequiredTier - route access is based on actual requirements in JSON
                     TransportMethod = route.Method.ToString().ToLower(),
                     SupportsCart = false,
                     SupportsCarriage = false,
-                    Familiarity = route.IsDiscovered ? null : "Unknown route"
+                    Familiarity = null
                 });
             }
         }
