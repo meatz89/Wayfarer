@@ -34,7 +34,7 @@ public class InvestigationJournal
 }
 
 /// <summary>
-/// Active investigation state - tracks which goals have been completed
+/// Active investigation state - tracks phase progression and understanding accumulation
 /// </summary>
 public class ActiveInvestigation
 {
@@ -45,4 +45,24 @@ public class ActiveInvestigation
     /// Used to calculate progress (X/Y completed) for journal display
     /// </summary>
     public List<string> CompletedGoalIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// IDs of phases that have been completed for this investigation
+    /// Used to track investigation progression through phase definitions
+    /// </summary>
+    public List<string> CompletedPhaseIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Accumulated understanding points from completed phases (0-10 scale)
+    /// Mental expertise resource that replaces Knowledge tokens
+    /// Cumulative, grants access to more complex Mental challenges
+    /// </summary>
+    public int UnderstandingAccumulated { get; set; } = 0;
+
+    /// <summary>
+    /// Segment when this investigation was activated (for deadline tracking)
+    /// Used to calculate time remaining for NPCCommissioned investigations
+    /// Null for SelfDiscovered investigations
+    /// </summary>
+    public int? ActivationSegment { get; set; }
 }

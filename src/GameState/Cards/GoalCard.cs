@@ -44,6 +44,29 @@ public class GoalCard
 }
 
 /// <summary>
+/// Runtime data for CreateObligation reward
+/// </summary>
+public class CreateObligationReward
+{
+    public string PatronNpcId { get; set; }
+    public string DestinationLocationId { get; set; }
+    public List<string> RequiredGoalIds { get; set; } = new List<string>();
+    public int DeadlineSegment { get; set; }
+    public int RewardCoins { get; set; }
+    public int RewardStoryTokens { get; set; }
+}
+
+/// <summary>
+/// Runtime data for RouteSegmentUnlock reward
+/// </summary>
+public class RouteSegmentUnlock
+{
+    public string RouteId { get; set; }
+    public int SegmentPosition { get; set; }
+    public string PathId { get; set; }
+}
+
+/// <summary>
 /// Rewards for achieving a goal card
 /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 /// </summary>
@@ -54,7 +77,16 @@ public class GoalCardRewards
     public int? Breakthrough { get; set; }
     public string ObligationId { get; set; }
     public string Item { get; set; }
-    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-    public Dictionary<string, int> Tokens { get; set; } = new Dictionary<string, int>();
+
+    // Cube rewards (strong typing, auto-applied to goal's context)
+    public int? InvestigationCubes { get; set; }
+    public int? StoryCubes { get; set; }
+    public int? ExplorationCubes { get; set; }
+
+    // Core Loop reward types
+    public string EquipmentId { get; set; }
+    public CreateObligationReward CreateObligationData { get; set; }
+    public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
+
     public ObstaclePropertyReduction ObstacleReduction { get; set; }
 }

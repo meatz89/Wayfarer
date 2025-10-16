@@ -22,32 +22,51 @@
             <div class="obstacle-description">@Obstacle.Description</div>
         }
 
+        @if (Obstacle.Contexts != null && Obstacle.Contexts.Any())
+        {
+            <div class="obstacle-contexts">
+                <div class="contexts-label">Contexts:</div>
+                <div class="contexts-tags">
+                    @foreach (var context in Obstacle.Contexts)
+                    {
+                        <span class="context-tag">@context</span>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (MatchingEquipment != null && MatchingEquipment.Any())
+        {
+            <div class="obstacle-equipment-match">
+                <div class="equipment-match-header">Equipment Reducing Intensity (-@EffectiveIntensity?.IntensityReduction):</div>
+                @foreach (var match in MatchingEquipment)
+                {
+                    <div class="equipment-match-item">
+                        <span class="equipment-name">@match.Equipment.Name</span>
+                        <span class="equipment-contexts">[@string.Join(", ", match.MatchingContexts)]</span>
+                        <span class="equipment-reduction">-@match.IntensityReduction</span>
+                    </div>
+                }
+            </div>
+        }
+
         <div class="obstacle-properties">
-            <div class="section-subheader">Challenge Properties</div>
+            <div class="section-subheader">Challenge Intensity @(EffectiveIntensity?.IntensityReduction > 0 ? "(Reduced)" : "")</div>
 
-            @if (Obstacle.PhysicalDanger > 0 || !HasActiveProperties())
-            {
-                <div class="property-row">
-                    <span class="property-label">Physical Danger:</span>
-                    <span class="property-value @GetPropertyClass(Obstacle.PhysicalDanger)">@Obstacle.PhysicalDanger</span>
-                </div>
-            }
-
-            @if (Obstacle.MentalComplexity > 0 || !HasActiveProperties())
-            {
-                <div class="property-row">
-                    <span class="property-label">Mental Complexity:</span>
-                    <span class="property-value @GetPropertyClass(Obstacle.MentalComplexity)">@Obstacle.MentalComplexity</span>
-                </div>
-            }
-
-            @if (Obstacle.SocialDifficulty > 0 || !HasActiveProperties())
-            {
-                <div class="property-row">
-                    <span class="property-label">Social Difficulty:</span>
-                    <span class="property-value @GetPropertyClass(Obstacle.SocialDifficulty)">@Obstacle.SocialDifficulty</span>
-                </div>
-            }
+            <div class="property-row">
+                <span class="property-label">Intensity:</span>
+                @if (EffectiveIntensity?.IntensityReduction > 0 && EffectiveIntensity.EffectiveIntensity < Obstacle.Intensity)
+                {
+                    <span class="property-value-reduced">
+                        <span class="base-value strikethrough">@Obstacle.Intensity</span>
+                        <span class="effective-value @GetPropertyClass(EffectiveIntensity.EffectiveIntensity)">@EffectiveIntensity.EffectiveIntensity</span>
+                    </span>
+                }
+                else
+                {
+                    <span class="property-value @GetPropertyClass(Obstacle.Intensity)">@Obstacle.Intensity / 3</span>
+                }
+            </div>
         </div>
 
         @if (Obstacle.IsPermanent)

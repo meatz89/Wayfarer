@@ -116,8 +116,8 @@ public class MarketSubsystemManager
             return "No traders at this location";
         }
 
-        TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Midday,
-                                 TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+        TimeBlocks[] allTimes = { TimeBlocks.Morning, TimeBlocks.Midday,
+                                 TimeBlocks.Afternoon, TimeBlocks.Evening };
 
         foreach (TimeBlocks time in allTimes)
         {
@@ -612,8 +612,8 @@ public class MarketSubsystemManager
             summary.MarketStatus = GetMarketAvailabilityStatus(venueId, currentTime);
 
             // Find next open time
-            TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Midday,
-                                        TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+            TimeBlocks[] futureTimes = { TimeBlocks.Morning, TimeBlocks.Midday,
+                                        TimeBlocks.Afternoon, TimeBlocks.Evening };
             foreach (TimeBlocks time in futureTimes)
             {
                 if (time <= currentTime) continue;

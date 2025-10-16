@@ -151,17 +151,8 @@ public class DifficultyCalculationService
     /// </summary>
     private int GetObstaclePropertyValue(Obstacle obstacle, string propertyName)
     {
-        switch (propertyName)
-        {
-            case "PhysicalDanger":
-                return obstacle.PhysicalDanger;
-            case "MentalComplexity":
-                return obstacle.MentalComplexity;
-            case "SocialDifficulty":
-                return obstacle.SocialDifficulty;
-            default:
-                return 0;
-        }
+        // All obstacle types now use single Intensity property
+        return obstacle.Intensity;
     }
 
     /// <summary>

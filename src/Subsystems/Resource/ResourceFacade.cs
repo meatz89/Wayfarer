@@ -122,8 +122,8 @@ public class ResourceFacade
         IncreaseHunger(20, "Time passes");
 
 
-        // Apply daily NPC decay when transitioning to Dawn (morning refresh)
-        if (newBlock == TimeBlocks.Dawn)
+        // Apply daily NPC decay when transitioning to Morning (morning refresh)
+        if (newBlock == TimeBlocks.Morning)
         {
             ApplyNPCDailyDecay();
         }

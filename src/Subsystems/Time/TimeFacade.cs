@@ -134,13 +134,11 @@ public class TimeFacade
     {
         return current switch
         {
-            TimeBlocks.Dawn => TimeBlocks.Morning,
             TimeBlocks.Morning => TimeBlocks.Midday,
             TimeBlocks.Midday => TimeBlocks.Afternoon,
             TimeBlocks.Afternoon => TimeBlocks.Evening,
-            TimeBlocks.Evening => TimeBlocks.Night,
-            TimeBlocks.Night => TimeBlocks.Dawn,
-            _ => TimeBlocks.Dawn
+            TimeBlocks.Evening => TimeBlocks.Morning, // Sleep wraps to next morning
+            _ => TimeBlocks.Morning
         };
     }
 

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Pages.Components
 {
@@ -17,6 +18,9 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TravelManager TravelManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
+        [Inject] protected EquipmentFacade EquipmentFacade { get; set; }
+        [Inject] protected ObstacleFacade ObstacleFacade { get; set; }
+        [Inject] protected GameWorld GameWorld { get; set; }
 
         protected List<PathCardInfo> AvailablePathCards { get; set; } = new();
 
@@ -580,6 +584,86 @@ namespace Wayfarer.Pages.Components
                 // Journey finished, navigate back to location
                 await OnNavigate.InvokeAsync("location");
             }
+        }
+
+        /// <summary>
+        /// Get goal previews for a path (challenges player will face)
+        /// Goals are fetched from parent Obstacle, equipment matching via Obstacle contexts
+        /// </summary>
+        protected System.Collections.Generic.List<GoalPreviewData> GetGoalPreviewsForPath(string obstacleId)
+        {
+            if (string.IsNullOrEmpty(obstacleId))
+                return new System.Collections.Generic.List<GoalPreviewData>();
+
+            Obstacle obstacle = ObstacleFacade.GetObstacleById(obstacleId);
+            if (obstacle == null || obstacle.GoalIds == null || !obstacle.GoalIds.Any())
+                return new System.Collections.Generic.List<GoalPreviewData>();
+
+            System.Collections.Generic.List<Equipment> playerEquipment = EquipmentFacade.GetPlayerEquipment();
+
+            System.Collections.Generic.List<GoalPreviewData> goalPreviews = new System.Collections.Generic.List<GoalPreviewData>();
+
+            foreach (string goalId in obstacle.GoalIds)
+            {
+                if (!GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+                    continue;
+
+                System.Collections.Generic.List<EquipmentMatchData> matchingEquipment = new System.Collections.Generic.List<EquipmentMatchData>();
+                int totalReduction = 0;
+
+                foreach (Equipment equipment in playerEquipment)
+                {
+                    System.Collections.Generic.List<ObstacleContext> matchedContexts = equipment.ApplicableContexts
+                        .Intersect(obstacle.Contexts)
+                        .ToList();
+
+                    if (matchedContexts.Any())
+                    {
+                        matchingEquipment.Add(new EquipmentMatchData
+                        {
+                            EquipmentName = equipment.Name,
+                            IntensityReduction = equipment.IntensityReduction,
+                            MatchedContexts = matchedContexts
+                        });
+                        totalReduction += equipment.IntensityReduction;
+                    }
+                }
+
+                goalPreviews.Add(new GoalPreviewData
+                {
+                    Name = goal.Name,
+                    Description = goal.Description,
+                    SystemType = goal.SystemType.ToString(),
+                    Contexts = obstacle.Contexts,
+                    MatchingEquipment = matchingEquipment,
+                    TotalReduction = totalReduction
+                });
+            }
+
+            return goalPreviews;
+        }
+
+        /// <summary>
+        /// Helper class for goal preview data
+        /// </summary>
+        protected class GoalPreviewData
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string SystemType { get; set; }
+            public System.Collections.Generic.List<ObstacleContext> Contexts { get; set; }
+            public System.Collections.Generic.List<EquipmentMatchData> MatchingEquipment { get; set; }
+            public int TotalReduction { get; set; }
+        }
+
+        /// <summary>
+        /// Helper class for equipment match data
+        /// </summary>
+        protected class EquipmentMatchData
+        {
+            public string EquipmentName { get; set; }
+            public int IntensityReduction { get; set; }
+            public System.Collections.Generic.List<ObstacleContext> MatchedContexts { get; set; }
         }
     }
 

@@ -29,4 +29,13 @@ public class ItemDTO
     // Actions this equipment enables (e.g., ["Climbing"] for rope, ["Lockpicking"] for lockpicks)
     public List<string> EnabledActions { get; set; } = new List<string>();
 
+    // Context matching system - contexts where this equipment is applicable
+    public List<string> ApplicableContexts { get; set; } = new List<string>();
+
+    // Intensity reduction when contexts match (e.g., 1 or 2)
+    public int? IntensityReduction { get; set; }
+
+    // Equipment usage type - "Permanent" (always functional) or "Consumable" (single use)
+    public string UsageType { get; set; }
+
 }

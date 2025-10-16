@@ -291,7 +291,9 @@ public class PackageLoader
         // Apply player initial config
         if (conditions.PlayerConfig != null)
         {
-            _gameWorld.InitialPlayerConfig = conditions.PlayerConfig;
+            // Parse DTO (categorical properties) → Domain Entity (concrete values)
+            PlayerInitialConfig parsedConfig = PlayerInitialConfigParser.Parse(conditions.PlayerConfig);
+            _gameWorld.InitialPlayerConfig = parsedConfig;
             // Apply the initial configuration to the player immediately
             _gameWorld.ApplyInitialPlayerConfiguration();
         }
@@ -1450,12 +1452,6 @@ public class PackageLoader
         foreach (KeyValuePair<WeatherCondition, RouteModification> kvp in forwardRoute.WeatherModifications)
         {
             reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
-        }
-
-        // Copy unlock condition if present
-        if (forwardRoute.UnlockCondition != null)
-        {
-            reverseRoute.UnlockCondition = forwardRoute.UnlockCondition;
         }
 
         // CRITICAL: Reverse the segments order for the return journey

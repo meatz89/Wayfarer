@@ -18,10 +18,10 @@ public class Player
     public int Health { get; set; } // Starting health
     public int Hunger { get; set; } // Starting hunger (0 = not hungry)
     public int Stamina { get; set; } // Starting stamina for travel
-    public int MaxStamina { get; set; } = 10; // Maximum stamina
+    public int MaxStamina { get; set; } = 6; // Maximum stamina (6-point scale)
 
     public int MinHealth { get; set; } = 0; // Minimum health before death
-    public int MaxHealth { get; set; } = 100; // Maximum health
+    public int MaxHealth { get; set; } = 6; // Maximum health (6-point scale)
     public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
 
     public Inventory Inventory { get; set; } = new Inventory(10); // 10 weight capacity per documentation
@@ -58,6 +58,16 @@ public class Player
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
+    // Active Investigation Obligations (Core Loop design)
+    // Tracks investigations player has activated (NPCCommissioned have deadlines)
+    // References investigations in GameWorld.Investigations (single source of truth)
+    public List<string> ActiveObligationIds { get; set; } = new List<string>();
+
+    // Owned equipment (Permanent and Consumable types) for context-specific obstacle reduction
+    // References Equipment entities in GameWorld.Equipment list (single source of truth)
+    // Equipment has CurrentState (Active/Exhausted) tracked here for persistence
+    public List<Equipment> OwnedEquipment { get; set; } = new List<Equipment>();
+
     // Token Favor System
     public List<string> UnlockedVenueIds { get; set; } = new List<string>();
 
@@ -83,9 +93,10 @@ public class Player
     public List<MasteryTokenEntry> MasteryTokens { get; set; } = new List<MasteryTokenEntry>();
 
     // Mental resource - Focus depletes with investigation, recovers with rest
-    // Below 30 Focus: Exposure accumulates faster (+1 per action)
-    // Maximum: 100, Cost: 5-20 per investigation start
-    public int Focus { get; set; } = 100;
+    // 6-point scale: Each point = ~16.7% of capacity
+    // Below 2 Focus: Exposure accumulates faster (+1 per action)
+    // Maximum: 6, Cost: 1-2 per investigation start
+    public int Focus { get; set; } = 6;
 
     // Mental resource - Understanding cumulative expertise (0-10 scale)
     // Granted by ALL Mental challenges (+1 to +3 based on difficulty)
@@ -193,8 +204,9 @@ public class Player
         CurrentXP = 0;
         XPToNextLevel = 100;
 
-        // JSON will set these via ApplyInitialConfiguration
-        MaxHealth = 100;
+        // JSON will set these via ApplyInitialConfiguration (6-point scale)
+        MaxHealth = 6;
+        MaxStamina = 6;
         MaxHunger = 100;
 
         // Skill cards removed - using letter queue system

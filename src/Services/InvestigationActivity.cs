@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Investigation service - provides operations for investigation lifecycle
@@ -471,10 +472,11 @@ public class InvestigationActivity
                     Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - NPC '{spawnInfo.TargetEntityId}' not found");
                     return;
                 }
-                // Validate: NPCs can ONLY have SocialDifficulty obstacles
-                if (spawnInfo.Obstacle.PhysicalDanger > 0 || spawnInfo.Obstacle.MentalComplexity > 0)
+                // Validate: NPCs can ONLY have Social context obstacles
+                ObstacleContext[] socialContexts = { ObstacleContext.Authority, ObstacleContext.Deception, ObstacleContext.Persuasion, ObstacleContext.Intimidation, ObstacleContext.Empathy, ObstacleContext.Negotiation, ObstacleContext.Etiquette };
+                if (!spawnInfo.Obstacle.Contexts.Any(c => socialContexts.Contains(c)))
                 {
-                    Console.WriteLine($"[InvestigationActivity] ERROR: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}' - NPCs can only have SocialDifficulty obstacles");
+                    Console.WriteLine($"[InvestigationActivity] ERROR: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}' - NPCs can only have Social context obstacles (Authority, Deception, Persuasion, Intimidation, Empathy, Negotiation, Etiquette)");
                     return;
                 }
                 // Duplicate ID protection - prevent data corruption

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Wayfarer.GameState.Enums;
 
 public static class ItemParser
 {
@@ -67,7 +68,49 @@ public static class ItemParser
         // If EnabledActions present, convert to Equipment
         if (dto.EnabledActions != null && dto.EnabledActions.Count > 0)
         {
-            return Equipment.FromItem(item, dto.EnabledActions);
+            // Parse contexts from JSON strings to enum
+            List<ObstacleContext> applicableContexts = new List<ObstacleContext>();
+            if (dto.ApplicableContexts != null)
+            {
+                foreach (string contextString in dto.ApplicableContexts)
+                {
+                    if (Enum.TryParse<ObstacleContext>(contextString, ignoreCase: true, out ObstacleContext context))
+                    {
+                        applicableContexts.Add(context);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Invalid context '{contextString}' in equipment '{dto.Id}'. " +
+                            $"Must be one of: {string.Join(", ", Enum.GetNames<ObstacleContext>())}");
+                    }
+                }
+            }
+
+            // Parse usage type
+            EquipmentUsageType usageType = EquipmentUsageType.Permanent;
+            if (!string.IsNullOrEmpty(dto.UsageType))
+            {
+                if (Enum.TryParse<EquipmentUsageType>(dto.UsageType, ignoreCase: true, out EquipmentUsageType parsedUsageType))
+                {
+                    usageType = parsedUsageType;
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid usage type '{dto.UsageType}' in equipment '{dto.Id}'. " +
+                        $"Must be one of: {string.Join(", ", Enum.GetNames<EquipmentUsageType>())}");
+                }
+            }
+
+            Equipment equipment = Equipment.FromItem(
+                item,
+                dto.EnabledActions,
+                applicableContexts,
+                dto.IntensityReduction ?? 0
+            );
+            equipment.UsageType = usageType;
+            return equipment;
         }
 
         return item;

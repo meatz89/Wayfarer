@@ -55,6 +55,10 @@ public class Location
 
     public int Exposure { get; set; } = 0;
 
+    // Localized mastery - InvestigationCubes reduce Mental Exposure at THIS location only
+    // 0-10 scale: 0 cubes = full exposure, 10 cubes = mastery (no exposure)
+    public int InvestigationCubes { get; set; } = 0;
+
     // Gameplay properties moved from Location
     public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
     public List<string> DomainTags { get; set; } = new List<string>();

@@ -36,4 +36,8 @@ public class PathCardDTO
 
     // Stat Requirements - minimum stat levels required to use this path
     public Dictionary<string, int> StatRequirements { get; set; } // e.g., {"insight": 2, "cunning": 3}
+
+    // Core Loop: Optional obstacle on this path (references GameWorld.Obstacles)
+    // Player can preview obstacle and see equipment applicability before committing
+    public string ObstacleId { get; set; }
 }

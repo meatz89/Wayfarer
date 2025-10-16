@@ -18,8 +18,9 @@
         "deckId": "desperate_request",
         "baseDifficulty": 10,
         "costs": {
+          "time": 1,
+          "focus": 0,
           "stamina": 0,
-          "health": 0,
           "coins": 0
         },
         "difficultyModifiers": [
@@ -56,7 +57,7 @@
             "id": "elena_full_briefing",
             "name": "Get Full Details",
             "description": "Build enough rapport that Elena shares everything - route dangers, why it's urgent, her concerns about the mill path, and offers extra payment for safe delivery.",
-            "threshold": 12,
+            "threshold": 10,
             "rewards": {
               "coins": 5,
               "obligationId": "delivery_to_aldric"
@@ -73,8 +74,9 @@
         "deckId": "friendly_chat",
         "baseDifficulty": 8,
         "costs": {
+          "time": 1,
+          "focus": 0,
           "stamina": 0,
-          "health": 0,
           "coins": 0
         },
         "difficultyModifiers": [
@@ -105,7 +107,7 @@
             "id": "martha_full_story",
             "name": "Martha's Full Story",
             "description": "Build enough trust that Martha shares the painful truth - her daughter Anna disappeared near the mill a decade ago, investigating something. The mechanism was dangerous even when operational. She warns you to be careful if you go there.",
-            "threshold": 12,
+            "threshold": 10,
             "rewards": {
               "coins": 0
             }
@@ -121,8 +123,9 @@
         "placementLocationId": "courtyard",
         "baseDifficulty": 10,
         "costs": {
-          "stamina": 5,
-          "health": 0,
+          "time": 1,
+          "focus": 1,
+          "stamina": 0,
           "coins": 0
         },
         "difficultyModifiers": [
@@ -153,7 +156,7 @@
             "id": "mill_detailed_analysis",
             "name": "Structural Analysis",
             "description": "Careful observation reveals critical details: upper floor is dangerously unstable, the mechanism has accessible gear housing, and there are RECENT FOOTPRINTS in the dust near the side entrance. Someone has been here.",
-            "threshold": 12,
+            "threshold": 10,
             "rewards": {
               "coins": 0
             }
@@ -169,8 +172,9 @@
         "placementLocationId": "courtyard",
         "baseDifficulty": 12,
         "costs": {
-          "stamina": 10,
-          "health": 0,
+          "time": 1,
+          "focus": 0,
+          "stamina": 2,
           "coins": 0
         },
         "difficultyModifiers": [
@@ -206,7 +210,7 @@
             "id": "wheel_thorough_analysis",
             "name": "Complete Mechanism Analysis",
             "description": "Use rope to secure position and conduct thorough examination. The gear housing panel is accessible with tools. The shaft connects to interior grinding mechanism. Upper loft is reachable via the wheel framework but floor condition is questionable.",
-            "threshold": 15,
+            "threshold": 10,
             "rewards": {
               "coins": 5
             }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Parser for converting ObstacleDTO to Obstacle domain model
@@ -20,14 +21,32 @@ public static class ObstacleParser
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"Obstacle '{dto.Id}' in entity '{parentEntityId}' missing required 'Name' field");
 
+        // Parse contexts from JSON strings to enum
+        List<ObstacleContext> contexts = new List<ObstacleContext>();
+        if (dto.Contexts != null)
+        {
+            foreach (string contextString in dto.Contexts)
+            {
+                if (Enum.TryParse<ObstacleContext>(contextString, ignoreCase: true, out ObstacleContext context))
+                {
+                    contexts.Add(context);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid context '{contextString}' in obstacle '{dto.Id}' (entity '{parentEntityId}'). " +
+                        $"Must be one of: {string.Join(", ", Enum.GetNames<ObstacleContext>())}");
+                }
+            }
+        }
+
         Obstacle obstacle = new Obstacle
         {
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? string.Empty,
-            PhysicalDanger = dto.PhysicalDanger,
-            MentalComplexity = dto.MentalComplexity,
-            SocialDifficulty = dto.SocialDifficulty,
+            Intensity = dto.Intensity,
+            Contexts = contexts,
             IsPermanent = dto.IsPermanent,
             GoalIds = new List<string>()
         };
@@ -61,9 +80,7 @@ public static class ObstacleParser
 
         ObstaclePropertyReduction reduction = new ObstaclePropertyReduction
         {
-            ReducePhysicalDanger = dto.ReducePhysicalDanger,
-            ReduceMentalComplexity = dto.ReduceMentalComplexity,
-            ReduceSocialDifficulty = dto.ReduceSocialDifficulty
+            ReduceIntensity = dto.ReduceIntensity
         };
 
         return reduction;

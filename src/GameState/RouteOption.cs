@@ -50,14 +50,6 @@ public class RouteModification
     // Removed BlocksRoute - weather makes routes difficult, not impossible
 }
 
-public class RouteUnlockCondition
-{
-    public string? RequiredRouteUsage { get; set; }
-    public int RequiredUsageCount { get; set; }
-    public string? RequiredItem { get; set; }
-    public int RequiredPlayerLevel { get; set; }
-}
-
 public class RouteOption
 {
     public string Id { get; set; }
@@ -77,7 +69,6 @@ public class RouteOption
 
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
-    public RouteUnlockCondition? UnlockCondition { get; set; }
 
     // Enhanced Access Requirements (in addition to terrain categories)
     public AccessRequirement AccessRequirement { get; set; }
@@ -98,6 +89,10 @@ public class RouteOption
     // Obstacles on this route (bandits, flooding, difficult terrain challenges)
     // References obstacles in GameWorld.Obstacles (single source of truth)
     public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    // Localized mastery - ExplorationCubes reveal hidden path options on THIS route only
+    // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
+    public int ExplorationCubes { get; set; } = 0;
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {

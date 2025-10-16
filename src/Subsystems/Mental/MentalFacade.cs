@@ -243,11 +243,9 @@ public class MentalFacade
                         break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Transform:
-                        // Fundamentally changed - properties to 0, new description
+                        // Fundamentally changed - intensity to 0, new description
                         parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                        parentObstacle.PhysicalDanger = 0;
-                        parentObstacle.MentalComplexity = 0;
-                        parentObstacle.SocialDifficulty = 0;
+                        parentObstacle.Intensity = 0;
 
                         if (!string.IsNullOrEmpty(goal.TransformDescription))
                         {
@@ -256,32 +254,26 @@ public class MentalFacade
 
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
                         parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-                        Console.WriteLine($"[MentalFacade] TRANSFORM: Obstacle '{parentObstacle.Name}' fundamentally changed");
+                        Console.WriteLine($"[MentalFacade] TRANSFORM: Obstacle '{parentObstacle.Name}' fundamentally changed, intensity set to 0");
                         break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Modify:
-                        // Properties reduced - other goals may unlock
+                        // Intensity reduced - other goals may unlock
                         if (goal.PropertyReduction != null)
                         {
-                            parentObstacle.PhysicalDanger = Math.Max(0,
-                                parentObstacle.PhysicalDanger - goal.PropertyReduction.ReducePhysicalDanger);
-                            parentObstacle.MentalComplexity = Math.Max(0,
-                                parentObstacle.MentalComplexity - goal.PropertyReduction.ReduceMentalComplexity);
-                            parentObstacle.SocialDifficulty = Math.Max(0,
-                                parentObstacle.SocialDifficulty - goal.PropertyReduction.ReduceSocialDifficulty);
+                            parentObstacle.Intensity = Math.Max(0,
+                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
 
-                            Console.WriteLine($"[MentalFacade] MODIFY: Reduced properties to P:{parentObstacle.PhysicalDanger} M:{parentObstacle.MentalComplexity} S:{parentObstacle.SocialDifficulty}");
+                            Console.WriteLine($"[MentalFacade] MODIFY: Reduced intensity to {parentObstacle.Intensity}");
                         }
 
                         parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
 
-                        // Check if all properties now at 0 (auto-transform)
-                        if (parentObstacle.PhysicalDanger == 0 &&
-                            parentObstacle.MentalComplexity == 0 &&
-                            parentObstacle.SocialDifficulty == 0)
+                        // Check if intensity now at 0 (auto-transform)
+                        if (parentObstacle.Intensity == 0)
                         {
                             parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                            Console.WriteLine($"[MentalFacade] MODIFY: All properties at 0, auto-transformed");
+                            Console.WriteLine($"[MentalFacade] MODIFY: Intensity at 0, auto-transformed");
                         }
                         break;
 

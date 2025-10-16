@@ -33,8 +33,6 @@ public class PhysicalCardDTO
 public class PhysicalCardRequirementsDTO
 {
     public string EquipmentCategory { get; set; }  // Categorical equipment requirement (None/Climbing/Mechanical/etc.)
-    public List<string> Equipment { get; set; } = new List<string>();  // Legacy - use EquipmentCategory instead
-    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     public List<string> Discoveries { get; set; } = new List<string>();
     public Dictionary<string, int> Stats { get; set; } = new Dictionary<string, int>();
     public int MinStamina { get; set; } = 0;

@@ -6,9 +6,7 @@
 /// </summary>
 public class ObstaclePropertyRequirements
 {
-    public int MaxPhysicalDanger { get; set; } = -1;
-    public int MaxMentalComplexity { get; set; } = -1;
-    public int MaxSocialDifficulty { get; set; } = -1;
+    public int MaxIntensity { get; set; } = -1;
 
     /// <summary>
     /// Check if obstacle meets all requirements (AND logic)
@@ -19,14 +17,8 @@ public class ObstaclePropertyRequirements
         if (obstacle == null)
             return false;
 
-        // Check each requirement - if set (!= -1), obstacle property must be <= threshold
-        if (MaxPhysicalDanger != -1 && obstacle.PhysicalDanger > MaxPhysicalDanger)
-            return false;
-
-        if (MaxMentalComplexity != -1 && obstacle.MentalComplexity > MaxMentalComplexity)
-            return false;
-
-        if (MaxSocialDifficulty != -1 && obstacle.SocialDifficulty > MaxSocialDifficulty)
+        // Check requirement - if set (!= -1), obstacle intensity must be <= threshold
+        if (MaxIntensity != -1 && obstacle.Intensity > MaxIntensity)
             return false;
 
         return true;

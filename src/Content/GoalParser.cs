@@ -125,8 +125,36 @@ public static class GoalParser
             Breakthrough = dto.Breakthrough,
             ObligationId = dto.ObligationId,
             Item = dto.Item,
-            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-            Tokens = dto.Tokens != null ? new Dictionary<string, int>(dto.Tokens) : new Dictionary<string, int>(),
+
+            // Cube rewards (strong typing)
+            InvestigationCubes = dto.InvestigationCubes,
+            StoryCubes = dto.StoryCubes,
+            ExplorationCubes = dto.ExplorationCubes,
+
+            // Core Loop reward types
+            EquipmentId = dto.EquipmentId,
+            CreateObligationData = dto.CreateObligationData != null
+                ? new CreateObligationReward
+                {
+                    PatronNpcId = dto.CreateObligationData.PatronNpcId,
+                    DestinationLocationId = dto.CreateObligationData.DestinationLocationId,
+                    RequiredGoalIds = dto.CreateObligationData.RequiredGoalIds != null
+                        ? new List<string>(dto.CreateObligationData.RequiredGoalIds)
+                        : new List<string>(),
+                    DeadlineSegment = dto.CreateObligationData.DeadlineSegment,
+                    RewardCoins = dto.CreateObligationData.RewardCoins,
+                    RewardStoryTokens = dto.CreateObligationData.RewardStoryTokens
+                }
+                : null,
+            RouteSegmentUnlock = dto.RouteSegmentUnlock != null
+                ? new RouteSegmentUnlock
+                {
+                    RouteId = dto.RouteSegmentUnlock.RouteId,
+                    SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition,
+                    PathId = dto.RouteSegmentUnlock.PathId
+                }
+                : null,
+
             ObstacleReduction = dto.ObstacleReduction != null ? ObstacleParser.ConvertDTOToReduction(dto.ObstacleReduction) : null
         };
 
@@ -194,9 +222,7 @@ public static class GoalParser
 
         return new ObstaclePropertyRequirements
         {
-            MaxPhysicalDanger = dto.MaxPhysicalDanger,
-            MaxMentalComplexity = dto.MaxMentalComplexity,
-            MaxSocialDifficulty = dto.MaxSocialDifficulty
+            MaxIntensity = dto.MaxIntensity
         };
     }
 

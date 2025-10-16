@@ -1,0 +1,280 @@
+/* Obligations CSS
+   Obligation cards, deadline tracking, urgency indicators */
+
+.obligation-list {
+    padding: 16px;
+}
+
+.obligation-list-header {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #2c3e50;
+}
+
+.no-obligations {
+    font-style: italic;
+    color: #7f8c8d;
+    padding: 20px;
+    text-align: center;
+}
+
+.obligation-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+/* Obligation Card */
+.obligation-card {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.obligation-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+/* Urgency-based border colors */
+.obligation-card.urgency-critical {
+    border-color: #e74c3c;
+    border-width: 3px;
+    animation: urgent-pulse 1s infinite;
+}
+
+@keyframes urgent-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(231, 76, 60, 0); }
+    50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.5); }
+}
+
+.obligation-card.urgency-high {
+    border-color: #e67e22;
+    border-width: 3px;
+}
+
+.obligation-card.urgency-moderate {
+    border-color: #f39c12;
+}
+
+.obligation-card.urgency-low {
+    border-color: #95a5a6;
+}
+
+/* Obligation type styling */
+.obligation-card.npc-commissioned {
+    background: linear-gradient(to bottom, #fff 0%, #ecf0f1 100%);
+}
+
+.obligation-card.self-discovered {
+    background: linear-gradient(to bottom, #fff 0%, #e8f8f5 100%);
+}
+
+.obligation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.obligation-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.obligation-type-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.obligation-type-badge.npc-commissioned {
+    background: #3498db;
+    color: white;
+}
+
+.obligation-type-badge.self-discovered {
+    background: #2ecc71;
+    color: white;
+}
+
+.obligation-description {
+    font-size: 14px;
+    color: #555;
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.obligation-patron {
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.patron-label {
+    font-weight: 600;
+    color: #7f8c8d;
+}
+
+.patron-name {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.obligation-rewards {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.rewards-label {
+    font-weight: 600;
+    color: #7f8c8d;
+}
+
+.reward-coins {
+    color: #f39c12;
+    font-weight: 700;
+}
+
+.reward-items {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+.obligation-progress {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #ddd;
+    font-size: 13px;
+}
+
+.progress-label {
+    font-weight: 600;
+    color: #7f8c8d;
+}
+
+.progress-value {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Deadline Tracker */
+.deadline-tracker {
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0;
+    background: white;
+}
+
+.deadline-tracker.deadline-critical {
+    border-color: #e74c3c;
+    background: #ffeaea;
+}
+
+.deadline-tracker.deadline-high {
+    border-color: #e67e22;
+    background: #fff4e6;
+}
+
+.deadline-tracker.deadline-moderate {
+    border-color: #f39c12;
+    background: #fff9e6;
+}
+
+.deadline-tracker.deadline-low {
+    border-color: #95a5a6;
+}
+
+.deadline-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+}
+
+.deadline-value {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.deadline-segment {
+    font-weight: 700;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.deadline-remaining {
+    font-size: 13px;
+    color: #666;
+}
+
+.deadline-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 6px 0;
+}
+
+.deadline-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    transition: width 0.3s ease;
+}
+
+.deadline-tracker.deadline-critical .deadline-progress {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.deadline-tracker.deadline-high .deadline-progress {
+    background: linear-gradient(90deg, #e67e22, #d35400);
+}
+
+.deadline-tracker.deadline-moderate .deadline-progress {
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.deadline-overdue {
+    font-weight: 700;
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 4px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.5; }
+}
+
+.deadline-warning {
+    font-weight: 700;
+    color: #e67e22;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.no-deadline-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #2ecc71;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
@@ -24,23 +25,20 @@ public class Obstacle
     public string Description { get; set; }
 
     /// <summary>
-    /// Bodily harm risk - combat, falling, traps, structural hazards
-    /// Natural meaning: actual physical danger in game world
+    /// Context tags that describe this obstacle's nature
+    /// Used for equipment context matching to reduce intensity
+    /// Examples: ObstacleContext.Darkness, ObstacleContext.Climbing, ObstacleContext.Water
+    /// Strongly-typed enum ensures compile-time validation
     /// </summary>
-    public int PhysicalDanger { get; set; }
+    public List<ObstacleContext> Contexts { get; set; } = new List<ObstacleContext>();
 
     /// <summary>
-    /// Cognitive load - puzzle difficulty, pattern obscurity, evidence volume
-    /// Natural meaning: actual mental challenge complexity
+    /// Difficulty level of this obstacle (1-3 scale)
+    /// 1 = Easy, 2 = Moderate, 3 = Hard
+    /// Can be reduced by equipped items with matching contexts
+    /// Obstacle cleared when Intensity reaches 0
     /// </summary>
-    public int MentalComplexity { get; set; }
-
-    /// <summary>
-    /// Interpersonal challenge - suspicious NPC, hostile faction, complex negotiation
-    /// Natural meaning: actual social barrier difficulty
-    /// Scale: 0 (trivial) to 3 (severe)
-    /// </summary>
-    public int SocialDifficulty { get; set; }
+    public int Intensity { get; set; }
 
     /// <summary>
     /// Current state of obstacle
@@ -79,21 +77,19 @@ public class Obstacle
     public List<string> GoalIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Check if obstacle is fully cleared (all three properties at or below zero)
+    /// Check if obstacle is fully cleared (intensity at or below zero)
     /// </summary>
     public bool IsCleared()
     {
-        return PhysicalDanger <= 0 &&
-               MentalComplexity <= 0 &&
-               SocialDifficulty <= 0;
+        return Intensity <= 0;
     }
 
     /// <summary>
-    /// Get total challenge magnitude (sum of three core properties)
+    /// Get challenge magnitude (returns current intensity)
     /// Useful for UI display of overall difficulty
     /// </summary>
     public int GetTotalMagnitude()
     {
-        return PhysicalDanger + MentalComplexity + SocialDifficulty;
+        return Intensity;
     }
 }

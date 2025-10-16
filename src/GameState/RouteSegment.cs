@@ -20,6 +20,14 @@ public class RouteSegment
     // For FixedPath segments
     public string PathCollectionId { get; set; }  // References AllPathCollections
 
-    // For Event segments  
+    // For Event segments
     public string EventCollectionId { get; set; }  // References AllEventCollections
+
+    // Core Loop: Path choices within this segment (1-3 paths with different trade-offs)
+    // References RoutePath entities for time/stamina/obstacle combinations
+    public List<RoutePath> AvailablePaths { get; set; } = new List<RoutePath>();
+
+    // Core Loop: Narrative description of this segment location
+    // Example: "Forest Approach" or "Creek Crossing"
+    public string NarrativeDescription { get; set; }
 }

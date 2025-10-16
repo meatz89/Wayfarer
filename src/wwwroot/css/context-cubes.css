@@ -1,0 +1,91 @@
+/* Context Cubes CSS
+   10-cube grid displays for localized mastery
+   InvestigationCubes, StoryCubes, ExplorationCubes */
+
+.cube-display {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    background: #fafafa;
+    margin: 12px 0;
+}
+
+.cube-display-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.cube-display-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.cube-display-count {
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+}
+
+.cube-grid-10 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.mastery-cube {
+    width: 28px;
+    height: 28px;
+    border: 2px solid #999;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.mastery-cube.earned {
+    transform: scale(1.05);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.mastery-cube.unearned {
+    background: #e8e8e8;
+    border-color: #ccc;
+}
+
+/* Cube type colors */
+.mastery-cube.cube-investigation.earned {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    border-color: #8e44ad;
+}
+
+.mastery-cube.cube-story.earned {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-color: #2980b9;
+}
+
+.mastery-cube.cube-exploration.earned {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border-color: #27ae60;
+}
+
+.cube-effect-description {
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .cube-grid-10 {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+    }
+
+    .mastery-cube {
+        width: 24px;
+        height: 24px;
+    }
+}

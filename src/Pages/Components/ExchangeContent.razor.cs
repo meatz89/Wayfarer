@@ -75,12 +75,10 @@ namespace Wayfarer.Pages.Components
             // Convert time block to approximate time
             return timeBlock switch
             {
-                TimeBlocks.Dawn => "Dawn",
                 TimeBlocks.Morning => "Morning",
                 TimeBlocks.Midday => "Midday",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
-                TimeBlocks.Night => "Night",
                 _ => "Unknown Time"
             };
         }

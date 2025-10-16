@@ -8,11 +8,11 @@ public static class ObstacleRewardService
 {
     /// <summary>
     /// Apply obstacle property reduction to an obstacle
-    /// Properties are reduced by simple subtraction, floored at 0
+    /// Intensity is reduced by simple subtraction, floored at 0
     /// </summary>
     /// <param name="obstacle">The obstacle to reduce</param>
     /// <param name="reduction">The reduction amounts to apply</param>
-    /// <returns>True if obstacle is cleared after reduction (all non-permanent obstacles at 0)</returns>
+    /// <returns>True if obstacle is cleared after reduction (intensity reaches 0)</returns>
     public static bool ApplyPropertyReduction(Obstacle obstacle, ObstaclePropertyReduction reduction)
     {
         if (obstacle == null)
@@ -21,22 +21,18 @@ public static class ObstacleRewardService
             throw new ArgumentNullException(nameof(reduction));
 
         Console.WriteLine($"[ObstacleRewardService] Applying reduction to obstacle '{obstacle.Name}':");
-        Console.WriteLine($"  Before: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
-            $"SocialDifficulty={obstacle.SocialDifficulty}");
+        Console.WriteLine($"  Before: Intensity={obstacle.Intensity}");
 
-        // Apply reductions with floor at 0
-        obstacle.PhysicalDanger = Math.Max(0, obstacle.PhysicalDanger - reduction.ReducePhysicalDanger);
-        obstacle.MentalComplexity = Math.Max(0, obstacle.MentalComplexity - reduction.ReduceMentalComplexity);
-        obstacle.SocialDifficulty = Math.Max(0, obstacle.SocialDifficulty - reduction.ReduceSocialDifficulty);
+        // Apply reduction with floor at 0
+        obstacle.Intensity = Math.Max(0, obstacle.Intensity - reduction.ReduceIntensity);
 
-        Console.WriteLine($"  After: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}, " +
-            $"SocialDifficulty={obstacle.SocialDifficulty}");
+        Console.WriteLine($"  After: Intensity={obstacle.Intensity}");
 
         // Check if obstacle is cleared
         bool isCleared = obstacle.IsCleared();
         if (isCleared)
         {
-            Console.WriteLine($"[ObstacleRewardService] Obstacle '{obstacle.Name}' is now CLEARED (all properties at 0)");
+            Console.WriteLine($"[ObstacleRewardService] Obstacle '{obstacle.Name}' is now CLEARED (intensity at 0)");
         }
 
         return isCleared;

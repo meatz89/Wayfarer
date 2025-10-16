@@ -44,13 +44,10 @@ public sealed class TimeState
 
             // Add segments from future blocks today
             int currentBlockIndex = (int)_currentTimeBlock;
-            for (int i = currentBlockIndex + 1; i < 5; i++) // 5 playable blocks (Dawn through Night)
+            for (int i = currentBlockIndex + 1; i < 4; i++) // 4 blocks (Morning through Evening)
             {
                 TimeBlocks futureBlock = (TimeBlocks)i;
-                if (futureBlock != TimeBlocks.Night)
-                {
-                    remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
-                }
+                remaining += TimeBlockSegments.GetSegmentsForBlock(futureBlock);
             }
 
             return remaining;
@@ -63,9 +60,9 @@ public sealed class TimeState
     public int ActiveSegmentsRemaining => IsActiveTime ? SegmentsRemainingInDay : 0;
 
     /// <summary>
-    /// True if the current time allows active gameplay
+    /// True if the current time allows active gameplay (always true in 4-block system)
     /// </summary>
-    public bool IsActiveTime => _currentTimeBlock != TimeBlocks.Night;
+    public bool IsActiveTime => true;
 
     /// <summary>
     /// True if this is the final segment of the current block.
@@ -80,7 +77,7 @@ public sealed class TimeState
     /// <summary>
     /// Creates a new TimeState starting at the beginning of a day.
     /// </summary>
-    public TimeState(int day = 1) : this(day, TimeBlocks.Dawn, 1, CalculateTotalSegments(day, TimeBlocks.Dawn, 1))
+    public TimeState(int day = 1) : this(day, TimeBlocks.Morning, 1, CalculateTotalSegments(day, TimeBlocks.Morning, 1))
     {
     }
 
@@ -99,8 +96,7 @@ public sealed class TimeState
         if (day < 1)
             throw new ArgumentException("Day must be at least 1", nameof(day));
 
-        if (timeBlock == TimeBlocks.Night)
-            throw new ArgumentException("Cannot create TimeState during Night - use Sleep() to transition through Night", nameof(timeBlock));
+        // No time block restrictions in 4-block system (Morning, Midday, Afternoon, Evening)
 
         int maxSegments = TimeBlockSegments.GetSegmentsForBlock(timeBlock);
         if (segment < 1 || segment > maxSegments)
@@ -151,9 +147,9 @@ public sealed class TimeState
                 // Move to next time block
                 if (currentTimeBlock == TimeBlocks.Evening)
                 {
-                    // Evening → Night → Dawn (next day)
+                    // Evening → sleep → Morning (next day)
                     currentDay++;
-                    currentTimeBlock = TimeBlocks.Dawn;
+                    currentTimeBlock = TimeBlocks.Morning;
                     currentSegment = 1;
                 }
                 else
@@ -180,13 +176,13 @@ public sealed class TimeState
     }
 
     /// <summary>
-    /// Handles sleep transition from any time to Dawn of the next day.
-    /// Used when player sleeps or when Night is reached.
+    /// Handles sleep transition from any time to Morning of the next day.
+    /// Used when player sleeps or when Evening ends.
     /// </summary>
     public TimeState Sleep()
     {
         int nextDay = _currentTimeBlock == TimeBlocks.Evening && IsLastSegmentInBlock ? _currentDay + 1 : _currentDay + 1;
-        return new TimeState(nextDay, TimeBlocks.Dawn, 1, CalculateTotalSegments(nextDay, TimeBlocks.Dawn, 1));
+        return new TimeState(nextDay, TimeBlocks.Morning, 1, CalculateTotalSegments(nextDay, TimeBlocks.Morning, 1));
     }
 
     /// <summary>
@@ -248,12 +244,10 @@ public sealed class TimeState
     {
         return currentBlock switch
         {
-            TimeBlocks.Dawn => TimeBlocks.Morning,
             TimeBlocks.Morning => TimeBlocks.Midday,
             TimeBlocks.Midday => TimeBlocks.Afternoon,
             TimeBlocks.Afternoon => TimeBlocks.Evening,
-            TimeBlocks.Evening => TimeBlocks.Night,
-            TimeBlocks.Night => TimeBlocks.Dawn, // This shouldn't happen in normal flow
+            TimeBlocks.Evening => TimeBlocks.Morning, // Wraps to next day
             _ => throw new ArgumentException($"Unknown time block: {currentBlock}")
         };
     }
@@ -266,7 +260,7 @@ public sealed class TimeState
         int total = (day - 1) * TimeBlockSegments.TOTAL_SEGMENTS_PER_DAY;
 
         // Add segments from completed blocks in current day
-        for (TimeBlocks block = TimeBlocks.Dawn; block < timeBlock; block++)
+        for (TimeBlocks block = TimeBlocks.Morning; block < timeBlock; block++)
         {
             total += TimeBlockSegments.GetSegmentsForBlock(block);
         }

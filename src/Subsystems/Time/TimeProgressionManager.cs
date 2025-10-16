@@ -45,15 +45,13 @@ public class TimeProgressionManager
         int segmentsInCurrentPeriod = _timeManager.TimeModel.CurrentState.SegmentsInCurrentBlock;
 
         // Calculate segments to wait based on time progression design:
-        // Dawn: 3 segments, Midday: 4 segments, Afternoon: 4 segments, Evening: 4 segments, Night: 1 segment
+        // 4 blocks × 4 segments each = 16 segments per day
         int segmentsToWait = currentTime switch
         {
-            TimeBlocks.Dawn => 3 - segmentsInCurrentPeriod,        // Wait until end of Dawn (3 segments)
-            TimeBlocks.Morning => 4 - segmentsInCurrentPeriod,      // Wait until end of Midday (4 segments) 
-            TimeBlocks.Midday => 4 - segmentsInCurrentPeriod,   // Wait until end of Afternoon (4 segments)
-            TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,     // Wait until end of Evening (4 segments)
-            TimeBlocks.Evening => 1 - segmentsInCurrentPeriod,       // Wait until end of Night (1 segment)
-            TimeBlocks.Night => _timeManager.SegmentsRemainingInDay, // Jump to next day
+            TimeBlocks.Morning => 4 - segmentsInCurrentPeriod,      // Wait until end of Morning (4 segments)
+            TimeBlocks.Midday => 4 - segmentsInCurrentPeriod,       // Wait until end of Midday (4 segments)
+            TimeBlocks.Afternoon => 4 - segmentsInCurrentPeriod,    // Wait until end of Afternoon (4 segments)
+            TimeBlocks.Evening => _timeManager.SegmentsRemainingInDay, // Sleep to next day
             _ => 0
         };
 

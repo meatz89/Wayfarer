@@ -91,10 +91,7 @@ public static class LocationParser
             ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
             // Evening properties
             ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
-            // Night properties
-            ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
-            // Dawn properties
-            ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
+            // Night and Dawn removed from 4-block system
 
             // Assign to location
             foreach (KeyValuePair<TimeBlocks, List<LocationPropertyType>> kvp in timeProperties)

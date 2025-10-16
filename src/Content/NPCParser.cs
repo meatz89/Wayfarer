@@ -121,15 +121,6 @@ public static class NPCParser
             {
                 Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
 
-                // Validate: NPCs can ONLY have SocialDifficulty obstacles
-                if (obstacle.PhysicalDanger > 0 || obstacle.MentalComplexity > 0)
-                {
-                    throw new InvalidOperationException(
-                        $"NPC '{npc.Name}' (ID: {npc.ID}) has obstacle '{obstacle.Name}' with non-social properties. " +
-                        $"NPCs can ONLY have SocialDifficulty obstacles. " +
-                        $"Found: PhysicalDanger={obstacle.PhysicalDanger}, MentalComplexity={obstacle.MentalComplexity}");
-                }
-
                 // Duplicate ID protection - prevent data corruption
                 if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
                 {
@@ -143,7 +134,7 @@ public static class NPCParser
                         $"Obstacle IDs must be globally unique across all packages.");
                 }
             }
-            Console.WriteLine($"[NPCParser] Parsed {npc.ObstacleIds.Count} social obstacles for NPC '{npc.Name}'");
+            Console.WriteLine($"[NPCParser] Parsed {npc.ObstacleIds.Count} obstacles for NPC '{npc.Name}'");
         }
 
         return npc;

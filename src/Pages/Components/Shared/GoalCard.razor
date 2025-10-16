@@ -40,12 +40,31 @@
                 {
                     <div class="reward-item">Item: @Card.GoalCardTemplate.Rewards.Item</div>
                 }
-                @if (Card.GoalCardTemplate.Rewards.Tokens != null && Card.GoalCardTemplate.Rewards.Tokens.Any())
+                @* Cube rewards (strongly typed) *@
+                @if (Card.GoalCardTemplate.Rewards.InvestigationCubes.HasValue && Card.GoalCardTemplate.Rewards.InvestigationCubes.Value > 0)
                 {
-                    @foreach (KeyValuePair<string, int> token in Card.GoalCardTemplate.Rewards.Tokens)
-                    {
-                        <div class="reward-item">+@token.Value @token.Key</div>
-                    }
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.InvestigationCubes Investigation Cubes</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.StoryCubes.HasValue && Card.GoalCardTemplate.Rewards.StoryCubes.Value > 0)
+                {
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.StoryCubes Story Cubes</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.ExplorationCubes.HasValue && Card.GoalCardTemplate.Rewards.ExplorationCubes.Value > 0)
+                {
+                    <div class="reward-item">+@Card.GoalCardTemplate.Rewards.ExplorationCubes Exploration Cubes</div>
+                }
+                @* Core Loop rewards *@
+                @if (!string.IsNullOrEmpty(Card.GoalCardTemplate.Rewards.EquipmentId))
+                {
+                    <div class="reward-item">Equipment: @Card.GoalCardTemplate.Rewards.EquipmentId</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.CreateObligationData != null)
+                {
+                    <div class="reward-item">New Obligation (Deadline: @Card.GoalCardTemplate.Rewards.CreateObligationData.DeadlineSegment segments)</div>
+                }
+                @if (Card.GoalCardTemplate.Rewards.RouteSegmentUnlock != null)
+                {
+                    <div class="reward-item">Unlock Hidden Path</div>
                 }
             </div>
         </div>

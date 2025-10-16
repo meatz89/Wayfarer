@@ -25,6 +25,9 @@ public class InvestigationParser
             Description = dto.Description,
             IntroAction = ParseIntroAction(dto.Intro),
             ColorCode = dto.ColorCode,
+            ObligationType = ParseObligationType(dto.ObligationType),
+            PatronNpcId = dto.PatronNpcId,
+            DeadlineSegment = dto.DeadlineSegment,
             PhaseDefinitions = dto.Phases?.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() ?? new List<InvestigationPhaseDefinition>()
         };
     }
@@ -151,6 +154,16 @@ public class InvestigationParser
         return Enum.TryParse<DiscoveryTriggerType>(triggerTypeString, out DiscoveryTriggerType type)
             ? type
             : DiscoveryTriggerType.ImmediateVisibility;
+    }
+
+    private InvestigationObligationType ParseObligationType(string typeString)
+    {
+        if (string.IsNullOrEmpty(typeString))
+            return InvestigationObligationType.SelfDiscovered; // default
+
+        return Enum.TryParse<InvestigationObligationType>(typeString, out InvestigationObligationType type)
+            ? type
+            : InvestigationObligationType.SelfDiscovered;
     }
 
     private InvestigationPrerequisites ParseInvestigationPrerequisites(InvestigationPrerequisitesDTO dto)

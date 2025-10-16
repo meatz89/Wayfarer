@@ -5,7 +5,5 @@
 /// </summary>
 public class ObstaclePropertyReductionDTO
 {
-    public int ReducePhysicalDanger { get; set; }
-    public int ReduceMentalComplexity { get; set; }
-    public int ReduceSocialDifficulty { get; set; }
+    public int ReduceIntensity { get; set; }
 }

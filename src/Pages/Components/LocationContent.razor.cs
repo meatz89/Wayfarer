@@ -534,12 +534,10 @@ namespace Wayfarer.Pages.Components
             // Show time-specific Venue traits based on current time and Venue context
             string timeStr = CurrentTime switch
             {
-                TimeBlocks.Dawn => "Dawn",
-                TimeBlocks.Morning => "Midday",
-                TimeBlocks.Midday => "Afternoon",
-                TimeBlocks.Afternoon => "Evening",
-                TimeBlocks.Evening => "Night",
-                TimeBlocks.Night => "Night",
+                TimeBlocks.Morning => "Morning",
+                TimeBlocks.Midday => "Midday",
+                TimeBlocks.Afternoon => "Afternoon",
+                TimeBlocks.Evening => "Evening",
                 _ => "Unknown"
             };
 

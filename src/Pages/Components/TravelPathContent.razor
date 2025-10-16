@@ -165,7 +165,54 @@
                                             }
                                         </div>
                                     }
-                                    
+
+                                    @* Core Loop: Goal Preview (challenges on this path) *@
+                                    @if (!string.IsNullOrEmpty(card.ObstacleId))
+                                    {
+                                        var goalPreviews = GetGoalPreviewsForPath(card.ObstacleId);
+                                        if (goalPreviews != null && goalPreviews.Any())
+                                        {
+                                            <div class="path-challenges-preview">
+                                                <div class="challenges-header">Challenges ahead:</div>
+
+                                                @foreach (var goalPreview in goalPreviews)
+                                                {
+                                                    <div class="goal-preview-card">
+                                                        <div class="goal-preview-header">
+                                                            <span class="goal-preview-name">@goalPreview.Name</span>
+                                                            <span class="goal-preview-system">@goalPreview.SystemType</span>
+                                                        </div>
+
+                                                        @if (!string.IsNullOrEmpty(goalPreview.Description))
+                                                        {
+                                                            <div class="goal-preview-description">@goalPreview.Description</div>
+                                                        }
+
+                                                        @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
+                                                        {
+                                                            <div class="goal-preview-contexts">
+                                                                @foreach (var context in goalPreview.Contexts)
+                                                                {
+                                                                    <ContextTag ContextName="@context.ToString()" IsMatch="false" />
+                                                                }
+                                                            </div>
+                                                        }
+
+                                                        @* Equipment Help Indicator *@
+                                                        @if (goalPreview.MatchingEquipment.Any())
+                                                        {
+                                                            <div class="goal-equipment-help">
+                                                                <span class="help-icon">⚙</span>
+                                                                <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
+                                                                <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    }
+
                                     <!-- Mechanical Effects Section -->
                                     @{
                                         var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 || 

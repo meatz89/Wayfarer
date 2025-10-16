@@ -17,7 +17,7 @@ public class DifficultyModifier
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
     /// - Familiarity: NOT USED (uses goal.PlacementLocationId instead)
     /// - ConnectionTokens: NOT USED (uses goal.NpcId instead)
-    /// - ObstacleProperty: Property name ("PhysicalDanger", "MentalComplexity", etc.)
+    /// - ObstacleProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
     public string Context { get; set; }
@@ -94,12 +94,12 @@ public enum ModifierType
 
     /// <summary>
     /// Obstacle property threshold check
-    /// Checks if obstacle property meets threshold
-    /// Context: Property name ("PhysicalDanger", "MentalComplexity", "SocialDifficulty")
-    /// Threshold: Maximum property value (inverted logic: lower is better)
+    /// Checks if obstacle intensity meets threshold
+    /// Context: Property name (always "Intensity" now)
+    /// Threshold: Maximum intensity value (inverted logic: lower is better)
     /// Effect: Difficulty change (can be positive or negative)
-    /// Example: If PhysicalDanger <= 5, reduce Danger by 3
-    /// Example: If PhysicalDanger > 8, increase Danger by 2
+    /// Example: If Intensity <= 2, reduce difficulty by 3
+    /// Example: If Intensity > 3, increase difficulty by 2
     /// </summary>
     ObstacleProperty,
 

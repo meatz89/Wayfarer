@@ -862,7 +862,7 @@
         "title": "Letter + Safety Escort",
         "dialogueText": "I'll deliver the letter and escort you to safety",
         "type": "Request",
-        "momentumThreshold": 12,
+        "momentumThreshold": 10,
         "persistence": "Statement",
         "delivery": "Standard"
       },
@@ -871,7 +871,7 @@
         "title": "Complete Protection",
         "dialogueText": "I'll deliver the letter, escort you to safety, and provide additional protection",
         "type": "Request",
-        "momentumThreshold": 16,
+        "momentumThreshold": 10,
         "persistence": "Statement",
         "delivery": "Standard"
       }

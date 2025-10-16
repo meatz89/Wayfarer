@@ -13,6 +13,7 @@
         "id": "waterwheel_mystery",
         "name": "The Waterwheel Mystery",
         "description": "Uncover the dark secrets hidden within the abandoned mill - a decade-old disappearance, a smuggling operation, and the dangerous truth Martha's granddaughter is pursuing",
+        "obligationType": "SelfDiscovered",
         "colorCode": "#5a7a8b",
         "intro": {
           "triggerType": "GoalCompletionTrigger",
@@ -34,6 +35,7 @@
                   "physicalDanger": 0,
                   "mentalComplexity": 2,
                   "socialDifficulty": 0,
+                  "contexts": ["Search", "Deduction", "Pattern"],
                   "isPermanent": false,
                   "goals": [
                     {
@@ -78,7 +80,6 @@
             "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
             "outcomeNarrative": "Your careful examination reveals a hidden access panel in the gear housing. Fresh footprints lead to both the mechanism and the loft ladder. Whoever was here had specific targets - they knew exactly what they were looking for.",
             "completionReward": {
-              "knowledgeGranted": ["mechanism_has_compartment", "hidden_access_panel", "recent_disturbance", "investigator_targets_known"],
               "obstaclesSpawned": [
                 {
                   "targetType": "Location",
@@ -90,6 +91,7 @@
                     "physicalDanger": 2,
                     "mentalComplexity": 1,
                     "socialDifficulty": 0,
+                    "contexts": ["Precision", "Mechanical", "Strength"],
                     "isPermanent": false,
                     "goals": [
                       {
@@ -131,7 +133,6 @@
             "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
             "outcomeNarrative": "You carefully stabilize the structure and work the panel loose. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved. One name stands out - a current town elder. Anna must have found this evidence.",
             "completionReward": {
-              "knowledgeGranted": ["smuggling_ledgers_found", "town_elder_implicated", "anna_found_evidence"],
               "obstaclesSpawned": [
                 {
                   "targetType": "Location",
@@ -143,6 +144,7 @@
                     "physicalDanger": 3,
                     "mentalComplexity": 1,
                     "socialDifficulty": 0,
+                    "contexts": ["Climbing", "Height", "Precision"],
                     "isPermanent": false,
                     "goals": [
                       {
@@ -208,7 +210,6 @@
             "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently - disturbed dust on the ladder.",
             "outcomeNarrative": "You secure the floor with rope and conduct a thorough search. A bedroll, journal, and sketching materials reveal the truth: Martha's granddaughter is here, investigating her aunt Anna's disappearance. The journal shows she's piecing together the same evidence you've found.",
             "completionReward": {
-              "knowledgeGranted": ["loft_recently_occupied", "granddaughter_investigating", "journal_reveals_clues"],
               "obstaclesSpawned": [
                 {
                   "targetType": "NPC",
@@ -220,6 +221,7 @@
                     "physicalDanger": 0,
                     "mentalComplexity": 0,
                     "socialDifficulty": 2,
+                    "contexts": ["Empathy", "Persuasion", "Negotiation"],
                     "isPermanent": false,
                     "goals": [
                       {
@@ -259,9 +261,7 @@
             "name": "Confront Elena about the smuggling evidence",
             "description": "The ledgers reveal a smuggling operation from a decade ago. Elena might know more about this history than she let on.",
             "outcomeNarrative": "You approach Elena diplomatically, showing concern rather than accusation. She reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
-            "completionReward": {
-              "knowledgeGranted": ["elena_knew_about_smuggling", "elder_responsible_for_anna", "justice_possible"]
-            }
+            "completionReward": {}
           }
         ],
         "completionNarrative": "You've uncovered the dark truth behind Anna's disappearance and the smuggling operation that led to her fate. The evidence is damning, and Elena finally has what she needs to seek justice. Martha's granddaughter can now find closure, and the town elder's crimes will not remain hidden.",

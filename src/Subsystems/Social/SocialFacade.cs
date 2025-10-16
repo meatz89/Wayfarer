@@ -320,38 +320,30 @@ public class SocialFacade
                     case ConsequenceType.Transform:
                         // Fundamentally changed
                         parentObstacle.State = ObstacleState.Transformed;
-                        parentObstacle.PhysicalDanger = 0;
-                        parentObstacle.SocialDifficulty = 0;
-                        parentObstacle.MentalComplexity = 0;
+                        parentObstacle.Intensity = 0;
                         if (!string.IsNullOrEmpty(goal.TransformDescription))
                             parentObstacle.TransformedDescription = goal.TransformDescription;
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
                         parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
                         _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' transformed, properties set to 0",
+                            $"Obstacle '{parentObstacle.Name}' transformed, intensity set to 0",
                             SystemMessageTypes.Success);
                         break;
 
                     case ConsequenceType.Modify:
-                        // Properties reduced
+                        // Intensity reduced
                         if (goal.PropertyReduction != null)
                         {
-                            parentObstacle.PhysicalDanger = Math.Max(0,
-                                parentObstacle.PhysicalDanger - goal.PropertyReduction.ReducePhysicalDanger);
-                            parentObstacle.SocialDifficulty = Math.Max(0,
-                                parentObstacle.SocialDifficulty - goal.PropertyReduction.ReduceSocialDifficulty);
-                            parentObstacle.MentalComplexity = Math.Max(0,
-                                parentObstacle.MentalComplexity - goal.PropertyReduction.ReduceMentalComplexity);
+                            parentObstacle.Intensity = Math.Max(0,
+                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
                         }
                         parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
-                        // Check if all properties are now 0 (fully modified)
-                        if (parentObstacle.PhysicalDanger == 0 &&
-                            parentObstacle.SocialDifficulty == 0 &&
-                            parentObstacle.MentalComplexity == 0)
+                        // Check if intensity is now 0 (fully modified)
+                        if (parentObstacle.Intensity == 0)
                         {
                             parentObstacle.State = ObstacleState.Transformed;
                         }
-                        Console.WriteLine($"[SocialFacade] Modified obstacle '{parentObstacle.Name}', properties reduced");
+                        Console.WriteLine($"[SocialFacade] Modified obstacle '{parentObstacle.Name}', intensity reduced to {parentObstacle.Intensity}");
                         break;
 
                     case ConsequenceType.Grant:

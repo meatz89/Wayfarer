@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Starting conditions for a game - reuses existing PlayerInitialConfig
+/// Starting conditions for a game - uses DTO for JSON deserialization
 /// </summary>
 public class PackageStartingConditions
 {
     /// <summary>
-    /// Player initial configuration - reuses existing PlayerInitialConfig from GameWorld.cs
+    /// Player initial configuration DTO - contains categorical properties from JSON
+    /// Parser translates to concrete PlayerInitialConfig domain entity
     /// </summary>
-    public PlayerInitialConfig PlayerConfig { get; set; }
+    public PlayerInitialConfigDTO PlayerConfig { get; set; }
 
     /// <summary>
     /// Starting Venue location ID

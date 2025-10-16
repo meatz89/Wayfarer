@@ -1,0 +1,72 @@
+@namespace Wayfarer.Pages.Components
+@inject GameWorld GameWorld
+@inject ItemRepository ItemRepository
+@*
+Equipment Inventory - Displays player's owned equipment
+Shows state (Active/Exhausted), contexts, and repair options
+*@
+
+<div class="equipment-inventory">
+    <h3 class="equipment-inventory-header">Equipment</h3>
+
+    @if (PlayerEquipment == null || !PlayerEquipment.Any())
+    {
+        <p class="no-equipment">No equipment owned</p>
+    }
+    else
+    {
+        <div class="equipment-grid">
+            @foreach (Equipment equipment in PlayerEquipment)
+            {
+                <EquipmentCard
+                    Equipment="@equipment"
+                    ShowActions="true"
+                    OnSell="@(() => HandleSell(equipment))" />
+            }
+        </div>
+    }
+
+    <div class="equipment-summary">
+        <div class="equipment-count">Total: @PlayerEquipment.Count items</div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnInventoryChanged { get; set; }
+
+    private List<Equipment> PlayerEquipment { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadPlayerEquipment();
+    }
+
+    private void LoadPlayerEquipment()
+    {
+        PlayerEquipment = new List<Equipment>();
+        Player player = GameWorld.GetPlayer();
+
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                Item item = ItemRepository.GetItemById(itemId);
+                if (item is Equipment equipment)
+                {
+                    PlayerEquipment.Add(equipment);
+                }
+            }
+        }
+    }
+
+    private async Task HandleSell(Equipment equipment)
+    {
+        bool success = GameWorld.SellEquipment(equipment.Id, equipment.SellPrice);
+        if (success)
+        {
+            LoadPlayerEquipment();
+            await OnInventoryChanged.InvokeAsync();
+            StateHasChanged();
+        }
+    }
+}

@@ -16,7 +16,7 @@ public class GameWorld
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
     // TimeBlock tracking for stranger refresh
-    private TimeBlocks _lastTimeBlock = TimeBlocks.Dawn;
+    private TimeBlocks _lastTimeBlock = TimeBlocks.Morning;
 
     // Player stats system for character progression
     public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; } = new List<PlayerStatDefinition>();
@@ -258,6 +258,172 @@ public class GameWorld
             }
         }
         return allStrangers;
+    }
+
+    // ============================================
+    // OBLIGATION MANAGEMENT (Core Loop design)
+    // ============================================
+
+    /// <summary>
+    /// Activate an investigation obligation (add to player's active list)
+    /// </summary>
+    public void ActivateObligation(string investigationId)
+    {
+        if (!Player.ActiveObligationIds.Contains(investigationId))
+        {
+            Player.ActiveObligationIds.Add(investigationId);
+        }
+    }
+
+    /// <summary>
+    /// Complete an investigation obligation (remove from active list, grant rewards)
+    /// </summary>
+    public void CompleteObligation(string investigationId)
+    {
+        if (Player.ActiveObligationIds.Contains(investigationId))
+        {
+            Player.ActiveObligationIds.Remove(investigationId);
+        }
+    }
+
+    /// <summary>
+    /// Check for deadline failures on NPCCommissioned obligations
+    /// Returns list of failed obligation IDs
+    /// </summary>
+    public List<string> CheckDeadlineFailures(int currentSegment)
+    {
+        List<string> failedObligations = new List<string>();
+
+        foreach (string obligationId in Player.ActiveObligationIds)
+        {
+            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == obligationId);
+            if (investigation != null &&
+                investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
+                investigation.DeadlineSegment.HasValue &&
+                currentSegment > investigation.DeadlineSegment.Value)
+            {
+                failedObligations.Add(obligationId);
+            }
+        }
+
+        return failedObligations;
+    }
+
+    /// <summary>
+    /// Get all active obligations for player
+    /// </summary>
+    public List<Investigation> GetActiveObligations()
+    {
+        List<Investigation> activeObligations = new List<Investigation>();
+        foreach (string obligationId in Player.ActiveObligationIds)
+        {
+            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == obligationId);
+            if (investigation != null)
+            {
+                activeObligations.Add(investigation);
+            }
+        }
+        return activeObligations;
+    }
+
+    // ============================================
+    // EQUIPMENT MANAGEMENT (Core Loop design)
+    // ============================================
+
+    /// <summary>
+    /// Purchase equipment and add to player inventory
+    /// </summary>
+    public bool PurchaseEquipment(string equipmentId, int cost)
+    {
+        if (Player.Coins < cost)
+        {
+            return false;
+        }
+
+        Player.ModifyCoins(-cost);
+        Player.Inventory.AddItem(equipmentId);
+        return true;
+    }
+
+
+    /// <summary>
+    /// Sell equipment from inventory
+    /// </summary>
+    public bool SellEquipment(string equipmentId, int sellPrice)
+    {
+        if (!Player.Inventory.HasItem(equipmentId))
+        {
+            return false;
+        }
+
+        Player.Inventory.RemoveItem(equipmentId);
+        Player.ModifyCoins(sellPrice);
+        return true;
+    }
+
+    // ============================================
+    // CUBE MANAGEMENT (Localized Mastery)
+    // ============================================
+
+    /// <summary>
+    /// Get InvestigationCubes for a location (0-10 scale)
+    /// </summary>
+    public int GetLocationCubes(string locationId)
+    {
+        Location location = GetLocation(locationId);
+        return location?.InvestigationCubes ?? 0;
+    }
+
+    /// <summary>
+    /// Get StoryCubes for an NPC (0-10 scale)
+    /// </summary>
+    public int GetNPCCubes(string npcId)
+    {
+        NPC npc = NPCs.FirstOrDefault(n => n.ID == npcId);
+        return npc?.StoryCubes ?? 0;
+    }
+
+    /// <summary>
+    /// Get ExplorationCubes for a route (0-10 scale)
+    /// </summary>
+    public int GetRouteCubes(string routeId)
+    {
+        // Routes are stored as RouteOption - need to find through venue system
+        // This method will be implemented when route storage is clarified
+        return 0;
+    }
+
+    /// <summary>
+    /// Grant InvestigationCubes to a location (max 10)
+    /// </summary>
+    public void GrantLocationCubes(string locationId, int amount)
+    {
+        Location location = GetLocation(locationId);
+        if (location != null)
+        {
+            location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
+        }
+    }
+
+    /// <summary>
+    /// Grant StoryCubes to an NPC (max 10)
+    /// </summary>
+    public void GrantNPCCubes(string npcId, int amount)
+    {
+        NPC npc = NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc != null)
+        {
+            npc.StoryCubes = Math.Min(10, npc.StoryCubes + amount);
+        }
+    }
+
+    /// <summary>
+    /// Grant ExplorationCubes to a route (max 10)
+    /// </summary>
+    public void GrantRouteCubes(string routeId, int amount)
+    {
+        // Routes are stored as RouteOption - need to find through venue system
+        // This method will be implemented when route storage is clarified
     }
 
 }

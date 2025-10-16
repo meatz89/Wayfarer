@@ -1,0 +1,240 @@
+@namespace Wayfarer.Pages.Components
+@inject GameWorld GameWorld
+@*
+Day End Summary - Session evaluation screen
+Shows obligations met/failed, economy, progression, stats
+*@
+
+<div class="day-end-summary">
+    <h2 class="summary-title">Day @DayNumber Complete</h2>
+
+    <!-- Obligations Section -->
+    <div class="summary-section obligations-section">
+        <h3 class="section-title">Obligations</h3>
+        @if (!CompletedObligations.Any() && !FailedObligations.Any())
+        {
+            <p class="no-obligations">No obligations active</p>
+        }
+        else
+        {
+            @if (CompletedObligations.Any())
+            {
+                <div class="completed-obligations">
+                    <h4 class="subsection-title">✓ Completed</h4>
+                    @foreach (ObligationResult result in CompletedObligations)
+                    {
+                        <div class="obligation-result success">
+                            <span class="obligation-name">@result.Name</span>
+                            <span class="obligation-reward">+@result.CoinsEarned coins, +@result.CubesEarned cubes</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (FailedObligations.Any())
+            {
+                <div class="failed-obligations">
+                    <h4 class="subsection-title">✗ Failed</h4>
+                    @foreach (ObligationResult result in FailedObligations)
+                    {
+                        <div class="obligation-result failure">
+                            <span class="obligation-name">@result.Name</span>
+                            <span class="obligation-penalty">-@result.CubesLost Story cubes</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Economy Section -->
+    <div class="summary-section economy-section">
+        <h3 class="section-title">Economy</h3>
+        <div class="economy-stats">
+            <div class="economy-stat earned">
+                <span class="stat-label">Earned:</span>
+                <span class="stat-value">+@CoinsEarned coins</span>
+            </div>
+            <div class="economy-stat spent">
+                <span class="stat-label">Spent:</span>
+                <span class="stat-value">-@CoinsSpent coins</span>
+            </div>
+            <div class="economy-stat net">
+                <span class="stat-label">Net:</span>
+                <span class="stat-value @(NetCoins >= 0 ? "positive" : "negative")">
+                    @(NetCoins >= 0 ? "+" : "")@NetCoins coins
+                </span>
+            </div>
+            <div class="economy-stat total">
+                <span class="stat-label">Total Coins:</span>
+                <span class="stat-value">@TotalCoins</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progression Section -->
+    <div class="summary-section progression-section">
+        <h3 class="section-title">Progression</h3>
+        @if (NewObligationsDiscovered.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">New Obligations:</h4>
+                <ul class="item-list">
+                    @foreach (string obligation in NewObligationsDiscovered)
+                    {
+                        <li>@obligation</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (EquipmentAcquired.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Equipment Acquired:</h4>
+                <ul class="item-list">
+                    @foreach (string equipment in EquipmentAcquired)
+                    {
+                        <li>@equipment</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (StatsIncreased.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Stats Increased:</h4>
+                <ul class="item-list">
+                    @foreach (StatIncrease stat in StatsIncreased)
+                    {
+                        <li>@stat.StatName: @stat.OldLevel → @stat.NewLevel</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (CubesEarned.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Mastery Cubes Earned:</h4>
+                <ul class="item-list">
+                    @foreach (CubeGain cube in CubesEarned)
+                    {
+                        <li>@cube.EntityName: +@cube.Amount @cube.CubeType cubes (total: @cube.NewTotal/10)</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <!-- Resources Section -->
+    <div class="summary-section resources-section">
+        <h3 class="section-title">Resources</h3>
+        <div class="resource-summary">
+            <div class="resource-item">
+                <span class="resource-label">Health:</span>
+                <span class="resource-value">@CurrentHealth/@MaxHealth</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Focus:</span>
+                <span class="resource-value">@CurrentFocus/@MaxFocus (restored)</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Stamina:</span>
+                <span class="resource-value">@CurrentStamina/@MaxStamina (restored)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Session Preview -->
+    <div class="summary-section next-session-section">
+        <h3 class="section-title">Next Session</h3>
+        <ul class="next-session-goals">
+            @foreach (string goal in NextSessionGoals)
+            {
+                <li>@goal</li>
+            }
+        </ul>
+    </div>
+
+    <button class="btn-continue" @onclick="OnContinue">Continue to Next Day</button>
+</div>
+
+@code {
+    [Parameter] public int DayNumber { get; set; }
+    [Parameter] public EventCallback OnContinue { get; set; }
+
+    // Obligations
+    private List<ObligationResult> CompletedObligations { get; set; } = new();
+    private List<ObligationResult> FailedObligations { get; set; } = new();
+
+    // Economy
+    private int CoinsEarned { get; set; }
+    private int CoinsSpent { get; set; }
+    private int NetCoins => CoinsEarned - CoinsSpent;
+    private int TotalCoins { get; set; }
+
+    // Progression
+    private List<string> NewObligationsDiscovered { get; set; } = new();
+    private List<string> EquipmentAcquired { get; set; } = new();
+    private List<StatIncrease> StatsIncreased { get; set; } = new();
+    private List<CubeGain> CubesEarned { get; set; } = new();
+
+    // Resources
+    private int CurrentHealth { get; set; }
+    private int MaxHealth { get; set; }
+    private int CurrentFocus { get; set; }
+    private int MaxFocus { get; set; }
+    private int CurrentStamina { get; set; }
+    private int MaxStamina { get; set; }
+
+    // Next Session
+    private List<string> NextSessionGoals { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        LoadSummaryData();
+    }
+
+    private void LoadSummaryData()
+    {
+        Player player = GameWorld.GetPlayer();
+
+        // Load resources
+        CurrentHealth = player.Health;
+        MaxHealth = player.MaxHealth;
+        CurrentFocus = player.Focus;
+        MaxFocus = 6;
+        CurrentStamina = player.Stamina;
+        MaxStamina = player.MaxStamina;
+
+        TotalCoins = player.Coins;
+
+        // TODO: Load actual session data
+        // This should be populated from session tracking
+    }
+
+    private class ObligationResult
+    {
+        public string Name { get; set; }
+        public int CoinsEarned { get; set; }
+        public int CubesEarned { get; set; }
+        public int CubesLost { get; set; }
+    }
+
+    private class StatIncrease
+    {
+        public string StatName { get; set; }
+        public int OldLevel { get; set; }
+        public int NewLevel { get; set; }
+    }
+
+    private class CubeGain
+    {
+        public string EntityName { get; set; }
+        public string CubeType { get; set; }
+        public int Amount { get; set; }
+        public int NewTotal { get; set; }
+    }
+}

@@ -5,7 +5,7 @@ using System.Linq;
 /// Context object for travel obstacle UI rendering.
 /// Contains all data needed to display and interact with obstacles.
 /// </summary>
-public class ObstacleContext
+public class TravelObstacleContext
 {
     /// <summary>
     /// The obstacle encountered.

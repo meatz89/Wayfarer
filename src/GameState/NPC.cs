@@ -63,6 +63,10 @@ public class NPC
     // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at �4)
     public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
 
+    // Localized mastery - StoryCubes reduce Social Doubt with THIS NPC only
+    // 0-10 scale: 0 cubes = full doubt, 10 cubes = complete understanding (no doubt)
+    public int StoryCubes { get; set; } = 0;
+
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
 
@@ -78,6 +82,11 @@ public class NPC
     // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
     // References obstacles in GameWorld.Obstacles list
     public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
+    // References equipment in GameWorld.Equipment list (single source of truth)
+    // Only applicable for NPCs with Mercantile or vendor service types
+    public List<string> AvailableEquipment { get; set; } = new List<string>();
 
     // Initial token values to be applied during game initialization
     public List<InitialTokenValue> InitialTokenValues { get; set; } = new List<InitialTokenValue>();

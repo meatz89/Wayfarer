@@ -1,0 +1,94 @@
+@namespace Wayfarer.Pages.Components
+@inject GameWorld GameWorld
+@inject ItemRepository ItemRepository
+@*
+Vendor Equipment - NPC equipment shop
+Shows available equipment for purchase
+*@
+
+<div class="vendor-equipment">
+    <h3 class="vendor-header">@VendorName's Equipment</h3>
+
+    @if (AvailableEquipment == null || !AvailableEquipment.Any())
+    {
+        <p class="no-equipment-available">No equipment available</p>
+    }
+    else
+    {
+        <div class="vendor-grid">
+            @foreach (Equipment equipment in AvailableEquipment)
+            {
+                <div class="vendor-item">
+                    <EquipmentCard Equipment="@equipment" ShowActions="false" />
+                    <div class="vendor-purchase-section">
+                        <button class="btn-purchase"
+                                @onclick="() => HandlePurchase(equipment)"
+                                disabled="@(!CanAfford(equipment))">
+                            Purchase (@equipment.BuyPrice coins)
+                        </button>
+                        @if (!CanAfford(equipment))
+                        {
+                            <span class="purchase-warning">Insufficient coins</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="vendor-footer">
+        <div class="player-coins">Your Coins: @PlayerCoins</div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string VendorNpcId { get; set; }
+    [Parameter] public string VendorName { get; set; }
+    [Parameter] public EventCallback OnPurchaseComplete { get; set; }
+
+    private List<Equipment> AvailableEquipment { get; set; }
+    private int PlayerCoins { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadVendorEquipment();
+        LoadPlayerCoins();
+    }
+
+    protected override void OnParametersSet()
+    {
+        LoadVendorEquipment();
+        LoadPlayerCoins();
+    }
+
+    private void LoadVendorEquipment()
+    {
+        AvailableEquipment = new List<Equipment>();
+
+        // TODO: Get NPC's AvailableEquipment list from NPC entity
+        // For now, show all equipment in repository
+        // This should be replaced with: NPC.AvailableEquipment property
+    }
+
+    private void LoadPlayerCoins()
+    {
+        Player player = GameWorld.GetPlayer();
+        PlayerCoins = player.Coins;
+    }
+
+    private bool CanAfford(Equipment equipment)
+    {
+        return PlayerCoins >= equipment.BuyPrice;
+    }
+
+    private async Task HandlePurchase(Equipment equipment)
+    {
+        bool success = GameWorld.PurchaseEquipment(equipment.Id, equipment.BuyPrice);
+        if (success)
+        {
+            LoadPlayerCoins();
+            await OnPurchaseComplete.InvokeAsync();
+            StateHasChanged();
+        }
+    }
+}

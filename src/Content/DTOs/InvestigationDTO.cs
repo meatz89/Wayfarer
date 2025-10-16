@@ -20,6 +20,11 @@ public class InvestigationDTO
     // NEW: Color code for UI grouping
     public string ColorCode { get; set; }
 
+    // Core Loop: Obligation system
+    public string ObligationType { get; set; } = "SelfDiscovered";
+    public string PatronNpcId { get; set; }
+    public int? DeadlineSegment { get; set; }
+
     public List<InvestigationPhaseDTO> Phases { get; set; } = new List<InvestigationPhaseDTO>();
     public List<InvestigationObservationRewardDTO> ObservationCardRewards { get; set; } = new List<InvestigationObservationRewardDTO>();
 }

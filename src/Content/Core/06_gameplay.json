@@ -9,13 +9,12 @@
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 20,
-      "health": 10,
-      "maxHealth": 10,
+      "coins": 15,
+      "constitution": "Average",
+      "endurance": "Average",
+      "mentalCapacity": "Average",
       "hunger": 0,
       "maxHunger": 100,
-      "stamina": 12,
-      "maxStamina": 12,
       "satchelCapacity": 10,
       "satchelWeight": 0
     },

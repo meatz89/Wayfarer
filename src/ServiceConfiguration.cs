@@ -92,6 +92,10 @@ public static class ServiceConfiguration
         services.AddSingleton<ObstacleGoalFilter>();
         services.AddSingleton<GoalCompletionHandler>();
         services.AddSingleton<DifficultyCalculationService>();
+        services.AddSingleton<ObstacleFacade>();
+
+        // Equipment Subsystem
+        services.AddSingleton<EquipmentFacade>();
 
         // NPC deck initialization handled directly in PackageLoader
 

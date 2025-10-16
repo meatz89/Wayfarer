@@ -32,6 +32,26 @@ public class Investigation
     /// </summary>
     public InvestigationRewards CompletionRewards { get; set; } = new InvestigationRewards();
 
+    /// <summary>
+    /// Type of obligation - determines pressure and mechanics
+    /// NPCCommissioned: Has patron, deadline, failure consequences
+    /// SelfDiscovered: No patron, no deadline, pure exploration
+    /// </summary>
+    public InvestigationObligationType ObligationType { get; set; } = InvestigationObligationType.SelfDiscovered;
+
+    /// <summary>
+    /// NPC who commissioned this investigation (if NPCCommissioned type)
+    /// Null for SelfDiscovered investigations
+    /// </summary>
+    public string PatronNpcId { get; set; }
+
+    /// <summary>
+    /// Absolute segment number when investigation must be completed (if NPCCommissioned)
+    /// Failure to complete by deadline damages relationship with patron
+    /// Null for SelfDiscovered investigations
+    /// </summary>
+    public int? DeadlineSegment { get; set; }
+
     // ObservationCardRewards system eliminated - replaced by transparent resource competition
 }
 
