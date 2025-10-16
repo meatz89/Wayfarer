@@ -10,6 +10,82 @@
   "content": {
     "investigations": [
       {
+        "id": "elena_workshop_delivery",
+        "name": "Elena's Workshop Errand",
+        "description": "Elena needs a message delivered to someone working in the mill workshop. Time-sensitive.",
+        "obligationType": "NPCCommissioned",
+        "patronNpcId": "elena",
+        "deadlineSegment": 8,
+        "colorCode": "#7a9eb8",
+        "intro": {
+          "triggerType": "Manual",
+          "actionText": "Accept Elena's delivery request",
+          "locationId": "courtyard",
+          "introNarrative": "Elena hands you a sealed letter. 'The craftsman in the workshop needs this before midday. It's urgent - he's waiting on these specifications to complete a repair. Can you get it to him by segment 8?'",
+          "completionReward": {
+            "obstaclesSpawned": []
+          }
+        },
+        "personality": "Timed",
+        "exposureThreshold": 0,
+        "timeLimit": 8,
+        "phases": [
+          {
+            "id": "deliver_to_workshop",
+            "name": "Deliver message to workshop",
+            "description": "Take Elena's message to the craftsman in the mill workshop.",
+            "outcomeNarrative": "The craftsman accepts the letter with a grateful nod. 'Right on time. Elena's got good judgment about who to trust with urgent matters.'",
+            "completionReward": {}
+          }
+        ],
+        "completionNarrative": "You've delivered Elena's message successfully. The craftsman has what he needs, and Elena's trust in you has deepened.",
+        "completionRewards": {
+          "coins": 15,
+          "experience": 20,
+          "reputation": {"elena": 2}
+        },
+        "observationCardRewards": [],
+        "requiredGoals": ["elena_deliver_message"]
+      },
+      {
+        "id": "aldric_tool_request",
+        "name": "Aldric's Tool Request",
+        "description": "Farmer Aldric needs specialized tools from the mill's main hall. He'll pay well for quick delivery.",
+        "obligationType": "NPCCommissioned",
+        "patronNpcId": "aldric",
+        "deadlineSegment": 12,
+        "colorCode": "#8b7a5a",
+        "intro": {
+          "triggerType": "Manual",
+          "actionText": "Accept Aldric's tool request",
+          "locationId": "courtyard",
+          "introNarrative": "Aldric shifts his weight, looking uncomfortable asking for help. 'There's a precision tool set in the main hall - left there when the mill shut down. I need it for fence repairs before the afternoon's out. Segment 12 at the latest. I'll make it worth your while - 25 coins.'",
+          "completionReward": {
+            "obstaclesSpawned": []
+          }
+        },
+        "personality": "Timed",
+        "exposureThreshold": 0,
+        "timeLimit": 12,
+        "phases": [
+          {
+            "id": "fetch_tools",
+            "name": "Retrieve tools from main hall",
+            "description": "Enter the main hall and locate Aldric's tool set.",
+            "outcomeNarrative": "You find the tools exactly where Aldric described - a well-maintained set of precision instruments. You return to the courtyard and hand them over. Aldric inspects them carefully, then nods with satisfaction. 'Good work. These'll do nicely.'",
+            "completionReward": {}
+          }
+        ],
+        "completionNarrative": "Aldric has his tools and can complete his fence repairs on schedule. He respects efficiency and you've demonstrated it.",
+        "completionRewards": {
+          "coins": 25,
+          "experience": 30,
+          "reputation": {"aldric": 2}
+        },
+        "observationCardRewards": [],
+        "requiredGoals": ["aldric_fetch_tools"]
+      },
+      {
         "id": "waterwheel_mystery",
         "name": "The Waterwheel Mystery",
         "description": "Uncover the dark secrets hidden within the abandoned mill - a decade-old disappearance, a smuggling operation, and the dangerous truth Martha's granddaughter is pursuing",

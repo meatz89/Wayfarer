@@ -10,6 +10,58 @@
   "content": {
     "goals": [
       {
+        "id": "elena_deliver_message",
+        "name": "Deliver Elena's Message",
+        "description": "Hand the sealed letter to the craftsman in the workshop",
+        "placementLocationId": "workshop",
+        "systemType": "Mental",
+        "deckId": "mental_challenge",
+        "consequenceType": "Resolution",
+        "setsResolutionMethod": "Preparation",
+        "setsRelationshipOutcome": "Neutral",
+        "investigationId": "elena_workshop_delivery",
+        "isAvailable": true,
+        "deleteOnSuccess": true,
+        "propertyRequirements": {},
+        "goalCards": [
+          {
+            "id": "deliver_elena_message_card",
+            "name": "Hand Over Letter",
+            "description": "Successfully deliver the message",
+            "threshold": 4,
+            "rewards": {
+              "progress": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "aldric_fetch_tools",
+        "name": "Retrieve Aldric's Tools",
+        "description": "Search the main hall for the precision tool set Aldric described",
+        "placementLocationId": "main_hall",
+        "systemType": "Mental",
+        "deckId": "mental_challenge",
+        "consequenceType": "Resolution",
+        "setsResolutionMethod": "Preparation",
+        "setsRelationshipOutcome": "Neutral",
+        "investigationId": "aldric_tool_request",
+        "isAvailable": true,
+        "deleteOnSuccess": true,
+        "propertyRequirements": {},
+        "goalCards": [
+          {
+            "id": "fetch_tools_card",
+            "name": "Locate Tools",
+            "description": "Find and retrieve the tool set",
+            "threshold": 5,
+            "rewards": {
+              "progress": 1
+            }
+          }
+        ]
+      },
+      {
         "id": "elena_delivery_request",
         "name": "Delivery for Elena",
         "description": "Elena needs urgent legal documents delivered to Farmer Aldric's stead before the rains come. The route is dangerous - you'll need to choose between crossing Widow's Creek or passing through the abandoned mill.",
