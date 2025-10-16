@@ -27,10 +27,6 @@ public class Investigation
     /// Phase definitions - used to create goals dynamically when prerequisites met
     /// </summary>
     public List<InvestigationPhaseDefinition> PhaseDefinitions { get; set; } = new List<InvestigationPhaseDefinition>();
-    /// <summary>
-    /// Rewards granted when investigation is completed
-    /// </summary>
-    public InvestigationRewards CompletionRewards { get; set; } = new InvestigationRewards();
 
     /// <summary>
     /// Type of obligation - determines pressure and mechanics
@@ -51,6 +47,27 @@ public class Investigation
     /// Null for SelfDiscovered investigations
     /// </summary>
     public int? DeadlineSegment { get; set; }
+
+    /// <summary>
+    /// Coins granted when investigation completes (NPCCommissioned type)
+    /// </summary>
+    public int CompletionRewardCoins { get; set; } = 0;
+
+    /// <summary>
+    /// Items granted when investigation completes (equipment IDs)
+    /// </summary>
+    public List<string> CompletionRewardItems { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Player stat XP rewards granted when investigation completes
+    /// </summary>
+    public List<StatXPReward> CompletionRewardXP { get; set; } = new List<StatXPReward>();
+
+    /// <summary>
+    /// New obligations spawned when investigation completes
+    /// References to other Investigation IDs in GameWorld.Investigations
+    /// </summary>
+    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
 
     // ObservationCardRewards system eliminated - replaced by transparent resource competition
 }
@@ -173,4 +190,24 @@ public class InvestigationPrerequisites
     /// PROPER ARCHITECTURE: Direct state checking, not invisible knowledge tokens
     /// </summary>
     public string CompletedGoalId { get; set; }
+}
+
+/// <summary>
+/// Player stat XP reward - strongly typed replacement for Dictionary<string, int>
+/// Used in investigation completion rewards
+/// </summary>
+public class StatXPReward
+{
+    public PlayerStatType Stat { get; set; }
+    public int XPAmount { get; set; }
+}
+
+/// <summary>
+/// NPC reputation reward - strongly typed replacement for Dictionary<string, int>
+/// Used in investigation completion rewards
+/// </summary>
+public class NPCReputationReward
+{
+    public string NpcId { get; set; }
+    public int ReputationChange { get; set; }
 }

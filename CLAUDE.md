@@ -22,10 +22,12 @@
 
 - `List<Obstacle>` NOT `Dictionary<string, object>`
 - `List<string> ObstacleIds` NOT `Dictionary<string, List<string>>`
-- No `var`, no `object`, no `Dictionary<K,V>` unless K and V are domain entities
+- No `var`, no `object`, no `Dictionary<K,V>` AT ALL - FORBIDDEN
+- No `HashSet<T>` - FORBIDDEN
+- ONLY `List<T>` where T is entity or enum
 - No `SharedData`, `Context`, `Metadata` dictionaries
 
-**Why:** Dictionaries hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
+**Why:** Dictionaries hide relationships. They enable lazy design where "anything can be anything." HashSets hide structure and ordering. Strong typing with Lists forces clarity about what connects to what and why.
 
 **Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
 

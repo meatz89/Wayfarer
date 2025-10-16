@@ -19,9 +19,8 @@ public class InvestigationCompleteResult
 public class InvestigationRewards
 {
     public int Coins { get; set; }
-    public int DeductionXP { get; set; }
-    public int EmpathyXP { get; set; }
-    public Dictionary<string, int> NPCReputation { get; set; } = new Dictionary<string, int>();
+    public List<StatXPReward> XPRewards { get; set; } = new List<StatXPReward>();
+    public List<NPCReputationReward> NPCReputation { get; set; } = new List<NPCReputationReward>();
 }
 
 /// <summary>

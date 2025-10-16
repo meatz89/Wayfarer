@@ -28,6 +28,10 @@ public class InvestigationParser
             ObligationType = ParseObligationType(dto.ObligationType),
             PatronNpcId = dto.PatronNpcId,
             DeadlineSegment = dto.DeadlineSegment,
+            CompletionRewardCoins = dto.CompletionRewardCoins,
+            CompletionRewardItems = dto.CompletionRewardItems ?? new List<string>(),
+            CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP),
+            SpawnedObligationIds = dto.SpawnedObligationIds ?? new List<string>(),
             PhaseDefinitions = dto.Phases?.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() ?? new List<InvestigationPhaseDefinition>()
         };
     }
@@ -177,5 +181,38 @@ public class InvestigationParser
             RequiredItems = dto.RequiredItems ?? new List<string>(),
             RequiredObligation = dto.RequiredObligation
         };
+    }
+
+    private List<StatXPReward> ParseXPRewards(Dictionary<string, int> xpRewardsDto)
+    {
+        if (xpRewardsDto == null || xpRewardsDto.Count == 0)
+            return new List<StatXPReward>();
+
+        List<StatXPReward> rewards = new List<StatXPReward>();
+
+        foreach (KeyValuePair<string, int> entry in xpRewardsDto)
+        {
+            PlayerStatType statType = ParsePlayerStatType(entry.Key);
+            if (statType != PlayerStatType.None && entry.Value > 0)
+            {
+                rewards.Add(new StatXPReward
+                {
+                    Stat = statType,
+                    XPAmount = entry.Value
+                });
+            }
+        }
+
+        return rewards;
+    }
+
+    private PlayerStatType ParsePlayerStatType(string statName)
+    {
+        if (string.IsNullOrEmpty(statName))
+            return PlayerStatType.None;
+
+        return Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType)
+            ? statType
+            : PlayerStatType.None;
     }
 }

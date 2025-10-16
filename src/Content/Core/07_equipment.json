@@ -16,7 +16,6 @@
         "BuyPrice": 10,
         "SellPrice": 5,
         "Categories": ["Equipment"],
-        "EnabledActions": ["climbing", "securing"],
         "ApplicableContexts": ["Climbing", "Height", "Securing"],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
@@ -28,7 +27,6 @@
         "BuyPrice": 12,
         "SellPrice": 6,
         "Categories": ["Equipment"],
-        "EnabledActions": ["water_crossing"],
         "ApplicableContexts": ["Water", "Cold"],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
@@ -40,7 +38,6 @@
         "BuyPrice": 15,
         "SellPrice": 7,
         "Categories": ["Equipment"],
-        "EnabledActions": ["illuminate"],
         "ApplicableContexts": ["Darkness", "Search"],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
@@ -52,7 +49,6 @@
         "BuyPrice": 20,
         "SellPrice": 10,
         "Categories": ["Equipment"],
-        "EnabledActions": ["mechanical_work", "precision_work"],
         "ApplicableContexts": ["Mechanical", "Precision"],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
@@ -64,7 +60,6 @@
         "BuyPrice": 25,
         "SellPrice": 12,
         "Categories": ["Equipment"],
-        "EnabledActions": ["social_impression"],
         "ApplicableContexts": ["Authority", "Persuasion", "Negotiation"],
         "IntensityReduction": 1,
         "UsageType": "Permanent"
@@ -76,7 +71,6 @@
         "BuyPrice": 5,
         "SellPrice": 2,
         "Categories": ["Equipment"],
-        "EnabledActions": [],
         "ApplicableContexts": [],
         "IntensityReduction": 0,
         "UsageType": "Consumable"
@@ -88,7 +82,6 @@
         "BuyPrice": 30,
         "SellPrice": 15,
         "Categories": ["Equipment"],
-        "EnabledActions": ["professional_climbing"],
         "ApplicableContexts": ["Climbing", "Height"],
         "IntensityReduction": 2,
         "UsageType": "Permanent"

@@ -273,7 +273,12 @@ public class InvestigationActivity
             InvestigationId = investigationId,
             InvestigationName = investigation.Name,
             CompletionNarrative = investigation.CompletionNarrative,
-            Rewards = investigation.CompletionRewards
+            Rewards = new InvestigationRewards
+            {
+                Coins = investigation.CompletionRewardCoins,
+                XPRewards = investigation.CompletionRewardXP ?? new List<StatXPReward>(),
+                NPCReputation = new List<NPCReputationReward>() // Future: NPC reputation system
+            }
             // ObservationCardRewards eliminated - observation system removed
         };
 
@@ -293,15 +298,51 @@ public class InvestigationActivity
     {
         Player player = _gameWorld.GetPlayer();
 
-        if (investigation.CompletionRewards != null)
+        // Grant coins
+        if (investigation.CompletionRewardCoins > 0)
         {
-            // Grant coins
-            if (investigation.CompletionRewards.Coins > 0)
-            {
-                player.Coins += investigation.CompletionRewards.Coins;
-            }
+            player.Coins += investigation.CompletionRewardCoins;
+        }
 
-            // XP and reputation systems not yet implemented
+        // Grant items (equipment) - add equipment IDs to player inventory
+        if (investigation.CompletionRewardItems != null && investigation.CompletionRewardItems.Count > 0)
+        {
+            foreach (string itemId in investigation.CompletionRewardItems)
+            {
+                player.Inventory.AddItem(itemId);
+                _messageSystem.AddSystemMessage(
+                    $"Received equipment: {itemId}",
+                    SystemMessageTypes.Success);
+            }
+        }
+
+        // Grant player stat XP rewards
+        if (investigation.CompletionRewardXP != null && investigation.CompletionRewardXP.Count > 0)
+        {
+            foreach (StatXPReward xpReward in investigation.CompletionRewardXP)
+            {
+                player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
+                _messageSystem.AddSystemMessage(
+                    $"Gained {xpReward.XPAmount} {xpReward.Stat} XP",
+                    SystemMessageTypes.Success);
+            }
+        }
+
+        // Spawn new obligations (investigations)
+        if (investigation.SpawnedObligationIds != null && investigation.SpawnedObligationIds.Count > 0)
+        {
+            foreach (string obligationId in investigation.SpawnedObligationIds)
+            {
+                Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
+                if (spawnedInvestigation != null)
+                {
+                    // Move to Discovered state (player must accept it via intro action)
+                    _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(obligationId);
+                    _messageSystem.AddSystemMessage(
+                        $"New investigation available: {spawnedInvestigation.Name}",
+                        SystemMessageTypes.Info);
+                }
+            }
         }
 
         // ObservationCardRewards system eliminated - replaced by transparent resource competition

@@ -32,9 +32,7 @@
                   "id": "mill_interior_phase1",
                   "name": "Examine the mill interior",
                   "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
-                  "physicalDanger": 0,
-                  "mentalComplexity": 2,
-                  "socialDifficulty": 0,
+                  "intensity": 2,
                   "contexts": ["Search", "Deduction", "Pattern"],
                   "isPermanent": false,
                   "goals": [
@@ -88,9 +86,7 @@
                     "id": "mill_mechanism_phase2",
                     "name": "Corroded Mechanism Access",
                     "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
-                    "physicalDanger": 2,
-                    "mentalComplexity": 1,
-                    "socialDifficulty": 0,
+                    "intensity": 2,
                     "contexts": ["Precision", "Mechanical", "Strength"],
                     "isPermanent": false,
                     "goals": [
@@ -141,9 +137,7 @@
                     "id": "mill_loft_phase3",
                     "name": "Unstable Loft Access",
                     "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently.",
-                    "physicalDanger": 3,
-                    "mentalComplexity": 1,
-                    "socialDifficulty": 0,
+                    "intensity": 3,
                     "contexts": ["Climbing", "Height", "Precision"],
                     "isPermanent": false,
                     "goals": [
@@ -218,9 +212,7 @@
                     "id": "elena_confrontation_phase4",
                     "name": "Elena's Guarded Secret",
                     "description": "Elena knows more about the smuggling operation than she's admitted. Approaching her requires careful diplomacy.",
-                    "physicalDanger": 0,
-                    "mentalComplexity": 0,
-                    "socialDifficulty": 2,
+                    "intensity": 2,
                     "contexts": ["Empathy", "Persuasion", "Negotiation"],
                     "isPermanent": false,
                     "goals": [

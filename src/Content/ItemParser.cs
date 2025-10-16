@@ -6,7 +6,7 @@ using Wayfarer.GameState.Enums;
 public static class ItemParser
 {
     /// <summary>
-    /// Convert an ItemDTO to an Item domain model (or Equipment if it has EnabledActions)
+    /// Convert an ItemDTO to an Item domain model (or Equipment if it has ApplicableContexts)
     /// </summary>
     public static Item ConvertDTOToItem(ItemDTO dto)
     {
@@ -65,8 +65,8 @@ public static class ItemParser
             }
         }
 
-        // If EnabledActions present, convert to Equipment
-        if (dto.EnabledActions != null && dto.EnabledActions.Count > 0)
+        // If ApplicableContexts or IntensityReduction present, convert to Equipment
+        if ((dto.ApplicableContexts != null && dto.ApplicableContexts.Count > 0) || (dto.IntensityReduction ?? 0) > 0)
         {
             // Parse contexts from JSON strings to enum
             List<ObstacleContext> applicableContexts = new List<ObstacleContext>();
@@ -105,7 +105,6 @@ public static class ItemParser
 
             Equipment equipment = Equipment.FromItem(
                 item,
-                dto.EnabledActions,
                 applicableContexts,
                 dto.IntensityReduction ?? 0
             );

@@ -35,21 +35,17 @@ Shows type, deadline, rewards, and patron info
         </div>
     }
 
-    @if (Obligation.CompletionRewards != null)
+    @if (Obligation.CompletionRewardCoins > 0 || (Obligation.CompletionRewardItems != null && Obligation.CompletionRewardItems.Count > 0))
     {
         <div class="obligation-rewards">
             <span class="rewards-label">Rewards:</span>
-            @if (Obligation.CompletionRewards.Coins > 0)
+            @if (Obligation.CompletionRewardCoins > 0)
             {
-                <span class="reward-coins">@Obligation.CompletionRewards.Coins coins</span>
+                <span class="reward-coins">@Obligation.CompletionRewardCoins coins</span>
             }
-            @if (Obligation.CompletionRewards.DeductionXP > 0)
+            @if (Obligation.CompletionRewardItems != null && Obligation.CompletionRewardItems.Count > 0)
             {
-                <span class="reward-xp">+@Obligation.CompletionRewards.DeductionXP Deduction XP</span>
-            }
-            @if (Obligation.CompletionRewards.EmpathyXP > 0)
-            {
-                <span class="reward-xp">+@Obligation.CompletionRewards.EmpathyXP Empathy XP</span>
+                <span class="reward-items">@Obligation.CompletionRewardItems.Count item(s)</span>
             }
         </div>
     }

@@ -56,7 +56,6 @@ namespace Wayfarer.Pages.Components
         protected List<Goal> AvailableSocialGoals { get; set; } = new();
         protected List<Goal> AvailableMentalGoals { get; set; } = new();
         protected List<Goal> AvailablePhysicalGoals { get; set; } = new();
-        protected List<Obstacle> CurrentObstacles { get; set; } = new();
         protected List<Investigation> DiscoveredInvestigationsAtLocation { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
@@ -105,22 +104,6 @@ namespace Wayfarer.Pages.Components
                         ConnectionState = stateDisplay
                     });
                 }
-            }
-
-            // Get obstacles at current location
-            CurrentObstacles.Clear();
-            if (CurrentSpot != null && CurrentSpot.ObstacleIds != null)
-            {
-                // Lookup obstacles by ID from GameWorld
-                foreach (string obstacleId in CurrentSpot.ObstacleIds)
-                {
-                    Obstacle obstacle = GameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-                    if (obstacle != null)
-                    {
-                        CurrentObstacles.Add(obstacle);
-                    }
-                }
-                Console.WriteLine($"[LocationContent] Got {CurrentObstacles.Count} obstacles at {CurrentSpot.Name}");
             }
 
             // Get available observations

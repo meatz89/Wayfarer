@@ -31,8 +31,7 @@ Challenge, Equipment, Cost bypass, Accept damage
 
     <EquipmentApplicability
         Obstacle="@Obstacle"
-        AvailableEquipment="@AvailableEquipment"
-        OnEquipmentApplied="@HandleEquipmentApplied" />
+        AvailableEquipment="@AvailableEquipment" />
 
     <div class="resolution-options">
         <h4 class="options-header">Resolution Options:</h4>
@@ -82,23 +81,24 @@ Challenge, Equipment, Cost bypass, Accept damage
     [Parameter] public EventCallback OnBypass { get; set; }
     [Parameter] public EventCallback OnAccept { get; set; }
 
-    private int AppliedReduction { get; set; } = 0;
+    [Inject] private ObstacleFacade ObstacleFacade { get; set; }
 
-    private int EffectiveIntensity => Math.Max(0, Obstacle.Intensity - AppliedReduction);
+    private int EffectiveIntensity
+    {
+        get
+        {
+            ObstacleIntensity intensity = ObstacleFacade?.CalculateEffectiveIntensity(Obstacle?.Id);
+            return intensity?.EffectiveIntensity ?? Obstacle?.Intensity ?? 0;
+        }
+    }
 
-    private int BypassCost => Obstacle.Intensity * 5; // 5 coins per intensity point
+    private int BypassCost => EffectiveIntensity * 5; // 5 coins per effective intensity point
 
     private bool CanAffordBypass => PlayerCoins >= BypassCost;
 
     private bool IsContextMatched(ObstacleContext context)
     {
         return AvailableEquipment?.Any(e => e.ApplicableContexts.Contains(context)) ?? false;
-    }
-
-    private void HandleEquipmentApplied(int reduction)
-    {
-        AppliedReduction = reduction;
-        StateHasChanged();
     }
 
     private async Task HandleChallenge()

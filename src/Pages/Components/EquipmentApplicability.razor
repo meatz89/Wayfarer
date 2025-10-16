@@ -39,22 +39,8 @@ Displays context matching and intensity reduction preview
                         <span class="effect-label">Reduction:</span>
                         <span class="effect-value">-@match.Equipment.IntensityReduction intensity</span>
                     </div>
-
-                    <div class="match-usage">
-                        <label class="apply-checkbox">
-                            <input type="checkbox"
-                                   checked="@IsApplied(match.Equipment)"
-                                   @onchange="@(e => HandleApplyToggle(match.Equipment, (bool)e.Value))" />
-                            Apply equipment
-                        </label>
-                    </div>
                 </div>
             }
-        </div>
-
-        <div class="reduction-summary">
-            <span class="summary-label">Total Reduction:</span>
-            <span class="summary-value">-@TotalReduction intensity</span>
         </div>
     }
 
@@ -80,9 +66,6 @@ Displays context matching and intensity reduction preview
 @code {
     [Parameter] public Obstacle Obstacle { get; set; }
     [Parameter] public List<Equipment> AvailableEquipment { get; set; }
-    [Parameter] public EventCallback<int> OnEquipmentApplied { get; set; }
-
-    private HashSet<string> AppliedEquipmentIds { get; set; } = new HashSet<string>();
 
     private List<EquipmentMatch> ApplicableEquipment
     {
@@ -105,30 +88,6 @@ Displays context matching and intensity reduction preview
     private List<Equipment> NonApplicableEquipment => AvailableEquipment?
         .Where(e => !e.ApplicableContexts.Any(c => Obstacle.Contexts.Contains(c)))
         .ToList() ?? new List<Equipment>();
-
-    private int TotalReduction => ApplicableEquipment
-        .Where(m => IsApplied(m.Equipment))
-        .Sum(m => m.Equipment.IntensityReduction);
-
-    private bool IsApplied(Equipment equipment)
-    {
-        return AppliedEquipmentIds.Contains(equipment.Id);
-    }
-
-    private async Task HandleApplyToggle(Equipment equipment, bool isChecked)
-    {
-        if (isChecked)
-        {
-            AppliedEquipmentIds.Add(equipment.Id);
-        }
-        else
-        {
-            AppliedEquipmentIds.Remove(equipment.Id);
-        }
-
-        await OnEquipmentApplied.InvokeAsync(TotalReduction);
-        StateHasChanged();
-    }
 
     private class EquipmentMatch
     {

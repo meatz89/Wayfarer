@@ -108,8 +108,7 @@ public class TravelObstacleParser
     {
         return new EquipmentRequirement
         {
-            RequiredEquipment = dto.RequiredEquipment ?? new List<string>(),
-            RequiredActions = dto.RequiredActions ?? new List<string>()
+            RequiredEquipment = dto.RequiredEquipment ?? new List<string>()
         };
     }
 }

@@ -139,9 +139,9 @@
                         <div class="investigation-card">
                             <div class="completed-summary">
                                 <div class="completed-title">@inv.Name</div>
-                                @if (inv.CompletionRewards != null && inv.CompletionRewards.Coins > 0)
+                                @if (inv.CompletionRewardCoins > 0)
                                 {
-                                    <div class="completed-rewards">+@inv.CompletionRewards.Coins coins</div>
+                                    <div class="completed-rewards">+@inv.CompletionRewardCoins coins</div>
                                 }
                             </div>
                             <div class="completed-narrative">@inv.CompletionNarrative</div>

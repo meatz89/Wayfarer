@@ -106,7 +106,7 @@ public class ObstacleFacade
     /// Get player's equipment from inventory
     /// Filters inventory for Equipment items only
     /// </summary>
-    private List<Equipment> GetPlayerEquipment()
+    public List<Equipment> GetPlayerEquipment()
     {
         Player player = _gameWorld.GetPlayer();
         List<string> inventoryItemIds = player.Inventory.GetItemIds();
