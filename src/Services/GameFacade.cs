@@ -300,7 +300,7 @@ public class GameFacade
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Venue? destLocation = _gameWorld.WorldState.venues
+                Venue? destLocation = _gameWorld.Venues
                     ?.FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
                 destinationName = destLocation?.Name ?? finalDestSpot.Name;
             }
@@ -653,11 +653,11 @@ public class GameFacade
         // Initialize player at starting Venue from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
-        Location? startingSpot = _gameWorld.Locations.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
+        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot != null)
         {
             player.CurrentLocation = startingSpot;
-            Venue? startingLocation = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
             Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
         }
         else
@@ -804,7 +804,7 @@ public class GameFacade
     /// </summary>
     public District GetDistrictForLocation(string venueId)
     {
-        return _gameWorld.WorldState.GetDistrictForLocation(venueId);
+        return _gameWorld.GetDistrictForLocation(venueId);
     }
 
     /// <summary>
@@ -812,15 +812,15 @@ public class GameFacade
     /// </summary>
     public Region GetRegionForDistrict(string districtId)
     {
-        return _gameWorld.WorldState.GetRegionForDistrict(districtId);
+        return _gameWorld.GetRegionForDistrict(districtId);
     }
 
     /// <summary>
-    /// Gets all locations in WorldState
+    /// Gets all locations in GameWorld
     /// </summary>
     public List<Venue> GetAllLocations()
     {
-        return _gameWorld.WorldState.venues;
+        return _gameWorld.Venues;
     }
 
     /// <summary>
@@ -828,7 +828,7 @@ public class GameFacade
     /// </summary>
     public District GetDistrictById(string districtId)
     {
-        return _gameWorld.WorldState.Districts.FirstOrDefault(d => d.Id == districtId);
+        return _gameWorld.Districts.FirstOrDefault(d => d.Id == districtId);
     }
 
 
@@ -984,7 +984,7 @@ public class GameFacade
             return;
         }
 
-        Venue? venue = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null)
         {
             _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);

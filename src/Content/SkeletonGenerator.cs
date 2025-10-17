@@ -231,7 +231,7 @@ public static class SkeletonGenerator
         }
         else if (typeof(T) == typeof(Venue))
         {
-            if (!gameWorld.WorldState.locations.Any(l => l.Id == id))
+            if (!gameWorld.Locations.Any(l => l.Id == id))
             {
                 skeleton = GenerateSkeletonVenue(id, source) as T;
                 return true;
@@ -239,7 +239,7 @@ public static class SkeletonGenerator
         }
         else if (typeof(T) == typeof(Location))
         {
-            if (!gameWorld.WorldState.locations.Any(s => s.Id == id))
+            if (!gameWorld.Locations.Any(s => s.Id == id))
             {
                 // Need to find or create parent Venue first
                 string venueId = source.Contains("location_")

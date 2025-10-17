@@ -229,7 +229,7 @@ public class GoalCompletionHandler
             if (rewards.RouteSegmentUnlock != null)
             {
                 RouteSegmentUnlock unlock = rewards.RouteSegmentUnlock;
-                RouteOption route = _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == unlock.RouteId);
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == unlock.RouteId);
                 if (route != null)
                 {
                     if (unlock.SegmentPosition >= 0 && unlock.SegmentPosition < route.Segments.Count)
@@ -255,7 +255,7 @@ public class GoalCompletionHandler
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: RouteId '{unlock.RouteId}' not found in GameWorld.WorldState.Routes");
+                    Console.WriteLine($"[GoalCompletion] WARNING: RouteId '{unlock.RouteId}' not found in GameWorld.Routes");
                 }
             }
 

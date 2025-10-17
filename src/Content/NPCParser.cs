@@ -13,8 +13,6 @@ public static class NPCParser
             throw new InvalidOperationException("NPC DTO missing required 'Id' field");
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
-        if (string.IsNullOrEmpty(dto.VenueId))
-            throw new InvalidOperationException($"NPC {dto.Id} missing required 'VenueId' field");
         if (string.IsNullOrEmpty(dto.LocationId))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
 
@@ -24,14 +22,13 @@ public static class NPCParser
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
-            Venue = dto.VenueId,
             LocationId = dto.LocationId,
             Tier = dto.Tier,
             Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
         };
 
-        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with venueId: '{dto.VenueId}'");
+        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{dto.LocationId}'");
 
         // Parse profession with mapping from JSON values to enum
         if (string.IsNullOrEmpty(dto.Profession))

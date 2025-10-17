@@ -87,7 +87,7 @@ public class MentalDeckBuilder
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

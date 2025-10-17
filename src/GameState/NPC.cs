@@ -9,7 +9,6 @@ public class NPC
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
-    public string Venue { get; set; }
     public string LocationId { get; set; }
 
     // Skeleton tracking
@@ -48,10 +47,8 @@ public class NPC
     // DeliveryObligation offering system
 
     // Work and Home locations (for deeper world building)
-    public string WorkVenueId { get; set; }
-    public string WorkSpotId { get; set; }
-    public string HomeVenueId { get; set; }
-    public string HomeSpotId { get; set; }
+    public string WorkLocationId { get; set; }
+    public string HomeLocationId { get; set; }
 
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();

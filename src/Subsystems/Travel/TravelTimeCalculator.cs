@@ -127,7 +127,7 @@ public class TravelTimeCalculator
     /// </summary>
     private int ApplyWeatherEffects(int baseTime)
     {
-        WeatherCondition weather = _gameWorld.WorldState.CurrentWeather;
+        WeatherCondition weather = _gameWorld.CurrentWeather;
 
         return weather switch
         {

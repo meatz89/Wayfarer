@@ -54,7 +54,7 @@ public class TravelFacade
         {
             // Extract Venue ID from destination location (format: venueId.spotName)
             string venueId = route.DestinationLocationSpot.Split('.')[0];
-            Venue? destination = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
+            Venue? destination = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
             if (destination != null)
             {
                 // Core Loop: All routes physically exist and are visible from game start
@@ -624,7 +624,7 @@ public class TravelFacade
     /// </summary>
     private RouteOption GetRouteById(string routeId)
     {
-        return _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == routeId);
+        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>

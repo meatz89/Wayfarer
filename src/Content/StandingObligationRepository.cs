@@ -10,12 +10,12 @@ public class StandingObligationRepository
     // Get all obligation templates available in the game
     public List<StandingObligation> GetAllObligationTemplates()
     {
-        if (_gameWorld.WorldState.StandingObligationTemplates == null)
+        if (_gameWorld.StandingObligationTemplates == null)
         {
             Console.WriteLine("ERROR: StandingObligationTemplates collection is null");
             throw new InvalidOperationException("StandingObligationTemplates not initialized - data loading failed");
         }
-        return _gameWorld.WorldState.StandingObligationTemplates;
+        return _gameWorld.StandingObligationTemplates;
     }
 
 }

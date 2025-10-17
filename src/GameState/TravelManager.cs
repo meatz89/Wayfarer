@@ -619,8 +619,8 @@ public class TravelManager
     /// </summary>
     private RouteOption GetRoute(string routeId)
     {
-        // Find route in world state - routes are stored centrally in WorldState
-        return _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == routeId);
+        // Find route in world state - routes are stored centrally in GameWorld
+        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>
@@ -771,7 +771,7 @@ public class TravelManager
         Player player = _gameWorld.GetPlayer();
 
         // Move player to destination
-        Location targetSpot = _gameWorld.WorldState.locations
+        Location targetSpot = _gameWorld.Locations
             .FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
 
         if (targetSpot != null)

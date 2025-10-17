@@ -34,10 +34,10 @@ namespace Wayfarer.Tests
             // Assert - verify content was loaded
             Assert.That(gameWorld.SocialCards.Count, Is.GreaterThan(0), "Cards should be loaded");
             Assert.That(gameWorld.NPCs.Count, Is.GreaterThan(0), "NPCs should be loaded");
-            Assert.That(gameWorld.WorldState.locations.Count, Is.GreaterThan(0), "Locations should be loaded");
-            Assert.That(gameWorld.WorldState.locationSpots.Count, Is.GreaterThan(0), "Location spots should be loaded");
-            Assert.That(gameWorld.WorldState.Routes.Count, Is.GreaterThan(0), "Routes should be loaded");
-            Assert.That(gameWorld.WorldState.LetterTemplates.Count, Is.GreaterThan(0), "Letter templates should be loaded");
+            Assert.That(gameWorld.locations.Count, Is.GreaterThan(0), "Locations should be loaded");
+            Assert.That(gameWorld.locationSpots.Count, Is.GreaterThan(0), "Location spots should be loaded");
+            Assert.That(gameWorld.Routes.Count, Is.GreaterThan(0), "Routes should be loaded");
+            Assert.That(gameWorld.LetterTemplates.Count, Is.GreaterThan(0), "Letter templates should be loaded");
 
             // Check specific content
             Assert.That(gameWorld.NPCs.Any(n => n.Name == "Elena"), Is.True, "Elena should be loaded");
@@ -67,7 +67,7 @@ namespace Wayfarer.Tests
             Assert.That(initializedWorld, Is.Not.Null);
             Assert.That(initializedWorld.SocialCards.Count, Is.GreaterThan(0), "Cards should be loaded");
             Assert.That(initializedWorld.NPCs.Count, Is.EqualTo(6), "Should have 6 NPCs");
-            Assert.That(initializedWorld.WorldState.locations.Count, Is.EqualTo(5), "Should have 5 locations");
+            Assert.That(initializedWorld.GameWorld.locations.Count, Is.EqualTo(5), "Should have 5 locations");
         }
     }
 }

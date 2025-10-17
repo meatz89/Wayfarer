@@ -485,7 +485,7 @@ public class MarketSubsystemManager
             if (sellPriceHere <= 0) continue;
 
             // Check if this is a good place to sell
-            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
             int avgSellPrice = 0;
             int validLocations = 0;
 
@@ -532,7 +532,7 @@ public class MarketSubsystemManager
 
                 // Check profit potential
                 int buyPriceHere = item.BuyPrice;
-                List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+                List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
                 int maxSellPrice = 0;
                 string bestSellLocation = null;
 
@@ -655,7 +655,7 @@ public class MarketSubsystemManager
     /// </summary>
     private string GetLocationName(string venueId)
     {
-        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = _gameWorld.Venues?.FirstOrDefault(l => l.Id == venueId);
         return venue?.Name ?? venueId;
     }
 

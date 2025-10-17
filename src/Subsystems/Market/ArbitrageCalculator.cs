@@ -70,7 +70,7 @@ public class ArbitrageCalculator
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null) return null;
 
-        List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+        List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
         ArbitrageOpening bestOpening = null;
         int highestProfit = 0;
 
@@ -192,7 +192,7 @@ public class ArbitrageCalculator
             int buyPrice = _priceManager.GetBuyPrice(item.Id, currentVenueId);
             if (buyPrice <= 0) continue;
 
-            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
             foreach (Venue sellLocation in locations)
             {
                 if (sellLocation.Id == currentVenueId) continue;
@@ -248,7 +248,7 @@ public class ArbitrageCalculator
             if (item == null) continue;
 
             int currentSellPrice = _priceManager.GetSellPrice(itemId, currentVenueId);
-            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
 
             foreach (Venue sellLocation in locations)
             {
@@ -346,7 +346,7 @@ public class ArbitrageCalculator
     {
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
-        List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+        List<Venue> locations = _gameWorld.Venues ?? new List<Venue>();
 
         foreach (Item item in allItems)
         {
@@ -468,7 +468,7 @@ public class ArbitrageCalculator
     /// </summary>
     private string GetLocationName(string venueId)
     {
-        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = _gameWorld.Venues?.FirstOrDefault(l => l.Id == venueId);
         return venue?.Name ?? venueId;
     }
 

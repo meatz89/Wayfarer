@@ -7,11 +7,10 @@ public class GameWorld
     // Game mode determines content loading and tutorial state
     public GameMode GameMode { get; set; } = GameMode.MainGame;
 
-    // Time is now tracked in WorldState, not through external dependencies
     public int CurrentDay { get; set; } = 1;
     public TimeBlocks CurrentTimeBlock { get; set; } = TimeBlocks.Morning;
     public List<Venue> Venues { get; set; } = new List<Venue>();
-    public List<LocationEntry> Locations { get; set; } = new List<LocationEntry>();
+    public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
 
@@ -23,7 +22,6 @@ public class GameWorld
     public StatProgression StatProgression { get; set; }
 
     private Player Player;
-    public WorldState WorldState { get; private set; }
     public StreamingContentState StreamingContentState { get; private set; }
 
     public Guid GameInstanceId { get; set; }
@@ -103,6 +101,131 @@ public class GameWorld
     // Obstacles are location-agnostic, referenced by Location.ObstacleIds and NPC.ObstacleIds
     public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
 
+    // Hierarchical world organization
+    public List<Region> Regions { get; set; } = new();
+    public List<District> Districts { get; set; } = new();
+
+    // Core data collections
+    public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
+
+    private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
+    public List<string> CompletedConversations { get; } = new List<string>();
+
+    // Weather conditions (no seasons - game timeframe is only days/weeks)
+    public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
+
+    // Route blocking system
+    private Dictionary<string, int> TemporaryRouteBlocks { get; } = new Dictionary<string, int>();
+
+    // New properties
+    public List<Item> Items { get; set; } = new List<Item>();
+    public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
+
+    // Card system removed - using conversation and Venue action systems
+
+    // Progression tracking
+    public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
+
+    public void RecordLocationVisit(string venueId)
+    {
+        if (!LocationVisitCounts.ContainsKey(venueId))
+        {
+            LocationVisitCounts[venueId] = 0;
+        }
+
+        LocationVisitCounts[venueId]++;
+    }
+
+    public int GetLocationVisitCount(string venueId)
+    {
+        return LocationVisitCounts.TryGetValue(venueId, out int count) ? count : 0;
+    }
+
+    public bool IsFirstVisit(string venueId)
+    {
+        return GetLocationVisitCount(venueId) == 0;
+    }
+
+
+    public bool IsConversationCompleted(string actionId)
+    {
+        return CompletedConversations.Contains(actionId);
+    }
+
+    public void MarkConversationCompleted(string actionId)
+    {
+        CompletedConversations.Add(actionId);
+    }
+
+    public void AddCharacter(NPC character)
+    {
+        NPCs.Add(character);
+    }
+
+
+    public List<NPC> GetCharacters()
+    {
+        return NPCs;
+    }
+
+    /// <summary>
+    /// Add a temporary route block that expires after specified days
+    /// </summary>
+    public void AddTemporaryRouteBlock(string routeId, int daysBlocked, int currentDay)
+    {
+        TemporaryRouteBlocks[routeId] = currentDay + daysBlocked;
+    }
+
+    /// <summary>
+    /// Check if a route is temporarily blocked
+    /// </summary>
+    public bool IsRouteBlocked(string routeId, int currentDay)
+    {
+        if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
+        {
+            if (currentDay >= unblockDay)
+            {
+                TemporaryRouteBlocks.Remove(routeId);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // Hierarchy lookup methods
+    public District GetDistrictForLocation(string venueId)
+    {
+        Venue? venue = Venues.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null || string.IsNullOrEmpty(venue.District))
+            return null;
+
+        return Districts.FirstOrDefault(d => d.Id == venue.District);
+    }
+
+    public Region GetRegionForDistrict(string districtId)
+    {
+        District? district = Districts.FirstOrDefault(d => d.Id == districtId);
+        if (district == null || string.IsNullOrEmpty(district.RegionId))
+            return null;
+
+        return Regions.FirstOrDefault(r => r.Id == district.RegionId);
+    }
+
+    public string GetFullLocationPath(string venueId)
+    {
+        Venue? venue = Venues.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null) return "";
+
+        District district = GetDistrictForLocation(venueId);
+        if (district == null) return venue.Name;
+
+        Region region = GetRegionForDistrict(district.Id);
+        if (region == null) return $"{venue.Name}, {district.Name}";
+
+        return $"{venue.Name}, {district.Name}, {region.Name}";
+    }
+
     /// <summary>
     /// Get a report of all skeletons that need to be populated
     /// </summary>
@@ -121,7 +244,6 @@ public class GameWorld
         if (GameInstanceId == Guid.Empty) GameInstanceId = Guid.NewGuid();
 
         Player = new Player();
-        WorldState = new WorldState();
 
         // GameWorld has NO dependencies and creates NO managers
 
@@ -161,7 +283,7 @@ public class GameWorld
     /// </summary>
     public Location GetLocation(string LocationId)
     {
-        return Locations.FindById(LocationId)?.location;
+        return Locations.FirstOrDefault(l => l.Id == LocationId);
     }
 
     /// <summary>
@@ -178,23 +300,23 @@ public class GameWorld
     /// <summary>
     /// Add a stranger NPC to a specific location
     /// </summary>
-    public void AddStrangerToLocation(string venueId, NPC stranger)
+    public void AddStrangerToLocation(string locationId, NPC stranger)
     {
         if (stranger == null) return;
-        stranger.Venue = venueId;
+        stranger.LocationId = locationId;
         stranger.IsStranger = true;
         NPCs.Add(stranger);
     }
 
     /// <summary>
-    /// Get available strangers at a Venue for the current time block
+    /// Get available strangers at a location for the current time block
     /// </summary>
-    public List<NPC> GetAvailableStrangers(string venueId, TimeBlocks currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(string locationId, TimeBlocks currentTimeBlock)
     {
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.Venue == venueId && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.LocationId == locationId && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }

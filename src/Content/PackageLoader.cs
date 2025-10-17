@@ -383,7 +383,7 @@ public class PackageLoader
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
 
-            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to Venue '{stranger.Venue}' for time block '{stranger.AvailableTimeBlock}'");
+            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to location '{stranger.LocationId}' for time block '{stranger.AvailableTimeBlock}'");
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading strangers. Total strangers loaded: {strangerDtos.Count}");
@@ -407,7 +407,7 @@ public class PackageLoader
                 MajorExports = dto.MajorExports ?? new List<string>(),
                 MajorImports = dto.MajorImports ?? new List<string>()
             };
-            _gameWorld.WorldState.Regions.Add(region);
+            _gameWorld.Regions.Add(region);
         }
     }
 
@@ -428,7 +428,7 @@ public class PackageLoader
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics ?? new List<string>()
             };
-            _gameWorld.WorldState.Districts.Add(district);
+            _gameWorld.Districts.Add(district);
         }
     }
 
@@ -619,7 +619,7 @@ public class PackageLoader
         foreach (VenueDTO dto in venueDtos)
         {
             // Check if this venue was previously a skeleton, if so replace it
-            Venue? existingSkeleton = _gameWorld.WorldState.venues
+            Venue? existingSkeleton = _gameWorld.Venues
                 .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
 
             Venue venue = VenueParser.ConvertDTOToVenue(dto);
@@ -628,7 +628,7 @@ public class PackageLoader
             {
                 Console.WriteLine($"[PackageLoader] Replacing skeleton venue {dto.Id}");
 
-                _gameWorld.WorldState.venues.Remove(existingSkeleton);
+                _gameWorld.Venues.Remove(existingSkeleton);
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
                 if (skeletonEntry != null)
                 {
@@ -636,7 +636,7 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.WorldState.venues.Add(venue);
+            _gameWorld.Venues.Add(venue);
         }
     }
 
@@ -676,14 +676,14 @@ public class PackageLoader
         {
             // Check if NPC references a Venue that doesn't exist
             if (!string.IsNullOrEmpty(dto.VenueId) &&
-                !_gameWorld.WorldState.venues.Any(l => l.Id == dto.VenueId))
+                !_gameWorld.Venues.Any(l => l.Id == dto.VenueId))
             {
                 // Create skeleton venue
                 Venue skeletonVenue = SkeletonGenerator.GenerateSkeletonVenue(
                     dto.VenueId,
                     $"npc_{dto.Id}_reference");
 
-                _gameWorld.WorldState.venues.Add(skeletonVenue);
+                _gameWorld.Venues.Add(skeletonVenue);
                 _gameWorld.SkeletonRegistry.AddSkeleton(dto.VenueId, "Venue");
 
                 // Also create a skeleton location for the location
@@ -727,7 +727,6 @@ public class PackageLoader
 
                 // Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
-                _gameWorld.WorldState.NPCs.Remove(existingSkeleton);
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
                 if (skeletonEntry != null)
                 {
@@ -747,14 +746,12 @@ public class PackageLoader
 
                 // Add the new NPC to game world
                 _gameWorld.NPCs.Add(npc);
-                _gameWorld.WorldState.NPCs.Add(npc);
             }
             else
             {
                 // No skeleton to replace, just create new NPC normally
                 NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
                 _gameWorld.NPCs.Add(npc);
-                _gameWorld.WorldState.NPCs.Add(npc);
             }
         }
     }
@@ -842,16 +839,16 @@ public class PackageLoader
         {
             // Create the forward route from JSON
             RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
-            _gameWorld.WorldState.Routes.Add(forwardRoute);
+            _gameWorld.Routes.Add(forwardRoute);
             Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
 
             // Automatically generate the reverse route
             RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
-            _gameWorld.WorldState.Routes.Add(reverseRoute);
+            _gameWorld.Routes.Add(reverseRoute);
             Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
         }
 
-        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.WorldState.Routes.Count}");
+        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.Routes.Count}");
     }
 
     private string GetVenueIdFromSpotId(string LocationId)
@@ -860,7 +857,7 @@ public class PackageLoader
         if (location == null)
         {
             Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: location '{LocationId}' not found");
-            Console.WriteLine($"[PackageLoader] Available Locations: {string.Join(", ", _gameWorld.Locations.Select(s => s.LocationId))}");
+            Console.WriteLine($"[PackageLoader] Available Locations: {string.Join(", ", _gameWorld.Locations.Select(s => s.Id))}");
         }
         else if (string.IsNullOrEmpty(location.VenueId))
         {
@@ -1072,7 +1069,7 @@ public class PackageLoader
         foreach (ItemDTO dto in itemDtos)
         {
             Item item = ItemParser.ConvertDTOToItem(dto);
-            _gameWorld.WorldState.Items.Add(item);
+            _gameWorld.Items.Add(item);
         }
     }
 
@@ -1083,7 +1080,7 @@ public class PackageLoader
         foreach (StandingObligationDTO dto in obligationDtos)
         {
             StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
-            _gameWorld.WorldState.StandingObligationTemplates.Add(obligation);
+            _gameWorld.StandingObligationTemplates.Add(obligation);
         }
     }
 
@@ -1461,7 +1458,7 @@ public class PackageLoader
             return "Unknown Location";
         }
 
-        Venue? venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.Venues?.FirstOrDefault(l => l.Id == venueId);
         return venue?.Name ?? venueId.Replace("_", " ").Replace("-", " ");
     }
 
@@ -1469,9 +1466,8 @@ public class PackageLoader
     {
         // Group Locations by Venue using tuples
         List<(string VenueId, List<Location> Locations)> spotsByLocation = new List<(string VenueId, List<Location> Locations)>();
-        foreach (LocationEntry entry in _gameWorld.Locations)
+        foreach (Location location in _gameWorld.Locations)
         {
-            Location location = entry.location;
             int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.VenueId);
             if (groupIndex == -1)
             {
@@ -1486,7 +1482,7 @@ public class PackageLoader
         }
 
         // Validate each venue has exactly one crossroads location
-        foreach (Venue venue in _gameWorld.WorldState.venues)
+        foreach (Venue venue in _gameWorld.Venues)
         {
             (string VenueId, List<Location> Locations) locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
             if (locationGroup.VenueId == null)
@@ -1514,7 +1510,7 @@ public class PackageLoader
 
         // Validate all route Locations have crossroads property
         List<string> routeSpotIds = new List<string>();
-        foreach (RouteOption route in _gameWorld.WorldState.Routes)
+        foreach (RouteOption route in _gameWorld.Routes)
         {
             if (!routeSpotIds.Contains(route.OriginLocationSpot))
                 routeSpotIds.Add(route.OriginLocationSpot);
@@ -1557,7 +1553,7 @@ public class PackageLoader
             Console.WriteLine($"[PackageLoader] Route location '{LocationId}' has valid Crossroads property");
         }
 
-        Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.venues.Count} venues and {routeSpotIds.Count} route Locations.");
+        Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.Venues.Count} venues and {routeSpotIds.Count} route Locations.");
     }
 
 

@@ -40,7 +40,7 @@ public class LocationManager
     {
         if (string.IsNullOrEmpty(venueId)) return null;
 
-        Venue venue = _gameWorld.WorldState.venues.FirstOrDefault(l =>
+        Venue venue = _gameWorld.Venues.FirstOrDefault(l =>
             l.Id.Equals(venueId, StringComparison.OrdinalIgnoreCase));
 
         return venue;
@@ -52,7 +52,7 @@ public class LocationManager
     /// </summary>
     public List<Venue> GetAllVenues()
     {
-        return _gameWorld.WorldState.venues ?? new List<Venue>();
+        return _gameWorld.Venues ?? new List<Venue>();
     }
 
     /// <summary>
@@ -62,17 +62,16 @@ public class LocationManager
     {
         if (string.IsNullOrEmpty(venueId)) return new List<Location>();
 
-        return _gameWorld.WorldState.locations
+        return _gameWorld.Locations
             .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
     /// <summary>
-    /// Get a specific location within a location.
+    /// Get a specific location by its ID.
     /// </summary>
-    public Location GetLocation(string venueId, string LocationId)
+    public Location GetLocation(string LocationId)
     {
-        Venue venue = GetVenue(venueId);
         // Get location directly from GameWorld's primary storage
         return _gameWorld.GetLocation(LocationId);
     }
@@ -85,30 +84,29 @@ public class LocationManager
     {
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
-        if (_gameWorld.WorldState.venues.Any(l =>
+        if (_gameWorld.Venues.Any(l =>
             l.Id.Equals(venue.Id, StringComparison.OrdinalIgnoreCase)))
         {
             throw new InvalidOperationException($"Venue '{venue.Id}' already exists.");
         }
 
-        _gameWorld.WorldState.venues.Add(venue);
+        _gameWorld.Venues.Add(venue);
     }
 
     /// <summary>
-    /// Add a new Venue location to the world.
+    /// Add a new location to the world.
     /// </summary>
     public void AddLocationSpot(Location location)
     {
         if (location == null) throw new ArgumentNullException(nameof(location));
 
-        if (_gameWorld.WorldState.locations.Any(s =>
-            s.VenueId.Equals(location.VenueId, StringComparison.OrdinalIgnoreCase) &&
-            s.Id.Equals(location.Id, StringComparison.OrdinalIgnoreCase)))
+        // Location IDs are globally unique - no need to check VenueId
+        if (_gameWorld.Locations.Any(s => s.Id.Equals(location.Id, StringComparison.OrdinalIgnoreCase)))
         {
-            throw new InvalidOperationException($"location '{location.Id}' already exists in '{location.VenueId}'.");
+            throw new InvalidOperationException($"Location '{location.Id}' already exists.");
         }
 
-        _gameWorld.WorldState.locations.Add(location);
+        _gameWorld.Locations.Add(location);
     }
 
     /// <summary>
@@ -141,7 +139,7 @@ public class LocationManager
     public void RecordLocationVisit(string venueId)
     {
         if (string.IsNullOrEmpty(venueId)) return;
-        _gameWorld.WorldState.RecordLocationVisit(venueId);
+        _gameWorld.RecordLocationVisit(venueId);
     }
 
     /// <summary>
@@ -150,7 +148,7 @@ public class LocationManager
     public bool IsFirstVisit(string venueId)
     {
         if (string.IsNullOrEmpty(venueId)) return false;
-        return _gameWorld.WorldState.IsFirstVisit(venueId);
+        return _gameWorld.IsFirstVisit(venueId);
     }
 
     /// <summary>
@@ -162,19 +160,19 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Check if a location exists within a location.
+    /// Check if a location exists by its ID.
     /// </summary>
-    public bool LocationExists(string venueId, string LocationId)
+    public bool SpotExists(string LocationId)
     {
-        return GetLocation(venueId, LocationId) != null;
+        return GetLocation(LocationId) != null;
     }
 
     /// <summary>
-    /// Get all locations in the world (from WorldState).
+    /// Get all locations in the world (from GameWorld).
     /// </summary>
     public List<Location> GetAllLocations()
     {
-        return _gameWorld.WorldState.locations ?? new List<Location>();
+        return _gameWorld.Locations ?? new List<Location>();
     }
 
     /// <summary>

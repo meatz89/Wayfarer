@@ -97,15 +97,6 @@ public class NPCExchangeCardEntry
 }
 
 /// <summary>
-/// Helper class for Venue location entries (replaces Dictionary<string, Location>)
-/// </summary>
-public class LocationEntry
-{
-    public string LocationId { get; set; }
-    public Location location { get; set; }
-}
-
-/// <summary>
 /// Helper class for skeleton registry entries (replaces Dictionary<string, string>)
 /// </summary>
 public class SkeletonRegistryEntry
@@ -242,13 +233,9 @@ public static class ListBasedHelperExtensions
         });
     }
 
-    // Location helpers
-    public static IEnumerable<Location> GetAllSpots(this List<LocationEntry> Locations)
-    {
-        return Locations.Select(s => s.location);
-    }
+    // Location helpers - no longer needed, use List<Location> directly
 
-    // LocationEntry lookups are handled by FindById
+    // Locations are stored directly as List<Location> in GameWorld
 
     // PathCollection helpers
     public static IEnumerable<PathCardCollectionDTO> GetAllCollections(this List<PathCollectionEntry> collections)
@@ -310,31 +297,23 @@ public static class ListBasedHelperExtensions
         }
     }
 
-    // LocationEntry helpers
-    public static Location GetLocation(this List<LocationEntry> Locations, string LocationId)
+    // Location helpers - work directly with List<Location>
+    public static void AddOrUpdateSpot(this List<Location> locations, string locationId, Location location)
     {
-        return Locations.FindById(LocationId)?.location;
-    }
-
-    public static void AddOrUpdateSpot(this List<LocationEntry> Locations, string LocationId, Location location)
-    {
-        LocationEntry existing = Locations.FindById(LocationId);
+        Location existing = locations.FirstOrDefault(l => l.Id == locationId);
         if (existing != null)
         {
-            existing.location = location;
+            locations.Remove(existing);
         }
-        else
-        {
-            Locations.Add(new LocationEntry { LocationId = LocationId, location = location });
-        }
+        locations.Add(location);
     }
 
-    public static void RemoveSpot(this List<LocationEntry> Locations, string LocationId)
+    public static void RemoveSpot(this List<Location> locations, string locationId)
     {
-        LocationEntry entry = Locations.FindById(LocationId);
-        if (entry != null)
+        Location existing = locations.FirstOrDefault(l => l.Id == locationId);
+        if (existing != null)
         {
-            Locations.Remove(entry);
+            locations.Remove(existing);
         }
     }
 

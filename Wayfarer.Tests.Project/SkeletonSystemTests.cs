@@ -33,7 +33,7 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.GreaterThan(0), "Skeletons should be created");
 
             // Verify skeleton locations exist and are marked as skeletons
-            Venue? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
+            Venue? mysteriousTower = gameWorld.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
             Assert.That(mysteriousTower, Is.Not.Null, "Skeleton Venue should exist");
             Assert.That(mysteriousTower.IsSkeleton, Is.True, "Location should be marked as skeleton");
             Assert.That(mysteriousTower.SkeletonSource, Contains.Substring("npc_"), "Should track what created the skeleton");
@@ -62,13 +62,13 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.SkeletonRegistry.Count, Is.LessThan(initialSkeletonCount), "Some skeletons should be resolved");
 
             // Verify real locations replaced skeletons
-            Venue? mysteriousTower = gameWorld.WorldState.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
+            Venue? mysteriousTower = gameWorld.locations.FirstOrDefault(l => l.Id == "mysterious_tower");
             Assert.That(mysteriousTower, Is.Not.Null, "Real Venue should exist");
             Assert.That(mysteriousTower.IsSkeleton, Is.False, "Location should no longer be skeleton");
             Assert.That(mysteriousTower.Name, Is.EqualTo("The Tower of Echoes"), "Should have real name");
 
             // Verify no duplicate locations
-            int towerCount = gameWorld.WorldState.locations.Count(l => l.Id == "mysterious_tower");
+            int towerCount = gameWorld.locations.Count(l => l.Id == "mysterious_tower");
             Assert.That(towerCount, Is.EqualTo(1), "Should not have duplicate locations");
         }
 
@@ -129,8 +129,8 @@ namespace Wayfarer.Tests
 
             // Assert - verify content accumulated and some skeletons remain
             Assert.That(gameWorld.NPCs.Count, Is.GreaterThanOrEqualTo(2), "NPCs should accumulate");
-            Assert.That(gameWorld.WorldState.locations.Count, Is.GreaterThanOrEqualTo(2), "Locations should accumulate");
-            Assert.That(gameWorld.WorldState.LetterTemplates.Count, Is.GreaterThanOrEqualTo(2), "Letters should accumulate");
+            Assert.That(gameWorld.locations.Count, Is.GreaterThanOrEqualTo(2), "Locations should accumulate");
+            Assert.That(gameWorld.LetterTemplates.Count, Is.GreaterThanOrEqualTo(2), "Letters should accumulate");
 
             // Some skeletons should remain for NPCs that were never defined
             List<string> skeletonReport = gameWorld.GetSkeletonReport();
@@ -147,7 +147,7 @@ namespace Wayfarer.Tests
 
             // Act - verify game is still playable
             NPC? npc = gameWorld.NPCs.FirstOrDefault();
-            Venue? Venue = gameWorld.WorldState.locations.FirstOrDefault();
+            Venue? Venue = gameWorld.locations.FirstOrDefault();
 
             // Assert - basic game mechanics should work
             Assert.That(npc, Is.Not.Null, "Should have NPCs");
@@ -156,7 +156,7 @@ namespace Wayfarer.Tests
             Assert.That(Enum.IsDefined(typeof(LocationSpotTypes), location.LocationType), Is.True, "Location should have valid type");
 
             // Skeleton locations should be navigable
-            Venue? skeletonLocation = gameWorld.WorldState.locations.FirstOrDefault(l => l.IsSkeleton);
+            Venue? skeletonLocation = gameWorld.locations.FirstOrDefault(l => l.IsSkeleton);
         }
     }
 }

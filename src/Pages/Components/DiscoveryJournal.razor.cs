@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
         protected List<Venue> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
-            return GameWorld.WorldState.venues
+            return GameWorld.Venues
                 .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
                 .OrderBy(l => l.Name)
                 .ToList();

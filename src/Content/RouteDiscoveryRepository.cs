@@ -19,7 +19,7 @@ public class RouteDiscoveryRepository
     /// </summary>
     public RouteDiscovery? GetDiscoveryForRoute(string routeId)
     {
-        return _gameWorld.WorldState.RouteDiscoveries
+        return _gameWorld.RouteDiscoveries
             .FirstOrDefault(d => d.RouteId == routeId);
     }
 
@@ -28,7 +28,7 @@ public class RouteDiscoveryRepository
     /// </summary>
     public List<RouteDiscovery> GetRoutesKnownByNPC(string npcId)
     {
-        return _gameWorld.WorldState.RouteDiscoveries
+        return _gameWorld.RouteDiscoveries
             .Where(d => d.KnownByNPCs.Contains(npcId))
             .ToList();
     }

@@ -13,7 +13,7 @@ public class RouteRepository : IRouteRepository
     // Check if a route is blocked
     public bool IsRouteBlocked(string routeId)
     {
-        return _gameWorld.WorldState.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
+        return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
 
@@ -22,11 +22,11 @@ public class RouteRepository : IRouteRepository
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
-        // ONLY use WorldState.Routes as the single source of truth
-        if (_gameWorld.WorldState.Routes != null)
+        // ONLY use GameWorld.Routes as the single source of truth
+        if (_gameWorld.Routes != null)
         {
             // Find all routes that originate from any location in this location
-            foreach (RouteOption route in _gameWorld.WorldState.Routes)
+            foreach (RouteOption route in _gameWorld.Routes)
             {
                 // Look up the origin location to get its location
                 if (!string.IsNullOrEmpty(route.OriginLocationSpot))
@@ -46,8 +46,8 @@ public class RouteRepository : IRouteRepository
     // Get all routes in the world
     public List<RouteOption> GetAll()
     {
-        // ONLY use WorldState.Routes as the single source of truth
-        return _gameWorld.WorldState.Routes ?? new List<RouteOption>();
+        // ONLY use GameWorld.Routes as the single source of truth
+        return _gameWorld.Routes ?? new List<RouteOption>();
     }
 
     // Get a specific route by ID

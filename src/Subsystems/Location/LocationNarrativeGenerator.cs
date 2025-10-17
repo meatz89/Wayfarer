@@ -79,7 +79,7 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.WorldState.locations.FirstOrDefault(x => x.Id == venue.Id)?.Description))
+        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id)?.Description))
         {
             return GenerateDefaultLocationDescription(venue, currentTime);
         }

@@ -97,9 +97,9 @@ public class InvestigationActivity
             throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action");
 
         // Derive venue from location
-        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);
-        Venue venue = spotEntry != null
-            ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
+        Venue venue = location != null
+            ? _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId)
             : null;
 
         // Create intro result for quest acceptance modal
@@ -111,7 +111,7 @@ public class InvestigationActivity
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
             LocationName = venue?.Name ?? "Unknown Venue",
-            SpotName = spotEntry?.location.Name ?? investigation.IntroAction.LocationId
+            SpotName = location?.Name ?? investigation.IntroAction.LocationId
         };
 
         Console.WriteLine($"[InvestigationActivity] Pending intro modal set for '{investigation.Name}'");
@@ -371,10 +371,9 @@ public class InvestigationActivity
         Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
 
         // Derive venue from location (LocationId is globally unique)
-        LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.LocationId == investigation.IntroAction.LocationId);
-        Location location = spotEntry?.location;
-        Venue venue = spotEntry != null
-            ? _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
+        Venue venue = location != null
+            ? _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId)
             : null;
 
         // Create discovery result for UI modal
@@ -482,8 +481,8 @@ public class InvestigationActivity
                 break;
 
             case ObstacleSpawnTargetType.Route:
-                // Find route in WorldState.Routes
-                RouteOption route = _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == spawnInfo.TargetEntityId);
+                // Find route in GameWorld.Routes
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == spawnInfo.TargetEntityId);
                 if (route == null)
                 {
                     Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Route '{spawnInfo.TargetEntityId}' not found");

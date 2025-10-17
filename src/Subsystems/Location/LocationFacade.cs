@@ -80,7 +80,7 @@ public class LocationFacade
     /// </summary>
     public Venue GetLocationById(string venueId)
     {
-        return _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
+        return _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class LocationFacade
             viewModel.NPCsPresent = GetNPCsWithInteractions(location, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(venue.Id, location.Id);
+            viewModel.Observations = GetLocationObservations(location.Id);
 
             // Add areas within location
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, location, currentTime, _npcRepository);
@@ -205,9 +205,9 @@ public class LocationFacade
     /// <summary>
     /// Get all NPCs at a specific location.
     /// </summary>
-    public List<NPC> GetNPCsAtLocation(string venueId)
+    public List<NPC> GetNPCsAtLocation(string locationId)
     {
-        return _npcTracker.GetNPCsAtLocation(venueId);
+        return _npcTracker.GetNPCsAtLocation(locationId);
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class LocationFacade
     /// </summary>
     public NPC GetNPCById(string npcId)
     {
-        return _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        return _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
     }
 
     /// <summary>
@@ -235,7 +235,7 @@ public class LocationFacade
     /// </summary>
     public List<NPC> GetAllNPCs()
     {
-        return _gameWorld.WorldState.NPCs;
+        return _gameWorld.NPCs;
     }
 
     // Private helper methods
@@ -324,13 +324,18 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<ObservationViewModel> GetLocationObservations(string venueId, string currentSpotId)
+    private List<ObservationViewModel> GetLocationObservations(string locationId)
     {
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {venueId}, location {currentSpotId}");
+        // Get location to derive venueId if needed
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location == null) return observations;
 
-        List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, currentSpotId);
+        string venueId = location.VenueId;
+        Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {venueId}, location {locationId}");
+
+        List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, locationId);
 
         Console.WriteLine($"[LocationFacade.GetLocationObservations] Got {locationObservations?.Count ?? 0} observations");
 
@@ -338,7 +343,7 @@ public class LocationFacade
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
-            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(currentSpotId, currentTimeBlock);
+            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTimeBlock);
             HashSet<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
 
             foreach (Observation obs in locationObservations)
@@ -451,26 +456,22 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Investigate a Venue to gain familiarity. Costs 1 attention and takes 1 segment.
-    /// Familiarity gain depends on location properties: Quiet Locations +2, Busy Locations +1, others +1.
-    /// Familiarity is capped at the location's MaxFamiliarity (typically 3).
+    /// OLD V2 Investigation - Stubbed out (replaced by V3 card-based system)
     /// </summary>
-    /// <param name="venueId">ID of the Venue to investigate</param>
     /// <param name="LocationId">ID of the location where investigation takes place</param>
-    /// <returns>True if investigation was successful, false if not possible</returns>
-    public bool InvestigateLocation(string venueId, string LocationId)
+    /// <returns>Always returns false - V2 investigation system removed</returns>
+    public bool InvestigateLocation(string LocationId)
     {
-        return InvestigateLocation(venueId, LocationId, InvestigationApproach.Standard);
+        return InvestigateLocation(LocationId, InvestigationApproach.Standard);
     }
 
     /// <summary>
     /// OLD V2 Investigation - Stubbed out (replaced by V3 card-based system)
     /// </summary>
-    /// <param name="venueId">ID of the Venue to investigate</param>
     /// <param name="LocationId">ID of the location where investigation takes place</param>
     /// <param name="approach">Investigation approach to use</param>
     /// <returns>Always returns false - V2 investigation system removed</returns>
-    public bool InvestigateLocation(string venueId, string LocationId, InvestigationApproach approach)
+    public bool InvestigateLocation(string LocationId, InvestigationApproach approach)
     {
         // V2 Investigation system removed - replaced by V3 card-based investigation
         _messageSystem.AddSystemMessage("Investigation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);

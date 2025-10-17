@@ -38,11 +38,11 @@ public class ObstacleFacade
     /// </summary>
     public List<Obstacle> GetObstaclesAtLocation(string locationId)
     {
-        LocationEntry locationEntry = _gameWorld.Locations.FindById(locationId);
-        if (locationEntry?.location == null)
+        Location location = _gameWorld.Locations.FindById(locationId);
+        if (location == null)
             return new List<Obstacle>();
 
-        return locationEntry.location.ObstacleIds
+        return location.ObstacleIds
             .Select(id => GetObstacleById(id))
             .Where(o => o != null)
             .ToList();

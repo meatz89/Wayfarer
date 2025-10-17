@@ -114,7 +114,7 @@ namespace Wayfarer.Pages.Components
             AvailableSpots.Clear();
             if (venue != null && GameWorld != null)
             {
-                IEnumerable<Location> allSpots = GameWorld.Locations.GetAllSpots()
+                IEnumerable<Location> allSpots = GameWorld.Locations
                     .Where(s => s.VenueId == venue.Id);
                 AvailableSpots = allSpots
                     .Where(s => s != location)
@@ -350,7 +350,7 @@ namespace Wayfarer.Pages.Components
 
 
             // Call LocationFacade to perform the investigation
-            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.Id);
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentSpot.Id);
 
             if (success)
             {
@@ -416,7 +416,7 @@ namespace Wayfarer.Pages.Components
             if (currentLocation == null) return new List<NPC>();
 
             // Get the location we're checking
-            Location? location = GameWorld.Locations.GetAllSpots().FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == LocationId);
+            Location? location = GameWorld.Locations.FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == LocationId);
             if (location == null) return new List<NPC>();
 
             // Get ALL NPCs at this Venue and filter by LocationId
@@ -614,7 +614,7 @@ namespace Wayfarer.Pages.Components
 
             Console.WriteLine($"[LocationContent] Starting investigation with {approach} approach");
 
-            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentLocation.Id, CurrentSpot.Id, approach);
+            bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentSpot.Id, approach);
 
             if (success)
             {
