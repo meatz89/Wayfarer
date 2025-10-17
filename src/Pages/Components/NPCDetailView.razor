@@ -1,0 +1,89 @@
+@inherits NPCDetailViewBase
+
+@namespace Wayfarer.Pages.Components
+
+@if (SelectedNPC != null)
+{
+    <div class="location-npc-detail-view">
+        <div class="npc-card">
+            <div class="npc-header">
+                <div>
+                    <div class="npc-name">@SelectedNPC.Name</div>
+                    <div class="npc-type">@SelectedNPC.PersonalityDescription</div>
+                </div>
+                <div class="npc-state @SelectedNPC.StateClass">@SelectedNPC.ConnectionState</div>
+            </div>
+            <div class="npc-tokens">
+                @foreach (var token in SelectedNPC.Tokens)
+                {
+                    <div class="token-display">
+                        @token.Type: <span class="token-count">@token.Count</span>
+                        @if (!string.IsNullOrEmpty(token.Effect))
+                        {
+                            <span class="token-effect">(@token.Effect)</span>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="npc-description">
+                @SelectedNPC.Description
+            </div>
+        </div>
+
+        <div class="section-header">What do you want to do?</div>
+        <div class="actions-grid">
+            @* Social Goals from Location (placed on this NPC) *@
+            @foreach (var goal in SocialGoals)
+            {
+                <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
+                     @onclick="() => OnNavigateToGoal.InvokeAsync(goal.Id)">
+                    <div class="goal-system-badge social">Social</div>
+                    <div class="goal-name">@goal.Name</div>
+                    @if (!string.IsNullOrEmpty(goal.Description))
+                    {
+                        <div class="goal-description">@goal.Description</div>
+                    }
+                    <div class="goal-difficulty">
+                        <span class="difficulty-label">Doubt Rate:</span>
+                        <span class="difficulty-value">@goal.Difficulty</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(goal.InvestigationId))
+                    {
+                        @if (goal.IsIntroAction)
+                        {
+                            <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
+                        }
+                        else
+                        {
+                            <div class="goal-investigation-tag">Investigation Goal</div>
+                        }
+                    }
+                </div>
+            }
+
+            @* NPC Active Goals (Direct from NPC) *@
+            @foreach (var activeGoal in NPCActiveGoals)
+            {
+                <div class="npc-action" @onclick="async () => await OnStartConversationWithRequest.InvokeAsync((SelectedNPC.Id, activeGoal.Id))">
+                    <span class="action-type">@activeGoal.Name</span>
+                    <span class="action-details">
+                        <span class="doubt-calculation">@DoubtDisplay</span>
+                    </span>
+                </div>
+            }
+
+            @* Exchange Option if NPC has exchange cards *@
+            @if (HasExchangeCards)
+            {
+                <div class="npc-action exchange" @onclick="async () => await OnStartExchange.InvokeAsync(SelectedNPC.Id)">
+                    <span class="action-type">Quick Exchange</span>
+                    <span class="action-details">
+                        <span class="doubt-calculation">@DoubtDisplay</span>
+                    </span>
+                </div>
+            }
+        </div>
+
+        <button class="back-button" @onclick="() => OnNavigateBack.InvokeAsync()">Back</button>
+    </div>
+}

@@ -1,0 +1,27 @@
+@inherits NPCListViewBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="location-npc-list-view">
+    <div class="section-header">You scan the area...</div>
+
+    @if (AvailableNpcs.Any())
+    {
+        <div class="section-subheader">You see:</div>
+        <div class="actions-grid">
+            @foreach (var npc in AvailableNpcs)
+            {
+                <div class="action-card" @onclick="() => OnNavigateToNPC.InvokeAsync(npc.Id)">
+                    <div class="action-name">@npc.Name</div>
+                    <div class="action-detail">@npc.PersonalityType | @npc.ConnectionState</div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No one else is here right now.</p>
+    }
+
+    <button class="back-button" @onclick="() => OnNavigateBack.InvokeAsync()">Back</button>
+</div>

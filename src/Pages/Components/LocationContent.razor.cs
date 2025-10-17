@@ -8,24 +8,39 @@ namespace Wayfarer.Pages.Components
 {
     /// <summary>
     /// Venue screen component that displays the current location, available Locations, NPCs, and actions.
-    /// 
+    ///
+    /// VISUAL NOVEL SCENE CONTROLLER PATTERN:
+    /// =======================================
+    /// LocationContent manages internal sub-scene navigation with progressive disclosure.
+    /// Mirrors the proven TravelContent pattern: internal view state with conditional rendering.
+    ///
+    /// Navigation Structure:
+    /// - Landing: High-level navigation hub (3-5 choices)
+    /// - LookingAround: List NPCs at spot
+    /// - ApproachNPC: One NPC's details and goals
+    /// - LocationChallenges: Ambient Mental/Physical goals at location
+    /// - GoalDetail: Full goal info before commitment
+    /// - Spots: Movement within venue
+    ///
     /// CRITICAL: BLAZOR SERVERPRERENDERED CONSEQUENCES
     /// ================================================
     /// This component renders TWICE due to ServerPrerendered mode:
     /// 1. During server-side prerendering (static HTML generation)
     /// 2. After establishing interactive SignalR connection
-    /// 
+    ///
     /// ARCHITECTURAL PRINCIPLES:
     /// - OnParametersSetAsync() runs TWICE - RefreshLocationData is read-only and safe
     /// - All data fetching operations are read-only (safe for double execution)
     /// - User interactions (clicks) only happen after interactive connection
     /// - State is maintained in GameWorld singleton (persists across renders)
-    /// 
+    /// - Navigation state (ViewState) is NOT persisted - always resets to Landing
+    ///
     /// IMPLEMENTATION REQUIREMENTS:
     /// - RefreshLocationData() fetches display data only (no mutations)
     /// - All actions go through GameScreen parent via CascadingValue pattern
     /// - Venue state read from GameWorld.GetPlayer().CurrentLocation
     /// - NPCs, actions, observations fetched fresh each render (read-only)
+    /// - ViewState always starts at Landing when component initializes
     /// </summary>
     public class LocationContentBase : ComponentBase
     {
@@ -41,6 +56,13 @@ namespace Wayfarer.Pages.Components
 
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
 
+        // VISUAL NOVEL NAVIGATION STATE MACHINE
+        protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
+        protected Stack<LocationViewState> NavigationStack { get; set; } = new();
+        protected string SelectedNpcId { get; set; }
+        protected Goal SelectedGoal { get; set; }
+
+        // DATA PROPERTIES
         protected Location CurrentSpot { get; set; }
         protected List<NpcViewModel> AvailableNpcs { get; set; } = new();
         protected List<LocationObservationViewModel> AvailableObservations { get; set; } = new();
@@ -60,11 +82,15 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
+            Console.WriteLine("[LocationContent] OnInitializedAsync - Resetting to Landing view");
+            ResetNavigation();
             await RefreshLocationData();
         }
 
         protected override async Task OnParametersSetAsync()
         {
+            Console.WriteLine("[LocationContent] OnParametersSetAsync - Resetting to Landing view");
+            ResetNavigation();
             await RefreshLocationData();
         }
 
@@ -116,14 +142,21 @@ namespace Wayfarer.Pages.Components
             {
                 IEnumerable<Location> allSpots = GameWorld.Locations
                     .Where(s => s.VenueId == venue.Id);
-                AvailableSpots = allSpots
-                    .Where(s => s != location)
-                    .Select(s => new SpotViewModel
+                foreach (Location spot in allSpots)
+                {
+                    List<NPC> npcsAtSpot = GetNPCsAtSpot(spot.Name);
+                    AvailableSpots.Add(new SpotViewModel
                     {
-                        Id = s.Name, // Use name as ID
-                        Name = s.Name,
-                        Properties = s.Properties ?? new List<string>()
-                    }).ToList();
+                        Id = spot.Name, // Use name as ID
+                        Name = spot.Name,
+                        IsCurrentSpot = (spot == location),
+                        NPCs = npcsAtSpot.Select(npc => new NPCAtSpotViewModel
+                        {
+                            Name = npc.Name,
+                            State = GetNPCStateDisplay(npc)
+                        }).ToList()
+                    });
+                }
             }
 
             // Check if can travel from this location
@@ -295,6 +328,8 @@ namespace Wayfarer.Pages.Components
             if (success)
             {
                 Console.WriteLine($"[LocationContent] Successfully moved to location {LocationId}");
+                // Reset navigation to Landing - location context has changed
+                ResetNavigation();
                 // Refresh the UI to show the new location
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
@@ -777,9 +812,313 @@ namespace Wayfarer.Pages.Components
             return result.FinalDifficulty;
         }
 
+        // ============================================
+        // VISUAL NOVEL NAVIGATION METHODS
+        // ============================================
+        // These methods manage internal sub-scene navigation within LocationContent,
+        // following the proven TravelContent pattern.
+
+        /// <summary>
+        /// Navigate to a new view within LocationContent.
+        /// Pushes current view to history stack for back button support.
+        /// </summary>
+        protected void NavigateToView(LocationViewState newView, object context = null)
+        {
+            Console.WriteLine($"[LocationContent] Navigating from {ViewState} to {newView}");
+
+            // Push current view to history for back button
+            NavigationStack.Push(ViewState);
+
+            // Set new view state
+            ViewState = newView;
+
+            // Handle context based on view type
+            if (newView == LocationViewState.ApproachNPC && context is string npcId)
+            {
+                SelectedNpcId = npcId;
+                Console.WriteLine($"[LocationContent] Selected NPC: {npcId}");
+            }
+            else if (newView == LocationViewState.GoalDetail && context is Goal goal)
+            {
+                SelectedGoal = goal;
+                Console.WriteLine($"[LocationContent] Selected Goal: {goal.Name}");
+            }
+
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Navigate back to previous view using history stack.
+        /// </summary>
+        protected void NavigateBack()
+        {
+            if (NavigationStack.Count > 0)
+            {
+                LocationViewState previousView = NavigationStack.Pop();
+                Console.WriteLine($"[LocationContent] Navigating back from {ViewState} to {previousView}");
+                ViewState = previousView;
+
+                // Clear context when leaving specific views
+                if (ViewState != LocationViewState.ApproachNPC)
+                {
+                    SelectedNpcId = null;
+                }
+                if (ViewState != LocationViewState.GoalDetail)
+                {
+                    SelectedGoal = null;
+                }
+
+                StateHasChanged();
+            }
+            else
+            {
+                // No history - reset to Landing
+                Console.WriteLine($"[LocationContent] No navigation history, resetting to Landing");
+                ResetNavigation();
+            }
+        }
+
+        /// <summary>
+        /// Reset navigation state to Landing view.
+        /// Called when entering LocationContent or when spot changes.
+        /// </summary>
+        protected void ResetNavigation()
+        {
+            Console.WriteLine($"[LocationContent] Resetting navigation to Landing");
+            ViewState = LocationViewState.Landing;
+            NavigationStack.Clear();
+            SelectedNpcId = null;
+            SelectedGoal = null;
+            StateHasChanged();
+        }
+
+        // ============================================
+        // VIEWMODEL PREPARATION METHODS
+        // ============================================
+
+        protected List<LocationActionViewModel> GetTravelActions()
+        {
+            return LocationActions.Where(a => a.ActionType == "travel").ToList();
+        }
+
+        protected NPCDetailViewModel GetSelectedNPCViewModel()
+        {
+            if (string.IsNullOrEmpty(SelectedNpcId)) return null;
+
+            NPC npc = GameFacade.GetNPCById(SelectedNpcId);
+            if (npc == null) return null;
+
+            return new NPCDetailViewModel
+            {
+                Id = npc.ID,
+                Name = npc.Name,
+                PersonalityDescription = npc.PersonalityType.ToString(),
+                ConnectionState = GameFacade.GetNPCConnectionState(npc.ID).ToString(),
+                StateClass = GetStateClass(GameFacade.GetNPCConnectionState(npc.ID).ToString()),
+                Description = npc.Description ?? "",
+                Tokens = new List<TokenViewModel>()
+            };
+        }
+
+        protected List<GoalViewModel> GetSocialGoalsForNPC()
+        {
+            if (string.IsNullOrEmpty(SelectedNpcId)) return new List<GoalViewModel>();
+
+            return AvailableSocialGoals
+                .Where(g => g.PlacementNpcId == SelectedNpcId)
+                .Select(g => new GoalViewModel
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Description = g.Description,
+                    Difficulty = GetGoalDifficulty(g).ToString(),
+                    IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
+                    InvestigationId = g.InvestigationId
+                }).ToList();
+        }
+
+        protected List<ActiveGoalViewModel> GetNPCActiveGoals()
+        {
+            // TODO: Implement NPC active goals (requests, etc.)
+            return new List<ActiveGoalViewModel>();
+        }
+
+        protected bool CheckHasExchangeCards()
+        {
+            // TODO: Implement exchange card check
+            return false;
+        }
+
+        protected string GetDoubtDisplayForSelectedNPC()
+        {
+            // TODO: Implement doubt display calculation
+            return "Available";
+        }
+
+        protected List<GoalViewModel> GetMentalGoalsViewModel()
+        {
+            return AvailableMentalGoals.Select(g => new GoalViewModel
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Description = g.Description,
+                Difficulty = GetGoalDifficulty(g).ToString(),
+                IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
+                InvestigationId = g.InvestigationId
+            }).ToList();
+        }
+
+        protected List<GoalViewModel> GetPhysicalGoalsViewModel()
+        {
+            return AvailablePhysicalGoals.Select(g => new GoalViewModel
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Description = g.Description,
+                Difficulty = GetGoalDifficulty(g).ToString(),
+                IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
+                InvestigationId = g.InvestigationId
+            }).ToList();
+        }
+
+        protected GoalDetailViewModel GetGoalDetailViewModel()
+        {
+            if (SelectedGoal == null) return null;
+
+            return new GoalDetailViewModel
+            {
+                Goal = SelectedGoal,
+                Name = SelectedGoal.Name,
+                Description = SelectedGoal.Description,
+                SystemType = SelectedGoal.SystemType,
+                SystemTypeLowercase = SelectedGoal.SystemType.ToString().ToLower(),
+                Difficulty = GetGoalDifficulty(SelectedGoal).ToString(),
+                HasCosts = SelectedGoal.Costs.Focus > 0 || SelectedGoal.Costs.Stamina > 0,
+                FocusCost = SelectedGoal.Costs.Focus,
+                StaminaCost = SelectedGoal.Costs.Stamina
+            };
+        }
+
+        protected List<SpotViewModel> GetSpotsViewModel()
+        {
+            return AvailableSpots;
+        }
+
+        // ============================================
+        // EVENT HANDLER METHODS
+        // ============================================
+
+        protected void HandleNavigateToView(LocationViewState newView)
+        {
+            NavigateToView(newView);
+        }
+
+        protected async Task HandleExecuteLocationAction(LocationActionViewModel action)
+        {
+            await ExecuteLocationAction(action);
+        }
+
+        protected void HandleNavigateToNPC(string npcId)
+        {
+            NavigateToView(LocationViewState.ApproachNPC, npcId);
+        }
+
+        protected void HandleNavigateToGoal(string goalId)
+        {
+            if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+            {
+                NavigateToView(LocationViewState.GoalDetail, goal);
+            }
+        }
+
+        protected async Task HandleStartConversationWithRequest((string npcId, string goalId) request)
+        {
+            await StartConversationWithRequest(request.npcId, request.goalId);
+        }
+
+        protected async Task HandleStartExchange(string npcId)
+        {
+            await StartExchange(npcId);
+        }
+
+        protected async Task HandleCommitToGoal(Goal goal)
+        {
+            if (goal.SystemType == TacticalSystemType.Social)
+            {
+                await StartSocialGoal(goal);
+            }
+            else if (goal.SystemType == TacticalSystemType.Mental)
+            {
+                await StartMentalGoal(goal);
+            }
+            else if (goal.SystemType == TacticalSystemType.Physical)
+            {
+                await StartPhysicalGoal(goal);
+            }
+        }
+
+        protected async Task HandleMoveToSpot(string spotId)
+        {
+            await MoveToSpot(spotId);
+        }
+
     }
 
+    // ============================================
+    // LOCATION VIEW STATE ENUM
+    // ============================================
+
+    /// <summary>
+    /// Defines the internal view states for visual novel scene navigation within LocationContent.
+    /// Mirrors TravelContent pattern: scene controller with conditional view rendering.
+    /// </summary>
+    public enum LocationViewState
+    {
+        /// <summary>
+        /// Landing view: High-level navigation hub (3-5 choices)
+        /// Player chooses: Look Around, Examine Location, Move to Spot, or Travel
+        /// </summary>
+        Landing,
+
+        /// <summary>
+        /// Looking Around view: List of NPCs at current spot
+        /// Shows who's present, click NPC to see their details
+        /// </summary>
+        LookingAround,
+
+        /// <summary>
+        /// Approach NPC view: One NPC's full details and available goals
+        /// Shows NPC info, tokens, description, and their goals
+        /// Requires SelectedNpcId context
+        /// </summary>
+        ApproachNPC,
+
+        /// <summary>
+        /// Location Challenges view: Ambient Mental/Physical goals at location
+        /// Shows Mental and Physical goals available at current spot
+        /// Investigation goals appear here as regular goals with InvestigationId property
+        /// </summary>
+        LocationChallenges,
+
+        /// <summary>
+        /// Goal Detail view: Full goal information before commitment
+        /// Shows goal description, difficulty, costs, rewards
+        /// Requires SelectedGoal context
+        /// Player decides: BEGIN CHALLENGE or Cancel
+        /// </summary>
+        GoalDetail,
+
+        /// <summary>
+        /// Spots view: Other spots in current venue for movement
+        /// Shows all spots, who's at each spot, current spot indicator
+        /// Click to move (instant, free)
+        /// </summary>
+        Spots
+    }
+
+    // ============================================
     // View Models
+    // ============================================
 
     /// <summary>
     /// Helper class for player stat display information
@@ -811,6 +1150,13 @@ namespace Wayfarer.Pages.Components
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public List<string> Properties { get; set; } = new();
+        public bool IsCurrentSpot { get; set; }
+        public List<NPCAtSpotViewModel> NPCs { get; set; } = new();
+    }
+
+    public class NPCAtSpotViewModel
+    {
+        public string Name { get; set; }
+        public string State { get; set; }
     }
 }

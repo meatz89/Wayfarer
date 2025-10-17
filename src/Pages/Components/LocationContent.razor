@@ -4,7 +4,6 @@
 
 @if (CurrentSpot != null)
 {
-
     <!-- Venue Header -->
     <div class="location-header">
         <div class="location-path">
@@ -33,9 +32,10 @@
         </div>
     </div>
 
+    <!-- VISUAL NOVEL SCENE NAVIGATION -->
     <div class="content-area">
-        <!-- Atmosphere -->
-        @if (CurrentSpot != null)
+        @* Atmosphere shown on Landing and Looking Around views *@
+        @if ((ViewState == LocationViewState.Landing || ViewState == LocationViewState.LookingAround) && CurrentSpot != null)
         {
             <div class="atmosphere-text">
                 <LocationAtmosphereRenderer CurrentLocation="CurrentSpot"
@@ -44,262 +44,56 @@
             </div>
         }
 
-        <!-- Actions Available Here -->
-        @{
-            bool hasLocationActions = LocationActions.Any();
-            bool hasLocationGoals = AvailableSocialGoals.Any() || AvailableMentalGoals.Any() || AvailablePhysicalGoals.Any();
-            bool hasDiscoveredInvestigations = DiscoveredInvestigationsAtLocation.Any();
-            bool hasAnyActions = hasLocationGoals || hasLocationActions || hasDiscoveredInvestigations;
-        }
-
-        @if (hasAnyActions)
+        @* CONDITIONAL VIEW RENDERING - Render separate components *@
+        @switch (ViewState)
         {
-            <div class="section-header">Actions Available Here</div>
-            <div class="actions-grid">
+            case LocationViewState.Landing:
+                <Landing HasNPCs="@AvailableNpcs.Any()"
+                         HasLocationChallenges="@(AvailableMentalGoals.Any() || AvailablePhysicalGoals.Any())"
+                         HasSpots="@AvailableSpots.Any()"
+                         CurrentLocationName="@CurrentLocation?.Name"
+                         TravelActions="@GetTravelActions()"
+                         OnNavigateToView="HandleNavigateToView"
+                         OnExecuteLocationAction="HandleExecuteLocationAction" />
+                break;
 
-                <!-- Discovered Investigations (RPG Quest Acceptance) -->
-                @foreach (var investigation in DiscoveredInvestigationsAtLocation)
-                {
-                    <div class="goal-action-btn intro-action" @onclick="async () => await StartInvestigationIntro(investigation)">
-                        <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
-                        <div class="goal-name">@investigation.IntroAction.ActionText</div>
-                        @if (!string.IsNullOrEmpty(investigation.IntroAction.IntroNarrative))
-                        {
-                            <div class="goal-description">@investigation.IntroAction.IntroNarrative</div>
-                        }
-                    </div>
-                }
+            case LocationViewState.LookingAround:
+                <NPCListView AvailableNpcs="@AvailableNpcs"
+                             OnNavigateToNPC="HandleNavigateToNPC"
+                             OnNavigateBack="NavigateBack" />
+                break;
 
-                <!-- Mental Goals -->
-                @foreach (var goal in AvailableMentalGoals)
-                {
-                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartMentalGoal(goal)">
-                        <div class="goal-system-badge mental">Mental</div>
-                        <div class="goal-name">@goal.Name</div>
-                        @if (!string.IsNullOrEmpty(goal.Description))
-                        {
-                            <div class="goal-description">@goal.Description</div>
-                        }
-                        <div class="goal-difficulty">
-                            <span class="difficulty-label">Exposure:</span>
-                            <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
-                        </div>
-                        @if (!string.IsNullOrEmpty(goal.InvestigationId))
-                        {
-                            @if (goal.IsIntroAction)
-                            {
-                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
-                            }
-                            else
-                            {
-                                <div class="goal-investigation-tag">Investigation Goal</div>
-                            }
-                        }
-                    </div>
-                }
+            case LocationViewState.ApproachNPC:
+                <NPCDetailView SelectedNPC="@GetSelectedNPCViewModel()"
+                               SocialGoals="@GetSocialGoalsForNPC()"
+                               NPCActiveGoals="@GetNPCActiveGoals()"
+                               HasExchangeCards="@CheckHasExchangeCards()"
+                               DoubtDisplay="@GetDoubtDisplayForSelectedNPC()"
+                               OnNavigateToGoal="HandleNavigateToGoal"
+                               OnStartConversationWithRequest="HandleStartConversationWithRequest"
+                               OnStartExchange="HandleStartExchange"
+                               OnNavigateBack="NavigateBack" />
+                break;
 
-                <!-- Physical Goals -->
-                @foreach (var goal in AvailablePhysicalGoals)
-                {
-                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartPhysicalGoal(goal)">
-                        <div class="goal-system-badge physical">Physical</div>
-                        <div class="goal-name">@goal.Name</div>
-                        @if (!string.IsNullOrEmpty(goal.Description))
-                        {
-                            <div class="goal-description">@goal.Description</div>
-                        }
-                        <div class="goal-difficulty">
-                            <span class="difficulty-label">Danger:</span>
-                            <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
-                        </div>
-                        @if (!string.IsNullOrEmpty(goal.InvestigationId))
-                        {
-                            @if (goal.IsIntroAction)
-                            {
-                                <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
-                            }
-                            else
-                            {
-                                <div class="goal-investigation-tag">Investigation Goal</div>
-                            }
-                        }
-                    </div>
-                }
+            case LocationViewState.LocationChallenges:
+                <LocationChallenges MentalGoals="@GetMentalGoalsViewModel()"
+                                    PhysicalGoals="@GetPhysicalGoalsViewModel()"
+                                    OnNavigateToGoal="HandleNavigateToGoal"
+                                    OnNavigateBack="NavigateBack" />
+                break;
 
-                <!-- Dynamic Venue Actions -->
-                @foreach (var action in LocationActions)
-                {
-                    <div class="action-card @(!action.IsAvailable ? "unavailable" : "") @(action.ActionType == "travel" ? "travel" : "")" 
-                         @onclick="async () => { if (action.IsAvailable) await ExecuteLocationAction(action); }">
-                        <div class="action-name">@action.Title</div>
-                        <div class="action-cost">
-                            @if (action.IsAvailable)
-                            {
-                                <span class="cost-value">@action.Cost</span>
-                            }
-                            else
-                            {
-                                <span class="unavailable-reason">Cannot perform action</span>
-                            }
-                        </div>
-                        @if (!string.IsNullOrEmpty(action.Detail))
-                        {
-                            <div class="action-detail">@action.Detail</div>
-                        }
-                        @if (!string.IsNullOrEmpty(action.InvestigationLabel))
-                        {
-                            <div class="investigation-label" style="color: @GetInvestigationColor(action.InvestigationLabel)">
-                                @action.InvestigationLabel
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        }
+            case LocationViewState.GoalDetail:
+                <GoalDetailView SelectedGoal="@GetGoalDetailViewModel()"
+                                OnCommitToGoal="HandleCommitToGoal"
+                                OnNavigateBack="NavigateBack" />
+                break;
 
-        <!-- People at This Spot -->
-        @if (AvailableNpcs.Any())
-        {
-            <div class="section-header">People at This Spot</div>
-            @foreach (var npc in AvailableNpcs)
-            {
-                <div class="npc-card">
-                    <div class="npc-header">
-                        <div>
-                            <div class="npc-name">
-                                @npc.Name
-                            </div>
-                            <div class="npc-type">@GetNPCPersonalityDescription(npc)</div>
-                        </div>
-                        <div class="npc-state @GetStateClass(npc.ConnectionState)">@npc.ConnectionState</div>
-                    </div>
-                    <div class="npc-tokens">
-                        <div class="token-display">
-                            Trust: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Trust)</span> 
-                            <span class="token-effect">(@GetTokenEffect(npc.Id, ConnectionType.Trust))</span>
-                        </div>
-                        <div class="token-display">
-                            Diplomacy: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Diplomacy)</span>
-                        </div>
-                        <div class="token-display">
-                            Status: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Status)</span>
-                        </div>
-                        <div class="token-display">
-                            Shadow: <span class="token-count">@GetTokenCount(npc.Id, ConnectionType.Shadow)</span>
-                        </div>
-                    </div>
-                    <div class="npc-description">
-                        @GetNPCDescription(npc)
-                    </div>
-                    <div class="npc-actions">
-
-                        <!-- Social Goals from Location -->
-                        @foreach (var goal in AvailableSocialGoals.Where(g => g.PlacementNpcId == npc.Id))
-                        {
-                            <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")" @onclick="async () => await StartSocialGoal(goal)">
-                                <div class="goal-system-badge social">Social</div>
-                                <div class="goal-name">@goal.Name</div>
-                                @if (!string.IsNullOrEmpty(goal.Description))
-                                {
-                                    <div class="goal-description">@goal.Description</div>
-                                }
-                                <div class="goal-difficulty">
-                                    <span class="difficulty-label">Doubt Rate:</span>
-                                    <span class="difficulty-value">@GetGoalDifficulty(goal)</span>
-                                </div>
-                                @if (!string.IsNullOrEmpty(goal.InvestigationId))
-                                {
-                                    @if (goal.IsIntroAction)
-                                    {
-                                        <div class="goal-investigation-tag intro-tag">🔍 Begin Investigation</div>
-                                    }
-                                    else
-                                    {
-                                        <div class="goal-investigation-tag">Investigation Goal</div>
-                                    }
-                                }
-                            </div>
-                        }
-
-                        <!-- NPC Active Goals (Direct from NPC) -->
-                        @{
-                            var actualNpc = NPCsAtSpot.FirstOrDefault(n => n.ID == npc.Id);
-                            if (actualNpc?.ActiveGoalIds != null)
-                            {
-                                foreach (var goalId in actualNpc.ActiveGoalIds)
-                                {
-                                    if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
-                                    {
-                                        <div class="npc-action" @onclick="async () => await StartConversationWithRequest(npc.Id, goal.Id)">
-                                            <span class="action-type">@goal.Name</span>
-                                            <span class="action-details">
-                                                <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
-                                            </span>
-                                        </div>
-                                    }
-                                }
-                            }
-                        }
-
-                        <!-- Exchange Option if NPC has exchange cards -->
-                        @{
-                            var npcForExchange = NPCsAtSpot.FirstOrDefault(n => n.ID == npc.Id);
-                            if (npcForExchange?.HasExchangeCards() == true)
-                            {
-                                <div class="npc-action exchange" @onclick="async () => await StartExchange(npc.Id)">
-                                    <span class="action-type">Quick Exchange</span>
-                                    <span class="action-details">
-                                        <span class="doubt-calculation">@GetDoubtDisplay(npc, CurrentSpot!)</span>
-                                    </span>
-                                </div>
-                            }
-                        }
-                    </div>
-                </div>
-            }
-        }
-
-        <!-- Other Spots -->
-        @if (AvailableSpots.Any())
-        {
-            <div class="section-header">Other Spots in @CurrentLocation?.Name</div>
-            <div class="spots-grid">
-                @foreach (var spot in AvailableSpots)
-                {
-                    var isCurrentSpot = spot.Id == CurrentSpot?.Name;
-                    <div class="spot-card @(isCurrentSpot ? "current" : "")"
-                         @onclick="async () => { if (!isCurrentSpot) await MoveToSpot(spot.Id); }">
-                        <div class="spot-card-name">@spot.Name</div>
-                        @{
-                            var npcsAtSpot = GetNPCsAtSpot(spot.Id);
-                            if (npcsAtSpot.Any())
-                            {
-                                <div class="spot-occupants">
-                                    @foreach (var npc in npcsAtSpot)
-                                    {
-                                        <span class="npc-at-spot">
-                                            @npc.Name
-                                            <span class="npc-state">(@GetNPCStateDisplay(npc))</span>
-                                        </span>
-                                        @if (npc != npcsAtSpot.Last())
-                                        {
-                                            <span>, </span>
-                                        }
-                                    }
-                                </div>
-                            }
-                        }
-                        @if (isCurrentSpot)
-                        {
-                            <div class="you-are-here">You are here</div>
-                        }
-                        else
-                        {
-                            <div class="spot-move-action">Move here (instant, free)</div>
-                        }
-                    </div>
-                }
-            </div>
+            case LocationViewState.Spots:
+                <SpotsView CurrentLocationName="@CurrentLocation?.Name"
+                           AvailableSpots="@GetSpotsViewModel()"
+                           OnMoveToSpot="HandleMoveToSpot"
+                           OnNavigateBack="NavigateBack" />
+                break;
         }
     </div>
 }
