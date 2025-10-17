@@ -98,7 +98,8 @@ public class ExchangeValidator
     }
 
     /// <summary>
-    /// Check if player can afford the exchange costs
+    /// Check if player can afford the exchange costs (resources only, NOT items)
+    /// Item affordability is checked at runtime by ExchangeContext.CanAfford()
     /// </summary>
     public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
     {
