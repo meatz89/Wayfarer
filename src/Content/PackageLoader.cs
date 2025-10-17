@@ -200,8 +200,6 @@ public class PackageLoader
     /// </summary>
     public List<string> LoadDynamicPackage(string packageFilePath)
     {
-        Console.WriteLine($"[PackageLoader] Loading dynamic package: {packageFilePath}");
-
         try
         {
             string json = File.ReadAllText(packageFilePath);
@@ -244,8 +242,6 @@ public class PackageLoader
     /// </summary>
     public List<string> LoadDynamicPackageFromJson(string json, string packageId)
     {
-        Console.WriteLine($"[PackageLoader] Loading dynamic package from JSON: {packageId ?? "unnamed"}");
-
         try
         {
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
@@ -283,8 +279,6 @@ public class PackageLoader
             throw new Exception($"[PackageLoader] Failed to load dynamic package: {ex.Message}", ex);
         }
     }
-
-
 
     private void ApplyStartingConditions(PackageStartingConditions conditions)
     {
@@ -335,8 +329,6 @@ public class PackageLoader
     {
         if (playerStatsConfig == null) return;
 
-        Console.WriteLine("[PackageLoader] Loading player stats configuration...");
-
         // Parse the player stats configuration using PlayerStatParser
         PlayerStatsParseResult parseResult = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
 
@@ -350,8 +342,6 @@ public class PackageLoader
     private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
     {
         if (listenDrawCounts == null) return;
-
-        Console.WriteLine("[PackageLoader] Loading listen draw counts...");
 
         // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
         List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
@@ -462,7 +452,6 @@ public class PackageLoader
     {
         if (mentalCards == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading mental cards...");
         MentalCardParser parser = new MentalCardParser();
         foreach (MentalCardDTO dto in mentalCards)
         {
@@ -477,7 +466,6 @@ public class PackageLoader
     {
         if (physicalCards == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading physical cards...");
         PhysicalCardParser parser = new PhysicalCardParser();
         foreach (PhysicalCardDTO dto in physicalCards)
         {
@@ -493,7 +481,6 @@ public class PackageLoader
     {
         if (decks == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading conversation engagement decks...");
         foreach (SocialChallengeDeckDTO dto in decks)
         {
             SocialChallengeDeck deck = dto.ToDomain();
@@ -508,7 +495,6 @@ public class PackageLoader
     {
         if (decks == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading mental engagement decks...");
         foreach (MentalChallengeDeckDTO dto in decks)
         {
             MentalChallengeDeck deck = dto.ToDomain();
@@ -522,8 +508,7 @@ public class PackageLoader
     private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading physical engagement decks...");
+        
         foreach (PhysicalChallengeDeckDTO dto in decks)
         {
             PhysicalChallengeDeck deck = dto.ToDomain();
@@ -537,7 +522,6 @@ public class PackageLoader
     {
         if (investigations == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading investigation templates...");
         InvestigationParser parser = new InvestigationParser(_gameWorld);
         foreach (InvestigationDTO dto in investigations)
         {
@@ -552,8 +536,6 @@ public class PackageLoader
     private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
     {
         if (goalDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {goalDtos.Count} goals...");
 
         foreach (GoalDTO dto in goalDtos)
         {
@@ -607,8 +589,6 @@ public class PackageLoader
     private void LoadObstacles(List<ObstacleDTO> obstacleDtos, bool allowSkeletons)
     {
         if (obstacleDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {obstacleDtos.Count} obstacles from package '{_currentPackageId}'...");
 
         foreach (ObstacleDTO dto in obstacleDtos)
         {
@@ -787,9 +767,6 @@ public class PackageLoader
             return;
         }
 
-        Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
-        Console.WriteLine($"[PackageLoader] Currently loaded Locations: {string.Join(", ", _gameWorld.Locations.Select(s => s.LocationId))}");
-
         // Check for missing Locations and handle based on allowSkeletons
         foreach (RouteDTO dto in routeDtos)
         {
@@ -909,8 +886,6 @@ public class PackageLoader
     {
         if (pathCardDtos == null) return new List<PathCardEntry>();
 
-        Console.WriteLine($"[PackageLoader] Loading {pathCardDtos.Count} path cards...");
-
         List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in pathCardDtos)
         {
@@ -926,8 +901,6 @@ public class PackageLoader
     {
         if (eventCardDtos == null) return new List<PathCardEntry>();
 
-        Console.WriteLine($"[PackageLoader] Loading {eventCardDtos.Count} event cards...");
-
         List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in eventCardDtos)
         {
@@ -942,8 +915,6 @@ public class PackageLoader
     private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {travelEventDtos.Count} travel events...");
 
         foreach (TravelEventDTO dto in travelEventDtos)
         {
@@ -971,8 +942,6 @@ public class PackageLoader
     private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {collectionDtos.Count} collections and embedding cards directly...");
 
         foreach (PathCardCollectionDTO dto in collectionDtos)
         {
@@ -1023,8 +992,6 @@ public class PackageLoader
     /// </summary>
     private void InitializeNPCExchangeDecks(DeckCompositionDTO deckCompositions)
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC exchange decks...");
-
         foreach (NPC npc in _gameWorld.NPCs)
         {
             try
@@ -1392,8 +1359,6 @@ public class PackageLoader
     /// </summary>
     private void InitializeInvestigationJournal()
     {
-        Console.WriteLine("[PackageLoader] Initializing investigation journal...");
-
         InvestigationJournal investigationJournal = _gameWorld.InvestigationJournal;
 
         investigationJournal.PotentialInvestigationIds.Clear();
@@ -1502,8 +1467,6 @@ public class PackageLoader
 
     private void ValidateCrossroadsConfiguration()
     {
-        Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
-
         // Group Locations by Venue using tuples
         List<(string VenueId, List<Location> Locations)> spotsByLocation = new List<(string VenueId, List<Location> Locations)>();
         foreach (LocationEntry entry in _gameWorld.Locations)
@@ -1601,8 +1564,6 @@ public class PackageLoader
     private void LoadTravelObstacles(List<TravelObstacleDTO> obstacleDtos, bool allowSkeletons)
     {
         if (obstacleDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {obstacleDtos.Count} travel obstacles...");
 
         TravelObstacleParser parser = new TravelObstacleParser();
         foreach (TravelObstacleDTO dto in obstacleDtos)

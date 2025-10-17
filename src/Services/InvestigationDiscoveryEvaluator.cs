@@ -33,16 +33,12 @@ public class InvestigationDiscoveryEvaluator
                 continue;
             }
 
-            Console.WriteLine($"[InvestigationEvaluator] Evaluating investigation '{investigation.Name}' (ID: {investigation.Id})");
-
             // Skip if no intro action defined
             if (investigation.IntroAction == null)
             {
                 Console.WriteLine($"[InvestigationEvaluator] Skipping '{investigation.Name}' - IntroAction is NULL");
                 continue;
             }
-
-            Console.WriteLine($"[InvestigationEvaluator] '{investigation.Name}' has trigger type: {investigation.IntroAction.TriggerType}");
 
             if (IsTriggerConditionMet(investigation, player))
             {
@@ -93,8 +89,6 @@ public class InvestigationDiscoveryEvaluator
             Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required location");
             return false;
         }
-
-        Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility PASSED");
         return true;
     }
 
