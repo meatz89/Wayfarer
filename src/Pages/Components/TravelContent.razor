@@ -9,8 +9,12 @@
 }
 else
 {
-    <!-- Show Route Selection UI -->
-<div class="travel-content">
+    @{
+        var player = GameFacade.GetPlayer();
+        var currentTime = TimeManager.GetCurrentTimeBlock();
+    }
+
+    <!-- Show Route Selection UI (no wrapper div - uses shared .game-container from GameScreen) -->
     <!-- Header -->
     <div class="travel-header">
         <div>
@@ -18,11 +22,6 @@ else
             <div class="current-location">From: @CurrentLocation</div>
         </div>
     </div>
-
-    @{
-        var player = GameFacade.GetPlayer();
-        var currentTime = TimeManager.GetCurrentTimeBlock();
-    }
 
     <!-- Time Status Bar with Segment Dots -->
     <div class="time-status-bar">
@@ -250,5 +249,4 @@ else
     <button class="back-button" @onclick="ReturnToLocation">
         Back to Location
     </button>
-</div>
 }

@@ -1190,14 +1190,10 @@ body * {
 }
 
 /* ============================================
-   TRAVEL SCREEN STYLING
+   TRAVEL SCREEN STYLING - REMOVED
    ============================================ */
-
-.travel-content {
-    padding: 20px;
-    background: #faf4ea;
-    min-height: 100vh;
-}
+/* REMOVED .travel-content - TravelContent uses shared .game-container from GameScreen */
+/* ALL screens share .game-container (max-width: 1024px, background: #faf4ea) */
 
 .travel-header {
     background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
