@@ -98,9 +98,12 @@ public class InvestigationActivity
 
         // Derive venue from location
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
-        Venue venue = location != null
-            ? _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId)
-            : null;
+        if (location == null)
+            throw new InvalidOperationException($"Location '{investigation.IntroAction.LocationId}' not found for investigation intro action");
+
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
 
         // Create intro result for quest acceptance modal
         _pendingIntroResult = new InvestigationIntroResult
@@ -110,8 +113,8 @@ public class InvestigationActivity
             IntroNarrative = investigation.IntroAction.IntroNarrative,
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
-            LocationName = venue?.Name ?? "Unknown Venue",
-            SpotName = location?.Name ?? investigation.IntroAction.LocationId
+            LocationName = venue.Name,
+            SpotName = location.Name
         };
     }
 
@@ -275,7 +278,7 @@ public class InvestigationActivity
             Rewards = new InvestigationRewards
             {
                 Coins = investigation.CompletionRewardCoins,
-                XPRewards = investigation.CompletionRewardXP ?? new List<StatXPReward>(),
+                XPRewards = investigation.CompletionRewardXP,
                 NPCReputation = new List<NPCReputationReward>() // Future: NPC reputation system
             }
             // ObservationCardRewards eliminated - observation system removed
@@ -363,11 +366,16 @@ public class InvestigationActivity
 
         // Move Potential → Discovered
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
-        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);// Derive venue from location (LocationId is globally unique)
+        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+
+        // Derive venue from location (LocationId is globally unique)
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
-        Venue venue = location != null
-            ? _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId)
-            : null;
+        if (location == null)
+            throw new InvalidOperationException($"Location '{investigation.IntroAction.LocationId}' not found for investigation discovery");
+
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
 
         // Create discovery result for UI modal
         InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
@@ -377,8 +385,8 @@ public class InvestigationActivity
             IntroNarrative = investigation.IntroAction.IntroNarrative,
             IntroActionText = investigation.IntroAction.ActionText,
             ColorCode = investigation.ColorCode,
-            LocationName = venue?.Name ?? "Unknown Venue",
-            SpotName = location?.Name ?? investigation.IntroAction.LocationId
+            LocationName = venue.Name,
+            SpotName = location.Name
         };
         _pendingDiscoveryResult = discoveryResult;
 
