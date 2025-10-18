@@ -203,9 +203,9 @@ public static class ListBasedHelperExtensions
     public static int GetFamiliarity(this List<FamiliarityEntry> familiarityList, string entityId)
     {
         FamiliarityEntry entry = familiarityList.FirstOrDefault(f => f.EntityId == entityId);
-        if (entry == null)
-            throw new System.InvalidOperationException($"No familiarity entry found for entity '{entityId}' - ensure entity exists before accessing familiarity");
-        return entry.Level;
+        // Lazy initialization: Return 0 if entry doesn't exist yet
+        // Entries are created on first SetFamiliarity call
+        return entry?.Level ?? 0;
     }
 
     public static void SetFamiliarity(this List<FamiliarityEntry> familiarityList, string entityId, int level)

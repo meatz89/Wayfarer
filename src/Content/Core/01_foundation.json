@@ -16,9 +16,7 @@
         "districtId": "market_district",
         "tier": 2,
         "locationType": "Ruin",
-        "travelHubSpotId": "courtyard",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3
+        "travelHubSpotId": "courtyard"
       }
     ],
     "locations": [

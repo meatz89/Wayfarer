@@ -71,8 +71,8 @@ public class DifficultyCalculationService
                 return mastery >= mod.Threshold;
 
             case ModifierType.Familiarity:
-                // Location understanding (0-3 per location)
-                // NO ID MATCHING: Uses goal's PlacementLocationId (mechanical property)
+                // Location understanding (0-3 per Location)
+                // Uses Location ID from the goal's placement
                 if (string.IsNullOrEmpty(goal.PlacementLocationId)) return false;
                 int familiarity = player.GetLocationFamiliarity(goal.PlacementLocationId);
                 return familiarity >= mod.Threshold;

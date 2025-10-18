@@ -77,8 +77,8 @@ public class Player
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
     public List<FamiliarityEntry> RouteFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
-    // Venue Familiarity System (Work Packet 1)
-    // ID is Venue ID, level is familiarity level (0-3)
+    // Location Familiarity System (Work Packet 1)
+    // ID is Location ID (spot like "courtyard", "mill_entrance"), level is familiarity level (0-3)
     public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
     // Observation tracking - IDs of observation cards collected
@@ -152,19 +152,19 @@ public class Player
     }
 
     /// <summary>
-    /// Get familiarity level for a Venue (0-3 scale)
+    /// Get familiarity level for a Location (0-3 scale)
     /// </summary>
-    public int GetLocationFamiliarity(string venueId)
+    public int GetLocationFamiliarity(string locationId)
     {
-        return LocationFamiliarity.GetFamiliarity(venueId);
+        return LocationFamiliarity.GetFamiliarity(locationId);
     }
 
     /// <summary>
-    /// Set Venue familiarity to a specific value (max 3)
+    /// Set Location familiarity to a specific value (max 3)
     /// </summary>
-    public void SetLocationFamiliarity(string venueId, int value)
+    public void SetLocationFamiliarity(string locationId, int value)
     {
-        LocationFamiliarity.SetFamiliarity(venueId, Math.Min(3, Math.Max(0, value)));
+        LocationFamiliarity.SetFamiliarity(locationId, Math.Min(3, Math.Max(0, value)));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
