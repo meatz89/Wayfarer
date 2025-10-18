@@ -73,17 +73,18 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         if (GameFacade == null)
         {
-            return;
+            throw new InvalidOperationException("GameFacade is required");
         }
 
-        Player? player = GameFacade.GetPlayer();
-        if (player != null)
+        Player player = GameFacade.GetPlayer();
+        if (player == null)
         {
-            Coins = player.Coins;
-            Health = player.Health;
-            Hunger = player.Hunger;
+            throw new InvalidOperationException("Player not found");
         }
 
+        Coins = player.Coins;
+        Health = player.Health;
+        Hunger = player.Hunger;
     }
 
     protected async Task RefreshTimeDisplay()
@@ -564,7 +565,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected int GetTotalSegmentsInPeriod()
     {
-        return GameFacade?.GetSegmentsInCurrentPeriod() ?? 4;
+        if (GameFacade == null)
+        {
+            throw new InvalidOperationException("GameFacade is required");
+        }
+
+        return GameFacade.GetSegmentsInCurrentPeriod();
     }
 
     protected string GetStaminaDisplay()

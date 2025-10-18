@@ -30,55 +30,89 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardCategoryClass()
         {
-            if (Card?.PhysicalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.Category.ToString().ToLower();
         }
 
         protected string GetCardCategoryName()
         {
-            if (Card?.PhysicalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.Category.ToString();
         }
 
         protected int GetCardDepth()
         {
-            if (Card?.PhysicalCardTemplate == null) return 1;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.Depth;
         }
 
         protected string GetCardName()
         {
-            if (Card?.PhysicalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.Name;
         }
 
         protected int GetCardExertionCost()
         {
-            if (Card?.PhysicalCardTemplate == null) return 0;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.ExertionCost;
         }
 
         protected string GetCardDescription()
         {
-            if (Card?.PhysicalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.Description ?? "";
         }
 
         protected bool HasEquipmentRequirement()
         {
-            if (Card?.PhysicalCardTemplate == null) return false;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.EquipmentCategory != EquipmentCategory.None;
         }
 
         protected string GetEquipmentRequirement()
         {
-            if (!HasEquipmentRequirement()) return "";
+            if (!HasEquipmentRequirement())
+                return "";
+
             return $"Requires: {Card.PhysicalCardTemplate.EquipmentCategory}";
         }
 
         protected bool HasCardCost()
         {
-            if (Card?.PhysicalCardTemplate == null) return false;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+
             return Card.PhysicalCardTemplate.StaminaCost > 0
                 || Card.PhysicalCardTemplate.DirectHealthCost > 0
                 || Card.PhysicalCardTemplate.CoinCost > 0;
@@ -86,7 +120,8 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardCost()
         {
-            if (!HasCardCost()) return "";
+            if (!HasCardCost())
+                return "";
 
             List<string> costs = new System.Collections.Generic.List<string>();
             if (Card.PhysicalCardTemplate.StaminaCost > 0) costs.Add($"Stamina -{Card.PhysicalCardTemplate.StaminaCost}");
@@ -98,9 +133,14 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardEffectDescription()
         {
-            if (Card?.PhysicalCardTemplate == null) return "";
-            if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("PhysicalCardTemplate is required");
+            if (Session == null)
+                throw new InvalidOperationException("Session is required for effect projection");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is required for effect projection");
 
             Player player = GameFacade.GetPlayer();
 

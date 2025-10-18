@@ -21,15 +21,21 @@ namespace Wayfarer.Pages.Components
 
         protected string GetHeaderColor()
         {
-            if (string.IsNullOrEmpty(Data?.ColorCode))
+            if (Data == null)
+                throw new InvalidOperationException("Data parameter is required");
+
+            if (string.IsNullOrEmpty(Data.ColorCode))
                 return "#7a8b5a";
             return Data.ColorCode;
         }
 
         protected string GetHeaderColorLight()
         {
+            if (Data == null)
+                throw new InvalidOperationException("Data parameter is required");
+
             // Lighten the color for gradient
-            if (string.IsNullOrEmpty(Data?.ColorCode))
+            if (string.IsNullOrEmpty(Data.ColorCode))
                 return "#9eb87a";
 
             // Simple lightening by adding 20 to each RGB component
@@ -52,8 +58,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetBorderColor()
         {
+            if (Data == null)
+                throw new InvalidOperationException("Data parameter is required");
+
             // Darken the color for border
-            if (string.IsNullOrEmpty(Data?.ColorCode))
+            if (string.IsNullOrEmpty(Data.ColorCode))
                 return "#5c7a4a";
 
             string hex = Data.ColorCode.TrimStart('#');

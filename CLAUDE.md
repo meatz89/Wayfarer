@@ -988,13 +988,6 @@ public Goal ParseGoal(GoalDTO dto)
 - Less code (no redundant ?? operators everywhere)
 - Forces fixing root cause (missing JSON data) instead of hiding it
 
-**Example Impact:**
-- **Before**: 479 ?? operators across 115 files
-- **After**: ~50 ?? operators (only ArgumentNullException guards)
-- **Bug Prevention**: Missing JSON fields crash immediately with location, not silent failures
-
----
-
 ## CONSTRAINT SUMMARY
 
 **ARCHITECTURE**

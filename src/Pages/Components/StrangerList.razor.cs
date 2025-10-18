@@ -34,17 +34,14 @@ namespace Wayfarer.Pages.Components
             {
                 // Get current Venue if not specified
                 Venue currentLocation = GameFacade.GetCurrentLocation();
-                VenueId = currentLocation?.Id;
+                if (currentLocation == null)
+                {
+                    throw new InvalidOperationException("Current location not found");
+                }
+                VenueId = currentLocation.Id;
             }
 
-            if (!string.IsNullOrEmpty(VenueId))
-            {
-                AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
-            }
-            else
-            {
-                AvailableStrangers = new List<NPC>();
-            }
+            AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
         }
 
         protected bool CanAffordConversation(string requestId)
@@ -91,6 +88,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetConversationTypeDisplay(string conversationType)
         {
+            if (conversationType == null)
+            {
+                throw new InvalidOperationException("Conversation type is required");
+            }
+
             return conversationType switch
             {
                 "friendly_chat" => "Friendly Chat",

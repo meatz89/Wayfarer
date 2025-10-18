@@ -185,8 +185,12 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardEffectDescription()
         {
-            if (Card?.SocialCardTemplate == null) return "";
-            if (Session == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+            if (Session == null)
+                throw new InvalidOperationException("Session is required for effect projection");
 
             // PROJECTION PRINCIPLE: Get effect projection from resolver
             CardEffectResult projection = EffectResolver.ProcessSuccessEffect(Card, Session);

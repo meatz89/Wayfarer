@@ -9,7 +9,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public RenderFragment ChildContent { get; set; }
         [Parameter] public string Position { get; set; } = "top"; // top, bottom, left, right
         [Parameter] public int Delay { get; set; } = 300; // milliseconds
-        [Parameter] public string CssClass { get; set; }
+        [Parameter] public string CssClass { get; set; } = "";
 
         private bool IsVisible { get; set; }
         private Timer? _showTimer;
@@ -61,6 +61,9 @@ namespace Wayfarer.Pages.Components
 
         private string GetPositionClass()
         {
+            if (Position == null)
+                throw new InvalidOperationException("Position parameter is required");
+
             return $"tooltip-{Position.ToLower()} {CssClass}".Trim();
         }
 

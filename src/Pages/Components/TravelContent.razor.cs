@@ -108,14 +108,22 @@ namespace Wayfarer.Pages.Components
         {
             // Get the actual Venue location from GameWorld to find its name
             Location location = GameFacade.GetLocationSpot(destinationSpotId);
-            return location?.Name ?? destinationSpotId;
+            if (location == null)
+            {
+                throw new InvalidOperationException($"Location spot not found: {destinationSpotId}");
+            }
+
+            return location.Name;
         }
 
         private string GetDestinationDistrict(string destinationSpotId)
         {
             // Get all locations from GameFacade
             List<Venue> locations = GameFacade.GetAllLocations();
-            if (locations == null) return "City Center";
+            if (locations == null)
+            {
+                throw new InvalidOperationException("Locations not found from facade");
+            }
 
             // Find the venue containing this location
             foreach (Venue venue in locations)
