@@ -17,9 +17,53 @@
         "tier": 2,
         "locationType": "Ruin",
         "travelHubSpotId": "courtyard"
+      },
+      {
+        "id": "town_square",
+        "name": "Town Square",
+        "description": "The heart of the town, where traders gather and townsfolk meet. A memorial stone stands at the center.",
+        "districtId": "town_center",
+        "tier": 1,
+        "locationType": "Urban",
+        "travelHubSpotId": "square_center"
       }
     ],
     "locations": [
+      {
+        "id": "square_center",
+        "venueId": "town_square",
+        "name": "Town Square",
+        "description": "The central square bustles with activity. The memorial stone stands prominently.",
+        "properties": {
+          "base": [
+            "crossroads"
+          ],
+          "all": [
+            "public",
+            "busy"
+          ]
+        },
+        "canInvestigate": true,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
+      {
+        "id": "market_stalls",
+        "venueId": "town_square",
+        "name": "Market Stalls",
+        "description": "Vendors hawk their wares under colorful awnings",
+        "properties": {
+          "all": [
+            "public",
+            "busy"
+          ]
+        },
+        "canInvestigate": false,
+        "investigationScaling": {
+          "default": 1
+        }
+      },
       {
         "id": "mill_entrance",
         "venueId": "old_mill",

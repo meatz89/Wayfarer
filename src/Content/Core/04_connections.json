@@ -1,9 +1,9 @@
 {
   "packageId": "core_travel",
   "metadata": {
-    "name": "Core Travel System - POC (Empty)",
+    "name": "Core Travel System - POC Routes",
     "timestamp": "2025-09-11T00:00:00Z",
-    "description": "No travel routes in POC - staying at Old Mill only",
+    "description": "Inter-venue travel routes between Town Square and Old Mill",
     "author": "Wayfarer Team",
     "version": "2.0.0"
   },
@@ -14,84 +14,106 @@
     "pathCardCollections": [],
     "routes": [
       {
-        "id": "courtyard_to_workshop_path",
-        "name": "Path to Workshop",
-        "originVenueId": "old_mill",
-        "originSpotId": "courtyard",
+        "id": "town_to_mill_main_path",
+        "name": "Main Road to Old Mill",
+        "originVenueId": "town_square",
+        "originSpotId": "square_center",
         "destinationVenueId": "old_mill",
-        "destinationSpotId": "workshop",
+        "destinationSpotId": "courtyard",
         "createBidirectional": false,
-        "description": "Navigate through the mill's interior passages to reach the workshop",
+        "description": "The main hillside path to the abandoned mill - well-worn but overgrown",
         "segments": [
           {
             "segmentNumber": 1,
-            "narrativeDescription": "The mill's main entrance corridor - dust motes float in shafts of light through cracked boards",
+            "narrativeDescription": "The path begins at the town's edge, climbing through increasingly wild terrain",
             "availablePaths": [
               {
-                "id": "corridor_direct",
-                "description": "Walk straight through the main corridor",
+                "id": "main_road_direct",
+                "description": "Follow the old cart road - exposed but fastest",
                 "timeSegments": 1,
-                "staminaCost": 0,
+                "staminaCost": 5,
                 "optionalObstacleId": null,
                 "hiddenUntilExploration": 0
               },
               {
-                "id": "corridor_careful",
-                "description": "Move carefully to avoid disturbing the unstable floorboards",
+                "id": "forest_detour",
+                "description": "Cut through the forest edge - slower but shaded",
+                "timeSegments": 2,
+                "staminaCost": 3,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 0
+              },
+              {
+                "id": "creek_shortcut",
+                "description": "Follow the creek bed upstream - locals' secret route",
+                "timeSegments": 1,
+                "staminaCost": 2,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 2
+              }
+            ]
+          },
+          {
+            "segmentNumber": 2,
+            "narrativeDescription": "The mill comes into view through the trees - the waterwheel visible against the sky",
+            "availablePaths": [
+              {
+                "id": "approach_direct",
+                "description": "Approach openly through the overgrown courtyard",
+                "timeSegments": 1,
+                "staminaCost": 3,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 0
+              },
+              {
+                "id": "circle_around",
+                "description": "Circle around to observe before approaching",
+                "timeSegments": 2,
+                "staminaCost": 2,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 0
+              },
+              {
+                "id": "workers_path",
+                "description": "Use the old workers' path that leads directly to the wheel mechanism",
                 "timeSegments": 1,
                 "staminaCost": 1,
                 "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "corridor_hidden_shortcut",
-                "description": "Use the maintenance passage behind the grinding mechanism",
-                "timeSegments": 0,
-                "staminaCost": 0,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 2
+                "hiddenUntilExploration": 3
               }
             ]
           }
         ]
       },
       {
-        "id": "courtyard_to_main_hall_path",
-        "name": "Path to Main Hall",
+        "id": "mill_to_town_return",
+        "name": "Return to Town",
         "originVenueId": "old_mill",
         "originSpotId": "courtyard",
-        "destinationVenueId": "old_mill",
-        "destinationSpotId": "main_hall",
+        "destinationVenueId": "town_square",
+        "destinationSpotId": "square_center",
         "createBidirectional": false,
-        "description": "Enter the mill's main hall through various passages",
+        "description": "The descent back to town - easier going downhill",
         "segments": [
           {
             "segmentNumber": 1,
-            "narrativeDescription": "Multiple entry points lead into the mill's cavernous main hall",
+            "narrativeDescription": "Leaving the mill behind, the path descends toward the town lights",
             "availablePaths": [
               {
-                "id": "main_entrance_direct",
-                "description": "Use the main entrance - wide and obvious but creaky",
+                "id": "main_road_down",
+                "description": "Take the main road back - straightforward descent",
                 "timeSegments": 1,
-                "staminaCost": 0,
-                "optionalObstacleId": "mill_entrance_blocked",
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "side_window_entry",
-                "description": "Climb through the side window - requires some agility",
-                "timeSegments": 1,
-                "staminaCost": 1,
+                "staminaCost": 2,
                 "optionalObstacleId": null,
                 "hiddenUntilExploration": 0
               },
               {
-                "id": "roof_hatch_entry",
-                "description": "Use the roof hatch that mill workers once used for grain loading",
-                "timeSegments": 1,
+                "id": "quick_slide",
+                "description": "Slide down the loose scree slope - risky but fast",
+                "timeSegments": 0,
                 "staminaCost": 0,
                 "optionalObstacleId": null,
-                "hiddenUntilExploration": 3
+                "hiddenUntilExploration": 1
               }
             ]
           }

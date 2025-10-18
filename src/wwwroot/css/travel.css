@@ -1,11 +1,9 @@
 /* Travel Screen Styles - Based on UI Mockups */
 /* Four distinct contexts: Walking (FixedPath), Caravan (Event), Discovery (Reveal), Dead-End (Blocked) */
 
-.travel-container {
-    width: 100%;
-    min-height: 100vh;
-    background: #f4e8d0;
-}
+/* REMOVED - TravelContent now uses shared .game-container from common.css */
+/* .travel-container definition removed to prevent overriding shared styles */
+/* ALL screens share .game-container (max-width: 1024px, background: #faf4ea) */
 
 /* ========== SHARED STYLES (ALL CONTEXTS) ========== */
 
