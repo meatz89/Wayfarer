@@ -105,7 +105,9 @@ namespace Wayfarer.Pages.Components
             if (Context?.Session != null)
             {
                 Session = Context.Session;
-                NpcName = Context.Npc?.Name ?? "Unknown";
+                if (Context.Npc == null)
+                    throw new InvalidOperationException("Context.Npc cannot be null");
+                NpcName = Context.Npc.Name;
 
                 // Initialize conversation narrative
                 await GenerateInitialNarrative();
@@ -256,7 +258,10 @@ namespace Wayfarer.Pages.Components
                 if (Session != null && Context?.Npc != null && NarrativeService != null)
                 {
                     // Get the active cards for the initial state
-                    List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+                    IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+                    if (handCards == null)
+                        throw new InvalidOperationException("Facade returned null hand cards");
+                    List<CardInstance> activeCards = handCards.ToList();
 
                     // Start AI generation
                     IsGeneratingNarrative = true;
@@ -316,8 +321,13 @@ namespace Wayfarer.Pages.Components
         private async Task GenerateCardNarrativesAsync(string npcDialogue)
         {
             if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
-                return;// Get the active cards for current state
-            List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+                return;
+
+            // Get the active cards for current state
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards == null)
+                throw new InvalidOperationException("Facade returned null hand cards");
+            List<CardInstance> activeCards = handCards.ToList();
             if (!activeCards.Any())
                 return;
 
@@ -413,8 +423,8 @@ namespace Wayfarer.Pages.Components
 
         protected List<string> GetNpcStatusParts()
         {
-            NPC? npc = Context?.Npc;
-            if (npc == null) return new List<string>();
+            if (Context?.Npc == null) return new List<string>();
+            NPC npc = Context.Npc;
 
             List<string> status = new List<string>();
 
@@ -423,8 +433,9 @@ namespace Wayfarer.Pages.Components
                 status.Add(npc.Profession.ToString());
 
             // Get current Venue name
-            Venue? currentLocation = GameFacade?.GetCurrentLocation();
-            if (!string.IsNullOrEmpty(currentLocation?.Name))
+            if (GameFacade == null) return status;
+            Venue currentLocation = GameFacade.GetCurrentLocation();
+            if (currentLocation != null && !string.IsNullOrEmpty(currentLocation.Name))
                 status.Add(currentLocation.Name);
 
             return status;
@@ -446,16 +457,17 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null) return ("Unknown Location", "", "");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is null");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
             Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
-                return ("Unknown Location", "", "");
+                throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name ?? "Unknown";
-            string spotName = currentSpot.Name ?? "Unknown";
+            string locationName = currentLocation.Name;
+            string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
             return (locationName, spotName, spotTraits);
@@ -502,14 +514,18 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetAvailableGoalCards()
         {
-            List<CardInstance> handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards == null)
+                throw new InvalidOperationException("Facade returned null hand cards");
             return handCards.Where(c => IsGoalCard(c)).ToList();
         }
 
         protected List<CardDisplayInfo> GetAllDisplayCards()
         {
             // Static UI: Return simple list of current hand cards
-            List<CardInstance> handCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
+            if (handCards == null)
+                throw new InvalidOperationException("Facade returned null hand cards");
 
             // FILTER OUT GOAL CARDS - they render separately
             List<CardInstance> regularCards = handCards.Where(c => !IsGoalCard(c)).ToList();
@@ -555,7 +571,7 @@ namespace Wayfarer.Pages.Components
 
             // Use effect resolver to get projection with effect description
             CardEffectResult projection = EffectResolver.ProcessSuccessEffect(card, Session);
-            return projection.EffectOnlyDescription ?? "";
+            return projection.EffectOnlyDescription;
         }
 
         // ===== NEW 4-RESOURCE SYSTEM METHODS =====
@@ -565,7 +581,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentInitiative()
         {
-            return Session?.CurrentInitiative ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentInitiative;
         }
 
         /// <summary>
@@ -573,7 +591,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetMaxInitiative()
         {
-            return Session?.MaxInitiative ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxInitiative;
         }
 
         /// <summary>
@@ -581,7 +601,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentCadence()
         {
-            return Session?.Cadence ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.Cadence;
         }
 
         /// <summary>
@@ -589,7 +611,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentMomentum()
         {
-            return Session?.CurrentMomentum ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentMomentum;
         }
 
         /// <summary>
@@ -610,7 +634,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentUnderstanding()
         {
-            return Session?.CurrentUnderstanding ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentUnderstanding;
         }
 
         /// <summary>
@@ -618,7 +644,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetDeckCount()
         {
-            return Session?.Deck?.RemainingDeckCards ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Deck == null)
+                throw new InvalidOperationException("Session.Deck is null");
+            return Session.Deck.RemainingDeckCards;
         }
 
         /// <summary>
@@ -626,7 +656,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetSpokenCount()
         {
-            return Session?.Deck?.SpokenPileCount ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Deck == null)
+                throw new InvalidOperationException("Session.Deck is null");
+            return Session.Deck.SpokenPileCount;
         }
 
         /// <summary>
@@ -634,7 +668,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetMindCount()
         {
-            return Session?.Deck?.HandSize ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Deck == null)
+                throw new InvalidOperationException("Session.Deck is null");
+            return Session.Deck.HandSize;
         }
 
         /// <summary>
@@ -683,7 +721,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCardInitiativeGeneration(CardInstance card)
         {
-            return card?.SocialCardTemplate?.GetInitiativeGeneration() ?? 0;
+            if (card?.SocialCardTemplate == null) return 0;
+            return card.SocialCardTemplate.GetInitiativeGeneration();
         }
 
         /// <summary>
@@ -740,7 +779,9 @@ namespace Wayfarer.Pages.Components
         // Tier unlock system methods
         protected int GetUnlockedMaxDepth()
         {
-            return Session?.GetUnlockedMaxDepth() ?? 2; // Default to Tier 1 max
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetUnlockedMaxDepth();
         }
 
         protected bool IsTierUnlocked(int tier)
@@ -808,7 +849,7 @@ namespace Wayfarer.Pages.Components
 
                 if (result != null && result.Success)
                 {
-                    LastNarrative = result.Narrative?.NarrativeText ?? "Request complete";
+                    LastNarrative = result.Narrative != null ? result.Narrative.NarrativeText : "Request complete";
                     IsConversationEnded = true;
                     EndReason = "Request complete";
 

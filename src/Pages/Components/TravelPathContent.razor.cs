@@ -57,7 +57,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetBaseTravelTime()
         {
-            return TravelContext?.CurrentRoute?.TravelTimeSegments ?? 0;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            return TravelContext.CurrentRoute.TravelTimeSegments;
         }
 
         /// <summary>
@@ -65,7 +69,13 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetSegmentCount()
         {
-            return TravelContext?.CurrentRoute?.Segments?.Count ?? 0;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            if (TravelContext.CurrentRoute.Segments == null)
+                throw new InvalidOperationException("Route has no segments");
+            return TravelContext.CurrentRoute.Segments.Count;
         }
 
         /// <summary>
@@ -73,7 +83,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentSegment()
         {
-            return TravelContext?.Session?.CurrentSegment ?? 1;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            return TravelContext.Session.CurrentSegment;
         }
 
         /// <summary>
@@ -152,7 +166,9 @@ namespace Wayfarer.Pages.Components
             PathCardAvailability availability = TravelFacade.GetPathCardAvailability(pathCardId);
             if (availability != null && !availability.CanPlay)
             {
-                return availability.Reason ?? "Cannot select this path";
+                if (string.IsNullOrEmpty(availability.Reason))
+                    return "Cannot select this path";
+                return availability.Reason;
             }
             return "";
         }
@@ -183,8 +199,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetDestinationName()
         {
-            if (TravelContext?.CurrentRoute == null)
-                return "Unknown Destination";
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
 
             // Extract destination from route
             string destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
@@ -210,10 +228,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task SelectPathCard(string pathCardId)
         {
-            if (TravelContext?.Session == null)
-            {
-                return;
-            }
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             // Check if player can afford the cardif (TravelContext.CurrentSegmentCards != null)
             {
@@ -221,7 +239,9 @@ namespace Wayfarer.Pages.Components
                 { }
             }
 
-            PathCardDTO card = TravelContext.CurrentSegmentCards?.FirstOrDefault(c => c.Id == pathCardId);
+            if (TravelContext.CurrentSegmentCards == null)
+                throw new InvalidOperationException("No segment cards available");
+            PathCardDTO card = TravelContext.CurrentSegmentCards.FirstOrDefault(c => c.Id == pathCardId);
             if (card == null)
             {
                 return;
@@ -244,8 +264,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task RestAction()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelManager.RestAction();
             if (success)
@@ -260,8 +282,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task TurnBack()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelManager.TurnBack();
             if (success)
@@ -276,8 +300,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<StaminaDot> GetStaminaDots()
         {
-            if (TravelContext?.Session == null)
-                return new List<StaminaDot>();
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             List<StaminaDot> dots = new();
             int capacity = TravelContext.Session.StaminaCapacity;
@@ -299,8 +325,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<SegmentDot> GetSegmentDots()
         {
-            if (TravelContext?.CurrentRoute == null || TravelContext.Session == null)
-                return new List<SegmentDot>();
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             List<SegmentDot> dots = new();
             int totalSegments = TravelContext.CurrentRoute.Segments.Count;
@@ -323,8 +353,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetTravelStateText()
         {
-            if (TravelContext?.Session == null)
-                return "Unknown State";
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             return TravelContext.Session.CurrentState switch
             {
@@ -342,7 +374,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsCardDiscovered(string pathCardId)
         {
-            return TravelContext?.CardDiscoveries.Any(d => d.CardId == pathCardId) == true &&
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            return TravelContext.CardDiscoveries.Any(d => d.CardId == pathCardId) &&
                    TravelContext.CardDiscoveries.IsDiscovered(pathCardId);
         }
 
@@ -489,8 +523,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task ConfirmRevealedCard()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelFacade.ConfirmRevealedCard();
             if (success)
@@ -636,8 +672,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<RoutePath> GetAvailableRoutePaths()
         {
-            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
-                return new List<RoutePath>();
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
 
             return TravelFacade.GetAvailablePaths(
                 TravelContext.Session.RouteId,
@@ -650,8 +690,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsCurrentSegmentRoutePathType()
         {
-            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
-                return false;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
 
             int currentSegment = TravelContext.Session.CurrentSegment;
             if (currentSegment < 1 || currentSegment > TravelContext.CurrentRoute.Segments.Count)
@@ -669,8 +713,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task SelectRoutePath(string routePathId)
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelManager.SelectRoutePath(routePathId);
             if (success)
@@ -685,8 +731,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool CanSelectRoutePath(string routePathId)
         {
-            if (TravelContext?.Session == null)
-                return false;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             List<RoutePath> availablePaths = GetAvailableRoutePaths();
             RoutePath path = availablePaths.FirstOrDefault(p => p.Id == routePathId);
@@ -704,8 +752,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected RouteSegment GetCurrentRouteSegment()
         {
-            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
-                return null;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
 
             int currentSegmentNum = TravelContext.Session.CurrentSegment;
             if (currentSegmentNum < 1 || currentSegmentNum > TravelContext.CurrentRoute.Segments.Count)

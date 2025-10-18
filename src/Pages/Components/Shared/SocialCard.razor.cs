@@ -36,18 +36,28 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardStatClass()
         {
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
             // Goal cards use special styling
-            if (Card?.CardType == CardTypes.Goal)
+            if (Card.CardType == CardTypes.Goal)
                 return "goal";
 
             // Conversation cards use BoundStat for styling
-            if (Card?.SocialCardTemplate?.BoundStat == null) return "";
+            if (Card.SocialCardTemplate.BoundStat == null) return "";
             return Card.SocialCardTemplate.BoundStat.Value.ToString().ToLower();
         }
 
         protected string GetCardStatName()
         {
-            if (Card?.SocialCardTemplate?.BoundStat == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
+            if (Card.SocialCardTemplate.BoundStat == null) return "";
 
             return Card.SocialCardTemplate.BoundStat.Value switch
             {
@@ -62,7 +72,12 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected int GetCardDepth()
         {
-            if (Card?.SocialCardTemplate?.Depth == null) return 1;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
+            if (Card.SocialCardTemplate.Depth == null) return 1;
             return (int)Card.SocialCardTemplate.Depth;
         }
 
@@ -91,19 +106,33 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardName()
         {
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
             return Card.SocialCardTemplate.Title;
         }
 
         protected int GetCardInitiativeCost()
         {
-            if (Card?.SocialCardTemplate == null) return 0;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
             return Card.SocialCardTemplate.InitiativeCost;
         }
 
         protected string GetCardDialogue()
         {
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
+
             // First check for AI-generated narrative
-            if (CardNarratives != null && Card != null)
+            if (CardNarratives != null)
             {
                 CardNarrative cardNarrative = CardNarratives.FirstOrDefault(cn => cn.CardId == Card.SocialCardTemplate.Id);
                 if (cardNarrative != null && !string.IsNullOrEmpty(cardNarrative.NarrativeText))
@@ -116,7 +145,10 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected bool HasCardRequirement()
         {
-            if (Card?.SocialCardTemplate == null) return false;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.SocialCardTemplate == null)
+                throw new InvalidOperationException("SocialCardTemplate is required");
 
             return Card.SocialCardTemplate.RequiredStat.HasValue
                 && Card.SocialCardTemplate.RequiredStatements > 0;
@@ -124,7 +156,11 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardRequirement()
         {
-            if (!HasCardRequirement() || Session == null) return "";
+            if (!HasCardRequirement())
+                return "";
+
+            if (Session == null)
+                throw new InvalidOperationException("Session is required when card has requirements");
 
             PlayerStatType reqStat = Card.SocialCardTemplate.RequiredStat.Value;
             int reqCount = Card.SocialCardTemplate.RequiredStatements;

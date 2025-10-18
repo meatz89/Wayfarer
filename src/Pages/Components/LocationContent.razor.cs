@@ -99,7 +99,7 @@ namespace Wayfarer.Pages.Components
 
             Venue venue = GameFacade.GetCurrentLocation();
             CurrentLocation = venue;
-            Location? location = GameFacade.GetCurrentLocationSpot();
+            Location location = GameFacade.GetCurrentLocationSpot();
             CurrentSpot = location;
             TimeInfo timeInfo = GameFacade.GetTimeInfo();
             CurrentTime = timeInfo.TimeBlock;
@@ -158,21 +158,21 @@ namespace Wayfarer.Pages.Components
             }
 
             // Check if can travel from this location
-            CanTravel = location?.LocationProperties?.Contains(LocationPropertyType.Crossroads) ?? false;
+            CanTravel = location != null && location.LocationProperties != null && location.LocationProperties.Contains(LocationPropertyType.Crossroads);
 
             // Check if can work at this location
-            CanWork = location?.LocationProperties?.Contains(LocationPropertyType.Commercial) ?? false;
+            CanWork = location != null && location.LocationProperties != null && location.LocationProperties.Contains(LocationPropertyType.Commercial);
 
             // Get dynamic Venue actions
             LocationActions.Clear();
             if (venue != null && location != null)
             {
                 LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
-                if (locationActionManager != null)
-                {
-                    List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(venue, location);
-                    LocationActions = actions ?? new List<LocationActionViewModel>();
-                }
+                if (locationActionManager == null)
+                    throw new InvalidOperationException("LocationActionManager not available");
+
+                List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(venue, location);
+                LocationActions = actions;
             }
 
             // Get discovered investigations with intro actions at this location
@@ -257,24 +257,26 @@ namespace Wayfarer.Pages.Components
 
         protected async Task StartMentalGoal(Goal goal)
         {
-            if (GameScreen != null)
-            {
-                await GameScreen.StartMentalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
-            }
-            else
-            {
-            }
+            if (GameScreen == null)
+                throw new InvalidOperationException("GameScreen not available");
+
+            Player player = GameWorld.GetPlayer();
+            if (player.CurrentLocation == null)
+                throw new InvalidOperationException("Player has no current location");
+
+            await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.InvestigationId);
         }
 
         protected async Task StartPhysicalGoal(Goal goal)
         {
-            if (GameScreen != null)
-            {
-                await GameScreen.StartPhysicalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
-            }
-            else
-            {
-            }
+            if (GameScreen == null)
+                throw new InvalidOperationException("GameScreen not available");
+
+            Player player = GameWorld.GetPlayer();
+            if (player.CurrentLocation == null)
+                throw new InvalidOperationException("Player has no current location");
+
+            await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.InvestigationId);
         }
 
         protected async Task StartInvestigationIntro(Investigation investigation)
@@ -373,7 +375,10 @@ namespace Wayfarer.Pages.Components
 
         protected string GetStateClass(string connectionState)
         {
-            return connectionState?.ToLower() switch
+            if (string.IsNullOrEmpty(connectionState))
+                return "";
+
+            return connectionState.ToLower() switch
             {
                 "disconnected" => "disconnected",
                 "hostile" => "hostile",
@@ -407,7 +412,7 @@ namespace Wayfarer.Pages.Components
             if (currentLocation == null) return new List<NPC>();
 
             // Get the location we're checking
-            Location? location = GameWorld.Locations.FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == LocationId);
+            Location location = GameWorld.Locations.FirstOrDefault(s => s.VenueId == currentLocation.Id && s.Name == LocationId);
             if (location == null) return new List<NPC>();
 
             // Get ALL NPCs at this Venue and filter by LocationId
@@ -418,7 +423,9 @@ namespace Wayfarer.Pages.Components
         protected string GetNPCName(string npcId)
         {
             NPC npc = GameFacade.GetNPCById(npcId);
-            return npc?.Name ?? "";
+            if (npc == null)
+                return "";
+            return npc.Name;
         }
 
         protected string GetNPCStateDisplay(NPC npc)
@@ -450,8 +457,8 @@ namespace Wayfarer.Pages.Components
             }
 
             // Fallback to generic descriptions if no specific description is available
-            string? state = npc.ConnectionState?.ToLower();
-            string? personality = npc.PersonalityType?.ToLower();
+            string state = npc.ConnectionState != null ? npc.ConnectionState.ToLower() : "";
+            string personality = npc.PersonalityType != null ? npc.PersonalityType.ToLower() : "";
 
             if (state == "hostile")
             {
@@ -523,7 +530,7 @@ namespace Wayfarer.Pages.Components
             // Generate time-specific Venue traits based on Venue type and current time
             if (CurrentLocation == null) return "";
 
-            string locationName = CurrentLocation.Name?.ToLower() ?? "";
+            string locationName = CurrentLocation.Name != null ? CurrentLocation.Name.ToLower() : "";
 
             // Market locations during different times
             if (locationName.Contains("market") || locationName.Contains("square"))
@@ -745,8 +752,10 @@ namespace Wayfarer.Pages.Components
         protected int GetGoalDifficulty(Goal goal)
         {
             if (goal == null) return 0;
-            if (DifficultyService == null || ItemRepository == null)
-                return goal.BaseDifficulty;
+            if (DifficultyService == null)
+                throw new InvalidOperationException("DifficultyService not available");
+            if (ItemRepository == null)
+                throw new InvalidOperationException("ItemRepository not available");
 
             // Calculate actual difficulty with all modifiers
             DifficultyResult result = DifficultyService.CalculateDifficulty(goal, ItemRepository);
@@ -839,19 +848,21 @@ namespace Wayfarer.Pages.Components
         {
             List<LocationActionViewModel> playerActions = new List<LocationActionViewModel>();
 
-            if (GameWorld?.PlayerActions != null)
+            if (GameWorld == null)
+                throw new InvalidOperationException("GameWorld not available");
+            if (GameWorld.PlayerActions == null)
+                throw new InvalidOperationException("PlayerActions not initialized");
+
+            foreach (PlayerAction action in GameWorld.PlayerActions)
             {
-                foreach (PlayerAction action in GameWorld.PlayerActions)
+                playerActions.Add(new LocationActionViewModel
                 {
-                    playerActions.Add(new LocationActionViewModel
-                    {
-                        Title = action.Name,
-                        Detail = action.Description,
-                        ActionType = action.ActionType,
-                        IsAvailable = true,
-                        Icon = ""
-                    });
-                }
+                    Title = action.Name,
+                    Detail = action.Description,
+                    ActionType = action.ActionType,
+                    IsAvailable = true,
+                    Icon = ""
+                });
             }
 
             return playerActions;
@@ -871,7 +882,7 @@ namespace Wayfarer.Pages.Components
                 PersonalityDescription = npc.PersonalityType.ToString(),
                 ConnectionState = GameFacade.GetNPCConnectionState(npc.ID).ToString(),
                 StateClass = GetStateClass(GameFacade.GetNPCConnectionState(npc.ID).ToString()),
-                Description = npc.Description ?? "",
+                Description = npc.Description != null ? npc.Description : "",
                 Tokens = new List<TokenViewModel>()
             };
         }

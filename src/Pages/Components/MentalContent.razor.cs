@@ -55,7 +55,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetHandCount()
         {
-            return Hand?.Count ?? 0;
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Count;
         }
 
         // =============================================
@@ -64,27 +66,37 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentProgress()
         {
-            return Session?.CurrentProgress ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentProgress;
         }
 
         protected int GetCurrentAttention()
         {
-            return Session?.CurrentAttention ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentAttention;
         }
 
         protected int GetMaxAttention()
         {
-            return Session?.MaxAttention ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxAttention;
         }
 
         protected int GetCurrentExposure()
         {
-            return Session?.CurrentExposure ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentExposure;
         }
 
         protected int GetMaxExposure()
         {
-            return Session?.MaxExposure ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxExposure;
         }
 
         protected int GetProgressPercentage()
@@ -269,7 +281,7 @@ namespace Wayfarer.Pages.Components
 
             // Use Act as default action type for preview
             MentalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, MentalActionType.Act);
-            return projection.EffectDescription ?? "";
+            return projection.EffectDescription;
         }
 
         /// <summary>
@@ -295,7 +307,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentUnderstanding()
         {
-            return Session?.CurrentUnderstanding ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentUnderstanding;
         }
 
         protected int GetUnderstandingPercentage()
@@ -315,7 +329,8 @@ namespace Wayfarer.Pages.Components
 
         protected bool IsTierUnlocked(int tier)
         {
-            return Session?.UnlockedTiers?.Contains(tier) ?? (tier == 1);
+            if (Session == null || Session.UnlockedTiers == null) return tier == 1;
+            return Session.UnlockedTiers.Contains(tier);
         }
 
         protected int GetTierUnlockThreshold(int tier)
@@ -354,7 +369,9 @@ namespace Wayfarer.Pages.Components
         protected string GetCardCategory(CardInstance card)
         {
             // MentalCategory: Investigation type
-            return card?.MentalCardTemplate?.Category.ToString() ?? "Unknown";
+            if (card?.MentalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.MentalCardTemplate.Category.ToString();
         }
 
         protected string GetCardCategoryClass(CardInstance card)
@@ -384,7 +401,9 @@ namespace Wayfarer.Pages.Components
             if (IsProcessing) return false;
 
             // Basic validation: check if player has enough Attention to play card
-            int attentionCost = card?.MentalCardTemplate?.AttentionCost ?? 0;
+            if (card.MentalCardTemplate == null)
+                throw new InvalidOperationException("Card template is null");
+            int attentionCost = card.MentalCardTemplate.AttentionCost;
             return Session.CurrentAttention >= attentionCost;
         }
 
@@ -404,7 +423,9 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(CardInstance card)
         {
-            return card?.MentalCardTemplate?.Name ?? "Unknown";
+            if (card?.MentalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.MentalCardTemplate.Name;
         }
 
         // =============================================
@@ -413,7 +434,11 @@ namespace Wayfarer.Pages.Components
 
         protected Dictionary<DiscoveryType, List<string>> GetDiscoveries()
         {
-            return Session?.Discoveries ?? new Dictionary<DiscoveryType, List<string>>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Discoveries == null)
+                throw new InvalidOperationException("Session.Discoveries is null");
+            return Session.Discoveries;
         }
 
         protected List<string> GetDiscoveriesOfType(DiscoveryType type)
@@ -441,12 +466,16 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentPhase()
         {
-            return Session?.CurrentPhaseIndex ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentPhaseIndex;
         }
 
         protected int GetVictoryThreshold()
         {
-            return Session?.VictoryThreshold ?? 20;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.VictoryThreshold;
         }
 
         protected bool IsInvestigationComplete()
@@ -474,12 +503,18 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCategoryCount(MentalCategory category)
         {
-            return Session?.GetCategoryCount(category) ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetCategoryCount(category);
         }
 
         protected Dictionary<MentalCategory, int> GetAllCategoryCounts()
         {
-            return Session?.CategoryCounts ?? new Dictionary<MentalCategory, int>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.CategoryCounts == null)
+                throw new InvalidOperationException("Session.CategoryCounts is null");
+            return Session.CategoryCounts;
         }
 
         // =============================================
@@ -488,12 +523,16 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTimeSegmentsSpent()
         {
-            return Session?.TimeSegmentsSpent ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.TimeSegmentsSpent;
         }
 
         protected int GetDrawCount()
         {
-            return Session?.GetDrawCount() ?? 3;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetDrawCount();
         }
 
         // =============================================
@@ -502,16 +541,17 @@ namespace Wayfarer.Pages.Components
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null) return ("Unknown Location", "", "");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is null");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
             Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
-                return ("Unknown Location", "", "");
+                throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name ?? "Unknown";
-            string spotName = currentSpot.Name ?? "Unknown";
+            string locationName = currentLocation.Name;
+            string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
             return (locationName, spotName, spotTraits);
@@ -550,7 +590,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCardAttentionCost(CardInstance card)
         {
-            return card?.MentalCardTemplate?.AttentionCost ?? 0;
+            if (card?.MentalCardTemplate == null) return 0;
+            return card.MentalCardTemplate.AttentionCost;
         }
 
         protected int GetCardAttentionGeneration(CardInstance card)
@@ -586,7 +627,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetAvailableGoalCards()
         {
-            return Hand?.Where(c => IsGoalCard(c)).ToList() ?? new List<CardInstance>();
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Where(c => IsGoalCard(c)).ToList();
         }
 
         // =============================================

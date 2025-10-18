@@ -55,7 +55,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetHandCount()
         {
-            return Hand?.Count ?? 0;
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Count;
         }
 
         // =============================================
@@ -64,32 +66,44 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentBreakthrough()
         {
-            return Session?.CurrentBreakthrough ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentBreakthrough;
         }
 
         protected int GetCurrentExertion()
         {
-            return Session?.CurrentExertion ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentExertion;
         }
 
         protected int GetMaxExertion()
         {
-            return Session?.MaxExertion ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxExertion;
         }
 
         protected int GetCurrentDanger()
         {
-            return Session?.CurrentDanger ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentDanger;
         }
 
         protected int GetMaxDanger()
         {
-            return Session?.MaxDanger ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxDanger;
         }
 
         protected int GetCurrentAggression()
         {
-            return Session?.Aggression ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.Aggression;
         }
 
         protected int GetBreakthroughPercentage()
@@ -110,13 +124,17 @@ namespace Wayfarer.Pages.Components
         protected int GetAggressionValue()
         {
             // Returns Aggression on -10 to +10 scale as 0-20 for UI display
-            int aggression = Session?.Aggression ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            int aggression = Session.Aggression;
             return aggression + 10; // Convert -10..10 to 0..20
         }
 
         protected string GetAggressionClass()
         {
-            int aggression = Session?.Aggression ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            int aggression = Session.Aggression;
             if (aggression < -5) return "overcautious";
             if (aggression > 5) return "reckless";
             return "balanced";
@@ -299,7 +317,7 @@ namespace Wayfarer.Pages.Components
 
             // Use Execute as default action type for preview
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
-            return projection.EffectDescription ?? "";
+            return projection.EffectDescription;
         }
 
         /// <summary>
@@ -325,7 +343,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentUnderstanding()
         {
-            return Session?.CurrentUnderstanding ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentUnderstanding;
         }
 
         protected int GetUnderstandingPercentage()
@@ -390,7 +410,9 @@ namespace Wayfarer.Pages.Components
         protected string GetCardCategory(CardInstance card)
         {
             // PhysicalCategory represents the type of physical action
-            return card?.PhysicalCardTemplate?.Category.ToString() ?? "Unknown";
+            if (card?.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.PhysicalCardTemplate.Category.ToString();
         }
 
         protected string GetCardCategoryClass(CardInstance card)
@@ -420,7 +442,9 @@ namespace Wayfarer.Pages.Components
             if (IsProcessing) return false;
 
             // Basic validation: check if player has enough Exertion to play card
-            int exertionCost = card?.PhysicalCardTemplate?.ExertionCost ?? 0;
+            if (card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card template is null");
+            int exertionCost = card.PhysicalCardTemplate.ExertionCost;
             return Session.CurrentExertion >= exertionCost;
         }
 
@@ -440,7 +464,9 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(CardInstance card)
         {
-            return card?.PhysicalCardTemplate?.Name ?? "Unknown";
+            if (card?.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.PhysicalCardTemplate.Name;
         }
 
         // =============================================
@@ -449,7 +475,11 @@ namespace Wayfarer.Pages.Components
 
         protected Dictionary<DiscoveryType, List<string>> GetDiscoveries()
         {
-            return Session?.Discoveries ?? new Dictionary<DiscoveryType, List<string>>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Discoveries == null)
+                throw new InvalidOperationException("Session.Discoveries is null");
+            return Session.Discoveries;
         }
 
         protected List<string> GetDiscoveriesOfType(DiscoveryType type)
@@ -477,7 +507,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentPhase()
         {
-            return Session?.CurrentPhaseIndex ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentPhaseIndex;
         }
 
         protected int GetVictoryThreshold()
@@ -542,12 +574,18 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCategoryCount(PhysicalCategory category)
         {
-            return Session?.GetCategoryCount(category) ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetCategoryCount(category);
         }
 
         protected Dictionary<PhysicalCategory, int> GetAllCategoryCounts()
         {
-            return Session?.CategoryCounts ?? new Dictionary<PhysicalCategory, int>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.CategoryCounts == null)
+                throw new InvalidOperationException("Session.CategoryCounts is null");
+            return Session.CategoryCounts;
         }
 
         // =============================================
@@ -556,7 +594,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetApproachHistory()
         {
-            return Session?.ApproachHistory ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.ApproachHistory;
         }
 
         // =============================================
@@ -565,12 +605,16 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTimeSegmentsSpent()
         {
-            return Session?.TimeSegmentsSpent ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.TimeSegmentsSpent;
         }
 
         protected int GetDrawCount()
         {
-            return Session?.GetDrawCount() ?? 3;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetDrawCount();
         }
 
         // =============================================
@@ -579,16 +623,17 @@ namespace Wayfarer.Pages.Components
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null) return ("Unknown Location", "", "");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is null");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
             Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
-                return ("Unknown Location", "", "");
+                throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name ?? "Unknown";
-            string spotName = currentSpot.Name ?? "Unknown";
+            string locationName = currentLocation.Name;
+            string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
             return (locationName, spotName, spotTraits);
@@ -627,7 +672,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCardExertionCost(CardInstance card)
         {
-            return card?.PhysicalCardTemplate?.ExertionCost ?? 0;
+            if (card?.PhysicalCardTemplate == null) return 0;
+            return card.PhysicalCardTemplate.ExertionCost;
         }
 
         protected int GetCardExertionGeneration(CardInstance card)
@@ -663,7 +709,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<CardInstance> GetAvailableGoalCards()
         {
-            return Hand?.Where(c => IsGoalCard(c)).ToList() ?? new List<CardInstance>();
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Where(c => IsGoalCard(c)).ToList();
         }
 
         // =============================================
