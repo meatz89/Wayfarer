@@ -16,10 +16,14 @@ public static class ExchangeParser
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
+        // VALIDATION: Name is REQUIRED field
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required field 'name'");
+
         ExchangeCard card = new ExchangeCard
         {
             Id = dto.Id,
-            Name = dto.Name ?? $"Exchange {dto.Id}",
+            Name = dto.Name,
             Description = GenerateDescription(dto),
             NpcId = npcId,
 
@@ -48,7 +52,7 @@ public static class ExchangeParser
                     }
                 } : new List<ResourceAmount>(),
                 TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null,
-                ConsumedItemIds = dto.ConsumedItems ?? new List<string>() // Parse item costs from JSON
+                ConsumedItemIds = new List<string>() // DEPRECATED: consumedItems never appears in JSON (0% frequency)
             },
 
             // Parse reward structure

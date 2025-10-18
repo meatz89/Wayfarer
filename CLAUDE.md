@@ -826,6 +826,175 @@ YOU ARE THE GORDON RAMSAY OF SOFTWARE ENGINEERING. Aggressive enforcement, zero 
 
 ---
 
+## ENTITY INITIALIZATION STANDARD ("LET IT CRASH" PHILOSOPHY)
+
+### The Problem: Defensive Programming Hides Bugs
+
+**ANTI-PATTERN** (Defensive Programming):
+```csharp
+// Parser hiding missing data with defaults
+public SocialCard ParseCard(SocialCardDTO dto)
+{
+    return new SocialCard
+    {
+        Title = dto.Title ?? "",  // ❌ HIDES missing required field!
+        PersonalityTypes = dto.PersonalityTypes ?? new List<string>()  // ❌ REDUNDANT!
+    };
+}
+
+// Game logic not trusting entity initialization
+List<Goal> goals = obstacle.GoalIds?.Select(id => _gameWorld.Goals[id]).ToList()
+                   ?? new List<Goal>();  // ❌ GoalIds NEVER null!
+```
+
+**Why This Is Wrong:**
+- Hides bugs instead of failing fast
+- Creates dual source of truth (entity initialization + ?? fallback)
+- Wastes developer time debugging silent failures
+- Violates "Let It Crash" principle from Erlang/Elixir
+
+### The Solution: Trust Entity Contracts
+
+**THREE INITIALIZATION PATTERNS:**
+
+**Pattern 1: Inline Initialization (Preferred)**
+```csharp
+public class Goal
+{
+    // Collections ALWAYS initialize inline
+    public List<string> GoalIds { get; set; } = new List<string>();
+    public List<DifficultyModifier> Modifiers { get; set; } = new List<DifficultyModifier>();
+
+    // Complex objects initialize to avoid null checks
+    public GoalCosts Costs { get; set; } = new GoalCosts();
+
+    // Value types and strings can have meaningful defaults
+    public bool IsAvailable { get; set; } = true;
+    public string Description { get; set; } = string.Empty;
+}
+```
+
+**Pattern 2: Constructor Initialization**
+```csharp
+public class SocialTurnResult
+{
+    public List<CardInstance> DrawnCards { get; set; }
+    public List<CardInstance> RemovedCards { get; set; }
+
+    public SocialTurnResult()
+    {
+        DrawnCards = new List<CardInstance>();
+        RemovedCards = new List<CardInstance>();
+    }
+}
+```
+
+**Pattern 3: Validation Null (Rare)**
+```csharp
+public class GameRules
+{
+    // Intentionally null until loaded from JSON - CRASHES if accessed before load
+    public List<ListenDrawCountEntry> ListenDrawCounts { get; set; }
+
+    public int GetListenDrawCount(ConnectionState state)
+    {
+        if (ListenDrawCounts == null || ListenDrawCounts.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "ListenDrawCounts not loaded from package content. " +
+                "Ensure 05_gameplay.json contains listenDrawCounts configuration.");
+        }
+        // ...
+    }
+}
+```
+
+### Parser Rules
+
+**CORRECT** (Trust Entity):
+```csharp
+return new SocialCard
+{
+    Id = dto.Id,
+    Title = dto.Title,  // ✅ Entity crashes if null (validation added separately)
+    PersonalityTypes = dto.PersonalityTypes != null
+        ? new List<string>(dto.PersonalityTypes)
+        : new List<string>()  // ✅ DTO might not initialize, entity does
+};
+```
+
+**CORRECT** (Validate Required Fields):
+```csharp
+if (string.IsNullOrEmpty(dto.Title))
+    throw new InvalidOperationException($"Card '{dto.Id}' missing required field 'title'");
+
+return new SocialCard
+{
+    Title = dto.Title  // ✅ Validated above, no ?? needed
+};
+```
+
+### Game Logic Rules
+
+**CORRECT** (Trust Entity):
+```csharp
+// Entity guarantees GoalIds is never null
+List<Goal> goals = obstacle.GoalIds
+    .Select(id => _gameWorld.Goals[id])
+    .ToList();  // ✅ No ?? operator needed
+```
+
+**WRONG** (Defensive):
+```csharp
+List<Goal> goals = (obstacle.GoalIds ?? new List<string>())  // ❌ REDUNDANT!
+    .Select(id => _gameWorld.Goals[id])
+    .ToList();
+```
+
+### The ?? Operator: When It's Allowed
+
+**ONLY TWO VALID USES:**
+
+**1. ArgumentNullException Guards:**
+```csharp
+public SomeClass(GameWorld gameWorld)
+{
+    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));  // ✅ OK
+}
+```
+
+**2. DTO → Entity Conversion (DTO May Not Initialize):**
+```csharp
+// DTO from JSON might not initialize collections
+public Goal ParseGoal(GoalDTO dto)
+{
+    return new Goal
+    {
+        // ✅ OK: DTO might be null, entity guarantees initialization
+        GoalCards = dto.GoalCards != null
+            ? dto.GoalCards.Select(ParseGoalCard).ToList()
+            : new List<GoalCard>()
+    };
+}
+```
+
+**EVERYTHING ELSE IS FORBIDDEN.**
+
+### Why This Matters
+
+**Benefits:**
+- Bugs fail fast with descriptive errors (easier debugging)
+- Single source of truth (entity initialization contract)
+- Less code (no redundant ?? operators everywhere)
+- Forces fixing root cause (missing JSON data) instead of hiding it
+
+**Example Impact:**
+- **Before**: 479 ?? operators across 115 files
+- **After**: ~50 ?? operators (only ArgumentNullException guards)
+- **Bug Prevention**: Missing JSON fields crash immediately with location, not silent failures
+
+---
+
 ## CONSTRAINT SUMMARY
 
 **ARCHITECTURE**
@@ -833,6 +1002,9 @@ GameWorld single source of truth | GameWorld has zero dependencies | No SharedDa
 
 **CODE STANDARDS**
 Strong typing (no var, Dictionary, HashSet, object, func, lambda) | No extension methods | No Helper/Utility classes | Domain Services and Entities only | One method, one purpose | No exception handling | int over float | No logging until requested | No inline styles | Code over comments
+
+**ENTITY INITIALIZATION (LET IT CRASH PHILOSOPHY)**
+Collections ALWAYS initialize inline (`public List<T> X { get; set; } = new List<T>();`) | NEVER null unless validation pattern | Parsers assign directly, NO ?? operators | Game logic trusts entity initialization | ArgumentNullException for null constructor parameters ONLY | Let missing data crash with descriptive errors | ?? operator FORBIDDEN except ArgumentNullException guards | Trust entity contracts, don't defend against them
 
 **REFACTORING**
 Delete first, fix after | No compatibility layers | No gradual migration | Complete refactoring only | No TODO comments | No legacy code | HIGHLANDER (one concept, one implementation) | No duplicate markdown files | Delete unnecessary abstractions | Finish what you start

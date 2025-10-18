@@ -21,6 +21,9 @@ public static class ObstacleParser
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"Obstacle '{dto.Id}' in entity '{parentEntityId}' missing required 'Name' field");
 
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidOperationException($"Obstacle '{dto.Id}' in entity '{parentEntityId}' missing required 'Description' field");
+
         // Parse contexts from JSON strings to enum
         List<ObstacleContext> contexts = new List<ObstacleContext>();
         if (dto.Contexts != null)
@@ -44,7 +47,7 @@ public static class ObstacleParser
         {
             Id = dto.Id,
             Name = dto.Name,
-            Description = dto.Description ?? string.Empty,
+            Description = dto.Description,
             Intensity = dto.Intensity,
             Contexts = contexts,
             IsPermanent = dto.IsPermanent,

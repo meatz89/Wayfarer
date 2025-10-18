@@ -41,7 +41,7 @@ public class PhysicalFacade
 
     public List<CardInstance> GetHand()
     {
-        return _gameWorld.CurrentPhysicalSession.Deck?.Hand.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList();
     }
 
     public PhysicalDeckBuilder GetDeckBuilder()
@@ -51,17 +51,17 @@ public class PhysicalFacade
 
     public int GetDeckCount()
     {
-        return _gameWorld.CurrentPhysicalSession.Deck?.RemainingDeckCards ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck.RemainingDeckCards;
     }
 
     public int GetExhaustCount()
     {
-        return _gameWorld.CurrentPhysicalSession.Deck?.LockedCards.Count ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.Count;
     }
 
     public List<CardInstance> GetLockedCards()
     {
-        return _gameWorld.CurrentPhysicalSession.Deck?.LockedCards.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,

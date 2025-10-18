@@ -1,41 +1,37 @@
 /// <summary>
 /// DTO for individual conversation cards
+/// Field optionality contract documented in field-optionality-contract.md
 /// </summary>
 public class SocialCardDTO
 {
+    // ========== REQUIRED FIELDS (100% frequency in JSON) ==========
+    // Parser must crash if these are missing
     public string Id { get; set; }
     public string Type { get; set; }
-    public string ConnectionType { get; set; }
-    public int? MomentumThreshold { get; set; } // For request cards
     public string Title { get; set; }
     public string DialogueText { get; set; }
-    public int? MinimumTokensRequired { get; set; }
-
-    // Categorical properties - define behavior through context
     public string Persistence { get; set; } // Echo/Statement
-    public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
-
-    // Personality targeting - which NPCs can use this card
-    public List<string> PersonalityTypes { get; set; }
-
-    // Player stats system - which stat this card is bound to
-    public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
-
-    // NEW: Delivery property - how card affects Cadence when spoken
     public string Delivery { get; set; } // "Standard" (+1), "Commanding" (+2), "Measured" (+0), "Yielding" (-1)
 
-    // 5-Resource System Properties (Understanding + Delivery)
+    // ========== CONDITIONAL FIELDS (95% frequency - conversation cards only) ==========
+    // These appear in conversation cards but not request cards
+    public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
+    public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
     public int? Depth { get; set; } // 1-10 depth system
-    // InitiativeCost - DERIVED from boundStat + depth (not in JSON)
-    public CardEffectsDTO Effects { get; set; } // New effects structure
+    public List<string> PersonalityTypes { get; set; }
 
-    // Token requirements for signature cards
-    public Dictionary<string, int> TokenRequirement { get; set; }
+    // ========== RARE FIELDS (4% frequency - request cards only) ==========
+    public int? MomentumThreshold { get; set; } // For request cards
 
-    // NPC-specific targeting for signature cards
-    public string NpcSpecific { get; set; }
+    // ========== OPTIONAL FIELDS (0% frequency - parser handles null gracefully) ==========
+    // These fields are NOT in JSON currently but parser checks for them
+    // Parser handles null with semantically valid defaults, not bug hiding
+    public string ConnectionType { get; set; } // Token type (Trust/Diplomacy/Status/Shadow) - defaults to Trust
+    public CardEffectsDTO Effects { get; set; } // Legacy effects structure - returns None if null
+    public Dictionary<string, int> TokenRequirement { get; set; } // Signature card requirements - empty dict if null
 
-    // V2 Investigation System - Understanding replaces KnowledgeGranted
-    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-    public List<string> SecretsGranted { get; set; }
+    // DEPRECATED FIELDS REMOVED (0% frequency in JSON, truly unused):
+    // - MinimumTokensRequired → parser used ?? 0 to hide bugs, deleted
+    // - NpcSpecific → parsed but never meaningfully used, deleted
+    // - SecretsGranted → parser used ?? new List() to hide bugs, deleted
 }

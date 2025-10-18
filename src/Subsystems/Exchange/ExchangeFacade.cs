@@ -76,7 +76,7 @@ public class ExchangeFacade
         // Get exchanges from GameWorld directly
         // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
         NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
-        List<ExchangeCard> npcExchanges = entry?.ExchangeCards ?? new List<ExchangeCard>();
+        List<ExchangeCard> npcExchanges = entry.ExchangeCards;
 
         // Also check NPC.ExchangeDeck
         if (npc.ExchangeDeck != null)
@@ -96,9 +96,9 @@ public class ExchangeFacade
             .FirstOrDefault(s => s.Id == player.CurrentLocation?.Id);
 
         // Convert SpotProperties to domain strings for validation
-        List<string> spotDomains = currentSpot?.LocationProperties?
+        List<string> spotDomains = currentSpot.LocationProperties
             .Select(p => p.ToString())
-            .ToList() ?? new List<string>();
+            .ToList();
 
         // Validate each exchange
         List<ExchangeOption> validExchanges = new List<ExchangeOption>();
@@ -119,8 +119,8 @@ public class ExchangeFacade
                 validExchanges.Add(new ExchangeOption
                 {
                     ExchangeId = exchange.Id,
-                    Name = exchange.Name ?? "Trade",
-                    Description = exchange.Description ?? FormatExchangeDescription(exchange),
+                    Name = exchange.Name,
+                    Description = exchange.Description,
                     Cost = FormatCost(exchange.GetCostAsList()),
                     Reward = FormatReward(exchange.GetRewardAsList()),
                     CanAfford = validation.CanAfford,
@@ -130,7 +130,7 @@ public class ExchangeFacade
                         IsValid = validation.IsValid,
                         IsVisible = validation.IsVisible,
                         ValidationMessage = validation.ValidationMessage,
-                        RequirementDetails = string.Join(", ", validation.MissingRequirements ?? new List<string>())
+                        RequirementDetails = string.Join(", ", validation.MissingRequirements)
                     }
                 });
             }
@@ -158,7 +158,7 @@ public class ExchangeFacade
 
         // Get exchange data from GameWorld// Query GameWorld for the exchange
         NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
-        ExchangeCard exchange = entry?.ExchangeCards?.FirstOrDefault(e => e.Id == exchangeId);
+        ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Id == exchangeId);
 
         // Also check NPC.ExchangeDeck if not found
         if (exchange == null && npc.ExchangeDeck != null)
@@ -189,7 +189,7 @@ public class ExchangeFacade
             return new ExchangeResult
             {
                 Success = false,
-                Message = validation.ValidationMessage ?? "Cannot afford this exchange"
+                Message = validation.ValidationMessage
             };
         }
 
@@ -214,7 +214,7 @@ public class ExchangeFacade
         ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
         {
             ExchangeId = exchangeId,
-            ExchangeName = exchange.Name ?? exchangeId,
+            ExchangeName = exchange.Name,
             Timestamp = DateTime.Now,
             Day = _gameWorld.CurrentDay,
             TimeBlock = _gameWorld.CurrentTimeBlock,
@@ -319,15 +319,15 @@ public class ExchangeFacade
     public ExchangeRequirements GetExchangeRequirements(ExchangeCard exchange)
     {
         // Get first token requirement if exists
-        ConnectionType? firstTokenType = exchange.Cost?.TokenRequirements?.Keys.FirstOrDefault();
-        int minimumTokens = exchange.Cost?.TokenRequirements?.Values.FirstOrDefault() ?? 0;
+        ConnectionType? firstTokenType = exchange.Cost.TokenRequirements.Keys.FirstOrDefault();
+        int minimumTokens = exchange.Cost.TokenRequirements.Values.FirstOrDefault();
 
         return new ExchangeRequirements
         {
             MinimumTokens = minimumTokens,
             RequiredTokenType = firstTokenType,
             RequiredDomains = exchange.RequiredDomains,
-            ConsumedItems = exchange.Cost?.ConsumedItemIds?.ToList() ?? new List<string>(),
+            ConsumedItems = exchange.Cost.ConsumedItemIds.ToList(),
             TimeRestrictions = exchange.AvailableTimeBlocks
         };
     }

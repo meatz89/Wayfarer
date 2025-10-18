@@ -131,9 +131,6 @@ public static class SocialCardParser
             }
         }
 
-        // Parse NPC-specific targeting
-        string npcSpecific = dto.NpcSpecific;
-
         // All effects now use EffectFormula system
         // FORMULA-BASED EFFECT SYSTEM
         CardEffectFormula effectFormula;
@@ -158,6 +155,14 @@ public static class SocialCardParser
             }
         }
 
+        // VALIDATION: Title is REQUIRED field (100% frequency in JSON)
+        if (string.IsNullOrEmpty(dto.Title))
+        {
+            throw new InvalidOperationException(
+                $"MISSING REQUIRED FIELD: SocialCard '{dto.Id}' missing required field 'title'. " +
+                $"Check Content/Core/08_social_cards.json");
+        }
+
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
@@ -165,7 +170,7 @@ public static class SocialCardParser
         return new SocialCard
         {
             Id = dto.Id,
-            Title = dto.Title ?? "",
+            Title = dto.Title,
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
@@ -177,16 +182,12 @@ public static class SocialCardParser
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueText = dto.DialogueText,
             VerbPhrase = "",
-            MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
             MomentumThreshold = dto.MomentumThreshold ?? 0,
             BoundStat = boundStat,
             RequiredStat = requiredStat,
             RequiredStatements = requiredStatements,
             Traits = traits,
-            TokenRequirements = tokenRequirements,
-            NpcSpecific = npcSpecific,
-            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-            SecretsGranted = dto.SecretsGranted ?? new List<string>()
+            TokenRequirements = tokenRequirements
         };
     }
 

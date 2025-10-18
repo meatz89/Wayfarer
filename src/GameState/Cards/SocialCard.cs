@@ -39,8 +39,7 @@ public class SocialCard
     // Card properties
     public ConnectionType TokenType { get; init; }
 
-    // Token requirements for gated exchanges
-    public int MinimumTokensRequired { get; init; } = 0;
+    // DELETED: MinimumTokensRequired (0% frequency in JSON - deprecated field)
     public ConnectionType? RequiredTokenType { get; init; }
 
     // Personality targeting - which NPCs can use this card
@@ -72,12 +71,8 @@ public class SocialCard
     // Token requirements for signature cards
     public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
 
-    // NPC-specific targeting for signature cards
-    public string NpcSpecific { get; init; }
-
-    // V2 Investigation System - Understanding replaces KnowledgeGranted
-    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-    public IReadOnlyList<string> SecretsGranted { get; init; } = new List<string>();
+    // DELETED: NpcSpecific (0% frequency in JSON - deprecated field)
+    // DELETED: SecretsGranted (0% frequency in JSON - deprecated field - Knowledge system eliminated)
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(SocialSession session)

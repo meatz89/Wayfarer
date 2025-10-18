@@ -295,8 +295,15 @@ public class GameFacade
             if (finalDestSpot != null)
             {
                 Venue? destLocation = _gameWorld.Venues
-                    ?.FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
-                destinationName = destLocation?.Name ?? finalDestSpot.Name;
+                    .FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
+                if (destLocation != null)
+                {
+                    destinationName = destLocation.Name;
+                }
+                else if (!string.IsNullOrEmpty(finalDestSpot.Name))
+                {
+                    destinationName = finalDestSpot.Name;
+                }
             }
 
             _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info);
@@ -376,7 +383,7 @@ public class GameFacade
     /// </summary>
     public bool IsConversationActive()
     {
-        return _conversationFacade?.IsConversationActive() ?? false;
+        return _conversationFacade.IsConversationActive();
     }
 
     /// <summary>
@@ -467,7 +474,7 @@ public class GameFacade
     /// </summary>
     public bool IsMentalSessionActive()
     {
-        return _mentalFacade?.IsSessionActive() ?? false;
+        return _mentalFacade.IsSessionActive();
     }
 
     // ========== PHYSICAL TACTICAL SYSTEM OPERATIONS ==========
@@ -541,7 +548,7 @@ public class GameFacade
     /// </summary>
     public bool IsPhysicalSessionActive()
     {
-        return _physicalFacade?.IsSessionActive() ?? false;
+        return _physicalFacade.IsSessionActive();
     }
 
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)
@@ -598,9 +605,9 @@ public class GameFacade
             },
             LocationInfo = new LocationInfo
             {
-                VenueId = currentSpot?.Id ?? "",
-                Name = currentLocation?.Name ?? "",
-                Description = currentLocation?.Description ?? ""
+                VenueId = currentSpot.Id,
+                Name = currentLocation.Name,
+                Description = currentLocation.Description
             },
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
@@ -609,7 +616,7 @@ public class GameFacade
             Session = new ExchangeSession
             {
                 NpcId = npcId,
-                VenueId = currentSpot?.Id ?? "",
+                VenueId = currentSpot.Id,
                 AvailableExchanges = availableExchanges
             }
         };
@@ -646,7 +653,7 @@ public class GameFacade
 
         // Initialize player at starting Venue from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
-        string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
+        string startingSpotId = _gameWorld.InitialLocationSpotId;
         Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot != null)
         {
@@ -657,15 +664,32 @@ public class GameFacade
         { }
 
         // Initialize player resources from GameWorld initial player config
-        if (_gameWorld.InitialPlayerConfig != null)
+        if (_gameWorld.InitialPlayerConfig == null)
         {
-            player.Coins = _gameWorld.InitialPlayerConfig.Coins ?? 20;
-            player.Health = _gameWorld.InitialPlayerConfig.Health ?? 10;
-            player.MaxHealth = _gameWorld.InitialPlayerConfig.MaxHealth ?? 10;
-            player.Hunger = _gameWorld.InitialPlayerConfig.Hunger ?? 0;
-            player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints ?? 12;
-            player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina ?? 12;
-        }// Initialize exchange inventories
+            throw new InvalidOperationException(
+                "InitialPlayerConfig not loaded from package content. " +
+                "Ensure gameplay.json contains playerInitialConfig section.");
+        }
+
+        if (!_gameWorld.InitialPlayerConfig.Coins.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'coins'");
+        if (!_gameWorld.InitialPlayerConfig.Health.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'health'");
+        if (!_gameWorld.InitialPlayerConfig.MaxHealth.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'maxHealth'");
+        if (!_gameWorld.InitialPlayerConfig.Hunger.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'hunger'");
+        if (!_gameWorld.InitialPlayerConfig.StaminaPoints.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'staminaPoints'");
+        if (!_gameWorld.InitialPlayerConfig.MaxStamina.HasValue)
+            throw new InvalidOperationException("InitialPlayerConfig missing required field 'maxStamina'");
+
+        player.Coins = _gameWorld.InitialPlayerConfig.Coins.Value;
+        player.Health = _gameWorld.InitialPlayerConfig.Health.Value;
+        player.MaxHealth = _gameWorld.InitialPlayerConfig.MaxHealth.Value;
+        player.Hunger = _gameWorld.InitialPlayerConfig.Hunger.Value;
+        player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints.Value;
+        player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina.Value;// Initialize exchange inventories
         _exchangeFacade.InitializeNPCExchanges();// Mark game as started
         _gameWorld.IsGameStarted = true;
 

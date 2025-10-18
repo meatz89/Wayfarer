@@ -40,7 +40,7 @@ public class MentalFacade
 
     public List<CardInstance> GetHand()
     {
-        return _gameWorld.CurrentMentalSession.Deck?.Hand.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentMentalSession.Deck.Hand.ToList();
     }
 
     public MentalDeckBuilder GetDeckBuilder()
@@ -50,12 +50,12 @@ public class MentalFacade
 
     public int GetDeckCount()
     {
-        return _gameWorld.CurrentMentalSession.Deck?.RemainingDeckCards ?? 0;
+        return _gameWorld.CurrentMentalSession.Deck.RemainingDeckCards;
     }
 
     public int GetDiscardCount()
     {
-        return _gameWorld.CurrentMentalSession.Deck?.PlayedCards.Count ?? 0;
+        return _gameWorld.CurrentMentalSession.Deck.PlayedCards.Count;
     }
 
     public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
@@ -66,6 +66,13 @@ public class MentalFacade
             EndSession();
         }
 
+        // Get goal for costs and goal cards
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+        if (goal == null)
+        {
+            return null;
+        }
+
         // Track investigation context
         _gameWorld.CurrentMentalGoalId = goalId;
         _gameWorld.CurrentMentalInvestigationId = investigationId;
@@ -73,14 +80,14 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
         Location location = player.CurrentLocation;
 
-        // PROGRESSION SYSTEM: Focus cost for Mental investigations
-        int focusCost = engagement.FocusCost ?? 10;
+        // PROGRESSION SYSTEM: Focus cost from Goal (single source of truth from JSON)
+        int focusCost = goal.Costs.Focus;
         if (player.Focus < focusCost)
         {
-            throw new InvalidOperationException($"Insufficient Focus. Need {focusCost}, have {player.Focus}");
+            return null;
         }
         player.Focus -= focusCost;// Get location's persisted exposure (Mental debt system)
-        int baseExposure = location?.Exposure ?? 0;
+        int baseExposure = location.Exposure;
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {
@@ -100,23 +107,19 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession.Deck = _gameWorld.CurrentMentalSession.Deck;
 
         // SYMMETRY RESTORATION: Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-        if (!string.IsNullOrEmpty(goalId) && goal != null)
+        if (goal.GoalCards != null && goal.GoalCards.Any())
         {
-            if (goal.GoalCards != null && goal.GoalCards.Any())
+            foreach (GoalCard goalCard in goal.GoalCards)
             {
-                foreach (GoalCard goalCard in goal.GoalCards)
+                // Create CardInstance from GoalCard (constructor sets CardType automatically)
+                CardInstance goalCardInstance = new CardInstance(goalCard)
                 {
-                    // Create CardInstance from GoalCard (constructor sets CardType automatically)
-                    CardInstance goalCardInstance = new CardInstance(goalCard)
-                    {
-                        Context = new CardContext { threshold = goalCard.threshold },
-                        IsPlayable = false // Unlocked when Progress reaches threshold
-                    };
+                    Context = new CardContext { threshold = goalCard.threshold },
+                    IsPlayable = false // Unlocked when Progress reaches threshold
+                };
 
-                    // Add to session deck's requestPile
-                    _gameWorld.CurrentMentalSession.Deck.AddGoalCard(goalCardInstance);
-                }
+                // Add to session deck's requestPile
+                _gameWorld.CurrentMentalSession.Deck.AddGoalCard(goalCardInstance);
             }
         }
 
@@ -273,9 +276,9 @@ public class MentalFacade
             return new MentalTurnResult
             {
                 Success = true,
-                Narrative = $"You completed the investigation: {card.GoalCardTemplate?.Name}",
-                CurrentProgress = _gameWorld.CurrentMentalSession?.CurrentProgress ?? 0,
-                CurrentExposure = _gameWorld.CurrentMentalSession?.CurrentExposure ?? 0,
+                Narrative = $"You completed the investigation: {card.GoalCardTemplate.Name}",
+                CurrentProgress = 0,
+                CurrentExposure = 0,
                 SessionEnded = true
             };
         }
@@ -352,8 +355,8 @@ public class MentalFacade
         {
             Success = true,
             Narrative = narrative,
-            CurrentProgress = _gameWorld.CurrentMentalSession?.CurrentProgress ?? 0,
-            CurrentExposure = _gameWorld.CurrentMentalSession?.CurrentExposure ?? 0,
+            CurrentProgress = _gameWorld.CurrentMentalSession.CurrentProgress,
+            CurrentExposure = _gameWorld.CurrentMentalSession.CurrentExposure,
             SessionEnded = sessionEnded
         };
     }
