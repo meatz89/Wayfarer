@@ -9,11 +9,6 @@
 }
 else
 {
-    @{
-        var player = GameFacade.GetPlayer();
-        var currentTime = TimeManager.GetCurrentTimeBlock();
-    }
-
     <!-- Show Route Selection UI (no wrapper div - uses shared .game-container from GameScreen) -->
     <!-- Header -->
     <div class="travel-header">
@@ -27,23 +22,17 @@ else
     <div class="time-status-bar">
         <div class="current-time-display">
             <span class="time-label">Current:</span>
-            <span class="time-value">@currentTime</span>
+            <span class="time-value">@CurrentTimeBlock</span>
             <div class="segment-dots-display">
-                @{
-                    int segmentsInBlock = 4 - TimeManager.SegmentsRemainingInBlock;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        var dotClass = i < segmentsInBlock ? "segment-dot filled" :
-                                      i == segmentsInBlock ? "segment-dot current" :
-                                      "segment-dot";
-                        <div class="@dotClass"></div>
-                    }
+                @foreach (var dotClass in GetSegmentDotClasses())
+                {
+                    <div class="@dotClass"></div>
                 }
             </div>
         </div>
         <div class="resources-inline">
-            <span class="resource-inline">💰 @player.Coins</span>
-            <span class="resource-inline">🍖 @player.Hunger/@player.MaxHunger</span>
+            <span class="resource-inline">💰 @CurrentPlayer.Coins</span>
+            <span class="resource-inline">🍖 @CurrentPlayer.Hunger/@CurrentPlayer.MaxHunger</span>
         </div>
     </div>
 

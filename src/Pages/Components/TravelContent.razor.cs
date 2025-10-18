@@ -42,6 +42,10 @@ namespace Wayfarer.Pages.Components
         protected RouteViewModel SelectedRoute { get; set; }
         protected TravelContext CurrentTravelContext { get; set; }
 
+        // Properties for template display
+        protected Player CurrentPlayer => GameFacade.GetPlayer();
+        protected TimeBlocks CurrentTimeBlock => TimeManager.GetCurrentTimeBlock();
+
         protected override async Task OnInitializedAsync()
         {
             LoadTravelState();
@@ -407,6 +411,27 @@ namespace Wayfarer.Pages.Components
                 "RESTRICTED" => "tag-restricted",
                 _ => "tag-public"
             };
+        }
+
+        /// <summary>
+        /// Get segment dots for time display (4 dots per time block)
+        /// </summary>
+        protected List<string> GetSegmentDotClasses()
+        {
+            List<string> dotClasses = new List<string>();
+            int segmentsInBlock = 4 - TimeManager.SegmentsRemainingInBlock;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (i < segmentsInBlock)
+                    dotClasses.Add("segment-dot filled");
+                else if (i == segmentsInBlock)
+                    dotClasses.Add("segment-dot current");
+                else
+                    dotClasses.Add("segment-dot");
+            }
+
+            return dotClasses;
         }
 
         /// <summary>
