@@ -31,14 +31,18 @@ public class NarrativeProviderFactory
     public async Task<INarrativeProvider> GetProviderAsync()
     {
         // Check if AI narrative is enabled in configuration
-        bool useAiNarrative = _configuration.GetValue<bool>("useAiNarrative", false);if (useAiNarrative)
+        bool useAiNarrative = _configuration.GetValue<bool>("useAiNarrative", false);
+        if (useAiNarrative)
         {
             // Check availability directly every time - no caching
-            bool isAvailable = await _aiProvider.IsAvailableAsync();if (isAvailable)
-            {return _aiProvider;
+            bool isAvailable = await _aiProvider.IsAvailableAsync();
+            if (isAvailable)
+            {
+                return _aiProvider;
             }
         }
 
-        // Fall back to JSON provider (always available)return _jsonProvider;
+        // Fall back to JSON provider (always available)
+        return _jsonProvider;
     }
 }

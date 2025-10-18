@@ -25,10 +25,12 @@ public class SocialNarrativeService
         SocialSession session,
         NPC npc,
         List<CardInstance> activeCards)
-    {try
+    {
+        try
         {
             // Get provider from factory
-            INarrativeProvider provider = await _providerFactory.GetProviderAsync();// Convert game models to narrative models
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
+            // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
@@ -60,10 +62,12 @@ public class SocialNarrativeService
         NPC npc,
         List<CardInstance> activeCards,
         string npcDialogue)
-    {try
+    {
+        try
         {
             // Get provider from factory
-            INarrativeProvider provider = await _providerFactory.GetProviderAsync();// Convert game models to narrative models
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
+            // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
@@ -79,7 +83,8 @@ public class SocialNarrativeService
         }
         catch
         {
-            // If narrative generation fails, provide empty listreturn new List<CardNarrative>();
+            // If narrative generation fails, provide empty list
+            return new List<CardNarrative>();
         }
     }
 
@@ -96,9 +101,12 @@ public class SocialNarrativeService
         SocialSession session,
         NPC npc,
         List<CardInstance> activeCards)
-    {try
+    {
+        try
         {
-            // Get provider from factory - properly await async operationINarrativeProvider provider = await _providerFactory.GetProviderAsync();// Convert game models to narrative models
+            // Get provider from factory - properly await async operation
+            INarrativeProvider provider = await _providerFactory.GetProviderAsync();
+            // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
             CardCollection cardCollection = BuildCardCollection(activeCards);
