@@ -19,11 +19,11 @@ public class ResourceFacade
         TimeManager timeManager,
         ItemRepository itemRepository)
     {
-        _gameWorld = gameWorld;
-        _resourceCalculator = resourceCalculator;
-        _messageSystem = messageSystem;
-        _timeManager = timeManager;
-        _itemRepository = itemRepository;
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
     }
 
     // ========== COIN OPERATIONS ==========
@@ -233,15 +233,20 @@ public class ResourceFacade
         {
             Items = inventory.GetItemIds().Select(itemId =>
             {
-                Item? item = _itemRepository.GetItemById(itemId);
+                Item item = _itemRepository.GetItemById(itemId);
+                if (item == null)
+                {
+                    throw new InvalidOperationException($"Item {itemId} not found in repository");
+                }
+
                 return new InventoryItemViewModel
                 {
                     ItemId = itemId,
-                    Name = item?.Name ?? itemId,
-                    Description = item?.Description ?? "",
-                    Weight = item?.InitiativeCost ?? 1,
-                    Value = item?.SellPrice ?? 0,
-                    CanRead = item?.Categories.Contains(ItemCategory.Special_Document) ?? false
+                    Name = item.Name,
+                    Description = item.Description,
+                    Weight = item.InitiativeCost,
+                    Value = item.SellPrice,
+                    CanRead = item.Categories.Contains(ItemCategory.Special_Document)
                 };
             }).ToList(),
             TotalWeight = CalculateTotalWeight(),
@@ -259,7 +264,12 @@ public class ResourceFacade
         foreach (string itemId in inventory.GetItemIds())
         {
             Item item = _itemRepository.GetItemById(itemId);
-            totalWeight += item?.InitiativeCost ?? 1;
+            if (item == null)
+            {
+                throw new InvalidOperationException($"Item {itemId} not found in repository");
+            }
+
+            totalWeight += item.InitiativeCost;
         }
 
         return totalWeight;

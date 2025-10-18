@@ -159,7 +159,9 @@ public class GameWorld
     public int GetLocationVisitCount(string venueId)
     {
         LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
-        return visitCount?.Count ?? 0;
+        if (visitCount == null)
+            return 0;
+        return visitCount.Count;
     }
 
     public bool IsFirstVisit(string venueId)
@@ -222,7 +224,7 @@ public class GameWorld
     // Hierarchy lookup methods
     public District GetDistrictForLocation(string venueId)
     {
-        Venue? venue = Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = Venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null || string.IsNullOrEmpty(venue.District))
             return null;
 
@@ -231,7 +233,7 @@ public class GameWorld
 
     public Region GetRegionForDistrict(string districtId)
     {
-        District? district = Districts.FirstOrDefault(d => d.Id == districtId);
+        District district = Districts.FirstOrDefault(d => d.Id == districtId);
         if (district == null || string.IsNullOrEmpty(district.RegionId))
             return null;
 
@@ -301,7 +303,7 @@ public class GameWorld
     /// </summary>
     public List<NPC> GetAllNPCs()
     {
-        return NPCs ?? new List<NPC>();
+        return NPCs;
     }
 
     /// Get a Venue location by ID from primary storage
@@ -420,7 +422,8 @@ public class GameWorld
     public void MarkStrangerAsTalkedTo(string strangerId)
     {
         NPC stranger = GetStrangerById(strangerId);
-        stranger?.MarkAsEncountered();
+        if (stranger != null)
+            stranger.MarkAsEncountered();
     }
 
     /// <summary>
@@ -461,7 +464,9 @@ public class GameWorld
         if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned)
         {
             int currentSegment = timeManager.CurrentSegment;
-            int deadlineDuration = investigation.DeadlineSegment ?? 0;
+            if (!investigation.DeadlineSegment.HasValue)
+                throw new System.InvalidOperationException($"Investigation {investigationId} is NPCCommissioned but has no DeadlineSegment configured");
+            int deadlineDuration = investigation.DeadlineSegment.Value;
             investigation.DeadlineSegment = currentSegment + deadlineDuration;
         }
     }
@@ -623,7 +628,10 @@ public class GameWorld
     public int GetLocationCubes(string locationId)
     {
         Location location = GetLocation(locationId);
-        return location?.InvestigationCubes ?? 0;
+        if (location == null)
+            throw new InvalidOperationException($"Location not found: {locationId}");
+
+        return location.InvestigationCubes;
     }
 
     /// <summary>
@@ -632,7 +640,10 @@ public class GameWorld
     public int GetNPCCubes(string npcId)
     {
         NPC npc = NPCs.FirstOrDefault(n => n.ID == npcId);
-        return npc?.StoryCubes ?? 0;
+        if (npc == null)
+            throw new InvalidOperationException($"NPC not found: {npcId}");
+
+        return npc.StoryCubes;
     }
 
     /// <summary>

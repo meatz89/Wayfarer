@@ -31,7 +31,7 @@ public class DifficultyCalculationService
         List<string> appliedModifiers = new List<string>();
         List<string> unappliedModifiers = new List<string>();
 
-        foreach (DifficultyModifier mod in goal.DifficultyModifiers ?? new List<DifficultyModifier>())
+        foreach (DifficultyModifier mod in goal.DifficultyModifiers)
         {
             if (CheckModifier(mod, player, goal, itemRepository))
             {

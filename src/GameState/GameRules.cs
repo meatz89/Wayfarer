@@ -38,8 +38,10 @@ public class CardProgression
 
     public int GetTotalSuccessBonusForLevel(int level)
     {
-        LevelBonus? bonus = LevelBonuses.FirstOrDefault(b => b.Level == level);
-        return bonus?.SuccessBonus ?? 0;
+        LevelBonus bonus = LevelBonuses.FirstOrDefault(b => b.Level == level);
+        if (bonus == null)
+            throw new System.InvalidOperationException($"No level bonus configured for level {level}. Available levels: {string.Join(", ", LevelBonuses.Select(b => b.Level))}");
+        return bonus.SuccessBonus;
     }
 }
 

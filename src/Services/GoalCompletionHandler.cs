@@ -134,7 +134,7 @@ public class GoalCompletionHandler
                 {
                     _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.InvestigationCubes.Value);
                     Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
-                    string locationName = location?.Name ?? goal.PlacementLocationId;
+                    string locationName = location.Name;
                 }
                 else
                 {
@@ -148,7 +148,7 @@ public class GoalCompletionHandler
                 {
                     _gameWorld.GrantNPCCubes(goal.PlacementNpcId, rewards.StoryCubes.Value);
                     NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
-                    string npcName = npc?.Name ?? goal.PlacementNpcId;
+                    string npcName = npc.Name;
                 }
                 else
                 {

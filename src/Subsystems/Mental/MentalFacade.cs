@@ -92,7 +92,7 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession = new MentalSession
         {
             InvestigationId = engagement.Id,
-            VenueId = location?.VenueId,
+            VenueId = location.VenueId,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
@@ -107,7 +107,7 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession.Deck = _gameWorld.CurrentMentalSession.Deck;
 
         // SYMMETRY RESTORATION: Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
-        if (goal.GoalCards != null && goal.GoalCards.Any())
+        if (goal.GoalCards.Any())
         {
             foreach (GoalCard goalCard in goal.GoalCards)
             {
@@ -240,11 +240,8 @@ public class MentalFacade
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Modify:
                         // Intensity reduced - other goals may unlock
-                        if (goal.PropertyReduction != null)
-                        {
-                            parentObstacle.Intensity = Math.Max(0,
-                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
-                        }
+                        parentObstacle.Intensity = Math.Max(0,
+                            parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
 
                         parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
 
@@ -311,11 +308,8 @@ public class MentalFacade
 
         // Track categories for investigation depth
         MentalCategory category = card.MentalCardTemplate.Category;
-        if (!_gameWorld.CurrentMentalSession.CategoryCounts.ContainsKey(category))
-        {
-            _gameWorld.CurrentMentalSession.CategoryCounts[category] = 0;
-        }
-        _gameWorld.CurrentMentalSession.CategoryCounts[category]++;
+        _gameWorld.CurrentMentalSession.CategoryCounts[category] =
+            _gameWorld.CurrentMentalSession.CategoryCounts.GetValueOrDefault(category, 0) + 1;
 
         // ACT: Generate Leads based on card depth
         // Leads determine how many cards OBSERVE will draw
@@ -468,18 +462,14 @@ public class MentalFacade
         // Persist exposure to Location (Mental debt system)
         // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
         Location currentSpot = player.CurrentLocation;
-
-        if (currentSpot != null)
-        {
-            currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;
-        }
+        currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;
 
         // Clear investigation context
         _gameWorld.CurrentMentalGoalId = null;
         _gameWorld.CurrentMentalInvestigationId = null;
 
+        _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
-        _gameWorld.CurrentMentalSession.Deck?.Clear();
 
         return outcome;
     }

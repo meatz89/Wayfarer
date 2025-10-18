@@ -35,7 +35,7 @@ public sealed class NPCState
         Description = description;
         LocationId = locationId;
         Profession = profession;
-        ProvidedServices = providedServices?.ToImmutableList() ?? ImmutableList<ServiceTypes>.Empty;
+        ProvidedServices = providedServices == null ? ImmutableList<ServiceTypes>.Empty : providedServices.ToImmutableList();
         PlayerRelationship = playerRelationship;
     }
 

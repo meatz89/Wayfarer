@@ -179,8 +179,10 @@ public class DebugLogger
         // Player state
         Player player = gameWorld.GetPlayer();
         report.Add("PLAYER STATE:");
-        report.Add($"  Location: {player.CurrentLocation?.VenueId ?? "NULL"}");
-        report.Add($"  location: {player.CurrentLocation?.Id ?? "NULL"}");
+        if (player.CurrentLocation == null)
+            throw new System.InvalidOperationException("Player current location is null");
+        report.Add($"  Location: {player.CurrentLocation.VenueId}");
+        report.Add($"  location: {player.CurrentLocation.Id}");
         report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");

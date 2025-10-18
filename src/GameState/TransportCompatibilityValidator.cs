@@ -156,7 +156,7 @@ public class TransportCompatibilityResult
     {
         IsCompatible = isCompatible;
         BlockingReason = blockingReason;
-        Warnings = warnings ?? new List<string>();
+        Warnings = warnings;
     }
 
     public static TransportCompatibilityResult Allowed(List<string> warnings)

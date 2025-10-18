@@ -98,7 +98,7 @@ public class TravelManager
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Return embedded cards directly - no lookup needed
-        return collection.PathCards ?? new List<PathCardDTO>();
+        return collection.PathCards;
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ public class TravelManager
         session.CurrentEventNarrative = travelEvent.NarrativeText;
 
         // Step 5: Return embedded event cards directly - no lookup needed
-        return travelEvent.EventCards ?? new List<PathCardDTO>();
+        return travelEvent.EventCards;
     }
 
     /// <summary>
@@ -373,7 +373,7 @@ public class TravelManager
         RouteSegment segment = route.Segments[session.CurrentSegment - 1];
 
         // Find the selected path in segment's AvailablePaths
-        RoutePath selectedPath = segment.AvailablePaths?.FirstOrDefault(p => p.Id == routePathId);
+        RoutePath selectedPath = segment.AvailablePaths.FirstOrDefault(p => p.Id == routePathId);
         if (selectedPath == null)
         {
             return false;
@@ -538,7 +538,9 @@ public class TravelManager
     public string GetCurrentEventNarrative()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        return session?.CurrentEventNarrative;
+        if (session == null)
+            return null;
+        return session.CurrentEventNarrative;
     }
 
     // ========== HELPER METHODS ==========
@@ -589,7 +591,7 @@ public class TravelManager
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Look in embedded path cards
-        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+        return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
     }
 
     /// <summary>
@@ -609,7 +611,7 @@ public class TravelManager
         TravelEventDTO travelEvent = eventEntry.TravelEvent;
 
         // Find the card in the embedded event cards
-        return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
+        return travelEvent.EventCards.FirstOrDefault(c => c.Id == cardId);
     }
 
     /// <summary>

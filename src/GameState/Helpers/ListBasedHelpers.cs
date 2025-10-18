@@ -170,7 +170,10 @@ public static class ListBasedHelperExtensions
 
     public static int GetTokenCount(this List<NPCTokenEntry> tokens, string npcId, ConnectionType type)
     {
-        return tokens.FirstOrDefault(t => t.NpcId == npcId)?.GetTokenCount(type) ?? 0;
+        NPCTokenEntry entry = tokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No token entry found for NPC '{npcId}' - ensure NPC exists before accessing tokens");
+        return entry.GetTokenCount(type);
     }
 
     public static void SetTokenCount(this List<NPCTokenEntry> tokens, string npcId, ConnectionType type, int count)
@@ -182,7 +185,8 @@ public static class ListBasedHelperExtensions
     public static Dictionary<ConnectionType, int> GetTokens(this List<NPCTokenEntry> tokens, string npcId)
     {
         NPCTokenEntry entry = tokens.FirstOrDefault(t => t.NpcId == npcId);
-        if (entry == null) return new Dictionary<ConnectionType, int>();
+        if (entry == null)
+            throw new System.InvalidOperationException($"No token entry found for NPC '{npcId}' - ensure NPC exists before accessing tokens");
 
         return new Dictionary<ConnectionType, int>
         {
@@ -198,12 +202,15 @@ public static class ListBasedHelperExtensions
     // Familiarity helpers
     public static int GetFamiliarity(this List<FamiliarityEntry> familiarityList, string entityId)
     {
-        return familiarityList.FirstOrDefault(f => f.EntityId == entityId)?.Level ?? 0;
+        FamiliarityEntry entry = familiarityList.FirstOrDefault(f => f.EntityId == entityId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No familiarity entry found for entity '{entityId}' - ensure entity exists before accessing familiarity");
+        return entry.Level;
     }
 
     public static void SetFamiliarity(this List<FamiliarityEntry> familiarityList, string entityId, int level)
     {
-        FamiliarityEntry? existing = familiarityList.FirstOrDefault(f => f.EntityId == entityId);
+        FamiliarityEntry existing = familiarityList.FirstOrDefault(f => f.EntityId == entityId);
         if (existing != null)
         {
             existing.Level = level;
@@ -219,7 +226,7 @@ public static class ListBasedHelperExtensions
     {
         return list.FirstOrDefault(item =>
         {
-            System.Reflection.PropertyInfo? prop = typeof(T).GetProperty("Id") ??
+            System.Reflection.PropertyInfo prop = typeof(T).GetProperty("Id") ??
                       typeof(T).GetProperty("CardId") ??
                       typeof(T).GetProperty("LocationId") ??
                       typeof(T).GetProperty("NpcId") ??
@@ -227,7 +234,12 @@ public static class ListBasedHelperExtensions
                       typeof(T).GetProperty("DeckId") ??
                       typeof(T).GetProperty("EventId") ??
                       typeof(T).GetProperty("CollectionId");
-            return prop?.GetValue(item)?.ToString() == id;
+            if (prop == null)
+                throw new System.InvalidOperationException($"Type {typeof(T).Name} does not have a recognized ID property");
+            object value = prop.GetValue(item);
+            if (value == null)
+                return false;
+            return value.ToString() == id;
         });
     }
 
@@ -259,7 +271,10 @@ public static class ListBasedHelperExtensions
     // Event deck position helpers
     public static int GetPosition(this List<EventDeckPositionEntry> positions, string deckId)
     {
-        return positions.FindById(deckId)?.Position ?? 0;
+        EventDeckPositionEntry entry = positions.FindById(deckId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No event deck position entry found for deck '{deckId}' - ensure deck exists before accessing position");
+        return entry.Position;
     }
 
     public static void SetPosition(this List<EventDeckPositionEntry> positions, string deckId, int position)
@@ -278,12 +293,15 @@ public static class ListBasedHelperExtensions
     // Boolean discovery helpers
     public static bool IsDiscovered(this List<PathCardDiscoveryEntry> discoveries, string cardId)
     {
-        return discoveries.FirstOrDefault(d => d.CardId == cardId)?.IsDiscovered ?? false;
+        PathCardDiscoveryEntry entry = discoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No discovery entry found for card '{cardId}' - ensure card exists before checking discovery status");
+        return entry.IsDiscovered;
     }
 
     public static void SetDiscovered(this List<PathCardDiscoveryEntry> discoveries, string cardId, bool discovered)
     {
-        PathCardDiscoveryEntry? existing = discoveries.FirstOrDefault(d => d.CardId == cardId);
+        PathCardDiscoveryEntry existing = discoveries.FirstOrDefault(d => d.CardId == cardId);
         if (existing != null)
         {
             existing.IsDiscovered = discovered;
@@ -317,7 +335,10 @@ public static class ListBasedHelperExtensions
     // PathCollectionEntry helpers
     public static PathCardCollectionDTO GetCollection(this List<PathCollectionEntry> collections, string collectionId)
     {
-        return collections.FindById(collectionId)?.Collection;
+        PathCollectionEntry entry = collections.FindById(collectionId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No collection entry found for collection '{collectionId}' - ensure collection exists before accessing");
+        return entry.Collection;
     }
 
     public static void AddOrUpdateCollection(this List<PathCollectionEntry> collections, string collectionId, PathCardCollectionDTO collection)
@@ -336,7 +357,10 @@ public static class ListBasedHelperExtensions
     // TravelEventEntry helpers
     public static TravelEventDTO GetEvent(this List<TravelEventEntry> events, string eventId)
     {
-        return events.FindById(eventId)?.TravelEvent;
+        TravelEventEntry entry = events.FindById(eventId);
+        if (entry == null)
+            throw new System.InvalidOperationException($"No event entry found for event '{eventId}' - ensure event exists before accessing");
+        return entry.TravelEvent;
     }
 
 }

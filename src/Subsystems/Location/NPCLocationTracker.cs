@@ -55,9 +55,9 @@ public class NPCLocationTracker
     /// </summary>
     public NPC GetPrimaryNPCForSpot(string LocationId, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(LocationId)) return null;
+        if (string.IsNullOrEmpty(LocationId))
+            throw new ArgumentException("LocationId cannot be null or empty", nameof(LocationId));
 
-        // Use NPCRepository method
         return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
     }
 
@@ -80,7 +80,9 @@ public class NPCLocationTracker
         if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
-        return npc?.LocationId?.Equals(LocationId, StringComparison.OrdinalIgnoreCase) == true;
+        if (npc == null) return false;
+
+        return npc.LocationId.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -91,7 +93,9 @@ public class NPCLocationTracker
         if (string.IsNullOrEmpty(npcId)) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
-        return npc?.IsAvailable(timeBlock) == true;
+        if (npc == null) return false;
+
+        return npc.IsAvailable(timeBlock);
     }
 
     /// <summary>
@@ -99,10 +103,12 @@ public class NPCLocationTracker
     /// </summary>
     public NPCSchedule GetNPCSchedule(string npcId)
     {
-        if (string.IsNullOrEmpty(npcId)) return null;
+        if (string.IsNullOrEmpty(npcId))
+            throw new ArgumentException("NPC ID cannot be null or empty", nameof(npcId));
 
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return null;
+        if (npc == null)
+            throw new InvalidOperationException($"NPC not found: {npcId}");
 
         NPCSchedule schedule = new NPCSchedule
         {

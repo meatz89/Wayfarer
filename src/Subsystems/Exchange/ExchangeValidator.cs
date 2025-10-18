@@ -143,7 +143,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckDomainRequirements(ExchangeCard exchange, List<string> currentSpotDomains)
     {
-        if (exchange.RequiredDomains == null || !exchange.RequiredDomains.Any())
+        if (!exchange.RequiredDomains.Any())
         {
             return true; // No domain requirements
         }
@@ -158,7 +158,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckTimeRequirements(ExchangeCard exchange)
     {
-        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
+        if (!exchange.AvailableTimeBlocks.Any())
         {
             return true; // No time restrictions
         }
@@ -172,7 +172,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckTokenRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
     {
-        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
+        if (exchange.Cost.TokenRequirements.Count == 0)
         {
             return true; // No token requirements
         }
@@ -247,7 +247,7 @@ public class ExchangeValidator
 
     private string GetTimeRestrictionMessage(ExchangeCard exchange)
     {
-        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
+        if (!exchange.AvailableTimeBlocks.Any())
         {
             return "Not available at this time";
         }
@@ -258,7 +258,7 @@ public class ExchangeValidator
 
     private string GetTokenRequirementMessage(ExchangeCard exchange)
     {
-        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
+        if (exchange.Cost.TokenRequirements.Count == 0)
         {
             return "Insufficient relationship";
         }

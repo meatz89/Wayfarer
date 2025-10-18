@@ -62,14 +62,9 @@ public class PromptBuilder
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
 
         // Add conversation history
-        if (conversationHistory != null && conversationHistory.Any())
-        {
-            placeholders["conversation_history"] = string.Join("\n", conversationHistory);
-        }
-        else
-        {
-            placeholders["conversation_history"] = "No previous dialogue.";
-        }
+        placeholders["conversation_history"] = conversationHistory.Any()
+            ? string.Join("\n", conversationHistory)
+            : "No previous dialogue.";
 
         return ProcessTemplate(template, placeholders);
     }
@@ -84,9 +79,12 @@ public class PromptBuilder
     /// <returns>Complete prompt ready for AI generation</returns>
     public string BuildBatchCardGenerationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, string npcDialogue)
     {
+        if (string.IsNullOrEmpty(npcDialogue))
+            throw new ArgumentException("NPC dialogue cannot be null or empty", nameof(npcDialogue));
+
         string template = LoadTemplateFromPath("cards/batch_generation.md");
         Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, null);
-        placeholders["npc_dialogue"] = npcDialogue ?? "No dialogue provided";
+        placeholders["npc_dialogue"] = npcDialogue;
 
         return ProcessTemplate(template, placeholders);
     }
@@ -216,23 +214,20 @@ public class PromptBuilder
         };
 
         // Add item properties using reflection
-        if (item != null)
-        {
-            Type itemType = item.GetType();
-            PropertyInfo[] properties = itemType.GetProperties();
+        Type itemType = item.GetType();
+        PropertyInfo[] properties = itemType.GetProperties();
 
-            foreach (PropertyInfo prop in properties)
+        foreach (PropertyInfo prop in properties)
+        {
+            try
             {
-                try
-                {
-                    object? value = prop.GetValue(item);
-                    string key = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1); // camelCase
-                    itemPlaceholders[key] = value;
-                }
-                catch
-                {
-                    // Skip properties that can't be read
-                }
+                object? value = prop.GetValue(item);
+                string key = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1); // camelCase
+                itemPlaceholders[key] = value;
+            }
+            catch
+            {
+                // Skip properties that can't be read
             }
         }
 
@@ -267,7 +262,9 @@ public class PromptBuilder
 
             if (itemPlaceholders.TryGetValue(placeholder, out object value))
             {
-                return value?.ToString();
+                if (value == null)
+                    throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
+                return value.ToString();
             }
 
             // Return placeholder unchanged if not found (for debugging)
@@ -350,7 +347,9 @@ public class PromptBuilder
 
             if (placeholders.TryGetValue(placeholder, out object value))
             {
-                return value?.ToString();
+                if (value == null)
+                    throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
+                return value.ToString();
             }
 
             // Return placeholder unchanged if not found (for debugging)
@@ -380,16 +379,16 @@ public class PromptBuilder
             ["topic_layer"] = state.CurrentTopicLayer.ToString(),
 
             // NPC properties
-            ["npc_name"] = npc.Name ?? "Unknown",
+            ["npc_name"] = npc.Name,
             ["npc_personality"] = npc.Personality.ToString(),
-            ["npc_crisis"] = npc.CurrentCrisis ?? "None",
+            ["npc_crisis"] = npc.CurrentCrisis,
             ["npc_activity"] = "Current activity", // Could be added to NPCData later
             ["npc_emotional_state"] = "Determined by flow and rapport", // Derived value
-            ["current_topic"] = npc.CurrentTopic ?? "General conversation",
+            ["current_topic"] = npc.CurrentTopic,
 
             // Card properties
             ["card_count"] = cards.Cards.Count.ToString(),
-            ["focus_pattern"] = analysis?.InitiativePattern.ToString() ?? "Unknown",
+            ["focus_pattern"] = analysis != null ? analysis.InitiativePattern.ToString() : "Unknown",
 
             // Boolean flags
             ["has_observation"] = "false", // Could be determined from card analysis

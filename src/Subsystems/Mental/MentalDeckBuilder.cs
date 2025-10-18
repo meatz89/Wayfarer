@@ -86,11 +86,11 @@ public class MentalDeckBuilder
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
-            if (item?.ProvidedEquipmentCategories != null)
-            {
-                categories.AddRange(item.ProvidedEquipmentCategories);
-            }
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item == null)
+                throw new InvalidOperationException($"Item not found in GameWorld: {itemId}");
+
+            categories.AddRange(item.ProvidedEquipmentCategories);
         }
         return categories.Distinct().ToList();
     }

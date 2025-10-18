@@ -181,7 +181,10 @@ public sealed class PlayerResourceState
     /// </summary>
     public ResourceModificationResult ApplyLodgingRecovery(string lodgingType)
     {
-        int recoveryAmount = lodgingType?.ToLower() switch
+        if (string.IsNullOrEmpty(lodgingType))
+            lodgingType = "rough";
+
+        int recoveryAmount = lodgingType.ToLower() switch
         {
             "rough" => 2,
             "common" => 4,

@@ -155,7 +155,9 @@ public class ObservationAction : IEquatable<ObservationAction>
 
     public override int GetHashCode()
     {
-        return Id?.GetHashCode() ?? 0;
+        if (Id == null)
+            return 0;
+        return Id.GetHashCode();
     }
 }
 
@@ -207,8 +209,13 @@ public static class LocationTagExtensions
 
     public static List<LocationTag> GetLocationTags(string venueId)
     {
-        return LocationTagMap.ContainsKey(venueId?.ToLower())
-            ? LocationTagMap[venueId.ToLower()]
-            : new List<LocationTag>();
+        if (string.IsNullOrEmpty(venueId))
+            return new List<LocationTag>();
+
+        string lowerVenueId = venueId.ToLower();
+        if (!LocationTagMap.ContainsKey(lowerVenueId))
+            return new List<LocationTag>();
+
+        return LocationTagMap[lowerVenueId];
     }
 }

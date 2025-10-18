@@ -65,7 +65,7 @@ public class TravelFacade
                 {
                     VenueId = destination.Id,
                     LocationName = destination.Name,
-                    Description = destination.Description ?? "",
+                    Description = destination.Description,
                     CanTravel = hasPermit,
                     CannotTravelReason = !hasPermit ? "Missing required permits" : null,
                     MinimumCost = CalculateTravelCost(route, TravelMethods.Walking),
@@ -247,14 +247,11 @@ public class TravelFacade
         List<TravelMethods> methods = new List<TravelMethods> { TravelMethods.Walking }; // Always can walk
 
         // Check for unlocked transport methods
-        if (player.UnlockedTravelMethods != null)
+        foreach (string method in player.UnlockedTravelMethods)
         {
-            foreach (string method in player.UnlockedTravelMethods)
+            if (Enum.TryParse<TravelMethods>(method, out TravelMethods travelMethod))
             {
-                if (Enum.TryParse<TravelMethods>(method, out TravelMethods travelMethod))
-                {
-                    methods.Add(travelMethod);
-                }
+                methods.Add(travelMethod);
             }
         }
 
@@ -264,12 +261,8 @@ public class TravelFacade
     public void UnlockTransportMethod(TravelMethods method)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.UnlockedTravelMethods == null)
-        {
-            player.UnlockedTravelMethods = new List<string>();
-        }
-
         string methodName = method.ToString();
+
         if (!player.UnlockedTravelMethods.Contains(methodName))
         {
             player.UnlockedTravelMethods.Add(methodName);

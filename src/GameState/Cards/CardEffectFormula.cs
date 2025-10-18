@@ -72,7 +72,9 @@ public class CardEffectFormula
         switch (FormulaType)
         {
             case EffectFormulaType.Fixed:
-                return BaseValue ?? 0;
+                if (!BaseValue.HasValue)
+                    throw new InvalidOperationException("Fixed effect formula missing required BaseValue");
+                return BaseValue.Value;
 
             case EffectFormulaType.Scaling:
                 return CalculateScaling(session);
@@ -82,11 +84,15 @@ public class CardEffectFormula
 
             case EffectFormulaType.Trading:
                 // Trading effects need to be handled specially (consume first, then apply)
-                return TradeRatio ?? 0;
+                if (!TradeRatio.HasValue)
+                    throw new InvalidOperationException("Trading effect formula missing required TradeRatio");
+                return TradeRatio.Value;
 
             case EffectFormulaType.Setting:
                 // Setting effects replace current value, not additive
-                return SetValue ?? 0;
+                if (!SetValue.HasValue)
+                    throw new InvalidOperationException("Setting effect formula missing required SetValue");
+                return SetValue.Value;
 
             case EffectFormulaType.Compound:
                 // Compound handled externally by iterating CompoundEffects
@@ -132,7 +138,14 @@ public class CardEffectFormula
 
     private int CalculateConditional(SocialSession session)
     {
-        if (!ConditionResource.HasValue) return 0;
+        if (!ConditionResource.HasValue)
+            throw new InvalidOperationException("Conditional effect formula missing required ConditionResource");
+        if (!ConditionThreshold.HasValue)
+            throw new InvalidOperationException("Conditional effect formula missing required ConditionThreshold");
+        if (!ConditionMetValue.HasValue)
+            throw new InvalidOperationException("Conditional effect formula missing required ConditionMetValue");
+        if (!ConditionUnmetValue.HasValue)
+            throw new InvalidOperationException("Conditional effect formula missing required ConditionUnmetValue");
 
         int currentValue = ConditionResource.Value switch
         {
@@ -144,15 +157,15 @@ public class CardEffectFormula
             _ => 0
         };
 
-        bool conditionMet = currentValue >= (ConditionThreshold ?? 0);
+        bool conditionMet = currentValue >= ConditionThreshold.Value;
 
         if (conditionMet)
         {
-            return ConditionMetValue ?? 0;
+            return ConditionMetValue.Value;
         }
         else
         {
-            return ConditionUnmetValue ?? 0;
+            return ConditionUnmetValue.Value;
         }
     }
 
@@ -162,7 +175,10 @@ public class CardEffectFormula
     public bool CanExecuteTrade(SocialSession session)
     {
         if (FormulaType != EffectFormulaType.Trading) return true;
-        if (!ConsumeResource.HasValue) return false;
+        if (!ConsumeResource.HasValue)
+            throw new InvalidOperationException("Trading effect formula missing required ConsumeResource");
+        if (!ConsumeAmount.HasValue)
+            throw new InvalidOperationException("Trading effect formula missing required ConsumeAmount");
 
         int available = ConsumeResource.Value switch
         {
@@ -171,7 +187,7 @@ public class CardEffectFormula
             _ => 0
         };
 
-        return available >= (ConsumeAmount ?? 0);
+        return available >= ConsumeAmount.Value;
     }
 
     /// <summary>
@@ -181,16 +197,19 @@ public class CardEffectFormula
     public bool ExecuteTrade(SocialSession session)
     {
         if (!CanExecuteTrade(session)) return false;
-        if (!ConsumeResource.HasValue) return false;
+        if (!ConsumeResource.HasValue)
+            throw new InvalidOperationException("Trading effect formula missing required ConsumeResource");
+        if (!ConsumeAmount.HasValue)
+            throw new InvalidOperationException("Trading effect formula missing required ConsumeAmount");
 
         switch (ConsumeResource.Value)
         {
             case SocialChallengeResourceType.Momentum:
-                session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - (ConsumeAmount ?? 0));
+                session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - ConsumeAmount.Value);
                 return true;
 
             case SocialChallengeResourceType.Initiative:
-                session.CurrentInitiative = Math.Max(0, session.CurrentInitiative - (ConsumeAmount ?? 0));
+                session.CurrentInitiative = Math.Max(0, session.CurrentInitiative - ConsumeAmount.Value);
                 return true;
 
             default:
@@ -207,7 +226,7 @@ public class CardEffectFormula
             EffectFormulaType.Conditional => $"{TargetResource} if {ConditionResource}≥{ConditionThreshold}: {ConditionMetValue}",
             EffectFormulaType.Trading => $"Consume {ConsumeAmount} {ConsumeResource}: {TargetResource} +{TradeRatio}",
             EffectFormulaType.Setting => $"{TargetResource} → {SetValue}",
-            EffectFormulaType.Compound => $"Compound ({CompoundEffects?.Count ?? 0} effects)",
+            EffectFormulaType.Compound => CompoundEffects == null ? "Compound (no effects)" : $"Compound ({CompoundEffects.Count} effects)",
             _ => "Unknown"
         };
     }

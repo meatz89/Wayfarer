@@ -22,7 +22,7 @@ public class ObstacleFacade
     /// </summary>
     public List<Obstacle> GetAllObstacles()
     {
-        return _gameWorld.Obstacles ?? new List<Obstacle>();
+        return _gameWorld.Obstacles;
     }
 
     /// <summary>

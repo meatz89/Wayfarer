@@ -80,7 +80,7 @@ public class PhysicalSessionDeck
     public List<CardInstance> CheckGoalThresholds(int currentBreakthrough)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.threshold <= currentBreakthrough)
+            .Where(c => c.Context != null && c.Context.threshold <= currentBreakthrough)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();

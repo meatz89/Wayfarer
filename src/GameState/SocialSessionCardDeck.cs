@@ -233,18 +233,19 @@ public class SocialSessionCardDeck
     public List<CardInstance> CheckRequestThresholds(int currentMomentum)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.threshold <= currentMomentum)
+            .Where(c => c.Context != null && c.Context.threshold <= currentMomentum)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();
 
-        foreach (CardInstance? card in toMove)
+        foreach (CardInstance card in toMove)
         {
             int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             requestPile.Remove(card);
             card.IsPlayable = true; // NOW playable - threshold met
-            mindPile.Add(card); movedCards.Add(card);
+            mindPile.Add(card);
+            movedCards.Add(card);
 
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
             if (totalBefore != totalAfter)
@@ -271,7 +272,7 @@ public class SocialSessionCardDeck
     {
         // Echo cards should never be in spoken pile due to correct PlayCard implementation
         List<CardInstance> echoCards = spokenPile.Cards
-            .Where(card => card?.SocialCardTemplate?.Persistence == PersistenceType.Echo)
+            .Where(card => card != null && card.SocialCardTemplate != null && card.SocialCardTemplate.Persistence == PersistenceType.Echo)
             .ToList();
 
         if (echoCards.Any())
@@ -306,7 +307,7 @@ public class SocialSessionCardDeck
     public bool HasCardsAvailable()
     {
         bool hasInDeck = deckPile.Count > 0;
-        bool hasReshufflableInSpoken = spokenPile.Cards.Any(card => card?.SocialCardTemplate?.Persistence == PersistenceType.Echo);
+        bool hasReshufflableInSpoken = spokenPile.Cards.Any(card => card != null && card.SocialCardTemplate != null && card.SocialCardTemplate.Persistence == PersistenceType.Echo);
 
         return hasInDeck || hasReshufflableInSpoken;
     }

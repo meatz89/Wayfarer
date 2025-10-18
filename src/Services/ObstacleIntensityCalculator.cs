@@ -22,7 +22,7 @@ public static class ObstacleIntensityCalculator
 
         // Calculate total intensity reduction from matching equipment
         int intensityReduction = EquipmentContextService.CalculateTotalIntensityReduction(
-            availableEquipment ?? new List<Equipment>(),
+            availableEquipment,
             obstacle);
 
         // Apply reduction to obstacle intensity, floor at 0
@@ -36,7 +36,7 @@ public static class ObstacleIntensityCalculator
             EffectiveIntensity = effectiveIntensity,
             IntensityReduction = intensityReduction,
             MatchingEquipment = EquipmentContextService.FindMatchingEquipment(
-                availableEquipment ?? new List<Equipment>(),
+                availableEquipment,
                 obstacle)
         };
     }

@@ -95,7 +95,9 @@ public class PackageLoader
     private void LoadPackageContent(Package package, bool allowSkeletons)
     {
         // Set current package ID for error reporting
-        _currentPackageId = package.PackageId ?? "unknown";
+        if (string.IsNullOrEmpty(package.PackageId))
+            throw new InvalidDataException("Package missing required field 'PackageId'");
+        _currentPackageId = package.PackageId;
 
         // Apply starting conditions only from the first package
         if (_isFirstPackage && package.StartingConditions != null)
@@ -216,7 +218,9 @@ public class PackageLoader
         // Set package ID if not present
         if (string.IsNullOrEmpty(package.PackageId))
         {
-            package.PackageId = packageId ?? $"dynamic_{DateTime.Now.Ticks}";
+            if (string.IsNullOrEmpty(packageId))
+                throw new InvalidDataException("Package and packageId parameter both missing - cannot identify package");
+            package.PackageId = packageId;
         }
 
         // Check if already loaded
@@ -341,12 +345,12 @@ public class PackageLoader
                 Id = dto.Id,
                 Name = dto.Name,
                 Description = dto.Description,
-                DistrictIds = dto.DistrictIds ?? new List<string>(),
+                DistrictIds = dto.DistrictIds,
                 Government = dto.Government,
                 Culture = dto.Culture,
                 Population = dto.Population,
-                MajorExports = dto.MajorExports ?? new List<string>(),
-                MajorImports = dto.MajorImports ?? new List<string>()
+                MajorExports = dto.MajorExports,
+                MajorImports = dto.MajorImports
             };
             _gameWorld.Regions.Add(region);
         }
@@ -364,10 +368,10 @@ public class PackageLoader
                 Name = dto.Name,
                 Description = dto.Description,
                 RegionId = dto.RegionId,
-                VenueIds = dto.VenueIds ?? new List<string>(),
+                VenueIds = dto.VenueIds,
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
-                Characteristics = dto.Characteristics ?? new List<string>()
+                Characteristics = dto.Characteristics
             };
             _gameWorld.Districts.Add(district);
         }
@@ -475,9 +479,6 @@ public class PackageLoader
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                 if (npc != null)
                 {
-                    if (npc.ActiveGoalIds == null)
-                        npc.ActiveGoalIds = new List<string>();
-
                     npc.ActiveGoalIds.Add(goal.Id);
                 }
                 else
@@ -489,9 +490,6 @@ public class PackageLoader
                 Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                 if (location != null)
                 {
-                    if (location.ActiveGoalIds == null)
-                        location.ActiveGoalIds = new List<string>();
-
                     location.ActiveGoalIds.Add(goal.Id);
                 }
                 else
@@ -611,9 +609,12 @@ public class PackageLoader
                 _gameWorld.GetLocation(dto.LocationId) == null)
             {
                 // Create skeleton location
+                if (string.IsNullOrEmpty(dto.VenueId))
+                    throw new InvalidDataException($"NPC '{dto.Id}' references LocationId '{dto.LocationId}' but VenueId is missing - cannot create skeleton");
+
                 Location skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
                     dto.LocationId,
-                    dto.VenueId ?? "unknown_location",
+                    dto.VenueId,
                     $"npc_{dto.Id}_spot_reference");
 
                 _gameWorld.Locations.AddOrUpdateSpot(dto.LocationId, skeletonSpot);
@@ -624,7 +625,7 @@ public class PackageLoader
             NPC? existingSkeleton = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
             if (existingSkeleton != null)
             {// Preserve all cards from the persistent decks
-                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
+                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck.ToList();
 
                 int totalPreservedCards = preservedExchangeCards.Count;// Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
@@ -668,10 +669,14 @@ public class PackageLoader
             if (originSpot == null)
             {
                 if (allowSkeletons)
-                {// Create skeleton location with crossroads property (required for routes)
+                {
+                    if (string.IsNullOrEmpty(dto.OriginVenueId))
+                        throw new InvalidDataException($"Route '{dto.Id}' missing OriginVenueId - cannot create skeleton origin location");
+
+                    // Create skeleton location with crossroads property (required for routes)
                     originSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.OriginSpotId,
-                        dto.OriginVenueId ?? "unknown_location",
+                        dto.OriginVenueId,
                         $"route_{dto.Id}_origin"
                     );
 
@@ -695,10 +700,14 @@ public class PackageLoader
             if (destSpot == null)
             {
                 if (allowSkeletons)
-                {// Create skeleton location with crossroads property (required for routes)
+                {
+                    if (string.IsNullOrEmpty(dto.DestinationVenueId))
+                        throw new InvalidDataException($"Route '{dto.Id}' missing DestinationVenueId - cannot create skeleton destination location");
+
+                    // Create skeleton location with crossroads property (required for routes)
                     destSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.DestinationSpotId,
-                        dto.DestinationVenueId ?? "unknown_location",
+                        dto.DestinationVenueId,
                         $"route_{dto.Id}_destination"
                     );
 
@@ -739,14 +748,12 @@ public class PackageLoader
 
     private string GetVenueIdFromSpotId(string LocationId)
     {
-        Location? location = _gameWorld.GetLocation(LocationId);
+        Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
-        { }
-        else if (string.IsNullOrEmpty(location.VenueId))
-        { }
-        else
-        { }
-        return location?.VenueId;
+            throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
+        if (string.IsNullOrEmpty(location.VenueId))
+            throw new InvalidDataException($"Location '{LocationId}' has no VenueId assigned");
+        return location.VenueId;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
@@ -951,17 +958,28 @@ public class PackageLoader
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("Route missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.OriginSpotId))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'OriginSpotId'");
+        if (string.IsNullOrEmpty(dto.DestinationSpotId))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'DestinationSpotId'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Description'");
+
         RouteOption route = new RouteOption
         {
             Id = dto.Id,
-            Name = dto.Name ?? "",
-            OriginLocationSpot = dto.OriginSpotId ?? "",
-            DestinationLocationSpot = dto.DestinationSpotId ?? "",
+            Name = dto.Name,
+            OriginLocationSpot = dto.OriginSpotId,
+            DestinationLocationSpot = dto.DestinationSpotId,
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
             TravelTimeSegments = dto.TravelTimeSegments,
-            Description = dto.Description ?? "",
+            Description = dto.Description,
             MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
         };
 
@@ -1079,17 +1097,26 @@ public class PackageLoader
 
     private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("LocationAction missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Description'");
+        if (string.IsNullOrEmpty(dto.ActionType))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'ActionType'");
+
         LocationAction action = new LocationAction
         {
-            Id = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
-            Reward = dto.Reward ?? new Dictionary<string, int>(),
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Cost = dto.Cost,
+            Reward = dto.Reward,
             TimeRequired = dto.TimeRequired,
-            Availability = dto.Availability ?? new List<string>(),
+            Availability = dto.Availability,
             Priority = dto.Priority,
-            ActionType = dto.ActionType ?? "",
+            ActionType = dto.ActionType,
             InvestigationId = dto.InvestigationId
         };
 
@@ -1134,15 +1161,24 @@ public class PackageLoader
 
     private PlayerAction ConvertPlayerActionDTOToModel(PlayerActionDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("PlayerAction missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Description'");
+        if (string.IsNullOrEmpty(dto.ActionType))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'ActionType'");
+
         PlayerAction action = new PlayerAction
         {
-            Id = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Cost = dto.Cost,
             TimeRequired = dto.TimeRequired,
             Priority = dto.Priority,
-            ActionType = dto.ActionType ?? ""
+            ActionType = dto.ActionType
         };
 
         return action;
@@ -1310,12 +1346,12 @@ public class PackageLoader
     {
         // Helper to get friendly Venue name from ID for route naming
         if (string.IsNullOrEmpty(venueId))
-        {
-            return "Unknown Location";
-        }
+            throw new InvalidDataException("GetLocationNameFromId called with null/empty venueId");
 
-        Venue? venue = _gameWorld.Venues?.FirstOrDefault(l => l.Id == venueId);
-        return venue?.Name ?? venueId.Replace("_", " ").Replace("-", " ");
+        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null)
+            return venueId.Replace("_", " ").Replace("-", " "); // Fallback to formatted ID if venue not found
+        return venue.Name;
     }
 
     private void ValidateCrossroadsConfiguration()

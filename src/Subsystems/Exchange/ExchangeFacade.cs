@@ -55,7 +55,7 @@ public class ExchangeFacade
         List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
         if (!availableExchanges.Any())
         {
-            return null;
+            throw new InvalidOperationException($"NPC {npcId} has no available exchanges");
         }
 
         return _orchestrator.CreateSession(npc, availableExchanges);
@@ -79,21 +79,22 @@ public class ExchangeFacade
         List<ExchangeCard> npcExchanges = entry.ExchangeCards;
 
         // Also check NPC.ExchangeDeck
-        if (npc.ExchangeDeck != null)
+        foreach (ExchangeCard card in npc.ExchangeDeck)
         {
-            foreach (ExchangeCard card in npc.ExchangeDeck)
+            if (!npcExchanges.Any(e => e.Id == card.Id))
             {
-                if (!npcExchanges.Any(e => e.Id == card.Id))
-                {
-                    npcExchanges.Add(card);
-                }
+                npcExchanges.Add(card);
             }
         }
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
+        if (player.CurrentLocation == null)
+        {
+            throw new InvalidOperationException("Player has no current location");
+        }
         Location currentSpot = _gameWorld.Locations
-            .FirstOrDefault(s => s.Id == player.CurrentLocation?.Id);
+            .FirstOrDefault(s => s.Id == player.CurrentLocation.Id);
 
         // Convert SpotProperties to domain strings for validation
         List<string> spotDomains = currentSpot.LocationProperties
@@ -161,7 +162,7 @@ public class ExchangeFacade
         ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Id == exchangeId);
 
         // Also check NPC.ExchangeDeck if not found
-        if (exchange == null && npc.ExchangeDeck != null)
+        if (exchange == null)
         {
             exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
         }
@@ -285,15 +286,13 @@ public class ExchangeFacade
     public void AddExchangeToNPC(string npcId, ExchangeCard exchange)
     {
         // KEEP - npcId is external input from caller
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc != null)
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
         {
-            if (npc.ExchangeDeck == null)
-            {
-                npc.ExchangeDeck = new List<ExchangeCard>();
-            }
-            npc.ExchangeDeck.Add(exchange);
+            throw new ArgumentException($"NPC with ID {npcId} not found");
         }
+
+        npc.ExchangeDeck.Add(exchange);
     }
 
     /// <summary>
@@ -302,15 +301,19 @@ public class ExchangeFacade
     public void RemoveExchangeFromNPC(string npcId, string exchangeId)
     {
         // KEEP - npcId is external input from caller
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc?.ExchangeDeck != null)
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
         {
-            ExchangeCard exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
-            if (exchange != null)
-            {
-                exchange.RecordUse(); // Marks as complete/exhausted
-            }
+            throw new ArgumentException($"NPC with ID {npcId} not found");
         }
+
+        ExchangeCard? exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
+        if (exchange == null)
+        {
+            throw new ArgumentException($"Exchange {exchangeId} not found in NPC {npcId} deck");
+        }
+
+        exchange.RecordUse(); // Marks as complete/exhausted
     }
 
     /// <summary>

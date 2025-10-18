@@ -75,7 +75,8 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id)?.Description))
+        Location venueLocation = _gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id);
+        if (venueLocation == null || string.IsNullOrEmpty(venueLocation.Description))
         {
             return GenerateDefaultLocationDescription(venue, currentTime);
         }
@@ -178,10 +179,13 @@ public class LocationNarrativeGenerator
     /// </summary>
     public string GenerateContextualFlavor(Location location, NarrativeContext context)
     {
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
+
         List<string> flavorParts = new List<string>();
 
         // Check for weather effects
-        if (!string.IsNullOrEmpty(context?.Weather))
+        if (!string.IsNullOrEmpty(context.Weather))
         {
             string weatherFlavor = GetWeatherFlavor(context.Weather, location);
             if (!string.IsNullOrEmpty(weatherFlavor))
@@ -189,13 +193,13 @@ public class LocationNarrativeGenerator
         }
 
         // Check for crowding
-        if (context?.NpcCount > 3)
+        if (context.NpcCount > 3)
         {
             flavorParts.Add("The area is quite crowded.");
         }
 
         // Check for urgent business
-        if (context?.UrgentLetters > 0)
+        if (context.UrgentLetters > 0)
         {
             flavorParts.Add("You feel the focus of urgent obligations.");
         }
@@ -209,8 +213,9 @@ public class LocationNarrativeGenerator
     private string GetWeatherFlavor(string weather, Location location)
     {
         // Assume we're outdoors unless location has warm/shaded properties (indicating shelter)
-        bool isIndoor = location?.LocationProperties?.Contains(LocationPropertyType.Warm) == true ||
-                       location?.LocationProperties?.Contains(LocationPropertyType.Shaded) == true;
+        bool isIndoor = location != null &&
+                       (location.LocationProperties.Contains(LocationPropertyType.Warm) ||
+                        location.LocationProperties.Contains(LocationPropertyType.Shaded));
 
         return weather switch
         {

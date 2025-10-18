@@ -78,7 +78,8 @@ public class SocialFacade
         // Focus management is now handled directly by ConversationSession
 
         // Initialize personality rule enforcer based on NPC's personality
-        _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier ?? new PersonalityModifier { Type = PersonalityModifierType.None });
+        // TRUST ENTITY INITIALIZATION: npc.ConversationModifier is initialized in NPC constructor
+        _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier);
 
         // Get NPC token counts for session initialization
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
@@ -208,7 +209,8 @@ public class SocialFacade
         CheckGoalCardActivation(_gameWorld.CurrentSocialSession);
 
         // 7. Reset Turn-Based Effects
-        _personalityEnforcer?.OnListen(); // Resets Proud personality turn state
+        // TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
+        _personalityEnforcer.OnListen(); // Resets Proud personality turn state
 
         // Draw cards from deck
         List<CardInstance> drawnCards = ExecuteNewListenCardDraw(_gameWorld.CurrentSocialSession, cardsToDraw);
@@ -275,66 +277,61 @@ public class SocialFacade
 
             Obstacle parentObstacle = goal.ParentObstacle;
 
-            if (parentObstacle != null)
+            // TRUST DOMAIN MODEL: If Goal has ConsequenceType, ParentObstacle must exist
+            // Goals without obstacles are handled separately (ambient goals)
+            switch (goal.ConsequenceType)
             {
-                switch (goal.ConsequenceType)
-                {
-                    case ConsequenceType.Resolution:
-                        // Permanently overcome
-                        parentObstacle.State = ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-                        // Remove from active play (but keep in GameWorld for history)
-                        if (!parentObstacle.IsPermanent)
-                        {
-                            npc.ObstacleIds.Remove(parentObstacle.Id);
-                        }
-                        _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' permanently resolved via {goal.SetsResolutionMethod}",
-                            SystemMessageTypes.Success);
-                        break;
+                case ConsequenceType.Resolution:
+                    // Permanently overcome
+                    parentObstacle.State = ObstacleState.Resolved;
+                    parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                    parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                    // Remove from active play (but keep in GameWorld for history)
+                    if (!parentObstacle.IsPermanent)
+                    {
+                        npc.ObstacleIds.Remove(parentObstacle.Id);
+                    }
+                    _messageSystem.AddSystemMessage(
+                        $"Obstacle '{parentObstacle.Name}' permanently resolved via {goal.SetsResolutionMethod}",
+                        SystemMessageTypes.Success);
+                    break;
 
-                    case ConsequenceType.Bypass:
-                        // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
+                case ConsequenceType.Bypass:
+                    // Player passes, obstacle persists
+                    parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                    parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
-                    case ConsequenceType.Transform:
-                        // Fundamentally changed
+                case ConsequenceType.Transform:
+                    // Fundamentally changed
+                    parentObstacle.State = ObstacleState.Transformed;
+                    parentObstacle.Intensity = 0;
+                    if (!string.IsNullOrEmpty(goal.TransformDescription))
+                        parentObstacle.TransformedDescription = goal.TransformDescription;
+                    parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                    parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                    _messageSystem.AddSystemMessage(
+                        $"Obstacle '{parentObstacle.Name}' transformed, intensity set to 0",
+                        SystemMessageTypes.Success);
+                    break;
+
+                case ConsequenceType.Modify:
+                    // TRUST DOMAIN MODEL: PropertyReduction is required for Modify consequence type
+                    parentObstacle.Intensity = Math.Max(0,
+                        parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
+                    parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
+                    // Check if intensity is now 0 (fully modified)
+                    if (parentObstacle.Intensity == 0)
+                    {
                         parentObstacle.State = ObstacleState.Transformed;
-                        parentObstacle.Intensity = 0;
-                        if (!string.IsNullOrEmpty(goal.TransformDescription))
-                            parentObstacle.TransformedDescription = goal.TransformDescription;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-                        _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' transformed, intensity set to 0",
-                            SystemMessageTypes.Success);
-                        break;
+                    }
+                    break;
 
-                    case ConsequenceType.Modify:
-                        // Intensity reduced
-                        if (goal.PropertyReduction != null)
-                        {
-                            parentObstacle.Intensity = Math.Max(0,
-                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
-                        }
-                        parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
-                        // Check if intensity is now 0 (fully modified)
-                        if (parentObstacle.Intensity == 0)
-                        {
-                            parentObstacle.State = ObstacleState.Transformed;
-                        }
-                        break;
-
-                    case ConsequenceType.Grant:
-                        // Grant knowledge/items, no obstacle change
-                        // Knowledge cards handled in Phase 3
-                        // Items already handled by existing reward system
-                        break;
-                }
+                case ConsequenceType.Grant:
+                    // Grant knowledge/items, no obstacle change
+                    // Knowledge cards handled in Phase 3
+                    // Items already handled by existing reward system
+                    break;
             }
-            // Else: ambient goal with no obstacle parent
 
             _gameWorld.CurrentSocialSession.Deck.PlayCard(selectedCard);
             EndConversation();
@@ -372,20 +369,18 @@ public class SocialFacade
         }
 
         // 2. Check Personality Restrictions (updated for Initiative system)
-        if (_personalityEnforcer != null)
+        // TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
+        string violationMessage;
+        if (!ValidateInitiativePersonalityRules(selectedCard, out violationMessage))
         {
-            string violationMessage;
-            if (!ValidateInitiativePersonalityRules(selectedCard, out violationMessage))
+            return new SocialTurnResult
             {
-                return new SocialTurnResult
-                {
-                    Success = false,
-                    NewState = _gameWorld.CurrentSocialSession.CurrentState,
-                    NPCResponse = violationMessage,
-                    DoubtLevel = _gameWorld.CurrentSocialSession.CurrentDoubt,
-                    PersonalityViolation = violationMessage
-                };
-            }
+                Success = false,
+                NewState = _gameWorld.CurrentSocialSession.CurrentState,
+                NPCResponse = violationMessage,
+                DoubtLevel = _gameWorld.CurrentSocialSession.CurrentDoubt,
+                PersonalityViolation = violationMessage
+            };
         }
 
         // 3. Pay Card Cost (Initiative)
@@ -421,7 +416,8 @@ public class SocialFacade
         // Knowledge system eliminated - no knowledge/secret granting
 
         // 8. Record card played for personality tracking
-        _personalityEnforcer?.OnCardPlayed(selectedCard);
+        // TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
+        _personalityEnforcer.OnCardPlayed(selectedCard);
 
         // 9. Handle Card Persistence (Standard/Echo/Persistent/Banish)
         ProcessCardAfterPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
@@ -553,9 +549,11 @@ public class SocialFacade
         if (card.CardType == CardTypes.Goal)
         {
             // If card is in RequestPile, check momentum threshold
-            if (session.Deck?.IsCardInRequestPile(card) == true)
+            // TRUST SESSION: Deck is initialized in StartConversation
+            if (session.Deck.IsCardInRequestPile(card))
             {
-                int momentumThreshold = card.Context?.threshold ?? 0;
+                // TRUST DOMAIN MODEL: Goal cards have Context with threshold
+                int momentumThreshold = card.Context.threshold;
                 int currentMomentum = session.CurrentMomentum;
                 return currentMomentum >= momentumThreshold;
             }
@@ -742,23 +740,30 @@ public class SocialFacade
 
     /// <summary>
     /// Get Initiative cost for a card (replaces Focus cost)
+    /// FAIL FAST: Goal cards have no SocialCardTemplate (cost is 0), regular cards MUST have template
     /// </summary>
     private int GetCardInitiativeCost(CardInstance card)
     {
-        return card.SocialCardTemplate?.InitiativeCost ?? 0;
+        // Goal cards have no SocialCardTemplate - their cost is always 0
+        if (card.CardType == CardTypes.Goal)
+            return 0;
+
+        // All non-Goal cards MUST have SocialCardTemplate
+        if (card.SocialCardTemplate == null)
+            throw new InvalidOperationException($"Card {card.InstanceId} is missing required SocialCardTemplate");
+
+        return card.SocialCardTemplate.InitiativeCost;
     }
 
     /// <summary>
     /// Validate personality rules for Initiative system
     /// Proud: Ascending Initiative order (not Focus)
     /// Mercantile: Highest Initiative card gets +30% success
+    /// TRUST INITIALIZATION: _personalityEnforcer is initialized in StartConversation
     /// </summary>
     private bool ValidateInitiativePersonalityRules(CardInstance selectedCard, out string violationMessage)
     {
         violationMessage = string.Empty;
-
-        if (_personalityEnforcer == null)
-            return true;
 
         // Use existing personality enforcer but it will need updating for Initiative
         return _personalityEnforcer.ValidatePlay(selectedCard, out violationMessage);
@@ -894,21 +899,19 @@ public class SocialFacade
 
     /// <summary>
     /// Add turn to conversation history
+    /// TRUST INITIALIZATION: Called only during active conversation (CurrentSocialSession exists)
     /// </summary>
     private void AddTurnToHistory(ActionType actionType, CardInstance cardPlayed, SocialTurnResult result)
     {
-        if (_gameWorld.CurrentSocialSession != null)
+        SocialTurn turn = new SocialTurn
         {
-            SocialTurn turn = new SocialTurn
-            {
-                ActionType = actionType,
-                Narrative = result.Narrative,
-                Result = result,
-                TurnNumber = _gameWorld.CurrentSocialSession.TurnNumber,
-                CardPlayed = cardPlayed
-            };
-            _gameWorld.CurrentSocialSession.TurnHistory.Add(turn);
-        }
+            ActionType = actionType,
+            Narrative = result.Narrative,
+            Result = result,
+            TurnNumber = _gameWorld.CurrentSocialSession.TurnNumber,
+            CardPlayed = cardPlayed
+        };
+        _gameWorld.CurrentSocialSession.TurnHistory.Add(turn);
     }
 
     #endregion
@@ -937,10 +940,12 @@ public class SocialFacade
     private bool ShouldEndConversation(SocialSession session)
     {
         // End if request card was played (request cards end conversation immediately)
-        if (session.TurnHistory != null && session.TurnHistory.Any())
+        // TRUST SESSION INITIALIZATION: TurnHistory is initialized in SocialSession constructor
+        if (session.TurnHistory.Any())
         {
             SocialTurn lastTurn = session.TurnHistory.Last();
-            if (lastTurn?.CardPlayed?.CardType == CardTypes.Goal)
+            // KEEP ?.CardPlayed - LISTEN actions have null CardPlayed (only SPEAK has cards)
+            if (lastTurn.CardPlayed?.CardType == CardTypes.Goal)
             {
                 return true;
             }
@@ -1063,7 +1068,8 @@ public class SocialFacade
 
         // Apply Impulse doubt penalty - each Impulse card adds +1 doubt on LISTEN
         int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Statement);
-        if (impulseCount > 0 && session.MomentumManager != null)
+        // TRUST SESSION INITIALIZATION: MomentumManager is injected in StartConversation
+        if (impulseCount > 0)
         {
             session.MomentumManager.AddDoubt(session, impulseCount);
         }
@@ -1095,7 +1101,8 @@ public class SocialFacade
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
-                int momentumThreshold = card.Context?.threshold ?? 0;
+                // TRUST DOMAIN MODEL: Goal cards have Context with threshold
+                int momentumThreshold = card.Context.threshold;
 
                 if (currentMomentum >= momentumThreshold)
                 {
@@ -1158,10 +1165,11 @@ public class SocialFacade
     /// <summary>
     /// Get current hand cards (read-only) for UI display
     /// UI should NEVER access Session.Deck directly
+    /// TRUST INITIALIZATION: CurrentSocialSession and Deck are initialized in StartConversation
     /// </summary>
     public IReadOnlyList<CardInstance> GetHandCards()
     {
-        if (_gameWorld.CurrentSocialSession?.Deck == null)
+        if (_gameWorld.CurrentSocialSession == null)
             return new List<CardInstance>();
 
         return _gameWorld.CurrentSocialSession.Deck.HandCards;

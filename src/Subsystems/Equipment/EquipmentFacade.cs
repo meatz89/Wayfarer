@@ -72,13 +72,10 @@ public class EquipmentFacade
 
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            if (!string.IsNullOrEmpty(itemId))
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item is Equipment eq)
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item is Equipment eq)
-                {
-                    equipment.Add(eq);
-                }
+                equipment.Add(eq);
             }
         }
 
@@ -109,13 +106,10 @@ public class EquipmentFacade
 
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            if (!string.IsNullOrEmpty(itemId))
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item is Equipment equipment && equipment.MatchesContext(context))
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item is Equipment equipment && equipment.MatchesContext(context))
-                {
-                    totalReduction += equipment.IntensityReduction;
-                }
+                totalReduction += equipment.IntensityReduction;
             }
         }
 
@@ -152,19 +146,16 @@ public class EquipmentFacade
 
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            if (!string.IsNullOrEmpty(itemId))
+            Item item = _itemRepository.GetItemById(itemId);
+            if (item is Equipment equipment)
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item is Equipment equipment)
+                // Check if equipment has any context matching obstacle contexts
+                foreach (ObstacleContext obstacleContext in obstacle.Contexts)
                 {
-                    // Check if equipment has any context matching obstacle contexts
-                    foreach (ObstacleContext obstacleContext in obstacle.Contexts)
+                    if (equipment.ApplicableContexts.Contains(obstacleContext))
                     {
-                        if (equipment.ApplicableContexts.Contains(obstacleContext))
-                        {
-                            applicableEquipment.Add(equipment);
-                            break; // Count equipment once
-                        }
+                        applicableEquipment.Add(equipment);
+                        break; // Count equipment once
                     }
                 }
             }

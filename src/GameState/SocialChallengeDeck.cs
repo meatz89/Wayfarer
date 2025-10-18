@@ -25,12 +25,11 @@ public class SocialChallengeDeck
 
         foreach (string cardId in CardIds)
         {
-            SocialCard card = gameWorld.SocialCards.FirstOrDefault(d => d?.Id == cardId);
+            SocialCard card = gameWorld.SocialCards.FirstOrDefault(d => d != null && d.Id == cardId);
 
-            if (card != null)
-            {
-                instances.Add(new CardInstance(card));
-            }
+            if (card == null)
+                throw new System.InvalidOperationException($"Social card not found: {cardId}. Ensure card is loaded in GameWorld.SocialCards");
+            instances.Add(new CardInstance(card));
         }
 
         return instances;

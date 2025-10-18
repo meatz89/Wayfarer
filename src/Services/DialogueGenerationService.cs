@@ -15,7 +15,7 @@ public class DialogueGenerationService
 
     public DialogueGenerationService(GameWorld gameWorld)
     {
-        _templates = gameWorld.DialogueTemplates ?? new DialogueTemplates();
+        _templates = gameWorld.DialogueTemplates;
         if (_templates.ConnectionStateDialogue == null)
         { }
         else

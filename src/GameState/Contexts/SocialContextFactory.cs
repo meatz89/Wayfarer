@@ -26,11 +26,11 @@ public static class SocialContextFactory
             ConversationTypeId = conversationTypeId,
             InitialState = ConnectionState.NEUTRAL,
             Session = session,
-            ObservationCards = observationCards ?? new List<CardInstance>(),
+            ObservationCards = observationCards,
             PlayerResources = playerResources,
             LocationName = locationName,
             TimeDisplay = timeDisplay,
-            RequestText = session?.RequestText
+            RequestText = session.RequestText
         };
 
         return context;

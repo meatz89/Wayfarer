@@ -99,7 +99,7 @@ public class ExchangeOrchestrator
     public void CheckExchangeTriggers(ExchangeCard exchange, NPC npc)
     {
         // Check for relationship milestones from token rewards
-        if (exchange.Reward?.Tokens != null)
+        if (exchange.Reward != null && exchange.Reward.Tokens != null)
         {
             foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
             {

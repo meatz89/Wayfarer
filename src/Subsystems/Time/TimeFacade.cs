@@ -259,17 +259,17 @@ public class TimeFacade
             // USE OBJECT REFERENCE - Investigation.PatronNpc (O(1) instead of O(n) lookup)
             NPC patron = investigation.PatronNpc;
 
-            int cubesBeforeConsequence = patron?.StoryCubes ?? 0;
+            int cubesBeforeConsequence = patron.StoryCubes;
 
             // Apply consequences
             _gameWorld.ApplyDeadlineConsequences(obligationId);
 
-            int cubesAfterConsequence = patron?.StoryCubes ?? 0;
+            int cubesAfterConsequence = patron.StoryCubes;
 
             report.FailedObligations.Add(new FailedObligationInfo
             {
                 ObligationName = investigation.Name,
-                PatronName = patron?.Name ?? "Unknown",
+                PatronName = patron.Name,
                 CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
             });
         }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text.Json;
 
 /// <summary>
@@ -11,12 +12,22 @@ public static class StandingObligationParser
     /// </summary>
     public static StandingObligation ConvertDTOToStandingObligation(StandingObligationDTO dto)
     {
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.ID))
+            throw new InvalidDataException("StandingObligation missing required field 'ID'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"StandingObligation '{dto.ID}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"StandingObligation '{dto.ID}' missing required field 'Description'");
+        if (string.IsNullOrEmpty(dto.Source))
+            throw new InvalidDataException($"StandingObligation '{dto.ID}' missing required field 'Source'");
+
         StandingObligation obligation = new StandingObligation
         {
-            ID = dto.ID ?? "",
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Source = dto.Source ?? "",
+            ID = dto.ID,
+            Name = dto.Name,
+            Description = dto.Description,
+            Source = dto.Source,
             RelatedNPCId = dto.RelatedNPCId,
             ActivationThreshold = dto.ActivationThreshold,
             DeactivationThreshold = dto.DeactivationThreshold,
@@ -26,10 +37,10 @@ public static class StandingObligationParser
             BaseValue = dto.BaseValue,
             MinValue = dto.MinValue,
             MaxValue = dto.MaxValue,
-            SteppedThresholds = dto.SteppedThresholds ?? new Dictionary<int, float>()
+            SteppedThresholds = dto.SteppedThresholds // DTO has inline init, trust it
         };
 
-        // Parse related token type
+        // Parse related token type - optional field, defaults to None if missing/invalid
         if (!string.IsNullOrEmpty(dto.RelatedTokenType))
         {
             if (EnumParser.TryParse<ConnectionType>(dto.RelatedTokenType, out ConnectionType tokenType))
@@ -38,7 +49,7 @@ public static class StandingObligationParser
             }
         }
 
-        // Parse scaling type
+        // Parse scaling type - optional field, defaults to None if missing/invalid
         if (!string.IsNullOrEmpty(dto.ScalingType))
         {
             if (EnumParser.TryParse<ScalingType>(dto.ScalingType, out ScalingType scalingType))
@@ -47,27 +58,21 @@ public static class StandingObligationParser
             }
         }
 
-        // Parse benefit effects
-        if (dto.BenefitEffects != null)
+        // Parse benefit effects - DTO has inline init, trust it
+        foreach (string effect in dto.BenefitEffects)
         {
-            foreach (string effect in dto.BenefitEffects)
+            if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect obligationEffect))
             {
-                if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect obligationEffect))
-                {
-                    obligation.BenefitEffects.Add(obligationEffect);
-                }
+                obligation.BenefitEffects.Add(obligationEffect);
             }
         }
 
-        // Parse constraint effects
-        if (dto.ConstraintEffects != null)
+        // Parse constraint effects - DTO has inline init, trust it
+        foreach (string effect in dto.ConstraintEffects)
         {
-            foreach (string effect in dto.ConstraintEffects)
+            if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect obligationEffect))
             {
-                if (EnumParser.TryParse<ObligationEffect>(effect, out ObligationEffect obligationEffect))
-                {
-                    obligation.ConstraintEffects.Add(obligationEffect);
-                }
+                obligation.ConstraintEffects.Add(obligationEffect);
             }
         }
 
@@ -90,18 +95,56 @@ public static class StandingObligationParser
     {
         StandingObligation obligation = new StandingObligation();
 
+        // Validate required string fields
         if (element.TryGetProperty("ID", out JsonElement idElement))
-            obligation.ID = idElement.GetString() ?? "";
+        {
+            string id = idElement.GetString();
+            if (string.IsNullOrEmpty(id))
+                throw new InvalidDataException("StandingObligation missing required field 'ID'");
+            obligation.ID = id;
+        }
+        else
+        {
+            throw new InvalidDataException("StandingObligation missing required field 'ID'");
+        }
 
         if (element.TryGetProperty("Name", out JsonElement nameElement))
-            obligation.Name = nameElement.GetString() ?? "";
+        {
+            string name = nameElement.GetString();
+            if (string.IsNullOrEmpty(name))
+                throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Name'");
+            obligation.Name = name;
+        }
+        else
+        {
+            throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Name'");
+        }
 
         if (element.TryGetProperty("Description", out JsonElement descElement))
-            obligation.Description = descElement.GetString() ?? "";
+        {
+            string description = descElement.GetString();
+            if (string.IsNullOrEmpty(description))
+                throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Description'");
+            obligation.Description = description;
+        }
+        else
+        {
+            throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Description'");
+        }
 
         if (element.TryGetProperty("Source", out JsonElement sourceElement))
-            obligation.Source = sourceElement.GetString() ?? "";
+        {
+            string source = sourceElement.GetString();
+            if (string.IsNullOrEmpty(source))
+                throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Source'");
+            obligation.Source = source;
+        }
+        else
+        {
+            throw new InvalidDataException($"StandingObligation '{obligation.ID}' missing required field 'Source'");
+        }
 
+        // Optional enum field - defaults to None if missing/invalid
         if (element.TryGetProperty("RelatedTokenType", out JsonElement tokenElement) &&
             !tokenElement.ValueKind.Equals(JsonValueKind.Null))
         {
@@ -109,6 +152,7 @@ public static class StandingObligationParser
                 obligation.RelatedTokenType = tokenType;
         }
 
+        // Parse benefit effects array if present
         if (element.TryGetProperty("BenefitEffects", out JsonElement benefitsElement))
         {
             foreach (JsonElement benefitElement in benefitsElement.EnumerateArray())
@@ -118,6 +162,7 @@ public static class StandingObligationParser
             }
         }
 
+        // Parse constraint effects array if present
         if (element.TryGetProperty("ConstraintEffects", out JsonElement constraintsElement))
         {
             foreach (JsonElement constraintElement in constraintsElement.EnumerateArray())

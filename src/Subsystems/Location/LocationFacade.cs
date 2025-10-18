@@ -146,12 +146,19 @@ public class LocationFacade
     {
         Player player = _gameWorld.GetPlayer();
         Venue venue = GetCurrentLocation();
-        Location location = GetCurrentLocationSpot(); LocationScreenViewModel viewModel = new LocationScreenViewModel
+        Location location = GetCurrentLocationSpot();
+
+        if (venue == null)
+            throw new InvalidOperationException("Current venue is null");
+        if (location == null)
+            throw new InvalidOperationException("Current location spot is null");
+
+        LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
             LocationPath = _spotManager.BuildLocationPath(venue, location),
-            LocationName = venue?.Name ?? "Unknown Location",
-            CurrentSpotName = location?.Name,
+            LocationName = venue.Name,
+            CurrentSpotName = location.Name,
             LocationTraits = _spotManager.GetLocationTraits(venue, location, _timeManager.GetCurrentTimeBlock()),
             AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(location, venue, _timeManager.GetCurrentTimeBlock(), GetNPCCountAtSpot(location)),
             QuickActions = new List<LocationActionViewModel>(),
@@ -208,7 +215,8 @@ public class LocationFacade
     public List<NPC> GetNPCsAtCurrentSpot()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player?.CurrentLocation == null) return new List<NPC>();
+        if (player.CurrentLocation == null)
+            throw new InvalidOperationException("Player has no current location");
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         return _npcTracker.GetNPCsAtSpot(player.CurrentLocation.Id, currentTime);
@@ -241,16 +249,13 @@ public class LocationFacade
             List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
 
             // Find conversation options for this NPC if provided
-            NPCConversationOptions? npcOptions = npcConversationOptions?.FirstOrDefault(opt => opt.NpcId == npc.ID);
-            if (npcOptions != null && npcOptions.AvailableTypes != null)
+            NPCConversationOptions? npcOptions = npcConversationOptions.FirstOrDefault(opt => opt.NpcId == npc.ID);
+            if (npcOptions != null)
             {
                 foreach (string conversationType in npcOptions.AvailableTypes)
                 {
                     InteractionOptionViewModel interaction = GenerateConversationInteraction(npc, conversationType, connectionState);
-                    if (interaction != null)
-                    {
-                        interactions.Add(interaction);
-                    }
+                    interactions.Add(interaction);
                 }
             }
 
@@ -317,9 +322,12 @@ public class LocationFacade
 
         // Get location to derive venueId if needed
         Location location = _gameWorld.GetLocation(locationId);
-        if (location == null) return observations;
+        if (location == null)
+            throw new InvalidOperationException($"Location not found: {locationId}");
 
-        string venueId = location.VenueId; List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, locationId); if (locationObservations != null)
+        string venueId = location.VenueId;
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocationSpot(venueId, locationId);
+        if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
@@ -351,10 +359,15 @@ public class LocationFacade
 
     private string BuildRelevanceString(Observation obs)
     {
-        if (obs.RelevantNPCs?.Any() == true)
+        if (obs.RelevantNPCs != null && obs.RelevantNPCs.Any())
         {
             string npcs = string.Join(", ", obs.RelevantNPCs.Select(id =>
-                _npcRepository.GetById(id)?.Name ?? id));
+            {
+                NPC npc = _npcRepository.GetById(id);
+                if (npc == null)
+                    throw new InvalidOperationException($"NPC not found: {id}");
+                return npc.Name;
+            }));
 
             if (obs.CreatesState.HasValue)
                 return $"→ {npcs} ({obs.CreatesState.Value})";
@@ -371,26 +384,28 @@ public class LocationFacade
 
         foreach (RouteOption route in availableRoutes)
         {
-            Location? destSpot = _gameWorld.GetLocation(route.DestinationLocationSpot);
-            Venue? destination = destSpot != null ? _locationManager.GetVenue(destSpot.VenueId) : null;
+            Location destSpot = _gameWorld.GetLocation(route.DestinationLocationSpot);
+            if (destSpot == null)
+                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocationSpot}");
 
-            if (destination != null)
+            Venue destination = _locationManager.GetVenue(destSpot.VenueId);
+            if (destination == null)
+                throw new InvalidOperationException($"Destination venue not found: {destSpot.VenueId}");
+
+            routes.Add(new RouteOptionViewModel
             {
-                routes.Add(new RouteOptionViewModel
-                {
-                    RouteId = route.Id,
-                    Destination = destination.Name,
-                    TravelTime = $"{route.TravelTimeSegments} seg",
-                    Detail = route.Description ?? route.Name,
-                    IsLocked = false, // Core Loop: All routes visible
-                    LockReason = null,
-                    // Removed RequiredTier - route access is based on actual requirements in JSON
-                    TransportMethod = route.Method.ToString().ToLower(),
-                    SupportsCart = false,
-                    SupportsCarriage = false,
-                    Familiarity = null
-                });
-            }
+                RouteId = route.Id,
+                Destination = destination.Name,
+                TravelTime = $"{route.TravelTimeSegments} seg",
+                Detail = route.Description,
+                IsLocked = false, // Core Loop: All routes visible
+                LockReason = null,
+                // Removed RequiredTier - route access is based on actual requirements in JSON
+                TransportMethod = route.Method.ToString().ToLower(),
+                SupportsCart = false,
+                SupportsCarriage = false,
+                Familiarity = null
+            });
         }
 
         return routes;

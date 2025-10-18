@@ -7,8 +7,8 @@ public class RouteAccessResult
     private RouteAccessResult(bool isAllowed, string blockingReason, List<string> warnings)
     {
         IsAllowed = isAllowed;
-        BlockingReason = blockingReason ?? "";
-        Warnings = warnings ?? new List<string>();
+        BlockingReason = blockingReason;
+        Warnings = warnings;
     }
 
     public static RouteAccessResult Allowed()
@@ -245,7 +245,7 @@ public class RouteOption
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
         // Apply weather modifications
-        if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
+        if (WeatherModifications.TryGetValue(weather, out RouteModification modification))
         {
             baseCost += modification.StaminaCostModifier;
         }
@@ -299,13 +299,12 @@ public class RouteOption
 
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            if (itemId != null && itemId != string.Empty)
+            if (!string.IsNullOrEmpty(itemId))
             {
                 Item item = itemRepository.GetItemById(itemId);
-                if (item != null)
-                {
-                    categories.AddRange(item.Categories);
-                }
+                if (item == null)
+                    throw new System.InvalidOperationException($"Item not found: {itemId}");
+                categories.AddRange(item.Categories);
             }
         }
 

@@ -122,7 +122,7 @@ public class StandingObligation
             return false; // Only auto-activated obligations can auto-deactivate
 
         // If no deactivation threshold is set, use activation threshold
-        int deactivationPoint = DeactivationThreshold ?? ActivationThreshold ?? 0;
+        int deactivationPoint = DeactivationThreshold.HasValue ? DeactivationThreshold.Value : (ActivationThreshold.HasValue ? ActivationThreshold.Value : 0);
 
         if (ActivatesAboveThreshold)
         {

@@ -46,7 +46,9 @@ public class RouteRepository : IRouteRepository
     public List<RouteOption> GetAll()
     {
         // ONLY use GameWorld.Routes as the single source of truth
-        return _gameWorld.Routes ?? new List<RouteOption>();
+        if (_gameWorld.Routes == null)
+            throw new System.InvalidOperationException("GameWorld.Routes is null - package content not loaded");
+        return _gameWorld.Routes;
     }
 
     // Get a specific route by ID

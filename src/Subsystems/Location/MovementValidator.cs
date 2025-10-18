@@ -171,13 +171,13 @@ public class MovementValidator
         Player player = _gameWorld.GetPlayer();
 
         // Check if Venue is unlocked
-        if (player.UnlockedVenueIds?.Contains(venueId) == true)
+        if (player.UnlockedVenueIds.Contains(venueId))
         {
             return true;
         }
 
         // Check if Venue has been discovered
-        if (player.DiscoveredVenueIds?.Contains(venueId) == true)
+        if (player.DiscoveredVenueIds.Contains(venueId))
         {
             return true;
         }
@@ -200,7 +200,7 @@ public class MovementValidator
 
         Player player = _gameWorld.GetPlayer();
 
-        if (!player.DiscoveredVenueIds?.Contains(venueId) == true)
+        if (!player.DiscoveredVenueIds.Contains(venueId))
         {
             return "Location not yet discovered";
         }

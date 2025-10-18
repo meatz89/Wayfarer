@@ -34,7 +34,10 @@ public static class MasteryTokenExtensions
     /// </summary>
     public static int GetMastery(this List<MasteryTokenEntry> tokens, string deckId)
     {
-        return tokens.FirstOrDefault(t => t.DeckId == deckId)?.TokenCount ?? 0;
+        MasteryTokenEntry entry = tokens.FirstOrDefault(t => t.DeckId == deckId);
+        if (entry == null)
+            return 0;
+        return entry.TokenCount;
     }
 
     /// <summary>

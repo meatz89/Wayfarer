@@ -24,6 +24,9 @@ public class Equipment : Item
 
     public static Equipment FromItem(Item item, List<ObstacleContext> applicableContexts = null, int intensityReduction = 0)
     {
+        if (item == null)
+            throw new System.ArgumentNullException(nameof(item));
+
         Equipment equipment = new Equipment
         {
             Id = item.Id,
@@ -40,7 +43,7 @@ public class Equipment : Item
             TokenGenerationModifiers = item.TokenGenerationModifiers,
             EnablesTokenGeneration = item.EnablesTokenGeneration,
             IsAvailable = item.IsAvailable,
-            ApplicableContexts = applicableContexts ?? new List<ObstacleContext>(),
+            ApplicableContexts = applicableContexts,
             IntensityReduction = intensityReduction
         };
 

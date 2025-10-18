@@ -63,7 +63,9 @@ public static class NPCStateOperations
     /// </summary>
     public static bool CanProvideService(NPCState state, ServiceTypes service)
     {
-        return state?.ProvidedServices.Contains(service) ?? false;
+        if (state == null)
+            return false;
+        return state.ProvidedServices.Contains(service);
     }
 
     /// <summary>

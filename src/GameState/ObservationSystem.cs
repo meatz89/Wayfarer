@@ -41,7 +41,7 @@ public class ObservationSystem
                 // Group observations by location within this location
                 foreach (Observation obs in locationGroup)
                 {
-                    string LocationId = obs.LocationId ?? "default";
+                    string LocationId = string.IsNullOrEmpty(obs.LocationId) ? "default" : obs.LocationId;
                     if (!spotObservations.ContainsKey(LocationId))
                     {
                         spotObservations[LocationId] = new List<Observation>();
@@ -78,9 +78,10 @@ public class ObservationSystem
     /// </summary>
     public List<Observation> GetAllObservationsForLocation(string venueId)
     {
-        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
+        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>> spotMap))
         {
-            List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList(); return allObservations;
+            List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList();
+            return allObservations;
         }
         return new List<Observation>();
     }

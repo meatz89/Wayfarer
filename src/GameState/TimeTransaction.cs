@@ -82,7 +82,8 @@ public class TimeTransaction
     /// </summary>
     public TimeTransaction WithContext(Action<TransactionContext> configureContext)
     {
-        configureContext?.Invoke(_context);
+        if (configureContext != null)
+            configureContext.Invoke(_context);
         return this;
     }
 
@@ -137,7 +138,7 @@ public class TimeTransaction
         List<EffectResult> effectResults = new List<EffectResult>();
 
         // Advance time first
-        TimeAdvancementResult? timeAdvancement = _totalSegmentsCost > 0
+        TimeAdvancementResult timeAdvancement = _totalSegmentsCost > 0
             ? _timeModel.AdvanceSegments(_totalSegmentsCost)
             : null;
 

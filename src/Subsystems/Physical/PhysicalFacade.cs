@@ -98,7 +98,7 @@ public class PhysicalFacade
         Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
         if (!string.IsNullOrEmpty(goalId) && goal != null)
         {
-            if (goal.GoalCards != null && goal.GoalCards.Any())
+            if (goal.GoalCards.Any())
             {
                 foreach (GoalCard goalCard in goal.GoalCards)
                 {
@@ -254,11 +254,8 @@ public class PhysicalFacade
 
                     case ConsequenceType.Modify:
                         // Intensity reduced
-                        if (goal.PropertyReduction != null)
-                        {
-                            parentObstacle.Intensity = Math.Max(0,
-                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
-                        }
+                        parentObstacle.Intensity = Math.Max(0,
+                            parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
                         parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
                         // Check if intensity is now 0 (fully modified)
                         if (parentObstacle.Intensity == 0)
@@ -285,8 +282,8 @@ public class PhysicalFacade
             {
                 Success = true,
                 Narrative = narrative,
-                CurrentBreakthrough = _gameWorld.CurrentPhysicalSession?.CurrentBreakthrough ?? 0,
-                CurrentDanger = _gameWorld.CurrentPhysicalSession?.CurrentDanger ?? 0,
+                CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+                CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
                 SessionEnded = true
             };
         }
@@ -370,8 +367,8 @@ public class PhysicalFacade
             EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
         };
 
+        _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
-        _gameWorld.CurrentPhysicalSession.Deck?.Clear();
 
         return outcome;
     }
@@ -418,8 +415,8 @@ public class PhysicalFacade
         _gameWorld.CurrentPhysicalGoalId = null;
         _gameWorld.CurrentPhysicalInvestigationId = null;
 
+        _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
-        _gameWorld.CurrentPhysicalSession.Deck?.Clear();
 
         return outcome;
     }

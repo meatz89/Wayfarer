@@ -43,7 +43,7 @@ public class TravelObstacleContext
     /// </summary>
     public List<ObstacleApproach> GetAvailableApproaches()
     {
-        if (Obstacle?.Approaches == null)
+        if (Obstacle == null || Obstacle.Approaches == null)
             return new List<ObstacleApproach>();
 
         return Obstacle.Approaches
@@ -56,7 +56,7 @@ public class TravelObstacleContext
     /// </summary>
     public List<(ObstacleApproach approach, List<string> reasons)> GetUnavailableApproaches()
     {
-        if (Obstacle?.Approaches == null)
+        if (Obstacle == null || Obstacle.Approaches == null)
             return new List<(ObstacleApproach, List<string>)>();
 
         List<(ObstacleApproach, List<string>)> result = new List<(ObstacleApproach, List<string>)>();

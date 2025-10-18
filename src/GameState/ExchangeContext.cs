@@ -51,11 +51,11 @@ public class ExchangeContext
     /// </summary>
     public List<ExchangeCard> GetAvailableExchanges()
     {
-        if (Session?.AvailableExchanges == null)
+        if (Session == null)
             return new List<ExchangeCard>();
 
         return Session.AvailableExchanges
-            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo?.VenueId, CurrentTimeBlock))
+            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo.VenueId, CurrentTimeBlock))
             .Select(e => e.ExchangeCard)
             .ToList();
     }
@@ -124,10 +124,16 @@ public class ExchangeContext
     /// </summary>
     public ExchangePreview GetExchangePreview(string exchangeId)
     {
-        ExchangeOption? option = Session?.AvailableExchanges?.Find(e => e.ExchangeId == exchangeId);
-        ExchangeCard? exchange = option?.ExchangeCard;
+        if (Session == null)
+            throw new InvalidOperationException("Cannot get exchange preview: No active exchange session");
+
+        ExchangeOption option = Session.AvailableExchanges.Find(e => e.ExchangeId == exchangeId);
+        if (option == null)
+            throw new InvalidOperationException($"Exchange option not found: {exchangeId}");
+
+        ExchangeCard exchange = option.ExchangeCard;
         if (exchange == null)
-            return null;
+            throw new InvalidOperationException($"Exchange card not found for option: {exchangeId}");
 
         return new ExchangePreview
         {
