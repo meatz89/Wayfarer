@@ -47,7 +47,7 @@ public static class SocialCardParser
         }
 
         // Parse depth (required for template derivation)
-        CardDepth depth = CardDepth.Depth1;
+        CardDepth depth = CardDepth.Depth1; // Default to Depth1 if missing
         if (dto.Depth.HasValue)
         {
             depth = (CardDepth)dto.Depth.Value;
@@ -182,7 +182,7 @@ public static class SocialCardParser
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueText = dto.DialogueText,
             VerbPhrase = "",
-            MomentumThreshold = dto.MomentumThreshold ?? 0,
+            MomentumThreshold = dto.MomentumThreshold ?? 0, // Optional - defaults to 0 if missing
             BoundStat = boundStat,
             RequiredStat = requiredStat,
             RequiredStatements = requiredStatements,

@@ -48,6 +48,7 @@ public class RouteDiscoveryValidator : IContentValidator
 
     private void ValidateRouteDiscovery(JsonElement discovery, int index, string fileName, List<ValidationError> errors, List<string> routeIds)
     {
+        // Use index as fallback identifier if routeId field is missing (for error reporting only)
         string routeId = GetStringProperty(discovery, "routeId") ?? $"RouteDiscovery[{index}]";
 
         // Check for duplicate route IDs

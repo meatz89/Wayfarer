@@ -26,11 +26,19 @@ public static class StrangerParser
             throw new ArgumentException($"Invalid time block: {dto.TimeBlock}");
         }
 
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("StrangerNPC missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.LocationId))
+            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'LocationId'");
+
         NPC stranger = new NPC
         {
-            ID = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            LocationId = dto.LocationId ?? "",
+            ID = dto.Id,
+            Name = dto.Name,
+            LocationId = dto.LocationId,
             PersonalityType = personalityType,
             IsStranger = true,
             AvailableTimeBlock = timeBlock,

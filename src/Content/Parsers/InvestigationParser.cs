@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 /// <summary>
@@ -18,21 +19,29 @@ public class InvestigationParser
 
     public Investigation ParseInvestigation(InvestigationDTO dto)
     {
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("Investigation missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"Investigation '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"Investigation '{dto.Id}' missing required field 'Description'");
+
         return new Investigation
         {
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            IntroAction = ParseIntroAction(dto.Intro),
+            IntroAction = ParseIntroAction(dto.Intro), // Returns null if dto.Intro is null
             ColorCode = dto.ColorCode,
-            ObligationType = ParseObligationType(dto.ObligationType),
+            ObligationType = ParseObligationType(dto.ObligationType), // Handles null with default
             PatronNpcId = dto.PatronNpcId,
             DeadlineSegment = dto.DeadlineSegment,
             CompletionRewardCoins = dto.CompletionRewardCoins,
-            CompletionRewardItems = dto.CompletionRewardItems ?? new List<string>(),
-            CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP),
-            SpawnedInvestigationIds = dto.SpawnedInvestigationIds ?? new List<string>(),
-            PhaseDefinitions = dto.Phases?.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() ?? new List<InvestigationPhaseDefinition>()
+            CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
+            CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
+            SpawnedInvestigationIds = dto.SpawnedInvestigationIds, // DTO has inline init, trust it
+            PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
         };
     }
 
@@ -51,28 +60,25 @@ public class InvestigationParser
 
     private PhaseCompletionReward ParseCompletionReward(PhaseCompletionRewardDTO dto)
     {
-        if (dto == null) return null;
+        if (dto == null) return null; // Optional reward - valid to be null
 
         PhaseCompletionReward reward = new PhaseCompletionReward
         {
             UnderstandingReward = dto.UnderstandingReward
         };
 
-        // Parse obstacle spawns
-        if (dto.ObstaclesSpawned != null && dto.ObstaclesSpawned.Count > 0)
+        // Parse obstacle spawns - DTO has inline init, trust it
+        foreach (ObstacleSpawnInfoDTO spawnDto in dto.ObstaclesSpawned)
         {
-            foreach (ObstacleSpawnInfoDTO spawnDto in dto.ObstaclesSpawned)
-            {
-                ObstacleSpawnTargetType targetType = ParseObstacleSpawnTargetType(spawnDto.TargetType);
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId, _gameWorld);
+            ObstacleSpawnTargetType targetType = ParseObstacleSpawnTargetType(spawnDto.TargetType);
+            Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId, _gameWorld);
 
-                reward.ObstaclesSpawned.Add(new ObstacleSpawnInfo
-                {
-                    TargetType = targetType,
-                    TargetEntityId = spawnDto.TargetEntityId,
-                    Obstacle = obstacle
-                });
-            }
+            reward.ObstaclesSpawned.Add(new ObstacleSpawnInfo
+            {
+                TargetType = targetType,
+                TargetEntityId = spawnDto.TargetEntityId,
+                Obstacle = obstacle
+            });
         }
 
         return reward;
@@ -81,14 +87,14 @@ public class InvestigationParser
     private ObstacleSpawnTargetType ParseObstacleSpawnTargetType(string typeString)
     {
         if (string.IsNullOrEmpty(typeString))
-            throw new InvalidOperationException("ObstacleSpawnInfo missing required 'targetType' field");
+            throw new InvalidDataException("ObstacleSpawnInfo missing required 'targetType' field");
 
         return typeString.ToLowerInvariant() switch
         {
             "location" => ObstacleSpawnTargetType.Location,
             "route" => ObstacleSpawnTargetType.Route,
             "npc" => ObstacleSpawnTargetType.NPC,
-            _ => throw new InvalidOperationException(
+            _ => throw new InvalidDataException(
                 $"Invalid ObstacleSpawnTargetType '{typeString}'. Valid values: Location, Route, NPC")
         };
     }
@@ -97,7 +103,7 @@ public class InvestigationParser
     {
         if (string.IsNullOrEmpty(deckId))
         {
-            throw new InvalidOperationException($"Investigation intro action '{phaseId}' has no deckId specified");
+            throw new InvalidDataException($"Investigation intro action '{phaseId}' has no deckId specified");
         }
 
         bool exists = systemType switch
@@ -105,12 +111,12 @@ public class InvestigationParser
             TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Any(d => d.Id == deckId),
             TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Any(d => d.Id == deckId),
             TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Any(d => d.Id == deckId),
-            _ => throw new InvalidOperationException($"Unknown TacticalSystemType: {systemType}")
+            _ => throw new InvalidDataException($"Unknown TacticalSystemType: {systemType}")
         };
 
         if (!exists)
         {
-            throw new InvalidOperationException(
+            throw new InvalidDataException(
                 $"Investigation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
                 $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
             );
@@ -130,30 +136,32 @@ public class InvestigationParser
 
     private TacticalSystemType ParseSystemType(string systemTypeString)
     {
+        // Optional field - defaults to Mental if missing/invalid
         return Enum.TryParse<TacticalSystemType>(systemTypeString, out TacticalSystemType type)
             ? type
-            : TacticalSystemType.Mental; // default
+            : TacticalSystemType.Mental;
     }
 
     private InvestigationIntroAction ParseIntroAction(InvestigationIntroActionDTO dto)
     {
-        if (dto == null) return null;
+        if (dto == null) return null; // Optional intro action - valid to be null
 
         return new InvestigationIntroAction
         {
-            TriggerType = ParseTriggerType(dto.TriggerType),
-            TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites),
+            TriggerType = ParseTriggerType(dto.TriggerType), // Handles null with default
+            TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites), // Handles null
             ActionText = dto.ActionText,
             LocationId = dto.LocationId,
             IntroNarrative = dto.IntroNarrative,
-            CompletionReward = ParseCompletionReward(dto.CompletionReward)
+            CompletionReward = ParseCompletionReward(dto.CompletionReward) // Handles null
         };
     }
 
     private DiscoveryTriggerType ParseTriggerType(string triggerTypeString)
     {
+        // Optional field - defaults to ImmediateVisibility if missing/invalid
         if (string.IsNullOrEmpty(triggerTypeString))
-            return DiscoveryTriggerType.ImmediateVisibility; // default
+            return DiscoveryTriggerType.ImmediateVisibility;
 
         return Enum.TryParse<DiscoveryTriggerType>(triggerTypeString, out DiscoveryTriggerType type)
             ? type
@@ -162,8 +170,9 @@ public class InvestigationParser
 
     private InvestigationObligationType ParseObligationType(string typeString)
     {
+        // Optional field - defaults to SelfDiscovered if missing/invalid
         if (string.IsNullOrEmpty(typeString))
-            return InvestigationObligationType.SelfDiscovered; // default
+            return InvestigationObligationType.SelfDiscovered;
 
         return Enum.TryParse<InvestigationObligationType>(typeString, out InvestigationObligationType type)
             ? type
@@ -172,7 +181,7 @@ public class InvestigationParser
 
     private InvestigationPrerequisites ParseInvestigationPrerequisites(InvestigationPrerequisitesDTO dto)
     {
-        if (dto == null) return new InvestigationPrerequisites();
+        if (dto == null) return new InvestigationPrerequisites(); // Optional prerequisites - return empty if null
 
         return new InvestigationPrerequisites
         {
@@ -182,7 +191,8 @@ public class InvestigationParser
 
     private List<StatXPReward> ParseXPRewards(Dictionary<string, int> xpRewardsDto)
     {
-        if (xpRewardsDto == null || xpRewardsDto.Count == 0)
+        // DTO has inline init - trust it, but might be empty
+        if (xpRewardsDto.Count == 0)
             return new List<StatXPReward>();
 
         List<StatXPReward> rewards = new List<StatXPReward>();
@@ -205,6 +215,7 @@ public class InvestigationParser
 
     private PlayerStatType ParsePlayerStatType(string statName)
     {
+        // Optional field - returns None if missing/invalid
         if (string.IsNullOrEmpty(statName))
             return PlayerStatType.None;
 

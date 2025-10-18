@@ -37,7 +37,7 @@ public static class ExchangeParser
                 {
                     new ResourceAmount
                     {
-                        Type = dto.GiveCurrency?.ToLower() switch
+                        Type = (dto.GiveCurrency ?? "coins").ToLower() switch // Optional - defaults to "coins" if missing
                         {
                             "coins" or "coin" => ResourceType.Coins,
                             "food" => ResourceType.Hunger,
@@ -62,7 +62,7 @@ public static class ExchangeParser
                 {
                     new ResourceAmount
                     {
-                        Type = dto.ReceiveCurrency?.ToLower() switch
+                        Type = (dto.ReceiveCurrency ?? "coins").ToLower() switch // Optional - defaults to "coins" if missing
                         {
                             "coins" or "coin" => ResourceType.Coins,
                             "food" => ResourceType.Hunger,
@@ -99,9 +99,9 @@ public static class ExchangeParser
     {
         string receiveText = !string.IsNullOrEmpty(dto.ReceiveItem)
             ? dto.ReceiveItem
-            : $"{dto.ReceiveAmount} {dto.ReceiveCurrency}";
+            : $"{dto.ReceiveAmount} {dto.ReceiveCurrency ?? "coins"}"; // Optional - defaults to "coins" if missing
 
-        return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {receiveText}";
+        return $"Trade {dto.GiveAmount} {dto.GiveCurrency ?? "coins"} for {receiveText}"; // Optional - defaults to "coins" if missing
     }
 
     /// <summary>

@@ -42,8 +42,6 @@ public class InvestigationDiscoveryEvaluator
             {
                 discoverable.Add(investigation);
             }
-            else
-            { }
         }
 
         return discoverable;
@@ -75,8 +73,9 @@ public class InvestigationDiscoveryEvaluator
     /// Prerequisites: LocationId (globally unique)
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
-    {// Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
+    {
+        // Check if player is at required location (LocationId is globally unique)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
         {
             return false;
         }
@@ -90,7 +89,7 @@ public class InvestigationDiscoveryEvaluator
     private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
     {
         // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
             return false;
 
         return true;

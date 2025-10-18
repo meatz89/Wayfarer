@@ -17,7 +17,7 @@ public class SocialCardDTO
     // These appear in conversation cards but not request cards
     public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
     public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
-    public int? Depth { get; set; } // 1-10 depth system
+    public int? Depth { get; set; } // 1-10 depth system (nullable for request cards that don't have depth)
     public List<string> PersonalityTypes { get; set; }
 
     // ========== RARE FIELDS (4% frequency - request cards only) ==========

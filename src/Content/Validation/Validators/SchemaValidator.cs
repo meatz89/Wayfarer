@@ -112,6 +112,7 @@ public class SchemaValidator : IContentValidator
         }
 
         // Check for unknown fields (helps catch typos)
+        // OptionalFields might be null - use empty array as fallback
         List<string> knownFields = schema.RequiredFields.Concat(schema.OptionalFields ?? Array.Empty<string>())
             .ToList();
 

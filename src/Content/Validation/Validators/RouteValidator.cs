@@ -49,6 +49,7 @@ public class RouteValidator : BaseValidator
     private void ValidateRoute(JsonElement route, int index, string fileName,
         List<ValidationError> errors, List<string> routeIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string routeId = GetStringProperty(route, "id") ?? $"Route[{index}]";
 
         // Check for duplicate IDs

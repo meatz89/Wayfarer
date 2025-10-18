@@ -53,11 +53,11 @@ public class PackageLoader
     /// Used at game startup for deterministic content loading
     /// </summary>
     public void LoadStaticPackages(List<string> packageFilePaths)
-    {// Sort by filename to ensure proper loading order (01_, 02_, etc.)
+    {
+        // Sort by filename to ensure proper loading order (01_, 02_, etc.)
         List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
-            .ToList(); foreach (string? path in sortedPackages)
-        { }
+            .ToList();
 
         // Load each package sequentially
         foreach (string packagePath in sortedPackages)
@@ -199,7 +199,9 @@ public class PackageLoader
         }
 
         // Load with skeletons allowed for dynamic content
-        LoadPackageContent(package, allowSkeletons: true);// Return skeleton IDs for AI completion
+        LoadPackageContent(package, allowSkeletons: true);
+
+        // Return skeleton IDs for AI completion
         return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }
 
@@ -233,7 +235,9 @@ public class PackageLoader
         _loadedPackageIds.Add(package.PackageId);
 
         // Load with skeletons allowed for dynamic content
-        LoadPackageContent(package, allowSkeletons: true);// Return skeleton IDs for AI completion
+        LoadPackageContent(package, allowSkeletons: true);
+
+        // Return skeleton IDs for AI completion
         return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }
 
@@ -324,7 +328,9 @@ public class PackageLoader
 
     private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons)
     {
-        if (strangerDtos == null) return; foreach (StrangerNPCDTO dto in strangerDtos)
+        if (strangerDtos == null) return;
+
+        foreach (StrangerNPCDTO dto in strangerDtos)
         {
             // Convert DTO to domain model using StrangerParser
             NPC stranger = StrangerParser.ConvertDTOToNPC(dto);

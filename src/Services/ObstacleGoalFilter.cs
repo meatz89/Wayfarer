@@ -38,22 +38,19 @@ public class ObstacleGoalFilter
         }
 
         // Add filtered obstacle-specific goals (distributed interaction pattern)
-        if (location.ObstacleIds != null && gameWorld.Obstacles != null)
+        foreach (string obstacleId in location.ObstacleIds)
         {
-            foreach (string obstacleId in location.ObstacleIds)
+            Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+            if (obstacle != null)
             {
-                Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-                if (obstacle != null)
+                // Filter goals where PlacementLocationId matches this location
+                foreach (string goalId in obstacle.GoalIds)
                 {
-                    // Filter goals where PlacementLocationId matches this location
-                    foreach (string goalId in obstacle.GoalIds)
+                    Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                    if (goal != null && goal.PlacementLocationId == location.Id)
                     {
-                        Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-                        if (goal != null && goal.PlacementLocationId == location.Id)
-                        {
-                            // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
-                            visibleGoals.Add(goal);
-                        }
+                        // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
+                        visibleGoals.Add(goal);
                     }
                 }
             }
@@ -85,22 +82,19 @@ public class ObstacleGoalFilter
         }
 
         // Add filtered obstacle-specific goals (distributed interaction pattern)
-        if (npc.ObstacleIds != null && gameWorld.Obstacles != null)
+        foreach (string obstacleId in npc.ObstacleIds)
         {
-            foreach (string obstacleId in npc.ObstacleIds)
+            Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+            if (obstacle != null)
             {
-                Obstacle obstacle = gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-                if (obstacle != null)
+                // Filter goals where PlacementNpcId matches this NPC
+                foreach (string goalId in obstacle.GoalIds)
                 {
-                    // Filter goals where PlacementNpcId matches this NPC
-                    foreach (string goalId in obstacle.GoalIds)
+                    Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                    if (goal != null && goal.PlacementNpcId == npc.ID)
                     {
-                        Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-                        if (goal != null && goal.PlacementNpcId == npc.ID)
-                        {
-                            // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
-                            visibleGoals.Add(goal);
-                        }
+                        // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
+                        visibleGoals.Add(goal);
                     }
                 }
             }
@@ -146,7 +140,7 @@ public class ObstacleGoalFilter
     {
         List<Goal> visibleGoals = new List<Goal>();
 
-        if (obstacle?.GoalIds == null)
+        if (obstacle == null)
             return visibleGoals;
 
         foreach (string goalId in obstacle.GoalIds)

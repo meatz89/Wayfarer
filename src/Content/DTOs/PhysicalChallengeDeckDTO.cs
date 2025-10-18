@@ -23,7 +23,7 @@ public class PhysicalChallengeDeckDTO
             DangerThreshold = DangerThreshold,
             InitialHandSize = InitialHandSize,
             MaxHandSize = MaxHandSize,
-            CardIds = CardIds ?? new List<string>()
+            CardIds = CardIds // DTO has inline init, trust it
         };
     }
 }

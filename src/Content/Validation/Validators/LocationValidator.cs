@@ -48,6 +48,7 @@ public class LocationValidator : IContentValidator
 
     private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, List<string> spotIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string LocationId = GetStringProperty(location, "id") ?? $"Location[{index}]";
 
         // Check for duplicate IDs

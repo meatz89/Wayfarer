@@ -34,6 +34,7 @@ public static class LocationTraitsParser
         {
             foreach (string tag in location.DomainTags)
             {
+                // Handle null tags gracefully (optional null-conditional for safety)
                 string trait = tag?.ToUpper() switch
                 {
                     "COMMERCE" => "Diplomacy Hub",

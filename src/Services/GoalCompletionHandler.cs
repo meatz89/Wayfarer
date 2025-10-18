@@ -36,9 +36,6 @@ public class GoalCompletionHandler
         {
             RemoveGoalFromActiveGoals(goal);
         }
-        else
-        {
-        }
 
         // Check for investigation progress (system-agnostic - works for Mental, Physical, Social)
         if (!string.IsNullOrEmpty(goal.InvestigationId))
@@ -93,22 +90,12 @@ public class GoalCompletionHandler
     /// </summary>
     private void ApplyGoalCardRewards(Goal goal)
     {
-        if (goal.GoalCards == null || goal.GoalCards.Count == 0)
-        {
-            return;
-        }
-
         Player player = _gameWorld.GetPlayer();
 
         foreach (GoalCard goalCard in goal.GoalCards)
         {
             // Only apply rewards if card is achieved and not already rewarded (idempotent)
             if (!goalCard.IsAchieved)
-            {
-                continue;
-            }
-
-            if (goalCard.Rewards == null)
             {
                 continue;
             }

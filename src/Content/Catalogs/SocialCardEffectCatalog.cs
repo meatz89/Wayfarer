@@ -128,8 +128,9 @@ public static class SocialCardEffectCatalog
     {
         // Arguments MUST use compound effects - no fallbacks
         List<CardEffectFormula> variants = GetEffectVariants(stat, depth);
-        CardEffectFormula? compoundVariant = variants.FirstOrDefault(v => v.FormulaType == EffectFormulaType.Compound);
+        CardEffectFormula compoundVariant = variants.FirstOrDefault(v => v.FormulaType == EffectFormulaType.Compound);
 
+        // Return compound variant (might be null for Foundation depth 1-2 where Arguments don't exist)
         return compoundVariant;
     }
 

@@ -46,6 +46,7 @@ public class NPCValidator : IContentValidator
 
     private void ValidateNPC(JsonElement npc, int index, string fileName, List<ValidationError> errors)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string npcId = GetStringProperty(npc, "id") ?? $"NPC[{index}]";
 
         // Check required fields

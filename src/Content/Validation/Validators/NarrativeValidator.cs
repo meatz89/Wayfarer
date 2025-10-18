@@ -49,6 +49,7 @@ public class NarrativeValidator : IContentValidator
 
     private void ValidateNarrative(JsonElement narrative, int index, string fileName, List<ValidationError> errors, List<string> narrativeIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string narrativeId = GetStringProperty(narrative, "id") ?? $"Narrative[{index}]";
 
         // Check for duplicate IDs
@@ -125,6 +126,7 @@ public class NarrativeValidator : IContentValidator
 
     private void ValidateNarrativeStep(JsonElement step, int index, string narrativeId, string fileName, List<ValidationError> errors, List<string> stepIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string stepId = GetStringProperty(step, "id") ?? $"Step[{index}]";
         string fullStepId = $"{narrativeId}:{stepId}";
 

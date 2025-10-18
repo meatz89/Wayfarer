@@ -120,7 +120,7 @@ public class DifficultyCalculationService
             if (string.IsNullOrEmpty(itemId)) continue;
 
             Item item = itemRepository.GetItemById(itemId);
-            if (item != null && item.Categories != null)
+            if (item != null)
             {
                 categories.AddRange(item.Categories);  // MECHANICAL PROPERTIES
             }

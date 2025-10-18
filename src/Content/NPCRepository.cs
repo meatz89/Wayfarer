@@ -11,9 +11,9 @@ public class NPCRepository
         DebugLogger debugLogger,
         NPCVisibilityService visibilityService)
     {
-        _gameWorld = gameWorld;
-        _debugLogger = debugLogger; // Can be null during initialization
-        _visibilityService = visibilityService;
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _debugLogger = debugLogger; // Optional - can be null during initialization, used for debugging
+        _visibilityService = visibilityService ?? throw new ArgumentNullException(nameof(visibilityService));
 
         if (_gameWorld.GetCharacters() == null)
         { }
@@ -143,6 +143,7 @@ public class NPCRepository
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
+        // Optional - debugLogger might be null during initialization
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
             $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 

@@ -21,7 +21,7 @@ public class SocialChallengeDeckDTO
             Description = Description,
             InitialHandSize = InitialHandSize,
             MaxHandSize = MaxHandSize,
-            CardIds = CardIds ?? new List<string>()
+            CardIds = CardIds // DTO has inline init, trust it
         };
     }
 }

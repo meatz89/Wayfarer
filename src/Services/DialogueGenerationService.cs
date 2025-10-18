@@ -40,15 +40,14 @@ public class DialogueGenerationService
         ConnectionStateTemplate stateTemplate = _templates.ConnectionStateDialogue[stateKey];
 
         // Use personality-based dialogue
-        if (stateTemplate.Personality != null &&
-            stateTemplate.Personality.ContainsKey(personality.ToString()))
+        if (stateTemplate.Personality.ContainsKey(personality.ToString()))
         {
             List<string> options = stateTemplate.Personality[personality.ToString()];
             return options[_random.Next(options.Count)];
         }
 
         // Fall back to default for state
-        if (stateTemplate.Default != null && stateTemplate.Default.Any())
+        if (stateTemplate.Default.Any())
         {
             return stateTemplate.Default[_random.Next(stateTemplate.Default.Count)];
         }
@@ -64,12 +63,12 @@ public class DialogueGenerationService
     {
         string key = templateId;
 
-        if (_templates.CardDialogue?.Categories?.ContainsKey(key) == true)
+        if (_templates.CardDialogue.Categories.ContainsKey(key))
         {
             CardCategoryDialogue category = _templates.CardDialogue.Categories[key];
             List<string> options = isPlayer ? category.Player : category.Npc;
 
-            if (options != null && options.Any())
+            if (options.Any())
             {
                 return options[_random.Next(options.Count)];
             }

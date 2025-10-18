@@ -25,7 +25,7 @@ public class MentalChallengeDeckDTO
             FocusCost = FocusCost,
             InitialHandSize = InitialHandSize,
             MaxHandSize = MaxHandSize,
-            CardIds = CardIds ?? new List<string>()
+            CardIds = CardIds // DTO has inline init, trust it
         };
     }
 }

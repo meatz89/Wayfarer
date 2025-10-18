@@ -183,7 +183,7 @@ public class InvestigationActivity
         }
 
         // Grant Understanding from phase completion rewards (0-10 max)
-        if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.UnderstandingReward > 0)
+        if (completedPhase.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
             int newUnderstanding = Math.Min(10, player.Understanding + completedPhase.CompletionReward.UnderstandingReward);
@@ -195,8 +195,7 @@ public class InvestigationActivity
         }
 
         // Spawn obstacles from phase completion rewards
-        if (completedPhase.CompletionReward?.ObstaclesSpawned != null &&
-            completedPhase.CompletionReward.ObstaclesSpawned.Count > 0)
+        if (completedPhase.CompletionReward.ObstaclesSpawned.Count > 0)
         {
             foreach (ObstacleSpawnInfo spawnInfo in completedPhase.CompletionReward.ObstaclesSpawned)
             {
@@ -307,43 +306,34 @@ public class InvestigationActivity
         }
 
         // Grant items (equipment) - add equipment IDs to player inventory
-        if (investigation.CompletionRewardItems != null && investigation.CompletionRewardItems.Count > 0)
+        foreach (string itemId in investigation.CompletionRewardItems)
         {
-            foreach (string itemId in investigation.CompletionRewardItems)
-            {
-                player.Inventory.AddItem(itemId);
-                _messageSystem.AddSystemMessage(
-                    $"Received equipment: {itemId}",
-                    SystemMessageTypes.Success);
-            }
+            player.Inventory.AddItem(itemId);
+            _messageSystem.AddSystemMessage(
+                $"Received equipment: {itemId}",
+                SystemMessageTypes.Success);
         }
 
         // Grant player stat XP rewards
-        if (investigation.CompletionRewardXP != null && investigation.CompletionRewardXP.Count > 0)
+        foreach (StatXPReward xpReward in investigation.CompletionRewardXP)
         {
-            foreach (StatXPReward xpReward in investigation.CompletionRewardXP)
-            {
-                player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
-                _messageSystem.AddSystemMessage(
-                    $"Gained {xpReward.XPAmount} {xpReward.Stat} XP",
-                    SystemMessageTypes.Success);
-            }
+            player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
+            _messageSystem.AddSystemMessage(
+                $"Gained {xpReward.XPAmount} {xpReward.Stat} XP",
+                SystemMessageTypes.Success);
         }
 
         // Spawn new investigations
-        if (investigation.SpawnedInvestigationIds != null && investigation.SpawnedInvestigationIds.Count > 0)
+        foreach (string investigationId in investigation.SpawnedInvestigationIds)
         {
-            foreach (string investigationId in investigation.SpawnedInvestigationIds)
+            Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+            if (spawnedInvestigation != null)
             {
-                Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-                if (spawnedInvestigation != null)
-                {
-                    // Move to Discovered state (player must accept it via intro action)
-                    _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
-                    _messageSystem.AddSystemMessage(
-                        $"New investigation available: {spawnedInvestigation.Name}",
-                        SystemMessageTypes.Info);
-                }
+                // Move to Discovered state (player must accept it via intro action)
+                _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+                _messageSystem.AddSystemMessage(
+                    $"New investigation available: {spawnedInvestigation.Name}",
+                    SystemMessageTypes.Info);
             }
         }
 
@@ -411,8 +401,7 @@ public class InvestigationActivity
         ActivateInvestigation(investigationId);
 
         // Spawn obstacles from intro completion reward
-        if (investigation.IntroAction?.CompletionReward?.ObstaclesSpawned != null &&
-            investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        if (investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
         {
             foreach (ObstacleSpawnInfo spawnInfo in investigation.IntroAction.CompletionReward.ObstaclesSpawned)
             {
@@ -421,8 +410,7 @@ public class InvestigationActivity
         }
 
         // Grant Understanding from intro completion reward (0-10 max)
-        if (investigation.IntroAction?.CompletionReward != null &&
-            investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        if (investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
             int newUnderstanding = Math.Min(10, player.Understanding + investigation.IntroAction.CompletionReward.UnderstandingReward);
@@ -451,7 +439,7 @@ public class InvestigationActivity
     /// </summary>
     private void SpawnObstacle(ObstacleSpawnInfo spawnInfo)
     {
-        if (spawnInfo?.Obstacle == null)
+        if (spawnInfo.Obstacle == null)
             return;
 
         switch (spawnInfo.TargetType)

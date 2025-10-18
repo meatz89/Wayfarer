@@ -13,8 +13,8 @@ public static class LocationParser
     {
         Location location = new Location(dto.Id, dto.Name)
         {
-            InitialState = dto.InitialState ?? "",
-            VenueId = dto.VenueId ?? ""
+            InitialState = dto.InitialState ?? "", // Optional - defaults to empty if missing
+            VenueId = dto.VenueId ?? "" // Optional - defaults to empty if missing
         };
 
         // Parse time windows
@@ -97,7 +97,7 @@ public static class LocationParser
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties moved from Location
-        location.DomainTags = dto.DomainTags ?? new List<string>();
+        location.DomainTags = dto.DomainTags ?? new List<string>(); // Optional - defaults to empty list if missing
 
         if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
         {

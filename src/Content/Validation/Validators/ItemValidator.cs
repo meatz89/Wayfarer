@@ -47,6 +47,7 @@ public class ItemValidator : BaseValidator
 
     private void ValidateItem(JsonElement item, int index, string fileName, List<ValidationError> errors)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string itemId = GetStringProperty(item, "id") ?? $"Item[{index}]";
 
         // Check required fields
