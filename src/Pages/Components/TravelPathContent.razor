@@ -8,13 +8,12 @@
     {
         <!-- Blocked Banner -->
         <div class="blocked-banner">
-            <div class="blocked-icon">⚠</div>
-            <div class="blocked-title">PATH BLOCKED</div>
+            <div class="blocked-title">⚠ PATH BLOCKED</div>
             <div class="blocked-subtitle">All routes ahead are impassable</div>
         </div>
 
         <!-- Current State Info -->
-        <div class="deadend-state-bar">
+        <div class="travel-state-bar">
             <div class="travel-state">
                 <span class="state-label">Current Segment</span>
                 <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
@@ -39,17 +38,16 @@
 
         <!-- Dead-End Section -->
         <div class="deadend-section">
-            <div class="deadend-message">
-                <div class="warning-icon">⚠</div>
-                <div class="deadend-text">
-                    <div class="deadend-primary">You cannot proceed further</div>
-                    <div class="deadend-secondary">All paths ahead are blocked due to insufficient resources or requirements</div>
+            <div class="deadend-explanation">
+                <div class="explanation-text">
+                    <div class="warning-icon">⚠</div>
+                    You cannot proceed further. All paths ahead are blocked due to insufficient resources or requirements.
                 </div>
             </div>
 
             <!-- Blocked Paths Display -->
-            <div class="blocked-paths-list">
-                <div class="blocked-paths-title">Blocked Paths</div>
+            <div class="requirements-title">Blocked Paths</div>
+            <div class="blocked-paths">
                 <div class="path-grid">
                     @if (IsCurrentSegmentRoutePathType())
                     {
@@ -90,26 +88,19 @@
             </div>
 
             <!-- Turn Back Action -->
-            <div class="turnback-action">
+            <div class="turnback-section">
+                <div class="turnback-message">You must return to your starting location</div>
                 <div class="turnback-button" @onclick="TurnBack">
-                    <div class="turnback-icon">←</div>
-                    <div class="turnback-text">
-                        <div class="turnback-primary">TURN BACK</div>
-                        <div class="turnback-secondary">Return to @GetOriginLocationName()</div>
-                    </div>
+                    TURN BACK
                 </div>
             </div>
 
             <!-- Alternatives -->
             <div class="alternatives-section">
                 <div class="alternatives-title">Alternatives</div>
-                <div class="alternative-option">
-                    <div class="alternative-icon">🛌</div>
-                    <div class="alternative-text">
-                        <div class="alternative-name">Rest Here</div>
-                        <div class="alternative-desc">Restore stamina but add +3 segments to travel time</div>
-                    </div>
-                    <div class="alternative-action @(!CanRest() ? "disabled" : "")" @onclick="RestAction">REST</div>
+                <div class="alternative-item">
+                    🛌 Rest Here - Restore stamina but <span class="alternative-cost">+3 segments</span> to travel time
+                    <button class="action-button @(!CanRest() ? "disabled" : "")" @onclick="RestAction">REST</button>
                 </div>
             </div>
         </div>
