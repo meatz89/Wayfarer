@@ -655,13 +655,11 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId;
         Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
-        if (startingSpot != null)
-        {
-            player.CurrentLocation = startingSpot;
-            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
-        }
-        else
-        { }
+        if (startingSpot == null)
+            throw new InvalidOperationException($"Invalid InitialLocationSpotId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
+
+        player.CurrentLocation = startingSpot;
+        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
 
         // Initialize player resources from GameWorld initial player config
         if (_gameWorld.InitialPlayerConfig == null)

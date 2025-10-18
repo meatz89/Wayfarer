@@ -13,13 +13,7 @@ body {
     padding: 0;
 }
 
-.main-container {
-    max-width: 820px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #faf4ea;
-    box-shadow: 0 0 60px rgba(0,0,0,0.7);
-}
+/* Removed duplicate .main-container - using .game-container instead (defined later in this file) */
 
 /* ==========================================
    TIME SEGMENT HEADER

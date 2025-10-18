@@ -19,26 +19,8 @@ body * {
     font-family: inherit ;
 }
 
-.main-container {
-    max-width: 720px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #faf4ea;
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
-}
-
-.game-container {
-    height: 100vh;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    background: #e8dcc4;
-    border: 3px solid #8b7355;
-    border-radius: 8px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
+/* Removed duplicate .main-container and conflicting .game-container definitions */
+/* These are now defined authoritatively in common.css only */
 
 /* Player Resources Bar */
 .resources-bar {

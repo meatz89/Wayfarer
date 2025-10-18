@@ -24,15 +24,8 @@
     color: #d4a76a;
 }
 
-.game-container {
-    width: 100%;
-    max-width: 1200px;
-    background: #e8dcc4;
-    border: 3px solid #8b7355;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
+/* Removed conflicting .game-container definition */
+/* This is now defined authoritatively in common.css only */
 
 /* Route Selection Header */
 .travel-header {

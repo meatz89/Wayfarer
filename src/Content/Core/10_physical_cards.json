@@ -16,7 +16,7 @@
         "depth": 1,
         "boundStat": "Authority",
         "approach": "Standard",
-        "techniqueType": "Strength",
+        "techniqueType": "Endurance",
         "costs": {
           "stamina": 1,
           "health": 0,
@@ -38,7 +38,7 @@
         "depth": 1,
         "boundStat": "Diplomacy",
         "approach": "Standard",
-        "techniqueType": "Agility",
+        "techniqueType": "Evasive",
         "costs": {
           "stamina": 2,
           "health": 0,
@@ -60,7 +60,7 @@
         "depth": 1,
         "boundStat": "Insight",
         "approach": "Standard",
-        "techniqueType": "Technique",
+        "techniqueType": "Tactical",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -82,7 +82,7 @@
         "depth": 2,
         "boundStat": "Authority",
         "approach": "Standard",
-        "techniqueType": "Strength",
+        "techniqueType": "Aggressive",
         "costs": {
           "stamina": 3,
           "health": 1,
@@ -106,7 +106,7 @@
         "depth": 2,
         "boundStat": "Diplomacy",
         "approach": "Standard",
-        "techniqueType": "Precision",
+        "techniqueType": "Defensive",
         "costs": {
           "stamina": 1,
           "health": 0,

@@ -99,7 +99,7 @@ public class MentalCardParser
         if (!Enum.TryParse<MentalCategory>(categoryString, out MentalCategory category))
             throw new InvalidOperationException(
                 $"MentalCard '{cardId}' has invalid clueType '{categoryString}'. " +
-                $"Valid values: Physical, Testimonial, Deductive, Intuitive, etc.");
+                $"Valid values: Analytical, Physical, Observational, Social, Synthesis");
 
         return category;
     }

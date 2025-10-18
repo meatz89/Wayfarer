@@ -16,7 +16,7 @@
         "depth": 1,
         "boundStat": "Insight",
         "method": "Standard",
-        "clueType": "Physical",
+        "clueType": "Observational",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -60,7 +60,7 @@
         "depth": 1,
         "boundStat": "Rapport",
         "method": "Standard",
-        "clueType": "Testimonial",
+        "clueType": "Social",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -82,7 +82,7 @@
         "depth": 2,
         "boundStat": "Insight",
         "method": "Standard",
-        "clueType": "Deductive",
+        "clueType": "Analytical",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -106,7 +106,7 @@
         "depth": 2,
         "boundStat": "Cunning",
         "method": "Standard",
-        "clueType": "Intuitive",
+        "clueType": "Synthesis",
         "costs": {
           "stamina": 0,
           "health": 0,

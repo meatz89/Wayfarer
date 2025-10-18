@@ -52,17 +52,21 @@ public class GameUIBase : ComponentBase, IDisposable
             StateHasChanged();
         }
         else if (!GameWorld.GetPlayer().IsInitialized)
-        {// Create a default player for the mockup
+        {
+            // Create a default player for the mockup
             Player player = GameWorld.GetPlayer();
             player.Name = "Wayfarer";
             player.IsInitialized = true;
 
-            // Start the game to initialize locationawait GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
+            // Start the game to initialize location
+            await GameFacade.StartGameAsync();
+            CurrentView = CurrentViews.LocationScreen;
             StateHasChanged();
         }
         else
         {
-            await GameFacade.StartGameAsync(); CurrentView = CurrentViews.LocationScreen;
+            await GameFacade.StartGameAsync();
+            CurrentView = CurrentViews.LocationScreen;
             StateHasChanged();
         }
     }

@@ -106,7 +106,7 @@ public class PhysicalCardParser
         if (!Enum.TryParse<PhysicalCategory>(categoryString, out PhysicalCategory category))
             throw new InvalidOperationException(
                 $"PhysicalCard '{cardId}' has invalid techniqueType '{categoryString}'. " +
-                $"Valid values: Strength, Agility, Technique, Endurance, etc.");
+                $"Valid values: Aggressive, Defensive, Tactical, Evasive, Endurance");
 
         return category;
     }
