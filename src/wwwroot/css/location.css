@@ -615,16 +615,6 @@ body * {
     border-color: #c4a684;
 }
 
-.action-card.travel {
-    border-color: #7a8b5a;
-    background: #f0faf0;
-}
-
-.action-card.travel:hover {
-    background: #e8f5e8;
-    border-color: #6a7b4a;
-}
-
 .action-name {
     font-size: 14px;
     color: #5c4a3a;
@@ -854,7 +844,6 @@ body * {
 /* Spots Grid */
 .spots-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
 }
 
@@ -1545,7 +1534,6 @@ body * {
 /* Actions Grid - Primary navigation layout */
 .actions-grid {
     display: grid;
-    gap: 12px;
     margin-top: 15px;
 }
 
