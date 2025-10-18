@@ -785,33 +785,3 @@
     font-weight: bold;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .action-choices {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .action-button {
-        min-width: auto;
-        padding: 10px 20px;
-    }
-
-    .continue-button {
-        padding: 12px 30px;
-        font-size: 14px;
-    }
-
-    .paths-section {
-        padding: 15px;
-    }
-
-    .equipment-match {
-        flex-wrap: wrap;
-    }
-
-    .matched-contexts {
-        margin-left: 0;
-        width: 100%;
-    }
-}

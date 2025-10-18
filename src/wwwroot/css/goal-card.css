@@ -234,16 +234,3 @@ Design Philosophy:
     margin-top: 10px;
 }
 
-/* ===== RESPONSIVE ADJUSTMENTS ===== */
-
-@media (max-width: 768px) {
-    .goal-card-instance {
-        min-width: 240px;
-        max-width: 280px;
-    }
-
-    .goal-cards-grid {
-        flex-direction: column;
-        align-items: center;
-    }
-}

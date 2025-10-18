@@ -62,10 +62,3 @@
     margin-left: 4px;
 }
 
-/* Responsive: Stack on mobile */
-@media (max-width: 600px) {
-    .resource-6point {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}

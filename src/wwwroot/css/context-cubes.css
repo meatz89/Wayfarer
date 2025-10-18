@@ -77,15 +77,3 @@
     font-style: italic;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    .cube-grid-10 {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-    }
-
-    .mastery-cube {
-        width: 24px;
-        height: 24px;
-    }
-}

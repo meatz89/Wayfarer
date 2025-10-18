@@ -221,23 +221,6 @@
     border-left: 3px solid #8b7355;
 }
 
-/* Responsive design */
-@media (max-width: 600px) {
-    .stranger-header {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .conversation-details {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-
-    .stranger-conversations {
-        grid-template-columns: 1fr;
-    }
-}
 
 /* Integration with existing card styles */
 .stranger-conversation {
