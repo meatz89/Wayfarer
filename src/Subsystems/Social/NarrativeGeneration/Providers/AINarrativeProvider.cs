@@ -108,7 +108,8 @@ public class AINarrativeProvider : INarrativeProvider
         NPCData npcData,
         CardCollection activeCards,
         string npcDialogue)
-    {List<CardNarrative> cardNarratives = new List<CardNarrative>();
+    {
+        List<CardNarrative> cardNarratives = new List<CardNarrative>();
 
         if (string.IsNullOrEmpty(npcDialogue))
         {// Return fallback narratives if no NPC dialogue
@@ -116,13 +117,14 @@ public class AINarrativeProvider : INarrativeProvider
         }
 
         // Build prompt for card generation
-        string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue);try
+        string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue); try
         {
             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);if (!string.IsNullOrEmpty(cardResponse))
+            string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token); if (!string.IsNullOrEmpty(cardResponse))
             {
                 // Parse the card narratives from AI response
-                cardNarratives = ParseCardNarrativesAsList(cardResponse, activeCards);}
+                cardNarratives = ParseCardNarrativesAsList(cardResponse, activeCards);
+            }
         }
         catch (OperationCanceledException)
         {// Timeout - use fallback
@@ -157,7 +159,7 @@ public class AINarrativeProvider : INarrativeProvider
         // Properly await the async operation instead of blocking
         bool isAvailable = await ollamaClient.CheckHealthAsync();
         if (!isAvailable)
-        {}
+        { }
         return isAvailable;
     }
 
@@ -171,7 +173,8 @@ public class AINarrativeProvider : INarrativeProvider
     }
 
     private async Task<string> GenerateAIResponseAsync(string prompt, CancellationToken cancellationToken = default)
-    {StringBuilder responseBuilder = new StringBuilder();
+    {
+        StringBuilder responseBuilder = new StringBuilder();
 
         await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
         {
@@ -192,15 +195,18 @@ public class AINarrativeProvider : INarrativeProvider
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
 
         if (string.IsNullOrEmpty(jsonResponse))
-        {return cardNarratives;
+        {
+            return cardNarratives;
         }
 
         NarrativeOutput cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
 
         // Convert dictionary to list of CardNarrative objects
         if (cardNarrativeOutput.CardNarratives != null)
-        {foreach (CardNarrative cn in cardNarrativeOutput.CardNarratives)
-            {cardNarratives.Add(new CardNarrative
+        {
+            foreach (CardNarrative cn in cardNarrativeOutput.CardNarratives)
+            {
+                cardNarratives.Add(new CardNarrative
                 {
                     CardId = cn.CardId,
                     NarrativeText = cn.NarrativeText,
@@ -209,7 +215,7 @@ public class AINarrativeProvider : INarrativeProvider
             }
         }
         else
-        {}
+        { }
 
         return cardNarratives;
     }

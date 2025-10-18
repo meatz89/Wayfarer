@@ -115,8 +115,10 @@ public class NPC
             ExchangeDeck = new List<ExchangeCard>();
             // Only Mercantile NPCs have exchange decks
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
-            {foreach (ExchangeCard card in exchangeCards)
-                {ExchangeDeck.Add(card);
+            {
+                foreach (ExchangeCard card in exchangeCards)
+                {
+                    ExchangeDeck.Add(card);
                 }
             }
         }

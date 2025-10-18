@@ -109,7 +109,8 @@ public class PhysicalFacade
                     };
 
                     // Add to session deck's requestPile
-                    _gameWorld.CurrentPhysicalSession.Deck.AddGoalCard(goalCardInstance);}
+                    _gameWorld.CurrentPhysicalSession.Deck.AddGoalCard(goalCardInstance);
+                }
             }
         }
 
@@ -118,7 +119,8 @@ public class PhysicalFacade
         if (cardsToDrawStartingSized > 0)
         {
             _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDrawStartingSized);
-        }return _gameWorld.CurrentPhysicalSession;
+        }
+        return _gameWorld.CurrentPhysicalSession;
     }
 
     /// <summary>
@@ -157,7 +159,8 @@ public class PhysicalFacade
                 if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
                 {
                     player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
-                }}
+                }
+            }
         }// Shuffle exhaust (locked cards) + hand back to deck, draw fresh
         _gameWorld.CurrentPhysicalSession.Deck.ShuffleExhaustAndHandBackToDeck();
 
@@ -232,12 +235,13 @@ public class PhysicalFacade
                         if (!parentObstacle.IsPermanent)
                         {
                             location.ObstacleIds.Remove(parentObstacle.Id);
-                        }break;
+                        }
+                        break;
 
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
                     case ConsequenceType.Transform:
                         // Fundamentally changed
@@ -246,7 +250,7 @@ public class PhysicalFacade
                         if (!string.IsNullOrEmpty(goal.TransformDescription))
                             parentObstacle.TransformedDescription = goal.TransformDescription;
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
                     case ConsequenceType.Modify:
                         // Intensity reduced
@@ -406,7 +410,8 @@ public class PhysicalFacade
             if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSession.ChallengeId))
             {
                 player.MasteryTokens.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
-                int masteryLevel = player.MasteryTokens.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);}
+                int masteryLevel = player.MasteryTokens.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);
+            }
         }
 
         // Clear investigation context
@@ -489,7 +494,8 @@ public class PhysicalFacade
         int staminaDamage = 10;
         player.Stamina -= staminaDamage;
 
-        player.InjuryCardIds.Add("injury_physical_moderate");}
+        player.InjuryCardIds.Add("injury_physical_moderate");
+    }
 
     /// <summary>
     /// Check for investigation progress when Physical goal completes

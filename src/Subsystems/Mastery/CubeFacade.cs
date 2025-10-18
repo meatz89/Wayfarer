@@ -37,7 +37,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {}
+        { }
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {}
+        { }
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {}
+        { }
     }
 
     /// <summary>

@@ -14,9 +14,11 @@ public class ObservationSystem
     private readonly List<string> _revealedObservations;
 
     public ObservationSystem(GameWorld gameWorld)
-    {_gameWorld = gameWorld;
+    {
+        _gameWorld = gameWorld;
         _revealedObservations = new List<string>();
-        _observationsByLocationAndSpot = LoadObservationsFromJson();}
+        _observationsByLocationAndSpot = LoadObservationsFromJson();
+    }
 
     private Dictionary<string, Dictionary<string, List<Observation>>> LoadObservationsFromJson()
     {
@@ -47,10 +49,11 @@ public class ObservationSystem
                     spotObservations[LocationId].Add(obs);
                 }
 
-                observationsByLocationAndSpot[venueId] = spotObservations;}
+                observationsByLocationAndSpot[venueId] = spotObservations;
+            }
         }
         else
-        {}
+        { }
 
         return observationsByLocationAndSpot;
     }
@@ -59,21 +62,27 @@ public class ObservationSystem
     /// Get observations for a specific Venue and location
     /// </summary>
     public List<Observation> GetObservationsForLocationSpot(string venueId, string LocationId)
-    {if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
-        {if (spotMap.TryGetValue(LocationId, out List<Observation>? observations))
-            {return observations;
+    {
+        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
+        {
+            if (spotMap.TryGetValue(LocationId, out List<Observation>? observations))
+            {
+                return observations;
             }
-        }return new List<Observation>();
+        }
+        return new List<Observation>();
     }
 
     /// <summary>
     /// Get all observations for a Venue (all Locations combined)
     /// </summary>
     public List<Observation> GetAllObservationsForLocation(string venueId)
-    {if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
+    {
+        if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
         {
-            List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList();return allObservations;
-        }return new List<Observation>();
+            List<Observation> allObservations = spotMap.Values.SelectMany(list => list).ToList(); return allObservations;
+        }
+        return new List<Observation>();
     }
 
     /// <summary>

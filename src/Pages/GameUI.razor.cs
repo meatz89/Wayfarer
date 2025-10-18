@@ -44,10 +44,11 @@ public class GameUIBase : ComponentBase, IDisposable
         // 2. After interactive SignalR connection established
         // All initialization MUST be idempotent to avoid duplicate side effects
 
-        ContentValidationResult validationResult = ContentValidator.ValidateContent();bool missingReferences = validationResult.HasMissingReferences;
+        ContentValidationResult validationResult = ContentValidator.ValidateContent(); bool missingReferences = validationResult.HasMissingReferences;
 
         if (missingReferences)
-        {CurrentView = CurrentViews.MissingReferences;
+        {
+            CurrentView = CurrentViews.MissingReferences;
             StateHasChanged();
         }
         else if (!GameWorld.GetPlayer().IsInitialized)
@@ -60,7 +61,8 @@ public class GameUIBase : ComponentBase, IDisposable
             StateHasChanged();
         }
         else
-        {await GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
+        {
+            await GameFacade.StartGameAsync(); CurrentView = CurrentViews.LocationScreen;
             StateHasChanged();
         }
     }
@@ -87,8 +89,10 @@ public class GameUIBase : ComponentBase, IDisposable
     }
 
     public async Task HandleCharacterCreated(Player player)
-    {await GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
-        StateHasChanged();}
+    {
+        await GameFacade.StartGameAsync(); CurrentView = CurrentViews.LocationScreen;
+        StateHasChanged();
+    }
 
     public void Dispose()
     {

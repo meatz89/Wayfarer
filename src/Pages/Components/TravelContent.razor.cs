@@ -43,7 +43,8 @@ namespace Wayfarer.Pages.Components
         protected TravelContext CurrentTravelContext { get; set; }
 
         protected override async Task OnInitializedAsync()
-        {LoadTravelState();
+        {
+            LoadTravelState();
         }
 
         protected override async Task OnParametersSetAsync()
@@ -67,9 +68,11 @@ namespace Wayfarer.Pages.Components
         {
             Venue currentLoc = GameFacade.GetCurrentLocation();
             if (currentLoc == null)
-            {return;
-            }List<RouteOption> routes = GameFacade.GetAvailableRoutes();foreach (RouteOption route in routes)
-            {}
+            {
+                return;
+            }
+            List<RouteOption> routes = GameFacade.GetAvailableRoutes(); foreach (RouteOption route in routes)
+            { }
 
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
@@ -85,7 +88,8 @@ namespace Wayfarer.Pages.Components
                 RouteType = DetermineRouteType(r),
                 Tags = ExtractRouteTags(r),
                 Requirements = ExtractRouteRequirements(r)
-            }).ToList();}
+            }).ToList();
+        }
 
         private string GetDestinationLocationName(string destinationSpotId)
         {

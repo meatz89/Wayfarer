@@ -17,9 +17,9 @@ public class DialogueGenerationService
     {
         _templates = gameWorld.DialogueTemplates ?? new DialogueTemplates();
         if (_templates.ConnectionStateDialogue == null)
-        {}
+        { }
         else
-        {}
+        { }
     }
 
     /// <summary>

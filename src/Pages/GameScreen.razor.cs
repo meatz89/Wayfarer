@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
 /// 
@@ -25,7 +27,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
 
     public GameScreenBase()
-    {}
+    { }
 
     // Screen Management
     protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
@@ -70,7 +72,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task RefreshResourceDisplay()
     {
         if (GameFacade == null)
-        {return;
+        {
+            return;
         }
 
         Player? player = GameFacade.GetPlayer();
@@ -185,11 +188,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task NavigateToScreen(ScreenMode newMode)
     {
         if (!CanNavigateTo(newMode))
-        {return;
+        {
+            return;
         }
 
         if (!await _stateLock.WaitAsync(5000))
-        {return;
+        {
+            return;
         }
 
         try
@@ -210,7 +215,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             // Transition
             PreviousScreen = CurrentScreen;
             CurrentScreen = newMode;
-            ContentVersion++;await LoadStateForMode(newMode);await InvokeAsync(StateHasChanged);}
+            ContentVersion++; await LoadStateForMode(newMode); await InvokeAsync(StateHasChanged);
+        }
         finally
         {
             IsTransitioning = false;
@@ -249,7 +255,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task HandleNavigation(string target)
-    {switch (target.ToLower())
+    {
+        switch (target.ToLower())
         {
             case "location":
                 await NavigateToScreen(ScreenMode.Location);
@@ -275,11 +282,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {}
+        { }
     }
 
     protected async Task HandleExchangeEnd()
-    {CurrentExchangeContext = null;
+    {
+        CurrentExchangeContext = null;
 
         // Always refresh UI after exchange ends
         await RefreshResourceDisplay();
@@ -314,7 +322,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleConversationEnd()
-    {CurrentSocialContext = null;
+    {
+        CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
         await RefreshResourceDisplay();
@@ -331,7 +340,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
-    {MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
+    {
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -355,11 +365,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {}
+        { }
     }
 
     public async Task HandleMentalEnd()
-    {CurrentMentalContext = null;
+    {
+        CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
         await RefreshResourceDisplay();
@@ -375,7 +386,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
-    {PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
+    {
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
@@ -399,11 +411,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {}
+        { }
     }
 
     public async Task HandlePhysicalEnd()
-    {CurrentPhysicalContext = null;
+    {
+        CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends
         await RefreshResourceDisplay();
@@ -419,7 +432,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleTravelRoute(string routeId)
-    {RouteOption route = GameFacade.GetRouteById(routeId);
+    {
+        RouteOption route = GameFacade.GetRouteById(routeId);
 
         TravelIntent travelIntent = new TravelIntent(routeId);
         await GameFacade.ProcessIntent(travelIntent);

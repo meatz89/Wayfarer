@@ -179,11 +179,12 @@ public class SocialSession
             {
                 if (!UnlockedTiers.Contains(tier.TierNumber))
                     UnlockedTiers.Add(tier.TierNumber);
-                tiersChanged = true;}
+                tiersChanged = true;
+            }
         }
 
         if (tiersChanged)
-        {}
+        { }
     }
 
     // STATEMENT HISTORY TRACKING METHODS
@@ -217,7 +218,8 @@ public class SocialSession
         else
         {
             StatementCounts[stat] = 1;
-        }}
+        }
+    }
 
     public bool ShouldEnd()
     {

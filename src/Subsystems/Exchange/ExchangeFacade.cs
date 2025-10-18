@@ -167,7 +167,8 @@ public class ExchangeFacade
         }
 
         if (exchange == null)
-        {return new ExchangeResult
+        {
+            return new ExchangeResult
             {
                 Success = false,
                 Message = "Exchange not found"

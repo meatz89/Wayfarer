@@ -11,7 +11,8 @@ public class StandingObligationRepository
     public List<StandingObligation> GetAllObligationTemplates()
     {
         if (_gameWorld.StandingObligationTemplates == null)
-        {throw new InvalidOperationException("StandingObligationTemplates not initialized - data loading failed");
+        {
+            throw new InvalidOperationException("StandingObligationTemplates not initialized - data loading failed");
         }
         return _gameWorld.StandingObligationTemplates;
     }

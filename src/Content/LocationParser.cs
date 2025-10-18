@@ -41,23 +41,29 @@ public static class LocationParser
         if (dto.Properties != null)
         {// Parse base properties (always active)
             if (dto.Properties.Base != null)
-            {foreach (string propString in dto.Properties.Base)
-                {if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-                    {location.LocationProperties.Add(prop);
+            {
+                foreach (string propString in dto.Properties.Base)
+                {
+                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
+                    {
+                        location.LocationProperties.Add(prop);
                     }
                     else
-                    {}
+                    { }
                 }
             }
 
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
-            {foreach (string propString in dto.Properties.All)
-                {if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-                    {location.LocationProperties.Add(prop);
+            {
+                foreach (string propString in dto.Properties.All)
+                {
+                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
+                    {
+                        location.LocationProperties.Add(prop);
                     }
                     else
-                    {}
+                    { }
                 }
             }
 
@@ -172,7 +178,8 @@ public static class LocationParser
                         $"Duplicate obstacle ID '{obstacle.Id}' found in location '{location.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
                 }
-            }}
+            }
+        }
 
         return location;
     }

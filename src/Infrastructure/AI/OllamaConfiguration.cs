@@ -20,5 +20,6 @@ public class OllamaConfiguration
 
         BaseUrl = baseUrl;
         Model = config["Ollama:Model"];
-        BackupModel = config["Ollama:BackupModel"];}
+        BackupModel = config["Ollama:BackupModel"];
+    }
 }

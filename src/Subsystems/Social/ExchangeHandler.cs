@@ -26,22 +26,26 @@ public class ExchangeHandler
     /// Execute an exchange with an NPC
     /// </summary>
     public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources)
-    {if (exchange != null)
-        {}
+    {
+        if (exchange != null)
+        { }
 
         if (exchange == null)
-        {return false;
+        {
+            return false;
         }
 
         // Validate player can afford
         if (!CanAffordExchange(exchange, playerResources))
-        {_messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+        {
+            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
             return false;
         }
 
         // Apply costs
         if (!ApplyCosts(exchange, player, npc))
-        {return false;
+        {
+            return false;
         }
 
         // Apply rewards
@@ -56,7 +60,8 @@ public class ExchangeHandler
         {
             _timeManager.AdvanceSegments(1);
             _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
-        }exchange.RecordUse();
+        }
+        exchange.RecordUse();
         return true;
     }
 

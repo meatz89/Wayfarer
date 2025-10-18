@@ -37,7 +37,7 @@ public class EquipmentFacade
         bool success = _gameWorld.PurchaseEquipment(equipmentId, cost);
 
         if (success)
-        {}
+        { }
 
         return success;
     }
@@ -57,7 +57,7 @@ public class EquipmentFacade
         bool success = _gameWorld.SellEquipment(equipmentId, sellPrice);
 
         if (success)
-        {}
+        { }
 
         return success;
     }
@@ -220,7 +220,8 @@ public class EquipmentFacade
         if (equipment.UsageType == EquipmentUsageType.Consumable)
         {
             Player player = _gameWorld.GetPlayer();
-            player.Inventory.RemoveItem(equipmentId);}
+            player.Inventory.RemoveItem(equipmentId);
+        }
     }
 
     /// <summary>

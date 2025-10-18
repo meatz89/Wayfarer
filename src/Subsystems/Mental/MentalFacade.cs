@@ -115,7 +115,8 @@ public class MentalFacade
                     };
 
                     // Add to session deck's requestPile
-                    _gameWorld.CurrentMentalSession.Deck.AddGoalCard(goalCardInstance);}
+                    _gameWorld.CurrentMentalSession.Deck.AddGoalCard(goalCardInstance);
+                }
             }
         }
 
@@ -124,7 +125,8 @@ public class MentalFacade
         if (cardsToDrawStartingSized > 0)
         {
             _gameWorld.CurrentMentalSession.Deck.DrawToHand(cardsToDrawStartingSized);
-        }return _gameWorld.CurrentMentalSession;
+        }
+        return _gameWorld.CurrentMentalSession;
     }
 
     public async Task<MentalTurnResult> ExecuteObserve()
@@ -211,13 +213,14 @@ public class MentalFacade
 
                         if (!parentObstacle.IsPermanent)
                         {
-                            location.ObstacleIds.Remove(parentObstacle.Id);}
+                            location.ObstacleIds.Remove(parentObstacle.Id);
+                        }
                         break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Bypass:
                         // Player passes, obstacle persists
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Transform:
                         // Fundamentally changed - intensity to 0, new description
@@ -230,21 +233,23 @@ public class MentalFacade
                         }
 
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Modify:
                         // Intensity reduced - other goals may unlock
                         if (goal.PropertyReduction != null)
                         {
                             parentObstacle.Intensity = Math.Max(0,
-                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);}
+                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
+                        }
 
                         parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
 
                         // Check if intensity now at 0 (auto-transform)
                         if (parentObstacle.Intensity == 0)
                         {
-                            parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;}
+                            parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
+                        }
                         break;
 
                     case Wayfarer.GameState.Enums.ConsequenceType.Grant:
@@ -299,7 +304,7 @@ public class MentalFacade
         // Check and unlock goal cards if Progress threshold met
         List<CardInstance> unlockedGoals = _gameWorld.CurrentMentalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
         foreach (CardInstance goalCard in unlockedGoals)
-        {}
+        { }
 
         // Track categories for investigation depth
         MentalCategory category = card.MentalCardTemplate.Category;
@@ -321,7 +326,8 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession.CurrentLeads += leadsGenerated;// PROGRESSION SYSTEM: Award XP to bound stat (XP pre-calculated at parse time)
         if (card.MentalCardTemplate.BoundStat != PlayerStatType.None)
         {
-            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, card.MentalCardTemplate.XPReward);}
+            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, card.MentalCardTemplate.XPReward);
+        }
 
         _gameWorld.CurrentMentalSession.Deck.PlayCard(card);
         // NO DRAWING - Methods move to Applied pile, only OBSERVE draws cards
@@ -453,7 +459,8 @@ public class MentalFacade
         {
             int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_gameWorld.CurrentMentalSession.VenueId);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.LocationFamiliarity.SetFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);}
+            player.LocationFamiliarity.SetFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
+        }
 
         // Persist exposure to Location (Mental debt system)
         // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
@@ -461,7 +468,8 @@ public class MentalFacade
 
         if (currentSpot != null)
         {
-            currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;}
+            currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;
+        }
 
         // Clear investigation context
         _gameWorld.CurrentMentalGoalId = null;
@@ -481,6 +489,7 @@ public class MentalFacade
     {
         // Health damage from dangerous structure or being caught
         int healthDamage = 5 + (_gameWorld.CurrentMentalSession.CurrentExposure - 10);
-        player.Health -= healthDamage;}
+        player.Health -= healthDamage;
+    }
 
 }

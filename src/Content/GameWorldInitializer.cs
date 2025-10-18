@@ -25,7 +25,7 @@ public static class GameWorldInitializer
         packageLoader.LoadPackagesFromDirectory("Content/Core");
 
         // PHASE 2: Wire object graph (populate object reference properties)
-        WireObjectGraph(gameWorld);return gameWorld;
+        WireObjectGraph(gameWorld); return gameWorld;
     }
 
     /// <summary>
@@ -57,5 +57,6 @@ public static class GameWorldInitializer
         {
             location.ActiveGoals = gameWorld.Goals.Where(g => location.ActiveGoalIds != null && location.ActiveGoalIds.Contains(g.Id)).ToList();
             location.Obstacles = gameWorld.Obstacles.Where(o => location.ObstacleIds != null && location.ObstacleIds.Contains(o.Id)).ToList();
-        }}
+        }
+    }
 }

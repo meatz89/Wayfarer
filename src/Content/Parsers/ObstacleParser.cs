@@ -63,7 +63,8 @@ public static class ObstacleParser
 
                 // Store goal ID reference in obstacle
                 obstacle.GoalIds.Add(goal.Id);
-            }}
+            }
+        }
 
         return obstacle;
     }

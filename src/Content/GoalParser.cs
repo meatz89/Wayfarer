@@ -78,7 +78,8 @@ public static class GoalParser
                 GoalCard goalCard = ParseGoalCard(goalCardDTO, dto.Id);
                 goal.GoalCards.Add(goalCard);
             }
-        }return goal;
+        }
+        return goal;
     }
 
     /// <summary>
@@ -160,7 +161,8 @@ public static class GoalParser
         if (Enum.TryParse<ConsequenceType>(consequenceTypeString, true, out ConsequenceType consequenceType))
         {
             return consequenceType;
-        }return ConsequenceType.Grant;
+        }
+        return ConsequenceType.Grant;
     }
 
     /// <summary>
@@ -174,7 +176,8 @@ public static class GoalParser
         if (Enum.TryParse<ResolutionMethod>(methodString, true, out ResolutionMethod method))
         {
             return method;
-        }return ResolutionMethod.Unresolved;
+        }
+        return ResolutionMethod.Unresolved;
     }
 
     /// <summary>
@@ -188,7 +191,8 @@ public static class GoalParser
         if (Enum.TryParse<RelationshipOutcome>(outcomeString, true, out RelationshipOutcome outcome))
         {
             return outcome;
-        }return RelationshipOutcome.Neutral;
+        }
+        return RelationshipOutcome.Neutral;
     }
 
     /// <summary>
@@ -239,7 +243,8 @@ public static class GoalParser
 
         // Parse modifier type
         if (!Enum.TryParse<ModifierType>(dto.Type, true, out ModifierType modifierType))
-        {return null;
+        {
+            return null;
         }
 
         return new DifficultyModifier

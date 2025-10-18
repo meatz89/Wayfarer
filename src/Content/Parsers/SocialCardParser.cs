@@ -208,7 +208,8 @@ public static class SocialCardParser
             .ToList();
 
         if (!foundationCards.Any())
-        {return;
+        {
+            return;
         }
 
         // Report Foundation card distribution (no arbitrary percentage requirement)
@@ -220,7 +221,8 @@ public static class SocialCardParser
             .ToList();
 
         int cunningEcho = cunningCards.Count(c => c.Persistence == PersistenceType.Echo);
-        int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);}
+        int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);
+    }
 
     /// <summary>
     /// Check if a card effect formula generates Initiative (including in compound effects)

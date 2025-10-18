@@ -65,7 +65,8 @@ public class PhysicalSessionDeck
         for (int i = 0; i < count; i++)
         {
             if (deckPile.Count == 0)
-            {break;
+            {
+                break;
             }
 
             CardInstance card = deckPile.DrawTop();
@@ -89,7 +90,8 @@ public class PhysicalSessionDeck
             requestPile.Remove(card);
             card.IsPlayable = true;
             handPile.Add(card);
-            movedCards.Add(card);}
+            movedCards.Add(card);
+        }
 
         return movedCards;
     }
@@ -106,7 +108,8 @@ public class PhysicalSessionDeck
         {
             handPile.Remove(card);
             deckPile.Add(card);
-        }}
+        }
+    }
 
     /// <summary>
     /// Lock a card for combo execution
@@ -115,11 +118,13 @@ public class PhysicalSessionDeck
     public void LockCard(CardInstance card)
     {
         if (card == null || !handPile.Contains(card))
-        {return;
+        {
+            return;
         }
 
         handPile.Remove(card);
-        lockedCards.Add(card);}
+        lockedCards.Add(card);
+    }
 
     /// <summary>
     /// Get currently locked cards
@@ -136,7 +141,8 @@ public class PhysicalSessionDeck
     public void ClearLockedCards()
     {
         int count = lockedCards.Count;
-        lockedCards.Clear();}
+        lockedCards.Clear();
+    }
 
     /// <summary>
     /// Shuffle exhaust pile (locked cards) and hand back to deck
@@ -163,7 +169,8 @@ public class PhysicalSessionDeck
         }
 
         // Shuffle deck
-        deckPile.Shuffle();}
+        deckPile.Shuffle();
+    }
 
     /// <summary>
     /// Clear all piles

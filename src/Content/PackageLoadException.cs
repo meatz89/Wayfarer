@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 /// <summary>
 /// Exception thrown when package loading encounters missing dependencies or validation errors

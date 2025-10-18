@@ -68,9 +68,9 @@ public class OllamaClient
         using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
 
-        string healthUrl = $"{configuration.BaseUrl}/api/tags";HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
+        string healthUrl = $"{configuration.BaseUrl}/api/tags"; HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
         HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
 
-        bool isHealthy = response.IsSuccessStatusCode;return isHealthy;
+        bool isHealthy = response.IsSuccessStatusCode; return isHealthy;
     }
 }

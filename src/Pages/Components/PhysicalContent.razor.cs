@@ -161,7 +161,8 @@ namespace Wayfarer.Pages.Components
                 PhysicalTurnResult result = await GameFacade.ExecuteAssess();
 
                 if (result == null)
-                {return;
+                {
+                    return;
                 }
 
                 if (result.Success)
@@ -205,7 +206,8 @@ namespace Wayfarer.Pages.Components
                 PhysicalTurnResult result = await GameFacade.ExecuteExecute(SelectedCard);
 
                 if (result == null)
-                {return;
+                {
+                    return;
                 }
 
                 if (result.Success)

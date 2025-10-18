@@ -303,8 +303,15 @@ public class Player
     }
 
     // Hunger helper methods (moved from HungerManager)
-    public bool IsStarving() => Hunger >= 80;
-    public bool IsHungry() => Hunger >= 50;
+    public bool IsStarving()
+    {
+        return Hunger >= 80;
+    }
+
+    public bool IsHungry()
+    {
+        return Hunger >= 50;
+    }
 
     public string GetHungerLevelDescription()
     {

@@ -20,7 +20,8 @@
     public Item GetItemById(string id)
     {
         if (_gameWorld.Items == null)
-        {throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        {
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
         }
         return _gameWorld.Items.FirstOrDefault(i => i.Id == id);
     }
@@ -28,7 +29,8 @@
     public List<Item> GetAllItems()
     {
         if (_gameWorld.Items == null)
-        {throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        {
+            throw new InvalidOperationException("Items collection not initialized - data loading failed");
         }
         return _gameWorld.Items;
     }

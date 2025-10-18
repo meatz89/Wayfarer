@@ -22,7 +22,7 @@ public static class ObstacleRewardService
         obstacle.Intensity = Math.Max(0, obstacle.Intensity - reduction.ReduceIntensity);// Check if obstacle is cleared
         bool isCleared = obstacle.IsCleared();
         if (isCleared)
-        {}
+        { }
 
         return isCleared;
     }

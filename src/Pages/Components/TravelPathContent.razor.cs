@@ -209,25 +209,29 @@ namespace Wayfarer.Pages.Components
         /// Handle path card selection - all cards now use reveal mechanic
         /// </summary>
         protected async Task SelectPathCard(string pathCardId)
-        {if (TravelContext?.Session == null)
-            {return;
+        {
+            if (TravelContext?.Session == null)
+            {
+                return;
             }
 
             // Check if player can afford the cardif (TravelContext.CurrentSegmentCards != null)
             {
                 foreach (PathCardDTO c in TravelContext.CurrentSegmentCards)
-                {}
+                { }
             }
 
             PathCardDTO card = TravelContext.CurrentSegmentCards?.FirstOrDefault(c => c.Id == pathCardId);
             if (card == null)
-            {return;
+            {
+                return;
             }
 
             if (!TravelFacade.CanPlayPathCard(pathCardId))
-            {return;
+            {
+                return;
             }// Call TravelManager - all cards now use reveal mechanic (no face-down checks)
-            bool success = TravelManager.SelectPathCard(pathCardId);if (success)
+            bool success = TravelManager.SelectPathCard(pathCardId); if (success)
             {
                 // Refresh the context after card selection
                 await RefreshTravelContext();

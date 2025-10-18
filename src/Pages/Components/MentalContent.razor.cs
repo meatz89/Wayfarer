@@ -131,7 +131,8 @@ namespace Wayfarer.Pages.Components
                 MentalTurnResult result = await GameFacade.ExecuteObserve();
 
                 if (result == null)
-                {return;
+                {
+                    return;
                 }
 
                 if (result.Success)
@@ -175,7 +176,8 @@ namespace Wayfarer.Pages.Components
                 MentalTurnResult result = await GameFacade.ExecuteAct(SelectedCard);
 
                 if (result == null)
-                {return;
+                {
+                    return;
                 }
 
                 if (result.Success)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -272,7 +273,8 @@ public class GameFacade
 
                 if (destSpot != null)
                 {
-                    player.CurrentLocation = destSpot;}
+                    player.CurrentLocation = destSpot;
+                }
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -638,7 +640,8 @@ public class GameFacade
         // Check if game is already started to prevent duplicate initialization
         // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
-        {return;
+        {
+            return;
         }
 
         // Initialize player at starting Venue from GameWorld initial conditions
@@ -648,9 +651,10 @@ public class GameFacade
         if (startingSpot != null)
         {
             player.CurrentLocation = startingSpot;
-            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);}
+            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+        }
         else
-        {}
+        { }
 
         // Initialize player resources from GameWorld initial player config
         if (_gameWorld.InitialPlayerConfig != null)

@@ -54,7 +54,8 @@ public class SocialFacade
     public SocialSession StartConversation(string npcId, string requestId)
     {
         if (IsConversationActive())
-        {EndConversation();
+        {
+            EndConversation();
         }
 
         // KEEP - npcId is external input from UI
@@ -296,7 +297,7 @@ public class SocialFacade
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
 
                     case ConsequenceType.Transform:
                         // Fundamentally changed
@@ -613,7 +614,8 @@ public class SocialFacade
         // Combine both balance effects
         int totalCadenceChange = actionBalance + deliveryBalance;
 
-        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);}
+        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);
+    }
 
     /// <summary>
     /// Process Cadence effects on LISTEN action - NEW REFACTORED SYSTEM
@@ -662,7 +664,8 @@ public class SocialFacade
     private void ReduceCadenceAfterDraw(SocialSession session)
     {
         // DUAL BALANCE SYSTEM: LISTEN action contributes -2 to Cadence
-        session.Cadence = Math.Max(-10, session.Cadence - 2);}
+        session.Cadence = Math.Max(-10, session.Cadence - 2);
+    }
 
     /// <summary>
     /// Handle card persistence after playing
@@ -818,12 +821,14 @@ public class SocialFacade
         // Apply Initiative changes
         if (projection.InitiativeChange != 0)
         {
-            session.AddInitiative(projection.InitiativeChange);}
+            session.AddInitiative(projection.InitiativeChange);
+        }
 
         // Apply Momentum changes (NO TIER UNLOCKS - that's Understanding's job)
         if (projection.MomentumChange != 0)
         {
-            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);}
+            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);
+        }
 
         // Apply Understanding changes (TRIGGERS TIER UNLOCKS)
         if (projection.UnderstandingChange != 0)
@@ -834,26 +839,31 @@ public class SocialFacade
         // Apply Doubt changes
         if (projection.DoubtChange > 0)
         {
-            session.AddDoubt(projection.DoubtChange);}
+            session.AddDoubt(projection.DoubtChange);
+        }
         else if (projection.DoubtChange < 0)
         {
-            session.ReduceDoubt(-projection.DoubtChange);}
+            session.ReduceDoubt(-projection.DoubtChange);
+        }
 
         // Apply Cadence changes
         if (projection.CadenceChange != 0)
         {
-            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);}
+            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);
+        }
 
         // Apply card draw
         if (projection.CardsToDraw > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);}
+            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);
+        }
 
         // Add any specific card instances (legacy support)
         if (projection.CardsToAdd != null && projection.CardsToAdd.Any())
         {
-            session.Deck.AddCardsToMind(projection.CardsToAdd);}
+            session.Deck.AddCardsToMind(projection.CardsToAdd);
+        }
     }
 
     /// <summary>

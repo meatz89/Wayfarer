@@ -108,9 +108,10 @@ namespace Wayfarer.Pages.Components
                 NpcName = Context.Npc?.Name ?? "Unknown";
 
                 // Initialize conversation narrative
-                await GenerateInitialNarrative();}
+                await GenerateInitialNarrative();
+            }
             else
-            {}
+            { }
         }
 
         protected async Task ExecuteListen()
@@ -130,7 +131,8 @@ namespace Wayfarer.Pages.Components
                 SocialTurnResult listenResult = await GameFacade.ExecuteListen();
 
                 if (listenResult == null)
-                {return;
+                {
+                    return;
                 }
 
                 // Apply narrative if received
@@ -189,7 +191,8 @@ namespace Wayfarer.Pages.Components
                 SocialTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
 
                 if (turnResult?.CardPlayResult == null)
-                {return;
+                {
+                    return;
                 }
 
                 // Apply narrative if received
@@ -261,7 +264,7 @@ namespace Wayfarer.Pages.Components
                     NarrativeOutput narrative = await NarrativeService.GenerateOnlyNPCDialogueAsync(
                         Session,
                         Context.Npc,
-                        activeCards);if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
+                        activeCards); if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
                         ApplyNarrativeOutput(narrative);
                         // REMOVED: StateHasChanged() - prevents card DOM recreation
@@ -280,12 +283,13 @@ namespace Wayfarer.Pages.Components
 
         private void ApplyNarrativeOutput(NarrativeOutput narrative)
         {
-            if (narrative == null) return;CurrentNarrativeOutput = narrative;
+            if (narrative == null) return; CurrentNarrativeOutput = narrative;
 
             // Update NPC dialogue and narrative
             if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
             {
-                LastDialogue = narrative.NPCDialogue;}
+                LastDialogue = narrative.NPCDialogue;
+            }
             if (!string.IsNullOrWhiteSpace(narrative.NarrativeText))
             {
                 LastNarrative = narrative.NarrativeText;
@@ -296,11 +300,12 @@ namespace Wayfarer.Pages.Components
             // Apply card narratives
             CurrentCardNarratives.Clear();
             if (narrative.CardNarratives != null && narrative.CardNarratives.Any())
-            {CurrentCardNarratives.AddRange(narrative.CardNarratives);
+            {
+                CurrentCardNarratives.AddRange(narrative.CardNarratives);
                 foreach (CardNarrative cardNarrative in narrative.CardNarratives)
                 {
                     if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                    {}
+                    { }
                 }
             }
             else
@@ -311,36 +316,36 @@ namespace Wayfarer.Pages.Components
         private async Task GenerateCardNarrativesAsync(string npcDialogue)
         {
             if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
-            return;// Get the active cards for current state
-        List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-        if (!activeCards.Any())
-            return;
+                return;// Get the active cards for current state
+            List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+            if (!activeCards.Any())
+                return;
 
-        // Call phase 2 to generate card narratives based on NPC dialogue
-        List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
-            Session,
-            Context.Npc,
-            activeCards,
-            npcDialogue);
+            // Call phase 2 to generate card narratives based on NPC dialogue
+            List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
+                Session,
+                Context.Npc,
+                activeCards,
+                npcDialogue);
 
-        if (cardNarratives != null && cardNarratives.Any())
-        {// Apply the card narratives to the UI
-            CurrentCardNarratives.Clear();
-            CurrentCardNarratives.AddRange(cardNarratives);
+            if (cardNarratives != null && cardNarratives.Any())
+            {// Apply the card narratives to the UI
+                CurrentCardNarratives.Clear();
+                CurrentCardNarratives.AddRange(cardNarratives);
 
-            foreach (CardNarrative cardNarrative in cardNarratives)
-            {
-                if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                {}
+                foreach (CardNarrative cardNarrative in cardNarratives)
+                {
+                    if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
+                    { }
+                }
+
+                // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
             }
-
-            // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
+            else
+            { }
         }
-        else
-        {}
-    }
 
-    private void GenerateListenNarrative()
+        private void GenerateListenNarrative()
         {
             LastNarrative = "You listen attentively...";
 
@@ -513,7 +518,8 @@ namespace Wayfarer.Pages.Components
             foreach (CardInstance? card in regularCards)
             {
                 displayCards.Add(new CardDisplayInfo(card));
-            }return displayCards;
+            }
+            return displayCards;
         }
 
         /// <summary>

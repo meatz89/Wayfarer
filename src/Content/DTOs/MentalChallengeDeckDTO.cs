@@ -16,7 +16,7 @@ public class MentalChallengeDeckDTO
 
     public MentalChallengeDeck ToDomain()
     {
-            return new MentalChallengeDeck
+        return new MentalChallengeDeck
         {
             Id = Id,
             Name = Name,

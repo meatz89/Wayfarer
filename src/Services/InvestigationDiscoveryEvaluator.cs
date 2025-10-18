@@ -28,19 +28,22 @@ public class InvestigationDiscoveryEvaluator
         {
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
             if (investigation == null)
-            {continue;
+            {
+                continue;
             }
 
             // Skip if no intro action defined
             if (investigation.IntroAction == null)
-            {continue;
+            {
+                continue;
             }
 
             if (IsTriggerConditionMet(investigation, player))
-            {discoverable.Add(investigation);
+            {
+                discoverable.Add(investigation);
             }
             else
-            {}
+            { }
         }
 
         return discoverable;
@@ -74,7 +77,8 @@ public class InvestigationDiscoveryEvaluator
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
     {// Check if player is at required location (LocationId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
-        {return false;
+        {
+            return false;
         }
         return true;
     }

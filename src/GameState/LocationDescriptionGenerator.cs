@@ -102,8 +102,9 @@ public class LocationDescriptionGenerator
         }
 
         if (unmappedProperties.Any())
-        {foreach (LocationPropertyType property in unmappedProperties)
-            {}
+        {
+            foreach (LocationPropertyType property in unmappedProperties)
+            { }
         }
 
         return unmappedProperties;

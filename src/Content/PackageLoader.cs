@@ -56,8 +56,8 @@ public class PackageLoader
     {// Sort by filename to ensure proper loading order (01_, 02_, etc.)
         List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
-            .ToList();foreach (string? path in sortedPackages)
-        {}
+            .ToList(); foreach (string? path in sortedPackages)
+        { }
 
         // Load each package sequentially
         foreach (string packagePath in sortedPackages)
@@ -71,7 +71,8 @@ public class PackageLoader
 
             // Check if already loaded
             if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
-            {continue;
+            {
+                continue;
             }// Track as loaded
             if (package.PackageId != null)
             {
@@ -85,7 +86,8 @@ public class PackageLoader
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
         InitializeTravelDiscoverySystem();
-        InitializeInvestigationJournal();}
+        InitializeInvestigationJournal();
+    }
 
     /// <summary>
     /// Load package content with optional skeleton support
@@ -184,7 +186,8 @@ public class PackageLoader
 
         // Check if already loaded
         if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
-        {return new List<string>();
+        {
+            return new List<string>();
         }
 
         // Track as loaded
@@ -218,7 +221,8 @@ public class PackageLoader
 
         // Check if already loaded
         if (_loadedPackageIds.Contains(package.PackageId))
-        {return new List<string>();
+        {
+            return new List<string>();
         }
 
         // Track as loaded
@@ -283,7 +287,8 @@ public class PackageLoader
 
         // Store the configuration in GameWorld
         _gameWorld.PlayerStatDefinitions = parseResult.StatDefinitions;
-        _gameWorld.StatProgression = parseResult.Progression;}
+        _gameWorld.StatProgression = parseResult.Progression;
+    }
 
     private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
     {
@@ -301,7 +306,8 @@ public class PackageLoader
                 {
                     State = state,
                     DrawCount = kvp.Value
-                });}
+                });
+            }
             else
             {
                 throw new Exception($"[PackageLoader] Invalid connection state in listenDrawCounts: '{kvp.Key}'");
@@ -309,17 +315,20 @@ public class PackageLoader
         }
 
         // Apply to GameRules
-        GameRules.StandardRuleset.ListenDrawCounts = drawCountEntries;}
+        GameRules.StandardRuleset.ListenDrawCounts = drawCountEntries;
+    }
 
     private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons)
     {
-        if (strangerDtos == null) return;foreach (StrangerNPCDTO dto in strangerDtos)
+        if (strangerDtos == null) return; foreach (StrangerNPCDTO dto in strangerDtos)
         {
             // Convert DTO to domain model using StrangerParser
             NPC stranger = StrangerParser.ConvertDTOToNPC(dto);
 
             // Add stranger to the unified NPCs list
-            _gameWorld.NPCs.Add(stranger);}}
+            _gameWorld.NPCs.Add(stranger);
+        }
+    }
 
     private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
     {
@@ -388,7 +397,9 @@ public class PackageLoader
         foreach (MentalCardDTO dto in mentalCards)
         {
             MentalCard card = parser.ParseCard(dto);
-            _gameWorld.MentalCards.Add(card);}}
+            _gameWorld.MentalCards.Add(card);
+        }
+    }
 
     private void LoadPhysicalCards(List<PhysicalCardDTO> physicalCards, bool allowSkeletons)
     {
@@ -398,7 +409,9 @@ public class PackageLoader
         foreach (PhysicalCardDTO dto in physicalCards)
         {
             PhysicalCard card = parser.ParseCard(dto);
-            _gameWorld.PhysicalCards.Add(card);}}
+            _gameWorld.PhysicalCards.Add(card);
+        }
+    }
 
     private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, bool allowSkeletons)
     {
@@ -407,7 +420,9 @@ public class PackageLoader
         foreach (SocialChallengeDeckDTO dto in decks)
         {
             SocialChallengeDeck deck = dto.ToDomain();
-            _gameWorld.SocialChallengeDecks.Add(deck);}}
+            _gameWorld.SocialChallengeDecks.Add(deck);
+        }
+    }
 
     private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, bool allowSkeletons)
     {
@@ -416,16 +431,20 @@ public class PackageLoader
         foreach (MentalChallengeDeckDTO dto in decks)
         {
             MentalChallengeDeck deck = dto.ToDomain();
-            _gameWorld.MentalChallengeDecks.Add(deck);}}
+            _gameWorld.MentalChallengeDecks.Add(deck);
+        }
+    }
 
     private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
-        
+
         foreach (PhysicalChallengeDeckDTO dto in decks)
         {
             PhysicalChallengeDeck deck = dto.ToDomain();
-            _gameWorld.PhysicalChallengeDecks.Add(deck);}}
+            _gameWorld.PhysicalChallengeDecks.Add(deck);
+        }
+    }
 
     private void LoadInvestigations(List<InvestigationDTO> investigations, bool allowSkeletons)
     {
@@ -435,7 +454,9 @@ public class PackageLoader
         foreach (InvestigationDTO dto in investigations)
         {
             Investigation investigation = parser.ParseInvestigation(dto);
-            _gameWorld.Investigations.Add(investigation);}}
+            _gameWorld.Investigations.Add(investigation);
+        }
+    }
 
     private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
     {
@@ -457,9 +478,10 @@ public class PackageLoader
                     if (npc.ActiveGoalIds == null)
                         npc.ActiveGoalIds = new List<string>();
 
-                    npc.ActiveGoalIds.Add(goal.Id);}
+                    npc.ActiveGoalIds.Add(goal.Id);
+                }
                 else
-                {}
+                { }
             }
             else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
             {
@@ -470,11 +492,13 @@ public class PackageLoader
                     if (location.ActiveGoalIds == null)
                         location.ActiveGoalIds = new List<string>();
 
-                    location.ActiveGoalIds.Add(goal.Id);}
+                    location.ActiveGoalIds.Add(goal.Id);
+                }
                 else
-                {}
+                { }
             }
-        }}
+        }
+    }
 
     private void LoadObstacles(List<ObstacleDTO> obstacleDtos, bool allowSkeletons)
     {
@@ -488,14 +512,16 @@ public class PackageLoader
             // Duplicate ID protection - prevent data corruption
             if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
             {
-                _gameWorld.Obstacles.Add(obstacle);}
+                _gameWorld.Obstacles.Add(obstacle);
+            }
             else
             {
                 throw new InvalidOperationException(
                     $"Duplicate obstacle ID '{obstacle.Id}' found in package '{_currentPackageId}'. " +
                     $"Obstacle IDs must be globally unique across all packages.");
             }
-        }}
+        }
+    }
 
     private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)
     {
@@ -510,7 +536,8 @@ public class PackageLoader
             Venue venue = VenueParser.ConvertDTOToVenue(dto);
 
             if (existingSkeleton != null)
-            {_gameWorld.Venues.Remove(existingSkeleton);
+            {
+                _gameWorld.Venues.Remove(existingSkeleton);
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
                 if (skeletonEntry != null)
                 {
@@ -629,7 +656,8 @@ public class PackageLoader
     private void LoadRoutes(List<RouteDTO> routeDtos, bool allowSkeletons)
     {
         if (routeDtos == null)
-        {return;
+        {
+            return;
         }
 
         // Check for missing Locations and handle based on allowSkeletons
@@ -654,7 +682,8 @@ public class PackageLoader
                     }
 
                     _gameWorld.Locations.AddOrUpdateSpot(dto.OriginSpotId, originSpot);
-                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.OriginSpotId, "Location");}
+                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.OriginSpotId, "Location");
+                }
                 else
                 {
                     throw new Exception($"[PackageLoader] Route '{dto.Id}' references missing origin location '{dto.OriginSpotId}'. Ensure Locations are loaded before routes.");
@@ -680,7 +709,8 @@ public class PackageLoader
                     }
 
                     _gameWorld.Locations.AddOrUpdateSpot(dto.DestinationSpotId, destSpot);
-                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.DestinationSpotId, "Location");}
+                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.DestinationSpotId, "Location");
+                }
                 else
                 {
                     throw new Exception($"[PackageLoader] Route '{dto.Id}' references missing destination location '{dto.DestinationSpotId}'. Ensure Locations are loaded before routes.");
@@ -700,26 +730,29 @@ public class PackageLoader
             if (dto.CreateBidirectional)
             {
                 RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
-                _gameWorld.Routes.Add(reverseRoute);}
+                _gameWorld.Routes.Add(reverseRoute);
+            }
             else
-            {}
-        }}
+            { }
+        }
+    }
 
     private string GetVenueIdFromSpotId(string LocationId)
     {
         Location? location = _gameWorld.GetLocation(LocationId);
         if (location == null)
-        {}
+        { }
         else if (string.IsNullOrEmpty(location.VenueId))
-        {}
+        { }
         else
-        {}
+        { }
         return location?.VenueId;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
     {
-        if (dialogueTemplates == null) return;_gameWorld.DialogueTemplates = dialogueTemplates;}
+        if (dialogueTemplates == null) return; _gameWorld.DialogueTemplates = dialogueTemplates;
+    }
 
     private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
     {
@@ -728,7 +761,9 @@ public class PackageLoader
         List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in pathCardDtos)
         {
-            pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });}return pathCardLookup;
+            pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
+        }
+        return pathCardLookup;
     }
 
     private List<PathCardEntry> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
@@ -738,7 +773,9 @@ public class PackageLoader
         List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in eventCardDtos)
         {
-            eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });}return eventCardLookup;
+            eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
+        }
+        return eventCardLookup;
     }
 
     private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
@@ -760,7 +797,9 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });}}
+            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });
+        }
+    }
 
     private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
@@ -788,16 +827,20 @@ public class PackageLoader
             if (isEventCollection)
             {
                 // This is an event collection - contains child events for random selection
-                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });}
+                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+            }
             else if (isPathCollection)
             {
                 // This is a path collection - contains actual path cards for FixedPath segments
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });}
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+            }
             else
             {
                 // Fallback: treat as path collection if no clear indicators
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });}
-        }}
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+            }
+        }
+    }
 
     /// <summary>
     /// Initialize exchange decks for Mercantile NPCs only
@@ -815,7 +858,8 @@ public class PackageLoader
                 // Check for NPC-specific deck first
                 if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
                 {
-                    deckDef = deckCompositions.NpcDecks[npc.ID];}
+                    deckDef = deckCompositions.NpcDecks[npc.ID];
+                }
                 // No default deck anymore - NPCs only have specific decks
             }
 
@@ -836,10 +880,11 @@ public class PackageLoader
                         for (int i = 0; i < count; i++)
                         {
                             // Exchange cards are templates, no need to clone
-                            npcExchangeCards.Add(exchangeCard);}
+                            npcExchangeCards.Add(exchangeCard);
+                        }
                     }
                     else
-                    {}
+                    { }
                 }
             }
             else if (npc.PersonalityType == PersonalityType.MERCANTILE)
@@ -847,15 +892,16 @@ public class PackageLoader
                 // Create default exchanges for mercantile NPCs without specific exchanges
                 npcExchangeCards = ExchangeParser.CreateDefaultExchangesForNPC(npc);
                 if (npcExchangeCards.Count > 0)
-                {}
+                { }
             }
 
             // Initialize exchange deck
             npc.InitializeExchangeDeck(npcExchangeCards);
 
             if (npcExchangeCards.Count > 0)
-            {}
-        }}
+            { }
+        }
+    }
 
     private void LoadItems(List<ItemDTO> itemDtos, bool allowSkeletons)
     {
@@ -959,21 +1005,21 @@ public class PackageLoader
                     // FixedPath segments use pathCollectionId from JSON
                     segment.PathCollectionId = segmentDto.PathCollectionId;
                     if (!string.IsNullOrEmpty(segment.PathCollectionId))
-                    {}
+                    { }
                 }
                 else if (segmentType == SegmentType.Event)
                 {
                     // Event segments use eventCollectionId from JSON
                     segment.EventCollectionId = segmentDto.EventCollectionId;
                     if (!string.IsNullOrEmpty(segment.EventCollectionId))
-                    {}
+                    { }
                 }
                 else if (segmentType == SegmentType.Encounter)
                 {
                     // Encounter segments have mandatory obstacle that MUST be resolved
                     segment.MandatoryObstacleId = segmentDto.MandatoryObstacleId;
                     if (!string.IsNullOrEmpty(segment.MandatoryObstacleId))
-                    {}
+                    { }
                 }
 
                 // Core Loop: Parse available paths within this segment
@@ -991,7 +1037,8 @@ public class PackageLoader
                             HiddenUntilExploration = pathDto.HiddenUntilExploration
                         };
                         segment.AvailablePaths.Add(path);
-                    }}
+                    }
+                }
 
                 route.Segments.Add(segment);
             }
@@ -1022,7 +1069,8 @@ public class PackageLoader
                         $"Duplicate obstacle ID '{obstacle.Id}' found in route '{route.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
                 }
-            }}
+            }
+        }
 
         return route;
     }
@@ -1107,7 +1155,8 @@ public class PackageLoader
         // Store DTOs for reference
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            _gameWorld.ExchangeDefinitions.Add(dto);}
+            _gameWorld.ExchangeDefinitions.Add(dto);
+        }
 
         // Parse exchanges into ExchangeCard objects and store them
         // These will be referenced when building NPC decks
@@ -1115,7 +1164,8 @@ public class PackageLoader
         foreach (ExchangeDTO dto in exchangeDtos)
         {
             ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId);
-            _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });}
+            _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
+        }
     }
 
     /// <summary>
@@ -1128,7 +1178,8 @@ public class PackageLoader
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.PathCardDiscoveries.SetDiscovered(pathCard.Id, pathCard.StartsRevealed);}
+                _gameWorld.PathCardDiscoveries.SetDiscovered(pathCard.Id, pathCard.StartsRevealed);
+            }
         }
 
         // Also initialize discovery states for event cards in event collections
@@ -1136,7 +1187,8 @@ public class PackageLoader
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.PathCardDiscoveries.SetDiscovered(eventCard.Id, eventCard.StartsRevealed);}
+                _gameWorld.PathCardDiscoveries.SetDiscovered(eventCard.Id, eventCard.StartsRevealed);
+            }
         }
 
         // Cards are now embedded directly in collections
@@ -1151,7 +1203,9 @@ public class PackageLoader
             // Start at position 0 for deterministic event drawing
             _gameWorld.EventDeckPositions.SetPosition(deckKey, 0);
 
-            int eventCount = entry.Collection.Events?.Count ?? 0;}}
+            int eventCount = entry.Collection.Events?.Count ?? 0;
+        }
+    }
 
     /// <summary>
     /// Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
@@ -1164,7 +1218,9 @@ public class PackageLoader
         investigationJournal.PotentialInvestigationIds.Clear();
         foreach (Investigation investigation in _gameWorld.Investigations)
         {
-            investigationJournal.PotentialInvestigationIds.Add(investigation.Id);}}
+            investigationJournal.PotentialInvestigationIds.Add(investigation.Id);
+        }
+    }
 
     /// <summary>
     /// Validates that crossroads configuration is correct:
@@ -1303,7 +1359,8 @@ public class PackageLoader
             {
                 string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Id}' ({s.Name})"));
                 throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has {crossroadsSpots.Count} Locations with Crossroads property: {spotsInfo}. Only one crossroads location is allowed per location.");
-            }}
+            }
+        }
 
         // Validate all route Locations have crossroads property
         List<string> routeSpotIds = new List<string>();
@@ -1333,11 +1390,15 @@ public class PackageLoader
                 }
 
                 _gameWorld.Locations.AddOrUpdateSpot(LocationId, location);
-                _gameWorld.SkeletonRegistry.AddSkeleton(LocationId, "Location");}
+                _gameWorld.SkeletonRegistry.AddSkeleton(LocationId, "Location");
+            }
 
             if (!location.LocationProperties?.Contains(LocationPropertyType.Crossroads) == true)
-            {location.LocationProperties.Add(LocationPropertyType.Crossroads);
-            }}}
+            {
+                location.LocationProperties.Add(LocationPropertyType.Crossroads);
+            }
+        }
+    }
 
     private void LoadTravelObstacles(List<TravelObstacleDTO> obstacleDtos, bool allowSkeletons)
     {
@@ -1347,6 +1408,8 @@ public class PackageLoader
         foreach (TravelObstacleDTO dto in obstacleDtos)
         {
             TravelObstacle obstacle = parser.ParseTravelObstacle(dto);
-            _gameWorld.TravelObstacles.Add(obstacle);}}
+            _gameWorld.TravelObstacles.Add(obstacle);
+        }
+    }
 
 }

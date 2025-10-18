@@ -120,7 +120,7 @@ public class SocialSessionCardDeck
     /// </summary>
     public void DrawToHand(int count, SocialSession session, PlayerStats playerStats)
     {
-        int maxDepth = session.GetUnlockedMaxDepth();int cardsDrawn = 0;
+        int maxDepth = session.GetUnlockedMaxDepth(); int cardsDrawn = 0;
 
         for (int i = 0; i < count; i++)
         {
@@ -128,12 +128,14 @@ public class SocialSessionCardDeck
             bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.SocialCardTemplate, session, playerStats));
 
             if (!hasAccessibleCards && spokenPile.Count > 0)
-            {ReshuffleSpokenPile();
+            {
+                ReshuffleSpokenPile();
             }
 
             // If still no cards after reshuffling, we're out of cards entirely
             if (deckPile.Count == 0)
-            {break;
+            {
+                break;
             }
 
             // Apply tier-based filtering
@@ -146,15 +148,16 @@ public class SocialSessionCardDeck
                 cardsDrawn++;
             }
             else
-            {break;
+            {
+                break;
             }
         }
 
         // Log the actual draw result
         if (cardsDrawn < count)
-        {}
+        { }
         else
-        {}
+        { }
     }
 
     /// <summary>
@@ -165,7 +168,8 @@ public class SocialSessionCardDeck
     public void PlayCard(CardInstance card)
     {
         if (card == null)
-        {return;
+        {
+            return;
         }
 
         // Track total cards before operation
@@ -173,7 +177,8 @@ public class SocialSessionCardDeck
 
         // Check if card exists in mind (hand) before removing
         if (!mindPile.Contains(card))
-        {return;
+        {
+            return;
         }
 
         mindPile.Remove(card);
@@ -182,15 +187,17 @@ public class SocialSessionCardDeck
         if (card.SocialCardTemplate.Persistence == PersistenceType.Echo)
         {
             // Echo cards return to BOTTOM of deck (drawn last, not immediately)
-            deckPile.Add(card);}
+            deckPile.Add(card);
+        }
         else
         {
             // Statement cards go to spoken pile permanently (one-time use)
-            spokenPile.Add(card);}
+            spokenPile.Add(card);
+        }
 
         // Validate total card count remains constant
-        int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;if (totalCardsBefore != totalCardsAfter)
-        {}
+        int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count; if (totalCardsBefore != totalCardsAfter)
+        { }
     }
 
     /// <summary>
@@ -211,12 +218,12 @@ public class SocialSessionCardDeck
     {
         if (card == null) return;
 
-        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;mindPile.Remove(card);
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count; mindPile.Remove(card);
         spokenPile.Add(card);
 
         int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore != totalAfter)
-        {}
+        { }
     }
 
     /// <summary>
@@ -237,11 +244,11 @@ public class SocialSessionCardDeck
 
             requestPile.Remove(card);
             card.IsPlayable = true; // NOW playable - threshold met
-            mindPile.Add(card);movedCards.Add(card);
+            mindPile.Add(card); movedCards.Add(card);
 
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
             if (totalBefore != totalAfter)
-            {}
+            { }
         }
 
         return movedCards;
@@ -277,7 +284,7 @@ public class SocialSessionCardDeck
             deckPile.Shuffle();
         }
         else
-        {}
+        { }
     }
 
     /// <summary>
@@ -357,7 +364,7 @@ public class SocialSessionCardDeck
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             if (totalBefore + 1 != totalAfter)
-            {}
+            { }
         }
     }
 
@@ -368,7 +375,7 @@ public class SocialSessionCardDeck
     {
         if (cards == null || cards.Count == 0) return;
 
-        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;foreach (CardInstance card in cards)
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count; foreach (CardInstance card in cards)
         {
             if (card != null)
             {
@@ -378,7 +385,7 @@ public class SocialSessionCardDeck
 
         int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore + cards.Count != totalAfter)
-        {}
+        { }
     }
 
     /// <summary>
@@ -389,7 +396,7 @@ public class SocialSessionCardDeck
     {
         if (mindPile.Count <= maxSize) return;
 
-        int cardsToDiscard = mindPile.Count - maxSize;List<CardInstance> cardsToRemove = new List<CardInstance>();
+        int cardsToDiscard = mindPile.Count - maxSize; List<CardInstance> cardsToRemove = new List<CardInstance>();
 
         // For now, discard from the end of hand (could be made more sophisticated later)
         for (int i = 0; i < cardsToDiscard; i++)
@@ -403,7 +410,8 @@ public class SocialSessionCardDeck
         }
 
         // Add discarded cards back to deck pile
-        deckPile.AddRange(cardsToRemove);}
+        deckPile.AddRange(cardsToRemove);
+    }
 
     /// <summary>
     /// Process card persistence - ALL cards persist in refined system
