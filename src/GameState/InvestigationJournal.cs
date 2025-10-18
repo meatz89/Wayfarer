@@ -55,4 +55,11 @@ public class ActiveInvestigation
     /// Null for SelfDiscovered investigations
     /// </summary>
     public int? ActivationSegment { get; set; }
+
+    /// <summary>
+    /// Object reference to investigation (for runtime navigation)
+    /// Populated at initialization time from InvestigationId
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Investigation Investigation { get; set; }
 }

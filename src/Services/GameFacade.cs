@@ -79,7 +79,6 @@ public class GameFacade
         return _messageSystem;
     }
 
-
     // ========== PLAYER STATS OPERATIONS ==========
 
     public PlayerStats GetPlayerStats()
@@ -93,14 +92,11 @@ public class GameFacade
         return _gameWorld.GetAvailableStrangers(venueId, currentTime);
     }
 
-
-
     public List<InvestigationApproach> GetAvailableInvestigationApproaches()
     {
         Player player = _gameWorld.GetPlayer();
         return _locationFacade.GetAvailableApproaches(player);
     }
-
 
     // ========== Venue OPERATIONS ==========
 
@@ -170,7 +166,6 @@ public class GameFacade
         return _timeFacade.GetTimeInfo();
     }
 
-
     public string GetFormattedTimeDisplay()
     {
         return _timeFacade.GetFormattedTimeDisplay();
@@ -180,7 +175,6 @@ public class GameFacade
     {
         return _timeFacade.GetSegmentsInCurrentPeriod();
     }
-
 
     // ========== TRAVEL OPERATIONS ==========
 
@@ -278,9 +272,7 @@ public class GameFacade
 
                 if (destSpot != null)
                 {
-                    player.CurrentLocation = destSpot;
-                    Console.WriteLine($"[GameFacade] Player moved to location: {destSpot.Id} at location: {destSpot.VenueId}");
-                }
+                    player.CurrentLocation = destSpot;}
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -348,7 +340,6 @@ public class GameFacade
     {
         return await _conversationFacade.CreateConversationContext(npcId, requestId);
     }
-
 
     /// <summary>
     /// Play a conversation card - proper architectural flow through GameFacade
@@ -419,7 +410,8 @@ public class GameFacade
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        if (!_gameWorld.MentalChallengeDecks.TryGetValue(deckId, out MentalChallengeDeck challengeDeck))
+        MentalChallengeDeck challengeDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
+        if (challengeDeck == null)
             throw new InvalidOperationException($"MentalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
@@ -492,7 +484,8 @@ public class GameFacade
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(deckId, out PhysicalChallengeDeck challengeDeck))
+        PhysicalChallengeDeck challengeDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
+        if (challengeDeck == null)
             throw new InvalidOperationException($"PhysicalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
@@ -645,9 +638,7 @@ public class GameFacade
         // Check if game is already started to prevent duplicate initialization
         // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
-        {
-            Console.WriteLine($"[GameFacade.StartGameAsync] Game already started, skipping initialization");
-            return;
+        {return;
         }
 
         // Initialize player at starting Venue from GameWorld initial conditions
@@ -657,13 +648,9 @@ public class GameFacade
         if (startingSpot != null)
         {
             player.CurrentLocation = startingSpot;
-            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
-            Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
-        }
+            Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);}
         else
-        {
-            Console.WriteLine($"[GameFacade.StartGameAsync] WARNING: Starting location '{startingSpotId}' not found!");
-        }
+        {}
 
         // Initialize player resources from GameWorld initial player config
         if (_gameWorld.InitialPlayerConfig != null)
@@ -674,15 +661,8 @@ public class GameFacade
             player.Hunger = _gameWorld.InitialPlayerConfig.Hunger ?? 0;
             player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints ?? 12;
             player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina ?? 12;
-        }
-
-        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Stamina: {player.Stamina}, Hunger: {player.Hunger}");
-
-        // Initialize exchange inventories
-        _exchangeFacade.InitializeNPCExchanges();
-        Console.WriteLine($"[GameFacade.StartGameAsync] Exchange inventories initialized");
-
-        // Mark game as started
+        }// Initialize exchange inventories
+        _exchangeFacade.InitializeNPCExchanges();// Mark game as started
         _gameWorld.IsGameStarted = true;
 
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
@@ -742,7 +722,6 @@ public class GameFacade
         return false;
     }
 
-
     public ConnectionState GetNPCConnectionState(string npcId)
     {
         return ConnectionState.NEUTRAL;
@@ -753,12 +732,10 @@ public class GameFacade
         return _travelFacade.GetAvailableRoutesFromCurrentLocation();
     }
 
-
     public List<RouteOption> GetRoutesToDestination(string destinationId)
     {
         return new List<RouteOption>();
     }
-
 
     /// <summary>
     /// Get the LocationActionManager for managing location-specific actions.
@@ -830,7 +807,6 @@ public class GameFacade
     {
         return _gameWorld.Districts.FirstOrDefault(d => d.Id == districtId);
     }
-
 
     // ============================================
     // DEBUG COMMANDS
@@ -1007,19 +983,10 @@ public class GameFacade
     /// </summary>
     public void EvaluateInvestigationDiscovery()
     {
-        Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at location: {player.CurrentLocation?.Id ?? "NULL"}");
-
-        // Evaluate which investigations can be discovered
-        List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
-        Console.WriteLine($"[InvestigationDiscovery] Found {discoverable.Count} discoverable investigations");
-
-        // For each discovered investigation, trigger discovery flow
+        Player player = _gameWorld.GetPlayer();// Evaluate which investigations can be discovered
+        List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);// For each discovered investigation, trigger discovery flow
         foreach (Investigation investigation in discoverable)
-        {
-            Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
-
-            // DiscoverInvestigation moves Potential→Discovered and spawns intro goal at location
+        {// DiscoverInvestigation moves Potential→Discovered and spawns intro goal at location
             // No return value - goal is added directly to Location.ActiveGoals
             _investigationActivity.DiscoverInvestigation(investigation.Id);
 

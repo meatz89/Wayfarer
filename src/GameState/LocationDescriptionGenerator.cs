@@ -102,12 +102,8 @@ public class LocationDescriptionGenerator
         }
 
         if (unmappedProperties.Any())
-        {
-            Console.WriteLine($"LocationDescriptionGenerator: Found {unmappedProperties.Count} unmapped properties:");
-            foreach (LocationPropertyType property in unmappedProperties)
-            {
-                Console.WriteLine($"  - {property}");
-            }
+        {foreach (LocationPropertyType property in unmappedProperties)
+            {}
         }
 
         return unmappedProperties;

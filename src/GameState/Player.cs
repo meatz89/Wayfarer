@@ -1,5 +1,9 @@
 public class Player
 {
+    // Constants (moved from managers)
+    public const int MaxHealthConstant = 100;
+    public const int MaxHungerConstant = 100;
+
     // Core identity
     public string Name { get; set; }
     public Genders Gender { get; set; }
@@ -229,7 +233,6 @@ public class Player
         Hunger = 0; // Reset hunger to not hungry
     }
 
-
     public void SetArchetype(Professions archetype)
     {
         Archetype = archetype;
@@ -282,7 +285,6 @@ public class Player
         return false;
     }
 
-
     public bool ModifyHunger(int amount)
     {
         int newHunger = Math.Clamp(Hunger + amount, 0, MaxHunger);
@@ -298,6 +300,18 @@ public class Player
     {
         // Eating reduces hunger
         return ModifyHunger(-amount);
+    }
+
+    // Hunger helper methods (moved from HungerManager)
+    public bool IsStarving() => Hunger >= 80;
+    public bool IsHungry() => Hunger >= 50;
+
+    public string GetHungerLevelDescription()
+    {
+        if (Hunger >= 80) return "Starving";
+        if (Hunger >= 50) return "Hungry";
+        if (Hunger >= 20) return "Peckish";
+        return "Well Fed";
     }
 
     public void AddExperiencePoints(int xpBonus)
@@ -318,7 +332,6 @@ public class Player
         }
     }
 
-
     public void ModifyCoins(int amount)
     {
         Coins += amount;
@@ -328,13 +341,10 @@ public class Player
         }
     }
 
-
-
     internal void SetCoins(int value)
     {
         Coins = Math.Max(0, value);
     }
-
 
     /// <summary>
     /// Apply initial player configuration from package starting conditions

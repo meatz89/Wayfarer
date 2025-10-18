@@ -26,34 +26,22 @@ public class ExchangeHandler
     /// Execute an exchange with an NPC
     /// </summary>
     public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources)
-    {
-        Console.WriteLine($"[ExchangeHandler] Executing exchange: {exchange?.Name ?? "NULL"}");
-        if (exchange != null)
-        {
-            Console.WriteLine($"[ExchangeHandler] Exchange Cost: {string.Join(", ", exchange.GetCostAsList().Select(c => $"{c.Type}={c.Amount}"))}");
-            Console.WriteLine($"[ExchangeHandler] Exchange Reward: {string.Join(", ", exchange.GetRewardAsList().Select(r => $"{r.Type}={r.Amount}"))}");
-            Console.WriteLine($"[ExchangeHandler] Player Resources: Coins={playerResources.Coins}, Health={playerResources.Health}");
-        }
+    {if (exchange != null)
+        {}
 
         if (exchange == null)
-        {
-            Console.WriteLine("[ExchangeHandler] Exchange is null");
-            return false;
+        {return false;
         }
 
         // Validate player can afford
         if (!CanAffordExchange(exchange, playerResources))
-        {
-            Console.WriteLine($"[ExchangeHandler] Player cannot afford exchange");
-            _messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
+        {_messageSystem.AddSystemMessage("You don't have enough resources for this exchange", SystemMessageTypes.Warning);
             return false;
         }
 
         // Apply costs
         if (!ApplyCosts(exchange, player, npc))
-        {
-            Console.WriteLine("[ExchangeHandler] Failed to apply costs");
-            return false;
+        {return false;
         }
 
         // Apply rewards
@@ -68,10 +56,7 @@ public class ExchangeHandler
         {
             _timeManager.AdvanceSegments(1);
             _messageSystem.AddSystemMessage("Time passes as you work...", SystemMessageTypes.Info);
-        }
-
-        Console.WriteLine($"[ExchangeHandler] Successfully completed exchange {exchange.Name}");
-        exchange.RecordUse();
+        }exchange.RecordUse();
         return true;
     }
 
@@ -145,7 +130,6 @@ public class ExchangeHandler
                     player.Health -= cost.Amount;
                     break;
 
-
                 case ResourceType.TrustToken:
                     if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
                         return false;
@@ -203,7 +187,6 @@ public class ExchangeHandler
                     // Hunger maps to Hunger (0 = not hungry, 100 = very hungry)
                     player.Hunger = Math.Max(0, Math.Min(100, player.Hunger - reward.Amount));
                     break;
-
 
                 case ResourceType.TrustToken:
                     _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);

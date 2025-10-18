@@ -102,9 +102,9 @@ public class InvestigationParser
 
         bool exists = systemType switch
         {
-            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.ContainsKey(deckId),
-            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.ContainsKey(deckId),
-            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.ContainsKey(deckId),
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Any(d => d.Id == deckId),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Any(d => d.Id == deckId),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Any(d => d.Id == deckId),
             _ => throw new InvalidOperationException($"Unknown TacticalSystemType: {systemType}")
         };
 
@@ -121,9 +121,9 @@ public class InvestigationParser
     {
         return systemType switch
         {
-            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Keys,
-            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Keys,
-            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Keys,
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Select(d => d.Id),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Select(d => d.Id),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Select(d => d.Id),
             _ => new List<string>()
         };
     }

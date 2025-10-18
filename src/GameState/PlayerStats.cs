@@ -167,7 +167,6 @@ public class PlayerStats
         return _stats[stat].Level >= 3;
     }
 
-
     /// <summary>
     /// Get maximum accessible card depth for a stat
     /// </summary>

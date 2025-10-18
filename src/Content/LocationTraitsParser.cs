@@ -65,7 +65,4 @@ public static class LocationTraitsParser
         return traits.Take(4).ToList();
     }
 
-
-
-
 }

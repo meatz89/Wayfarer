@@ -64,28 +64,13 @@ public class OllamaClient
 
     public async Task<bool> CheckHealthAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            // Use a reasonable timeout for health checks
-            using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
+        // Use a reasonable timeout for health checks
+        using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(TimeSpan.FromSeconds(2)); // 2 seconds for health check
 
-            string healthUrl = $"{configuration.BaseUrl}/api/tags";
-            Console.WriteLine($"[OllamaClient] Checking health at: {healthUrl}");
+        string healthUrl = $"{configuration.BaseUrl}/api/tags";HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
+        HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, healthUrl);
-            HttpResponseMessage response = await httpClient.SendAsync(request, cts.Token);
-
-            bool isHealthy = response.IsSuccessStatusCode;
-            Console.WriteLine($"[OllamaClient] Health check result: {isHealthy}");
-            return isHealthy;
-        }
-        catch (Exception ex)
-        {
-            // Any exception means Ollama is not available
-            // This includes timeouts, connection refused, etc.
-            Console.WriteLine($"[OllamaClient] Health check failed: {ex.Message}");
-            return false;
-        }
+        bool isHealthy = response.IsSuccessStatusCode;return isHealthy;
     }
 }

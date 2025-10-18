@@ -101,7 +101,6 @@ public class TokenMechanicsManager
         // Token change notifications are handled by GameFacade orchestration
     }
 
-
     // Spend tokens with specific NPC context (for queue manipulation)
     public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
     {
@@ -169,7 +168,6 @@ public class TokenMechanicsManager
         Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npcId);
         return tokensWithNPC.GetValueOrDefault(type, 0);
     }
-
 
     /// <summary>
     /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player

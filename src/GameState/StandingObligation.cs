@@ -38,7 +38,6 @@ public enum ObligationEffect
     DynamicDeadlineBonus       // Deadline bonus scales with token level
 }
 
-
 public class StandingObligation
 {
     // Identity

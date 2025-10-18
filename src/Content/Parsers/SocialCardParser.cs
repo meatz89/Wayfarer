@@ -146,11 +146,7 @@ public static class SocialCardParser
         if (effectFormula == null)
         {
             throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move.Value} stat {boundStat.Value} depth {(int)depth}!");
-        }
-
-        Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move.Value} formula: {effectFormula}");
-
-        // Parse Delivery property (NEW: Controls cadence on SPEAK)
+        }// Parse Delivery property (NEW: Controls cadence on SPEAK)
         DeliveryType delivery = DeliveryType.Standard; // Default
         if (!string.IsNullOrEmpty(dto.Delivery))
         {
@@ -212,29 +208,19 @@ public static class SocialCardParser
             .ToList();
 
         if (!foundationCards.Any())
-        {
-            Console.WriteLine("[ConversationCardParser] WARNING: No Foundation cards (depth 1-2) found");
-            return;
+        {return;
         }
 
         // Report Foundation card distribution (no arbitrary percentage requirement)
         int echoFoundationCount = foundationCards.Count(c => c.Persistence == PersistenceType.Echo);
-        decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;
-
-        Console.WriteLine($"[ConversationCardParser] Foundation cards: {foundationCards.Count}, Echo: {echoFoundationCount} ({echoPercentage:P1}), Statement: {foundationCards.Count - echoFoundationCount} ({(1 - echoPercentage):P1})");
-
-        // Report on card distribution (no strict validation)
+        decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;// Report on card distribution (no strict validation)
         // Cards can be Echo or Statement based on narrative weight, not mechanical requirements
         List<SocialCard> cunningCards = allCards
             .Where(c => c.BoundStat == PlayerStatType.Cunning)
             .ToList();
 
         int cunningEcho = cunningCards.Count(c => c.Persistence == PersistenceType.Echo);
-        int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);
-
-        Console.WriteLine($"[ConversationCardParser] ✓ Card validation passed. " +
-                         $"Cunning cards: {cunningCards.Count} total ({cunningEcho} Echo, {cunningStatement} Statement)");
-    }
+        int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);}
 
     /// <summary>
     /// Check if a card effect formula generates Initiative (including in compound effects)

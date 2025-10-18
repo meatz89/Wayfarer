@@ -51,7 +51,6 @@ public class MentalDeckBuilder
         return (deck, startingHand);
     }
 
-
     /// <summary>
     /// Create goal card instances for Mental challenges
     /// Goal cards are self-contained templates - no lookup required

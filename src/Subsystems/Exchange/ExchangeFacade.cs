@@ -14,7 +14,6 @@ public class ExchangeFacade
     private readonly ExchangeOrchestrator _orchestrator;
     private readonly ExchangeValidator _validator;
     private readonly ExchangeProcessor _processor;
-    private readonly ExchangeInventory _inventory;
 
     // External dependencies
     private readonly TimeManager _timeManager;
@@ -25,7 +24,6 @@ public class ExchangeFacade
         ExchangeOrchestrator orchestrator,
         ExchangeValidator validator,
         ExchangeProcessor processor,
-        ExchangeInventory inventory,
         TimeManager timeManager,
         MessageSystem messageSystem)
     {
@@ -33,7 +31,6 @@ public class ExchangeFacade
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-        _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
@@ -43,6 +40,7 @@ public class ExchangeFacade
     /// </summary>
     public ExchangeSession CreateExchangeSession(string npcId)
     {
+        // KEEP - npcId is external input from UI
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
@@ -68,14 +66,29 @@ public class ExchangeFacade
     /// </summary>
     public List<ExchangeOption> GetAvailableExchanges(string npcId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
     {
+        // KEEP - npcId is external input from UI
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
             return new List<ExchangeOption>();
         }
 
-        // Get exchanges from NPC's inventory
-        List<ExchangeCard> npcExchanges = _inventory.GetNPCExchanges(npcId);
+        // Get exchanges from GameWorld directly
+        // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        List<ExchangeCard> npcExchanges = entry?.ExchangeCards ?? new List<ExchangeCard>();
+
+        // Also check NPC.ExchangeDeck
+        if (npc.ExchangeDeck != null)
+        {
+            foreach (ExchangeCard card in npc.ExchangeDeck)
+            {
+                if (!npcExchanges.Any(e => e.Id == card.Id))
+                {
+                    npcExchanges.Add(card);
+                }
+            }
+        }
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
@@ -131,6 +144,7 @@ public class ExchangeFacade
     /// </summary>
     public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
     {
+        // KEEP - npcId is external input from UI
         // Get NPC
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
@@ -142,15 +156,18 @@ public class ExchangeFacade
             };
         }
 
-        // Get exchange data
-        Console.WriteLine($"[ExchangeFacade] Attempting to get exchange - NpcId: '{npcId}', ExchangeId: '{exchangeId}'");
-        ExchangeCard? exchange = _inventory.GetExchange(npcId, exchangeId);
-        if (exchange == null)
+        // Get exchange data from GameWorld// Query GameWorld for the exchange
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        ExchangeCard exchange = entry?.ExchangeCards?.FirstOrDefault(e => e.Id == exchangeId);
+
+        // Also check NPC.ExchangeDeck if not found
+        if (exchange == null && npc.ExchangeDeck != null)
         {
-            Console.WriteLine($"[ExchangeFacade] Exchange not found! Available NPCs: {string.Join(", ", _inventory.GetNPCsWithExchanges())}");
-            List<ExchangeCard> availableExchanges = _inventory.GetNPCExchanges(npcId);
-            Console.WriteLine($"[ExchangeFacade] Available exchanges for '{npcId}': {string.Join(", ", availableExchanges.Select(e => e.Id))}");
-            return new ExchangeResult
+            exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
+        }
+
+        if (exchange == null)
+        {return new ExchangeResult
             {
                 Success = false,
                 Message = "Exchange not found"
@@ -192,14 +209,22 @@ public class ExchangeFacade
         Dictionary<ResourceType, int> rewardsGranted = ApplyExchangeRewards(exchange, player, npc);
         List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
 
-        // Track exchange history
-        _inventory.RecordExchange(npcId, exchangeId);
-
-        // Check if this was a single-use exchange
-        if (exchange.SingleUse)
+        // Track exchange history in GameWorld
+        ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
         {
-            _inventory.RemoveExchange(npcId, exchangeId);
-        }
+            ExchangeId = exchangeId,
+            ExchangeName = exchange.Name ?? exchangeId,
+            Timestamp = DateTime.Now,
+            Day = _gameWorld.CurrentDay,
+            TimeBlock = _gameWorld.CurrentTimeBlock,
+            WasSuccessful = true
+        };
+        _gameWorld.ExchangeHistory.Add(historyEntry);
+
+        // Record use (increments TimesUsed, marks IsCompleted for SingleUse)
+        exchange.RecordUse();
+
+        // Note: SingleUse exchanges become unavailable via IsExhausted() check, no need to remove from list
 
         // Generate success message
         _messageSystem.AddSystemMessage($"Exchange with {npc.Name} completed successfully", SystemMessageTypes.Success);
@@ -228,7 +253,9 @@ public class ExchangeFacade
     /// </summary>
     public List<ExchangeHistoryEntry> GetExchangeHistory(string npcId)
     {
-        return _inventory.GetExchangeHistory(npcId);
+        return _gameWorld.ExchangeHistory
+            .Where(h => h.ExchangeId.StartsWith(npcId) || h.ExchangeName.Contains(npcId))
+            .ToList();
     }
 
     /// <summary>
@@ -244,27 +271,45 @@ public class ExchangeFacade
     }
 
     /// <summary>
-    /// Initialize NPC exchange inventories from GameWorld data
+    /// Initialize NPC exchange inventories - no longer needed (data already in GameWorld)
     /// </summary>
     public void InitializeNPCExchanges()
     {
-        _inventory.InitializeFromGameWorld(_gameWorld);
+        // No-op: Exchange data now loaded directly into GameWorld by parsers
     }
 
     /// <summary>
-    /// Add an exchange to an NPC's inventory (for dynamic exchanges)
+    /// Add an exchange to an NPC's deck (for dynamic exchanges)
     /// </summary>
     public void AddExchangeToNPC(string npcId, ExchangeCard exchange)
     {
-        _inventory.AddExchange(npcId, exchange);
+        // KEEP - npcId is external input from caller
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc != null)
+        {
+            if (npc.ExchangeDeck == null)
+            {
+                npc.ExchangeDeck = new List<ExchangeCard>();
+            }
+            npc.ExchangeDeck.Add(exchange);
+        }
     }
 
     /// <summary>
-    /// Remove an exchange from an NPC's inventory
+    /// Remove an exchange from an NPC's deck - marks as exhausted instead
     /// </summary>
     public void RemoveExchangeFromNPC(string npcId, string exchangeId)
     {
-        _inventory.RemoveExchange(npcId, exchangeId);
+        // KEEP - npcId is external input from caller
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc?.ExchangeDeck != null)
+        {
+            ExchangeCard exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
+            if (exchange != null)
+            {
+                exchange.RecordUse(); // Marks as complete/exhausted
+            }
+        }
     }
 
     /// <summary>

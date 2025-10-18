@@ -67,7 +67,6 @@ public class NPC
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
 
-
     // NPC DECK ARCHITECTURE
     // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
@@ -79,6 +78,21 @@ public class NPC
     // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
     // References obstacles in GameWorld.Obstacles list
     public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Object reference to location (for runtime navigation)
+    /// </summary>
+    public Location Location { get; set; }
+
+    /// <summary>
+    /// Object references to active goals (for runtime navigation)
+    /// </summary>
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+
+    /// <summary>
+    /// Object references to obstacles (for runtime navigation)
+    /// </summary>
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
 
     // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
     // References equipment in GameWorld.Equipment list (single source of truth)
@@ -101,12 +115,8 @@ public class NPC
             ExchangeDeck = new List<ExchangeCard>();
             // Only Mercantile NPCs have exchange decks
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
-            {
-                Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
-                foreach (ExchangeCard card in exchangeCards)
-                {
-                    Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}");
-                    ExchangeDeck.Add(card);
+            {foreach (ExchangeCard card in exchangeCards)
+                {ExchangeDeck.Add(card);
                 }
             }
         }
@@ -168,9 +178,6 @@ public class NPC
         }
     }
 
-
-
-
     /// <summary>
     /// Get connection state from single flow value
     /// </summary>
@@ -185,7 +192,6 @@ public class NPC
             _ => ConnectionState.TRUSTING
         };
     }
-
 
     /// <summary>
     /// Apply daily decay - move flow toward global neutral value 12

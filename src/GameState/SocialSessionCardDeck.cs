@@ -120,9 +120,7 @@ public class SocialSessionCardDeck
     /// </summary>
     public void DrawToHand(int count, SocialSession session, PlayerStats playerStats)
     {
-        int maxDepth = session.GetUnlockedMaxDepth();
-        Console.WriteLine($"[SessionCardDeck] DrawToHand called with count={count}, unlocked tiers: {string.Join(",", session.UnlockedTiers)}, max depth: {maxDepth}");
-        int cardsDrawn = 0;
+        int maxDepth = session.GetUnlockedMaxDepth();int cardsDrawn = 0;
 
         for (int i = 0; i < count; i++)
         {
@@ -130,16 +128,12 @@ public class SocialSessionCardDeck
             bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.SocialCardTemplate, session, playerStats));
 
             if (!hasAccessibleCards && spokenPile.Count > 0)
-            {
-                Console.WriteLine($"[SessionCardDeck] No accessible cards at current tier, attempting reshuffle");
-                ReshuffleSpokenPile();
+            {ReshuffleSpokenPile();
             }
 
             // If still no cards after reshuffling, we're out of cards entirely
             if (deckPile.Count == 0)
-            {
-                Console.WriteLine($"[SessionCardDeck] WARNING: Requested {count} cards but only {cardsDrawn} available (Deck pile and reshuffleable Spoken cards empty)");
-                break;
+            {break;
             }
 
             // Apply tier-based filtering
@@ -152,21 +146,15 @@ public class SocialSessionCardDeck
                 cardsDrawn++;
             }
             else
-            {
-                Console.WriteLine($"[SessionCardDeck] No more accessible cards at max depth {maxDepth}");
-                break;
+            {break;
             }
         }
 
         // Log the actual draw result
         if (cardsDrawn < count)
-        {
-            Console.WriteLine($"[SessionCardDeck] Drew {cardsDrawn}/{count} cards (tier filter limited available cards)");
-        }
+        {}
         else
-        {
-            Console.WriteLine($"[SessionCardDeck] Successfully drew {cardsDrawn} cards with tier filtering");
-        }
+        {}
     }
 
     /// <summary>
@@ -177,9 +165,7 @@ public class SocialSessionCardDeck
     public void PlayCard(CardInstance card)
     {
         if (card == null)
-        {
-            Console.WriteLine("[SessionCardDeck] ERROR: PlayCard called with null card!");
-            return;
+        {return;
         }
 
         // Track total cards before operation
@@ -187,9 +173,7 @@ public class SocialSessionCardDeck
 
         // Check if card exists in mind (hand) before removing
         if (!mindPile.Contains(card))
-        {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card {card.SocialCardTemplate.Id} not found in mind!");
-            return;
+        {return;
         }
 
         mindPile.Remove(card);
@@ -198,25 +182,15 @@ public class SocialSessionCardDeck
         if (card.SocialCardTemplate.Persistence == PersistenceType.Echo)
         {
             // Echo cards return to BOTTOM of deck (drawn last, not immediately)
-            deckPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Echo card {card.SocialCardTemplate.Id} added to bottom of deck (drawn last)");
-        }
+            deckPile.Add(card);}
         else
         {
             // Statement cards go to spoken pile permanently (one-time use)
-            spokenPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Statement card {card.SocialCardTemplate.Id} moved to spoken pile permanently");
-        }
+            spokenPile.Add(card);}
 
         // Validate total card count remains constant
-        int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] After play - Mind: {mindPile.Count}, Topics: {deckPile.Count}, Spoken: {spokenPile.Count}, Request: {requestPile.Count}, Total: {totalCardsAfter}");
-
-        if (totalCardsBefore != totalCardsAfter)
-        {
-            Console.WriteLine($"[SessionCardDeck] CRITICAL ERROR: Card count mismatch! Lost {totalCardsBefore - totalCardsAfter} cards!");
-            Console.WriteLine($"[SessionCardDeck] Card that disappeared: {card.SocialCardTemplate.Id} (Persistence: {card?.SocialCardTemplate?.Persistence})");
-        }
+        int totalCardsAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;if (totalCardsBefore != totalCardsAfter)
+        {}
     }
 
     /// <summary>
@@ -237,17 +211,12 @@ public class SocialSessionCardDeck
     {
         if (card == null) return;
 
-        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Moving card {card.SocialCardTemplate.Id} from Mind to Spoken pile");
-
-        mindPile.Remove(card);
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;mindPile.Remove(card);
         spokenPile.Add(card);
 
         int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore != totalAfter)
-        {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card lost during move to spoken! {card.SocialCardTemplate.Id} disappeared");
-        }
+        {}
     }
 
     /// <summary>
@@ -268,15 +237,11 @@ public class SocialSessionCardDeck
 
             requestPile.Remove(card);
             card.IsPlayable = true; // NOW playable - threshold met
-            mindPile.Add(card);
-            Console.WriteLine($"[SessionCardDeck] Request card {card.SocialCardTemplate.Id} moved to mind (momentum {currentMomentum})");
-            movedCards.Add(card);
+            mindPile.Add(card);movedCards.Add(card);
 
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
             if (totalBefore != totalAfter)
-            {
-                Console.WriteLine($"[SessionCardDeck] ERROR: Card count changed during request move! Expected {totalBefore}, got {totalAfter}");
-            }
+            {}
         }
 
         return movedCards;
@@ -303,10 +268,7 @@ public class SocialSessionCardDeck
             .ToList();
 
         if (echoCards.Any())
-        {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Found {echoCards.Count} Echo cards in spoken pile! This should never happen with correct PlayCard implementation!");
-
-            // Remove them as emergency fix
+        {// Remove them as emergency fix
             foreach (CardInstance card in echoCards)
             {
                 spokenPile.Remove(card);
@@ -315,9 +277,7 @@ public class SocialSessionCardDeck
             deckPile.Shuffle();
         }
         else
-        {
-            Console.WriteLine($"[SessionCardDeck] No cards to reshuffle - spoken pile contains only Statement cards as expected");
-        }
+        {}
     }
 
     /// <summary>
@@ -397,9 +357,7 @@ public class SocialSessionCardDeck
             int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
 
             if (totalBefore + 1 != totalAfter)
-            {
-                Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding to mind! Expected {totalBefore + 1}, got {totalAfter}");
-            }
+            {}
         }
     }
 
@@ -410,10 +368,7 @@ public class SocialSessionCardDeck
     {
         if (cards == null || cards.Count == 0) return;
 
-        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
-        Console.WriteLine($"[SessionCardDeck] Adding {cards.Count} cards to mind");
-
-        foreach (CardInstance card in cards)
+        int totalBefore = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;foreach (CardInstance card in cards)
         {
             if (card != null)
             {
@@ -423,9 +378,7 @@ public class SocialSessionCardDeck
 
         int totalAfter = mindPile.Count + deckPile.Count + spokenPile.Count + requestPile.Count;
         if (totalBefore + cards.Count != totalAfter)
-        {
-            Console.WriteLine($"[SessionCardDeck] ERROR: Card count mismatch when adding cards to mind! Expected {totalBefore + cards.Count}, got {totalAfter}");
-        }
+        {}
     }
 
     /// <summary>
@@ -436,10 +389,7 @@ public class SocialSessionCardDeck
     {
         if (mindPile.Count <= maxSize) return;
 
-        int cardsToDiscard = mindPile.Count - maxSize;
-        Console.WriteLine($"[SessionCardDeck] Forcing discard of {cardsToDiscard} cards (hand size {mindPile.Count} > limit {maxSize})");
-
-        List<CardInstance> cardsToRemove = new List<CardInstance>();
+        int cardsToDiscard = mindPile.Count - maxSize;List<CardInstance> cardsToRemove = new List<CardInstance>();
 
         // For now, discard from the end of hand (could be made more sophisticated later)
         for (int i = 0; i < cardsToDiscard; i++)
@@ -453,10 +403,7 @@ public class SocialSessionCardDeck
         }
 
         // Add discarded cards back to deck pile
-        deckPile.AddRange(cardsToRemove);
-
-        Console.WriteLine($"[SessionCardDeck] Discarded {cardsToRemove.Count} cards back to deck. Hand size now: {mindPile.Count}");
-    }
+        deckPile.AddRange(cardsToRemove);}
 
     /// <summary>
     /// Process card persistence - ALL cards persist in refined system
@@ -468,12 +415,7 @@ public class SocialSessionCardDeck
         // In the refined system, ALL cards persist on SPEAK and LISTEN
         // Cards only go to Spoken pile when explicitly played
         // No cards are removed during LISTEN actions
-        // The difference between Standard and Banish is only in reshuffling behavior
-
-        Console.WriteLine($"[SessionCardDeck] Processing persistence - ALL cards persist in refined system");
-        Console.WriteLine($"[SessionCardDeck] Current state - Mind: {mindPile.Count}, Spoken: {spokenPile.Count}, Topics: {deckPile.Count}");
-
-        // Nothing to process - all cards stay where they are during LISTEN
+        // The difference between Standard and Banish is only in reshuffling behavior// Nothing to process - all cards stay where they are during LISTEN
     }
 
     /// <summary>
@@ -540,13 +482,11 @@ public class SocialSessionCardDeck
             {
                 // Found the first accessible card - remove and return it
                 deckPile.Remove(card);
-                Console.WriteLine($"[SessionCardDeck] Drew accessible card: {card.SocialCardTemplate.Title} (depth {(int)card.SocialCardTemplate.Depth}, max: {maxDepth})");
                 return card;
             }
         }
 
         // No accessible cards found
-        Console.WriteLine($"[SessionCardDeck] No accessible cards in deck at max depth {maxDepth}");
         return null;
     }
 

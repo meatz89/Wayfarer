@@ -7,9 +7,6 @@ using System;
 public class ResourceFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly CoinManager _coinManager;
-    private readonly HealthManager _healthManager;
-    private readonly HungerManager _hungerManager;
     private readonly ResourceCalculator _resourceCalculator;
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
@@ -17,18 +14,12 @@ public class ResourceFacade
 
     public ResourceFacade(
         GameWorld gameWorld,
-        CoinManager coinManager,
-        HealthManager healthManager,
-        HungerManager hungerManager,
         ResourceCalculator resourceCalculator,
         MessageSystem messageSystem,
         TimeManager timeManager,
         ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
-        _coinManager = coinManager;
-        _healthManager = healthManager;
-        _hungerManager = hungerManager;
         _resourceCalculator = resourceCalculator;
         _messageSystem = messageSystem;
         _timeManager = timeManager;
@@ -39,17 +30,30 @@ public class ResourceFacade
 
     public int GetCoins()
     {
-        return _coinManager.GetCurrentCoins(_gameWorld.GetPlayer());
+        return _gameWorld.GetPlayer().Coins;
     }
 
     public bool CanAfford(int amount)
     {
-        return _coinManager.CanAfford(_gameWorld.GetPlayer(), amount);
+        return _gameWorld.GetPlayer().Coins >= amount;
     }
 
     public bool SpendCoins(int amount, string reason)
     {
-        return _coinManager.SpendCoins(_gameWorld.GetPlayer(), amount, reason, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        if (player.Coins < amount)
+        {
+            _messageSystem.AddSystemMessage(
+                $"💰 Not enough coins! Need {amount}, have {player.Coins}",
+                SystemMessageTypes.Warning);
+            return false;
+        }
+
+        player.Coins -= amount;
+        _messageSystem.AddSystemMessage(
+            $"💰 Spent {amount} coins on {reason} ({player.Coins} remaining)",
+            SystemMessageTypes.Info);
+        return true;
     }
 
     public bool SpendCoins(int amount)
@@ -59,53 +63,112 @@ public class ResourceFacade
 
     public void AddCoins(int amount, string source)
     {
-        _coinManager.AddCoins(_gameWorld.GetPlayer(), amount, source, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        player.Coins += amount;
+        _messageSystem.AddSystemMessage(
+            $"💰 Received {amount} coins from {source} (total: {player.Coins})",
+            SystemMessageTypes.Success);
     }
 
     // ========== HEALTH OPERATIONS ==========
 
     public int GetHealth()
     {
-        return _healthManager.GetCurrentHealth(_gameWorld.GetPlayer());
+        return _gameWorld.GetPlayer().Health;
     }
 
     public void TakeDamage(int amount, string source)
     {
-        _healthManager.TakeDamage(_gameWorld.GetPlayer(), amount, source, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        int oldHealth = player.Health;
+        player.Health = Math.Max(0, player.Health - amount);
+        int actualDamage = oldHealth - player.Health;
+
+        if (actualDamage > 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"❤️ Took {actualDamage} damage from {source} (Health: {player.Health}/{Player.MaxHealthConstant})",
+                SystemMessageTypes.Warning);
+
+            if (player.Health == 0)
+            {
+                _messageSystem.AddSystemMessage(
+                    "💀 You have died!",
+                    SystemMessageTypes.Warning);
+            }
+        }
     }
 
     public void Heal(int amount, string source)
     {
-        _healthManager.Heal(_gameWorld.GetPlayer(), amount, source, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        int oldHealth = player.Health;
+        player.Health = Math.Min(Player.MaxHealthConstant, player.Health + amount);
+        int actualHealing = player.Health - oldHealth;
+
+        if (actualHealing > 0)
+        {
+            _messageSystem.AddSystemMessage(
+                $"❤️ Healed {actualHealing} from {source} (Health: {player.Health}/{Player.MaxHealthConstant})",
+                SystemMessageTypes.Success);
+        }
     }
 
     public bool IsAlive()
     {
-        return _healthManager.IsAlive(_gameWorld.GetPlayer());
+        return _gameWorld.GetPlayer().Health > 0;
     }
 
     // ========== HUNGER OPERATIONS ==========
 
     public int GetHunger()
     {
-        return _hungerManager.GetCurrentHunger(_gameWorld.GetPlayer());
+        return _gameWorld.GetPlayer().Hunger;
     }
 
     public void IncreaseHunger(int amount, string reason)
     {
-        _hungerManager.IncreaseHunger(_gameWorld.GetPlayer(), amount, reason, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        int oldHunger = player.Hunger;
+        player.Hunger = Math.Min(Player.MaxHungerConstant, player.Hunger + amount);
+        int actualIncrease = player.Hunger - oldHunger;
+
+        if (actualIncrease > 0)
+        {
+            string hungerLevel = player.GetHungerLevelDescription();
+            _messageSystem.AddSystemMessage(
+                $"🍞 Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{Player.MaxHungerConstant} - {hungerLevel})",
+                SystemMessageTypes.Info);
+
+            if (player.IsStarving())
+            {
+                _messageSystem.AddSystemMessage(
+                    "⚠️ You are starving! Find food soon!",
+                    SystemMessageTypes.Warning);
+            }
+        }
     }
 
     public void DecreaseHunger(int amount, string source)
     {
-        _hungerManager.DecreaseHunger(_gameWorld.GetPlayer(), amount, source, _messageSystem);
+        Player player = _gameWorld.GetPlayer();
+        int oldHunger = player.Hunger;
+        player.Hunger = Math.Max(0, player.Hunger - amount);
+        int actualDecrease = oldHunger - player.Hunger;
+
+        if (actualDecrease > 0)
+        {
+            string hungerLevel = player.GetHungerLevelDescription();
+            _messageSystem.AddSystemMessage(
+                $"🍖 Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{Player.MaxHungerConstant} - {hungerLevel})",
+                SystemMessageTypes.Success);
+        }
     }
 
     public bool IsStarving()
     {
-        return _hungerManager.IsStarving(_gameWorld.GetPlayer());
+        return _gameWorld.GetPlayer().IsStarving();
     }
-
 
     // ========== RESOURCE CALCULATIONS ==========
 
@@ -115,12 +178,10 @@ public class ResourceFacade
         return _resourceCalculator.CalculateFocusLimit(health);
     }
 
-
     public void ProcessTimeBlockTransition(TimeBlocks oldBlock, TimeBlocks newBlock)
     {
         // Increase hunger by 20 per time period
         IncreaseHunger(20, "Time passes");
-
 
         // Apply daily NPC decay when transitioning to Morning (morning refresh)
         if (newBlock == TimeBlocks.Morning)

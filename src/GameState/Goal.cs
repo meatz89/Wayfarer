@@ -51,6 +51,27 @@ public class Goal
     public string InvestigationId { get; set; }
 
     /// <summary>
+    /// Object reference to placement location (for runtime navigation)
+    /// </summary>
+    public Location PlacementLocation { get; set; }
+
+    /// <summary>
+    /// Object reference to placement NPC (for runtime navigation)
+    /// </summary>
+    public NPC PlacementNpc { get; set; }
+
+    /// <summary>
+    /// Object reference to parent investigation (for runtime navigation)
+    /// </summary>
+    public Investigation Investigation { get; set; }
+
+    /// <summary>
+    /// Object reference to parent obstacle (for runtime navigation)
+    /// Populated at initialization time from obstacle's GoalIds
+    /// </summary>
+    public Obstacle ParentObstacle { get; set; }
+
+    /// <summary>
     /// Whether this goal is an investigation intro action
     /// </summary>
     public bool IsIntroAction { get; set; } = false;

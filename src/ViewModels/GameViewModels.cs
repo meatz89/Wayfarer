@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-
 // Simple ViewModels for UI data transfer - no business logic
 // All content comes from JSON or mechanical states
 
@@ -122,7 +121,6 @@ public class TravelProgressViewModel
     public string TimeWalked { get; set; }
     public string TimeRemaining { get; set; }
 }
-
 
 public class MechanicEffectViewModel
 {

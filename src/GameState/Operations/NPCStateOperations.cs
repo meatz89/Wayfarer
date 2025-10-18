@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 
-
 /// <summary>
 /// Handles all NPC state operations in an immutable, validated manner.
 /// All NPC state changes must go through this class.

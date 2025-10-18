@@ -67,7 +67,6 @@ public class PhysicalDeckBuilder
         return (deck, startingHand);
     }
 
-
     /// <summary>
     /// Create goal card instances for Physical challenges
     /// Goal cards are self-contained templates - no lookup required

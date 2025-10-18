@@ -17,15 +17,10 @@ public class DialogueGenerationService
     {
         _templates = gameWorld.DialogueTemplates ?? new DialogueTemplates();
         if (_templates.ConnectionStateDialogue == null)
-        {
-            Console.WriteLine("[DialogueGenerationService] No dialogue templates found in GameWorld, using empty templates");
-        }
+        {}
         else
-        {
-            Console.WriteLine($"[DialogueGenerationService] Loaded dialogue templates from GameWorld with {_templates.ConnectionStateDialogue.Count} connection state templates");
-        }
+        {}
     }
-
 
     /// <summary>
     /// Generate NPC dialogue from connection state and context

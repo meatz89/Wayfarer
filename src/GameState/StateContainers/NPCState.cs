@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-
 /// <summary>
 /// Immutable state container for NPC data.
 /// All modifications must go through operations/commands.

@@ -93,8 +93,6 @@ public class ExchangeOrchestrator
         return _activeSessions.ContainsKey(npcId);
     }
 
-
-
     /// <summary>
     /// Check if exchange should trigger special events
     /// </summary>
@@ -138,18 +136,15 @@ public class ExchangeOrchestrator
     private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
     {
         // This would integrate with the Token subsystem to check milestones
-        Console.WriteLine($"[ExchangeOrchestrator] Checking milestone for {npcId}: {tokenType} +{amount}");
     }
 
     private void UnlockExchange(string npcId, string exchangeId)
     {
         // This would integrate with ExchangeInventory to unlock new exchanges
-        Console.WriteLine($"[ExchangeOrchestrator] Unlocking exchange {exchangeId} for {npcId}");
     }
 
     private void TriggerStoryEvent(string eventId)
     {
         // This would integrate with a story/event system
-        Console.WriteLine($"[ExchangeOrchestrator] Triggering story event: {eventId}");
     }
 }

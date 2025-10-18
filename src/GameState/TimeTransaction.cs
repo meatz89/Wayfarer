@@ -136,51 +136,35 @@ public class TimeTransaction
         List<ITimeBasedEffect> completedEffects = new List<ITimeBasedEffect>();
         List<EffectResult> effectResults = new List<EffectResult>();
 
-        try
+        // Advance time first
+        TimeAdvancementResult? timeAdvancement = _totalSegmentsCost > 0
+            ? _timeModel.AdvanceSegments(_totalSegmentsCost)
+            : null;
+
+        // Execute all effects in order
+        foreach (ITimeBasedEffect effect in _effects)
         {
-            // Advance time first
-            TimeAdvancementResult? timeAdvancement = _totalSegmentsCost > 0
-                ? _timeModel.AdvanceSegments(_totalSegmentsCost)
-                : null;
+            EffectResult result = effect.Apply(_timeModel.CurrentState, _context);
+            effectResults.Add(result);
 
-            // Execute all effects in order
-            foreach (ITimeBasedEffect effect in _effects)
+            if (!result.Success)
             {
-                EffectResult result = effect.Apply(_timeModel.CurrentState, _context);
-                effectResults.Add(result);
-
-                if (!result.Success)
+                // Rollback completed effects in reverse order before returning failure
+                foreach (ITimeBasedEffect? completedEffect in completedEffects.AsEnumerable().Reverse())
                 {
-                    throw new TimeTransactionException($"Effect '{effect.GetType().Name}' failed: {result.Message}");
+                    completedEffect.Rollback(_timeModel.CurrentState, _context);
                 }
-
-                completedEffects.Add(effect);
-
-                // If effect blocks subsequent effects, stop here
-                if (result.BlocksSubsequentEffects)
-                    break;
+                return TimeTransactionResult.Failure(new[] { result.Message });
             }
 
-            return TimeTransactionResult.Success(timeAdvancement, effectResults, _description);
-        }
-        catch (Exception ex)
-        {
-            // Rollback completed effects in reverse order
-            foreach (ITimeBasedEffect? effect in completedEffects.AsEnumerable().Reverse())
-            {
-                try
-                {
-                    effect.Rollback(_timeModel.CurrentState, _context);
-                }
-                catch (Exception rollbackEx)
-                {
-                    // Log rollback failure but continue with other rollbacks
-                    Console.WriteLine($"Rollback failed for {effect.GetType().Name}: {rollbackEx.Message}");
-                }
-            }
+            completedEffects.Add(effect);
 
-            return TimeTransactionResult.Failure(new[] { ex.Message });
+            // If effect blocks subsequent effects, stop here
+            if (result.BlocksSubsequentEffects)
+                break;
         }
+
+        return TimeTransactionResult.Success(timeAdvancement, effectResults, _description);
     }
 }
 

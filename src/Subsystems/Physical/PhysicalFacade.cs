@@ -13,11 +13,6 @@ public class PhysicalFacade
     private readonly TimeManager _timeManager;
     private readonly InvestigationActivity _investigationActivity;
 
-    private PhysicalSession _currentSession;
-    private PhysicalSessionDeck _sessionDeck;
-    private string _currentGoalId; // Track which investigation goal this session is for
-    private string _currentInvestigationId; // Track which investigation this goal belongs to
-
     public PhysicalFacade(
         GameWorld gameWorld,
         PhysicalEffectResolver effectResolver,
@@ -36,17 +31,17 @@ public class PhysicalFacade
 
     public PhysicalSession GetCurrentSession()
     {
-        return _currentSession;
+        return _gameWorld.CurrentPhysicalSession;
     }
 
     public bool IsSessionActive()
     {
-        return _currentSession != null;
+        return _gameWorld.CurrentPhysicalSession != null;
     }
 
     public List<CardInstance> GetHand()
     {
-        return _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentPhysicalSession.Deck?.Hand.ToList() ?? new List<CardInstance>();
     }
 
     public PhysicalDeckBuilder GetDeckBuilder()
@@ -56,17 +51,17 @@ public class PhysicalFacade
 
     public int GetDeckCount()
     {
-        return _sessionDeck?.RemainingDeckCards ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck?.RemainingDeckCards ?? 0;
     }
 
     public int GetExhaustCount()
     {
-        return _sessionDeck?.LockedCards.Count ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck?.LockedCards.Count ?? 0;
     }
 
     public List<CardInstance> GetLockedCards()
     {
-        return _sessionDeck?.LockedCards.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentPhysicalSession.Deck?.LockedCards.ToList() ?? new List<CardInstance>();
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
@@ -78,12 +73,12 @@ public class PhysicalFacade
         }
 
         // Track investigation context
-        _currentGoalId = goalId;
-        _currentInvestigationId = investigationId;
+        _gameWorld.CurrentPhysicalGoalId = goalId;
+        _gameWorld.CurrentPhysicalInvestigationId = investigationId;
 
         Player player = _gameWorld.GetPlayer();
 
-        _currentSession = new PhysicalSession
+        _gameWorld.CurrentPhysicalSession = new PhysicalSession
         {
             ChallengeId = engagement.Id,
             CurrentExertion = 0,
@@ -96,11 +91,12 @@ public class PhysicalFacade
         };
 
         // Use PhysicalSessionDeck with Pile abstraction
-        _sessionDeck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
-        _currentSession.Deck = _sessionDeck;
+        _gameWorld.CurrentPhysicalSession.Deck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
+        _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
 
         // Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
-        if (!string.IsNullOrEmpty(goalId) && _gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+        if (!string.IsNullOrEmpty(goalId) && goal != null)
         {
             if (goal.GoalCards != null && goal.GoalCards.Any())
             {
@@ -113,9 +109,7 @@ public class PhysicalFacade
                     };
 
                     // Add to session deck's requestPile
-                    _sessionDeck.AddGoalCard(goalCardInstance);
-                    Console.WriteLine($"[PhysicalFacade] Added GoalCard '{goalCard.Name}' with threshold {goalCard.threshold}");
-                }
+                    _gameWorld.CurrentPhysicalSession.Deck.AddGoalCard(goalCardInstance);}
             }
         }
 
@@ -123,12 +117,8 @@ public class PhysicalFacade
         int cardsToDrawStartingSized = engagement.InitialHandSize - startingHand.Count;
         if (cardsToDrawStartingSized > 0)
         {
-            _sessionDeck.DrawToHand(cardsToDrawStartingSized);
-        }
-
-        Console.WriteLine($"[PhysicalFacade] Started session with {startingHand.Count} cards in starting hand");
-
-        return _currentSession;
+            _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDrawStartingSized);
+        }return _gameWorld.CurrentPhysicalSession;
     }
 
     /// <summary>
@@ -147,7 +137,7 @@ public class PhysicalFacade
         Player player = _gameWorld.GetPlayer();
 
         // Get all locked cards for combo execution
-        List<CardInstance> lockedCards = _sessionDeck.LockedCards.ToList();
+        List<CardInstance> lockedCards = _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
 
         // TRIGGER COMBO: Apply full projection for each locked card
         foreach (CardInstance card in lockedCards)
@@ -155,38 +145,31 @@ public class PhysicalFacade
             if (card.PhysicalCardTemplate != null)
             {
                 // PROJECTION PRINCIPLE: Get projection for this card with Assess action
-                PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, PhysicalActionType.Assess);
+                PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _gameWorld.CurrentPhysicalSession, player, PhysicalActionType.Assess);
 
                 // Apply FULL projection: Breakthrough, Danger, Aggression (includes action -2 + card approach)
                 // NOTE: Exertion was already spent on EXECUTE, projection.ExertionChange should be 0 here
-                _currentSession.CurrentBreakthrough += projection.BreakthroughChange;
-                _currentSession.CurrentDanger += projection.DangerChange;
-                _currentSession.Aggression += projection.BalanceChange; // Includes action -2 AND card approach modifier
+                _gameWorld.CurrentPhysicalSession.CurrentBreakthrough += projection.BreakthroughChange;
+                _gameWorld.CurrentPhysicalSession.CurrentDanger += projection.DangerChange;
+                _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange; // Includes action -2 AND card approach modifier
 
                 // Award XP for this card
                 if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
                 {
                     player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
-                }
+                }}
+        }// Shuffle exhaust (locked cards) + hand back to deck, draw fresh
+        _gameWorld.CurrentPhysicalSession.Deck.ShuffleExhaustAndHandBackToDeck();
 
-                Console.WriteLine($"[PhysicalFacade] COMBO: {card.PhysicalCardTemplate.Id} -> Breakthrough +{projection.BreakthroughChange}, Danger +{projection.DangerChange}, Aggression {projection.BalanceChange:+#;-#;0}");
-            }
-        }
-
-        Console.WriteLine($"[PhysicalFacade] ASSESS: All {lockedCards.Count} locked cards triggered, Aggression now {_currentSession.Aggression}");
-
-        // Shuffle exhaust (locked cards) + hand back to deck, draw fresh
-        _sessionDeck.ShuffleExhaustAndHandBackToDeck();
-
-        int cardsToDraw = _currentSession.GetDrawCount();
-        _sessionDeck.DrawToHand(cardsToDraw);
+        int cardsToDraw = _gameWorld.CurrentPhysicalSession.GetDrawCount();
+        _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDraw);
 
         // Check and unlock goal cards if Breakthrough threshold met
-        _sessionDeck.CheckGoalThresholds(_currentSession.CurrentBreakthrough);
+        _gameWorld.CurrentPhysicalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentPhysicalSession.CurrentBreakthrough);
 
         // Check if danger threshold reached
         bool sessionEnded = false;
-        if (_currentSession.ShouldEnd())
+        if (_gameWorld.CurrentPhysicalSession.ShouldEnd())
         {
             ApplyDangerConsequences(player);
             EndSession();
@@ -197,8 +180,8 @@ public class PhysicalFacade
         {
             Success = true,
             Narrative = $"You assess the situation. {lockedCards.Count} prepared actions execute as a combo.",
-            CurrentBreakthrough = _currentSession.CurrentBreakthrough,
-            CurrentDanger = _currentSession.CurrentDanger,
+            CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             SessionEnded = sessionEnded
         };
     }
@@ -215,7 +198,7 @@ public class PhysicalFacade
             throw new InvalidOperationException("No active physical session");
         }
 
-        if (!_sessionDeck.Hand.Contains(card))
+        if (!_gameWorld.CurrentPhysicalSession.Deck.Hand.Contains(card))
         {
             throw new InvalidOperationException("Card not in hand");
         }
@@ -225,14 +208,18 @@ public class PhysicalFacade
         if (card.CardType == CardTypes.Goal)
         {
             // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // Find parent obstacle containing this goal (distributed interaction pattern)
+            // DISTRIBUTED INTERACTION: Find parent obstacle from Goal.ParentObstacle
             Player currentPlayer = _gameWorld.GetPlayer();
             Location location = currentPlayer.CurrentLocation;
 
-            Obstacle parentObstacle = _gameWorld.Obstacles
-                .FirstOrDefault(o => o.GoalIds.Contains(_currentGoalId));
+            // Get goal and its parent obstacle via object references
+            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalGoalId);
+            if (goal == null)
+                return null; // Goal not found
 
-            if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_currentGoalId, out Goal goal))
+            Obstacle parentObstacle = goal.ParentObstacle;
+
+            if (parentObstacle != null)
             {
                 switch (goal.ConsequenceType)
                 {
@@ -245,16 +232,12 @@ public class PhysicalFacade
                         if (!parentObstacle.IsPermanent)
                         {
                             location.ObstacleIds.Remove(parentObstacle.Id);
-                        }
-                        Console.WriteLine($"[PhysicalFacade] Obstacle '{parentObstacle.Name}' permanently resolved via {goal.SetsResolutionMethod}");
-                        break;
+                        }break;
 
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-                        Console.WriteLine($"[PhysicalFacade] Bypassed obstacle '{parentObstacle.Name}', obstacle persists");
-                        break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
 
                     case ConsequenceType.Transform:
                         // Fundamentally changed
@@ -263,9 +246,7 @@ public class PhysicalFacade
                         if (!string.IsNullOrEmpty(goal.TransformDescription))
                             parentObstacle.TransformedDescription = goal.TransformDescription;
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-                        Console.WriteLine($"[PhysicalFacade] Transformed obstacle '{parentObstacle.Name}', intensity set to 0");
-                        break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
 
                     case ConsequenceType.Modify:
                         // Intensity reduced
@@ -280,30 +261,28 @@ public class PhysicalFacade
                         {
                             parentObstacle.State = ObstacleState.Transformed;
                         }
-                        Console.WriteLine($"[PhysicalFacade] Modified obstacle '{parentObstacle.Name}', intensity reduced to {parentObstacle.Intensity}");
                         break;
 
                     case ConsequenceType.Grant:
                         // Grant knowledge/items, no obstacle change
                         // Knowledge cards handled in Phase 3
                         // Items already handled by existing reward system
-                        Console.WriteLine($"[PhysicalFacade] Grant consequence - items/knowledge granted");
                         break;
                 }
             }
             // Else: ambient goal with no obstacle parent
 
             // GoalCards execute immediately (not locked for combo)
-            _sessionDeck.Hand.ToList().Remove(card); // Remove from hand
-            string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
+            _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList().Remove(card); // Remove from hand
+            string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
             EndSession();
 
             return new PhysicalTurnResult
             {
                 Success = true,
                 Narrative = narrative,
-                CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
-                CurrentDanger = _currentSession?.CurrentDanger ?? 0,
+                CurrentBreakthrough = _gameWorld.CurrentPhysicalSession?.CurrentBreakthrough ?? 0,
+                CurrentDanger = _gameWorld.CurrentPhysicalSession?.CurrentDanger ?? 0,
                 SessionEnded = true
             };
         }
@@ -317,46 +296,46 @@ public class PhysicalFacade
         Player player = _gameWorld.GetPlayer();
 
         // PROJECTION PRINCIPLE: Get projection from resolver (single source of truth)
-        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, PhysicalActionType.Execute);
+        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _gameWorld.CurrentPhysicalSession, player, PhysicalActionType.Execute);
 
         // Check Exertion cost from projection (includes modifiers like fatigue penalties, Foundation generation)
-        if (_currentSession.CurrentExertion + projection.ExertionChange < 0)
+        if (_gameWorld.CurrentPhysicalSession.CurrentExertion + projection.ExertionChange < 0)
         {
             int actualCost = -projection.ExertionChange;
-            throw new InvalidOperationException($"Insufficient Exertion. Need {actualCost}, have {_currentSession.CurrentExertion}");
+            throw new InvalidOperationException($"Insufficient Exertion. Need {actualCost}, have {_gameWorld.CurrentPhysicalSession.CurrentExertion}");
         }
 
         // EXECUTE: Lock card for combo
-        _sessionDeck.LockCard(card);
+        _gameWorld.CurrentPhysicalSession.Deck.LockCard(card);
 
         // Apply PARTIAL projection: Exertion + Aggression + strategic costs
         // DON'T apply Breakthrough/Danger yet (they trigger on ASSESS)
-        _currentSession.CurrentExertion += projection.ExertionChange;
-        if (_currentSession.CurrentExertion > _currentSession.MaxExertion)
+        _gameWorld.CurrentPhysicalSession.CurrentExertion += projection.ExertionChange;
+        if (_gameWorld.CurrentPhysicalSession.CurrentExertion > _gameWorld.CurrentPhysicalSession.MaxExertion)
         {
-            _currentSession.CurrentExertion = _currentSession.MaxExertion;
+            _gameWorld.CurrentPhysicalSession.CurrentExertion = _gameWorld.CurrentPhysicalSession.MaxExertion;
         }
 
         // Apply Aggression from projection (includes action +1 AND card approach modifier)
-        _currentSession.Aggression += projection.BalanceChange;
+        _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange;
 
         // Apply strategic resource costs
         if (projection.HealthCost > 0) player.Health -= projection.HealthCost;
         if (projection.StaminaCost > 0) player.Stamina -= projection.StaminaCost;
         if (projection.CoinsCost > 0) player.Coins -= projection.CoinsCost;
 
-        _currentSession.ApproachHistory++;
+        _gameWorld.CurrentPhysicalSession.ApproachHistory++;
 
-        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, Exertion {projection.ExertionChange:+#;-#;0}, Aggression {projection.BalanceChange:+#;-#;0} (now {_currentSession.Aggression})");
+        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, Exertion {projection.ExertionChange:+#;-#;0}, Aggression {projection.BalanceChange:+#;-#;0} (now {_gameWorld.CurrentPhysicalSession.Aggression})");
 
-        string executeNarrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
+        string executeNarrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
 
         return new PhysicalTurnResult
         {
             Success = true,
             Narrative = executeNarrative,
-            CurrentBreakthrough = _currentSession.CurrentBreakthrough,
-            CurrentDanger = _currentSession.CurrentDanger,
+            CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             SessionEnded = false
         };
     }
@@ -373,7 +352,7 @@ public class PhysicalFacade
         }
 
         // Escape costs - health and stamina damage from retreat
-        int healthCost = 5 + (_currentSession.CurrentDanger / 2);
+        int healthCost = 5 + (_gameWorld.CurrentPhysicalSession.CurrentDanger / 2);
         int staminaCost = 10;
 
         player.Health -= healthCost;
@@ -382,13 +361,13 @@ public class PhysicalFacade
         PhysicalOutcome outcome = new PhysicalOutcome
         {
             Success = false, // Escape is failure
-            FinalProgress = _currentSession.CurrentBreakthrough,
-            FinalDanger = _currentSession.CurrentDanger,
+            FinalProgress = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            FinalDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
         };
 
-        _currentSession = null;
-        _sessionDeck?.Clear();
+        _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.CurrentPhysicalSession.Deck?.Clear();
 
         return outcome;
     }
@@ -401,20 +380,20 @@ public class PhysicalFacade
         }
 
         // Success determined by GoalCard play (GoalCards end session immediately in ExecuteExecute)
-        bool success = !string.IsNullOrEmpty(_currentGoalId);
+        bool success = !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
             Success = success,
-            FinalProgress = _currentSession.CurrentBreakthrough,
-            FinalDanger = _currentSession.CurrentDanger,
+            FinalProgress = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            FinalDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             EscapeCost = ""
         };
 
         // Check for investigation progress if this was an investigation goal
-        if (success && !string.IsNullOrEmpty(_currentGoalId) && !string.IsNullOrEmpty(_currentInvestigationId))
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalInvestigationId))
         {
-            CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
+            CheckInvestigationProgress(_gameWorld.CurrentPhysicalGoalId, _gameWorld.CurrentPhysicalInvestigationId);
         }
 
         // Award Reputation on success (Reputation system)
@@ -422,25 +401,20 @@ public class PhysicalFacade
         if (success)
         {
             Player player = _gameWorld.GetPlayer();
-            int reputationGain = _currentSession.CurrentBreakthrough >= 20 ? 1 : 0;
-            player.Reputation += reputationGain;
-            Console.WriteLine($"[PhysicalFacade] Awarded {reputationGain} reputation for victory (total: {player.Reputation})");
-
-            // PROGRESSION SYSTEM: Award mastery token for this challenge type
-            if (!string.IsNullOrEmpty(_currentSession.ChallengeId))
+            int reputationGain = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough >= 20 ? 1 : 0;
+            player.Reputation += reputationGain;// PROGRESSION SYSTEM: Award mastery token for this challenge type
+            if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSession.ChallengeId))
             {
-                player.MasteryTokens.AddMastery(_currentSession.ChallengeId, 1);
-                int masteryLevel = player.MasteryTokens.GetMastery(_currentSession.ChallengeId);
-                Console.WriteLine($"[PhysicalFacade] Earned mastery token for '{_currentSession.ChallengeId}'. Total: {masteryLevel}");
-            }
+                player.MasteryTokens.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
+                int masteryLevel = player.MasteryTokens.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);}
         }
 
         // Clear investigation context
-        _currentGoalId = null;
-        _currentInvestigationId = null;
+        _gameWorld.CurrentPhysicalGoalId = null;
+        _gameWorld.CurrentPhysicalInvestigationId = null;
 
-        _currentSession = null;
-        _sessionDeck?.Clear();
+        _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.CurrentPhysicalSession.Deck?.Clear();
 
         return outcome;
     }
@@ -508,23 +482,21 @@ public class PhysicalFacade
     private void ApplyDangerConsequences(Player player)
     {
         // Health damage from physical consequences
-        int healthDamage = 5 + (_currentSession.CurrentDanger - _currentSession.MaxDanger);
+        int healthDamage = 5 + (_gameWorld.CurrentPhysicalSession.CurrentDanger - _gameWorld.CurrentPhysicalSession.MaxDanger);
         player.Health -= healthDamage;
 
         // Stamina damage from exhaustion
         int staminaDamage = 10;
         player.Stamina -= staminaDamage;
 
-        player.InjuryCardIds.Add("injury_physical_moderate");
-
-        Console.WriteLine($"[PhysicalFacade] DANGER THRESHOLD: Took {healthDamage} health and {staminaDamage} stamina damage, gained injury card");
-    }
+        player.InjuryCardIds.Add("injury_physical_moderate");}
 
     /// <summary>
     /// Check for investigation progress when Physical goal completes
     /// </summary>
     private void CheckInvestigationProgress(string goalId, string investigationId)
     {
+        // KEEP - investigationId is external input from session
         // Check if this is an intro action (Discovered → Active transition)
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation != null && goalId == "notice_waterwheel")
@@ -532,8 +504,6 @@ public class PhysicalFacade
             // This is intro completion - activate investigation
             // CompleteIntroAction spawns goals directly to ActiveGoals
             _investigationActivity.CompleteIntroAction(investigationId);
-
-            Console.WriteLine($"[PhysicalFacade] Investigation '{investigation.Name}' ACTIVATED");
             return;
         }
 
@@ -541,14 +511,12 @@ public class PhysicalFacade
         InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
 
         // Log progress for UI modal display (UI will handle modal)
-        Console.WriteLine($"[PhysicalFacade] Investigation progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
 
         // Check if investigation is now complete
         InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
         if (completeResult != null)
         {
             // Investigation complete - UI will display completion modal
-            Console.WriteLine($"[PhysicalFacade] Investigation '{completeResult.InvestigationName}' COMPLETE!");
         }
     }
 }

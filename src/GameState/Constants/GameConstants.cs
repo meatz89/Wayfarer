@@ -56,7 +56,6 @@ public static class GameConstants
         public const int SERVICE_STARTUP_RETRY_DELAY_MS = 100;
     }
 
-
     /// <summary>
     /// Miscellaneous game constants
     /// </summary>

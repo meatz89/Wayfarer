@@ -46,7 +46,6 @@ public class LocationManager
         return venue;
     }
 
-
     /// <summary>
     /// Get all venues in the world.
     /// </summary>
@@ -75,7 +74,6 @@ public class LocationManager
         // Get location directly from GameWorld's primary storage
         return _gameWorld.GetLocation(LocationId);
     }
-
 
     /// <summary>
     /// Add a new venue to the world.

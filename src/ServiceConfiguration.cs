@@ -7,8 +7,6 @@ public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        Console.WriteLine("[SERVICE] Starting service configuration...");
-
         // Register dev mode service (needs to be early for other services to use)
         services.AddSingleton<DevModeService>();
 
@@ -19,18 +17,13 @@ public static class ServiceConfiguration
         services.AddSingleton<GameConfiguration>();
         services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
-
         // Register GameWorld using static GameWorldInitializer
-        Console.WriteLine("[SERVICE] Registering GameWorld...");
         services.AddSingleton<GameWorld>(_ =>
         {
-            Console.WriteLine("[SERVICE] Creating GameWorld instance...");
             // Call GameWorldInitializer statically - no DI dependencies needed
             GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-            Console.WriteLine("[SERVICE] GameWorld instance created");
             return gameWorld;
         });
-        Console.WriteLine("[SERVICE] GameWorld registered");
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
@@ -66,7 +59,6 @@ public static class ServiceConfiguration
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<SocialEffectResolver>();
         services.AddSingleton<SocialChallengeDeckBuilder>();
-        services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<SocialFacade>();
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
@@ -157,9 +149,6 @@ public static class ServiceConfiguration
         services.AddSingleton<MeetingManager>();
 
         // Resource Subsystem
-        services.AddSingleton<CoinManager>();
-        services.AddSingleton<HealthManager>();
-        services.AddSingleton<HungerManager>();
         services.AddSingleton<ResourceCalculator>();
         services.AddSingleton<ResourceFacade>();
 
@@ -185,7 +174,6 @@ public static class ServiceConfiguration
         // Exchange Subsystem
         services.AddSingleton<ExchangeValidator>();
         services.AddSingleton<ExchangeProcessor>();
-        services.AddSingleton<ExchangeInventory>();
         services.AddSingleton<ExchangeOrchestrator>();
         services.AddSingleton<ExchangeFacade>();
 
@@ -208,9 +196,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 
-
         return services;
     }
-
 
 }

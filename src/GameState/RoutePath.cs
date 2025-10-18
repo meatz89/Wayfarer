@@ -40,4 +40,11 @@ public class RoutePath
     /// 10 = Extremely well-hidden (master-level knowledge)
     /// </summary>
     public int HiddenUntilExploration { get; set; } = 0;
+
+    /// <summary>
+    /// Object reference to obstacle (for runtime navigation)
+    /// Populated at initialization time from OptionalObstacleId
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Obstacle Obstacle { get; set; }
 }

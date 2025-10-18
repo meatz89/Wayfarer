@@ -63,10 +63,6 @@ public class LocationNarrativeGenerator
         List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Debug log
-        Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {location.Id}");
-        Console.WriteLine($"  Properties: {string.Join(", ", activeProperties)}");
-        Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}");
-
         return descGenerator.GenerateDescription(
             activeProperties,
             currentTime,

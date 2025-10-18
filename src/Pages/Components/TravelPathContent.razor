@@ -176,7 +176,8 @@
                                 <div class="goals-title">Available Approaches</div>
                                 @foreach (var goalId in obstacle.GoalIds)
                                 {
-                                    if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+                                    var goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                                    if (goal != null)
                                     {
                                         <div class="goal-card">
                                             <div class="goal-header">

@@ -20,9 +20,5 @@ public class OllamaConfiguration
 
         BaseUrl = baseUrl;
         Model = config["Ollama:Model"];
-        BackupModel = config["Ollama:BackupModel"];
-
-        Console.WriteLine($"[OllamaConfiguration] BaseUrl: {BaseUrl}");
-        Console.WriteLine($"[OllamaConfiguration] Model: {Model}");
-    }
+        BackupModel = config["Ollama:BackupModel"];}
 }

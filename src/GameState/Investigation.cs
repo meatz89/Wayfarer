@@ -42,6 +42,13 @@ public class Investigation
     public string PatronNpcId { get; set; }
 
     /// <summary>
+    /// Object reference to patron NPC (for runtime navigation)
+    /// Populated at initialization time from PatronNpcId
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public NPC PatronNpc { get; set; }
+
+    /// <summary>
     /// Absolute segment number when investigation must be completed (if NPCCommissioned)
     /// Failure to complete by deadline damages relationship with patron
     /// Null for SelfDiscovered investigations

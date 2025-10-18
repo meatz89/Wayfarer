@@ -10,8 +10,6 @@ public class NPCVisibilityService
 {
     private readonly List<INPCVisibilityRule> _visibilityRules = new List<INPCVisibilityRule>();
 
-
-
     /// <summary>
     /// Check if an NPC should be visible based on all registered rules
     /// </summary>

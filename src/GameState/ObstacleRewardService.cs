@@ -18,22 +18,11 @@ public static class ObstacleRewardService
         if (obstacle == null)
             throw new ArgumentNullException(nameof(obstacle));
         if (reduction == null)
-            throw new ArgumentNullException(nameof(reduction));
-
-        Console.WriteLine($"[ObstacleRewardService] Applying reduction to obstacle '{obstacle.Name}':");
-        Console.WriteLine($"  Before: Intensity={obstacle.Intensity}");
-
-        // Apply reduction with floor at 0
-        obstacle.Intensity = Math.Max(0, obstacle.Intensity - reduction.ReduceIntensity);
-
-        Console.WriteLine($"  After: Intensity={obstacle.Intensity}");
-
-        // Check if obstacle is cleared
+            throw new ArgumentNullException(nameof(reduction));// Apply reduction with floor at 0
+        obstacle.Intensity = Math.Max(0, obstacle.Intensity - reduction.ReduceIntensity);// Check if obstacle is cleared
         bool isCleared = obstacle.IsCleared();
         if (isCleared)
-        {
-            Console.WriteLine($"[ObstacleRewardService] Obstacle '{obstacle.Name}' is now CLEARED (intensity at 0)");
-        }
+        {}
 
         return isCleared;
     }

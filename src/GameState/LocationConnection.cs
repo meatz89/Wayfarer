@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 
-
 public class LocationConnection
 {
     public string DestinationVenueId { get; set; }

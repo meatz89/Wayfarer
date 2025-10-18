@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-
 public class TravelObstacleParser
 {
     public TravelObstacle ParseTravelObstacle(TravelObstacleDTO dto)

@@ -28,13 +28,15 @@ public class SocialChallengeDeckBuilder
         string sessionId = Guid.NewGuid().ToString();
 
         // Get the goal which drives everything - from centralized GameWorld storage
-        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
+        if (goal == null)
         {
             throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement deck directly (no Types, just Decks)
-        if (!_gameWorld.SocialChallengeDecks.TryGetValue(goal.DeckId, out SocialChallengeDeck deckDefinition))
+        SocialChallengeDeck deckDefinition = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+        if (deckDefinition == null)
         {
             throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{goal.DeckId}' not found in GameWorld.SocialChallengeDecks");
         }

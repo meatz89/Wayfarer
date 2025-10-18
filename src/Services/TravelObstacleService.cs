@@ -96,21 +96,16 @@ public class TravelObstacleService
 
     private void ApplyRouteImprovement(string routeId, RouteImprovement improvement)
     {
-        if (!_gameWorld.RouteImprovements.ContainsKey(routeId))
-        {
-            _gameWorld.RouteImprovements[routeId] = new List<RouteImprovement>();
-        }
+        // Set the RouteId on the improvement
+        improvement.RouteId = routeId;
 
-        _gameWorld.RouteImprovements[routeId].Add(improvement);
+        // Add directly to the flat list
+        _gameWorld.RouteImprovements.Add(improvement);
     }
 
     public List<RouteImprovement> GetRouteImprovements(string routeId)
     {
-        if (_gameWorld.RouteImprovements.TryGetValue(routeId, out List<RouteImprovement> improvements))
-        {
-            return improvements;
-        }
-        return new List<RouteImprovement>();
+        return _gameWorld.RouteImprovements.Where(ri => ri.RouteId == routeId).ToList();
     }
 }
 

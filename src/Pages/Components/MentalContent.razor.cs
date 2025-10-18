@@ -131,9 +131,7 @@ namespace Wayfarer.Pages.Components
                 MentalTurnResult result = await GameFacade.ExecuteObserve();
 
                 if (result == null)
-                {
-                    Console.WriteLine("[MentalContent] ExecuteObserve failed - null result");
-                    return;
+                {return;
                 }
 
                 if (result.Success)
@@ -156,11 +154,6 @@ namespace Wayfarer.Pages.Components
                             : "Maximum exposure reached";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MentalContent] Error in ExecuteObserve: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -182,9 +175,7 @@ namespace Wayfarer.Pages.Components
                 MentalTurnResult result = await GameFacade.ExecuteAct(SelectedCard);
 
                 if (result == null)
-                {
-                    Console.WriteLine("[MentalContent] ExecuteAct failed - null result");
-                    return;
+                {return;
                 }
 
                 if (result.Success)
@@ -207,11 +198,6 @@ namespace Wayfarer.Pages.Components
                             : "Maximum exposure reached";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MentalContent] Error in ExecuteAct: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -240,11 +226,6 @@ namespace Wayfarer.Pages.Components
                 }
 
                 await OnChallengeEnd.InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MentalContent] Error in EndInvestigation: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -723,7 +704,7 @@ namespace Wayfarer.Pages.Components
         {
             if (GameWorld?.Goals == null) return null;
 
-            foreach (Goal goal in GameWorld.Goals.Values)
+            foreach (Goal goal in GameWorld.Goals)
             {
                 if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
                 {
@@ -762,11 +743,6 @@ namespace Wayfarer.Pages.Components
                         await GameScreen.RefreshResourceDisplay();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[MentalContent] Error playing goal card: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {

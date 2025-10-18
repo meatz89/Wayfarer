@@ -88,7 +88,6 @@ public static class ExchangeParser
         return card;
     }
 
-
     /// <summary>
     /// Generate a description from the exchange DTO
     /// </summary>
@@ -118,8 +117,6 @@ public static class ExchangeParser
 
         return items;
     }
-
-
 
     /// <summary>
     /// Create exchange cards for an NPC based on their personality type

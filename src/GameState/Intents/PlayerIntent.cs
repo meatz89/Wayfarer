@@ -95,7 +95,6 @@ public class ExploreAreaIntent : PlayerIntent
 {
 }
 
-
 /// <summary>
 /// Intent to travel to another Venue via a route
 /// </summary>

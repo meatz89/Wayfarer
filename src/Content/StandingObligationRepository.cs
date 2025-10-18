@@ -11,9 +11,7 @@ public class StandingObligationRepository
     public List<StandingObligation> GetAllObligationTemplates()
     {
         if (_gameWorld.StandingObligationTemplates == null)
-        {
-            Console.WriteLine("ERROR: StandingObligationTemplates collection is null");
-            throw new InvalidOperationException("StandingObligationTemplates not initialized - data loading failed");
+        {throw new InvalidOperationException("StandingObligationTemplates not initialized - data loading failed");
         }
         return _gameWorld.StandingObligationTemplates;
     }

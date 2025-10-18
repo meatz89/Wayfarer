@@ -5,7 +5,6 @@
 public class TimeManager
 {
     private readonly TimeModel _timeModel;
-    private readonly ILogger<TimeManager> _logger;
     private readonly MessageSystem _messageSystem;
 
     public TimeModel TimeModel => _timeModel;
@@ -22,12 +21,10 @@ public class TimeManager
 
     public TimeManager(
         TimeModel timeModel,
-        MessageSystem messageSystem,
-        ILogger<TimeManager> logger)
+        MessageSystem messageSystem)
     {
         _timeModel = timeModel;
         _messageSystem = messageSystem;
-        _logger = logger;
 
         // Events removed per architecture guidelines - handle results directly
     }
@@ -63,9 +60,6 @@ public class TimeManager
         // Advance segments in the time model
         TimeAdvancementResult result = _timeModel.AdvanceSegments(segments);
 
-        // Log the time advancement
-        _logger.LogDebug($"Advanced time by {segments} segments. New time: {result.NewState}");
-
         // Handle time block and day transitions
         HandleTimeAdvancement(result);
     }
@@ -81,8 +75,6 @@ public class TimeManager
             SystemMessageTypes.Info);
 
         TimeAdvancementResult result = _timeModel.JumpToNextPeriod();
-
-        _logger.LogDebug($"Jumped to next period. New time: {result.NewState}");
 
         HandleTimeAdvancement(result);
     }
@@ -161,29 +153,17 @@ public class TimeManager
     // Handle time advancement result directly
     private void HandleTimeAdvancement(TimeAdvancementResult result)
     {
-        _logger.LogDebug("Time advanced by {Segments} segments to {NewState}",
-            result.SegmentsAdvanced,
-            result.NewState);
-
-        // Log time block transitions
+        // Time block transitions
         if (result.CrossedTimeBlock)
         {
-            _logger.LogInformation("Time block changed from {OldBlock} to {NewBlock}",
-                result.OldTimeBlock,
-                result.NewTimeBlock);
-
             _messageSystem.AddSystemMessage(
                 $"🕐 Entering {result.NewTimeBlock.ToString().ToLower()} period",
                 SystemMessageTypes.Info);
         }
 
-        // Log day transitions
+        // Day transitions
         if (result.CrossedDayBoundary)
         {
-            _logger.LogInformation("Day advanced from {OldDay} to {NewDay}",
-                result.OldState.CurrentDay,
-                result.NewState.CurrentDay);
-
             _messageSystem.AddSystemMessage(
                 $"🌅 Day {result.NewState.CurrentDay} begins",
                 SystemMessageTypes.Info);

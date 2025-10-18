@@ -111,7 +111,6 @@ public class LocationActionManager
     {
         Player player = _gameWorld.GetPlayer();
 
-
         // Check coin cost
         if (action.Cost.ContainsKey("coins"))
         {
@@ -293,7 +292,6 @@ public class LocationActionManager
         return true;
     }
 
-
     /// <summary>
     /// Check if a specific action is available at the current location.
     /// </summary>
@@ -321,7 +319,6 @@ public class LocationActionManager
             _ => new ActionCost()
         };
     }
-
 
     /// <summary>
     /// Get display name for tactical system type

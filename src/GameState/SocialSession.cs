@@ -27,7 +27,7 @@ public class SocialSession
     public int CurrentUnderstanding { get; set; } = 0; // NEW: Sophistication/connection depth - unlocks tiers, PERSISTS through LISTEN
 
     // Depth Tier Unlock System - tiers unlock at UNDERSTANDING thresholds (not momentum) and persist
-    public HashSet<int> UnlockedTiers { get; set; } = new HashSet<int> { 1 }; // Tier 1 (depths 1-2) always unlocked
+    public List<int> UnlockedTiers { get; set; } = new List<int> { 1 }; // Tier 1 (depths 1-2) always unlocked
 
     // Doubt system continues to exist but now has tax effect
     public bool PreventNextDoubtIncrease { get; set; } = false;
@@ -101,20 +101,17 @@ public class SocialSession
         return CurrentInitiative;
     }
 
-
     // PROPER 4-RESOURCE SYSTEM METHODS
     public bool CanAffordCard(int initiativeCost)
     {
         return CurrentInitiative >= initiativeCost;
     }
 
-
     // NEW: Doubt reduction method
     public void ReduceDoubt(int amount)
     {
         CurrentDoubt = Math.Max(0, CurrentDoubt - amount);
     }
-
 
     // NEW: Initiative management methods
     public bool CanAffordCardInitiative(int initiativeCost)
@@ -180,16 +177,13 @@ public class SocialSession
         {
             if (CurrentUnderstanding >= tier.UnderstandingThreshold && !UnlockedTiers.Contains(tier.TierNumber))
             {
-                UnlockedTiers.Add(tier.TierNumber);
-                tiersChanged = true;
-                Console.WriteLine($"[ConversationSession] {tier} UNLOCKED at understanding {CurrentUnderstanding}!");
-            }
+                if (!UnlockedTiers.Contains(tier.TierNumber))
+                    UnlockedTiers.Add(tier.TierNumber);
+                tiersChanged = true;}
         }
 
         if (tiersChanged)
-        {
-            Console.WriteLine($"[ConversationSession] Unlocked tiers: {string.Join(", ", UnlockedTiers.OrderBy(t => t))}. Max accessible depth: {GetUnlockedMaxDepth()}");
-        }
+        {}
     }
 
     // STATEMENT HISTORY TRACKING METHODS
@@ -223,10 +217,7 @@ public class SocialSession
         else
         {
             StatementCounts[stat] = 1;
-        }
-
-        Console.WriteLine($"[ConversationSession] Statement count for {stat}: {StatementCounts[stat]} (Total: {GetTotalStatements()})");
-    }
+        }}
 
     public bool ShouldEnd()
     {

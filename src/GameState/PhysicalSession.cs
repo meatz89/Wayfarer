@@ -16,7 +16,7 @@ public class PhysicalSession
     public int CurrentExertion { get; set; } = 0;
     public int MaxExertion { get; set; } = 10;
     public int CurrentUnderstanding { get; set; } = 0;
-    public HashSet<int> UnlockedTiers { get; set; } = new HashSet<int> { 1 };
+    public List<int> UnlockedTiers { get; set; } = new List<int> { 1 };
     public Dictionary<PhysicalCategory, int> CategoryCounts { get; set; } = new Dictionary<PhysicalCategory, int>();
 
     // Challenge-Local Resources (reset between challenges)

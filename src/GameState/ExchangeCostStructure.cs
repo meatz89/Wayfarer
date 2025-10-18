@@ -74,7 +74,6 @@ public class ExchangeCostStructure
         return true;
     }
 
-
     /// <summary>
     /// Gets a human-readable description of the costs.
     /// </summary>

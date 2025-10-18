@@ -13,11 +13,9 @@ WebApplicationOptions options = new WebApplicationOptions
 WebApplicationBuilder builder = WebApplication.CreateBuilder(options);
 
 // Add services to the container.
-Console.WriteLine("[STARTUP] Adding Razor Pages and Blazor services...");
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddControllers(); // Add controller support
-Console.WriteLine("[STARTUP] Razor Pages and Blazor services added");
 
 IConfigurationRoot configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -51,20 +49,15 @@ try
     OllamaConfiguration? ollamaConfig = app.Services.GetService<OllamaConfiguration>();
     if (ollamaConfig != null)
     {
-        Console.WriteLine($"[STARTUP] Ollama config loaded - BaseUrl: {ollamaConfig.BaseUrl}, Model: {ollamaConfig.Model}");
-
         OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
         if (ollamaClient != null)
         {
-            Console.WriteLine("[STARTUP] Testing Ollama connection...");
             bool isAvailable = await ollamaClient.CheckHealthAsync();
-            Console.WriteLine($"[STARTUP] Ollama health check result: {isAvailable}");
         }
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"[STARTUP] Ollama health check failed: {ex.Message}");
 }
 
 // Configure the HTTP request pipeline.
@@ -79,9 +72,7 @@ if (!app.Environment.IsDevelopment())
 // Add request logging middleware
 app.Use(async (context, next) =>
 {
-    Console.WriteLine($"[REQUEST] {context.Request.Method} {context.Request.Path}");
     await next();
-    Console.WriteLine($"[RESPONSE] {context.Response.StatusCode} for {context.Request.Path}");
 });
 
 app.UseStaticFiles();
@@ -91,5 +82,4 @@ app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
-Console.WriteLine("[STARTUP] Starting application...");
 app.Run();

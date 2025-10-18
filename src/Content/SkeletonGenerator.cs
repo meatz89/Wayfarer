@@ -164,7 +164,6 @@ public static class SkeletonGenerator
         return location;
     }
 
-
     /// <summary>
     /// Generate a skeleton exchange card with mechanical defaults
     /// </summary>

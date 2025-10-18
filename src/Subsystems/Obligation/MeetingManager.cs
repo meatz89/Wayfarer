@@ -260,7 +260,6 @@ public class MeetingManager
     {
         MeetingResult result = new MeetingResult { Success = true };
 
-
         // Check if player is at NPC's location
         if (!IsPlayerAtNPCLocation(meeting.RequesterId))
         {
@@ -302,7 +301,6 @@ public class MeetingManager
     {
         int tokensAwarded = 1; // Base reward
         ConnectionType tokenType = ConnectionType.Trust; // Meetings typically build trust
-
 
         _tokenManager.AddTokensToNPC(tokenType, tokensAwarded, meeting.RequesterId);
 

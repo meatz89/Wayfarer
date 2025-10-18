@@ -18,7 +18,6 @@ public class ExchangeContext
     /// </summary>
     public PlayerResourceState PlayerResources { get; set; }
 
-
     /// <summary>
     /// Player's current token counts.
     /// </summary>

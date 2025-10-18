@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 /// <summary>
 /// Data Transfer Object for deserializing Venue location data from JSON.
@@ -17,7 +16,6 @@ public class LocationDTO
     public List<string> DomainTags { get; set; } = new List<string>();
 
     // The JSON has a "properties" object with time-based keys
-    [JsonPropertyName("properties")]
     public LocationPropertiesDTO Properties { get; set; } = new LocationPropertiesDTO();
 
     // Additional properties from JSON

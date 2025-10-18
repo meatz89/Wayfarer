@@ -15,7 +15,6 @@ public interface IRouteRepository
     /// </summary>
     bool IsRouteBlocked(string routeId);
 
-
     /// <summary>
     /// Get available routes considering current conditions
     /// </summary>

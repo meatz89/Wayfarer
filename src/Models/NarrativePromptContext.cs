@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 /// <summary>
 /// Strongly-typed context for narrative prompt generation.
 /// Replaces Dictionary<string, object> usage in PromptBuilder.

@@ -112,10 +112,7 @@ public class InvestigationActivity
             ColorCode = investigation.ColorCode,
             LocationName = venue?.Name ?? "Unknown Venue",
             SpotName = location?.Name ?? investigation.IntroAction.LocationId
-        };
-
-        Console.WriteLine($"[InvestigationActivity] Pending intro modal set for '{investigation.Name}'");
-    }
+        };}
 
     /// <summary>
     /// Activate investigation - looks up goals and spawns them at locations/NPCs
@@ -355,10 +352,7 @@ public class InvestigationActivity
     /// Sets pending discovery result for UI modal display
     /// </summary>
     public void DiscoverInvestigation(string investigationId)
-    {
-        Console.WriteLine($"[InvestigationActivity] DiscoverInvestigation called for '{investigationId}'");
-
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+    {Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation == null)
             throw new ArgumentException($"Investigation '{investigationId}' not found");
 
@@ -367,10 +361,7 @@ public class InvestigationActivity
 
         // Move Potential → Discovered
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
-        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
-        Console.WriteLine($"[InvestigationActivity] Moved '{investigation.Name}' from Potential → Discovered");
-
-        // Derive venue from location (LocationId is globally unique)
+        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);// Derive venue from location (LocationId is globally unique)
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
         Venue venue = location != null
             ? _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId)
@@ -458,9 +449,7 @@ public class InvestigationActivity
             case ObstacleSpawnTargetType.Location:
                 Location location = _gameWorld.GetLocation(spawnInfo.TargetEntityId);
                 if (location == null)
-                {
-                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Location '{spawnInfo.TargetEntityId}' not found");
-                    return;
+                {return;
                 }
                 // Duplicate ID protection - prevent data corruption
                 if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
@@ -473,9 +462,7 @@ public class InvestigationActivity
                     throw new InvalidOperationException(
                         $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning at Location '{location.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
-                }
-                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' at Location '{location.Name}'");
-                _messageSystem.AddSystemMessage(
+                }_messageSystem.AddSystemMessage(
                     $"New obstacle appeared at {location.Name}: {spawnInfo.Obstacle.Name}",
                     SystemMessageTypes.Warning);
                 break;
@@ -484,9 +471,7 @@ public class InvestigationActivity
                 // Find route in GameWorld.Routes
                 RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == spawnInfo.TargetEntityId);
                 if (route == null)
-                {
-                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - Route '{spawnInfo.TargetEntityId}' not found");
-                    return;
+                {return;
                 }
                 // Duplicate ID protection - prevent data corruption
                 if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
@@ -499,9 +484,7 @@ public class InvestigationActivity
                     throw new InvalidOperationException(
                         $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on Route '{route.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
-                }
-                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on Route '{route.Name}'");
-                _messageSystem.AddSystemMessage(
+                }_messageSystem.AddSystemMessage(
                     $"New obstacle appeared on route to {route.Name}: {spawnInfo.Obstacle.Name}",
                     SystemMessageTypes.Warning);
                 break;
@@ -509,16 +492,12 @@ public class InvestigationActivity
             case ObstacleSpawnTargetType.NPC:
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == spawnInfo.TargetEntityId);
                 if (npc == null)
-                {
-                    Console.WriteLine($"[InvestigationActivity] WARNING: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' - NPC '{spawnInfo.TargetEntityId}' not found");
-                    return;
+                {return;
                 }
                 // Validate: NPCs can ONLY have Social context obstacles
                 ObstacleContext[] socialContexts = { ObstacleContext.Authority, ObstacleContext.Deception, ObstacleContext.Persuasion, ObstacleContext.Intimidation, ObstacleContext.Empathy, ObstacleContext.Negotiation, ObstacleContext.Etiquette };
                 if (!spawnInfo.Obstacle.Contexts.Any(c => socialContexts.Contains(c)))
-                {
-                    Console.WriteLine($"[InvestigationActivity] ERROR: Cannot spawn obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}' - NPCs can only have Social context obstacles (Authority, Deception, Persuasion, Intimidation, Empathy, Negotiation, Etiquette)");
-                    return;
+                {return;
                 }
                 // Duplicate ID protection - prevent data corruption
                 if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
@@ -531,16 +510,12 @@ public class InvestigationActivity
                     throw new InvalidOperationException(
                         $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on NPC '{npc.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
-                }
-                Console.WriteLine($"[InvestigationActivity] Spawned obstacle '{spawnInfo.Obstacle.Name}' on NPC '{npc.Name}'");
-                _messageSystem.AddSystemMessage(
+                }_messageSystem.AddSystemMessage(
                     $"New social obstacle with {npc.Name}: {spawnInfo.Obstacle.Name}",
                     SystemMessageTypes.Warning);
                 break;
 
-            default:
-                Console.WriteLine($"[InvestigationActivity] ERROR: Unknown ObstacleSpawnTargetType: {spawnInfo.TargetType}");
-                break;
+            default:break;
         }
     }
 

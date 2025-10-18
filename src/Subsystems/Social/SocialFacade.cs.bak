@@ -54,10 +54,11 @@ public class SocialFacade
     public SocialSession StartConversation(string npcId, string requestId)
     {
         if (IsConversationActive())
-        {EndConversation();
+        {
+            Console.WriteLine($"[ConversationFacade] Ending existing conversation before starting new one");
+            EndConversation();
         }
 
-        // KEEP - npcId is external input from UI
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
@@ -65,8 +66,7 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
-        if (goal == null)
+        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
         {
             throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
@@ -93,7 +93,11 @@ public class SocialFacade
         int startingUnderstanding = 2 + statBonus;
         int startingMomentum = 2 + statBonus;
         int startingInitiative = 3 + statBonus;
-        int initialDoubt = 0;// Get request text from the goal description
+        int initialDoubt = 0;
+
+        Console.WriteLine($"[ConversationFacade] Starting resources - Understanding: {startingUnderstanding}, Momentum: {startingMomentum}, Initiative: {startingInitiative} (highest stat: {highestStat}, bonus: {statBonus})");
+
+        // Get request text from the goal description
         string requestText = goal.Description;
 
         // Create session with new properties
@@ -119,7 +123,10 @@ public class SocialFacade
 
         // Check and unlock depth tiers based on starting Understanding (NOT Momentum)
         // Starting Understanding determines which tiers are accessible from the beginning
-        _gameWorld.CurrentSocialSession.CheckAndUnlockTiers();// THEN: Perform initial draw of regular cards with tier-based filtering
+        _gameWorld.CurrentSocialSession.CheckAndUnlockTiers();
+        Console.WriteLine($"[ConversationFacade] Starting with tiers: {string.Join(", ", _gameWorld.CurrentSocialSession.UnlockedTiers.OrderBy(t => t))}. Max depth: {_gameWorld.CurrentSocialSession.GetUnlockedMaxDepth()}");
+
+        // THEN: Perform initial draw of regular cards with tier-based filtering
         // This is the initial conversation start, so we just draw cards without exhausting
         int drawCount = _gameWorld.CurrentSocialSession.GetDrawCount();
         // Draw with tier-based filtering
@@ -263,18 +270,17 @@ public class SocialFacade
         // THREE PARALLEL SYSTEMS SYMMETRY: Check goal card type BEFORE validation
         // Goal cards have no SocialCardTemplate, so must be checked first
         if (selectedCard.CardType == CardTypes.Goal)
-        {// Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Goal.ParentObstacle
+        {
+            Console.WriteLine($"[SocialFacade] GoalCard played - ending conversation with success");
+
+            // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
+            // Find parent obstacle containing this goal (distributed interaction pattern)
             NPC npc = _gameWorld.CurrentSocialSession.NPC;
 
-            // Get goal and its parent obstacle via object references
-            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentSocialSession.RequestId);
-            if (goal == null)
-                return null; // Goal not found
+            Obstacle parentObstacle = _gameWorld.Obstacles
+                .FirstOrDefault(o => o.GoalIds.Contains(_gameWorld.CurrentSocialSession.RequestId));
 
-            Obstacle parentObstacle = goal.ParentObstacle;
-
-            if (parentObstacle != null)
+            if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_gameWorld.CurrentSocialSession.RequestId, out Goal goal))
             {
                 switch (goal.ConsequenceType)
                 {
@@ -296,7 +302,9 @@ public class SocialFacade
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
                         parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;break;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        Console.WriteLine($"[SocialFacade] Bypassed obstacle '{parentObstacle.Name}', obstacle persists");
+                        break;
 
                     case ConsequenceType.Transform:
                         // Fundamentally changed
@@ -324,12 +332,14 @@ public class SocialFacade
                         {
                             parentObstacle.State = ObstacleState.Transformed;
                         }
+                        Console.WriteLine($"[SocialFacade] Modified obstacle '{parentObstacle.Name}', intensity reduced to {parentObstacle.Intensity}");
                         break;
 
                     case ConsequenceType.Grant:
                         // Grant knowledge/items, no obstacle change
                         // Knowledge cards handled in Phase 3
                         // Items already handled by existing reward system
+                        Console.WriteLine($"[SocialFacade] Grant consequence - items/knowledge granted");
                         break;
                 }
             }
@@ -478,7 +488,6 @@ public class SocialFacade
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
     {
-        // KEEP - npcId is external input from UI
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
@@ -486,8 +495,7 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
-        if (goal == null)
+        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
         {
             return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
         }
@@ -542,7 +550,7 @@ public class SocialFacade
         int availableInitiative = session.GetCurrentInitiative();
         bool canAfford = session.CanAffordCard(cardInitiative);
 
-        //// Removed excessive logging
+        // Console.WriteLine($"[CanPlayCard] Card '{card.Template?.Description}': Focus cost={cardFocus}, Available={availableFocus}, CanAfford={canAfford}"); // Removed excessive logging
 
         if (!canAfford)
             return false;
@@ -555,7 +563,7 @@ public class SocialFacade
             if (session.Deck?.IsCardInRequestPile(card) == true)
             {
                 int momentumThreshold = card.Context?.threshold ?? 0;
-                int currentMomentum = session.CurrentMomentum;
+                int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
                 return currentMomentum >= momentumThreshold;
             }
             // If card is in ActiveCards (hand), it's already playable (threshold was met)
@@ -581,8 +589,10 @@ public class SocialFacade
         int currentInitiativeCost = currentSelection.Sum(c => GetCardInitiativeCost(c));
         int totalInitiativeCost = currentInitiativeCost + GetCardInitiativeCost(card);
 
-        return totalInitiativeCost <= _gameWorld.CurrentSocialSession.GetCurrentInitiative();
+        return totalInitiativeCost <= _currentSession.GetCurrentInitiative();
     }
+
+
 
     // AtmosphereManager has been deleted - atmosphere is simplified to always Neutral
 
@@ -613,7 +623,9 @@ public class SocialFacade
         // Combine both balance effects
         int totalCadenceChange = actionBalance + deliveryBalance;
 
-        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);}
+        session.Cadence = Math.Clamp(session.Cadence + totalCadenceChange, -10, 10);
+        Console.WriteLine($"[ConversationFacade] SPEAK action (+{actionBalance}) + Delivery {card.SocialCardTemplate.Delivery} ({(deliveryBalance >= 0 ? "+" : "")}{deliveryBalance}) = Cadence {(totalCadenceChange >= 0 ? "+" : "")}{totalCadenceChange} → {session.Cadence}");
+    }
 
     /// <summary>
     /// Process Cadence effects on LISTEN action - NEW REFACTORED SYSTEM
@@ -635,7 +647,10 @@ public class SocialFacade
 
         // 3. Reduce MOMENTUM by amount of doubt cleared (minimum 0)
         // CRITICAL: Understanding is NOT reduced - it persists through LISTEN
-        session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);// 4. Check tier unlocks (uses Understanding, NOT Momentum)
+        session.CurrentMomentum = Math.Max(0, session.CurrentMomentum - doubtCleared);
+        Console.WriteLine($"[ConversationFacade] LISTEN cleared {doubtCleared} doubt, reduced Momentum by {doubtCleared}. Momentum: {session.CurrentMomentum}, Understanding: {session.CurrentUnderstanding} (preserved)");
+
+        // 4. Check tier unlocks (uses Understanding, NOT Momentum)
         // Tiers are based on Understanding thresholds (6/12/18), not Momentum
         // Understanding is NOT reduced during LISTEN, so tiers stay unlocked
         session.CheckAndUnlockTiers();
@@ -644,10 +659,15 @@ public class SocialFacade
         if (session.Cadence > 0)
         {
             int cadenceToDoubt = session.Cadence;
-            session.CurrentDoubt = Math.Min(session.MaxDoubt, session.CurrentDoubt + cadenceToDoubt);// CRITICAL: If doubt reaches max (10), conversation ends immediately
+            session.CurrentDoubt = Math.Min(session.MaxDoubt, session.CurrentDoubt + cadenceToDoubt);
+            Console.WriteLine($"[ConversationFacade] LISTEN converted {cadenceToDoubt} positive cadence to doubt. New doubt: {session.CurrentDoubt}");
+
+            // CRITICAL: If doubt reaches max (10), conversation ends immediately
             // This is the "cadence trap" - listening while dominating can end the conversation
             if (session.CurrentDoubt >= session.MaxDoubt)
-            {// Conversation will end - ExecuteListen will detect this in ShouldEnd() check
+            {
+                Console.WriteLine($"[ConversationFacade] CONVERSATION ENDED: Cadence refill brought doubt to {session.CurrentDoubt} (max {session.MaxDoubt})");
+                // Conversation will end - ExecuteListen will detect this in ShouldEnd() check
             }
         }
 
@@ -662,7 +682,9 @@ public class SocialFacade
     private void ReduceCadenceAfterDraw(SocialSession session)
     {
         // DUAL BALANCE SYSTEM: LISTEN action contributes -2 to Cadence
-        session.Cadence = Math.Max(-10, session.Cadence - 2);}
+        session.Cadence = Math.Max(-10, session.Cadence - 2);
+        Console.WriteLine($"[ConversationFacade] LISTEN action: Cadence -2 → {session.Cadence}");
+    }
 
     /// <summary>
     /// Handle card persistence after playing
@@ -818,42 +840,58 @@ public class SocialFacade
         // Apply Initiative changes
         if (projection.InitiativeChange != 0)
         {
-            session.AddInitiative(projection.InitiativeChange);}
+            session.AddInitiative(projection.InitiativeChange);
+            Console.WriteLine($"[Effect] Initiative {(projection.InitiativeChange > 0 ? "+" : "")}{projection.InitiativeChange} → {session.CurrentInitiative}");
+        }
 
         // Apply Momentum changes (NO TIER UNLOCKS - that's Understanding's job)
         if (projection.MomentumChange != 0)
         {
-            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);}
+            session.CurrentMomentum = Math.Max(0, session.CurrentMomentum + projection.MomentumChange);
+            Console.WriteLine($"[Effect] Momentum {(projection.MomentumChange > 0 ? "+" : "")}{projection.MomentumChange} → {session.CurrentMomentum}");
+        }
 
         // Apply Understanding changes (TRIGGERS TIER UNLOCKS)
         if (projection.UnderstandingChange != 0)
         {
-            session.AddUnderstanding(projection.UnderstandingChange);// Tier unlocks happen inside AddUnderstanding via CheckAndUnlockTiers()
+            session.AddUnderstanding(projection.UnderstandingChange);
+            Console.WriteLine($"[Effect] Understanding {(projection.UnderstandingChange > 0 ? "+" : "")}{projection.UnderstandingChange} → {session.CurrentUnderstanding}");
+            // Tier unlocks happen inside AddUnderstanding via CheckAndUnlockTiers()
         }
 
         // Apply Doubt changes
         if (projection.DoubtChange > 0)
         {
-            session.AddDoubt(projection.DoubtChange);}
+            session.AddDoubt(projection.DoubtChange);
+            Console.WriteLine($"[Effect] Doubt +{projection.DoubtChange} → {session.CurrentDoubt}");
+        }
         else if (projection.DoubtChange < 0)
         {
-            session.ReduceDoubt(-projection.DoubtChange);}
+            session.ReduceDoubt(-projection.DoubtChange);
+            Console.WriteLine($"[Effect] Doubt {projection.DoubtChange} → {session.CurrentDoubt}");
+        }
 
         // Apply Cadence changes
         if (projection.CadenceChange != 0)
         {
-            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);}
+            session.Cadence = Math.Clamp(session.Cadence + projection.CadenceChange, -10, 10);
+            Console.WriteLine($"[Effect] Cadence {(projection.CadenceChange > 0 ? "+" : "")}{projection.CadenceChange} (now {session.Cadence})");
+        }
 
         // Apply card draw
         if (projection.CardsToDraw > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);}
+            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);
+            Console.WriteLine($"[Effect] Draw {projection.CardsToDraw} cards → Hand: {session.Deck.HandSize}");
+        }
 
         // Add any specific card instances (legacy support)
         if (projection.CardsToAdd != null && projection.CardsToAdd.Any())
         {
-            session.Deck.AddCardsToMind(projection.CardsToAdd);}
+            session.Deck.AddCardsToMind(projection.CardsToAdd);
+            Console.WriteLine($"[Effect] Added {projection.CardsToAdd.Count} specific cards to hand");
+        }
     }
 
     /// <summary>
@@ -1041,6 +1079,7 @@ public class SocialFacade
 
     #region Private Methods - Absorbed from CardDeckManager
 
+
     /// <summary>
     /// Execute LISTEN action - refresh focus, draw cards, and exhaust opening cards
     /// </summary>
@@ -1055,7 +1094,7 @@ public class SocialFacade
         int impulseCount = session.Deck.HandCards.Count(c => c.Persistence == PersistenceType.Statement);
         if (impulseCount > 0 && session.MomentumManager != null)
         {
-            session.MomentumManager.AddDoubt(session, impulseCount);
+            session.MomentumManager.AddDoubt(impulseCount);
         }
         Player player = _gameWorld.GetPlayer();
         session.Deck.DrawToHand(baseDrawCount, session, player.Stats);
@@ -1069,13 +1108,14 @@ public class SocialFacade
         return drawnCards;
     }
 
+
     /// <summary>
     /// Check if goal cards should become playable after LISTEN based on momentum threshold
     /// </summary>
     private void UpdateGoalCardPlayabilityAfterListen(SocialSession session)
     {
         // Get current momentum
-        int currentMomentum = session.CurrentMomentum;
+        int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
 
         // Check all goal cards in active hand
         foreach (CardInstance card in session.Deck.HandCards)
@@ -1172,8 +1212,7 @@ public class SocialFacade
         // Search active investigations for a phase matching this npcId + requestId
         foreach (ActiveInvestigation activeInv in _gameWorld.InvestigationJournal.ActiveInvestigations)
         {
-            // USE OBJECT REFERENCE - ActiveInvestigation.Investigation (O(1) instead of O(n))
-            Investigation investigation = activeInv.Investigation;
+            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == activeInv.InvestigationId);
             if (investigation == null) continue;
 
             // Find phase that matches this phase ID (phases no longer reference goals)

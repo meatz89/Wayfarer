@@ -78,10 +78,7 @@ public static class GoalParser
                 GoalCard goalCard = ParseGoalCard(goalCardDTO, dto.Id);
                 goal.GoalCards.Add(goalCard);
             }
-        }
-
-        Console.WriteLine($"[GoalParser] Parsed goal '{goal.Name}' ({goal.SystemType}, Consequence: {consequenceType}) with {goal.GoalCards.Count} goal cards");
-        return goal;
+        }return goal;
     }
 
     /// <summary>
@@ -163,10 +160,7 @@ public static class GoalParser
         if (Enum.TryParse<ConsequenceType>(consequenceTypeString, true, out ConsequenceType consequenceType))
         {
             return consequenceType;
-        }
-
-        Console.WriteLine($"[GoalParser] Warning: Unknown ConsequenceType '{consequenceTypeString}', defaulting to Grant");
-        return ConsequenceType.Grant;
+        }return ConsequenceType.Grant;
     }
 
     /// <summary>
@@ -180,10 +174,7 @@ public static class GoalParser
         if (Enum.TryParse<ResolutionMethod>(methodString, true, out ResolutionMethod method))
         {
             return method;
-        }
-
-        Console.WriteLine($"[GoalParser] Warning: Unknown ResolutionMethod '{methodString}', defaulting to Unresolved");
-        return ResolutionMethod.Unresolved;
+        }return ResolutionMethod.Unresolved;
     }
 
     /// <summary>
@@ -197,10 +188,7 @@ public static class GoalParser
         if (Enum.TryParse<RelationshipOutcome>(outcomeString, true, out RelationshipOutcome outcome))
         {
             return outcome;
-        }
-
-        Console.WriteLine($"[GoalParser] Warning: Unknown RelationshipOutcome '{outcomeString}', defaulting to Neutral");
-        return RelationshipOutcome.Neutral;
+        }return RelationshipOutcome.Neutral;
     }
 
     /// <summary>
@@ -251,9 +239,7 @@ public static class GoalParser
 
         // Parse modifier type
         if (!Enum.TryParse<ModifierType>(dto.Type, true, out ModifierType modifierType))
-        {
-            Console.WriteLine($"[GoalParser] Warning: Unknown ModifierType '{dto.Type}', skipping modifier");
-            return null;
+        {return null;
         }
 
         return new DifficultyModifier

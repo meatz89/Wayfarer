@@ -12,7 +12,6 @@ public class SocialCard
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public ConversationalMove? Move { get; init; } // Null for Letter/Promise/Burden cards (not part of conversation mechanics)
 
-
     // New 5-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
@@ -143,7 +142,6 @@ public class SocialCard
         }
         return true;
     }
-
 
     /// <summary>
     /// Check if Statement requirements are met for this card

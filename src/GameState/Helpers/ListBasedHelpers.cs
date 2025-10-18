@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 /// <summary>
 /// Helper classes to replace Dictionary and HashSet with List-based implementations
 /// following deterministic principles and avoiding non-deterministic data structures
@@ -194,7 +193,6 @@ public static class ListBasedHelperExtensions
         };
     }
 
-
     // Card deck helpers
 
     // Familiarity helpers
@@ -258,7 +256,6 @@ public static class ListBasedHelperExtensions
         }
     }
 
-
     // Event deck position helpers
     public static int GetPosition(this List<EventDeckPositionEntry> positions, string deckId)
     {
@@ -317,7 +314,6 @@ public static class ListBasedHelperExtensions
         }
     }
 
-
     // PathCollectionEntry helpers
     public static PathCardCollectionDTO GetCollection(this List<PathCollectionEntry> collections, string collectionId)
     {
@@ -336,7 +332,6 @@ public static class ListBasedHelperExtensions
             collections.Add(new PathCollectionEntry { CollectionId = collectionId, Collection = collection });
         }
     }
-
 
     // TravelEventEntry helpers
     public static TravelEventDTO GetEvent(this List<TravelEventEntry> events, string eventId)

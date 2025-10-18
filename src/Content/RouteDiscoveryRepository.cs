@@ -13,7 +13,6 @@ public class RouteDiscoveryRepository
         _gameWorld = gameWorld;
     }
 
-
     /// <summary>
     /// Get discoveries for a specific route
     /// </summary>
@@ -32,7 +31,6 @@ public class RouteDiscoveryRepository
             .Where(d => d.KnownByNPCs.Contains(npcId))
             .ToList();
     }
-
 
     /// <summary>
     /// Get the discovery context for a specific NPC and route

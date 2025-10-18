@@ -28,8 +28,6 @@ public static class NPCParser
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
         };
 
-        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with locationId: '{dto.LocationId}'");
-
         // Parse profession with mapping from JSON values to enum
         if (string.IsNullOrEmpty(dto.Profession))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Profession' field");
@@ -39,12 +37,9 @@ public static class NPCParser
         npc.PersonalityDescription = dto.Personality; // Optional field
 
         // Parse personalityType directly from DTO - NO FALLBACKS
-        Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from DTO: '{dto.PersonalityType}'");
-
         if (!string.IsNullOrEmpty(dto.PersonalityType) && Enum.TryParse<PersonalityType>(dto.PersonalityType, true, out PersonalityType parsedType))
         {
             npc.PersonalityType = parsedType;
-            Console.WriteLine($"[NPCParser] Successfully parsed PersonalityType: {parsedType} for {npc.Name}");
 
             // Initialize conversation modifier based on personality type
             npc.ConversationModifier = PersonalityModifier.CreateFromPersonalityType(parsedType);
@@ -131,7 +126,6 @@ public static class NPCParser
                         $"Obstacle IDs must be globally unique across all packages.");
                 }
             }
-            Console.WriteLine($"[NPCParser] Parsed {npc.ObstacleIds.Count} obstacles for NPC '{npc.Name}'");
         }
 
         return npc;
@@ -159,8 +153,6 @@ public static class NPCParser
             _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
         };
     }
-
-
 
     private static ServiceTypes? MapServiceFromJson(string jsonService)
     {

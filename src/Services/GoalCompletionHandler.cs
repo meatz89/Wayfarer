@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Wayfarer.GameState.Enums;
 
-
 /// <summary>
 /// Handles goal completion lifecycle - marking complete, removing from ActiveGoals if DeleteOnSuccess, and investigation progress
 /// </summary>
@@ -28,7 +27,6 @@ public class GoalCompletionHandler
 
         // Mark goal as complete
         goal.Complete();
-        Console.WriteLine($"[GoalCompletion] Goal '{goal.Name}' marked complete");
 
         // Apply rewards from all achieved goal cards (idempotent - only if not already achieved)
         ApplyGoalCardRewards(goal);
@@ -37,11 +35,9 @@ public class GoalCompletionHandler
         if (goal.DeleteOnSuccess)
         {
             RemoveGoalFromActiveGoals(goal);
-            Console.WriteLine($"[GoalCompletion] Goal '{goal.Name}' removed from ActiveGoals (DeleteOnSuccess=true)");
         }
         else
         {
-            Console.WriteLine($"[GoalCompletion] Goal '{goal.Name}' remains in ActiveGoals (DeleteOnSuccess=false, repeatable)");
         }
 
         // Check for investigation progress (system-agnostic - works for Mental, Physical, Social)
@@ -58,12 +54,11 @@ public class GoalCompletionHandler
     private void CheckInvestigationProgress(string goalId, string investigationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
-        if (_gameWorld.Goals.TryGetValue(goalId, out Goal goal) && goal.IsIntroAction)
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+        if (goal != null && goal.IsIntroAction)
         {
             // This is intro completion - activate investigation and spawn Phase 1
             _investigationActivity.CompleteIntroAction(investigationId);
-
-            Console.WriteLine($"[GoalCompletion] Intro action complete - Investigation '{investigationId}' ACTIVATED");
             return;
         }
 
@@ -71,14 +66,12 @@ public class GoalCompletionHandler
         InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
 
         // Log progress for UI modal display (UI will handle modal)
-        Console.WriteLine($"[GoalCompletion] Investigation progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
 
         // Check if investigation is now complete
         InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
         if (completeResult != null)
         {
             // Investigation complete - UI will display completion modal
-            Console.WriteLine($"[GoalCompletion] Investigation '{completeResult.InvestigationName}' COMPLETE!");
         }
     }
 
@@ -93,7 +86,6 @@ public class GoalCompletionHandler
 
         // Goals remain in ActiveGoals on failure regardless of DeleteOnSuccess
         // Player can retry the goal
-        Console.WriteLine($"[GoalCompletion] Goal '{goal.Name}' failed - remains in ActiveGoals for retry");
     }
 
     /// <summary>
@@ -103,7 +95,6 @@ public class GoalCompletionHandler
     {
         if (goal.GoalCards == null || goal.GoalCards.Count == 0)
         {
-            Console.WriteLine($"[GoalCompletion] No goal cards to process rewards for '{goal.Name}'");
             return;
         }
 
@@ -114,31 +105,26 @@ public class GoalCompletionHandler
             // Only apply rewards if card is achieved and not already rewarded (idempotent)
             if (!goalCard.IsAchieved)
             {
-                Console.WriteLine($"[GoalCompletion] GoalCard '{goalCard.Name}' not achieved, skipping rewards");
                 continue;
             }
 
             if (goalCard.Rewards == null)
             {
-                Console.WriteLine($"[GoalCompletion] GoalCard '{goalCard.Name}' has no rewards");
                 continue;
             }
 
             GoalCardRewards rewards = goalCard.Rewards;
-            Console.WriteLine($"[GoalCompletion] Applying rewards from GoalCard '{goalCard.Name}'");
 
             // COINS - direct player currency
             if (rewards.Coins.HasValue && rewards.Coins.Value > 0)
             {
                 player.AddCoins(rewards.Coins.Value);
-                Console.WriteLine($"[GoalCompletion] Granted {rewards.Coins.Value} coins (player total: {player.Coins})");
             }
 
             // EQUIPMENT - add to player inventory by ID
             if (!string.IsNullOrEmpty(rewards.EquipmentId))
             {
                 player.Inventory.AddItem(rewards.EquipmentId);
-                Console.WriteLine($"[GoalCompletion] Granted equipment '{rewards.EquipmentId}' to player inventory");
             }
 
             // INVESTIGATION CUBES - grant to goal's placement Location (localized mastery)
@@ -149,11 +135,9 @@ public class GoalCompletionHandler
                     _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.InvestigationCubes.Value);
                     Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                     string locationName = location?.Name ?? goal.PlacementLocationId;
-                    Console.WriteLine($"[GoalCompletion] Granted {rewards.InvestigationCubes.Value} InvestigationCubes to Location '{locationName}' (total: {location?.InvestigationCubes ?? 0}/10)");
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: Cannot grant InvestigationCubes - goal has no PlacementLocationId");
                 }
             }
 
@@ -165,18 +149,15 @@ public class GoalCompletionHandler
                     _gameWorld.GrantNPCCubes(goal.PlacementNpcId, rewards.StoryCubes.Value);
                     NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
                     string npcName = npc?.Name ?? goal.PlacementNpcId;
-                    Console.WriteLine($"[GoalCompletion] Granted {rewards.StoryCubes.Value} StoryCubes to NPC '{npcName}' (total: {npc?.StoryCubes ?? 0}/10)");
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: Cannot grant StoryCubes - goal has no PlacementNpcId");
                 }
             }
 
             // EXPLORATION CUBES - grant to route (requires route context - currently not implemented)
             if (rewards.ExplorationCubes.HasValue && rewards.ExplorationCubes.Value > 0)
             {
-                Console.WriteLine($"[GoalCompletion] ExplorationCubes reward specified ({rewards.ExplorationCubes.Value}) but route context not available - requires goal to specify RouteId");
             }
 
             // CREATE OBLIGATION - grant StoryCubes to patron NPC (RESOURCE-BASED PATTERN)
@@ -188,16 +169,12 @@ public class GoalCompletionHandler
                 NPC patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == data.PatronNpcId);
                 if (patron == null)
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: Patron NPC '{data.PatronNpcId}' not found");
                 }
                 else
                 {
                     // Grant StoryCubes to patron (max 10)
                     int previousCubes = patron.StoryCubes;
                     patron.StoryCubes = Math.Min(10, patron.StoryCubes + data.StoryCubesGranted);
-
-                    Console.WriteLine($"[GoalCompletion] Granted {data.StoryCubesGranted} StoryCubes to '{patron.Name}' ({previousCubes} → {patron.StoryCubes}/10)");
-                    Console.WriteLine($"[GoalCompletion] Generic delivery goals now visible where NPC.StoryCubes >= threshold");
                 }
             }
 
@@ -212,16 +189,13 @@ public class GoalCompletionHandler
                     {
                         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(rewards.ObligationId);
                         _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(rewards.ObligationId);
-                        Console.WriteLine($"[GoalCompletion] Discovered investigation '{investigation.Name}' (moved to Discovered state)");
                     }
                     else
                     {
-                        Console.WriteLine($"[GoalCompletion] Investigation '{investigation.Name}' already discovered");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: ObligationId '{rewards.ObligationId}' not found in GameWorld.Investigations");
                 }
             }
 
@@ -241,21 +215,17 @@ public class GoalCompletionHandler
                             // Reveal hidden path by setting HiddenUntilExploration to 0 (always visible)
                             int previousThreshold = path.HiddenUntilExploration;
                             path.HiddenUntilExploration = 0;
-                            Console.WriteLine($"[GoalCompletion] Unlocked hidden path '{path.Description}' on route '{route.Name}' segment {unlock.SegmentPosition} (was hidden until {previousThreshold} ExplorationCubes)");
                         }
                         else
                         {
-                            Console.WriteLine($"[GoalCompletion] WARNING: PathId '{unlock.PathId}' not found in segment {unlock.SegmentPosition} of route '{route.Name}'");
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"[GoalCompletion] WARNING: SegmentPosition {unlock.SegmentPosition} out of range for route '{route.Name}' (has {route.Segments.Count} segments)");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: RouteId '{unlock.RouteId}' not found in GameWorld.Routes");
                 }
             }
 
@@ -268,18 +238,15 @@ public class GoalCompletionHandler
                 {
                     int previousIntensity = parentObstacle.Intensity;
                     parentObstacle.Intensity = Math.Max(0, parentObstacle.Intensity - rewards.ObstacleReduction.ReduceIntensity);
-                    Console.WriteLine($"[GoalCompletion] Reduced obstacle '{parentObstacle.Name}' intensity by {rewards.ObstacleReduction.ReduceIntensity} (was {previousIntensity}, now {parentObstacle.Intensity})");
 
                     // If obstacle is now cleared, mark as resolved
                     if (parentObstacle.IsCleared() && parentObstacle.State == ObstacleState.Active)
                     {
                         parentObstacle.State = ObstacleState.Resolved;
-                        Console.WriteLine($"[GoalCompletion] Obstacle '{parentObstacle.Name}' CLEARED (intensity reached 0)");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[GoalCompletion] WARNING: ObstacleReduction specified but no parent obstacle found for goal '{goal.Name}'");
                 }
             }
         }
@@ -299,7 +266,6 @@ public class GoalCompletionHandler
                 if (npc.ActiveGoalIds.Contains(goal.Id))
                 {
                     npc.ActiveGoalIds.Remove(goal.Id);
-                    Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from NPC '{npc.Name}' ActiveGoalIds");
                 }
             }
         }
@@ -312,7 +278,6 @@ public class GoalCompletionHandler
                 if (location.ActiveGoalIds.Contains(goal.Id))
                 {
                     location.ActiveGoalIds.Remove(goal.Id);
-                    Console.WriteLine($"[GoalCompletion] Removed goal '{goal.Name}' from location '{location.Name}' ActiveGoalIds");
                 }
             }
         }

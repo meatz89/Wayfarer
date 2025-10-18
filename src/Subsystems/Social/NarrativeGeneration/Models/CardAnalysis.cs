@@ -5,7 +5,6 @@
 public class CardAnalysis
 {
 
-
     /// <summary>
     /// Pattern of Initiative costs across all cards.
     /// Determines the intensity level required in NPC dialogue.
@@ -24,7 +23,6 @@ public class CardAnalysis
     /// Typically when high-risk cards dominate.
     /// </summary>
     public bool RequiresUrgency { get; set; }
-
 
     /// <summary>
     /// List of card IDs that are categorized as risk cards.

@@ -16,7 +16,6 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
-
     // Get routes from a specific Venue (by checking all Locations in that location)
     public IEnumerable<RouteOption> GetRoutesFromLocation(string venueId)
     {

@@ -7,7 +7,7 @@ using System.Text.Json;
 /// </summary>
 public class RouteDiscoveryValidator : IContentValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "routeId", "knownByNPCs"
         };
@@ -22,53 +22,47 @@ public class RouteDiscoveryValidator : IContentValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Route discovery file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            HashSet<string> routeIds = new HashSet<string>();
-            int index = 0;
-
-            foreach (JsonElement discoveryElement in root.EnumerateArray())
-            {
-                ValidateRouteDiscovery(discoveryElement, index, fileName, errors, routeIds);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate route discoveries: {ex.Message}",
+                "Route discovery file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        List<string> routeIds = new List<string>();
+        int index = 0;
+
+        foreach (JsonElement discoveryElement in root.EnumerateArray())
+        {
+            ValidateRouteDiscovery(discoveryElement, index, fileName, errors, routeIds);
+            index++;
         }
 
         return errors;
     }
 
-    private void ValidateRouteDiscovery(JsonElement discovery, int index, string fileName, List<ValidationError> errors, HashSet<string> routeIds)
+    private void ValidateRouteDiscovery(JsonElement discovery, int index, string fileName, List<ValidationError> errors, List<string> routeIds)
     {
         string routeId = GetStringProperty(discovery, "routeId") ?? $"RouteDiscovery[{index}]";
 
         // Check for duplicate route IDs
         if (!string.IsNullOrEmpty(routeId) && routeId != $"RouteDiscovery[{index}]")
         {
-            if (!routeIds.Add(routeId))
+            if (routeIds.Contains(routeId))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:route-{routeId}",
                     $"Duplicate route discovery for route: {routeId}",
                     ValidationSeverity.Warning));
+            }
+            else
+            {
+                routeIds.Add(routeId);
             }
         }
 

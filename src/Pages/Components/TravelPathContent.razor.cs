@@ -209,44 +209,25 @@ namespace Wayfarer.Pages.Components
         /// Handle path card selection - all cards now use reveal mechanic
         /// </summary>
         protected async Task SelectPathCard(string pathCardId)
-        {
-            Console.WriteLine($"[TravelPathContent] SelectPathCard called with: {pathCardId}");
-
-            if (TravelContext?.Session == null)
-            {
-                Console.WriteLine("[TravelPathContent] No travel session, returning");
-                return;
+        {if (TravelContext?.Session == null)
+            {return;
             }
 
-            // Check if player can afford the card
-            Console.WriteLine($"[TravelPathContent] Looking for card in {TravelContext.CurrentSegmentCards?.Count ?? 0} cards");
-            if (TravelContext.CurrentSegmentCards != null)
+            // Check if player can afford the cardif (TravelContext.CurrentSegmentCards != null)
             {
                 foreach (PathCardDTO c in TravelContext.CurrentSegmentCards)
-                {
-                    Console.WriteLine($"[TravelPathContent]   Available card: {c.Id}");
-                }
+                {}
             }
 
             PathCardDTO card = TravelContext.CurrentSegmentCards?.FirstOrDefault(c => c.Id == pathCardId);
             if (card == null)
-            {
-                Console.WriteLine($"[TravelPathContent] Card not found: {pathCardId}");
-                return;
+            {return;
             }
 
             if (!TravelFacade.CanPlayPathCard(pathCardId))
-            {
-                Console.WriteLine($"[TravelPathContent] Cannot play card: {pathCardId}");
-                return;
-            }
-
-            Console.WriteLine($"[TravelPathContent] Calling TravelManager.SelectPathCard for: {pathCardId}");
-            // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
-            bool success = TravelManager.SelectPathCard(pathCardId);
-            Console.WriteLine($"[TravelPathContent] SelectPathCard result: {success}");
-
-            if (success)
+            {return;
+            }// Call TravelManager - all cards now use reveal mechanic (no face-down checks)
+            bool success = TravelManager.SelectPathCard(pathCardId);if (success)
             {
                 // Refresh the context after card selection
                 await RefreshTravelContext();
@@ -535,7 +516,6 @@ namespace Wayfarer.Pages.Components
             return TravelFacade.IsReadyToComplete();
         }
 
-
         /// <summary>
         /// Check if we're in card reveal state
         /// </summary>
@@ -605,7 +585,8 @@ namespace Wayfarer.Pages.Components
 
             foreach (string goalId in obstacle.GoalIds)
             {
-                if (!GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+                Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                if (goal == null)
                     continue;
 
                 System.Collections.Generic.List<EquipmentMatchData> matchingEquipment = new System.Collections.Generic.List<EquipmentMatchData>();

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 public class Location
 {
@@ -21,6 +22,16 @@ public class Location
     // References goals in GameWorld.Goals dictionary (single source of truth)
     public List<string> ActiveGoalIds { get; set; } = new List<string>();
     public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Object references to active goals (for runtime navigation)
+    /// </summary>
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+
+    /// <summary>
+    /// Object references to obstacles (for runtime navigation)
+    /// </summary>
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 

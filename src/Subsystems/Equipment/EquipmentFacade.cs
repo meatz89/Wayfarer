@@ -37,13 +37,10 @@ public class EquipmentFacade
         bool success = _gameWorld.PurchaseEquipment(equipmentId, cost);
 
         if (success)
-        {
-            Console.WriteLine($"[EquipmentFacade] Purchased '{equipment.Name}' for {cost} coins");
-        }
+        {}
 
         return success;
     }
-
 
     /// <summary>
     /// Sell equipment to vendor
@@ -60,9 +57,7 @@ public class EquipmentFacade
         bool success = _gameWorld.SellEquipment(equipmentId, sellPrice);
 
         if (success)
-        {
-            Console.WriteLine($"[EquipmentFacade] Sold '{equipment.Name}' for {sellPrice} coins");
-        }
+        {}
 
         return success;
     }
@@ -225,9 +220,7 @@ public class EquipmentFacade
         if (equipment.UsageType == EquipmentUsageType.Consumable)
         {
             Player player = _gameWorld.GetPlayer();
-            player.Inventory.RemoveItem(equipmentId);
-            Console.WriteLine($"[EquipmentFacade] Consumed '{equipment.Name}' on obstacle '{obstacleId}'");
-        }
+            player.Inventory.RemoveItem(equipmentId);}
     }
 
     /// <summary>
@@ -248,10 +241,7 @@ public class EquipmentFacade
             throw new InvalidOperationException($"Not enough coins to repair '{equipment.Name}'. Need {coinCost}, have {player.Coins}");
         }
 
-        player.ModifyCoins(-coinCost);
-        Console.WriteLine($"[EquipmentFacade] Repaired '{equipment.Name}' for {coinCost} coins");
-
-        // Future: restore equipment durability
+        player.ModifyCoins(-coinCost);// Future: restore equipment durability
         // equipment.Durability = equipment.MaxDurability;
     }
 }

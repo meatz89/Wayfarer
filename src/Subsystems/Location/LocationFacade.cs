@@ -143,16 +143,9 @@ public class LocationFacade
     /// </summary>
     /// <param name="npcConversationOptions">List of NPCs with their available conversation types, provided by GameFacade from ConversationFacade</param>
     public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
-    {
-        Console.WriteLine("[LocationFacade.GetLocationScreen] Starting...");
-
-        Player player = _gameWorld.GetPlayer();
+    {Player player = _gameWorld.GetPlayer();
         Venue venue = GetCurrentLocation();
-        Location location = GetCurrentLocationSpot();
-
-        Console.WriteLine($"[LocationFacade.GetLocationScreen] Venue: {venue?.Name}, location: {location?.Name} ({location?.Id})");
-
-        LocationScreenViewModel viewModel = new LocationScreenViewModel
+        Location location = GetCurrentLocationSpot();LocationScreenViewModel viewModel = new LocationScreenViewModel
         {
             CurrentTime = _timeManager.GetFormattedTimeDisplay(),
             LocationPath = _spotManager.BuildLocationPath(venue, location),
@@ -184,10 +177,7 @@ public class LocationFacade
 
             // Add routes to other locations
             viewModel.Routes = GetRoutesFromLocation(venue);
-        }
-
-        Console.WriteLine($"[LocationFacade.GetLocationScreen] Returning viewModel with {viewModel.NPCsPresent.Count} NPCs");
-        return viewModel;
+        }return viewModel;
     }
 
     /// <summary>
@@ -227,6 +217,7 @@ public class LocationFacade
     /// </summary>
     public NPC GetNPCById(string npcId)
     {
+        // KEEP - npcId is external input from caller
         return _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
     }
 
@@ -242,13 +233,7 @@ public class LocationFacade
 
     private List<NPCInteractionViewModel> GetNPCsWithInteractions(Location location, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
     {
-        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>();
-
-        Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Looking for NPCs at {location.Id} during {currentTime}");
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
-        Console.WriteLine($"[LocationFacade.GetNPCsWithInteractions] Found {npcs.Count} NPCs");
-
-        foreach (NPC npc in npcs)
+        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>();List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);foreach (NPC npc in npcs)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
             List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
@@ -332,19 +317,12 @@ public class LocationFacade
         Location location = _gameWorld.GetLocation(locationId);
         if (location == null) return observations;
 
-        string venueId = location.VenueId;
-        Console.WriteLine($"[LocationFacade.GetLocationObservations] Looking for observations at {venueId}, location {locationId}");
-
-        List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, locationId);
-
-        Console.WriteLine($"[LocationFacade.GetLocationObservations] Got {locationObservations?.Count ?? 0} observations");
-
-        if (locationObservations != null)
+        string venueId = location.VenueId;List<Observation>? locationObservations = _observationSystem?.GetObservationsForLocationSpot(venueId, locationId);if (locationObservations != null)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
             List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTimeBlock);
-            HashSet<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToHashSet();
+            List<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToList();
 
             foreach (Observation obs in locationObservations)
             {

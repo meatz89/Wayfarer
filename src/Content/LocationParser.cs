@@ -39,44 +39,25 @@ public static class LocationParser
 
         // Parse location properties from the new structure
         if (dto.Properties != null)
-        {
-            Console.WriteLine($"[LocationParser] Parsing location {location.Id} properties");
-
-            // Parse base properties (always active)
+        {// Parse base properties (always active)
             if (dto.Properties.Base != null)
-            {
-                Console.WriteLine($"[LocationParser] Found {dto.Properties.Base.Count} base properties");
-                foreach (string propString in dto.Properties.Base)
-                {
-                    Console.WriteLine($"[LocationParser] Trying to parse base property: {propString}");
-                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-                    {
-                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
-                        location.LocationProperties.Add(prop);
+            {foreach (string propString in dto.Properties.Base)
+                {if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
+                    {location.LocationProperties.Add(prop);
                     }
                     else
-                    {
-                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
-                    }
+                    {}
                 }
             }
 
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
-            {
-                Console.WriteLine($"[LocationParser] Found {dto.Properties.All.Count} 'all' properties");
-                foreach (string propString in dto.Properties.All)
-                {
-                    Console.WriteLine($"[LocationParser] Trying to parse 'all' property: {propString}");
-                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-                    {
-                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
-                        location.LocationProperties.Add(prop);
+            {foreach (string propString in dto.Properties.All)
+                {if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
+                    {location.LocationProperties.Add(prop);
                     }
                     else
-                    {
-                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
-                    }
+                    {}
                 }
             }
 
@@ -191,9 +172,7 @@ public static class LocationParser
                         $"Duplicate obstacle ID '{obstacle.Id}' found in location '{location.Name}'. " +
                         $"Obstacle IDs must be globally unique across all packages.");
                 }
-            }
-            Console.WriteLine($"[LocationParser] Parsed {location.ObstacleIds.Count} obstacles for location '{location.Name}'");
-        }
+            }}
 
         return location;
     }
@@ -221,7 +200,6 @@ public static class LocationParser
             timeProperties[timeBlock] = properties;
         }
     }
-
 
     private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
     {

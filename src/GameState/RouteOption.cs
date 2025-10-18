@@ -290,8 +290,6 @@ public class RouteOption
 
     // Season availability removed - game timeframe is only days/weeks
 
-
-
     /// <summary>
     /// Get all equipment categories from player's inventory
     /// </summary>

@@ -251,7 +251,6 @@ public class DebugLogger
         }
 
         // Also write to console for immediate visibility
-        Console.WriteLine($"[{entry.Timestamp:HH:mm:ss}] {entry.Message}");
     }
 
     private bool IsDebugMode()

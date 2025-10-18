@@ -81,8 +81,6 @@ public static class PlayerStatParser
         return new PlayerStatsParseResult(stats, progression);
     }
 
-
-
 }
 
 /// <summary>

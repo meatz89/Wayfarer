@@ -37,9 +37,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {
-            Console.WriteLine($"[CubeFacade] Granted {actualGranted} InvestigationCubes to location '{locationId}' (total: {after}/10)");
-        }
+        {}
     }
 
     /// <summary>
@@ -88,9 +86,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {
-            Console.WriteLine($"[CubeFacade] Granted {actualGranted} StoryCubes to NPC '{npcId}' (total: {after}/10)");
-        }
+        {}
     }
 
     /// <summary>
@@ -139,9 +135,7 @@ public class CubeFacade
 
         int actualGranted = after - before;
         if (actualGranted > 0)
-        {
-            Console.WriteLine($"[CubeFacade] Granted {actualGranted} ExplorationCubes to route '{routeId}' (total: {after}/10)");
-        }
+        {}
     }
 
     /// <summary>

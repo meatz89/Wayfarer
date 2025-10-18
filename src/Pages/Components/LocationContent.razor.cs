@@ -82,14 +82,12 @@ namespace Wayfarer.Pages.Components
 
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("[LocationContent] OnInitializedAsync - Resetting to Landing view");
             ResetNavigation();
             await RefreshLocationData();
         }
 
         protected override async Task OnParametersSetAsync()
         {
-            Console.WriteLine("[LocationContent] OnParametersSetAsync - Resetting to Landing view");
             ResetNavigation();
             await RefreshLocationData();
         }
@@ -161,7 +159,6 @@ namespace Wayfarer.Pages.Components
 
             // Check if can travel from this location
             CanTravel = location?.LocationProperties?.Contains(LocationPropertyType.Crossroads) ?? false;
-            Console.WriteLine($"[LocationContent] location: {location?.Name}, Properties: {string.Join(", ", location?.LocationProperties ?? new List<LocationPropertyType>())}, CanTravel: {CanTravel}");
 
             // Check if can work at this location
             CanWork = location?.LocationProperties?.Contains(LocationPropertyType.Commercial) ?? false;
@@ -170,20 +167,11 @@ namespace Wayfarer.Pages.Components
             LocationActions.Clear();
             if (venue != null && location != null)
             {
-                try
+                LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
+                if (locationActionManager != null)
                 {
-                    LocationActionManager locationActionManager = GameFacade.GetLocationActionManager();
-                    if (locationActionManager != null)
-                    {
-                        List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(venue, location);
-                        LocationActions = actions ?? new List<LocationActionViewModel>();
-                        Console.WriteLine($"[LocationContent] Got {LocationActions.Count} Venue actions");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[LocationContent] Error getting Venue actions: {ex.Message}");
-                    LocationActions = new List<LocationActionViewModel>();
+                    List<LocationActionViewModel> actions = locationActionManager.GetLocationActions(venue, location);
+                    LocationActions = actions ?? new List<LocationActionViewModel>();
                 }
             }
 
@@ -201,7 +189,6 @@ namespace Wayfarer.Pages.Components
                         DiscoveredInvestigationsAtLocation.Add(investigation);
                     }
                 }
-                Console.WriteLine($"[LocationContent] Got {DiscoveredInvestigationsAtLocation.Count} discovered investigations at this location");
             }
 
             // Get Social, Mental, and Physical investigation goals available at current location
@@ -232,85 +219,66 @@ namespace Wayfarer.Pages.Components
                     .Where(g => g.IsAvailable && !g.IsCompleted)
                     .Where(g => string.IsNullOrEmpty(g.InvestigationId)) // Hide ALL investigation goals (they're in obstacles now)
                     .ToList();
-
-                Console.WriteLine($"[LocationContent] Got {AvailableSocialGoals.Count} Social, {AvailableMentalGoals.Count} Mental, and {AvailablePhysicalGoals.Count} Physical goals available");
             }
         }
 
         protected async Task StartExchange(string npcId)
         {
-            Console.WriteLine($"[LocationContent] Starting exchange with NPC ID: '{npcId}'");
-
             if (GameScreen != null)
             {
                 await GameScreen.StartExchange(npcId);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] GameScreen not available for exchange with NPC '{npcId}'");
             }
         }
 
         protected async Task StartConversationWithRequest(string npcId, string requestId)
         {
-            Console.WriteLine($"[LocationContent] Starting   conversation with NPC ID: '{npcId}', RequestId: '{requestId}'");
-
             if (GameScreen != null)
             {
                 await GameScreen.StartConversationSession(npcId, requestId);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] GameScreen not available for conversation with NPC '{npcId}'");
             }
         }
 
         protected async Task StartSocialGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Social goal: '{goal.Name}' (ID: '{goal.Id}') with NPC: '{goal.PlacementNpcId}'");
-
             if (GameScreen != null)
             {
                 await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] GameScreen not available for Social goal '{goal.Name}'");
             }
         }
 
         protected async Task StartMentalGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Mental goal: '{goal.Name}' with deckId: '{goal.DeckId}'");
-
             if (GameScreen != null)
             {
                 await GameScreen.StartMentalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] GameScreen not available for Mental goal '{goal.Name}'");
             }
         }
 
         protected async Task StartPhysicalGoal(Goal goal)
         {
-            Console.WriteLine($"[LocationContent] Starting Physical goal: '{goal.Name}' with deckId: '{goal.DeckId}'");
-
             if (GameScreen != null)
             {
                 await GameScreen.StartPhysicalSession(goal.DeckId, GameWorld.GetPlayer().CurrentLocation.Id, goal.Id, goal.InvestigationId);
             }
             else
             {
-                Console.WriteLine($"[LocationContent] GameScreen not available for Physical goal '{goal.Name}'");
             }
         }
 
         protected async Task StartInvestigationIntro(Investigation investigation)
         {
-            Console.WriteLine($"[LocationContent] Setting pending intro for: '{investigation.Name}'");
-
             // Set pending intro action (doesn't activate yet - just prepares modal)
             InvestigationActivity.SetPendingIntroAction(investigation.Id);
 
@@ -320,14 +288,11 @@ namespace Wayfarer.Pages.Components
 
         protected async Task MoveToSpot(string LocationId)
         {
-            Console.WriteLine($"[LocationContent] Moving to location: {LocationId}");
-
             // Call GameFacade to move to the location (free movement within location)
             bool success = GameFacade.MoveToSpot(LocationId);
 
             if (success)
             {
-                Console.WriteLine($"[LocationContent] Successfully moved to location {LocationId}");
                 // Reset navigation to Landing - location context has changed
                 ResetNavigation();
                 // Refresh the UI to show the new location
@@ -336,15 +301,11 @@ namespace Wayfarer.Pages.Components
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to move to location {LocationId}");
             }
         }
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
-        {
-            Console.WriteLine($"[LocationContent] Executing Venue action: {action.ActionType}");
-
-            // Special handling for travel action
+        {// Special handling for travel action
             if (action.ActionType == "travel")
             {
                 if (GameScreen != null)
@@ -353,7 +314,6 @@ namespace Wayfarer.Pages.Components
                 }
                 else
                 {
-                    Console.WriteLine("[LocationContent] GameScreen not available for travel navigation");
                 }
             }
             // Investigation action type - handled by InvestigationActivity orchestrator
@@ -365,13 +325,11 @@ namespace Wayfarer.Pages.Components
             // Player action: check belongings (equipment/inventory)
             else if (action.ActionType == "check_belongings")
             {
-                Console.WriteLine("[LocationContent] Navigating to Equipment view");
                 NavigateToView(LocationViewState.Equipment);
             }
             else
             {
                 // Other action types not supported in current game design
-                Console.WriteLine($"[LocationContent] Action type {action.ActionType} not supported");
             }
         }
 
@@ -383,26 +341,20 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or location");
                 return;
             }
-
-            Console.WriteLine($"[LocationContent] Starting investigation of {CurrentLocation.Name} at {CurrentSpot.Name}");
-
 
             // Call LocationFacade to perform the investigation
             bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentSpot.Id);
 
             if (success)
             {
-                Console.WriteLine($"[LocationContent] Successfully investigated {CurrentLocation.Name}");
                 // Refresh the UI to show updated familiarity and resources
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to investigate {CurrentLocation.Name}");
             }
         }
 
@@ -413,13 +365,11 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null) return false;
 
-
             // Check if location is already at max familiarity
             Player player = GameWorld.GetPlayer();
             int currentFamiliarity = player.GetLocationFamiliarity(CurrentLocation.Id);
             return currentFamiliarity < CurrentSpot.MaxFamiliarity;
         }
-
 
         protected string GetStateClass(string connectionState)
         {
@@ -490,7 +440,6 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-
         protected string GetNPCDescription(NpcViewModel npc)
         {
             // Get the actual NPC object to access its description from JSON data
@@ -545,13 +494,11 @@ namespace Wayfarer.Pages.Components
             return $"{npc.PersonalityType} type";
         }
 
-
         protected string GetDoubtDisplay(NpcViewModel npc, Location location)
         {
             // Patience system removed - NPCs are always available
             return "Available";
         }
-
 
         protected string GetTimeOfDayTrait()
         {
@@ -649,23 +596,18 @@ namespace Wayfarer.Pages.Components
         {
             if (CurrentLocation == null || CurrentSpot == null)
             {
-                Console.WriteLine("[LocationContent] Cannot investigate - no current Venue or location");
                 return;
             }
-
-            Console.WriteLine($"[LocationContent] Starting investigation with {approach} approach");
 
             bool success = GameFacade.GetLocationFacade().InvestigateLocation(CurrentSpot.Id, approach);
 
             if (success)
             {
-                Console.WriteLine($"[LocationContent] Successfully investigated {CurrentLocation.Name} with {approach}");
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
             }
             else
             {
-                Console.WriteLine($"[LocationContent] Failed to investigate with {approach}");
             }
         }
 
@@ -739,25 +681,18 @@ namespace Wayfarer.Pages.Components
 
             if (GameFacade == null) return result;
 
-            try
-            {
-                PlayerStats stats = GameFacade.GetPlayerStats();
+            PlayerStats stats = GameFacade.GetPlayerStats();
 
-                // Get all five core stats
-                foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
-                {
-                    result.Add(new PlayerStatInfo
-                    {
-                        Name = GetStatDisplayName(stat),
-                        Level = stats.GetLevel(stat),
-                        CurrentXP = stats.GetXP(stat),
-                        RequiredXP = stats.GetXPToNextLevel(stat)
-                    });
-                }
-            }
-            catch (Exception ex)
+            // Get all five core stats
+            foreach (PlayerStatType stat in Enum.GetValues<PlayerStatType>())
             {
-                Console.WriteLine($"[ConversationContent.GetPlayerStats] Error retrieving player stats: {ex.Message}");
+                result.Add(new PlayerStatInfo
+                {
+                    Name = GetStatDisplayName(stat),
+                    Level = stats.GetLevel(stat),
+                    CurrentXP = stats.GetXP(stat),
+                    RequiredXP = stats.GetXPToNextLevel(stat)
+                });
             }
 
             return result;
@@ -830,8 +765,6 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void NavigateToView(LocationViewState newView, object context = null)
         {
-            Console.WriteLine($"[LocationContent] Navigating from {ViewState} to {newView}");
-
             // Push current view to history for back button
             NavigationStack.Push(ViewState);
 
@@ -842,12 +775,10 @@ namespace Wayfarer.Pages.Components
             if (newView == LocationViewState.ApproachNPC && context is string npcId)
             {
                 SelectedNpcId = npcId;
-                Console.WriteLine($"[LocationContent] Selected NPC: {npcId}");
             }
             else if (newView == LocationViewState.GoalDetail && context is Goal goal)
             {
                 SelectedGoal = goal;
-                Console.WriteLine($"[LocationContent] Selected Goal: {goal.Name}");
             }
 
             StateHasChanged();
@@ -861,7 +792,6 @@ namespace Wayfarer.Pages.Components
             if (NavigationStack.Count > 0)
             {
                 LocationViewState previousView = NavigationStack.Pop();
-                Console.WriteLine($"[LocationContent] Navigating back from {ViewState} to {previousView}");
                 ViewState = previousView;
 
                 // Clear context when leaving specific views
@@ -879,7 +809,6 @@ namespace Wayfarer.Pages.Components
             else
             {
                 // No history - reset to Landing
-                Console.WriteLine($"[LocationContent] No navigation history, resetting to Landing");
                 ResetNavigation();
             }
         }
@@ -890,7 +819,6 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void ResetNavigation()
         {
-            Console.WriteLine($"[LocationContent] Resetting navigation to Landing");
             ViewState = LocationViewState.Landing;
             NavigationStack.Clear();
             SelectedNpcId = null;
@@ -1053,7 +981,8 @@ namespace Wayfarer.Pages.Components
 
         protected void HandleNavigateToGoal(string goalId)
         {
-            if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
+            Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+            if (goal != null)
             {
                 NavigateToView(LocationViewState.GoalDetail, goal);
             }
@@ -1092,7 +1021,6 @@ namespace Wayfarer.Pages.Components
 
         protected async Task HandleInventoryChanged()
         {
-            Console.WriteLine("[LocationContent] Inventory changed - refreshing UI");
             await RefreshLocationData();
             await OnActionExecuted.InvokeAsync();
             StateHasChanged();

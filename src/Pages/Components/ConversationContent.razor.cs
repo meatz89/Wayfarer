@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-
 namespace Wayfarer.Pages.Components
 {
 
@@ -65,7 +64,7 @@ namespace Wayfarer.Pages.Components
 
         // Static system - no animations
         // Track which request cards have already been moved from RequestPile to ActiveCards
-        protected HashSet<string> MovedGoalCardIds { get; set; } = new();
+        protected List<string> MovedGoalCardIds { get; set; } = new List<string>();
 
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -109,14 +108,9 @@ namespace Wayfarer.Pages.Components
                 NpcName = Context.Npc?.Name ?? "Unknown";
 
                 // Initialize conversation narrative
-                await GenerateInitialNarrative();
-
-                Console.WriteLine($"[ConversationContent] Initialized with Session for NPC: {NpcName}");
-            }
+                await GenerateInitialNarrative();}
             else
-            {
-                Console.WriteLine("[ConversationContent] ERROR: Context or Session is null");
-            }
+            {}
         }
 
         protected async Task ExecuteListen()
@@ -136,9 +130,7 @@ namespace Wayfarer.Pages.Components
                 SocialTurnResult listenResult = await GameFacade.ExecuteListen();
 
                 if (listenResult == null)
-                {
-                    Console.WriteLine("[ExecuteListen] Action failed");
-                    return;
+                {return;
                 }
 
                 // Apply narrative if received
@@ -197,9 +189,7 @@ namespace Wayfarer.Pages.Components
                 SocialTurnResult turnResult = await GameFacade.PlayConversationCard(SelectedCard);
 
                 if (turnResult?.CardPlayResult == null)
-                {
-                    Console.WriteLine("[ExecuteSpeak] Action failed");
-                    return;
+                {return;
                 }
 
                 // Apply narrative if received
@@ -267,29 +257,17 @@ namespace Wayfarer.Pages.Components
 
                     // Start AI generation
                     IsGeneratingNarrative = true;
-                    StateHasChanged(); // Update UI to show loading state
-
-                    Console.WriteLine("[ConversationContent] Starting initial AI narrative generation (Phase 1 - NPC dialogue only)...");
-
-                    // Request phase 1 narrative (NPC dialogue only) for faster initial UI update
+                    StateHasChanged(); // Update UI to show loading state// Request phase 1 narrative (NPC dialogue only) for faster initial UI update
                     NarrativeOutput narrative = await NarrativeService.GenerateOnlyNPCDialogueAsync(
                         Session,
                         Context.Npc,
-                        activeCards);
-
-                    Console.WriteLine($"[ConversationContent] Phase 1 AI narrative received. Has NPC dialogue: {!string.IsNullOrWhiteSpace(narrative?.NPCDialogue)}");
-
-                    if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
+                        activeCards);if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
                         ApplyNarrativeOutput(narrative);
                         // REMOVED: StateHasChanged() - prevents card DOM recreation
                         return narrative;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent] Failed to generate initial AI narrative: {ex.Message}");
             }
             finally
             {
@@ -302,18 +280,12 @@ namespace Wayfarer.Pages.Components
 
         private void ApplyNarrativeOutput(NarrativeOutput narrative)
         {
-            if (narrative == null) return;
-
-            Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying narrative output. Provider: {narrative.ProviderSource}");
-
-            CurrentNarrativeOutput = narrative;
+            if (narrative == null) return;CurrentNarrativeOutput = narrative;
 
             // Update NPC dialogue and narrative
             if (!string.IsNullOrWhiteSpace(narrative.NPCDialogue))
             {
-                LastDialogue = narrative.NPCDialogue;
-                Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Set NPC dialogue: {LastDialogue.Substring(0, Math.Min(50, LastDialogue.Length))}...");
-            }
+                LastDialogue = narrative.NPCDialogue;}
             if (!string.IsNullOrWhiteSpace(narrative.NarrativeText))
             {
                 LastNarrative = narrative.NarrativeText;
@@ -324,75 +296,51 @@ namespace Wayfarer.Pages.Components
             // Apply card narratives
             CurrentCardNarratives.Clear();
             if (narrative.CardNarratives != null && narrative.CardNarratives.Any())
-            {
-                Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Applying {narrative.CardNarratives.Count} card narratives");
-                CurrentCardNarratives.AddRange(narrative.CardNarratives);
+            {CurrentCardNarratives.AddRange(narrative.CardNarratives);
                 foreach (CardNarrative cardNarrative in narrative.CardNarratives)
                 {
                     if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                    {
-                        Console.WriteLine($"[ConversationContent.ApplyNarrativeOutput] Card {cardNarrative.CardId}: {cardNarrative.NarrativeText.Substring(0, Math.Min(50, cardNarrative.NarrativeText.Length))}...");
-                    }
+                    {}
                 }
             }
             else
-            {
-                Console.WriteLine("[ConversationContent.ApplyNarrativeOutput] No card narratives in output");
-                // NOTE: Card narrative generation now handled synchronously in ExecuteListen
+            {// NOTE: Card narrative generation now handled synchronously in ExecuteListen
             }
         }
 
         private async Task GenerateCardNarrativesAsync(string npcDialogue)
         {
-            try
+            if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
+            return;// Get the active cards for current state
+        List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
+        if (!activeCards.Any())
+            return;
+
+        // Call phase 2 to generate card narratives based on NPC dialogue
+        List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
+            Session,
+            Context.Npc,
+            activeCards,
+            npcDialogue);
+
+        if (cardNarratives != null && cardNarratives.Any())
+        {// Apply the card narratives to the UI
+            CurrentCardNarratives.Clear();
+            CurrentCardNarratives.AddRange(cardNarratives);
+
+            foreach (CardNarrative cardNarrative in cardNarratives)
             {
-                if (string.IsNullOrWhiteSpace(npcDialogue) || Session == null || Context?.Npc == null)
-                    return;
-
-                Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] Starting second phase card narrative generation");
-
-                // Get the active cards for current state
-                List<CardInstance> activeCards = ConversationFacade.GetHandCards()?.ToList() ?? new List<CardInstance>();
-                if (!activeCards.Any())
-                    return;
-
-                // Call phase 2 to generate card narratives based on NPC dialogue
-                List<CardNarrative> cardNarratives = await NarrativeService.GenerateOnlyCardNarrativesAsync(
-                    Session,
-                    Context.Npc,
-                    activeCards,
-                    npcDialogue);
-
-                if (cardNarratives != null && cardNarratives.Any())
-                {
-                    Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Generated {cardNarratives.Count} card narratives");
-
-                    // Apply the card narratives to the UI
-                    CurrentCardNarratives.Clear();
-                    CurrentCardNarratives.AddRange(cardNarratives);
-
-                    foreach (CardNarrative cardNarrative in cardNarratives)
-                    {
-                        if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
-                        {
-                            Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Card {cardNarrative.CardId}: {cardNarrative.NarrativeText.Substring(0, Math.Min(50, cardNarrative.NarrativeText.Length))}...");
-                        }
-                    }
-
-                    // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
-                }
-                else
-                {
-                    Console.WriteLine("[ConversationContent.GenerateCardNarrativesAsync] No card narratives generated in phase 2");
-                }
+                if (!string.IsNullOrWhiteSpace(cardNarrative.NarrativeText))
+                {}
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent.GenerateCardNarrativesAsync] Error generating card narratives: {ex.Message}");
-            }
+
+            // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
         }
+        else
+        {}
+    }
 
-        private void GenerateListenNarrative()
+    private void GenerateListenNarrative()
         {
             LastNarrative = "You listen attentively...";
 
@@ -565,10 +513,7 @@ namespace Wayfarer.Pages.Components
             foreach (CardInstance? card in regularCards)
             {
                 displayCards.Add(new CardDisplayInfo(card));
-            }
-
-            Console.WriteLine($"[GetAllDisplayCards] Returning {displayCards.Count} static display cards (goal cards filtered out)");
-            return displayCards;
+            }return displayCards;
         }
 
         /// <summary>
@@ -662,7 +607,6 @@ namespace Wayfarer.Pages.Components
             return Session?.CurrentUnderstanding ?? 0;
         }
 
-
         /// <summary>
         /// Get count of cards in Deck pile
         /// </summary>
@@ -709,7 +653,7 @@ namespace Wayfarer.Pages.Components
         {
             if (GameWorld?.Goals == null) return null;
 
-            foreach (Goal goal in GameWorld.Goals.Values)
+            foreach (Goal goal in GameWorld.Goals)
             {
                 if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
                 {
@@ -750,7 +694,6 @@ namespace Wayfarer.Pages.Components
                 return "Statement: Counts toward unlocking signature cards for this stat";
             }
         }
-
 
         // Delivery display methods
         /// <summary>
@@ -823,7 +766,6 @@ namespace Wayfarer.Pages.Components
             return 0;
         }
 
-
         // ConversationalMove display methods
         protected string GetCardMove(CardInstance card)
         {
@@ -870,11 +812,6 @@ namespace Wayfarer.Pages.Components
                         await GameScreen.RefreshResourceDisplay();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ConversationContent] Error playing goal card: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {

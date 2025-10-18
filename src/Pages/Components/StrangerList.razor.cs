@@ -47,7 +47,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-
         protected bool CanAffordConversation(string requestId)
         {
             return true;

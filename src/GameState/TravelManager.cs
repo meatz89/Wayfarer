@@ -154,7 +154,6 @@ public class TravelManager
         return travelEvent.EventCards ?? new List<PathCardDTO>();
     }
 
-
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
     /// </summary>
@@ -173,7 +172,6 @@ public class TravelManager
 
         return eventId;
     }
-
 
     /// <summary>
     /// Reveal a face-down path card without playing it
@@ -860,5 +858,4 @@ public class TravelManager
         };
     }
 }
-
 

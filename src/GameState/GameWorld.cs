@@ -37,11 +37,12 @@ public class GameWorld
     // All cards are ConversationCard type (no LetterCard, ExchangeCard, etc.)
     // Exchange cards are now completely separate from conversation cards
     public List<NPCExchangeCardEntry> NPCExchangeCards { get; set; } = new List<NPCExchangeCardEntry>();
+    public List<ExchangeHistoryEntry> ExchangeHistory { get; set; } = new List<ExchangeHistoryEntry>();
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
     // Mental cards for investigation system
-    public Dictionary<string, Goal> Goals { get; private set; } = new Dictionary<string, Goal>();
+    public List<Goal> Goals { get; set; } = new List<Goal>();
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
@@ -49,9 +50,9 @@ public class GameWorld
 
     // THREE PARALLEL TACTICAL SYSTEMS - Decks only (no Types, they're redundant)
     // Decks contain all necessary configuration for tactical engagements
-    public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; private set; } = new Dictionary<string, SocialChallengeDeck>();
-    public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; private set; } = new Dictionary<string, MentalChallengeDeck>();
-    public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; private set; } = new Dictionary<string, PhysicalChallengeDeck>();
+    public List<SocialChallengeDeck> SocialChallengeDecks { get; set; } = new List<SocialChallengeDeck>();
+    public List<MentalChallengeDeck> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeck>();
+    public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeck>();
 
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
@@ -62,7 +63,7 @@ public class GameWorld
     public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
 
     // Travel System
-    public Dictionary<string, List<RouteImprovement>> RouteImprovements { get; private set; } = new Dictionary<string, List<RouteImprovement>>();
+    public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
     public List<TravelObstacle> TravelObstacles { get; private set; } = new List<TravelObstacle>();
 
     // Initialization data - stored in GameWorld, not passed between phases
@@ -87,6 +88,22 @@ public class GameWorld
     // Active travel session
     public TravelSession CurrentTravelSession { get; set; }
 
+    // THREE PARALLEL TACTICAL SYSTEMS - Active Session State
+    public SocialSession CurrentSocialSession { get; set; }
+    public MentalSession CurrentMentalSession { get; set; }
+    public PhysicalSession CurrentPhysicalSession { get; set; }
+
+    // Session context (investigation tracking for Mental/Physical)
+    public string CurrentMentalGoalId { get; set; }
+    public string CurrentMentalInvestigationId { get; set; }
+    public string CurrentPhysicalGoalId { get; set; }
+    public string CurrentPhysicalInvestigationId { get; set; }
+
+    // Last outcomes (UI display after session ends)
+    public SocialChallengeOutcome LastSocialOutcome { get; set; }
+    public MentalOutcome LastMentalOutcome { get; set; }
+    public PhysicalOutcome LastPhysicalOutcome { get; set; }
+
     // PATH SYSTEM - For FixedPath segments that always show the same cards
     // Path card collections for FixedPath route segments (collections contain the actual cards)
     public List<PathCollectionEntry> AllPathCollections { get; set; } = new List<PathCollectionEntry>();
@@ -109,14 +126,14 @@ public class GameWorld
     // Core data collections
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
-    private Dictionary<string, int> LocationVisitCounts { get; } = new Dictionary<string, int>();
+    public List<LocationVisitCount> LocationVisitCounts { get; set; } = new List<LocationVisitCount>();
     public List<string> CompletedConversations { get; } = new List<string>();
 
     // Weather conditions (no seasons - game timeframe is only days/weeks)
     public WeatherCondition CurrentWeather { get; set; } = WeatherCondition.Clear;
 
     // Route blocking system
-    private Dictionary<string, int> TemporaryRouteBlocks { get; } = new Dictionary<string, int>();
+    public List<TemporaryRouteBlock> TemporaryRouteBlocks { get; set; } = new List<TemporaryRouteBlock>();
 
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
@@ -129,24 +146,26 @@ public class GameWorld
 
     public void RecordLocationVisit(string venueId)
     {
-        if (!LocationVisitCounts.ContainsKey(venueId))
+        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
+        if (visitCount == null)
         {
-            LocationVisitCounts[venueId] = 0;
+            visitCount = new LocationVisitCount { LocationId = venueId, Count = 0 };
+            LocationVisitCounts.Add(visitCount);
         }
 
-        LocationVisitCounts[venueId]++;
+        visitCount.Count++;
     }
 
     public int GetLocationVisitCount(string venueId)
     {
-        return LocationVisitCounts.TryGetValue(venueId, out int count) ? count : 0;
+        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
+        return visitCount?.Count ?? 0;
     }
 
     public bool IsFirstVisit(string venueId)
     {
         return GetLocationVisitCount(venueId) == 0;
     }
-
 
     public bool IsConversationCompleted(string actionId)
     {
@@ -163,7 +182,6 @@ public class GameWorld
         NPCs.Add(character);
     }
 
-
     public List<NPC> GetCharacters()
     {
         return NPCs;
@@ -174,7 +192,13 @@ public class GameWorld
     /// </summary>
     public void AddTemporaryRouteBlock(string routeId, int daysBlocked, int currentDay)
     {
-        TemporaryRouteBlocks[routeId] = currentDay + daysBlocked;
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteId == routeId);
+        if (block == null)
+        {
+            block = new TemporaryRouteBlock { RouteId = routeId };
+            TemporaryRouteBlocks.Add(block);
+        }
+        block.UnblockDay = currentDay + daysBlocked;
     }
 
     /// <summary>
@@ -182,11 +206,12 @@ public class GameWorld
     /// </summary>
     public bool IsRouteBlocked(string routeId, int currentDay)
     {
-        if (TemporaryRouteBlocks.TryGetValue(routeId, out int unblockDay))
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteId == routeId);
+        if (block != null)
         {
-            if (currentDay >= unblockDay)
+            if (currentDay >= block.UnblockDay)
             {
-                TemporaryRouteBlocks.Remove(routeId);
+                TemporaryRouteBlocks.Remove(block);
                 return false;
             }
             return true;
@@ -271,7 +296,6 @@ public class GameWorld
         );
     }
 
-
     /// <summary>
     /// Get all NPCs in the game world
     /// </summary>
@@ -285,6 +309,38 @@ public class GameWorld
     public Location GetLocation(string LocationId)
     {
         return Locations.FirstOrDefault(l => l.Id == LocationId);
+    }
+
+    /// <summary>
+    /// Get a Goal by ID from centralized Goals list
+    /// </summary>
+    public Goal GetGoalById(string id)
+    {
+        return Goals.FirstOrDefault(g => g.Id == id);
+    }
+
+    /// <summary>
+    /// Get a SocialChallengeDeck by ID
+    /// </summary>
+    public SocialChallengeDeck GetSocialDeckById(string id)
+    {
+        return SocialChallengeDecks.FirstOrDefault(d => d.Id == id);
+    }
+
+    /// <summary>
+    /// Get a MentalChallengeDeck by ID
+    /// </summary>
+    public MentalChallengeDeck GetMentalDeckById(string id)
+    {
+        return MentalChallengeDecks.FirstOrDefault(d => d.Id == id);
+    }
+
+    /// <summary>
+    /// Get a PhysicalChallengeDeck by ID
+    /// </summary>
+    public PhysicalChallengeDeck GetPhysicalDeckById(string id)
+    {
+        return PhysicalChallengeDecks.FirstOrDefault(d => d.Id == id);
     }
 
     /// <summary>
@@ -541,7 +597,6 @@ public class GameWorld
         Player.Inventory.AddItem(equipmentId);
         return true;
     }
-
 
     /// <summary>
     /// Sell equipment from inventory

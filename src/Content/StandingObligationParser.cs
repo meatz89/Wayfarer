@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 
-
 /// <summary>
 /// Parser for deserializing standing obligation data from JSON.
 /// </summary>

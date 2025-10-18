@@ -30,7 +30,8 @@ public class ObstacleGoalFilter
         // Add ambient goals (always visible)
         foreach (string goalId in location.ActiveGoalIds)
         {
-            if (gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+            Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+            if (goal != null)
             {
                 visibleGoals.Add(goal);
             }
@@ -47,8 +48,8 @@ public class ObstacleGoalFilter
                     // Filter goals where PlacementLocationId matches this location
                     foreach (string goalId in obstacle.GoalIds)
                     {
-                        if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
-                            goal.PlacementLocationId == location.Id)
+                        Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                        if (goal != null && goal.PlacementLocationId == location.Id)
                         {
                             // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
                             visibleGoals.Add(goal);
@@ -76,7 +77,8 @@ public class ObstacleGoalFilter
         // Add ambient goals (always visible)
         foreach (string goalId in npc.ActiveGoalIds)
         {
-            if (gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+            Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+            if (goal != null)
             {
                 visibleGoals.Add(goal);
             }
@@ -93,8 +95,8 @@ public class ObstacleGoalFilter
                     // Filter goals where PlacementNpcId matches this NPC
                     foreach (string goalId in obstacle.GoalIds)
                     {
-                        if (gameWorld.Goals.TryGetValue(goalId, out Goal goal) &&
-                            goal.PlacementNpcId == npc.ID)
+                        Goal goal = gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                        if (goal != null && goal.PlacementNpcId == npc.ID)
                         {
                             // PRINCIPLE 4: All goals always visible, difficulty varies via DifficultyModifiers
                             visibleGoals.Add(goal);
@@ -149,7 +151,8 @@ public class ObstacleGoalFilter
 
         foreach (string goalId in obstacle.GoalIds)
         {
-            if (!_gameWorld.Goals.TryGetValue(goalId, out Goal goal))
+            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+            if (goal == null)
                 continue;
 
             // PRINCIPLE 4: All goals always visible

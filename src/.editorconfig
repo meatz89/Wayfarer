@@ -3,6 +3,8 @@ root = true
 
 # C# files
 [*.cs]
+dotnet_diagnostic.IDE0051.severity = error
+dotnet_diagnostic.IDE0052.severity = error
 
 #### Nullable Reference Type Warnings ####
 

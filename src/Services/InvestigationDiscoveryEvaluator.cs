@@ -28,27 +28,19 @@ public class InvestigationDiscoveryEvaluator
         {
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
             if (investigation == null)
-            {
-                Console.WriteLine($"[InvestigationEvaluator] WARNING: Potential investigation '{investigationId}' not found in GameWorld");
-                continue;
+            {continue;
             }
 
             // Skip if no intro action defined
             if (investigation.IntroAction == null)
-            {
-                Console.WriteLine($"[InvestigationEvaluator] Skipping '{investigation.Name}' - IntroAction is NULL");
-                continue;
+            {continue;
             }
 
             if (IsTriggerConditionMet(investigation, player))
-            {
-                Console.WriteLine($"[InvestigationEvaluator] ✓ Trigger condition MET for '{investigation.Name}'");
-                discoverable.Add(investigation);
+            {discoverable.Add(investigation);
             }
             else
-            {
-                Console.WriteLine($"[InvestigationEvaluator] ✗ Trigger condition NOT met for '{investigation.Name}'");
-            }
+            {}
         }
 
         return discoverable;
@@ -80,14 +72,9 @@ public class InvestigationDiscoveryEvaluator
     /// Prerequisites: LocationId (globally unique)
     /// </summary>
     private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
-    {
-        Console.WriteLine($"[InvestigationEvaluator] Checking ImmediateVisibility - Required LocationId: '{prereqs.LocationId ?? "NULL"}', Player LocationId: '{player.CurrentLocation?.Id ?? "NULL"}'");
-
-        // Check if player is at required location (LocationId is globally unique)
+    {// Check if player is at required location (LocationId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation?.Id != prereqs.LocationId)
-        {
-            Console.WriteLine($"[InvestigationEvaluator] ImmediateVisibility FAILED - Player not at required location");
-            return false;
+        {return false;
         }
         return true;
     }

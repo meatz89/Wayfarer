@@ -65,9 +65,7 @@ public class MentalSessionDeck
         for (int i = 0; i < count; i++)
         {
             if (deckPile.Count == 0)
-            {
-                Console.WriteLine($"[MentalSessionDeck] No cards remaining in deck");
-                break;
+            {break;
             }
 
             CardInstance card = deckPile.DrawTop();
@@ -81,9 +79,7 @@ public class MentalSessionDeck
     public void PlayCard(CardInstance card)
     {
         if (card == null || !handPile.Contains(card))
-        {
-            Console.WriteLine($"[MentalSessionDeck] ERROR: Card not in hand");
-            return;
+        {return;
         }
 
         handPile.Remove(card);
@@ -106,9 +102,7 @@ public class MentalSessionDeck
             requestPile.Remove(card);
             card.IsPlayable = true;
             handPile.Add(card);
-            movedCards.Add(card);
-            Console.WriteLine($"[MentalSessionDeck] Goal card {card.MentalCardTemplate?.Id} unlocked (progress {currentProgress})");
-        }
+            movedCards.Add(card);}
 
         return movedCards;
     }

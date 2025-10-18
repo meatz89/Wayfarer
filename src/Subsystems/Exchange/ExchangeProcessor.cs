@@ -48,7 +48,6 @@ public class ExchangeProcessor
         };
     }
 
-
     /// <summary>
     /// Check if exchange should advance time
     /// </summary>

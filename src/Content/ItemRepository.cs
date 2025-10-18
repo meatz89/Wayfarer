@@ -20,29 +20,22 @@
     public Item GetItemById(string id)
     {
         if (_gameWorld.Items == null)
-        {
-            Console.WriteLine($"ERROR: Items collection is null in GetItemById({id})");
-            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        {throw new InvalidOperationException("Items collection not initialized - data loading failed");
         }
         return _gameWorld.Items.FirstOrDefault(i => i.Id == id);
     }
 
-
     public List<Item> GetAllItems()
     {
         if (_gameWorld.Items == null)
-        {
-            Console.WriteLine("ERROR: Items collection is null in GetAllItems");
-            throw new InvalidOperationException("Items collection not initialized - data loading failed");
+        {throw new InvalidOperationException("Items collection not initialized - data loading failed");
         }
         return _gameWorld.Items;
     }
 
-
     #endregion
 
     #region Write Methods
-
 
     public void AddItems(IEnumerable<Item> items)
     {
@@ -77,8 +70,6 @@
 
         return false;
     }
-
-
 
     #endregion
 }

@@ -120,7 +120,6 @@ public class NarrativeRenderer
         return result;
     }
 
-
     // Category renderers - convert categorical values to text
 
     private string RenderGreeting(string value)

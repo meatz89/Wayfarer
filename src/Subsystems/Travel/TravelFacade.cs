@@ -721,14 +721,11 @@ public class TravelFacade
         int obstacleIntensity = 0;
         string obstacleId = null;
 
-        if (!string.IsNullOrEmpty(path.OptionalObstacleId))
+        // USE OBJECT REFERENCE - RoutePath.Obstacle (O(1) instead of O(n) lookup)
+        if (path.Obstacle != null)
         {
-            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == path.OptionalObstacleId);
-            if (obstacle != null)
-            {
-                obstacleId = obstacle.Id;
-                obstacleIntensity = CalculateObstacleIntensityWithEquipment(obstacle, player);
-            }
+            obstacleId = path.Obstacle.Id;
+            obstacleIntensity = CalculateObstacleIntensityWithEquipment(path.Obstacle, player);
         }
 
         int totalCombinedCost = timeSegmentsCost + staminaCost + obstacleIntensity;

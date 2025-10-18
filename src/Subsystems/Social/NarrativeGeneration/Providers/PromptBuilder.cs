@@ -448,8 +448,6 @@ public class PromptBuilder
         return detail.ToString().Trim();
     }
 
-
-
     /// <summary>
     /// Builds card narrative template for JSON structure.
     /// </summary>

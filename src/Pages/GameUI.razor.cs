@@ -44,59 +44,24 @@ public class GameUIBase : ComponentBase, IDisposable
         // 2. After interactive SignalR connection established
         // All initialization MUST be idempotent to avoid duplicate side effects
 
-        try
-        {
-            Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting initialization...");
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator null? {ContentValidator == null}");
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] GameWorld null? {GameWorld == null}");
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] TimeManager null? {TimeManager == null}");
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] LoadingStateService null? {LoadingStateService == null}");
+        ContentValidationResult validationResult = ContentValidator.ValidateContent();bool missingReferences = validationResult.HasMissingReferences;
 
-            Console.WriteLine("[GameUIBase.OnInitializedAsync] Calling ContentValidator.ValidateContent()...");
-            ContentValidationResult validationResult = ContentValidator.ValidateContent();
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ContentValidator.ValidateContent() completed. HasMissingReferences: {validationResult.HasMissingReferences}");
-
-            bool missingReferences = validationResult.HasMissingReferences;
-
-            if (missingReferences)
-            {
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Missing references detected. Navigating to MissingReferences view...");
-                CurrentView = CurrentViews.MissingReferences;
-                StateHasChanged();
-            }
-            else if (!GameWorld.GetPlayer().IsInitialized)
-            {
-                Console.WriteLine($"[GameUIBase.OnInitializedAsync] Player not initialized. Creating default player...");
-                // Create a default player for the mockup
-                Player player = GameWorld.GetPlayer();
-                player.Name = "Wayfarer";
-                player.IsInitialized = true;
-
-                // Start the game to initialize location
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Starting game...");
-                await GameFacade.StartGameAsync();
-
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Default player created. Showing Location...");
-                CurrentView = CurrentViews.LocationScreen;
-                StateHasChanged();
-            }
-            else
-            {
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Player already initialized. Starting game...");
-                await GameFacade.StartGameAsync();
-
-                Console.WriteLine("[GameUIBase.OnInitializedAsync] Showing Location...");
-                CurrentView = CurrentViews.LocationScreen;
-                StateHasChanged();
-            }
-
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] Initialization completed. CurrentView: {CurrentView}");
+        if (missingReferences)
+        {CurrentView = CurrentViews.MissingReferences;
+            StateHasChanged();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] ERROR: {ex.Message}");
-            Console.WriteLine($"[GameUIBase.OnInitializedAsync] STACK: {ex.StackTrace}");
-            throw;
+        else if (!GameWorld.GetPlayer().IsInitialized)
+        {// Create a default player for the mockup
+            Player player = GameWorld.GetPlayer();
+            player.Name = "Wayfarer";
+            player.IsInitialized = true;
+
+            // Start the game to initialize locationawait GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
+            StateHasChanged();
+        }
+        else
+        {await GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
+            StateHasChanged();
         }
     }
 
@@ -105,7 +70,6 @@ public class GameUIBase : ComponentBase, IDisposable
         // Show Venue screen as the main gameplay view
         return CurrentViews.LocationScreen;
     }
-
 
     public async Task ResolvedMissingReferences()
     {
@@ -123,16 +87,8 @@ public class GameUIBase : ComponentBase, IDisposable
     }
 
     public async Task HandleCharacterCreated(Player player)
-    {
-        Console.WriteLine($"[GameUIBase.HandleCharacterCreated] Character created: {player?.Name ?? "null"}");
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] Calling GameFacade.StartGame()...");
-        await GameFacade.StartGameAsync();
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] GameFacade.StartGame() completed.");
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigating to LocationScreen...");
-        CurrentView = CurrentViews.LocationScreen;
-        StateHasChanged();
-        Console.WriteLine("[GameUIBase.HandleCharacterCreated] Navigation to LocationScreen completed.");
-    }
+    {await GameFacade.StartGameAsync();CurrentView = CurrentViews.LocationScreen;
+        StateHasChanged();}
 
     public void Dispose()
     {

@@ -25,9 +25,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
 
     public GameScreenBase()
-    {
-        Console.WriteLine("[GameScreenBase] Constructor called");
-    }
+    {}
 
     // Screen Management
     protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
@@ -37,7 +35,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private Stack<ScreenContext> _navigationStack = new(10);
     private SemaphoreSlim _stateLock = new(1, 1);
-    private HashSet<IDisposable> _subscriptions = new();
+    private List<IDisposable> _subscriptions = new List<IDisposable>();
 
     // Resources Display - Made public for child components to access for Perfect Information principle
     public int Coins { get; set; }
@@ -63,29 +61,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("[GameScreen] OnInitializedAsync started");
-
-        try
-        {
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
-            await base.OnInitializedAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GameScreen] ERROR in OnInitializedAsync: {ex.Message}");
-            Console.WriteLine($"[GameScreen] Stack trace: {ex.StackTrace}");
-            throw;
-        }
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+        await base.OnInitializedAsync();
     }
 
     public async Task RefreshResourceDisplay()
     {
         if (GameFacade == null)
-        {
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] GameFacade is null, skipping");
-            return;
+        {return;
         }
 
         Player? player = GameFacade.GetPlayer();
@@ -200,23 +185,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task NavigateToScreen(ScreenMode newMode)
     {
         if (!CanNavigateTo(newMode))
-        {
-            Console.WriteLine($"[GameScreen] Cannot navigate from {CurrentScreen} to {newMode}");
-            return;
+        {return;
         }
 
         if (!await _stateLock.WaitAsync(5000))
-        {
-            Console.WriteLine("[GameScreen] State transition timeout");
-            return;
+        {return;
         }
 
         try
         {
-            IsTransitioning = true;
-            Console.WriteLine($"[GameScreen] Navigating from {CurrentScreen} to {newMode}");
-
-            // Save current state
+            IsTransitioning = true;// Save current state
             ScreenContext currentContext = new ScreenContext
             {
                 Mode = CurrentScreen,
@@ -232,15 +210,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             // Transition
             PreviousScreen = CurrentScreen;
             CurrentScreen = newMode;
-            ContentVersion++;
-
-            Console.WriteLine($"[GameScreen] CurrentScreen set to: {CurrentScreen}, ContentVersion: {ContentVersion}");
-
-            await LoadStateForMode(newMode);
-            Console.WriteLine($"[GameScreen] About to call StateHasChanged, CurrentScreen is: {CurrentScreen}");
-            await InvokeAsync(StateHasChanged);
-            Console.WriteLine($"[GameScreen] StateHasChanged called, CurrentScreen is: {CurrentScreen}");
-        }
+            ContentVersion++;await LoadStateForMode(newMode);await InvokeAsync(StateHasChanged);}
         finally
         {
             IsTransitioning = false;
@@ -279,10 +249,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task HandleNavigation(string target)
-    {
-        Console.WriteLine($"[GameScreen] HandleNavigation: {target}");
-
-        switch (target.ToLower())
+    {switch (target.ToLower())
         {
             case "location":
                 await NavigateToScreen(ScreenMode.Location);
@@ -308,15 +275,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine("[GameScreen] Failed to create exchange context");
-        }
+        {}
     }
 
     protected async Task HandleExchangeEnd()
-    {
-        Console.WriteLine("[GameScreen] Exchange ended");
-        CurrentExchangeContext = null;
+    {CurrentExchangeContext = null;
 
         // Always refresh UI after exchange ends
         await RefreshResourceDisplay();
@@ -346,16 +309,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else if (CurrentSocialContext != null)
         {
-            // Show error message
-            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentSocialContext.ErrorMessage}");
-            await InvokeAsync(StateHasChanged);
+            // Show error messageawait InvokeAsync(StateHasChanged);
         }
     }
 
     protected async Task HandleConversationEnd()
-    {
-        Console.WriteLine("[GameScreen] Conversation ended");
-        CurrentSocialContext = null;
+    {CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
         await RefreshResourceDisplay();
@@ -372,10 +331,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
-    {
-        Console.WriteLine($"[GameScreen] Starting Mental session: {goalId}");
-
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
+    {MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -399,15 +355,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine($"[GameScreen] {CurrentMentalContext.ErrorMessage}");
-        }
+        {}
     }
 
     public async Task HandleMentalEnd()
-    {
-        Console.WriteLine("[GameScreen] Mental session ended");
-        CurrentMentalContext = null;
+    {CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
         await RefreshResourceDisplay();
@@ -423,10 +375,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
-    {
-        Console.WriteLine($"[GameScreen] Starting Physical session: {deckId}");
-
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
+    {PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
@@ -450,15 +399,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine($"[GameScreen] {CurrentPhysicalContext.ErrorMessage}");
-        }
+        {}
     }
 
     public async Task HandlePhysicalEnd()
-    {
-        Console.WriteLine("[GameScreen] Physical session ended");
-        CurrentPhysicalContext = null;
+    {CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends
         await RefreshResourceDisplay();
@@ -474,10 +419,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleTravelRoute(string routeId)
-    {
-        Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
-
-        RouteOption route = GameFacade.GetRouteById(routeId);
+    {RouteOption route = GameFacade.GetRouteById(routeId);
 
         TravelIntent travelIntent = new TravelIntent(routeId);
         await GameFacade.ProcessIntent(travelIntent);
@@ -494,16 +436,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleObstacleEnd(bool success)
-    {
-        Console.WriteLine($"[GameScreen] Obstacle ended - Success: {success}");
-
-        // If obstacle was successfully overcome, complete the pending travel
+    {// If obstacle was successfully overcome, complete the pending travel
         if (success && CurrentObstacleContext?.Route != null)
         {
-            string routeId = CurrentObstacleContext.Route.Id;
-            Console.WriteLine($"[GameScreen] Completing travel after obstacle success: {routeId}");
-
-            // Clear obstacle context before travel
+            string routeId = CurrentObstacleContext.Route.Id;// Clear obstacle context before travel
             CurrentObstacleContext = null;
 
             // Execute travel via intent system
@@ -518,9 +454,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else
         {
-            // Failed obstacle or no route - just return to location
-            Console.WriteLine("[GameScreen] Obstacle failed or no route - returning to location");
-            CurrentObstacleContext = null;
+            // Failed obstacle or no route - just return to locationCurrentObstacleContext = null;
 
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();

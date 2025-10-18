@@ -59,13 +59,11 @@ public static class ObstacleParser
                 Goal goal = GoalParser.ConvertDTOToGoal(goalDto, gameWorld);
 
                 // Register goal in GameWorld.Goals (single source of truth)
-                gameWorld.Goals[goal.Id] = goal;
+                gameWorld.Goals.Add(goal);
 
                 // Store goal ID reference in obstacle
                 obstacle.GoalIds.Add(goal.Id);
-            }
-            Console.WriteLine($"[ObstacleParser] Parsed obstacle '{obstacle.Name}' with {obstacle.GoalIds.Count} inline goals (registered in GameWorld.Goals)");
-        }
+            }}
 
         return obstacle;
     }

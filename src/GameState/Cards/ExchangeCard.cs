@@ -207,7 +207,6 @@ public class ExchangeCard
         return true;
     }
 
-
     /// <summary>
     /// Gets the exchange ratio as a readable string.
     /// </summary>

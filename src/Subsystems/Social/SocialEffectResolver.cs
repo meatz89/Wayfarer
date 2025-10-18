@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 /// <summary>
 /// PROJECTION PRINCIPLE: This resolver is a pure projection function that returns
 /// what WOULD happen without modifying any game state. Both UI (for preview display)
@@ -56,7 +55,6 @@ public class SocialEffectResolver
 
         return result;
     }
-
 
     /// <summary>
     /// DETERMINISTIC: Check if card succeeds based on clear rules (no randomness)

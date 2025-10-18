@@ -61,7 +61,6 @@ public enum SuccessEffectType
 
 }
 
-
 /// <summary>
 /// Conversational moves - natural categories of what you say.
 /// Remark = Simple pointed statement (Momentum building)

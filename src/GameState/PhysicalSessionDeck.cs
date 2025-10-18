@@ -65,9 +65,7 @@ public class PhysicalSessionDeck
         for (int i = 0; i < count; i++)
         {
             if (deckPile.Count == 0)
-            {
-                Console.WriteLine($"[PhysicalSessionDeck] No cards remaining in deck");
-                break;
+            {break;
             }
 
             CardInstance card = deckPile.DrawTop();
@@ -91,9 +89,7 @@ public class PhysicalSessionDeck
             requestPile.Remove(card);
             card.IsPlayable = true;
             handPile.Add(card);
-            movedCards.Add(card);
-            Console.WriteLine($"[PhysicalSessionDeck] Goal card {card.PhysicalCardTemplate?.Id} unlocked (breakthrough {currentBreakthrough})");
-        }
+            movedCards.Add(card);}
 
         return movedCards;
     }
@@ -110,10 +106,7 @@ public class PhysicalSessionDeck
         {
             handPile.Remove(card);
             deckPile.Add(card);
-        }
-
-        Console.WriteLine($"[PhysicalSessionDeck] Exhausted {cardsToMove.Count} cards from hand back to deck");
-    }
+        }}
 
     /// <summary>
     /// Lock a card for combo execution
@@ -122,15 +115,11 @@ public class PhysicalSessionDeck
     public void LockCard(CardInstance card)
     {
         if (card == null || !handPile.Contains(card))
-        {
-            Console.WriteLine($"[PhysicalSessionDeck] ERROR: Card not in hand, cannot lock");
-            return;
+        {return;
         }
 
         handPile.Remove(card);
-        lockedCards.Add(card);
-        Console.WriteLine($"[PhysicalSessionDeck] Locked card {card.PhysicalCardTemplate?.Id} for combo execution");
-    }
+        lockedCards.Add(card);}
 
     /// <summary>
     /// Get currently locked cards
@@ -147,9 +136,7 @@ public class PhysicalSessionDeck
     public void ClearLockedCards()
     {
         int count = lockedCards.Count;
-        lockedCards.Clear();
-        Console.WriteLine($"[PhysicalSessionDeck] Cleared {count} locked cards after combo execution");
-    }
+        lockedCards.Clear();}
 
     /// <summary>
     /// Shuffle exhaust pile (locked cards) and hand back to deck
@@ -176,10 +163,7 @@ public class PhysicalSessionDeck
         }
 
         // Shuffle deck
-        deckPile.Shuffle();
-
-        Console.WriteLine($"[PhysicalSessionDeck] ASSESS: Shuffled {exhaustCount} exhaust + {handCount} hand cards back to deck ({deckPile.Count} total)");
-    }
+        deckPile.Shuffle();}
 
     /// <summary>
     /// Clear all piles

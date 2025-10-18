@@ -94,8 +94,10 @@ public class TravelTimeCalculator
         actualTime = ApplyWeatherEffects(actualTime);
 
         // Apply route improvements (V2 Investigation System)
+        // Find route by matching RouteOption.Id or constructing route key
         string routeKey = $"{fromVenueId}_to_{toVenueId}";
-        if (_gameWorld.RouteImprovements.TryGetValue(routeKey, out List<RouteImprovement> improvements))
+        List<RouteImprovement> improvements = _gameWorld.RouteImprovements.Where(ri => ri.RouteId == routeKey).ToList();
+        if (improvements != null && improvements.Count > 0)
         {
             foreach (RouteImprovement improvement in improvements)
             {

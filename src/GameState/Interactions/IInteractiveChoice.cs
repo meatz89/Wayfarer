@@ -10,7 +10,6 @@ public interface IInteractiveChoice
     /// <summary>Display text shown to player</summary>
     string DisplayText { get; }
 
-
     /// <summary>Time cost in minutes (for Venue actions)</summary>
     int TimeCostMinutes { get; }
 

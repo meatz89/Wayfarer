@@ -256,11 +256,8 @@ public class TimeFacade
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
             if (investigation == null) continue;
 
-            NPC patron = null;
-            if (!string.IsNullOrEmpty(investigation.PatronNpcId))
-            {
-                patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == investigation.PatronNpcId);
-            }
+            // USE OBJECT REFERENCE - Investigation.PatronNpc (O(1) instead of O(n) lookup)
+            NPC patron = investigation.PatronNpc;
 
             int cubesBeforeConsequence = patron?.StoryCubes ?? 0;
 
