@@ -1,0 +1,92 @@
+@namespace Wayfarer.Pages.Components
+@*
+Investigation Card - Individual investigation display
+Shows type, deadline, rewards, and patron info
+*@
+
+<div class="investigation-card @InvestigationTypeClass @UrgencyClass">
+    <div class="investigation-header">
+        <h4 class="investigation-name">@Investigation.Name</h4>
+        <span class="investigation-type-badge @InvestigationTypeClass">@InvestigationTypeName</span>
+    </div>
+
+    <p class="investigation-description">@Investigation.Description</p>
+
+    @if (Investigation.ObligationType == InvestigationObligationType.NPCCommissioned)
+    {
+        <div class="investigation-deadline-section">
+            <InvestigationDeadlineTracker
+                DeadlineSegment="@Investigation.DeadlineSegment.Value"
+                CurrentSegment="@CurrentSegment" />
+
+            @if (!string.IsNullOrEmpty(Investigation.PatronNpcId))
+            {
+                <div class="investigation-patron">
+                    <span class="patron-label">Patron:</span>
+                    <span class="patron-name">@Investigation.PatronNpcId</span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="investigation-self-discovered">
+            <span class="no-deadline-badge">No Deadline - Explore at Leisure</span>
+        </div>
+    }
+
+    @if (Investigation.CompletionRewardCoins > 0 || (Investigation.CompletionRewardItems != null && Investigation.CompletionRewardItems.Count > 0))
+    {
+        <div class="investigation-rewards">
+            <span class="rewards-label">Rewards:</span>
+            @if (Investigation.CompletionRewardCoins > 0)
+            {
+                <span class="reward-coins">@Investigation.CompletionRewardCoins coins</span>
+            }
+            @if (Investigation.CompletionRewardItems != null && Investigation.CompletionRewardItems.Count > 0)
+            {
+                <span class="reward-items">@Investigation.CompletionRewardItems.Count item(s)</span>
+            }
+        </div>
+    }
+
+    <div class="investigation-progress">
+        <span class="progress-label">Progress:</span>
+        <span class="progress-value">@CompletedPhases/@TotalPhases phases</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Investigation Investigation { get; set; }
+    [Parameter] public int CurrentSegment { get; set; }
+
+    private string InvestigationTypeClass => Investigation.ObligationType == InvestigationObligationType.NPCCommissioned
+        ? "npc-commissioned"
+        : "self-discovered";
+
+    private string InvestigationTypeName => Investigation.ObligationType == InvestigationObligationType.NPCCommissioned
+        ? "Commissioned"
+        : "Self-Discovered";
+
+    private string UrgencyClass
+    {
+        get
+        {
+            if (Investigation.ObligationType != InvestigationObligationType.NPCCommissioned || !Investigation.DeadlineSegment.HasValue)
+                return "";
+
+            int segmentsRemaining = Investigation.DeadlineSegment.Value - CurrentSegment;
+
+            return segmentsRemaining switch
+            {
+                <= 2 => "urgency-critical",
+                <= 4 => "urgency-high",
+                <= 8 => "urgency-moderate",
+                _ => "urgency-low"
+            };
+        }
+    }
+
+    private int CompletedPhases => 0; // TODO: Calculate from actual phase completion
+    private int TotalPhases => Investigation.PhaseDefinitions?.Count ?? 0;
+}

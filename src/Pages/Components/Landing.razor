@@ -39,5 +39,14 @@
                 <div class="action-detail">@action.Detail</div>
             </div>
         }
+
+        @* Player actions (global actions like check belongings) *@
+        @foreach (var action in PlayerActions)
+        {
+            <div class="action-card" @onclick="async () => await OnExecuteLocationAction.InvokeAsync(action)">
+                <div class="action-name">@action.Title</div>
+                <div class="action-detail">@action.Detail</div>
+            </div>
+        }
     </div>
 </div>

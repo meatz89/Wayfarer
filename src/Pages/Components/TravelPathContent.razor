@@ -3,254 +3,612 @@
 
 @if (TravelContext != null && TravelContext.Session != null)
 {
-    <!-- Route Header (Enhanced from mockup) -->
-    <div class="route-header">
-        <div class="route-info">
-            <div class="route-name">@GetOriginLocationName() <span class="icon-arrow-right"></span> @GetDestinationName()</div>
-            <div class="route-properties">
-                <div class="route-property">
-                    <span class="property-label">Transport</span>
-                    <span class="property-value">@GetTransportType()</span>
-                </div>
-                <div class="route-property">
-                    <span class="property-label">Distance</span>
-                    <span class="property-value">@GetSegmentCount() segments</span>
-                </div>
-                <div class="route-property">
-                    <span class="property-label">Base Time</span>
-                    <span class="property-value">@GetBaseTravelTime() min</span>
+    @* ========== DEAD-END SEGMENT (travel-dead-end.html) ========== *@
+    @if (IsDeadEnd())
+    {
+        <!-- Blocked Banner -->
+        <div class="blocked-banner">
+            <div class="blocked-icon">⚠</div>
+            <div class="blocked-title">PATH BLOCKED</div>
+            <div class="blocked-subtitle">All routes ahead are impassable</div>
+        </div>
+
+        <!-- Current State Info -->
+        <div class="deadend-state-bar">
+            <div class="travel-state">
+                <span class="state-label">Current Segment</span>
+                <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
+            </div>
+            <div class="travel-state">
+                <span class="state-label">Location</span>
+                <span class="state-name">@GetOriginLocationName() → @GetDestinationName()</span>
+            </div>
+        </div>
+
+        <!-- Stamina Display -->
+        <div class="stamina-section">
+            <span class="stamina-label">Stamina:</span>
+            <div class="stamina-dots">
+                @foreach (var dot in GetStaminaDots())
+                {
+                    <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
+                }
+            </div>
+            <span class="stamina-numbers">@GetStaminaDisplay()</span>
+        </div>
+
+        <!-- Dead-End Section -->
+        <div class="deadend-section">
+            <div class="deadend-message">
+                <div class="warning-icon">⚠</div>
+                <div class="deadend-text">
+                    <div class="deadend-primary">You cannot proceed further</div>
+                    <div class="deadend-secondary">All paths ahead are blocked due to insufficient resources or requirements</div>
                 </div>
             </div>
-            @if (!string.IsNullOrEmpty(GetTransportType()))
-            {
-                <span class="transport-badge">@GetTransportType().ToUpper()</span>
-            }
-        </div>
-    </div>
 
-    <!-- Travel State Bar -->
-    <div class="travel-state-bar">
-        <div class="travel-state">
-            <span class="state-label">Current Segment</span>
-            <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
-        </div>
-        <div class="travel-state">
-            <span class="state-label">Travel State</span>
-            <span class="state-name">@GetTravelStateText()</span>
-        </div>
-    </div>
-
-    <!-- Stamina Bar -->
-    <div class="stamina-section">
-        <span class="stamina-label">Stamina:</span>
-        <div class="stamina-dots">
-            @foreach (var dot in GetStaminaDots())
-            {
-                <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
-            }
-        </div>
-        <span class="stamina-numbers">@GetStaminaDisplay()</span>
-        <span class="stamina-note">@GetTravelStateText()</span>
-    </div>
-
-    <!-- Segment Progress -->
-    <div class="segment-progress">
-        SEGMENT @GetCurrentSegment() OF @GetSegmentCount()
-        <span class="segment-dots">
-            @{
-                var segmentDots = GetSegmentDots();
-                for (int i = 0; i < segmentDots.Count; i++)
-                {
-                    var dot = segmentDots[i];
-                    <span class="segment-dot @GetSegmentDotClass(dot.State)"></span>
-                    @if (i < segmentDots.Count - 1)
+            <!-- Blocked Paths Display -->
+            <div class="blocked-paths-list">
+                <div class="blocked-paths-title">Blocked Paths</div>
+                <div class="path-grid">
+                    @if (IsCurrentSegmentRoutePathType())
                     {
-                        <span class="icon-arrow-right"></span>
-                    }
-                }
-            }
-        </span>
-    </div>
-
-    <!-- Path Cards Section -->
-    <div class="paths-section">
-        <div class="paths-title">@GetPathsTitle()</div>
-        
-        @{
-            var eventNarrative = GetEventNarrative();
-            var eventTitle = GetEventTitle();
-            var eventType = GetEventType();
-        }
-        @if (!string.IsNullOrEmpty(eventNarrative))
-        {
-            @if (!string.IsNullOrEmpty(eventTitle))
-            {
-                <!-- Structured Event Card for Caravan Events -->
-                <div class="event-card">
-                    <div class="event-header">
-                        <div class="event-title">@eventTitle</div>
-                        @if (!string.IsNullOrEmpty(eventType))
+                        @foreach (var routePath in GetAvailableRoutePaths())
                         {
-                            <div class="event-type">@eventType</div>
+                            <div class="path-card blocked">
+                                <div class="path-content">
+                                    <div class="path-main">
+                                        <div class="path-header">
+                                            <div class="path-name">@routePath.Description</div>
+                                            <div class="path-stamina">@routePath.StaminaCost</div>
+                                        </div>
+                                        <div class="blocked-reason">@GetUnavailableReason(routePath.Id)</div>
+                                    </div>
+                                </div>
+                            </div>
                         }
-                    </div>
-                    <div class="event-narrative-text">@eventNarrative</div>
+                    }
+                    else
+                    {
+                        @foreach (var pathCardData in GetAvailablePathCards())
+                        {
+                            var card = pathCardData.Card;
+                            <div class="path-card blocked">
+                                <div class="path-content">
+                                    <div class="path-main">
+                                        <div class="path-header">
+                                            <div class="path-name">@card.Name</div>
+                                            <div class="path-stamina">@card.StaminaCost</div>
+                                        </div>
+                                        <div class="blocked-reason">@GetUnavailableReason(card.Id)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
-            }
-            else
-            {
-                <!-- Simple narrative for walking encounters -->
-                <div class="event-narrative simple">@eventNarrative</div>
-            }
-        }
-        
-        <div class="path-grid">
-            @if (IsCurrentSegmentRoutePathType())
-            {
-                @* NEW SYSTEM: Core Loop RoutePaths - Direct choice with perfect information *@
-                @foreach (var routePath in GetAvailableRoutePaths())
+            </div>
+
+            <!-- Turn Back Action -->
+            <div class="turnback-action">
+                <div class="turnback-button" @onclick="TurnBack">
+                    <div class="turnback-icon">←</div>
+                    <div class="turnback-text">
+                        <div class="turnback-primary">TURN BACK</div>
+                        <div class="turnback-secondary">Return to @GetOriginLocationName()</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternatives -->
+            <div class="alternatives-section">
+                <div class="alternatives-title">Alternatives</div>
+                <div class="alternative-option">
+                    <div class="alternative-icon">🛌</div>
+                    <div class="alternative-text">
+                        <div class="alternative-name">Rest Here</div>
+                        <div class="alternative-desc">Restore stamina but add +3 segments to travel time</div>
+                    </div>
+                    <div class="alternative-action @(!CanRest() ? "disabled" : "")" @onclick="RestAction">REST</div>
+                </div>
+            </div>
+        </div>
+    }
+    @* ========== ENCOUNTER SEGMENT (Mandatory Challenge) ========== *@
+    else if (IsEncounterSegment())
+    {
+        <!-- Encounter Banner -->
+        <div class="encounter-banner">
+            <div class="encounter-icon">⚔</div>
+            <div class="encounter-title">CHALLENGE AHEAD</div>
+            <div class="encounter-subtitle">You must overcome this obstacle to proceed</div>
+        </div>
+
+        <!-- Current State Info -->
+        <div class="encounter-state-bar">
+            <div class="travel-state">
+                <span class="state-label">Current Segment</span>
+                <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
+            </div>
+            <div class="travel-state">
+                <span class="state-label">Location</span>
+                <span class="state-name">@GetOriginLocationName() → @GetDestinationName()</span>
+            </div>
+        </div>
+
+        <!-- Stamina Display -->
+        <div class="stamina-section">
+            <span class="stamina-label">Stamina:</span>
+            <div class="stamina-dots">
+                @foreach (var dot in GetStaminaDots())
                 {
-                    var isAvailable = CanSelectRoutePath(routePath.Id);
+                    <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
+                }
+            </div>
+            <span class="stamina-numbers">@GetStaminaDisplay()</span>
+        </div>
 
-                    <div class="path-card core-loop @(isAvailable ? "" : "unavailable")"
-                         @onclick="async () => { if (isAvailable) await SelectRoutePath(routePath.Id); }">
+        <!-- Encounter Section -->
+        <div class="encounter-section">
+            <div class="encounter-message">
+                <div class="challenge-icon">⚔</div>
+                <div class="encounter-text">
+                    <div class="encounter-primary">Mandatory Challenge</div>
+                    <div class="encounter-secondary">You must resolve this obstacle before continuing your journey</div>
+                </div>
+            </div>
 
-                        <div class="path-content">
-                            <div class="path-main">
-                                <div class="path-header">
-                                    <div class="path-name">@routePath.Description</div>
-                                    <div class="path-stamina">@routePath.StaminaCost</div>
-                                </div>
+            <!-- Obstacle Display -->
+            @{
+                var segment = GetCurrentRouteSegment();
+                if (segment != null && !string.IsNullOrEmpty(segment.MandatoryObstacleId))
+                {
+                    var obstacle = ObstacleFacade.GetObstacleById(segment.MandatoryObstacleId);
+                    if (obstacle != null)
+                    {
+                        <div class="obstacle-display">
+                            <div class="obstacle-name">@obstacle.Name</div>
+                            <div class="obstacle-description">@obstacle.Description</div>
+                            <div class="obstacle-intensity">Intensity: @obstacle.Intensity</div>
 
-                                @* Costs/Effects *@
-                                <div class="path-mechanics">
-                                    @if (routePath.TimeSegments > 0)
-                                    {
-                                        <div class="path-time"><span class="icon-clock"></span> @routePath.TimeSegments segments</div>
-                                    }
-                                    @if (routePath.StaminaCost > 0)
-                                    {
-                                        <div class="path-stamina-cost"><span class="icon-attention"></span> @routePath.StaminaCost stamina</div>
-                                    }
-                                </div>
-
-                                @* Core Loop: Goal Preview (challenges spawned by obstacle on this path) *@
-                                @if (!string.IsNullOrEmpty(routePath.OptionalObstacleId))
+                            <!-- Available Goals -->
+                            <div class="goals-list">
+                                <div class="goals-title">Available Approaches</div>
+                                @foreach (var goalId in obstacle.GoalIds)
                                 {
-                                    var goalPreviews = GetGoalPreviewsForPath(routePath.OptionalObstacleId);
-                                    if (goalPreviews != null && goalPreviews.Any())
+                                    if (GameWorld.Goals.TryGetValue(goalId, out Goal goal))
                                     {
-                                        <div class="path-challenges-preview">
-                                            <div class="challenges-header">Challenges ahead:</div>
-
-                                            @foreach (var goalPreview in goalPreviews)
-                                            {
-                                                <div class="goal-preview-card">
-                                                    <div class="goal-preview-header">
-                                                        <span class="goal-preview-name">@goalPreview.Name</span>
-                                                        <span class="goal-preview-system">@goalPreview.SystemType</span>
-                                                    </div>
-
-                                                    @if (!string.IsNullOrEmpty(goalPreview.Description))
-                                                    {
-                                                        <div class="goal-preview-description">@goalPreview.Description</div>
-                                                    }
-
-                                                    @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
-                                                    {
-                                                        <div class="goal-preview-contexts">
-                                                            @foreach (var context in goalPreview.Contexts)
-                                                            {
-                                                                <ContextTag ContextName="@context.ToString()" IsMatch="false" />
-                                                            }
-                                                        </div>
-                                                    }
-
-                                                    @* Equipment Help Indicator *@
-                                                    @if (goalPreview.MatchingEquipment.Any())
-                                                    {
-                                                        <div class="goal-equipment-help">
-                                                            <span class="help-icon">⚙</span>
-                                                            <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
-                                                            <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
+                                        <div class="goal-card">
+                                            <div class="goal-header">
+                                                <div class="goal-name">@goal.Name</div>
+                                                <div class="goal-system">@goal.SystemType</div>
+                                            </div>
+                                            <div class="goal-description">@goal.Description</div>
                                         </div>
                                     }
                                 }
                             </div>
                         </div>
-                    </div>
+                    }
                 }
             }
-            else if (GetAvailablePathCards().Any())
-            {
-                @* OLD SYSTEM: PathCard rendering with reveal mechanic (UNCHANGED) *@
-                @foreach (var pathCardData in GetAvailablePathCards())
-                {
-                    var card = pathCardData.Card;
-                    var isDiscovered = pathCardData.IsDiscovered;
-                    var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card.Id);
-                    var isBeingRevealed = IsCardBeingRevealed(card.Id);
-                    
-                    <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "") @(IsReadyToComplete() ? "complete" : "")"
-                         data-unavailable-reason="@(!isAvailable ? GetUnavailableReason(card.Id) : "")"
-                         @onclick="async () => { if (!IsReadyToComplete()) await SelectPathCard(card.Id); }">
-                        
-                        @if (isDiscovered)
+
+            <!-- Action: Engage Challenge -->
+            <div class="encounter-actions">
+                <div class="encounter-button primary">
+                    <div class="encounter-button-text">ENGAGE CHALLENGE</div>
+                    <div class="encounter-button-subtitle">Begin obstacle resolution</div>
+                </div>
+                <div class="encounter-button secondary" @onclick="TurnBack">
+                    <div class="encounter-button-text">TURN BACK</div>
+                    <div class="encounter-button-subtitle">Return to @GetOriginLocationName()</div>
+                </div>
+            </div>
+        </div>
+    }
+    @* ========== DISCOVERY REVEAL SEGMENT (travel-discovery.html) ========== *@
+    else if (IsDiscoveryReveal())
+    {
+        <!-- Discovery Banner -->
+        <div class="discovery-banner">
+            <div class="discovery-icon">🗺</div>
+            <div class="discovery-title">PATH REVEALED</div>
+            <div class="discovery-subtitle">A new route has been discovered</div>
+        </div>
+
+        <!-- Current State Info -->
+        <div class="discovery-state-bar">
+            <div class="travel-state">
+                <span class="state-label">Current Segment</span>
+                <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
+            </div>
+            <div class="travel-state">
+                <span class="state-label">Progress</span>
+                <span class="state-name">@GetOriginLocationName() → @GetDestinationName()</span>
+            </div>
+        </div>
+
+        <!-- Discovery Content -->
+        <div class="discovery-section">
+            <div class="discovery-message">
+                Your exploration has revealed a previously hidden path!
+            </div>
+
+            <!-- Revealed Card Display -->
+            <div class="revealed-card-display">
+                @{
+                    var revealedCard = GetRevealedCard();
+                    if (revealedCard != null)
+                    {
+                        <div class="discovery-card">
+                            <div class="discovery-card-header">
+                                <div class="discovery-card-name">@revealedCard.Name</div>
+                                <div class="discovery-card-cost">@revealedCard.StaminaCost stamina</div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(revealedCard.NarrativeText))
+                            {
+                                <div class="discovery-card-narrative">@revealedCard.NarrativeText</div>
+                            }
+
+                            @{
+                                var hasEffects = revealedCard.TravelTimeSegments > 0 || revealedCard.HungerEffect != 0 ||
+                                                revealedCard.CoinReward > 0 || revealedCard.StaminaRestore > 0 ||
+                                                revealedCard.HealthEffect != 0 ||
+                                                (revealedCard.TokenGains?.Any() ?? false);
+                            }
+                            @if (hasEffects)
+                            {
+                                <div class="discovery-card-effects">
+                                    @if (revealedCard.TravelTimeSegments > 0)
+                                    {
+                                        <div class="effect-item time"><span class="icon-clock"></span> @revealedCard.TravelTimeSegments segments</div>
+                                    }
+                                    @if (revealedCard.StaminaCost > 0)
+                                    {
+                                        <div class="effect-item stamina"><span class="icon-attention"></span> @revealedCard.StaminaCost stamina cost</div>
+                                    }
+                                    @if (revealedCard.HungerEffect != 0)
+                                    {
+                                        <div class="effect-item @(revealedCard.HungerEffect > 0 ? "hunger" : "food")">
+                                            <span class="icon-food"></span> @(revealedCard.HungerEffect > 0 ? "+" : "")@revealedCard.HungerEffect hunger
+                                        </div>
+                                    }
+                                    @if (revealedCard.CoinReward > 0)
+                                    {
+                                        <div class="effect-item coins"><span class="icon-coin"></span> +@revealedCard.CoinReward coins</div>
+                                    }
+                                    @if (revealedCard.StaminaRestore > 0)
+                                    {
+                                        <div class="effect-item restore"><span class="icon-attention"></span> Restore @revealedCard.StaminaRestore stamina</div>
+                                    }
+                                    @if (revealedCard.HealthEffect != 0)
+                                    {
+                                        <div class="effect-item @(revealedCard.HealthEffect < 0 ? "damage" : "heal")">
+                                            <span class="icon-health"></span> @(revealedCard.HealthEffect > 0 ? "+" : "")@revealedCard.HealthEffect health
+                                        </div>
+                                    }
+                                    @if (revealedCard.TokenGains != null && revealedCard.TokenGains.Any())
+                                    {
+                                        @foreach (var token in revealedCard.TokenGains)
+                                        {
+                                            <div class="effect-item token"><span class="icon-token"></span> +@token.Value @token.Key</div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Results Summary -->
+            <div class="results-section">
+                <div class="results-title">Path Effects</div>
+                <div class="results-grid">
+                    @{
+                        var revealedCardEffects = GetRevealedCard();
+                        if (revealedCardEffects != null)
                         {
-                            <!-- Face-Up Path Card -->
+                            if (revealedCardEffects.TravelTimeSegments > 0)
+                            {
+                                <div class="result-card time">
+                                    <div class="result-icon">⏱</div>
+                                    <div class="result-label">Time</div>
+                                    <div class="result-value">+@revealedCardEffects.TravelTimeSegments seg</div>
+                                </div>
+                            }
+                            if (revealedCardEffects.StaminaCost > 0)
+                            {
+                                <div class="result-card stamina">
+                                    <div class="result-icon">⚡</div>
+                                    <div class="result-label">Stamina</div>
+                                    <div class="result-value">-@revealedCardEffects.StaminaCost</div>
+                                </div>
+                            }
+                            if (revealedCardEffects.CoinReward > 0)
+                            {
+                                <div class="result-card coins">
+                                    <div class="result-icon">🪙</div>
+                                    <div class="result-label">Coins</div>
+                                    <div class="result-value">+@revealedCardEffects.CoinReward</div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Continue Button -->
+            <div class="continue-section">
+                @if (IsReadyToComplete())
+                {
+                    <div class="continue-button discovery" @onclick="FinishRoute">
+                        <div>FINISH ROUTE</div>
+                        <div class="continue-details">Complete your journey to @GetDestinationName()</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="continue-button discovery" @onclick="ConfirmRevealedCard">
+                        <div>CONTINUE TO NEXT SEGMENT</div>
+                        <div class="continue-details">Proceed with this path choice</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    @* ========== CARAVAN/EVENT SEGMENT (travel-caravan.html) ========== *@
+    else if (IsEventSegment())
+    {
+        <!-- Caravan Header -->
+        <div class="caravan-header">
+            <div class="caravan-name">@GetOriginLocationName() → @GetDestinationName()</div>
+            <div class="caravan-info">
+                <div class="comfort-badge">Comfort: Standard</div>
+                <div class="event-progress">Event @GetCurrentSegment() of @GetSegmentCount()</div>
+            </div>
+        </div>
+
+        <!-- Stamina Display -->
+        <div class="stamina-section">
+            <span class="stamina-label">Stamina:</span>
+            <div class="stamina-dots">
+                @foreach (var dot in GetStaminaDots())
+                {
+                    <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
+                }
+            </div>
+            <span class="stamina-numbers">@GetStaminaDisplay()</span>
+        </div>
+
+        <!-- Event Narrative -->
+        @if (!string.IsNullOrEmpty(GetEventNarrative()))
+        {
+            <div class="event-card">
+                @if (!string.IsNullOrEmpty(GetEventTitle()))
+                {
+                    <div class="event-header">
+                        <div class="event-title">@GetEventTitle()</div>
+                        @if (!string.IsNullOrEmpty(GetEventType()))
+                        {
+                            <div class="event-type">@GetEventType()</div>
+                        }
+                    </div>
+                }
+                <div class="event-narrative-text">@GetEventNarrative()</div>
+            </div>
+        }
+
+        <!-- Response Cards (Path Cards for Events) -->
+        <div class="responses-section">
+            <div class="responses-title">Your Response</div>
+            <div class="response-grid">
+                @if (IsCurrentSegmentRoutePathType())
+                {
+                    @foreach (var routePath in GetAvailableRoutePaths())
+                    {
+                        var isAvailable = CanSelectRoutePath(routePath.Id);
+                        <div class="response-card @(isAvailable ? "" : "unavailable") @(routePath.StaminaCost == 0 ? "free" : "")"
+                             @onclick="async () => { if (isAvailable) await SelectRoutePath(routePath.Id); }">
+                            <div class="response-header">
+                                <div class="response-name">@routePath.Description</div>
+                                @if (routePath.StaminaCost == 0)
+                                {
+                                    <div class="response-cost free">FREE</div>
+                                }
+                                else
+                                {
+                                    <div class="response-cost">@routePath.StaminaCost stamina</div>
+                                }
+                            </div>
+                            <div class="response-effects">
+                                @if (routePath.TimeSegments > 0)
+                                {
+                                    <div class="response-effect"><span class="icon-clock"></span> @routePath.TimeSegments segments</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    @foreach (var pathCardData in GetAvailablePathCards())
+                    {
+                        var card = pathCardData.Card;
+                        var isAvailable = pathCardData.CanPlay;
+                        <div class="response-card @(isAvailable ? "" : "unavailable") @(card.StaminaCost == 0 ? "free" : "")"
+                             @onclick="async () => { if (isAvailable) await SelectPathCard(card.Id); }">
+                            <div class="response-header">
+                                <div class="response-name">@card.Name</div>
+                                @if (card.StaminaCost == 0)
+                                {
+                                    <div class="response-cost free">FREE</div>
+                                }
+                                else
+                                {
+                                    <div class="response-cost">@card.StaminaCost stamina</div>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(card.NarrativeText))
+                            {
+                                <div class="response-narrative">@card.NarrativeText</div>
+                            }
+                            @{
+                                var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 ||
+                                                card.CoinReward > 0 || card.StaminaRestore > 0 ||
+                                                card.HealthEffect != 0;
+                            }
+                            @if (hasEffects)
+                            {
+                                <div class="response-effects">
+                                    @if (card.TravelTimeSegments > 0)
+                                    {
+                                        <div class="response-effect"><span class="icon-clock"></span> @card.TravelTimeSegments segments</div>
+                                    }
+                                    @if (card.HungerEffect != 0)
+                                    {
+                                        <div class="response-effect"><span class="icon-food"></span> @(card.HungerEffect > 0 ? "+" : "")@card.HungerEffect hunger</div>
+                                    }
+                                    @if (card.CoinReward > 0)
+                                    {
+                                        <div class="response-effect"><span class="icon-coin"></span> +@card.CoinReward coins</div>
+                                    }
+                                    @if (card.StaminaRestore > 0)
+                                    {
+                                        <div class="response-effect"><span class="icon-attention"></span> +@card.StaminaRestore stamina</div>
+                                    }
+                                    @if (card.HealthEffect != 0)
+                                    {
+                                        <div class="response-effect"><span class="icon-health"></span> @(card.HealthEffect > 0 ? "+" : "")@card.HealthEffect health</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section caravan">
+            <div class="action-choices">
+                <div class="action-button @(!CanRest() ? "disabled" : "")" @onclick="RestAction">
+                    <div>REST IN CARAVAN</div>
+                    <div class="action-details">Skip event, +3 segments, restore stamina</div>
+                </div>
+            </div>
+        </div>
+    }
+    @* ========== WALKING/FIXEDPATH SEGMENT (travel-walking.html) ========== *@
+    else if (IsFixedPathSegment())
+    {
+        <!-- Route Header -->
+        <div class="route-header">
+            <div class="route-info">
+                <div class="route-name">@GetOriginLocationName() <span class="icon-arrow-right"></span> @GetDestinationName()</div>
+                <div class="route-properties">
+                    <div class="route-property">
+                        <span class="property-label">Transport</span>
+                        <span class="property-value">@GetTransportType()</span>
+                    </div>
+                    <div class="route-property">
+                        <span class="property-label">Distance</span>
+                        <span class="property-value">@GetSegmentCount() segments</span>
+                    </div>
+                    <div class="route-property">
+                        <span class="property-label">Base Time</span>
+                        <span class="property-value">@GetBaseTravelTime() min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Travel State Bar -->
+        <div class="travel-state-bar">
+            <div class="travel-state">
+                <span class="state-label">Current Segment</span>
+                <span class="state-name">Segment @GetCurrentSegment() of @GetSegmentCount()</span>
+            </div>
+            <div class="travel-state">
+                <span class="state-label">Travel State</span>
+                <span class="state-name">@GetTravelStateText()</span>
+            </div>
+        </div>
+
+        <!-- Stamina Bar -->
+        <div class="stamina-section">
+            <span class="stamina-label">Stamina:</span>
+            <div class="stamina-dots">
+                @foreach (var dot in GetStaminaDots())
+                {
+                    <span class="stamina-dot @(dot.State == StaminaDotState.Available ? "available" : dot.State == StaminaDotState.Spent ? "spent" : "")"></span>
+                }
+            </div>
+            <span class="stamina-numbers">@GetStaminaDisplay()</span>
+            <span class="stamina-note">@GetTravelStateText()</span>
+        </div>
+
+        <!-- Segment Progress -->
+        <div class="segment-progress">
+            SEGMENT @GetCurrentSegment() OF @GetSegmentCount()
+            <span class="segment-dots">
+                @{
+                    var segmentDots = GetSegmentDots();
+                    for (int i = 0; i < segmentDots.Count; i++)
+                    {
+                        var dot = segmentDots[i];
+                        <span class="segment-dot @GetSegmentDotClass(dot.State)"></span>
+                        @if (i < segmentDots.Count - 1)
+                        {
+                            <span class="icon-arrow-right"></span>
+                        }
+                    }
+                }
+            </span>
+        </div>
+
+        <!-- Path Cards Section -->
+        <div class="paths-section">
+            <div class="paths-title">@GetPathsTitle()</div>
+
+            @if (!string.IsNullOrEmpty(GetEventNarrative()))
+            {
+                <div class="event-narrative simple">@GetEventNarrative()</div>
+            }
+
+            <div class="path-grid">
+                @if (IsCurrentSegmentRoutePathType())
+                {
+                    @* NEW SYSTEM: Core Loop RoutePaths *@
+                    @foreach (var routePath in GetAvailableRoutePaths())
+                    {
+                        var isAvailable = CanSelectRoutePath(routePath.Id);
+
+                        <div class="path-card core-loop @(isAvailable ? "" : "unavailable")"
+                             @onclick="async () => { if (isAvailable) await SelectRoutePath(routePath.Id); }">
+
                             <div class="path-content">
                                 <div class="path-main">
                                     <div class="path-header">
-                                        <div class="path-name">@card.Name</div>
-                                        <div class="path-stamina">@card.StaminaCost</div>
+                                        <div class="path-name">@routePath.Description</div>
+                                        <div class="path-stamina">@routePath.StaminaCost</div>
                                     </div>
-                                    
-                                    @{
-                                        var requirements = GetRequirementsText(card);
-                                    }
-                                    @if (!string.IsNullOrEmpty(requirements))
-                                    {
-                                        <div class="path-requirements">@requirements</div>
-                                    }
 
-                                    @* Stat Requirements Visual Indicators *@
-                                    @if (card.StatRequirements != null && card.StatRequirements.Count > 0)
-                                    {
-                                        <div class="path-stat-requirements">
-                                            @foreach (var statReq in card.StatRequirements)
-                                            {
-                                                Player player = GameFacade.GetPlayer();
-                                                bool meetsRequirement = false;
-                                                string statName = "";
-                                                int required = statReq.Value;
-                                                int current = 0;
+                                    <div class="path-mechanics">
+                                        @if (routePath.TimeSegments > 0)
+                                        {
+                                            <div class="path-time"><span class="icon-clock"></span> @routePath.TimeSegments segments</div>
+                                        }
+                                        @if (routePath.StaminaCost > 0)
+                                        {
+                                            <div class="path-stamina-cost"><span class="icon-attention"></span> @routePath.StaminaCost stamina</div>
+                                        }
+                                    </div>
 
-                                                if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
-                                                {
-                                                    statName = GetStatDisplayName(statType);
-                                                    current = player.Stats.GetLevel(statType);
-                                                    meetsRequirement = current >= required;
-                                                }
-                                                <div class="stat-requirement @(meetsRequirement ? "met" : "unmet")">
-                                                    <span class="stat-icon @GetStatIconClass(statReq.Key)"></span>
-                                                    <span class="stat-info">@statName @required+</span>
-                                                    @if (!meetsRequirement)
-                                                    {
-                                                        <span class="current-level">(@current)</span>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-
-                                    @* Core Loop: Goal Preview (challenges on this path) *@
-                                    @if (!string.IsNullOrEmpty(card.ObstacleId))
+                                    @if (!string.IsNullOrEmpty(routePath.OptionalObstacleId))
                                     {
-                                        var goalPreviews = GetGoalPreviewsForPath(card.ObstacleId);
+                                        var goalPreviews = GetGoalPreviewsForPath(routePath.OptionalObstacleId);
                                         if (goalPreviews != null && goalPreviews.Any())
                                         {
                                             <div class="path-challenges-preview">
@@ -279,7 +637,6 @@
                                                             </div>
                                                         }
 
-                                                        @* Equipment Help Indicator *@
                                                         @if (goalPreview.MatchingEquipment.Any())
                                                         {
                                                             <div class="goal-equipment-help">
@@ -293,181 +650,279 @@
                                             </div>
                                         }
                                     }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (GetAvailablePathCards().Any())
+                {
+                    @* OLD SYSTEM: PathCard rendering with reveal mechanic *@
+                    @foreach (var pathCardData in GetAvailablePathCards())
+                    {
+                        var card = pathCardData.Card;
+                        var isDiscovered = pathCardData.IsDiscovered;
+                        var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card.Id);
+                        var isBeingRevealed = IsCardBeingRevealed(card.Id);
 
-                                    <!-- Mechanical Effects Section -->
-                                    @{
-                                        var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 || 
-                                                        card.CoinReward > 0 || card.StaminaRestore > 0 || 
-                                                        card.HealthEffect != 0 ||
-                                                        card.ForceReturn || (card.TokenGains?.Any() ?? false) ||
-                                                        (card.RevealsPaths?.Any() ?? false) || 
-                                                        (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime);
-                                    }
-                                    @if (hasEffects)
-                                    {
-                                        <div class="path-mechanics">
-                                            @if (card.TravelTimeSegments > 0)
-                                            {
-                                                <div class="path-time"><span class="icon-clock"></span> @card.TravelTimeSegments segments</div>
-                                            }
-                                            
-                                            @if (card.HungerEffect != 0)
-                                            {
-                                                <div class="path-hunger @(card.HungerEffect > 0 ? "cost" : "reward")">
-                                                    @if (card.HungerEffect > 0)
-                                                    {
-                                                        <span><span class="icon-food"></span> +@card.HungerEffect hunger</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span><span class="icon-food"></span> @card.HungerEffect hunger</span>
-                                                    }
-                                                </div>
-                                            }
-                                            
-                                            @if (card.CoinReward > 0)
-                                            {
-                                                <div class="path-coins reward"><span class="icon-coin"></span> +@card.CoinReward coins</div>
-                                            }
-                                            
-                                            @if (card.StaminaRestore > 0)
-                                            {
-                                                <div class="path-stamina-restore"><span class="icon-attention"></span> Restore @card.StaminaRestore stamina</div>
-                                            }
-                                            
-                                            
-                                            @if (card.HealthEffect != 0)
-                                            {
-                                                <div class="path-health @(card.HealthEffect < 0 ? "damage" : "heal")">
-                                                    @if (card.HealthEffect < 0)
-                                                    {
-                                                        <span><span class="icon-health"></span> @card.HealthEffect health</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span><span class="icon-health"></span> +@card.HealthEffect health</span>
-                                                    }
-                                                </div>
-                                            }
-                                            
-                                            @if (card.TokenGains != null && card.TokenGains.Any())
-                                            {
-                                                @foreach (var token in card.TokenGains)
-                                                {
-                                                    <div class="path-tokens"><span class="icon-token"></span> +@token.Value @token.Key token@(token.Value > 1 ? "s" : "")</div>
-                                                }
-                                            }
-                                            
-                                            @if (card.RevealsPaths != null && card.RevealsPaths.Any())
-                                            {
-                                                <div class="path-reveals"><span class="icon-map"></span> Reveals @card.RevealsPaths.Count path@(card.RevealsPaths.Count > 1 ? "s" : "")</div>
-                                            }
-                                            
-                                            @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
-                                            {
-                                                var rewardParsed = ParseReward(card.OneTimeReward);
-                                                var alreadyClaimed = IsOneTimeRewardClaimed(card);
-                                                <div class="path-reward">
-                                                    <span class="icon-star"></span> @rewardParsed
-                                                    @if (alreadyClaimed)
-                                                    {
-                                                        <span class="path-already-claimed">(already claimed)</span>
-                                                    }
-                                                </div>
-                                            }
-                                            
-                                            @if (card.ForceReturn)
-                                            {
-                                                <div class="path-force-return"><span class="icon-warning"></span> DEAD END - Must return</div>
-                                            }
+                        <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "") @(IsReadyToComplete() ? "complete" : "")"
+                             data-unavailable-reason="@(!isAvailable ? GetUnavailableReason(card.Id) : "")"
+                             @onclick="async () => { if (!IsReadyToComplete()) await SelectPathCard(card.Id); }">
+
+                            @if (isDiscovered)
+                            {
+                                <!-- Face-Up Path Card -->
+                                <div class="path-content">
+                                    <div class="path-main">
+                                        <div class="path-header">
+                                            <div class="path-name">@card.Name</div>
+                                            <div class="path-stamina">@card.StaminaCost</div>
                                         </div>
-                                    }
-                                    
-                                    <div class="path-effect">
-                                        @card.NarrativeText
+
+                                        @{
+                                            var requirements = GetRequirementsText(card);
+                                        }
+                                        @if (!string.IsNullOrEmpty(requirements))
+                                        {
+                                            <div class="path-requirements">@requirements</div>
+                                        }
+
+                                        @if (card.StatRequirements != null && card.StatRequirements.Count > 0)
+                                        {
+                                            <div class="path-stat-requirements">
+                                                @foreach (var statReq in card.StatRequirements)
+                                                {
+                                                    Player player = GameFacade.GetPlayer();
+                                                    bool meetsRequirement = false;
+                                                    string statName = "";
+                                                    int required = statReq.Value;
+                                                    int current = 0;
+
+                                                    if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
+                                                    {
+                                                        statName = GetStatDisplayName(statType);
+                                                        current = player.Stats.GetLevel(statType);
+                                                        meetsRequirement = current >= required;
+                                                    }
+                                                    <div class="stat-requirement @(meetsRequirement ? "met" : "unmet")">
+                                                        <span class="stat-icon @GetStatIconClass(statReq.Key)"></span>
+                                                        <span class="stat-info">@statName @required+</span>
+                                                        @if (!meetsRequirement)
+                                                        {
+                                                            <span class="current-level">(@current)</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(card.ObstacleId))
+                                        {
+                                            var goalPreviews = GetGoalPreviewsForPath(card.ObstacleId);
+                                            if (goalPreviews != null && goalPreviews.Any())
+                                            {
+                                                <div class="path-challenges-preview">
+                                                    <div class="challenges-header">Challenges ahead:</div>
+
+                                                    @foreach (var goalPreview in goalPreviews)
+                                                    {
+                                                        <div class="goal-preview-card">
+                                                            <div class="goal-preview-header">
+                                                                <span class="goal-preview-name">@goalPreview.Name</span>
+                                                                <span class="goal-preview-system">@goalPreview.SystemType</span>
+                                                            </div>
+
+                                                            @if (!string.IsNullOrEmpty(goalPreview.Description))
+                                                            {
+                                                                <div class="goal-preview-description">@goalPreview.Description</div>
+                                                            }
+
+                                                            @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
+                                                            {
+                                                                <div class="goal-preview-contexts">
+                                                                    @foreach (var context in goalPreview.Contexts)
+                                                                    {
+                                                                        <ContextTag ContextName="@context.ToString()" IsMatch="false" />
+                                                                    }
+                                                                </div>
+                                                            }
+
+                                                            @if (goalPreview.MatchingEquipment.Any())
+                                                            {
+                                                                <div class="goal-equipment-help">
+                                                                    <span class="help-icon">⚙</span>
+                                                                    <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
+                                                                    <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+
+                                        @{
+                                            var hasEffects = card.TravelTimeSegments > 0 || card.HungerEffect != 0 ||
+                                                            card.CoinReward > 0 || card.StaminaRestore > 0 ||
+                                                            card.HealthEffect != 0 ||
+                                                            card.ForceReturn || (card.TokenGains?.Any() ?? false) ||
+                                                            (card.RevealsPaths?.Any() ?? false) ||
+                                                            (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime);
+                                        }
+                                        @if (hasEffects)
+                                        {
+                                            <div class="path-mechanics">
+                                                @if (card.TravelTimeSegments > 0)
+                                                {
+                                                    <div class="path-time"><span class="icon-clock"></span> @card.TravelTimeSegments segments</div>
+                                                }
+
+                                                @if (card.HungerEffect != 0)
+                                                {
+                                                    <div class="path-hunger @(card.HungerEffect > 0 ? "cost" : "reward")">
+                                                        @if (card.HungerEffect > 0)
+                                                        {
+                                                            <span><span class="icon-food"></span> +@card.HungerEffect hunger</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span><span class="icon-food"></span> @card.HungerEffect hunger</span>
+                                                        }
+                                                    </div>
+                                                }
+
+                                                @if (card.CoinReward > 0)
+                                                {
+                                                    <div class="path-coins reward"><span class="icon-coin"></span> +@card.CoinReward coins</div>
+                                                }
+
+                                                @if (card.StaminaRestore > 0)
+                                                {
+                                                    <div class="path-stamina-restore"><span class="icon-attention"></span> Restore @card.StaminaRestore stamina</div>
+                                                }
+
+                                                @if (card.HealthEffect != 0)
+                                                {
+                                                    <div class="path-health @(card.HealthEffect < 0 ? "damage" : "heal")">
+                                                        @if (card.HealthEffect < 0)
+                                                        {
+                                                            <span><span class="icon-health"></span> @card.HealthEffect health</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span><span class="icon-health"></span> +@card.HealthEffect health</span>
+                                                        }
+                                                    </div>
+                                                }
+
+                                                @if (card.TokenGains != null && card.TokenGains.Any())
+                                                {
+                                                    @foreach (var token in card.TokenGains)
+                                                    {
+                                                        <div class="path-tokens"><span class="icon-token"></span> +@token.Value @token.Key token@(token.Value > 1 ? "s" : "")</div>
+                                                    }
+                                                }
+
+                                                @if (card.RevealsPaths != null && card.RevealsPaths.Any())
+                                                {
+                                                    <div class="path-reveals"><span class="icon-map"></span> Reveals @card.RevealsPaths.Count path@(card.RevealsPaths.Count > 1 ? "s" : "")</div>
+                                                }
+
+                                                @if (!string.IsNullOrEmpty(card.OneTimeReward) && card.IsOneTime)
+                                                {
+                                                    var rewardParsed = ParseReward(card.OneTimeReward);
+                                                    var alreadyClaimed = IsOneTimeRewardClaimed(card);
+                                                    <div class="path-reward">
+                                                        <span class="icon-star"></span> @rewardParsed
+                                                        @if (alreadyClaimed)
+                                                        {
+                                                            <span class="path-already-claimed">(already claimed)</span>
+                                                        }
+                                                    </div>
+                                                }
+
+                                                @if (card.ForceReturn)
+                                                {
+                                                    <div class="path-force-return"><span class="icon-warning"></span> DEAD END - Must return</div>
+                                                }
+                                            </div>
+                                        }
+
+                                        <div class="path-effect">
+                                            @card.NarrativeText
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        }
-                        else if (!IsCurrentSegmentEventType())
-                        {
-                            <!-- Face-Down Path Card (only for FixedPath segments) -->
-                            <div class="card-back-pattern"></div>
-                            <div class="card-back">
-                                <span class="card-back-name">
-                                    @card.Name
-                                </span>
-                                <div class="card-back-info">
-                                    <span class="card-back-cost">@card.StaminaCost stamina</span>
-                                    @if (card.TravelTimeSegments > 0)
-                                    {
-                                        <span class="card-back-time">@card.TravelTimeSegments seg</span>
-                                    }
+                            }
+                            else
+                            {
+                                <!-- Face-Down Path Card -->
+                                <div class="card-back-pattern"></div>
+                                <div class="card-back">
+                                    <span class="card-back-name">
+                                        @card.Name
+                                    </span>
+                                    <div class="card-back-info">
+                                        <span class="card-back-cost">@card.StaminaCost stamina</span>
+                                        @if (card.TravelTimeSegments > 0)
+                                        {
+                                            <span class="card-back-time">@card.TravelTimeSegments seg</span>
+                                        }
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="unknown-hint">
-                    No path cards available for this segment.
-                </div>
-            }
-        </div>
-
-        @if (IsRevealingCard())
-        {
-            <div class="continue-section">
-                @if (IsReadyToComplete())
-                {
-                    <div class="continue-button" @onclick="FinishRoute">
-                        <div>FINISH ROUTE</div>
-                        <div class="continue-details">Complete your journey to @GetDestinationName()</div>
-                    </div>
+                            }
+                        </div>
+                    }
                 }
                 else
                 {
-                    <div class="continue-button" @onclick="ConfirmRevealedCard">
-                        <div>CONTINUE TO NEXT SEGMENT</div>
-                        <div class="continue-details">Confirm this path choice and proceed</div>
+                    <div class="unknown-hint">
+                        No path cards available for this segment.
                     </div>
                 }
             </div>
-        }
-        else if (IsReadyToComplete())
-        {
-            <div class="continue-section">
-                <div class="continue-button" @onclick="FinishRoute">
-                    <div>FINISH ROUTE</div>
-                    <div class="continue-details">Complete your journey to @GetDestinationName()</div>
+
+            @* Encounter Deck Preview - Show possible encounters from obstacle goals *@
+            @{
+                var encounterGoals = GetEncounterGoalsForCurrentSegment();
+            }
+            @if (encounterGoals.Any())
+            {
+                <div class="encounter-preview">
+                    <div class="encounter-title">Possible Encounters:</div>
+                    <div class="encounter-list">
+                        @foreach (var goalName in encounterGoals)
+                        {
+                            <span class="encounter-item">@goalName</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!IsJourneyComplete())
+            {
+                <div class="unknown-hint">
+                    Unknown paths will reveal permanently when played. The <span class="icon-warning"></span> symbol indicates possible encounters.
+                </div>
+            }
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <div class="action-choices">
+                <div class="action-button @(!CanRest() ? "disabled" : "")"
+                     @onclick="RestAction">
+                    <div>REST</div>
+                    <div class="action-details">Skip segment, +3 segments, restore stamina</div>
+                </div>
+                <div class="action-button @(!MustTurnBack() ? "disabled" : "")"
+                     @onclick="TurnBack">
+                    <div>TURN BACK</div>
+                    <div class="action-details">Return to @GetOriginLocationName()</div>
                 </div>
             </div>
-        }
-        else if (!IsJourneyComplete())
-        {
-            <div class="unknown-hint">
-                Unknown paths will reveal permanently when played. The <span class="icon-warning"></span> symbol indicates possible encounters.
-            </div>
-        }
-    </div>
-
-    <!-- Action Section -->
-    <div class="action-section">
-        <div class="action-choices">
-            <div class="action-button @(!CanRest() ? "disabled" : "")" 
-                 @onclick="RestAction">
-                <div>REST</div>
-                <div class="action-details">Skip segment, +3 segments, restore stamina</div>
-            </div>
-            <div class="action-button @(!MustTurnBack() ? "disabled" : "")" 
-                 @onclick="TurnBack">
-                <div>TURN BACK</div>
-                <div class="action-details">Return to @GetOriginLocationName()</div>
-            </div>
         </div>
-    </div>
+    }
 }
 else
 {
@@ -485,18 +940,17 @@ else
     {
         if (TravelContext?.CurrentRoute == null)
             return "Origin";
-        
-        // Get current player location
+
         var player = GameFacade.GetPlayer();
         if (player?.CurrentLocation?.VenueId != null)
         {
             var Venue = GameFacade.GetLocationById(player.CurrentLocation.VenueId);
             return Venue?.Name ?? "Origin";
         }
-        
+
         return "Origin";
     }
-    
+
     protected string GetSegmentDotClass(SegmentDotState state)
     {
         return state switch
@@ -506,39 +960,41 @@ else
             _ => ""
         };
     }
-    
+
     protected string ParseReward(string reward)
     {
         if (string.IsNullOrEmpty(reward))
             return "";
-            
-        // Parse rewards like "5_coins" to "5 coins"
+
         if (reward.Contains("_coin"))
         {
             return reward.Replace("_", " ");
         }
-        
+
         return reward;
     }
-    
+
     protected string GetEventTitle()
     {
-        // This would get the event title from the current event collection
-        // For now, return empty as this needs backend support
         return "";
     }
-    
+
     protected string GetEventType()
     {
-        // This would get the event type (e.g., "Opportunity Event", "Challenge Event")
-        // For now, return empty as this needs backend support
         return "";
     }
-    
+
     protected bool IsOneTimeRewardClaimed(PathCardDTO card)
     {
-        // Check if this one-time reward has already been claimed
-        // This would need to check game state for claimed rewards
-        return false; // For now, assume not claimed
+        return false;
+    }
+
+    protected PathCardDTO GetRevealedCard()
+    {
+        if (TravelContext?.Session == null || string.IsNullOrEmpty(TravelContext.Session.RevealedCardId))
+            return null;
+
+        var allCards = GetAvailablePathCards();
+        return allCards.FirstOrDefault(c => c.Card.Id == TravelContext.Session.RevealedCardId)?.Card;
     }
 }

@@ -362,6 +362,12 @@ namespace Wayfarer.Pages.Components
             {
                 await InvestigateLocation();
             }
+            // Player action: check belongings (equipment/inventory)
+            else if (action.ActionType == "check_belongings")
+            {
+                Console.WriteLine("[LocationContent] Navigating to Equipment view");
+                NavigateToView(LocationViewState.Equipment);
+            }
             else
             {
                 // Other action types not supported in current game design
@@ -901,6 +907,28 @@ namespace Wayfarer.Pages.Components
             return LocationActions.Where(a => a.ActionType == "travel").ToList();
         }
 
+        protected List<LocationActionViewModel> GetPlayerActions()
+        {
+            List<LocationActionViewModel> playerActions = new List<LocationActionViewModel>();
+
+            if (GameWorld?.PlayerActions != null)
+            {
+                foreach (PlayerAction action in GameWorld.PlayerActions)
+                {
+                    playerActions.Add(new LocationActionViewModel
+                    {
+                        Title = action.Name,
+                        Detail = action.Description,
+                        ActionType = action.ActionType,
+                        IsAvailable = true,
+                        Icon = ""
+                    });
+                }
+            }
+
+            return playerActions;
+        }
+
         protected NPCDetailViewModel GetSelectedNPCViewModel()
         {
             if (string.IsNullOrEmpty(SelectedNpcId)) return null;
@@ -1062,6 +1090,14 @@ namespace Wayfarer.Pages.Components
             await MoveToSpot(spotId);
         }
 
+        protected async Task HandleInventoryChanged()
+        {
+            Console.WriteLine("[LocationContent] Inventory changed - refreshing UI");
+            await RefreshLocationData();
+            await OnActionExecuted.InvokeAsync();
+            StateHasChanged();
+        }
+
     }
 
     // ============================================
@@ -1113,7 +1149,13 @@ namespace Wayfarer.Pages.Components
         /// Shows all spots, who's at each spot, current spot indicator
         /// Click to move (instant, free)
         /// </summary>
-        Spots
+        Spots,
+
+        /// <summary>
+        /// Equipment view: Player inventory and belongings
+        /// Shows all owned equipment, sell options, and inventory management
+        /// </summary>
+        Equipment
     }
 
     // ============================================

@@ -1,0 +1,45 @@
+@namespace Wayfarer.Pages.Components
+@inject GameWorld GameWorld
+@*
+Investigation List - Displays all active investigations (NPC-commissioned and self-discovered)
+Shows deadlines, rewards, and progress
+*@
+
+<div class="investigation-list">
+    <h3 class="investigation-list-header">Active Investigations</h3>
+
+    @if (ActiveInvestigations == null || !ActiveInvestigations.Any())
+    {
+        <p class="no-investigations">No active investigations</p>
+    }
+    else
+    {
+        <div class="investigation-cards">
+            @foreach (Investigation investigation in ActiveInvestigations)
+            {
+                <InvestigationCard Investigation="@investigation" CurrentSegment="@CurrentSegment" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CurrentSegment { get; set; }
+
+    private List<Investigation> ActiveInvestigations { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadActiveInvestigations();
+    }
+
+    protected override void OnParametersSet()
+    {
+        LoadActiveInvestigations();
+    }
+
+    private void LoadActiveInvestigations()
+    {
+        ActiveInvestigations = GameWorld.GetActiveInvestigations();
+    }
+}

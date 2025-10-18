@@ -16,6 +16,7 @@ namespace Wayfarer.Pages.Components
         [Parameter] public bool HasSpots { get; set; }
         [Parameter] public string CurrentLocationName { get; set; }
         [Parameter] public List<LocationActionViewModel> TravelActions { get; set; } = new();
+        [Parameter] public List<LocationActionViewModel> PlayerActions { get; set; } = new();
 
         [Parameter] public EventCallback<LocationViewState> OnNavigateToView { get; set; }
         [Parameter] public EventCallback<LocationActionViewModel> OnExecuteLocationAction { get; set; }

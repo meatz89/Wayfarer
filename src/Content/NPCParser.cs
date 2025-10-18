@@ -143,6 +143,7 @@ public static class NPCParser
         {
             "Craftsman" => Professions.Craftsman,
             "Merchant" => Professions.Merchant,
+            "General Merchant" => Professions.Merchant,
             "Innkeeper" => Professions.Innkeeper,
             "Soldier" => Professions.Soldier,
             "Guard" => Professions.Soldier, // Map Guard to Soldier

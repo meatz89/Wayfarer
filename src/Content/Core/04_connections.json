@@ -20,6 +20,7 @@
         "originSpotId": "courtyard",
         "destinationVenueId": "old_mill",
         "destinationSpotId": "workshop",
+        "createBidirectional": false,
         "description": "Navigate through the mill's interior passages to reach the workshop",
         "segments": [
           {
@@ -61,6 +62,7 @@
         "originSpotId": "courtyard",
         "destinationVenueId": "old_mill",
         "destinationSpotId": "main_hall",
+        "createBidirectional": false,
         "description": "Enter the mill's main hall through various passages",
         "segments": [
           {
@@ -90,77 +92,6 @@
                 "staminaCost": 0,
                 "optionalObstacleId": null,
                 "hiddenUntilExploration": 3
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "example_multi_segment_route",
-        "name": "Creek Crossing to Distant Farm",
-        "originVenueId": "old_mill",
-        "originSpotId": "courtyard",
-        "destinationVenueId": "old_mill",
-        "destinationSpotId": "courtyard",
-        "description": "Example route demonstrating multi-segment path system with obstacles (future content)",
-        "segments": [
-          {
-            "segmentNumber": 1,
-            "narrativeDescription": "Forest approach - the treeline is thick with brambles and fallen branches",
-            "availablePaths": [
-              {
-                "id": "forest_main_trail",
-                "description": "Follow the main trail - well-worn but longer",
-                "timeSegments": 1,
-                "staminaCost": 1,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "forest_bramble_shortcut",
-                "description": "Cut through the brambles - faster but requires pushing through thick growth",
-                "timeSegments": 1,
-                "staminaCost": 0,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "forest_game_trail",
-                "description": "Use the hidden game trail that animals have worn through the undergrowth",
-                "timeSegments": 0,
-                "staminaCost": 0,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 2
-              }
-            ]
-          },
-          {
-            "segmentNumber": 2,
-            "narrativeDescription": "Creek crossing - the water runs fast and cold, several feet deep in places",
-            "availablePaths": [
-              {
-                "id": "creek_shallow_ford",
-                "description": "Wade across the shallow ford - chest-deep water, strong current",
-                "timeSegments": 1,
-                "staminaCost": 2,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "creek_rope_bridge",
-                "description": "Cross the old rope bridge - weathered but still standing",
-                "timeSegments": 2,
-                "staminaCost": 1,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "creek_stepping_stones",
-                "description": "Use the hidden stepping stones - locals know where they are",
-                "timeSegments": 1,
-                "staminaCost": 1,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 2
               }
             ]
           }

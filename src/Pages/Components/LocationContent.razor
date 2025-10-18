@@ -53,6 +53,7 @@
                          HasSpots="@AvailableSpots.Any()"
                          CurrentLocationName="@CurrentLocation?.Name"
                          TravelActions="@GetTravelActions()"
+                         PlayerActions="@GetPlayerActions()"
                          OnNavigateToView="HandleNavigateToView"
                          OnExecuteLocationAction="HandleExecuteLocationAction" />
                 break;
@@ -93,6 +94,13 @@
                            AvailableSpots="@GetSpotsViewModel()"
                            OnMoveToSpot="HandleMoveToSpot"
                            OnNavigateBack="NavigateBack" />
+                break;
+
+            case LocationViewState.Equipment:
+                <EquipmentInventory OnInventoryChanged="HandleInventoryChanged" />
+                <div class="back-button-container">
+                    <button class="back-button" @onclick="NavigateBack">← Back</button>
+                </div>
                 break;
         }
     </div>

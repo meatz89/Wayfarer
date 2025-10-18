@@ -24,99 +24,212 @@ else
         var currentTime = TimeManager.GetCurrentTimeBlock();
     }
 
-    <!-- Resources Preview -->
-    <div class="resources-preview">
-        <div class="resource-item">
-            <span class="resource-label">Coins:</span>
-            <span class="resource-value">@player.Coins</span>
+    <!-- Time Status Bar with Segment Dots -->
+    <div class="time-status-bar">
+        <div class="current-time-display">
+            <span class="time-label">Current:</span>
+            <span class="time-value">@currentTime</span>
+            <div class="segment-dots-display">
+                @{
+                    int segmentsInBlock = 4 - TimeManager.SegmentsRemainingInBlock;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var dotClass = i < segmentsInBlock ? "segment-dot filled" :
+                                      i == segmentsInBlock ? "segment-dot current" :
+                                      "segment-dot";
+                        <div class="@dotClass"></div>
+                    }
+                }
+            </div>
         </div>
-        <div class="resource-item">
-            <span class="resource-label">Current Time:</span>
-            <span class="resource-value">@currentTime</span>
-        </div>
-        <div class="resource-item">
-            <span class="resource-label">Hunger:</span>
-            <span class="resource-value">@player.Hunger/@player.MaxHunger</span>
+        <div class="resources-inline">
+            <span class="resource-inline">💰 @player.Coins</span>
+            <span class="resource-inline">🍖 @player.Hunger/@player.MaxHunger</span>
         </div>
     </div>
 
-    <!-- Destinations List -->
-    <div class="destinations-list">
+    <!-- Route List -->
+    <div class="route-list">
         @if (AvailableRoutes.Any())
         {
-            var groupedRoutes = AvailableRoutes
-                .GroupBy(r => r.DestinationName)
-                .OrderBy(g => g.Key);
-            
-            @foreach (var group in groupedRoutes)
+            var walkingRoutes = AvailableRoutes.Where(r => r.TransportType == "WALKING").ToList();
+            var specialRoutes = AvailableRoutes.Where(r => r.TransportType != "WALKING").ToList();
+
+            @if (walkingRoutes.Any())
             {
-                <div class="destination-group">
-                    <div class="destination-header">
-                        <div class="destination-name">@group.Key</div>
-                        <div class="destination-info">@group.First().District</div>
-                    </div>
-                    <div class="routes-container">
-                        @foreach (var route in group)
-                        {
-                            var isLocked = !CanTakeRoute(route);
-                            <div class="route-card @GetRouteTypeClass(route) @(isLocked ? "locked" : "")"
-                                 @onclick="() => { if (!isLocked) SelectRoute(route); }">
-                                <div class="route-main">
-                                    <div class="route-info">
-                                        <div class="route-name">@route.Name</div>
-                                        <span class="route-transport">@route.TransportType</span>
-                                        <div class="route-details">
-                                            <div class="route-stat">
-                                                <span class="stat-label">Time:</span>
-                                                <span class="stat-value">@GetTravelTimeDisplay(route.TravelTime)</span>
-                                            </div>
-                                            @if (route.HungerCost > 0)
-                                            {
-                                                <div class="route-stat">
-                                                    <span class="stat-label">Hunger:</span>
-                                                    <span class="stat-value stat-cost">+@route.HungerCost</span>
-                                                </div>
-                                            }
-                                        </div>
-                                        @if (route.Tags.Any())
+                <div class="route-group">
+                    <div class="route-group-header">Walking Routes</div>
+                    @foreach (var route in walkingRoutes)
+                    {
+                        var isLocked = !CanTakeRoute(route);
+                        <div class="route-card @GetRouteTypeClass(route) @(isLocked ? "locked" : "")"
+                             @onclick="() => { if (!isLocked) SelectRoute(route); }">
+                            <div class="route-header-row">
+                                <div class="route-name">@route.DestinationName</div>
+                                <span class="route-type-badge">@route.TransportType</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(route.DestinationSpotName))
+                            {
+                                <div class="route-subtitle">@route.DestinationSpotName</div>
+                            }
+
+                            <div class="segment-cost-display">
+                                <span class="segment-cost-label">Time Cost:</span>
+                                <div class="segment-blocks">
+                                    @if (route.TravelTime > 0)
+                                    {
+                                        @for (int i = 0; i < route.TravelTime; i++)
                                         {
-                                            <div class="route-tags">
-                                                @foreach (var tag in route.Tags)
-                                                {
-                                                    <span class="route-tag @GetTagClass(tag)">@tag</span>
-                                                }
-                                            </div>
+                                            <div class="segment-block"></div>
                                         }
-                                        @if (route.Requirements.Any())
-                                        {
-                                            <div class="requirement-box @(isLocked ? "requirement-missing" : "")">
-                                                <span class="requirement-label">Requires:</span>
-                                                <span class="requirement-text">
-                                                    @string.Join(", ", route.Requirements)
-                                                </span>
-                                            </div>
-                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="instant-badge">Instant</span>
+                                    }
+                                </div>
+                                <span class="segment-text">@(route.TravelTime > 0 ? $"{route.TravelTime} segment{(route.TravelTime != 1 ? "s" : "")}" : "No time cost")</span>
+                            </div>
+
+                            <div class="route-details-row">
+                                @if (route.HungerCost > 0)
+                                {
+                                    <div class="detail-item">
+                                        <span class="detail-label">Hunger:</span>
+                                        <span class="detail-value">+@route.HungerCost</span>
                                     </div>
-                                    <div class="route-costs">
-                                        @if (route.Cost > 0)
+                                }
+                                @if (route.Cost > 0)
+                                {
+                                    <div class="detail-item">
+                                        <span class="detail-label">Cost:</span>
+                                        <span class="detail-value">@route.Cost coins</span>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (route.Tags.Any())
+                            {
+                                <div class="route-tags">
+                                    @foreach (var tag in route.Tags)
+                                    {
+                                        <span class="route-tag @GetTagClass(tag)">@tag</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (route.Requirements.Any())
+                            {
+                                <div class="route-requirements @(isLocked ? "requirement-missing" : "")">
+                                    <div class="requirement-label">@(isLocked ? "⚠️ Requirements Not Met" : "Requirements:")</div>
+                                    <div class="requirement-list">
+                                        @foreach (var req in route.Requirements)
                                         {
-                                            <div class="cost-item cost-coins">@route.Cost coins</div>
+                                            <div>• @req</div>
                                         }
-                                        else
-                                        {
-                                            <div class="cost-item cost-free">Free</div>
-                                        }
-                                        <button class="travel-button @(!isLocked ? "active" : "disabled")"
-                                                disabled="@isLocked"
-                                                @onclick:stopPropagation="true"
-                                                @onclick="() => TravelRoute(route)">
-                                            TRAVEL
-                                        </button>
                                     </div>
                                 </div>
+                            }
+
+                            <div class="route-action">
+                                <button class="travel-button @(!isLocked ? "active" : "disabled")"
+                                        disabled="@isLocked"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => TravelRoute(route)">
+                                    @(isLocked ? "LOCKED" : "TRAVEL")
+                                </button>
                             </div>
-                        }
-                    </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (specialRoutes.Any())
+            {
+                <div class="route-group">
+                    <div class="route-group-header">Special Transport</div>
+                    @foreach (var route in specialRoutes)
+                    {
+                        var isLocked = !CanTakeRoute(route);
+                        <div class="route-card @GetRouteTypeClass(route) @(isLocked ? "locked" : "")"
+                             @onclick="() => { if (!isLocked) SelectRoute(route); }">
+                            <div class="route-header-row">
+                                <div class="route-name">@route.DestinationName</div>
+                                <span class="route-type-badge">@route.TransportType</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(route.DestinationSpotName))
+                            {
+                                <div class="route-subtitle">@route.DestinationSpotName</div>
+                            }
+
+                            <div class="segment-cost-display">
+                                <span class="segment-cost-label">Time Cost:</span>
+                                <div class="segment-blocks">
+                                    @if (route.TravelTime > 0)
+                                    {
+                                        @for (int i = 0; i < route.TravelTime; i++)
+                                        {
+                                            <div class="segment-block"></div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="instant-badge">Instant</span>
+                                    }
+                                </div>
+                                <span class="segment-text">@(route.TravelTime > 0 ? $"{route.TravelTime} segment{(route.TravelTime != 1 ? "s" : "")}" : "No time cost")</span>
+                            </div>
+
+                            <div class="route-details-row">
+                                @if (route.HungerCost > 0)
+                                {
+                                    <div class="detail-item">
+                                        <span class="detail-label">Hunger:</span>
+                                        <span class="detail-value">+@route.HungerCost</span>
+                                    </div>
+                                }
+                                @if (route.Cost > 0)
+                                {
+                                    <div class="detail-item">
+                                        <span class="detail-label">Cost:</span>
+                                        <span class="detail-value">@route.Cost coins</span>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (route.Tags.Any())
+                            {
+                                <div class="route-tags">
+                                    @foreach (var tag in route.Tags)
+                                    {
+                                        <span class="route-tag @GetTagClass(tag)">@tag</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (route.Requirements.Any())
+                            {
+                                <div class="route-requirements @(isLocked ? "requirement-missing" : "")">
+                                    <div class="requirement-label">@(isLocked ? "⚠️ Requirements Not Met" : "Requirements:")</div>
+                                    <div class="requirement-list">
+                                        @foreach (var req in route.Requirements)
+                                        {
+                                            <div>• @req</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="route-action">
+                                <button class="travel-button @(!isLocked ? "active" : "disabled")"
+                                        disabled="@isLocked"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => TravelRoute(route)">
+                                    @(isLocked ? "LOCKED" : "TRAVEL")
+                                </button>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         }

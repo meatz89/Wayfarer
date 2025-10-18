@@ -1,3 +1,123 @@
+# ⚠️ ABSOLUTE FIRST RULE - NEVER ASSUME ⚠️
+
+## MANDATORY CODEBASE INVESTIGATION BEFORE ANY WORK
+
+**BEFORE YOU:**
+- Answer ANY question
+- Make ANY suggestion
+- Write ANY code
+- Propose ANY plan
+- Modify ANY file
+
+**YOU MUST:**
+
+### 1. SEARCH THE CODEBASE EXHAUSTIVELY
+- Use Glob to find ALL related files
+- Use Grep to find ALL references to classes/methods/properties you're touching
+- Read COMPLETE files (not partial with limit/offset)
+- Search for related concepts with multiple search terms
+- **ASSUME NOTHING EXISTS OR DOESN'T EXIST UNTIL YOU'VE VERIFIED**
+
+### 2. UNDERSTAND THE COMPLETE ARCHITECTURE
+- How does this fit in GameWorld?
+- What screens/components exist?
+- What CSS files are affected?
+- What domain entities are involved?
+- What services manage this?
+- How does data flow from JSON → Parser → Domain → UI?
+
+### 3. VERIFY ALL ASSUMPTIONS
+- "Does X exist?" → SEARCH FOR IT
+- "Is Y implemented?" → GREP FOR IT
+- "Should I create Z?" → CHECK IF Z ALREADY EXISTS FIRST
+- Never say "we need to create" without searching first
+- Never say "this doesn't exist" without verifying
+
+### 4. MAP ALL DEPENDENCIES
+- What files reference this?
+- What will break if I change this?
+- What CSS classes are used by which components?
+- What other systems connect to this?
+
+### 5. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
+
+**CRITICAL: Before proposing ANY UI changes, you MUST think like the PLAYER:**
+
+**PLAYER MENTAL STATE:**
+- What is the player DOING in this moment?
+- What are they THINKING about?
+- What is their INTENTION when they access this screen?
+- What feels NATURAL to do next?
+
+**VERISIMILITUDE IN UI:**
+- Does this action make NARRATIVE sense?
+- Would a REAL PERSON do this action at this moment?
+- Does it break IMMERSION or preserve it?
+
+**VISUAL NOVEL APPROACH:**
+- Player makes decisions through CHOICES presented on screen
+- Choices should be CONTEXTUAL to current situation
+- "Check my belongings" is a DECISION OPTION, not a separate "screen" or "button"
+- Equipment/inventory access should appear as NATURAL CHOICE mixed with other actions
+
+**HOW ACTIONS ARE COMMUNICATED:**
+- Visual novel = Player sees their OPTIONS as cards/choices
+- Navigation happens through DECISIONS, not menus/buttons
+- Everything is presented IN-WORLD, not as UI chrome
+
+**EXAMPLES OF CORRECT THINKING:**
+
+✅ Player at location → Sees options: "Talk to NPC", "Look around", "Check belongings", "Leave"
+✅ "Check belongings" appears WHERE IT MAKES SENSE (not everywhere, only where contextually appropriate)
+✅ Journal accessed via button because it's META (out-of-world reference material)
+✅ Challenges are IMMERSIVE experiences (full screen, no chrome)
+
+**EXAMPLES OF WRONG THINKING:**
+
+❌ "Equipment should be its own screen" → WRONG: Thinking about implementation, not player experience
+❌ "Add Equipment button next to Journal button" → WRONG: More UI chrome, breaks immersion
+❌ "Player clicks Equipment tab" → WRONG: Tabs are menu thinking, not narrative thinking
+❌ "Navigate to Equipment screen" → WRONG: Navigation is for systems, not player actions
+
+**THE CORRECT QUESTION:**
+
+"What would a REAL PERSON in this situation naturally want to do, and how would they express that intention?"
+
+NOT: "Where should I put this button?"
+
+### EXAMPLES OF VIOLATIONS (NEVER DO THIS):
+
+❌ "We need to create a Journal screen" → WRONG: Journal already exists (DiscoveryJournal.razor)
+❌ "We should add Equipment screen" → WRONG: Must verify if Equipment screen exists first
+❌ "Equipment should be its own screen" → WRONG: Didn't check existing UI pattern (Journal is MODAL, not screen!)
+❌ "Let me implement X" → WRONG: Must verify X doesn't already exist
+❌ "This CSS class is missing" → WRONG: Must grep for the class across all CSS files first
+❌ "Add Equipment to ScreenMode enum" → WRONG: Didn't verify if Equipment follows Journal's MODAL pattern
+
+### CORRECT PROCESS:
+
+1. **User asks question**
+2. **STOP - Do NOT answer immediately**
+3. **Search codebase thoroughly:**
+   - Glob for related files
+   - Grep for related classes/methods
+   - Read complete files
+   - Verify assumptions
+4. **ONLY THEN answer based on ACTUAL codebase state**
+
+### WHY THIS IS CRITICAL:
+
+- Making assumptions wastes hours implementing things that already exist
+- Suggesting changes without checking breaks existing code
+- Proposing "new" features that already exist shows incompetence
+- Not verifying leads to duplicate implementations (HIGHLANDER violation)
+
+**IF YOU VIOLATE THIS RULE, YOU DESERVE GORDON RAMSAY'S WRATH:**
+
+"YOU DONKEY! YOU SUGGESTED CREATING A JOURNAL WHEN IT ALREADY EXISTS! DID YOU EVEN FUCKING LOOK?!"
+
+---
+
 # General Game Design Principles for Wayfarer
 
 ## Principle 1: Single Source of Truth with Explicit Ownership

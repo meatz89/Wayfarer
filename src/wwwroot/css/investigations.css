@@ -1,32 +1,32 @@
-/* Obligations CSS
-   Obligation cards, deadline tracking, urgency indicators */
+/* Investigations CSS
+   Investigation cards, deadline tracking, urgency indicators */
 
-.obligation-list {
+.investigation-list {
     padding: 16px;
 }
 
-.obligation-list-header {
+.investigation-list-header {
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 16px;
     color: #2c3e50;
 }
 
-.no-obligations {
+.no-investigations {
     font-style: italic;
     color: #7f8c8d;
     padding: 20px;
     text-align: center;
 }
 
-.obligation-cards {
+.investigation-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
 }
 
 /* Obligation Card */
-.obligation-card {
+.investigation-card {
     border: 2px solid #ddd;
     border-radius: 8px;
     padding: 16px;
@@ -35,13 +35,13 @@
     transition: all 0.3s ease;
 }
 
-.obligation-card:hover {
+.investigation-card:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     transform: translateY(-2px);
 }
 
 /* Urgency-based border colors */
-.obligation-card.urgency-critical {
+.investigation-card.urgency-critical {
     border-color: #e74c3c;
     border-width: 3px;
     animation: urgent-pulse 1s infinite;
@@ -52,43 +52,43 @@
     50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.5); }
 }
 
-.obligation-card.urgency-high {
+.investigation-card.urgency-high {
     border-color: #e67e22;
     border-width: 3px;
 }
 
-.obligation-card.urgency-moderate {
+.investigation-card.urgency-moderate {
     border-color: #f39c12;
 }
 
-.obligation-card.urgency-low {
+.investigation-card.urgency-low {
     border-color: #95a5a6;
 }
 
 /* Obligation type styling */
-.obligation-card.npc-commissioned {
+.investigation-card.npc-commissioned {
     background: linear-gradient(to bottom, #fff 0%, #ecf0f1 100%);
 }
 
-.obligation-card.self-discovered {
+.investigation-card.self-discovered {
     background: linear-gradient(to bottom, #fff 0%, #e8f8f5 100%);
 }
 
-.obligation-header {
+.investigation-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
 }
 
-.obligation-name {
+.investigation-name {
     font-size: 18px;
     font-weight: 700;
     color: #2c3e50;
     margin: 0;
 }
 
-.obligation-type-badge {
+.investigation-type-badge {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 11px;
@@ -96,24 +96,24 @@
     text-transform: uppercase;
 }
 
-.obligation-type-badge.npc-commissioned {
+.investigation-type-badge.npc-commissioned {
     background: #3498db;
     color: white;
 }
 
-.obligation-type-badge.self-discovered {
+.investigation-type-badge.self-discovered {
     background: #2ecc71;
     color: white;
 }
 
-.obligation-description {
+.investigation-description {
     font-size: 14px;
     color: #555;
     margin: 8px 0;
     line-height: 1.4;
 }
 
-.obligation-patron {
+.investigation-patron {
     margin: 8px 0;
     font-size: 13px;
 }
@@ -128,7 +128,7 @@
     font-weight: 600;
 }
 
-.obligation-rewards {
+.investigation-rewards {
     display: flex;
     gap: 12px;
     margin: 12px 0;
@@ -153,7 +153,7 @@
     font-weight: 600;
 }
 
-.obligation-progress {
+.investigation-progress {
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #ddd;

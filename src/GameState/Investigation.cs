@@ -64,10 +64,10 @@ public class Investigation
     public List<StatXPReward> CompletionRewardXP { get; set; } = new List<StatXPReward>();
 
     /// <summary>
-    /// New obligations spawned when investigation completes
+    /// New investigations spawned when investigation completes
     /// References to other Investigation IDs in GameWorld.Investigations
     /// </summary>
-    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
+    public List<string> SpawnedInvestigationIds { get; set; } = new List<string>();
 
     /// <summary>
     /// Tracks whether this investigation failed to meet deadline

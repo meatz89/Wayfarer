@@ -108,6 +108,17 @@
         "excludedProperties": []
       }
     ],
+    "playerActions": [
+      {
+        "id": "check_belongings",
+        "name": "Check belongings",
+        "description": "Review your equipment and inventory",
+        "actionType": "check_belongings",
+        "priority": 90,
+        "cost": {},
+        "timeRequired": 0
+      }
+    ],
     "obstacles": [
       {
         "id": "mill_entrance_blocked",

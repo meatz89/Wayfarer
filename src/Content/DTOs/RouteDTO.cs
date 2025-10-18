@@ -22,6 +22,9 @@ public class RouteDTO
     public int MaxItemCapacity { get; set; }
     public string Description { get; set; }
 
+    // Controls whether a reverse route should be automatically generated
+    public bool CreateBidirectional { get; set; } = true;
+
     // Obstacles on this route (bandits, flooding, difficult terrain)
     public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 
@@ -40,13 +43,16 @@ public class RouteDTO
 public class RouteSegmentDTO
 {
     public int SegmentNumber { get; set; }
-    public string Type { get; set; } = "FixedPath"; // "FixedPath" or "Event"
+    public string Type { get; set; } = "FixedPath"; // "FixedPath", "Event", or "Encounter"
 
     // For FixedPath segments: the specific path card collection to use
     public string PathCollectionId { get; set; }
 
     // For Event segments: the event collection containing events to randomly select from
     public string EventCollectionId { get; set; }
+
+    // For Encounter segments: mandatory obstacle that must be resolved to proceed
+    public string MandatoryObstacleId { get; set; }
 
     // Core Loop: Path choices within this segment (1-3 paths with different trade-offs)
     public List<RoutePathDTO> AvailablePaths { get; set; } = new List<RoutePathDTO>();

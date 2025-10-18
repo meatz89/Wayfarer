@@ -57,10 +57,10 @@ public class Player
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
-    // Active Investigation Obligations (Core Loop design)
+    // Active Investigations (Core Loop design)
     // Tracks investigations player has activated (NPCCommissioned have deadlines)
     // References investigations in GameWorld.Investigations (single source of truth)
-    public List<string> ActiveObligationIds { get; set; } = new List<string>();
+    public List<string> ActiveInvestigationIds { get; set; } = new List<string>();
 
     // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
     // ItemRepository resolves IDs to Equipment entities from GameWorld.Items

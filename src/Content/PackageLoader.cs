@@ -171,6 +171,7 @@ public class PackageLoader
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
         LoadLocationActions(package.Content.LocationActions, allowSkeletons);
+        LoadPlayerActions(package.Content.PlayerActions, allowSkeletons);
 
         // 8. Travel content
         List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
@@ -835,6 +836,7 @@ public class PackageLoader
         // BIDIRECTIONAL ROUTE PRINCIPLE: Routes are defined once in JSON but automatically
         // generate both directions. This eliminates redundancy and ensures consistency.
         // The return journey has segments in reversed order (A->B->C becomes C->B->A).
+        // Routes can opt-out via CreateBidirectional=false for internal venue navigation.
         foreach (RouteDTO dto in routeDtos)
         {
             // Create the forward route from JSON
@@ -842,10 +844,17 @@ public class PackageLoader
             _gameWorld.Routes.Add(forwardRoute);
             Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
 
-            // Automatically generate the reverse route
-            RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
-            _gameWorld.Routes.Add(reverseRoute);
-            Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
+            // Automatically generate the reverse route if CreateBidirectional is true
+            if (dto.CreateBidirectional)
+            {
+                RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
+                _gameWorld.Routes.Add(reverseRoute);
+                Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
+            }
+            else
+            {
+                Console.WriteLine($"[PackageLoader] Skipped reverse route (CreateBidirectional=false)");
+            }
         }
 
         Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.Routes.Count}");
@@ -1084,14 +1093,25 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationActions(List<VenueActionDTO> locationActionDtos, bool allowSkeletons)
+    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
     {
         if (locationActionDtos == null) return;
 
-        foreach (VenueActionDTO dto in locationActionDtos)
+        foreach (LocationActionDTO dto in locationActionDtos)
         {
             LocationAction locationAction = ConvertLocationActionDTOToModel(dto);
             _gameWorld.LocationActions.Add(locationAction);
+        }
+    }
+
+    private void LoadPlayerActions(List<PlayerActionDTO> playerActionDtos, bool allowSkeletons)
+    {
+        if (playerActionDtos == null) return;
+
+        foreach (PlayerActionDTO dto in playerActionDtos)
+        {
+            PlayerAction playerAction = ConvertPlayerActionDTOToModel(dto);
+            _gameWorld.PlayerActions.Add(playerAction);
         }
     }
 
@@ -1168,6 +1188,15 @@ public class PackageLoader
                         Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.EventCollectionId}'");
                     }
                 }
+                else if (segmentType == SegmentType.Encounter)
+                {
+                    // Encounter segments have mandatory obstacle that MUST be resolved
+                    segment.MandatoryObstacleId = segmentDto.MandatoryObstacleId;
+                    if (!string.IsNullOrEmpty(segment.MandatoryObstacleId))
+                    {
+                        Console.WriteLine($"[PackageLoader] Encounter segment {segmentDto.SegmentNumber} requires obstacle '{segment.MandatoryObstacleId}'");
+                    }
+                }
 
                 // Core Loop: Parse available paths within this segment
                 if (segmentDto.AvailablePaths != null)
@@ -1226,7 +1255,7 @@ public class PackageLoader
 
     // ObservationCard system eliminated - ConvertObservationDTOToCard removed
 
-    private LocationAction ConvertLocationActionDTOToModel(VenueActionDTO dto)
+    private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
     {
         LocationAction action = new LocationAction
         {
@@ -1277,6 +1306,22 @@ public class PackageLoader
                 }
             }
         }
+
+        return action;
+    }
+
+    private PlayerAction ConvertPlayerActionDTOToModel(PlayerActionDTO dto)
+    {
+        PlayerAction action = new PlayerAction
+        {
+            Id = dto.Id ?? "",
+            Name = dto.Name ?? "",
+            Description = dto.Description ?? "",
+            Cost = dto.Cost ?? new Dictionary<string, int>(),
+            TimeRequired = dto.TimeRequired,
+            Priority = dto.Priority,
+            ActionType = dto.ActionType ?? ""
+        };
 
         return action;
     }
@@ -1432,7 +1477,8 @@ public class PackageLoader
                 Type = originalSegment.Type,
                 // Keep the same collections - they represent the same physical locations
                 PathCollectionId = originalSegment.PathCollectionId,
-                EventCollectionId = originalSegment.EventCollectionId
+                EventCollectionId = originalSegment.EventCollectionId,
+                MandatoryObstacleId = originalSegment.MandatoryObstacleId
             };
             reverseRoute.Segments.Add(reverseSegment);
         }

@@ -329,16 +329,16 @@ public class InvestigationActivity
             }
         }
 
-        // Spawn new obligations (investigations)
-        if (investigation.SpawnedObligationIds != null && investigation.SpawnedObligationIds.Count > 0)
+        // Spawn new investigations
+        if (investigation.SpawnedInvestigationIds != null && investigation.SpawnedInvestigationIds.Count > 0)
         {
-            foreach (string obligationId in investigation.SpawnedObligationIds)
+            foreach (string investigationId in investigation.SpawnedInvestigationIds)
             {
-                Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
+                Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
                 if (spawnedInvestigation != null)
                 {
                     // Move to Discovered state (player must accept it via intro action)
-                    _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(obligationId);
+                    _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
                     _messageSystem.AddSystemMessage(
                         $"New investigation available: {spawnedInvestigation.Name}",
                         SystemMessageTypes.Info);

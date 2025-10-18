@@ -31,7 +31,7 @@ public class InvestigationParser
             CompletionRewardCoins = dto.CompletionRewardCoins,
             CompletionRewardItems = dto.CompletionRewardItems ?? new List<string>(),
             CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP),
-            SpawnedObligationIds = dto.SpawnedObligationIds ?? new List<string>(),
+            SpawnedInvestigationIds = dto.SpawnedInvestigationIds ?? new List<string>(),
             PhaseDefinitions = dto.Phases?.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() ?? new List<InvestigationPhaseDefinition>()
         };
     }

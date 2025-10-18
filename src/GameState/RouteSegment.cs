@@ -5,8 +5,9 @@ using System.Collections.Generic;
 /// </summary>
 public enum SegmentType
 {
-    FixedPath,  // Walking - predetermined path cards
-    Event       // Caravan - random event from event collection
+    FixedPath,  // Walking - predetermined path cards, player chooses path
+    Event,      // Caravan - random event from event collection, narrative responses
+    Encounter   // Challenge - mandatory obstacle engagement, must resolve to proceed
 }
 
 /// <summary>
@@ -22,6 +23,9 @@ public class RouteSegment
 
     // For Event segments
     public string EventCollectionId { get; set; }  // References AllEventCollections
+
+    // For Encounter segments - mandatory obstacle that must be resolved
+    public string MandatoryObstacleId { get; set; }  // References Obstacle that player MUST engage
 
     // Core Loop: Path choices within this segment (1-3 paths with different trade-offs)
     // References RoutePath entities for time/stamina/obstacle combinations

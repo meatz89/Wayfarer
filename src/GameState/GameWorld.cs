@@ -13,6 +13,7 @@ public class GameWorld
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+    public List<PlayerAction> PlayerActions { get; set; } = new List<PlayerAction>();
 
     // TimeBlock tracking for stranger refresh
     private TimeBlocks _lastTimeBlock = TimeBlocks.Morning;
@@ -383,22 +384,22 @@ public class GameWorld
     }
 
     // ============================================
-    // OBLIGATION MANAGEMENT (Core Loop design)
+    // INVESTIGATION MANAGEMENT (Core Loop design)
     // ============================================
 
     /// <summary>
-    /// Activate an investigation obligation - mark as active and start deadline tracking
-    /// NPCCommissioned: Sets absolute deadline segment and tracks in active obligations
+    /// Activate an investigation - mark as active and start deadline tracking
+    /// NPCCommissioned: Sets absolute deadline segment and tracks in active investigations
     /// SelfDiscovered: No deadline tracking (freedom-based exploration)
     /// </summary>
-    public void ActivateObligation(string investigationId, TimeManager timeManager)
+    public void ActivateInvestigation(string investigationId, TimeManager timeManager)
     {
         Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation == null) return;
 
-        if (!Player.ActiveObligationIds.Contains(investigationId))
+        if (!Player.ActiveInvestigationIds.Contains(investigationId))
         {
-            Player.ActiveObligationIds.Add(investigationId);
+            Player.ActiveInvestigationIds.Add(investigationId);
         }
 
         if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned)
@@ -410,11 +411,11 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Complete an investigation obligation - apply rewards, chain spawned obligations, clear deadline
+    /// Complete an investigation - apply rewards, chain spawned investigations, clear deadline
     /// Applies coins, items, XP, and increases relationship with patron (NPCCommissioned only)
-    /// Chains spawned obligations by activating each spawned investigation
+    /// Chains spawned investigations by activating each spawned investigation
     /// </summary>
-    public void CompleteObligation(string investigationId, TimeManager timeManager)
+    public void CompleteInvestigation(string investigationId, TimeManager timeManager)
     {
         Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation == null) return;
@@ -431,14 +432,14 @@ public class GameWorld
             Player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
         }
 
-        foreach (string spawnedId in investigation.SpawnedObligationIds)
+        foreach (string spawnedId in investigation.SpawnedInvestigationIds)
         {
-            ActivateObligation(spawnedId, timeManager);
+            ActivateInvestigation(spawnedId, timeManager);
         }
 
-        if (Player.ActiveObligationIds.Contains(investigationId))
+        if (Player.ActiveInvestigationIds.Contains(investigationId))
         {
-            Player.ActiveObligationIds.Remove(investigationId);
+            Player.ActiveInvestigationIds.Remove(investigationId);
         }
 
         if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
@@ -453,31 +454,31 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Check for expired obligations by comparing current segment to deadline
+    /// Check for expired investigations by comparing current segment to deadline
     /// Returns list of investigation IDs that have exceeded their deadline
     /// </summary>
     public List<string> CheckDeadlines(int currentSegment)
     {
-        List<string> expiredObligations = new List<string>();
+        List<string> expiredInvestigations = new List<string>();
 
-        foreach (string obligationId in Player.ActiveObligationIds)
+        foreach (string investigationId in Player.ActiveInvestigationIds)
         {
-            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == obligationId);
+            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
             if (investigation != null &&
                 investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
                 investigation.DeadlineSegment.HasValue &&
                 currentSegment >= investigation.DeadlineSegment.Value)
             {
-                expiredObligations.Add(obligationId);
+                expiredInvestigations.Add(investigationId);
             }
         }
 
-        return expiredObligations;
+        return expiredInvestigations;
     }
 
     /// <summary>
-    /// Apply deadline consequences for missed obligation
-    /// Penalizes relationship with patron NPC, removes StoryCubes, and removes from active obligations
+    /// Apply deadline consequences for missed investigation
+    /// Penalizes relationship with patron NPC, removes StoryCubes, and removes from active investigations
     /// </summary>
     public void ApplyDeadlineConsequences(string investigationId)
     {
@@ -497,29 +498,29 @@ public class GameWorld
             }
         }
 
-        if (Player.ActiveObligationIds.Contains(investigationId))
+        if (Player.ActiveInvestigationIds.Contains(investigationId))
         {
-            Player.ActiveObligationIds.Remove(investigationId);
+            Player.ActiveInvestigationIds.Remove(investigationId);
         }
 
         investigation.IsFailed = true;
     }
 
     /// <summary>
-    /// Get all active obligations for player
+    /// Get all active investigations for player
     /// </summary>
-    public List<Investigation> GetActiveObligations()
+    public List<Investigation> GetActiveInvestigations()
     {
-        List<Investigation> activeObligations = new List<Investigation>();
-        foreach (string obligationId in Player.ActiveObligationIds)
+        List<Investigation> activeInvestigations = new List<Investigation>();
+        foreach (string investigationId in Player.ActiveInvestigationIds)
         {
-            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == obligationId);
+            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
             if (investigation != null)
             {
-                activeObligations.Add(investigation);
+                activeInvestigations.Add(investigation);
             }
         }
-        return activeObligations;
+        return activeInvestigations;
     }
 
     // ============================================

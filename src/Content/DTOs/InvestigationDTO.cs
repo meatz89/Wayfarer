@@ -29,7 +29,7 @@ public class InvestigationDTO
     public int CompletionRewardCoins { get; set; } = 0;
     public List<string> CompletionRewardItems { get; set; } = new List<string>();
     public Dictionary<string, int> CompletionRewardXP { get; set; } = new Dictionary<string, int>(); // JSON: {"Insight": 10, "Rapport": 5}
-    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
+    public List<string> SpawnedInvestigationIds { get; set; } = new List<string>();
 
     public List<InvestigationPhaseDTO> Phases { get; set; } = new List<InvestigationPhaseDTO>();
     public List<InvestigationObservationRewardDTO> ObservationCardRewards { get; set; } = new List<InvestigationObservationRewardDTO>();

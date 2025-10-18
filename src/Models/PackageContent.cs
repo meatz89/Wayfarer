@@ -79,9 +79,14 @@ public class PackageContent
     public List<ItemDTO> Items { get; set; }
 
     /// <summary>
-    /// Venue actions - uses LocationActionDTO for consistency
+    /// Location actions - location-specific actions matched by properties
     /// </summary>
-    public List<VenueActionDTO> LocationActions { get; set; }
+    public List<LocationActionDTO> LocationActions { get; set; }
+
+    /// <summary>
+    /// Player actions - global actions available everywhere (e.g., check belongings)
+    /// </summary>
+    public List<PlayerActionDTO> PlayerActions { get; set; }
 
     /// <summary>
     /// Deck compositions - defines how many copies of each card in decks

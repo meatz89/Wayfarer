@@ -1,6 +1,6 @@
-/* Obligation Queue Styles */
+/* Investigation Queue Styles */
 
-.obligation-queue-content {
+.investigation-queue-content {
     background: linear-gradient(to bottom, #faf4ea, #f0e6d6);
     min-height: 100vh;
     padding: 20px;
@@ -37,11 +37,11 @@
 }
 
 /* Active Obligations Section */
-.active-obligations {
+.active-investigations {
     margin-bottom: 30px;
 }
 
-.active-obligations h3 {
+.active-investigations h3 {
     color: #3a2e24;
     font-size: 20px;
     margin-bottom: 15px;
@@ -334,12 +334,12 @@
 }
 
 /* Expired Obligations */
-.expired-obligations {
+.expired-investigations {
     margin-top: 40px;
     opacity: 0.8;
 }
 
-.expired-obligations h3 {
+.expired-investigations h3 {
     color: #7a6250;
     font-size: 18px;
     margin-bottom: 15px;

@@ -712,6 +712,146 @@ namespace Wayfarer.Pages.Components
             return TravelContext.Session.StaminaRemaining >= path.StaminaCost;
         }
 
+        // ========== TRAVEL CONTEXT DETECTION (FOR UI CONDITIONAL RENDERING) ==========
+
+        /// <summary>
+        /// Get current route segment object (not just the number)
+        /// </summary>
+        protected RouteSegment GetCurrentRouteSegment()
+        {
+            if (TravelContext?.Session == null || TravelContext.CurrentRoute == null)
+                return null;
+
+            int currentSegmentNum = TravelContext.Session.CurrentSegment;
+            if (currentSegmentNum < 1 || currentSegmentNum > TravelContext.CurrentRoute.Segments.Count)
+                return null;
+
+            return TravelContext.CurrentRoute.Segments[currentSegmentNum - 1];
+        }
+
+        /// <summary>
+        /// Check if current segment is a dead-end (all paths blocked/unavailable)
+        /// Mockup: travel-dead-end.html
+        /// </summary>
+        protected bool IsDeadEnd()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            // Core Loop system (RoutePath)
+            if (segment.AvailablePaths != null && segment.AvailablePaths.Any())
+            {
+                // Check if all paths are unaffordable
+                return segment.AvailablePaths.All(p => !CanSelectRoutePath(p.Id));
+            }
+
+            // PathCard system (legacy)
+            List<PathCardInfo> availableCards = GetAvailablePathCards();
+            if (availableCards.Any())
+            {
+                // Check if all cards are unplayable
+                return availableCards.All(c => !c.CanPlay);
+            }
+
+            // No paths available at all
+            return true;
+        }
+
+        /// <summary>
+        /// Check if displaying discovery reveal animation
+        /// Mockup: travel-discovery.html
+        /// </summary>
+        protected bool IsDiscoveryReveal()
+        {
+            return IsRevealingCard();
+        }
+
+        /// <summary>
+        /// Check if current segment is Event type (caravan)
+        /// Mockup: travel-caravan.html
+        /// </summary>
+        protected bool IsEventSegment()
+        {
+            return IsCurrentSegmentEventType();
+        }
+
+        /// <summary>
+        /// Check if current segment is FixedPath type (walking)
+        /// Mockup: travel-walking.html
+        /// </summary>
+        protected bool IsFixedPathSegment()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            return segment.Type == SegmentType.FixedPath;
+        }
+
+        /// <summary>
+        /// Check if current segment is Encounter type (mandatory challenge)
+        /// Renders as challenge screen where player must resolve obstacle to proceed
+        /// </summary>
+        protected bool IsEncounterSegment()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            return segment.Type == SegmentType.Encounter;
+        }
+
+        /// <summary>
+        /// Get all unique encounter goal names for current segment
+        /// Aggregates goal names from all obstacles on all paths in current segment
+        /// </summary>
+        protected List<string> GetEncounterGoalsForCurrentSegment()
+        {
+            List<string> goalNames = new List<string>();
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return goalNames;
+
+            // Core Loop system (RoutePath)
+            if (segment.AvailablePaths != null && segment.AvailablePaths.Any())
+            {
+                foreach (RoutePath path in segment.AvailablePaths)
+                {
+                    if (!string.IsNullOrEmpty(path.OptionalObstacleId))
+                    {
+                        List<GoalPreviewData> goalPreviews = GetGoalPreviewsForPath(path.OptionalObstacleId);
+                        foreach (GoalPreviewData preview in goalPreviews)
+                        {
+                            if (!string.IsNullOrEmpty(preview.Name) && !goalNames.Contains(preview.Name))
+                            {
+                                goalNames.Add(preview.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // PathCard system (legacy)
+            List<PathCardInfo> availableCards = GetAvailablePathCards();
+            foreach (PathCardInfo cardInfo in availableCards)
+            {
+                if (!string.IsNullOrEmpty(cardInfo.Card.ObstacleId))
+                {
+                    List<GoalPreviewData> goalPreviews = GetGoalPreviewsForPath(cardInfo.Card.ObstacleId);
+                    foreach (GoalPreviewData preview in goalPreviews)
+                    {
+                        if (!string.IsNullOrEmpty(preview.Name) && !goalNames.Contains(preview.Name))
+                        {
+                            goalNames.Add(preview.Name);
+                        }
+                    }
+                }
+            }
+
+            return goalNames;
+        }
+
         /// <summary>
         /// Helper class for goal preview data
         /// </summary>
