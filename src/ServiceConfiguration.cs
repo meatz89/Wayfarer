@@ -148,15 +148,15 @@ public static class ServiceConfiguration
         // Obligation Subsystem
         services.AddSingleton<MeetingManager>();
 
-        // Resource Subsystem
-        services.AddSingleton<ResourceCalculator>();
-        services.AddSingleton<ResourceFacade>();
-
-        // Time Subsystem
+        // Time Subsystem (registered BEFORE ResourceFacade - dependency ordering)
         services.AddSingleton<TimeBlockCalculator>();
         services.AddSingleton<TimeProgressionManager>();
         services.AddSingleton<TimeDisplayFormatter>();
         services.AddSingleton<TimeFacade>();
+
+        // Resource Subsystem (depends on TimeFacade)
+        services.AddSingleton<ResourceCalculator>();
+        services.AddSingleton<ResourceFacade>();
 
         // Travel Subsystem
         services.AddSingleton<RouteManager>();

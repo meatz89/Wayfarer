@@ -858,16 +858,23 @@ public class GameFacade
 
     // ========== PRIVATE HELPERS ==========
 
+    /// <summary>
+    /// HIGHLANDER: THE ONLY place for processing time advancement side effects.
+    /// All time-based resource changes happen here (hunger, day transitions).
+    /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
+    /// </summary>
     private void ProcessTimeAdvancement(TimeAdvancementResult result)
     {
-        // Increase hunger by +5 per segment (universal time cost)
+        // HUNGER: +5 per segment (universal time cost)
+        // This is THE ONLY place hunger increases due to time
         int hungerIncrease = result.SegmentsAdvanced * 5;
         _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
 
-        // Handle time block transitions (day transitions, NPC refresh, etc.)
-        if (result.CrossedTimeBlock)
+        // DAY TRANSITION: Process dawn effects (NPC decay)
+        // Only when crossing into Morning (new day starts)
+        if (result.CrossedDayBoundary && result.NewTimeBlock == TimeBlocks.Morning)
         {
-            _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);
+            _resourceFacade.ProcessDayTransition();
         }
     }
 

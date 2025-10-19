@@ -181,16 +181,15 @@ public class ResourceFacade
         return _resourceCalculator.CalculateFocusLimit(health);
     }
 
-    public void ProcessTimeBlockTransition(TimeBlocks oldBlock, TimeBlocks newBlock)
+    /// <summary>
+    /// Process day transition effects (NPC decay at dawn).
+    /// ONLY called when transitioning to Morning (new day starts).
+    /// HIGHLANDER: Hunger increase happens in GameFacade.ProcessTimeAdvancement (one place only).
+    /// </summary>
+    public void ProcessDayTransition()
     {
-        // Hunger increase now handled per-segment in GameFacade.ProcessTimeAdvancement
-        // (Previously: +20 per time block, now: +5 per segment via ProcessTimeAdvancement)
-
-        // Apply daily NPC decay when transitioning to Morning (morning refresh)
-        if (newBlock == TimeBlocks.Morning)
-        {
-            ApplyNPCDailyDecay();
-        }
+        // Apply daily NPC decay at dawn
+        ApplyNPCDailyDecay();
     }
 
     private void ApplyNPCDailyDecay()
