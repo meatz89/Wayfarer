@@ -92,7 +92,8 @@
           ],
           "all": [
             "quiet",
-            "isolated"
+            "isolated",
+            "restful"
           ]
         },
         "canInvestigate": true,
@@ -124,7 +125,8 @@
         "properties": {
           "all": [
             "quiet",
-            "isolated"
+            "isolated",
+            "restful"
           ]
         },
         "canInvestigate": true,
@@ -135,17 +137,15 @@
     ],
     "locationActions": [
       {
-        "id": "rest_on_bench",
-        "name": "Rest on bench",
-        "description": "Take a moment to rest",
-        "actionType": "rest",
-        "priority": 10,
-        "cost": {
-          "segments": 0
-        },
-        "timeRequired": 0,
+        "id": "rest",
+        "name": "Rest",
+        "description": "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
+        "actionType": "Rest",
+        "priority": 50,
+        "cost": {},
+        "timeRequired": 1,
         "availability": ["Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": [],
+        "requiredProperties": ["rest", "restful"],
         "optionalProperties": [],
         "excludedProperties": []
       }
@@ -153,12 +153,21 @@
     "playerActions": [
       {
         "id": "check_belongings",
-        "name": "Check belongings",
-        "description": "Review your equipment and inventory",
-        "actionType": "check_belongings",
-        "priority": 90,
+        "name": "Check Belongings",
+        "description": "Review your current equipment and inventory",
+        "actionType": "CheckBelongings",
+        "priority": 100,
         "cost": {},
         "timeRequired": 0
+      },
+      {
+        "id": "wait",
+        "name": "Wait",
+        "description": "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",
+        "actionType": "Wait",
+        "priority": 200,
+        "cost": {},
+        "timeRequired": 1
       }
     ],
     "obstacles": [

@@ -10,6 +10,7 @@ public class ResourceFacade
     private readonly ResourceCalculator _resourceCalculator;
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
+    private readonly TimeFacade _timeFacade;
     private readonly ItemRepository _itemRepository;
 
     public ResourceFacade(
@@ -17,12 +18,14 @@ public class ResourceFacade
         ResourceCalculator resourceCalculator,
         MessageSystem messageSystem,
         TimeManager timeManager,
+        TimeFacade timeFacade,
         ItemRepository itemRepository)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
     }
 
@@ -180,8 +183,8 @@ public class ResourceFacade
 
     public void ProcessTimeBlockTransition(TimeBlocks oldBlock, TimeBlocks newBlock)
     {
-        // Increase hunger by 20 per time period
-        IncreaseHunger(20, "Time passes");
+        // Hunger increase now handled per-segment in GameFacade.ProcessTimeAdvancement
+        // (Previously: +20 per time block, now: +5 per segment via ProcessTimeAdvancement)
 
         // Apply daily NPC decay when transitioning to Morning (morning refresh)
         if (newBlock == TimeBlocks.Morning)
@@ -278,18 +281,58 @@ public class ResourceFacade
     // ========== WORK AND REST OPERATIONS ==========
 
     /// <summary>
-    /// Execute a rest action to recover resources
+    /// Execute Rest action: Advance 1 time segment and recover +1 Health and +1 Stamina.
+    /// Hunger increases by +5 automatically via time progression.
+    /// Only available at locations with "rest" or "restful" property.
     /// </summary>
-    public RestActionResult ExecuteRestAction(string actionType)
+    public void ExecuteRest()
     {
-        // Simple rest implementation - would be expanded based on rest system
-        return new RestActionResult
+        Player player = _gameWorld.GetPlayer();
+
+        // Advance 1 time segment
+        _timeFacade.AdvanceSegments(1);
+
+        // Hunger increases by +5 per segment (automatic via time progression)
+        // No need to manually modify hunger here
+
+        // Resource recovery
+        int healthBefore = player.Health;
+        int staminaBefore = player.Stamina;
+
+        player.Health = Math.Min(player.Health + 1, player.MaxHealth);      // +1 health (16.7% of 6-point max)
+        player.Stamina = Math.Min(player.Stamina + 1, player.MaxStamina);   // +1 stamina (16.7% of 6-point max)
+
+        int healthRecovered = player.Health - healthBefore;
+        int staminaRecovered = player.Stamina - staminaBefore;
+
+        // Generate message about recovery
+        if (healthRecovered > 0 || staminaRecovered > 0)
         {
-            Success = true,
-            TimeAdvanced = 2, // 2 segments
-            StaminaRecovered = 2,
-            HealthRecovered = 1
-        };
+            string recoveryMessage = "💤 Rested for 1 segment.";
+            if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
+            if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
+            _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+        }
+        else
+        {
+            _messageSystem.AddSystemMessage("💤 Rested for 1 segment (already at full health/stamina)", SystemMessageTypes.Info);
+        }
+    }
+
+    /// <summary>
+    /// Execute Wait action: Advance 1 time segment with no resource recovery.
+    /// Hunger increases by +5 automatically via time progression.
+    /// Global action available everywhere.
+    /// </summary>
+    public void ExecuteWait()
+    {
+        // Advance 1 time segment
+        _timeFacade.AdvanceSegments(1);
+
+        // Hunger increases by +5 per segment (automatic via time progression)
+        // No resource recovery - just passing time
+
+        _messageSystem.AddSystemMessage("⏳ Waited for 1 segment, passing time without activity", SystemMessageTypes.Info);
     }
 
     /// <summary>
@@ -340,15 +383,4 @@ public class ResourceFacade
     {
         return _gameWorld.GetPlayer().Inventory.RemoveItem(itemId);
     }
-}
-
-/// <summary>
-/// Result of a rest action
-/// </summary>
-public class RestActionResult
-{
-    public bool Success { get; set; }
-    public int TimeAdvanced { get; set; }
-    public int StaminaRecovered { get; set; }
-    public int HealthRecovered { get; set; }
 }

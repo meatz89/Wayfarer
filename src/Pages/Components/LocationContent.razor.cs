@@ -307,31 +307,53 @@ namespace Wayfarer.Pages.Components
         }
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
-        {// Special handling for travel action
-            if (action.ActionType == "travel")
+        {
+            // Parse action type string to enum and dispatch through GameFacade
+            // ViewModels use lowercase strings, domain enums use PascalCase
+
+            // Try parsing as PlayerActionType first
+            if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
             {
-                if (GameScreen != null)
+                // CheckBelongings has special UI handling
+                if (playerActionType == PlayerActionType.CheckBelongings)
                 {
-                    await GameScreen.HandleNavigation("travel");
+                    NavigateToView(LocationViewState.Equipment);
                 }
                 else
                 {
+                    // Execute through GameFacade (Wait, etc.)
+                    await GameFacade.ExecutePlayerAction(playerActionType);
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
                 }
             }
-            // Investigation action type - handled by InvestigationActivity orchestrator
-            // UI integration for Investigation strategic activity not yet implemented
-            else if (action.ActionType == "investigate")
+            // Try parsing as LocationActionType
+            else if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType locationActionType))
             {
-                await InvestigateLocation();
-            }
-            // Player action: check belongings (equipment/inventory)
-            else if (action.ActionType == "check_belongings")
-            {
-                NavigateToView(LocationViewState.Equipment);
+                // Travel has special UI handling (navigate to travel screen)
+                if (locationActionType == LocationActionType.Travel)
+                {
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.HandleNavigation("travel");
+                    }
+                }
+                else
+                {
+                    // Execute through GameFacade (Rest, Work, Investigate)
+                    Location currentSpot = GameFacade.GetCurrentLocationSpot();
+                    if (currentSpot != null)
+                    {
+                        await GameFacade.ExecuteLocationAction(locationActionType, currentSpot.Id);
+                        await RefreshLocationData();
+                        await OnActionExecuted.InvokeAsync();
+                    }
+                }
             }
             else
             {
-                // Other action types not supported in current game design
+                // Unknown action type - log warning
+                throw new InvalidOperationException($"Unknown action type: {action.ActionType}");
             }
         }
 
@@ -859,7 +881,7 @@ namespace Wayfarer.Pages.Components
                 {
                     Title = action.Name,
                     Detail = action.Description,
-                    ActionType = action.ActionType,
+                    ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
                     IsAvailable = true,
                     Icon = ""
                 });

@@ -6,12 +6,13 @@
 
 1. [System Overview](#system-overview)
 2. [Content Pipeline Architecture](#content-pipeline-architecture)
-3. [GameWorld State Management](#gameworld-state-management)
-4. [Service & Subsystem Layer](#service--subsystem-layer)
-5. [UI Component Architecture](#ui-component-architecture)
-6. [Data Flow Patterns](#data-flow-patterns)
-7. [Critical Architectural Principles](#critical-architectural-principles)
-8. [Component Dependencies](#component-dependencies)
+3. [Action Execution Pipeline](#action-execution-pipeline)
+4. [GameWorld State Management](#gameworld-state-management)
+5. [Service & Subsystem Layer](#service--subsystem-layer)
+6. [UI Component Architecture](#ui-component-architecture)
+7. [Data Flow Patterns](#data-flow-patterns)
+8. [Critical Architectural Principles](#critical-architectural-principles)
+9. [Component Dependencies](#component-dependencies)
 
 ---
 
@@ -101,6 +102,437 @@ Startup → GameWorldInitializer.CreateGameWorld()
 - Creates GameWorld **BEFORE** service registration completes
 - Prevents circular dependencies during ServerPrerendered mode
 - Content loaded once at startup, never reloaded
+
+---
+
+## ACTION EXECUTION PIPELINE
+
+**Location**: `src/Content/Parsers/*ActionParser.cs`, `src/GameState/*Action.cs`, `src/Services/GameFacade.cs`
+
+### 1. Action System Overview
+
+**Two Action Types**:
+- **PlayerActions**: Global actions available everywhere (e.g., "Check Belongings", "Wait")
+- **LocationActions**: Context-specific actions available at certain locations (e.g., "Travel", "Rest", "Work")
+
+**Architecture Goal**: Eliminate "Dictionary Disease" (string-based matching) through strongly-typed enum catalogues with parser validation and single-point dispatch through GameFacade.
+
+### 2. Enum Catalogues (Action Type Definition)
+
+**Location**: `src/Content/PlayerActionType.cs`, `src/Content/LocationActionType.cs`
+
+**PlayerActionType Enum** - Global actions available everywhere:
+```csharp
+public enum PlayerActionType
+{
+    CheckBelongings,  // View inventory/equipment screen
+    Wait              // Skip 1 time segment, no resource recovery
+}
+```
+
+**LocationActionType Enum** - Location-specific actions:
+```csharp
+public enum LocationActionType
+{
+    Travel,      // Navigate to connected routes
+    Rest,        // Recover +1 health, +1 stamina (requires "rest"/"restful" property)
+    Work,        // Earn coins based on location opportunities
+    Investigate  // Gain location familiarity through observation
+}
+```
+
+**Purpose**: Single source of truth for valid action types, enables compile-time type safety and parser validation.
+
+### 3. Domain Entities with Strong Typing
+
+**Location**: `src/GameState/PlayerAction.cs`, `src/GameState/LocationAction.cs`
+
+**PlayerAction** - Global action entity:
+```csharp
+public class PlayerAction
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public PlayerActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
+    public Dictionary<string, int> Cost { get; set; }
+    public int TimeRequired { get; set; }
+    public int Priority { get; set; }
+}
+```
+
+**LocationAction** - Location-specific action entity:
+```csharp
+public class LocationAction
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public LocationActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
+    public Dictionary<string, int> Cost { get; set; }
+    public Dictionary<string, int> Reward { get; set; }
+    public int TimeRequired { get; set; }
+    public List<string> Availability { get; set; }
+    public int Priority { get; set; }
+    public string InvestigationId { get; set; }
+    public List<LocationPropertyType> RequiredProperties { get; set; }  // Property-based matching
+    public List<LocationPropertyType> OptionalProperties { get; set; }
+    public List<LocationPropertyType> ExcludedProperties { get; set; }
+}
+```
+
+**Critical**: `ActionType` is strongly-typed enum, NOT string. This eliminates runtime string matching errors.
+
+### 4. Parsers with Enum Validation
+
+**Location**: `src/Content/Parsers/PlayerActionParser.cs`, `src/Content/Parsers/LocationActionParser.cs`
+
+**PlayerActionParser** - Validates actionType against enum catalogue:
+```csharp
+public static PlayerAction ParsePlayerAction(PlayerActionDTO dto)
+{
+    ValidateRequiredFields(dto);
+
+    // ENUM VALIDATION - throws InvalidDataException if unknown action type
+    if (!Enum.TryParse<PlayerActionType>(dto.ActionType, true, out PlayerActionType actionType))
+    {
+        string validTypes = string.Join(", ", Enum.GetNames(typeof(PlayerActionType)));
+        throw new InvalidDataException(
+            $"PlayerAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
+            $"Valid types: {validTypes}");
+    }
+
+    return new PlayerAction
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        Description = dto.Description,
+        ActionType = actionType,  // Strongly typed enum assigned
+        Cost = dto.Cost ?? new Dictionary<string, int>(),
+        TimeRequired = dto.TimeRequired,
+        Priority = dto.Priority
+    };
+}
+```
+
+**LocationActionParser** - Validates actionType and converts property strings to enums:
+```csharp
+public static LocationAction ParseLocationAction(LocationActionDTO dto)
+{
+    ValidateRequiredFields(dto);
+
+    // ENUM VALIDATION - throws InvalidDataException if unknown action type
+    if (!Enum.TryParse<LocationActionType>(dto.ActionType, true, out LocationActionType actionType))
+    {
+        string validTypes = string.Join(", ", Enum.GetNames(typeof(LocationActionType)));
+        throw new InvalidDataException(
+            $"LocationAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
+            $"Valid types: {validTypes}");
+    }
+
+    return new LocationAction
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        Description = dto.Description,
+        ActionType = actionType,  // Strongly typed enum assigned
+        Cost = dto.Cost ?? new Dictionary<string, int>(),
+        Reward = dto.Reward ?? new Dictionary<string, int>(),
+        TimeRequired = dto.TimeRequired,
+        Availability = dto.Availability ?? new List<string>(),
+        Priority = dto.Priority,
+        InvestigationId = dto.InvestigationId,
+        RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
+        OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
+        ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
+    };
+}
+
+// Converts property strings to LocationPropertyType enums
+private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
+{
+    // Returns empty list if null, logs warning if property doesn't match enum
+}
+```
+
+**Parser Integration**: `PackageLoader.cs` calls these parsers during content loading:
+```csharp
+// In PackageLoader.LoadLocationActions()
+LocationAction action = LocationActionParser.ParseLocationAction(dto);
+
+// In PackageLoader.LoadPlayerActions()
+PlayerAction action = PlayerActionParser.ParsePlayerAction(dto);
+```
+
+**Why This Matters**: Unknown action types crash at startup with descriptive error messages, preventing runtime bugs from malformed JSON.
+
+### 5. JSON Content Definition
+
+**Location**: `src/Content/Core/01_foundation.json`
+
+**PlayerAction JSON Example**:
+```json
+{
+  "playerActions": [
+    {
+      "id": "wait",
+      "name": "Wait",
+      "description": "Pass time without activity. Skips 1 time segment with no resource recovery.",
+      "actionType": "Wait",
+      "timeRequired": 1,
+      "priority": 200
+    },
+    {
+      "id": "check_belongings",
+      "name": "Check Belongings",
+      "description": "Review your current equipment and inventory.",
+      "actionType": "CheckBelongings",
+      "priority": 100
+    }
+  ]
+}
+```
+
+**LocationAction JSON Example**:
+```json
+{
+  "locationActions": [
+    {
+      "id": "rest",
+      "name": "Rest",
+      "description": "Take time to rest and recover. Restores +1 Health and +1 Stamina.",
+      "actionType": "Rest",
+      "timeRequired": 1,
+      "requiredProperties": ["rest", "restful"],
+      "priority": 50
+    },
+    {
+      "id": "travel",
+      "name": "Travel",
+      "description": "Choose a route to travel to a connected location.",
+      "actionType": "Travel",
+      "priority": 10
+    }
+  ]
+}
+```
+
+**Property-Based Matching**: LocationActions use `requiredProperties`, `optionalProperties`, and `excludedProperties` to match against location properties. For example, "Rest" action only appears at locations with "rest" or "restful" property.
+
+### 6. GameFacade Orchestration (Single Dispatch Point)
+
+**Location**: `src/Services/GameFacade.cs`
+
+**GameFacade Methods** - Single point of entry for action execution:
+```csharp
+// Execute PlayerAction by enum type
+public async Task ExecutePlayerAction(PlayerActionType actionType)
+{
+    switch (actionType)
+    {
+        case PlayerActionType.CheckBelongings:
+            // Navigate to equipment screen
+            break;
+
+        case PlayerActionType.Wait:
+            // Delegate to ResourceFacade for time/hunger progression
+            await _resourceFacade.ExecuteWait();
+            break;
+
+        default:
+            throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
+    }
+}
+
+// Execute LocationAction by enum type
+public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
+{
+    switch (actionType)
+    {
+        case LocationActionType.Travel:
+            // Navigate to travel screen
+            break;
+
+        case LocationActionType.Rest:
+            // Delegate to ResourceFacade for recovery
+            await _resourceFacade.ExecuteRest();
+            break;
+
+        case LocationActionType.Work:
+            // Delegate to ResourceFacade for work rewards
+            await _resourceFacade.PerformWork();
+            break;
+
+        case LocationActionType.Investigate:
+            // Delegate to LocationFacade for familiarity gain
+            await _locationFacade.InvestigateLocation(locationId);
+            break;
+
+        default:
+            throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
+    }
+}
+```
+
+**Why GameFacade**: Follows existing patterns like `ExecuteListen()`, `PerformWork()`, `TravelToDestinationAsync()`. GameFacade orchestrates specialized facades while keeping them decoupled.
+
+### 7. Specialized Facade Implementation
+
+**Location**: `src/Subsystems/Resource/ResourceFacade.cs`
+
+**ResourceFacade.ExecuteRest()** - Example action handler:
+```csharp
+public async Task ExecuteRest()
+{
+    Player player = _gameWorld.GetPlayer();
+
+    // Advance 1 time segment
+    await _timeFacade.AdvanceSegments(1);
+
+    // Hunger increases by +5 per segment (automatic via time progression)
+    // No need to manually modify hunger here
+
+    // Resource recovery
+    player.Health = Math.Min(player.Health + 1, player.MaxHealth);      // +1 health (16.7% of 6-point max)
+    player.Stamina = Math.Min(player.Stamina + 1, player.MaxStamina);   // +1 stamina (16.7% of 6-point max)
+}
+```
+
+**ResourceFacade.ExecuteWait()** - Example action handler:
+```csharp
+public async Task ExecuteWait()
+{
+    // Advance 1 time segment
+    await _timeFacade.AdvanceSegments(1);
+
+    // Hunger increases by +5 per segment (automatic via time progression)
+    // No resource recovery - just passing time
+}
+```
+
+### 8. UI Layer Integration
+
+**Location**: `src/Pages/Components/LocationContent.razor.cs`
+
+**BEFORE** (String Matching - Anti-Pattern):
+```csharp
+// WRONG - scattered string matching
+if (action.ActionType == "travel")
+{
+    // Handle travel inline
+}
+else if (action.ActionType == "rest")
+{
+    // Handle rest inline
+}
+```
+
+**AFTER** (Enum Dispatch through GameFacade):
+```csharp
+// CORRECT - enum-based dispatch through GameFacade
+private async Task HandleLocationAction(LocationAction action)
+{
+    await GameFacade.ExecuteLocationAction(action.ActionType, currentLocationId);
+    await RefreshUI();
+}
+
+private async Task HandlePlayerAction(PlayerAction action)
+{
+    await GameFacade.ExecutePlayerAction(action.ActionType);
+    await RefreshUI();
+}
+```
+
+**Why This Works**: UI layer is dumb display that calls GameFacade with strongly-typed enums. GameFacade handles all dispatch logic. No string matching in UI layer.
+
+### 9. Complete Vertical Slice Example: "Rest" Action
+
+**Complete Flow from JSON to Execution**:
+
+```
+1. JSON DEFINITION (01_foundation.json)
+   {
+     "id": "rest",
+     "name": "Rest",
+     "actionType": "Rest",  // String in JSON
+     "requiredProperties": ["rest", "restful"]
+   }
+
+2. PARSER VALIDATION (LocationActionParser.cs)
+   - Reads JSON via PackageLoader
+   - Validates "Rest" against LocationActionType enum
+   - Throws InvalidDataException if "Rest" not in enum
+   - Converts string "Rest" to LocationActionType.Rest enum
+   - Converts property strings to LocationPropertyType enums
+
+3. GAMEWORLD STORAGE
+   - Parsed LocationAction stored in GameWorld.LocationActions
+   - ActionType is LocationActionType.Rest (strongly typed)
+
+4. UI DISPLAY (LocationContent.razor.cs)
+   - Fetches available LocationActions for current location
+   - Filters by property matching (location has "rest" or "restful")
+   - Displays "Rest" card in UI
+
+5. USER INTERACTION
+   - Player clicks "Rest" card
+   - UI calls: await HandleLocationAction(action)
+
+6. GAMEFACADE DISPATCH (GameFacade.cs)
+   - UI calls: await GameFacade.ExecuteLocationAction(LocationActionType.Rest, locationId)
+   - GameFacade switches on action.ActionType enum
+   - Case LocationActionType.Rest: delegates to ResourceFacade.ExecuteRest()
+
+7. SPECIALIZED FACADE EXECUTION (ResourceFacade.cs)
+   - ResourceFacade.ExecuteRest() executes game logic:
+     - Advances 1 time segment via TimeFacade
+     - Recovers +1 health
+     - Recovers +1 stamina
+     - Hunger increases +5 (automatic via time progression)
+
+8. STATE UPDATE
+   - Player resources updated in GameWorld
+   - UI refreshes with new state
+```
+
+### 10. Critical Principles
+
+**1. Enum Catalogues Prevent Runtime Errors**
+- All valid action types defined in enums
+- Parsers validate JSON against enums at startup
+- Unknown action types crash with descriptive errors BEFORE game starts
+- NO runtime string matching errors
+
+**2. Single Dispatch Point in GameFacade**
+- ALL action execution goes through GameFacade methods
+- NO scattered string matching across multiple files
+- GameFacade orchestrates specialized facades
+- Follows existing patterns (ExecuteListen, PerformWork, etc.)
+
+**3. Strong Typing Throughout Pipeline**
+- JSON strings converted to enums by parsers
+- Domain entities use enum types
+- GameFacade switches on enums
+- UI passes enums to GameFacade
+- NO string comparisons at runtime
+
+**4. Property-Based Matching for LocationActions**
+- LocationActions use RequiredProperties/OptionalProperties/ExcludedProperties
+- Locations tagged with LocationPropertyType enums
+- Actions automatically filtered by property matching
+- NO manual ID lists or hardcoded availability
+
+**5. Specialized Facades Handle Domain Logic**
+- GameFacade delegates to ResourceFacade, TimeFacade, LocationFacade, etc.
+- Each facade encapsulates ONE business domain
+- Facades remain decoupled (never call each other directly)
+- GameFacade orchestrates cross-facade operations
+
+**6. No Dictionary Disease**
+- NO string-based actionType matching
+- NO Dictionary<string, object> for actions
+- NO runtime type checking or casting
+- Strong typing enforced from JSON → Parser → Domain → UI
 
 ---
 

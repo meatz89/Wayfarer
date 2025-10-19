@@ -338,6 +338,91 @@ public class GameFacade
         return result;
     }
 
+    // ========== ACTION EXECUTION ==========
+
+    /// <summary>
+    /// Execute a PlayerAction by its strongly-typed enum.
+    /// Single dispatch point for all global player actions (Check Belongings, Wait).
+    /// </summary>
+    public async Task ExecutePlayerAction(PlayerActionType actionType)
+    {
+        switch (actionType)
+        {
+            case PlayerActionType.CheckBelongings:
+                // Navigate to equipment screen
+                // TODO: Add navigation when equipment screen is implemented
+                _messageSystem.AddSystemMessage("📦 Check Belongings - Equipment screen coming soon", SystemMessageTypes.Info);
+                break;
+
+            case PlayerActionType.Wait:
+                // Delegate to ResourceFacade for time progression
+                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                _resourceFacade.ExecuteWait();
+                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                ProcessTimeAdvancement(new TimeAdvancementResult
+                {
+                    OldTimeBlock = oldTimeBlock,
+                    NewTimeBlock = newTimeBlock,
+                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                    SegmentsAdvanced = 1
+                });
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Execute a LocationAction by its strongly-typed enum.
+    /// Single dispatch point for all location-specific actions (Travel, Rest, Work, Investigate).
+    /// </summary>
+    public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
+    {
+        switch (actionType)
+        {
+            case LocationActionType.Travel:
+                // Navigate to travel screen
+                // TODO: Add navigation when travel screen routing is updated
+                _messageSystem.AddSystemMessage("🚶 Travel - Use travel screen", SystemMessageTypes.Info);
+                break;
+
+            case LocationActionType.Rest:
+                // Delegate to ResourceFacade for recovery
+                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                _resourceFacade.ExecuteRest();
+                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                ProcessTimeAdvancement(new TimeAdvancementResult
+                {
+                    OldTimeBlock = oldTimeBlock,
+                    NewTimeBlock = newTimeBlock,
+                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                    SegmentsAdvanced = 1
+                });
+                break;
+
+            case LocationActionType.Work:
+                // Delegate to ResourceFacade for work rewards
+                await PerformWork();
+                break;
+
+            case LocationActionType.Investigate:
+                // Delegate to LocationFacade for familiarity gain
+                _locationFacade.InvestigateLocation(locationId);
+                _messageSystem.AddSystemMessage("🔍 Investigated location, gaining familiarity", SystemMessageTypes.Info);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
+        }
+
+        await Task.CompletedTask;
+    }
+
     // ========== CONVERSATION OPERATIONS ==========
 
     public SocialFacade GetConversationFacade()
@@ -775,6 +860,11 @@ public class GameFacade
 
     private void ProcessTimeAdvancement(TimeAdvancementResult result)
     {
+        // Increase hunger by +5 per segment (universal time cost)
+        int hungerIncrease = result.SegmentsAdvanced * 5;
+        _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
+
+        // Handle time block transitions (day transitions, NPC refresh, etc.)
         if (result.CrossedTimeBlock)
         {
             _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);

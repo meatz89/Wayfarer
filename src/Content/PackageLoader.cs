@@ -944,7 +944,7 @@ public class PackageLoader
 
         foreach (LocationActionDTO dto in locationActionDtos)
         {
-            LocationAction locationAction = ConvertLocationActionDTOToModel(dto);
+            LocationAction locationAction = LocationActionParser.ParseLocationAction(dto);
             _gameWorld.LocationActions.Add(locationAction);
         }
     }
@@ -955,7 +955,7 @@ public class PackageLoader
 
         foreach (PlayerActionDTO dto in playerActionDtos)
         {
-            PlayerAction playerAction = ConvertPlayerActionDTOToModel(dto);
+            PlayerAction playerAction = PlayerActionParser.ParsePlayerAction(dto);
             _gameWorld.PlayerActions.Add(playerAction);
         }
     }
@@ -1100,95 +1100,7 @@ public class PackageLoader
     }
 
     // ObservationCard system eliminated - ConvertObservationDTOToCard removed
-
-    private LocationAction ConvertLocationActionDTOToModel(LocationActionDTO dto)
-    {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("LocationAction missing required field 'Id'");
-        if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Name'");
-        if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Description'");
-        if (string.IsNullOrEmpty(dto.ActionType))
-            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'ActionType'");
-
-        LocationAction action = new LocationAction
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Description = dto.Description,
-            Cost = dto.Cost,
-            Reward = dto.Reward,
-            TimeRequired = dto.TimeRequired,
-            Availability = dto.Availability,
-            Priority = dto.Priority,
-            ActionType = dto.ActionType,
-            InvestigationId = dto.InvestigationId
-        };
-
-        // Parse required properties
-        if (dto.RequiredProperties != null)
-        {
-            foreach (string prop in dto.RequiredProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.RequiredProperties.Add(propertyType);
-                }
-            }
-        }
-
-        // Parse optional properties
-        if (dto.OptionalProperties != null)
-        {
-            foreach (string prop in dto.OptionalProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.OptionalProperties.Add(propertyType);
-                }
-            }
-        }
-
-        // Parse excluded properties
-        if (dto.ExcludedProperties != null)
-        {
-            foreach (string prop in dto.ExcludedProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.ExcludedProperties.Add(propertyType);
-                }
-            }
-        }
-
-        return action;
-    }
-
-    private PlayerAction ConvertPlayerActionDTOToModel(PlayerActionDTO dto)
-    {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("PlayerAction missing required field 'Id'");
-        if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Name'");
-        if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Description'");
-        if (string.IsNullOrEmpty(dto.ActionType))
-            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'ActionType'");
-
-        PlayerAction action = new PlayerAction
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Description = dto.Description,
-            Cost = dto.Cost,
-            TimeRequired = dto.TimeRequired,
-            Priority = dto.Priority,
-            ActionType = dto.ActionType
-        };
-
-        return action;
-    }
+    // LocationAction/PlayerAction conversion - replaced by dedicated parsers (LocationActionParser, PlayerActionParser)
 
     private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons)
     {

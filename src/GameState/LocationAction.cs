@@ -66,9 +66,9 @@ public class LocationAction
     public int Priority { get; set; } = 100;
 
     /// <summary>
-    /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
+    /// Action type for execution dispatch - strongly typed enum validated by parser
     /// </summary>
-    public string ActionType { get; set; }
+    public LocationActionType ActionType { get; set; }
 
     /// <summary>
     /// Engagement type for tactical system integration (Mental, Physical, Social, Conversation)
