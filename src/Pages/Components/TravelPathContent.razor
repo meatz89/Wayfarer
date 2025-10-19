@@ -94,15 +94,6 @@
                     TURN BACK
                 </div>
             </div>
-
-            <!-- Alternatives -->
-            <div class="alternatives-section">
-                <div class="alternatives-title">Alternatives</div>
-                <div class="alternative-item">
-                    🛌 Rest Here - Restore stamina but <span class="alternative-cost">+3 segments</span> to travel time
-                    <button class="action-button @(!CanRest() ? "disabled" : "")" @onclick="RestAction">REST</button>
-                </div>
-            </div>
         </div>
     }
     @* ========== ENCOUNTER SEGMENT (Mandatory Challenge) ========== *@
@@ -482,15 +473,6 @@
             </div>
         </div>
 
-        <!-- Action Section -->
-        <div class="action-section caravan">
-            <div class="action-choices">
-                <div class="action-button @(!CanRest() ? "disabled" : "")" @onclick="RestAction">
-                    <div>REST IN CARAVAN</div>
-                    <div class="action-details">Skip event, +3 segments, restore stamina</div>
-                </div>
-            </div>
-        </div>
     }
     @* ========== WALKING/FIXEDPATH SEGMENT (travel-walking.html) ========== *@
     else if (IsFixedPathSegment())
@@ -905,7 +887,7 @@
                 <div class="action-button @(!CanRest() ? "disabled" : "")"
                      @onclick="RestAction">
                     <div>REST</div>
-                    <div class="action-details">Skip segment, +3 segments, restore stamina</div>
+                    <div class="action-details">Restore stamina (+1 segment to travel time)</div>
                 </div>
                 <div class="action-button @(!MustTurnBack() ? "disabled" : "")"
                      @onclick="TurnBack">
