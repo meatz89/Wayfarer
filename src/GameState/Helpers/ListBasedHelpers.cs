@@ -171,9 +171,9 @@ public static class ListBasedHelperExtensions
     public static int GetTokenCount(this List<NPCTokenEntry> tokens, string npcId, ConnectionType type)
     {
         NPCTokenEntry entry = tokens.FirstOrDefault(t => t.NpcId == npcId);
-        if (entry == null)
-            throw new System.InvalidOperationException($"No token entry found for NPC '{npcId}' - ensure NPC exists before accessing tokens");
-        return entry.GetTokenCount(type);
+        // Lazy initialization: Return 0 if entry doesn't exist yet
+        // Entries are created on first SetTokenCount call
+        return entry?.GetTokenCount(type) ?? 0;
     }
 
     public static void SetTokenCount(this List<NPCTokenEntry> tokens, string npcId, ConnectionType type, int count)
@@ -185,8 +185,17 @@ public static class ListBasedHelperExtensions
     public static Dictionary<ConnectionType, int> GetTokens(this List<NPCTokenEntry> tokens, string npcId)
     {
         NPCTokenEntry entry = tokens.FirstOrDefault(t => t.NpcId == npcId);
+        // Lazy initialization: Return all zeros if entry doesn't exist yet
         if (entry == null)
-            throw new System.InvalidOperationException($"No token entry found for NPC '{npcId}' - ensure NPC exists before accessing tokens");
+        {
+            return new Dictionary<ConnectionType, int>
+            {
+                [ConnectionType.Trust] = 0,
+                [ConnectionType.Diplomacy] = 0,
+                [ConnectionType.Status] = 0,
+                [ConnectionType.Shadow] = 0
+            };
+        }
 
         return new Dictionary<ConnectionType, int>
         {

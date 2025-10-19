@@ -653,16 +653,21 @@ public class LocationFacade
         // Get NPCs at spot
         List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
 
-        // Get ALL social goals at spot (filtered)
-        List<Goal> allSocialGoals = GetFilteredSocialGoals(spot);
-
         // Build NPCs with their goals PRE-GROUPED
+        // CORRECT: Get goals FROM each NPC (using PlacementNpcId), not from location
         foreach (NPC npc in npcsAtSpot)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
 
-            // Filter goals for THIS NPC
-            List<Goal> npcGoals = allSocialGoals.Where(g => g.PlacementNpcId == npc.ID).ToList();
+            // Get ALL goals for THIS NPC (uses PlacementNpcId)
+            List<Goal> allNpcGoals = _obstacleGoalFilter.GetVisibleNPCGoals(npc, _gameWorld);
+
+            // Filter to Social goals only, available, not investigation
+            List<Goal> npcSocialGoals = allNpcGoals
+                .Where(g => g.SystemType == TacticalSystemType.Social)
+                .Where(g => g.IsAvailable && !g.IsCompleted)
+                .Where(g => string.IsNullOrEmpty(g.InvestigationId))
+                .ToList();
 
             result.Add(new NpcWithGoalsViewModel
             {
@@ -672,7 +677,9 @@ public class LocationFacade
                 ConnectionState = connectionState.ToString(),
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
-                SocialGoals = npcGoals.Select(g => BuildGoalCard(g, "social", "Doubt")).ToList()
+                SocialGoals = npcSocialGoals.Select(g => BuildGoalCard(g, "social", "Doubt")).ToList(),
+                HasExchange = npc.HasExchangeCards(),
+                ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
             });
         }
 
@@ -699,16 +706,9 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<Goal> GetFilteredSocialGoals(Location spot)
-    {
-        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
-
-        return allVisibleGoals
-            .Where(g => g.SystemType == TacticalSystemType.Social)
-            .Where(g => g.IsAvailable && !g.IsCompleted)
-            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
-            .ToList();
-    }
+    // DELETED: GetFilteredSocialGoals() - was incorrectly using GetVisibleLocationGoals()
+    // Social goals are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
+    // Now calling GetVisibleNPCGoals() directly in BuildNPCsWithGoals()
 
     private List<GoalCardViewModel> BuildMentalGoals(Location spot)
     {

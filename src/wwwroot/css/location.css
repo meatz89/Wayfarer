@@ -1467,6 +1467,11 @@ body * {
     color: white;
 }
 
+.goal-system-badge.exchange {
+    background: linear-gradient(to right, #8b7a5a, #b89e7a);
+    color: white;
+}
+
 .goal-name {
     font-size: 16px;
     font-weight: bold;

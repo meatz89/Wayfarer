@@ -101,6 +101,19 @@
                                     }
                                 </div>
                             }
+
+                            @* Exchange Option for MERCANTILE NPCs *@
+                            @if (npcWithGoals.HasExchange)
+                            {
+                                <div class="actions-grid">
+                                    <div class="goal-action-btn"
+                                         @onclick="async () => await HandleStartExchange(npcWithGoals.Id)">
+                                        <div class="goal-system-badge exchange">Exchange</div>
+                                        <div class="goal-name">Trading</div>
+                                        <div class="goal-description">@npcWithGoals.ExchangeDescription</div>
+                                    </div>
+                                </div>
+                            }
                         }
                     }
 

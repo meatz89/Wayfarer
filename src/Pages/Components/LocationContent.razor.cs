@@ -222,6 +222,14 @@ namespace Wayfarer.Pages.Components
             await MoveToSpot(spotId);
         }
 
+        protected async Task HandleStartExchange(string npcId)
+        {
+            if (GameScreen != null)
+            {
+                await GameScreen.StartExchange(npcId);
+            }
+        }
+
         // ============================================
         // VIEWMODEL PREPARATION - trivial wrappers
         // ============================================

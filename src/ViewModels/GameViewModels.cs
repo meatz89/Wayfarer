@@ -225,6 +225,10 @@ public class NpcWithGoalsViewModel
 
     // Social goals FOR THIS NPC - already filtered in backend
     public List<GoalCardViewModel> SocialGoals { get; set; } = new();
+
+    // Exchange availability for MERCANTILE NPCs
+    public bool HasExchange { get; set; }
+    public string ExchangeDescription { get; set; }
 }
 
 /// <summary>
