@@ -7,21 +7,12 @@
     <div class="actions-grid">
         @* HIGH-LEVEL NAVIGATION CHOICES (3-5 options) *@
 
-        @if (HasNPCs)
-        {
-            <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.LookingAround)">
-                <div class="action-name">Look Around</div>
-                <div class="action-detail">See who's present and what's happening</div>
-            </div>
-        }
+        <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.LookingAround)">
+            <div class="action-name">Look Around</div>
+            <div class="action-detail">See who's here and what's happening - people, challenges, opportunities</div>
+        </div>
 
-        @if (HasLocationChallenges)
-        {
-            <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.LocationChallenges)">
-                <div class="action-name">Examine Location</div>
-                <div class="action-detail">Look for mental and physical challenges</div>
-            </div>
-        }
+        @* REMOVED: "Examine Location" - consolidated into Look Around *@
 
         @if (HasSpots)
         {

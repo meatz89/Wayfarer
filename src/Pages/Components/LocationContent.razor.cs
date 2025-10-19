@@ -59,7 +59,7 @@ namespace Wayfarer.Pages.Components
         // VISUAL NOVEL NAVIGATION STATE MACHINE
         protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
         protected Stack<LocationViewState> NavigationStack { get; set; } = new();
-        protected string SelectedNpcId { get; set; }
+        // REMOVED: SelectedNpcId (ApproachNPC view state deleted)
         protected Goal SelectedGoal { get; set; }
 
         // DATA PROPERTIES
@@ -803,11 +803,8 @@ namespace Wayfarer.Pages.Components
             ViewState = newView;
 
             // Handle context based on view type
-            if (newView == LocationViewState.ApproachNPC && context is string npcId)
-            {
-                SelectedNpcId = npcId;
-            }
-            else if (newView == LocationViewState.GoalDetail && context is Goal goal)
+            // REMOVED: ApproachNPC context handling (view state deleted)
+            if (newView == LocationViewState.GoalDetail && context is Goal goal)
             {
                 SelectedGoal = goal;
             }
@@ -826,10 +823,7 @@ namespace Wayfarer.Pages.Components
                 ViewState = previousView;
 
                 // Clear context when leaving specific views
-                if (ViewState != LocationViewState.ApproachNPC)
-                {
-                    SelectedNpcId = null;
-                }
+                // REMOVED: ApproachNPC context handling (view state deleted)
                 if (ViewState != LocationViewState.GoalDetail)
                 {
                     SelectedGoal = null;
@@ -852,7 +846,7 @@ namespace Wayfarer.Pages.Components
         {
             ViewState = LocationViewState.Landing;
             NavigationStack.Clear();
-            SelectedNpcId = null;
+            // REMOVED: SelectedNpcId = null (field deleted)
             SelectedGoal = null;
             StateHasChanged();
         }
@@ -890,85 +884,14 @@ namespace Wayfarer.Pages.Components
             return playerActions;
         }
 
-        protected NPCDetailViewModel GetSelectedNPCViewModel()
-        {
-            if (string.IsNullOrEmpty(SelectedNpcId)) return null;
-
-            NPC npc = GameFacade.GetNPCById(SelectedNpcId);
-            if (npc == null) return null;
-
-            return new NPCDetailViewModel
-            {
-                Id = npc.ID,
-                Name = npc.Name,
-                PersonalityDescription = npc.PersonalityType.ToString(),
-                ConnectionState = GameFacade.GetNPCConnectionState(npc.ID).ToString(),
-                StateClass = GetStateClass(GameFacade.GetNPCConnectionState(npc.ID).ToString()),
-                Description = npc.Description != null ? npc.Description : "",
-                Tokens = new List<TokenViewModel>()
-            };
-        }
-
-        protected List<GoalViewModel> GetSocialGoalsForNPC()
-        {
-            if (string.IsNullOrEmpty(SelectedNpcId)) return new List<GoalViewModel>();
-
-            return AvailableSocialGoals
-                .Where(g => g.PlacementNpcId == SelectedNpcId)
-                .Select(g => new GoalViewModel
-                {
-                    Id = g.Id,
-                    Name = g.Name,
-                    Description = g.Description,
-                    Difficulty = GetGoalDifficulty(g).ToString(),
-                    IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
-                    InvestigationId = g.InvestigationId
-                }).ToList();
-        }
-
-        protected List<ActiveGoalViewModel> GetNPCActiveGoals()
-        {
-            // TODO: Implement NPC active goals (requests, etc.)
-            return new List<ActiveGoalViewModel>();
-        }
-
-        protected bool CheckHasExchangeCards()
-        {
-            // TODO: Implement exchange card check
-            return false;
-        }
-
-        protected string GetDoubtDisplayForSelectedNPC()
-        {
-            // TODO: Implement doubt display calculation
-            return "Available";
-        }
-
-        protected List<GoalViewModel> GetMentalGoalsViewModel()
-        {
-            return AvailableMentalGoals.Select(g => new GoalViewModel
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                Difficulty = GetGoalDifficulty(g).ToString(),
-                IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
-                InvestigationId = g.InvestigationId
-            }).ToList();
-        }
-
-        protected List<GoalViewModel> GetPhysicalGoalsViewModel()
-        {
-            return AvailablePhysicalGoals.Select(g => new GoalViewModel
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                Difficulty = GetGoalDifficulty(g).ToString(),
-                IsIntroAction = !string.IsNullOrEmpty(g.InvestigationId),
-                InvestigationId = g.InvestigationId
-            }).ToList();
-        }
+        // REMOVED 8 dead methods that were used by deleted components:
+        // - GetSelectedNPCViewModel() (NPCDetailView)
+        // - GetSocialGoalsForNPC() (NPCDetailView)
+        // - GetNPCActiveGoals() (NPCDetailView)
+        // - CheckHasExchangeCards() (NPCDetailView)
+        // - GetDoubtDisplayForSelectedNPC() (NPCDetailView)
+        // - GetMentalGoalsViewModel() (LocationChallenges)
+        // - GetPhysicalGoalsViewModel() (LocationChallenges)
 
         protected GoalDetailViewModel GetGoalDetailViewModel()
         {
@@ -1007,10 +930,7 @@ namespace Wayfarer.Pages.Components
             await ExecuteLocationAction(action);
         }
 
-        protected void HandleNavigateToNPC(string npcId)
-        {
-            NavigateToView(LocationViewState.ApproachNPC, npcId);
-        }
+        // REMOVED: HandleNavigateToNPC (ApproachNPC view state deleted)
 
         protected void HandleNavigateToGoal(string goalId)
         {
@@ -1073,29 +993,21 @@ namespace Wayfarer.Pages.Components
     {
         /// <summary>
         /// Landing view: High-level navigation hub (3-5 choices)
-        /// Player chooses: Look Around, Examine Location, Move to Spot, or Travel
+        /// Player chooses: Look Around, Move to Spot, or Travel
         /// </summary>
         Landing,
 
         /// <summary>
-        /// Looking Around view: List of NPCs at current spot
-        /// Shows who's present, click NPC to see their details
+        /// UNIFIED EXPLORATION VIEW: Shows ALL location information at once.
+        /// - NPCs with descriptions
+        /// - Social goals (conversation/interaction options per NPC)
+        /// - Mental challenges (ambient location challenges)
+        /// - Physical challenges (ambient location challenges)
+        ///
+        /// HIGHLANDER: Replaces ApproachNPC + LocationChallenges.
+        /// No wasted clicks - player sees everything immediately.
         /// </summary>
         LookingAround,
-
-        /// <summary>
-        /// Approach NPC view: One NPC's full details and available goals
-        /// Shows NPC info, tokens, description, and their goals
-        /// Requires SelectedNpcId context
-        /// </summary>
-        ApproachNPC,
-
-        /// <summary>
-        /// Location Challenges view: Ambient Mental/Physical goals at location
-        /// Shows Mental and Physical goals available at current spot
-        /// Investigation goals appear here as regular goals with InvestigationId property
-        /// </summary>
-        LocationChallenges,
 
         /// <summary>
         /// Goal Detail view: Full goal information before commitment

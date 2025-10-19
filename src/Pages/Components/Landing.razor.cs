@@ -11,8 +11,8 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class LandingBase : ComponentBase
     {
-        [Parameter] public bool HasNPCs { get; set; }
-        [Parameter] public bool HasLocationChallenges { get; set; }
+        // REMOVED: HasNPCs (Look Around always visible now)
+        // REMOVED: HasLocationChallenges (consolidated into Look Around)
         [Parameter] public bool HasSpots { get; set; }
         [Parameter] public string CurrentLocationName { get; set; }
         [Parameter] public List<LocationActionViewModel> TravelActions { get; set; } = new();
