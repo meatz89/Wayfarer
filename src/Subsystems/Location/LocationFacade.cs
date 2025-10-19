@@ -667,11 +667,11 @@ public class LocationFacade
             // Get ALL goals for THIS NPC (uses PlacementNpcId)
             List<Goal> allNpcGoals = _obstacleGoalFilter.GetVisibleNPCGoals(npc, _gameWorld);
 
-            // Filter to Social goals only, available, not investigation
+            // Filter to Social goals only, available
+            // NOTE: Investigation goals ARE included - they may have parent obstacles for hierarchical display
             List<Goal> npcSocialGoals = allNpcGoals
                 .Where(g => g.SystemType == TacticalSystemType.Social)
                 .Where(g => g.IsAvailable && !g.IsCompleted)
-                .Where(g => string.IsNullOrEmpty(g.InvestigationId))
                 .ToList();
 
             // Group social goals by obstacle
@@ -740,10 +740,10 @@ public class LocationFacade
         List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
 
         // Filter to this system type only
+        // NOTE: Investigation goals ARE included - they may have parent obstacles for hierarchical display
         List<Goal> systemGoals = allVisibleGoals
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
-            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
             .ToList();
 
         // Group goals by obstacle (ambient goals have no obstacle parent)
