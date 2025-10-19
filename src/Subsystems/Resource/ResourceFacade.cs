@@ -87,7 +87,7 @@ public class ResourceFacade
         if (actualDamage > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"❤️ Took {actualDamage} damage from {source} (Health: {player.Health}/{Player.MaxHealthConstant})",
+                $"❤️ Took {actualDamage} damage from {source} (Health: {player.Health}/{player.MaxHealth})",
                 SystemMessageTypes.Warning);
 
             if (player.Health == 0)
@@ -103,13 +103,13 @@ public class ResourceFacade
     {
         Player player = _gameWorld.GetPlayer();
         int oldHealth = player.Health;
-        player.Health = Math.Min(Player.MaxHealthConstant, player.Health + amount);
+        player.Health = Math.Min(player.MaxHealth, player.Health + amount);
         int actualHealing = player.Health - oldHealth;
 
         if (actualHealing > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"❤️ Healed {actualHealing} from {source} (Health: {player.Health}/{Player.MaxHealthConstant})",
+                $"❤️ Healed {actualHealing} from {source} (Health: {player.Health}/{player.MaxHealth})",
                 SystemMessageTypes.Success);
         }
     }
@@ -130,14 +130,14 @@ public class ResourceFacade
     {
         Player player = _gameWorld.GetPlayer();
         int oldHunger = player.Hunger;
-        player.Hunger = Math.Min(Player.MaxHungerConstant, player.Hunger + amount);
+        player.Hunger = Math.Min(player.MaxHunger, player.Hunger + amount);
         int actualIncrease = player.Hunger - oldHunger;
 
         if (actualIncrease > 0)
         {
             string hungerLevel = player.GetHungerLevelDescription();
             _messageSystem.AddSystemMessage(
-                $"🍞 Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{Player.MaxHungerConstant} - {hungerLevel})",
+                $"🍞 Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
                 SystemMessageTypes.Info);
 
             if (player.IsStarving())
@@ -160,7 +160,7 @@ public class ResourceFacade
         {
             string hungerLevel = player.GetHungerLevelDescription();
             _messageSystem.AddSystemMessage(
-                $"🍖 Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{Player.MaxHungerConstant} - {hungerLevel})",
+                $"🍖 Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
                 SystemMessageTypes.Success);
         }
     }

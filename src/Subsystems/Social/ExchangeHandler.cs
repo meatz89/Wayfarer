@@ -185,7 +185,7 @@ public class ExchangeHandler
                     break;
 
                 case ResourceType.Health:
-                    player.Health = Math.Min(100, player.Health + reward.Amount);
+                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
                     break;
 
                 case ResourceType.Hunger:

@@ -1,9 +1,5 @@
 public class Player
 {
-    // Constants (moved from managers)
-    public const int MaxHealthConstant = 100;
-    public const int MaxHungerConstant = 100;
-
     // Core identity
     public string Name { get; set; }
     public Genders Gender { get; set; }

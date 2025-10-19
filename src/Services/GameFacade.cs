@@ -964,7 +964,7 @@ public class GameFacade
 
         if (health != 0)
         {
-            player.Health = Math.Clamp(player.Health + health, 0, 100);
+            player.Health = Math.Clamp(player.Health + health, 0, player.MaxHealth);
             _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
         }
 

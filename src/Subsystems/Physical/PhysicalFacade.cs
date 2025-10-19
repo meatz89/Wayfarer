@@ -483,15 +483,22 @@ public class PhysicalFacade
     /// </summary>
     private void ApplyDangerConsequences(Player player)
     {
-        // Health damage from physical consequences
-        int healthDamage = 5 + (_gameWorld.CurrentPhysicalSession.CurrentDanger - _gameWorld.CurrentPhysicalSession.MaxDanger);
-        player.Health -= healthDamage;
+        // Health damage from physical consequences (6-point scale)
+        // Base: 1 point + excess danger (capped at 2 for total max of 3 damage)
+        int excessDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger - _gameWorld.CurrentPhysicalSession.MaxDanger;
+        int healthDamage = 1 + Math.Min(2, excessDanger);
+        player.Health = Math.Max(0, player.Health - healthDamage);
 
-        // Stamina damage from exhaustion
-        int staminaDamage = 10;
-        player.Stamina -= staminaDamage;
+        // Stamina damage from exhaustion (6-point scale)
+        // 2 points = 33% of max stamina
+        int staminaDamage = 2;
+        player.Stamina = Math.Max(0, player.Stamina - staminaDamage);
 
-        player.InjuryCardIds.Add("injury_physical_moderate");
+        // Only add injury card if health drops below 2 (critical state)
+        if (player.Health < 2)
+        {
+            player.InjuryCardIds.Add("injury_physical_moderate");
+        }
     }
 
     /// <summary>
