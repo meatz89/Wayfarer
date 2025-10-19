@@ -498,6 +498,9 @@ public class LocationFacade
         if (spot == null)
             throw new InvalidOperationException("Current location spot is null");
 
+        (List<GoalCardViewModel> ambientMental, List<ObstacleWithGoalsViewModel> mentalObstacles) = BuildMentalChallenges(spot);
+        (List<GoalCardViewModel> ambientPhysical, List<ObstacleWithGoalsViewModel> physicalObstacles) = BuildPhysicalChallenges(spot);
+
         LocationContentViewModel viewModel = new LocationContentViewModel
         {
             Header = BuildLocationHeader(venue, spot, currentTime),
@@ -505,8 +508,10 @@ public class LocationFacade
             PlayerActions = GetPlayerActions(),
             HasSpots = GetSpotsForVenue(venue).Count > 1,
             NPCsWithGoals = BuildNPCsWithGoals(spot, currentTime),
-            MentalGoals = BuildMentalGoals(spot),
-            PhysicalGoals = BuildPhysicalGoals(spot),
+            AmbientMentalGoals = ambientMental,
+            MentalObstacles = mentalObstacles,
+            AmbientPhysicalGoals = ambientPhysical,
+            PhysicalObstacles = physicalObstacles,
             AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime)
         };
 
@@ -669,6 +674,10 @@ public class LocationFacade
                 .Where(g => string.IsNullOrEmpty(g.InvestigationId))
                 .ToList();
 
+            // Group social goals by obstacle
+            (List<GoalCardViewModel> ambientSocial, List<ObstacleWithGoalsViewModel> socialObstacles) =
+                GroupGoalsByObstacle(npc, npcSocialGoals, "social", "Doubt");
+
             result.Add(new NpcWithGoalsViewModel
             {
                 Id = npc.ID,
@@ -677,7 +686,8 @@ public class LocationFacade
                 ConnectionState = connectionState.ToString(),
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
-                SocialGoals = npcSocialGoals.Select(g => BuildGoalCard(g, "social", "Doubt")).ToList(),
+                AmbientSocialGoals = ambientSocial,
+                SocialObstacles = socialObstacles,
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
             });
@@ -710,30 +720,156 @@ public class LocationFacade
     // Social goals are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
     // Now calling GetVisibleNPCGoals() directly in BuildNPCsWithGoals()
 
-    private List<GoalCardViewModel> BuildMentalGoals(Location spot)
+    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildMentalChallenges(Location spot)
     {
-        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
-
-        List<Goal> mentalGoals = allVisibleGoals
-            .Where(g => g.SystemType == TacticalSystemType.Mental)
-            .Where(g => g.IsAvailable && !g.IsCompleted)
-            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
-            .ToList();
-
-        return mentalGoals.Select(g => BuildGoalCard(g, "mental", "Exposure")).ToList();
+        return BuildChallengesBySystemType(spot, TacticalSystemType.Mental, "mental", "Exposure");
     }
 
-    private List<GoalCardViewModel> BuildPhysicalGoals(Location spot)
+    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildPhysicalChallenges(Location spot)
     {
+        return BuildChallengesBySystemType(spot, TacticalSystemType.Physical, "physical", "Danger");
+    }
+
+    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildChallengesBySystemType(
+        Location spot, TacticalSystemType systemType, string systemTypeStr, string difficultyLabel)
+    {
+        List<GoalCardViewModel> ambientGoals = new List<GoalCardViewModel>();
+        List<ObstacleWithGoalsViewModel> obstacleGroups = new List<ObstacleWithGoalsViewModel>();
+
+        // Get all visible goals at this location
         List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
 
-        List<Goal> physicalGoals = allVisibleGoals
-            .Where(g => g.SystemType == TacticalSystemType.Physical)
+        // Filter to this system type only
+        List<Goal> systemGoals = allVisibleGoals
+            .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
             .Where(g => string.IsNullOrEmpty(g.InvestigationId))
             .ToList();
 
-        return physicalGoals.Select(g => BuildGoalCard(g, "physical", "Danger")).ToList();
+        // Group goals by obstacle (ambient goals have no obstacle parent)
+        Dictionary<string, List<Goal>> goalsByObstacle = new Dictionary<string, List<Goal>>();
+        List<Goal> ambientGoalsList = new List<Goal>();
+
+        foreach (Goal goal in systemGoals)
+        {
+            // Check if this goal belongs to an obstacle
+            Obstacle parentObstacle = FindParentObstacle(spot, goal);
+
+            if (parentObstacle != null)
+            {
+                if (!goalsByObstacle.ContainsKey(parentObstacle.Id))
+                {
+                    goalsByObstacle[parentObstacle.Id] = new List<Goal>();
+                }
+                goalsByObstacle[parentObstacle.Id].Add(goal);
+            }
+            else
+            {
+                ambientGoalsList.Add(goal);
+            }
+        }
+
+        // Build ambient goals view models
+        ambientGoals = ambientGoalsList.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList();
+
+        // Build obstacle groups
+        foreach (KeyValuePair<string, List<Goal>> kvp in goalsByObstacle)
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
+            if (obstacle != null)
+            {
+                obstacleGroups.Add(BuildObstacleWithGoals(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+            }
+        }
+
+        return (ambientGoals, obstacleGroups);
+    }
+
+    private Obstacle FindParentObstacle(Location spot, Goal goal)
+    {
+        // Check all obstacles at this location to see if any contains this goal
+        foreach (string obstacleId in spot.ObstacleIds)
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+            if (obstacle != null && obstacle.GoalIds.Contains(goal.Id))
+            {
+                return obstacle;
+            }
+        }
+        return null;
+    }
+
+    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) GroupGoalsByObstacle(
+        NPC npc, List<Goal> goals, string systemTypeStr, string difficultyLabel)
+    {
+        List<GoalCardViewModel> ambientGoals = new List<GoalCardViewModel>();
+        List<ObstacleWithGoalsViewModel> obstacleGroups = new List<ObstacleWithGoalsViewModel>();
+
+        // Group goals by obstacle (ambient goals have no obstacle parent)
+        Dictionary<string, List<Goal>> goalsByObstacle = new Dictionary<string, List<Goal>>();
+        List<Goal> ambientGoalsList = new List<Goal>();
+
+        foreach (Goal goal in goals)
+        {
+            // Check if this goal belongs to an obstacle from this NPC
+            Obstacle parentObstacle = FindParentObstacleForNPC(npc, goal);
+
+            if (parentObstacle != null)
+            {
+                if (!goalsByObstacle.ContainsKey(parentObstacle.Id))
+                {
+                    goalsByObstacle[parentObstacle.Id] = new List<Goal>();
+                }
+                goalsByObstacle[parentObstacle.Id].Add(goal);
+            }
+            else
+            {
+                ambientGoalsList.Add(goal);
+            }
+        }
+
+        // Build ambient goals view models
+        ambientGoals = ambientGoalsList.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList();
+
+        // Build obstacle groups
+        foreach (KeyValuePair<string, List<Goal>> kvp in goalsByObstacle)
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
+            if (obstacle != null)
+            {
+                obstacleGroups.Add(BuildObstacleWithGoals(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+            }
+        }
+
+        return (ambientGoals, obstacleGroups);
+    }
+
+    private Obstacle FindParentObstacleForNPC(NPC npc, Goal goal)
+    {
+        // Check all obstacles for this NPC to see if any contains this goal
+        foreach (string obstacleId in npc.ObstacleIds)
+        {
+            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+            if (obstacle != null && obstacle.GoalIds.Contains(goal.Id))
+            {
+                return obstacle;
+            }
+        }
+        return null;
+    }
+
+    private ObstacleWithGoalsViewModel BuildObstacleWithGoals(Obstacle obstacle, List<Goal> goals, string systemTypeStr, string difficultyLabel)
+    {
+        return new ObstacleWithGoalsViewModel
+        {
+            Id = obstacle.Id,
+            Name = obstacle.Name,
+            Description = obstacle.Description,
+            Intensity = obstacle.Intensity,
+            Contexts = obstacle.Contexts.Select(c => c.ToString()).ToList(),
+            ContextsDisplay = string.Join(", ", obstacle.Contexts.Select(c => c.ToString())),
+            Goals = goals.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList()
+        };
     }
 
     private GoalCardViewModel BuildGoalCard(Goal goal, string systemType, string difficultyLabel)

@@ -189,8 +189,14 @@ public class LocationContentViewModel
 
     // LookingAround view data (NPCs with their social goals PRE-GROUPED)
     public List<NpcWithGoalsViewModel> NPCsWithGoals { get; set; } = new();
-    public List<GoalCardViewModel> MentalGoals { get; set; } = new();
-    public List<GoalCardViewModel> PhysicalGoals { get; set; } = new();
+
+    // Mental challenges - grouped by obstacles
+    public List<GoalCardViewModel> AmbientMentalGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> MentalObstacles { get; set; } = new();  // Goals from obstacles
+
+    // Physical challenges - grouped by obstacles
+    public List<GoalCardViewModel> AmbientPhysicalGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> PhysicalObstacles { get; set; } = new();  // Goals from obstacles
 
     // Spots view data
     public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
@@ -212,7 +218,7 @@ public class LocationHeaderViewModel
 
 /// <summary>
 /// NPC with their social goals already filtered and attached
-/// NO FILTERING NEEDED IN UI - backend pre-groups goals by NPC
+/// NO FILTERING NEEDED IN UI - backend pre-groups goals by NPC and obstacles
 /// </summary>
 public class NpcWithGoalsViewModel
 {
@@ -223,8 +229,9 @@ public class NpcWithGoalsViewModel
     public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
 
-    // Social goals FOR THIS NPC - already filtered in backend
-    public List<GoalCardViewModel> SocialGoals { get; set; } = new();
+    // Social goals FOR THIS NPC - grouped by obstacles
+    public List<GoalCardViewModel> AmbientSocialGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> SocialObstacles { get; set; } = new();  // Goals from obstacles
 
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }
@@ -249,6 +256,23 @@ public class GoalCardViewModel
     // Costs
     public int FocusCost { get; set; }
     public int StaminaCost { get; set; }
+}
+
+/// <summary>
+/// Obstacle with its goals for hierarchical display
+/// Shows obstacle context (name, description, intensity, contexts) with nested goals
+/// </summary>
+public class ObstacleWithGoalsViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int Intensity { get; set; }
+    public List<string> Contexts { get; set; } = new();  // e.g., ["Search", "Deduction", "Pattern"]
+    public string ContextsDisplay { get; set; }  // e.g., "Search, Deduction, Pattern"
+
+    // Goals that belong to this obstacle
+    public List<GoalCardViewModel> Goals { get; set; } = new();
 }
 
 /// <summary>

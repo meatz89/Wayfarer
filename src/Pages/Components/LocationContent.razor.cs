@@ -239,18 +239,43 @@ namespace Wayfarer.Pages.Components
             if (SelectedGoal == null) return null;
 
             // Find the goal in view model to get pre-calculated difficulty
+            // Search in Social goals (ambient + obstacles)
             GoalCardViewModel goalCard = ViewModel.NPCsWithGoals
-                .SelectMany(npc => npc.SocialGoals)
+                .SelectMany(npc => npc.AmbientSocialGoals)
                 .FirstOrDefault(g => g.Id == SelectedGoal.Id);
 
             if (goalCard == null)
             {
-                goalCard = ViewModel.MentalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                goalCard = ViewModel.NPCsWithGoals
+                    .SelectMany(npc => npc.SocialObstacles)
+                    .SelectMany(obstacle => obstacle.Goals)
+                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+            }
+
+            // Search in Mental goals (ambient + obstacles)
+            if (goalCard == null)
+            {
+                goalCard = ViewModel.AmbientMentalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
             }
 
             if (goalCard == null)
             {
-                goalCard = ViewModel.PhysicalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                goalCard = ViewModel.MentalObstacles
+                    .SelectMany(obstacle => obstacle.Goals)
+                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+            }
+
+            // Search in Physical goals (ambient + obstacles)
+            if (goalCard == null)
+            {
+                goalCard = ViewModel.AmbientPhysicalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+            }
+
+            if (goalCard == null)
+            {
+                goalCard = ViewModel.PhysicalObstacles
+                    .SelectMany(obstacle => obstacle.Goals)
+                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
             }
 
             int difficulty = goalCard?.Difficulty ?? 0;
