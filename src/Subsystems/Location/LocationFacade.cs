@@ -25,6 +25,9 @@ public class LocationFacade
     private readonly MessageSystem _messageSystem;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
+    private readonly ObstacleGoalFilter _obstacleGoalFilter;
+    private readonly DifficultyCalculationService _difficultyService;
+    private readonly ItemRepository _itemRepository;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -40,7 +43,10 @@ public class LocationFacade
         TimeManager timeManager,
         MessageSystem messageSystem,
         DialogueGenerationService dialogueGenerator,
-        NarrativeRenderer narrativeRenderer)
+        NarrativeRenderer narrativeRenderer,
+        ObstacleGoalFilter obstacleGoalFilter,
+        DifficultyCalculationService difficultyService,
+        ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -57,6 +63,9 @@ public class LocationFacade
         _messageSystem = messageSystem;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
+        _obstacleGoalFilter = obstacleGoalFilter ?? throw new ArgumentNullException(nameof(obstacleGoalFilter));
+        _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
+        _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
     }
 
     /// <summary>
@@ -471,5 +480,309 @@ public class LocationFacade
         // V2 Investigation system removed - replaced by V3 card-based investigation
         _messageSystem.AddSystemMessage("Investigation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);
         return false;
+    }
+
+    /// <summary>
+    /// Get complete LocationContent view model with ALL data pre-built
+    /// NO FILTERING/QUERYING IN UI - all logic here in backend
+    /// </summary>
+    public LocationContentViewModel GetLocationContentViewModel()
+    {
+        Player player = _gameWorld.GetPlayer();
+        Venue venue = GetCurrentLocation();
+        Location spot = GetCurrentLocationSpot();
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
+
+        if (venue == null)
+            throw new InvalidOperationException("Current venue is null");
+        if (spot == null)
+            throw new InvalidOperationException("Current location spot is null");
+
+        LocationContentViewModel viewModel = new LocationContentViewModel
+        {
+            Header = BuildLocationHeader(venue, spot, currentTime),
+            TravelActions = GetTravelActions(venue, spot),
+            PlayerActions = GetPlayerActions(),
+            HasSpots = GetSpotsForVenue(venue).Count > 1,
+            NPCsWithGoals = BuildNPCsWithGoals(spot, currentTime),
+            MentalGoals = BuildMentalGoals(spot),
+            PhysicalGoals = BuildPhysicalGoals(spot),
+            AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime)
+        };
+
+        return viewModel;
+    }
+
+    // ============================================
+    // PRIVATE HELPER METHODS - ALL UI LOGIC MOVED HERE
+    // ============================================
+
+    private LocationHeaderViewModel BuildLocationHeader(Venue venue, Location spot, TimeBlocks currentTime)
+    {
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
+
+        return new LocationHeaderViewModel
+        {
+            VenueName = venue.Name,
+            SpotName = spot.Name,
+            TimeOfDayTrait = GetTimeOfDayTrait(venue, currentTime),
+            SpotTraits = BuildSpotTraits(spot),
+            AtmosphereText = _narrativeGenerator.GenerateAtmosphereText(spot, venue, currentTime, npcsAtSpot.Count),
+            CurrentTime = currentTime,
+            NPCsPresent = npcsAtSpot
+        };
+    }
+
+    private string GetTimeOfDayTrait(Venue venue, TimeBlocks currentTime)
+    {
+        string timeStr = currentTime switch
+        {
+            TimeBlocks.Morning => "Morning",
+            TimeBlocks.Midday => "Midday",
+            TimeBlocks.Afternoon => "Afternoon",
+            TimeBlocks.Evening => "Evening",
+            _ => "Unknown"
+        };
+
+        string modifier = GetLocationTimeModifier(venue, currentTime);
+        return string.IsNullOrEmpty(modifier) ? timeStr : $"{timeStr}: {modifier}";
+    }
+
+    private string GetLocationTimeModifier(Venue venue, TimeBlocks currentTime)
+    {
+        string locationName = venue.Name?.ToLower() ?? "";
+
+        if (locationName.Contains("market") || locationName.Contains("square"))
+        {
+            return currentTime switch
+            {
+                TimeBlocks.Morning => "Opening",
+                TimeBlocks.Midday => "Busy",
+                TimeBlocks.Afternoon => "Closing",
+                TimeBlocks.Evening => "Empty",
+                _ => ""
+            };
+        }
+
+        if (locationName.Contains("tavern") || locationName.Contains("kettle"))
+        {
+            return currentTime switch
+            {
+                TimeBlocks.Morning => "Quiet",
+                TimeBlocks.Midday => "Quiet",
+                TimeBlocks.Afternoon => "Busy",
+                TimeBlocks.Evening => "Lively",
+                _ => ""
+            };
+        }
+
+        if (locationName.Contains("noble") || locationName.Contains("manor"))
+        {
+            return currentTime switch
+            {
+                TimeBlocks.Morning => "Formal",
+                TimeBlocks.Midday => "Active",
+                TimeBlocks.Afternoon => "Reception",
+                TimeBlocks.Evening => "Private",
+                _ => ""
+            };
+        }
+
+        return "";
+    }
+
+    private List<string> BuildSpotTraits(Location spot)
+    {
+        List<string> traits = new List<string>();
+
+        if (spot.LocationProperties == null) return traits;
+
+        foreach (LocationPropertyType prop in spot.LocationProperties)
+        {
+            string display = prop switch
+            {
+                LocationPropertyType.Private => "Private (+1 patience)",
+                LocationPropertyType.Public => "Public (-1 patience)",
+                LocationPropertyType.Discrete => "Discrete (+1 patience)",
+                LocationPropertyType.Exposed => "Exposed (-1 patience)",
+                LocationPropertyType.Crossroads => "Crossroads",
+                LocationPropertyType.Commercial => "Commercial",
+                LocationPropertyType.Quiet => "Quiet (+1 flow)",
+                LocationPropertyType.Loud => "Loud (-1 flow)",
+                LocationPropertyType.Warm => "Warm (+1 flow)",
+                _ => prop.ToString()
+            };
+            traits.Add(display);
+        }
+
+        return traits;
+    }
+
+    private List<LocationActionViewModel> GetTravelActions(Venue venue, Location spot)
+    {
+        List<LocationActionViewModel> actions = _actionManager.GetLocationActions(venue, spot);
+        return actions.Where(a => a.ActionType == "travel").ToList();
+    }
+
+    private List<LocationActionViewModel> GetPlayerActions()
+    {
+        List<LocationActionViewModel> playerActions = new List<LocationActionViewModel>();
+
+        if (_gameWorld.PlayerActions == null)
+            throw new InvalidOperationException("PlayerActions not initialized");
+
+        foreach (PlayerAction action in _gameWorld.PlayerActions)
+        {
+            playerActions.Add(new LocationActionViewModel
+            {
+                Title = action.Name,
+                Detail = action.Description,
+                ActionType = action.ActionType.ToString().ToLower(),
+                IsAvailable = true,
+                Icon = ""
+            });
+        }
+
+        return playerActions;
+    }
+
+    private List<NpcWithGoalsViewModel> BuildNPCsWithGoals(Location spot, TimeBlocks currentTime)
+    {
+        List<NpcWithGoalsViewModel> result = new List<NpcWithGoalsViewModel>();
+
+        // Get NPCs at spot
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
+
+        // Get ALL social goals at spot (filtered)
+        List<Goal> allSocialGoals = GetFilteredSocialGoals(spot);
+
+        // Build NPCs with their goals PRE-GROUPED
+        foreach (NPC npc in npcsAtSpot)
+        {
+            ConnectionState connectionState = GetNPCConnectionState(npc);
+
+            // Filter goals for THIS NPC
+            List<Goal> npcGoals = allSocialGoals.Where(g => g.PlacementNpcId == npc.ID).ToList();
+
+            result.Add(new NpcWithGoalsViewModel
+            {
+                Id = npc.ID,
+                Name = npc.Name,
+                PersonalityType = npc.PersonalityType.ToString(),
+                ConnectionState = connectionState.ToString(),
+                StateClass = GetConnectionStateClass(connectionState),
+                Description = GetNPCDescriptionText(npc, connectionState),
+                SocialGoals = npcGoals.Select(g => BuildGoalCard(g, "social", "Doubt")).ToList()
+            });
+        }
+
+        return result;
+    }
+
+    private string GetConnectionStateClass(ConnectionState state)
+    {
+        return state switch
+        {
+            ConnectionState.DISCONNECTED => "disconnected",
+            _ => ""
+        };
+    }
+
+    private string GetNPCDescriptionText(NPC npc, ConnectionState state)
+    {
+        // Try actual NPC description from JSON first
+        if (!string.IsNullOrEmpty(npc.Description))
+            return npc.Description;
+
+        // Fallback to generated description
+        string template = _dialogueGenerator.GenerateNPCDescription(npc, state);
+        return _narrativeRenderer.RenderTemplate(template);
+    }
+
+    private List<Goal> GetFilteredSocialGoals(Location spot)
+    {
+        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
+
+        return allVisibleGoals
+            .Where(g => g.SystemType == TacticalSystemType.Social)
+            .Where(g => g.IsAvailable && !g.IsCompleted)
+            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
+            .ToList();
+    }
+
+    private List<GoalCardViewModel> BuildMentalGoals(Location spot)
+    {
+        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
+
+        List<Goal> mentalGoals = allVisibleGoals
+            .Where(g => g.SystemType == TacticalSystemType.Mental)
+            .Where(g => g.IsAvailable && !g.IsCompleted)
+            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
+            .ToList();
+
+        return mentalGoals.Select(g => BuildGoalCard(g, "mental", "Exposure")).ToList();
+    }
+
+    private List<GoalCardViewModel> BuildPhysicalGoals(Location spot)
+    {
+        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
+
+        List<Goal> physicalGoals = allVisibleGoals
+            .Where(g => g.SystemType == TacticalSystemType.Physical)
+            .Where(g => g.IsAvailable && !g.IsCompleted)
+            .Where(g => string.IsNullOrEmpty(g.InvestigationId))
+            .ToList();
+
+        return physicalGoals.Select(g => BuildGoalCard(g, "physical", "Danger")).ToList();
+    }
+
+    private GoalCardViewModel BuildGoalCard(Goal goal, string systemType, string difficultyLabel)
+    {
+        DifficultyResult difficultyResult = _difficultyService.CalculateDifficulty(goal, _itemRepository);
+
+        return new GoalCardViewModel
+        {
+            Id = goal.Id,
+            Name = goal.Name,
+            Description = goal.Description,
+            SystemType = systemType,
+            Difficulty = difficultyResult.FinalDifficulty,
+            DifficultyLabel = difficultyLabel,
+            InvestigationId = goal.InvestigationId,
+            IsIntroAction = !string.IsNullOrEmpty(goal.InvestigationId),
+            FocusCost = goal.Costs.Focus,
+            StaminaCost = goal.Costs.Stamina
+        };
+    }
+
+    private List<SpotWithNpcsViewModel> BuildSpotsWithNPCs(Venue venue, Location currentSpot, TimeBlocks currentTime)
+    {
+        List<SpotWithNpcsViewModel> spots = new List<SpotWithNpcsViewModel>();
+
+        IEnumerable<Location> allSpots = _gameWorld.Locations.Where(s => s.VenueId == venue.Id);
+
+        foreach (Location spot in allSpots)
+        {
+            List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
+
+            spots.Add(new SpotWithNpcsViewModel
+            {
+                Id = spot.Name,
+                Name = spot.Name,
+                IsCurrentSpot = spot.Id == currentSpot.Id,
+                NPCs = npcsAtSpot.Select(npc => new NpcAtSpotViewModel
+                {
+                    Name = npc.Name,
+                    ConnectionState = GetNPCConnectionState(npc).ToString()
+                }).ToList()
+            });
+        }
+
+        return spots;
+    }
+
+    private List<Location> GetSpotsForVenue(Venue venue)
+    {
+        return _gameWorld.Locations.Where(s => s.VenueId == venue.Id).ToList();
     }
 }
