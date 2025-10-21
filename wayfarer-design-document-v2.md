@@ -199,9 +199,9 @@ Each system is a distinct tactical game following the same architectural pattern
 4. **Tactical Execution**: Visit location, select goal card, complete Mental/Physical/Social challenge
 5. **Progression**: Victory grants discoveries, unlocks subsequent phases, builds toward completion
 
-**AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
+**AI-Generated Content**: Obligation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique Obligations that follow proven mechanical patterns.
 
-**Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
+**Purpose:** Bridge strategic decision-making to tactical challenge execution. Obligations provide context and progression, challenges provide gameplay.
 
 ## NPC System
 
@@ -240,53 +240,53 @@ Each NPC has conversational personality affecting tactical approach:
 
 These transform the conversation puzzle while maintaining core mechanics.
 
-## Investigation System
+## Obligation System
 
 ### Architecture Overview
 
-Investigations are multi-phase mysteries that bridge strategic planning to tactical execution through three parallel challenge systems (Mental, Physical, Social). Each investigation consists of discrete phases resolved through card-based tactical challenges, with AI-generated content built from authored templates.
+Obligations are multi-phase mysteries that bridge strategic planning to tactical execution through three parallel challenge systems (Mental, Physical, Social). Each Obligation consists of discrete phases resolved through card-based tactical challenges, with AI-generated content built from authored templates.
 
-### Investigation Lifecycle
+### Obligation Lifecycle
 
 **1. Potential State**
-Investigation exists as template but not yet discovered by player. Waiting for trigger condition.
+Obligation exists as template but not yet discovered by player. Waiting for trigger condition.
 
 **2. Discovery Triggers (Five Types)**
 
-**Immediate Visibility** - Investigation visible upon entering venue
+**Immediate Visibility** - Obligation visible upon entering venue
 - Obvious environmental features (collapsed bridge, abandoned waterwheel)
 - Public knowledge mysteries (town's water problem, missing merchant)
 - Location-inherent investigation opportunities
 
 **Environmental Observation** - Triggered by examining location features
-- Player examines specific location, reveals hidden investigation
+- Player examines specific location, reveals hidden Obligation
 - "You notice something unusual about the mill mechanism..."
 - Requires player attention, rewards thorough exploration
 
-**Conversational Discovery** - NPC dialogue reveals investigation existence
+**Conversational Discovery** - NPC dialogue reveals Obligation existence
 - NPC mentions mystery during conversation
-- Grants observation card mentioning the investigation
-- Playing that card in subsequent conversation spawns investigation
+- Grants observation card mentioning the Obligation
+- Playing that card in subsequent conversation spawns Obligation
 
-**Item Discovery** - Finding specific item triggers related investigation
-- Discover torn letter → spawns investigation about its sender
-- Find broken mechanism part → spawns investigation about sabotage
-- Physical evidence creates investigation context
+**Item Discovery** - Finding specific item triggers related Obligation
+- Discover torn letter → spawns Obligation about its sender
+- Find broken mechanism part → spawns Obligation about sabotage
+- Physical evidence creates Obligation context
 
-**Obligation-Triggered** - Accepting NPC request spawns investigation
+**Request-Triggered** - Accepting NPC request spawns Obligation
 - Merchant asks you to investigate waterwheel
-- Investigation spawns when obligation accepted
-- Direct causal link between social commitment and investigation
+- Obligation spawns when request accepted
+- Direct causal link between social commitment and Obligation
 
 **3. Active State**
-Investigation discovered, phases available based on requirements. Player can see phase structure, requirements, current progress. Investigation persists across sessions - partial progress retained, can retreat and return prepared.
+Obligation discovered, phases available based on requirements. Player can see phase structure, requirements, current progress. Obligation persists across sessions - partial progress retained, can retreat and return prepared.
 
 **4. Completion**
-All required phases completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
+All required phases completed. Obligation marked complete, rewards granted, knowledge added to player state. May unlock subsequent Obligations or alter world state.
 
 ### Phase Structure
 
-Each investigation consists of 3-7 phases resolved sequentially or in parallel (based on requirements):
+Each Obligation consists of 3-7 phases resolved sequentially or in parallel (based on requirements):
 
 **Phase Definition:**
 - **System Type**: Mental, Physical, or Social challenge
@@ -303,7 +303,7 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **Stats**: Minimum Observation, Strength, Rapport thresholds
 
 **Phase Spawning:**
-When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at locations as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
+When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at locations as card options. Social goals target specific NPCs, creating conversation opportunities with Obligation context.
 
 ### Three Challenge Systems Detailed
 
@@ -311,28 +311,28 @@ All three systems provide equivalent tactical depth through parallel architectur
 
 ---
 
-## Mental Challenges - Investigation at Locations
+## Mental Challenges - Investigative Gameplay at Locations
 
 **Interaction Model**: Player investigates static locations (crime scenes, mysterious sites, evidence locations)
 
 ### Session Model: Pauseable Static Puzzle
 
-Mental investigations can be paused and resumed, respecting the reality that investigations take time:
+Mental challenges can be paused and resumed, respecting the reality that investigations take time:
 
 - **Can pause anytime**: Leave location, state persists exactly where you left off
 - **Progress persists**: Accumulates at location across multiple visits
 - **Exposure persists**: Your investigative "footprint" at location increases difficulty
 - **Attention resets**: Return with fresh mental energy after rest
-- **No forced ending**: High Exposure makes investigation harder but doesn't force failure
+- **No forced ending**: High Exposure makes Mental challenge harder but doesn't force failure
 - **Incremental victory**: Reach Progress threshold across multiple visits (typically 10-20 total)
 - **Verisimilitude**: Real investigations take days/weeks with breaks between sessions
 
 ### Core Session Resources
 
 - **Progress** (builder, persists): Accumulates toward completion (10-20 total typical)
-- **Attention** (session budget, resets): Mental capacity for ACT cards, derived from permanent Focus at challenge start (max determined by current Focus level). **Cannot replenish during investigation** - must rest outside challenge to restore.
+- **Attention** (session budget, resets): Mental capacity for ACT cards, derived from permanent Focus at challenge start (max determined by current Focus level). **Cannot replenish during Mental challenge** - must rest outside challenge to restore.
 - **Exposure** (persistent penalty): Investigative footprint at location (no max, higher = harder future visits)
-- **Leads** (observation flow, persists): Investigative threads generated by ACT cards, determines OBSERVE draw count. Persists when leaving, resets only on investigation completion.
+- **Leads** (observation flow, persists): Investigative threads generated by ACT cards, determines OBSERVE draw count. Persists when leaving, resets only on Mental challenge completion.
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
@@ -344,7 +344,7 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 
 **You cannot observe what you haven't investigated.** ACT cards generate investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. OBSERVE then follows those Leads by drawing cards equal to your total Leads count. Without Leads, you have nothing to observe.
 
-Plans already in your hand persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero.
+Plans already in your hand persist when you OBSERVE because investigative knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the Mental challenge resets Leads to zero.
 
 ### Stat Binding Examples
 
@@ -378,24 +378,24 @@ Mental cards bind to stats based on investigative approach. ACT cards generate L
 ### Permanent INPUT Resources (Costs to Attempt)
 
 **Focus** (max 100, Mental-specific):
-- Cost: 5-20 Focus per investigation session (depending on complexity)
+- Cost: 5-20 Focus per Mental challenge session (depending on complexity)
 - Depletion effect: <30 Focus → Exposure accumulates faster (+1 per action)
 - Recovery: Rest blocks (+30 per block), light activity, food
 - Verisimilitude: Mental work depletes concentration
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
-1. **Knowledge Discoveries**: Unlock investigation phases, conversation options, world state changes
-2. **Familiarity Tokens** (per location): +1 per successful investigation, reduce Exposure baseline (-1 per token, max -3 at location)
-3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise (Surface 0-20 → Detailed 20-50 → Deep 50-100 → Expert 100+)
+1. **Knowledge Discoveries**: Unlock Obligation phases, conversation options, world state changes
+2. **Familiarity Tokens** (per location): +1 per successful Mental challenge, reduce Exposure baseline (-1 per token, max -3 at location)
+3. **Investigative Depth Level** (per location): Cumulative Progress unlocks expertise (Surface 0-20 → Detailed 20-50 → Deep 50-100 → Expert 100+)
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
-6. **Coins**: Investigation completion rewards (5-20 coins typical)
-7. **Equipment**: Find items during investigations
+6. **Coins**: Mental challenge completion rewards (5-20 coins typical)
+7. **Equipment**: Find items during Mental challenges
 
-### Investigation Profiles (5 Tactical Modifiers)
+### Location Profiles (5 Tactical Modifiers)
 
-Each location has an investigation profile that fundamentally alters tactics:
+Each location has investigative properties that fundamentally alter tactics:
 
 1. **Delicate** (fragile evidence, high Exposure risk): Exposure +2 per ACT, requires Cunning-focused approach to minimize footprint
 2. **Obscured** (degraded/hidden evidence): Progress -1 per ACT, requires high-depth Insight cards generating more Leads
@@ -413,7 +413,7 @@ Accumulate Progress threshold (10-20 typical) across one or more visits to locat
 
 ---
 
-## Physical Challenges - Obstacles at Locations
+## Physical Challenges - Physical Tests at Locations
 
 **Interaction Model**: Player attempts immediate physical tests (climbing, combat, athletics, finesse, endurance)
 
@@ -751,18 +751,18 @@ Relationship depth through accumulated interactions:
 
 ### Knowledge System (Connective Tissue)
 
-Knowledge entries are structured discoveries that connect investigations, unlock phases, enhance conversations, and alter world state.
+Knowledge entries are structured discoveries that connect Obligations, unlock phases, enhance conversations, and alter world state.
 
 **Knowledge Structure:**
 - **ID**: Unique identifier ("mill_sabotage_discovered")
 - **Display Name**: Player-visible label ("Sabotage Evidence")
 - **Description**: What player learned
-- **Investigation Context**: Which investigation granted this
-- **Unlock Effects**: Which phases/investigations this enables
+- **Obligation Context**: Which Obligation granted this
+- **Unlock Effects**: Which phases/Obligations this enables
 
 **Knowledge Functions:**
 
-**Phase Unlocking** - Knowledge gates investigation progression
+**Phase Unlocking** - Knowledge gates Obligation progression
 - Phase 3 requires knowledge from Phase 1 completion
 - Creates meaningful progression, prevents skipping ahead
 - Example: Can't question suspect until you've examined crime scene
@@ -1315,7 +1315,7 @@ Each SocialChallengeType defines:
 - **Max Hand Size**: Maximum hand capacity (typically 7)
 
 **Context-Specific Social Challenges:**
-- **Investigation Conversations**: Social phases of investigations (question witnesses, confront suspects)
+- **Obligation Conversations**: Social phases of Obligations (question witnesses, confront suspects)
 - **NPC Requests**: Conversations triggered by accepting obligations (deliveries, tasks)
 - **Relationship Building**: Casual conversations deepening NPC connections
 - **Information Gathering**: Conversations focused on discovering knowledge
