@@ -1,12 +1,16 @@
 ﻿using System.Collections.Generic;
 
+/// <summary>
+/// Time blocks for the day. Each block contains 1-4 segments.
+/// CRITICAL: Segments are RELATIVE to each block (1-4), NOT absolute day positions.
+/// </summary>
 public enum TimeBlocks
 {
-    Morning,    // Segments 1-4: 6-10 AM
-    Midday,     // Segments 5-8: 10 AM - 2 PM
-    Afternoon,  // Segments 9-12: 2-6 PM
-    Evening     // Segments 13-16: 6-10 PM
-    // Day ends at segment 16, sleep/recovery happens automatically
+    Morning,    // 4 segments (1-4 within Morning) = day segments 1-4: 6-10 AM
+    Midday,     // 4 segments (1-4 within Midday) = day segments 5-8: 10 AM - 2 PM
+    Afternoon,  // 4 segments (1-4 within Afternoon) = day segments 9-12: 2-6 PM
+    Evening     // 4 segments (1-4 within Evening) = day segments 13-16: 6-10 PM
+    // Day ends at segment 16 (Evening segment 4), sleep/recovery happens automatically
 }
 
 public static class TimeBlockSegments

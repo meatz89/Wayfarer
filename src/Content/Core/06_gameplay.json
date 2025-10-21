@@ -28,7 +28,7 @@
     "startingSpotId": "square_center",
     "startingDay": 1,
     "startingTimeBlock": "Evening",
-    "startingSegment": 13
+    "startingSegment": 1
   },
   "content": {
     "stats": [

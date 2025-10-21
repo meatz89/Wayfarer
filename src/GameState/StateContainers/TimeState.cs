@@ -84,6 +84,14 @@ public sealed class TimeState
     /// <summary>
     /// Creates a new TimeState with specific time block and segment.
     /// </summary>
+    /// <param name="day">Day number (1-based)</param>
+    /// <param name="timeBlock">Time block (Morning/Midday/Afternoon/Evening)</param>
+    /// <param name="segment">Segment WITHIN the time block (1-4, relative to block start). NOT absolute segment of day.</param>
+    /// <remarks>
+    /// CRITICAL: Segment is RELATIVE to the time block, not absolute position in day.
+    /// Example: Evening segment 1 = first segment of Evening (13th segment of full day)
+    /// Example: Midday segment 3 = third segment of Midday (7th segment of full day)
+    /// </remarks>
     public TimeState(int day, TimeBlocks timeBlock, int segment) : this(day, timeBlock, segment, CalculateTotalSegments(day, timeBlock, segment))
     {
     }

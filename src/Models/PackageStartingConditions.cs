@@ -27,8 +27,10 @@ public class PackageStartingConditions
     public string StartingTimeBlock { get; set; }
 
     /// <summary>
-    /// Starting segment within time block (1-based)
-    /// Tutorial: Segment 13 = Evening block, segment 3
+    /// Starting segment WITHIN the time block (1-4, relative to block start)
+    /// CRITICAL: This is NOT the absolute segment of day - it's position within the time block.
+    /// Example: Evening segment 1 = first segment of Evening (13th segment of full day)
+    /// Example: Midday segment 3 = third segment of Midday (7th segment of full day)
     /// </summary>
     public int? StartingSegment { get; set; }
 

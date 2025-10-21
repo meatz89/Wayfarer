@@ -929,11 +929,13 @@ Mill becomes trivial (10 cubes = Exposure 0)
 - Second deadline checkpoint (standard obligations)
 - Continue activities
 
-**Evening (Segments 13-16):**
+**Evening (Day segments 13-16 = Evening segments 1-4):**
 - Final deadline checkpoint (relaxed obligations)
-- Segment 16: Day ends automatically
+- Evening Segment 4 (day segment 16): Day ends automatically
 
-**All blocks equal:** No special mechanics. Just temporal landmarks for player orientation ("deliver by midday" = segment 8).
+**All blocks equal:** No special mechanics. Just temporal landmarks for player orientation ("deliver by midday" = Midday segment 4 / day segment 8).
+
+**Note:** Internally, TimeState uses RELATIVE segments (1-4 within each block), not absolute day positions. This document uses absolute day segments (1-16) for conceptual clarity when describing full-day flow.
 
 ### Day End Processing
 
@@ -1350,7 +1352,7 @@ PlayerState extensions:
 
 **Afternoon end: Segment 12, 4 segments remaining**
 
-### Evening (Segments 13-16)
+### Evening (Day segments 13-16 = Evening segments 1-4)
 
 **Decision point: Continue Mill Mystery or return to Town?**
 - Mill Mystery Phase 2: "Search Flooded Basement" (Water+Darkness, Intensity 2)

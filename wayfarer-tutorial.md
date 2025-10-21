@@ -8,12 +8,12 @@ The player arrives worn and weary at evening, needing shelter before nightfall. 
 
 ---
 
-## Opening: Segment 13 (Evening - Dusk)
+## Opening: Evening Segment 1 (Evening - Dusk)
 
 **You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.**
 
 **Current State:**
-- Time: Segment 13 of 16 (Evening - 3 segments until midnight)
+- Time: Evening Segment 1 of 4 (13th segment of full day - 3 more evening segments until midnight)
 - Location: Millhaven - Town Square
 - Health: 4/6 (road-worn, minor injuries from travel)
 - Focus: 6/6 (rested mind, tired body)
@@ -120,7 +120,7 @@ Elena: "You've done this before. Good work. Room's yours, and here—"
 
 CHALLENGE COMPLETE:
 - Focus: 6 → 5 (-1, light social exertion)
-- Time: Segment 13 → 14 (Evening, 2 segments until midnight)
+- Time: Evening Segment 1 → 2 (2 more evening segments until midnight)
 
 REWARDS:
 - Coins: 8 → 13 (+5)
@@ -139,7 +139,7 @@ Stat XP: Rapport +2, Diplomacy +1
 
 ---
 
-## Segment 14: Securing the Room
+## Evening Segment 2: Securing the Room
 
 **Player returns to Elena:**
 
@@ -199,7 +199,7 @@ And I heard the Miller's been having trouble with his waterwheel—might be
 worth investigating if you've got the curiosity."
 
 CURRENT STATE:
-Time: Segment 1 of 16 (Morning - full day ahead)
+Time: Morning Segment 1 of 4 (1st segment of full day - full day ahead)
 Coins: 3 (low, but recovered)
 All Resources: 6/6/6 (ready for anything)
 
