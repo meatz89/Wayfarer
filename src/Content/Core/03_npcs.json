@@ -1,11 +1,11 @@
 {
   "packageId": "npcs_all",
   "metadata": {
-    "name": "POC NPCs - Elena and Aldric Only",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Minimal POC: Elena and Aldric at Old Mill courtyard",
+    "name": "Tutorial NPCs - Elena and Thomas",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Tutorial: Elena (Innkeeper) offers Social work, Thomas (Foreman) offers Physical work",
     "author": "Wayfarer Team",
-    "version": "3.0.0"
+    "version": "4.0.0"
   },
   "content": {
     "npcs": [
@@ -13,11 +13,11 @@
         "id": "elena",
         "name": "Elena",
         "level": 2,
-        "profession": "Miller's Daughter",
-        "venueId": "old_mill",
-        "locationId": "courtyard",
-        "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. Her family's old mill holds mysteries she's not ready to confront alone.",
-        "personality": "Determined but burdened by family secrets.",
+        "profession": "Innkeeper",
+        "venueId": "brass_bell_inn",
+        "locationId": "common_room",
+        "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
+        "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
         "personalityType": "DEVOTED",
         "currentState": "NEUTRAL",
         "initialTokens": {
@@ -26,31 +26,15 @@
         "conversationDifficulty": 2
       },
       {
-        "id": "aldric",
-        "name": "Farmer Aldric",
+        "id": "thomas",
+        "name": "Thomas",
         "level": 1,
-        "profession": "Farmer",
-        "venueId": "old_mill",
-        "locationId": "courtyard",
-        "description": "A weathered farmer who tends his fields beyond the creek. He knew Elena's family before tragedy struck.",
-        "personality": "Simple and direct. A man of few words but honest dealings.",
+        "profession": "Warehouse Foreman",
+        "venueId": "brass_bell_inn",
+        "locationId": "common_room",
+        "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
+        "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
-        "currentState": "NEUTRAL",
-        "initialTokens": {
-          "Trust": 0
-        },
-        "conversationDifficulty": 1
-      },
-      {
-        "id": "merchant_general",
-        "name": "Thomas the Merchant",
-        "level": 1,
-        "profession": "General Merchant",
-        "venueId": "old_mill",
-        "locationId": "courtyard",
-        "description": "A practical merchant who deals in essential supplies. His cart is stocked with rope, tools, and gear for those heading into dangerous territory.",
-        "personality": "Straightforward and business-minded. No haggling, just fair prices for quality goods.",
-        "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0

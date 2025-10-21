@@ -17,6 +17,22 @@ public class PackageStartingConditions
     public string StartingSpotId { get; set; }
 
     /// <summary>
+    /// Starting day (default: 1)
+    /// </summary>
+    public int? StartingDay { get; set; }
+
+    /// <summary>
+    /// Starting time block (Morning/Midday/Afternoon/Evening)
+    /// </summary>
+    public string StartingTimeBlock { get; set; }
+
+    /// <summary>
+    /// Starting segment within time block (1-based)
+    /// Tutorial: Segment 13 = Evening block, segment 3
+    /// </summary>
+    public int? StartingSegment { get; set; }
+
+    /// <summary>
     /// Initial obligations in queue
     /// </summary>
     public List<StandingObligationDTO> StartingObligations { get; set; }

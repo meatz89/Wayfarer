@@ -9,16 +9,26 @@
   },
   "startingConditions": {
     "playerConfig": {
-      "coins": 15,
-      "constitution": "Average",
-      "endurance": "Average",
-      "mentalCapacity": "Average",
+      "level": 1,
+      "currentXP": 0,
+      "xpToNextLevel": 100,
+      "coins": 8,
+      "health": 4,
+      "maxHealth": 6,
       "hunger": 0,
       "maxHunger": 100,
+      "staminaPoints": 3,
+      "maxStamina": 6,
+      "focus": 6,
+      "maxFocus": 6,
+      "minHealth": 0,
       "satchelCapacity": 10,
       "satchelWeight": 0
     },
-    "startingSpotId": "courtyard"
+    "startingSpotId": "square_center",
+    "startingDay": 1,
+    "startingTimeBlock": "Evening",
+    "startingSegment": 13
   },
   "content": {
     "stats": [

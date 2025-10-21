@@ -49,6 +49,18 @@ public class TimeModel
     }
 
     /// <summary>
+    /// Sets initial time state from package starting conditions
+    /// MUST be called before any time advancement
+    /// </summary>
+    public void SetInitialState(int day, TimeBlocks timeBlock, int segment)
+    {
+        lock (_lock)
+        {
+            _currentState = new TimeState(day, timeBlock, segment);
+        }
+    }
+
+    /// <summary>
     /// Validates that a segment transition is valid before applying it.
     /// </summary>
     public ValidationResult ValidateSegmentTransition(int segments)

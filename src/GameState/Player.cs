@@ -8,21 +8,22 @@ public class Player
     // Archetype
     public Professions Archetype { get; set; }
 
-    // Progression systems
-    public int Level { get; set; } = 1;
-    public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100; // Base XP required for next level
+    // Progression systems - ALL values from JSON via ApplyInitialConfiguration
+    public int Level { get; set; }
+    public int CurrentXP { get; set; }
+    public int XPToNextLevel { get; set; }
 
-    // Resources
-    public int Coins { get; set; } // Starting coins - intentionally kept as literal as it's game balance
-    public int Health { get; set; } // Starting health
-    public int Hunger { get; set; } // Starting hunger (0 = not hungry)
-    public int Stamina { get; set; } // Starting stamina for travel
-    public int MaxStamina { get; set; } = 6; // Maximum stamina (6-point scale)
+    // Resources - ALL values from JSON via ApplyInitialConfiguration
+    public int Coins { get; set; }
+    public int Health { get; set; }
+    public int Hunger { get; set; }
+    public int Stamina { get; set; }
+    public int MaxStamina { get; set; }
 
-    public int MinHealth { get; set; } = 0; // Minimum health before death
-    public int MaxHealth { get; set; } = 6; // Maximum health (6-point scale)
-    public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
+    public int MinHealth { get; set; }
+    public int MaxHealth { get; set; }
+    public int MaxFocus { get; set; }
+    public int MaxHunger { get; set; }
 
     public Inventory Inventory { get; set; } = new Inventory(10); // 10 weight capacity per documentation
 
@@ -35,8 +36,6 @@ public class Player
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
-
-    public bool IsInitialized { get; set; } = false;
 
     public PlayerStats Stats { get; private set; } = new();
 
@@ -194,80 +193,8 @@ public class Player
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10); // 10 weight capacity
 
-        // HIGHLANDER PRINCIPLE: Delete hardcoded defaults
-        // ALL values set by ApplyInitialConfiguration from JSON
-        // These are minimal defaults ONLY for safety
-        Coins = 0;
-        Level = 1;
-        CurrentXP = 0;
-        XPToNextLevel = 100;
-
-        // JSON will set these via ApplyInitialConfiguration (6-point scale)
-        MaxHealth = 6;
-        MaxStamina = 6;
-        MaxHunger = 100;
-
-        // Skill cards removed - using letter queue system
-
-        // Token system is purely relational (NPC-specific)
-    }
-
-    public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
-    {
-        Name = playerName;
-        Gender = gender;
-        SetArchetype(selectedArchetype);
-
-        HealFully();
-
-        IsInitialized = true;
-    }
-
-    public void HealFully()
-    {
-        Health = MaxHealth;
-        Hunger = 0; // Reset hunger to not hungry
-    }
-
-    public void SetArchetype(Professions archetype)
-    {
-        Archetype = archetype;
-
-        switch (archetype)
-        {
-            case Professions.Soldier:
-                InitializeGuard();
-                break;
-            case Professions.Merchant:
-                InitializeMerchant();
-                break;
-            case Professions.Scholar:
-                InitializeScholar();
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(archetype));
-        }
-    }
-
-    private void InitializeGuard()
-    {
-        ClearInventory();
-    }
-
-    private void InitializeScholar()
-    {
-        ClearInventory();
-    }
-
-    private void InitializeMerchant()
-    {
-        ClearInventory();
-    }
-
-    private void ClearInventory()
-    {
-        Inventory.Clear();
+        // HIGHLANDER PRINCIPLE: ALL values set by ApplyInitialConfiguration from JSON
+        // NO hardcoded defaults - values come from package starting conditions
     }
 
     public bool ModifyHealth(int count)
@@ -356,11 +283,22 @@ public class Player
     {
         if (config == null) return;
 
+        // Progression
+        if (config.Level.HasValue) Level = config.Level.Value;
+        if (config.CurrentXP.HasValue) CurrentXP = config.CurrentXP.Value;
+        if (config.XPToNextLevel.HasValue) XPToNextLevel = config.XPToNextLevel.Value;
+
+        // Resources
         if (config.Coins.HasValue) Coins = config.Coins.Value;
         if (config.Health.HasValue) Health = config.Health.Value;
         if (config.MaxHealth.HasValue) MaxHealth = config.MaxHealth.Value;
+        if (config.MinHealth.HasValue) MinHealth = config.MinHealth.Value;
         if (config.Hunger.HasValue) Hunger = config.Hunger.Value;
         if (config.MaxHunger.HasValue) MaxHunger = config.MaxHunger.Value;
+        if (config.StaminaPoints.HasValue) Stamina = config.StaminaPoints.Value;
+        if (config.MaxStamina.HasValue) MaxStamina = config.MaxStamina.Value;
+        if (config.Focus.HasValue) Focus = config.Focus.Value;
+        if (config.MaxFocus.HasValue) MaxFocus = config.MaxFocus.Value;
 
         // Apply satchel capacity - update inventory max weight
         if (config.SatchelCapacity.HasValue)

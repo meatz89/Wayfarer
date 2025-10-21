@@ -1,268 +1,74 @@
 {
   "packageId": "core_goals",
   "metadata": {
-    "name": "Core Goals - Miller's Daughter POC",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Goal definitions: Permanent goals assigned at initialization + Obligation-dynamic goals spawned by waterwheel mystery",
+    "name": "Tutorial Goals - Work for Shelter",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Tutorial work goals: Elena (Social) and Thomas (Physical)",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "content": {
     "goals": [
       {
-        "id": "elena_deliver_message",
-        "name": "Deliver Elena's Message",
-        "description": "Hand the sealed letter to the craftsman in the workshop",
-        "placementLocationId": "workshop",
-        "systemType": "Mental",
-        "deckId": "mental_challenge",
-        "consequenceType": "Resolution",
-        "setsResolutionMethod": "Preparation",
-        "setsRelationshipOutcome": "Neutral",
-        "obligationId": "elena_workshop_delivery",
-        "isAvailable": true,
-        "deleteOnSuccess": true,
-        "propertyRequirements": {},
-        "goalCards": [
-          {
-            "id": "deliver_elena_message_card",
-            "name": "Hand Over Letter",
-            "description": "Successfully deliver the message",
-            "threshold": 4,
-            "rewards": {
-              "progress": 1
-            }
-          }
-        ]
-      },
-      {
-        "id": "aldric_fetch_tools",
-        "name": "Retrieve Aldric's Tools",
-        "description": "Search the main hall for the precision tool set Aldric described",
-        "placementLocationId": "main_hall",
-        "systemType": "Mental",
-        "deckId": "mental_challenge",
-        "consequenceType": "Resolution",
-        "setsResolutionMethod": "Preparation",
-        "setsRelationshipOutcome": "Neutral",
-        "obligationId": "aldric_tool_request",
-        "isAvailable": true,
-        "deleteOnSuccess": true,
-        "propertyRequirements": {},
-        "goalCards": [
-          {
-            "id": "fetch_tools_card",
-            "name": "Locate Tools",
-            "description": "Find and retrieve the tool set",
-            "threshold": 5,
-            "rewards": {
-              "progress": 1
-            }
-          }
-        ]
-      },
-      {
-        "id": "elena_delivery_request",
-        "name": "Delivery for Elena",
-        "description": "Elena needs urgent legal documents delivered to Farmer Aldric's stead before the rains come. The route is dangerous - you'll need to choose between crossing Widow's Creek or passing through the abandoned mill.",
+        "id": "elena_evening_service",
+        "name": "Help with Evening Service",
+        "description": "Assist Elena managing the evening crowd. One hour of work serving drinks and managing tables. Social engagement, uses Focus.",
         "systemType": "Social",
         "placementNpcId": "elena",
-        "deckId": "desperate_request",
-        "baseDifficulty": 10,
-        "costs": {
-          "time": 1,
-          "focus": 0,
-          "stamina": 0,
-          "coins": 0
-        },
-        "difficultyModifiers": [
-          {
-            "type": "Understanding",
-            "threshold": 2,
-            "effect": -2
-          },
-          {
-            "type": "Familiarity",
-            "threshold": 2,
-            "effect": -1
-          },
-          {
-            "type": "ConnectionTokens",
-            "threshold": 5,
-            "effect": -2
-          }
-        ],
-        "isAvailable": true,
-        "isCompleted": false,
-        "goalCards": [
-          {
-            "id": "elena_accept_delivery",
-            "name": "Accept the Delivery",
-            "description": "Agree to deliver the documents. Elena provides weatherproof case and warns about the deadline - heavy rains in three days will make the creek impassable.",
-            "threshold": 8,
-            "rewards": {
-              "coins": 0,
-              "obligationId": "delivery_to_aldric"
-            }
-          },
-          {
-            "id": "elena_full_briefing",
-            "name": "Get Full Details",
-            "description": "Build enough rapport that Elena shares everything - route dangers, why it's urgent, her concerns about the mill path, and offers extra payment for safe delivery.",
-            "threshold": 10,
-            "rewards": {
-              "coins": 5,
-              "obligationId": "delivery_to_aldric"
-            }
-          }
-        ]
-      },
-      {
-        "id": "martha_route_information",
-        "name": "Ask Martha about the routes",
-        "description": "Martha grew up in the area before moving to town. She knows the countryside, the dangers of Widow's Creek, and has personal history with the old mill.",
-        "systemType": "Social",
-        "placementNpcId": "martha",
         "deckId": "friendly_chat",
-        "baseDifficulty": 8,
-        "costs": {
-          "time": 1,
-          "focus": 0,
-          "stamina": 0,
-          "coins": 0
-        },
-        "difficultyModifiers": [
-          {
-            "type": "Understanding",
-            "threshold": 2,
-            "effect": -2
-          },
-          {
-            "type": "ConnectionTokens",
-            "threshold": 5,
-            "effect": -2
-          }
-        ],
-        "isAvailable": true,
-        "isCompleted": false,
-        "goalCards": [
-          {
-            "id": "martha_basic_info",
-            "name": "Basic Route Information",
-            "description": "Martha warns about Widow's Creek current and mentions the mill path has a safer crossing upstream. She's hesitant to discuss the mill itself.",
-            "threshold": 8,
-            "rewards": {
-              "coins": 0
-            }
-          },
-          {
-            "id": "martha_full_story",
-            "name": "Martha's Full Story",
-            "description": "Build enough trust that Martha shares the painful truth - her daughter Anna disappeared near the mill a decade ago, investigating something. The mechanism was dangerous even when operational. She warns you to be careful if you go there.",
-            "threshold": 10,
-            "rewards": {
-              "coins": 0
-            }
-          }
-        ]
-      },
-      {
-        "id": "observe_mill_exterior",
-        "name": "Observe the mill structure",
-        "description": "The abandoned mill looms ahead, wheel frozen mid-rotation. The building shows structural damage - gaps in walls, sagging roofline. A careful observer might notice details others miss.",
-        "systemType": "Mental",
-        "deckId": "mental_challenge",
-        "placementLocationId": "courtyard",
-        "baseDifficulty": 10,
+        "baseDifficulty": 6,
         "costs": {
           "time": 1,
           "focus": 1,
           "stamina": 0,
           "coins": 0
         },
-        "difficultyModifiers": [
-          {
-            "type": "Understanding",
-            "threshold": 2,
-            "effect": -2
-          },
-          {
-            "type": "Familiarity",
-            "threshold": 2,
-            "effect": -2
-          }
-        ],
+        "difficultyModifiers": [],
+        "consequenceType": "Resolution",
+        "setsResolutionMethod": "Cooperation",
+        "setsRelationshipOutcome": "Positive",
         "isAvailable": true,
-        "isCompleted": false,
+        "deleteOnSuccess": false,
+        "propertyRequirements": {},
         "goalCards": [
           {
-            "id": "mill_surface_observation",
-            "name": "Surface Assessment",
-            "description": "Notice the obvious - wheel is frozen, building is damaged, path overgrown. The front door appears partially collapsed.",
-            "threshold": 8,
+            "id": "evening_service_complete",
+            "name": "Competent Service",
+            "description": "Move through the common room with practiced ease. Drinks delivered, conversations managed, chaos ordered. Elena notices your skill.",
+            "threshold": 6,
             "rewards": {
-              "coins": 0
-            }
-          },
-          {
-            "id": "mill_detailed_analysis",
-            "name": "Structural Analysis",
-            "description": "Careful observation reveals critical details: upper floor is dangerously unstable, the mechanism has accessible gear housing, and there are RECENT FOOTPRINTS in the dust near the side entrance. Someone has been here.",
-            "threshold": 10,
-            "rewards": {
-              "coins": 0
+              "coins": 5
             }
           }
         ]
       },
       {
-        "id": "test_waterwheel_mechanism",
-        "name": "Test the waterwheel mechanism",
-        "description": "The massive waterwheel and grinding mechanism dominate the mill. Years of rust and decay, but the structure might reveal its secrets to someone willing to climb and investigate.",
+        "id": "thomas_warehouse_loading",
+        "name": "Warehouse Loading",
+        "description": "Heavy crates need moving before the morning shipment. Physical labor, but pays well. Uses Stamina.",
         "systemType": "Physical",
+        "placementNpcId": "thomas",
         "deckId": "physical_challenge",
-        "placementLocationId": "courtyard",
-        "baseDifficulty": 12,
+        "baseDifficulty": 6,
         "costs": {
           "time": 1,
           "focus": 0,
-          "stamina": 2,
+          "stamina": 1,
           "coins": 0
         },
-        "difficultyModifiers": [
-          {
-            "type": "Understanding",
-            "threshold": 2,
-            "effect": -1
-          },
-          {
-            "type": "Familiarity",
-            "threshold": 2,
-            "effect": -1
-          },
-          {
-            "type": "HasItemCategory",
-            "context": "climbing_gear",
-            "effect": -3
-          }
-        ],
+        "difficultyModifiers": [],
+        "consequenceType": "Resolution",
+        "setsResolutionMethod": "Strength",
+        "setsRelationshipOutcome": "Neutral",
         "isAvailable": true,
-        "isCompleted": false,
+        "deleteOnSuccess": false,
+        "propertyRequirements": {},
         "goalCards": [
           {
-            "id": "wheel_basic_test",
-            "name": "Basic Structural Test",
-            "description": "Climb carefully to test the wheel's stability. It's rusted solid but the frame could support weight. Notice the gear housing has a corroded access panel.",
-            "threshold": 10,
-            "rewards": {
-              "coins": 0
-            }
-          },
-          {
-            "id": "wheel_thorough_analysis",
-            "name": "Complete Mechanism Analysis",
-            "description": "Use rope to secure position and conduct thorough examination. The gear housing panel is accessible with tools. The shaft connects to interior grinding mechanism. Upper loft is reachable via the wheel framework but floor condition is questionable.",
-            "threshold": 10,
+            "id": "warehouse_loading_complete",
+            "name": "Loading Complete",
+            "description": "Crates moved, shipment ready. Thomas nods approval and hands over payment. Hard work, fair pay.",
+            "threshold": 6,
             "rewards": {
               "coins": 5
             }

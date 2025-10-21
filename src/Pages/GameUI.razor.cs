@@ -51,20 +51,9 @@ public class GameUIBase : ComponentBase, IDisposable
             CurrentView = CurrentViews.MissingReferences;
             StateHasChanged();
         }
-        else if (!GameWorld.GetPlayer().IsInitialized)
-        {
-            // Create a default player for the mockup
-            Player player = GameWorld.GetPlayer();
-            player.Name = "Wayfarer";
-            player.IsInitialized = true;
-
-            // Start the game to initialize location
-            await GameFacade.StartGameAsync();
-            CurrentView = CurrentViews.LocationScreen;
-            StateHasChanged();
-        }
         else
         {
+            // Start the game (idempotent - checks IsGameStarted internally)
             await GameFacade.StartGameAsync();
             CurrentView = CurrentViews.LocationScreen;
             StateHasChanged();
@@ -79,16 +68,8 @@ public class GameUIBase : ComponentBase, IDisposable
 
     public async Task ResolvedMissingReferences()
     {
-        if (!GameWorld.GetPlayer().IsInitialized)
-        {
-            CurrentView = CurrentViews.CharacterScreen;
-            StateHasChanged();
-        }
-        else
-        {
-            CurrentView = GetDefaultView();
-            StateHasChanged();
-        }
+        // After resolving references, return to default view
+        CurrentView = GetDefaultView();
         StateHasChanged();
     }
 

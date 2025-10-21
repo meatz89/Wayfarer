@@ -1,27 +1,27 @@
 {
   "packageId": "core_foundation",
   "metadata": {
-    "name": "Core Foundation - POC Only",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Minimal POC: Old Mill Venue only with waterwheel obligation",
+    "name": "Core Foundation - Tutorial POC",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Tutorial: Evening arrival at Brass Bell Inn, work for shelter",
     "author": "Wayfarer Team",
-    "version": "5.0.0"
+    "version": "6.0.0"
   },
   "content": {
     "venues": [
       {
-        "id": "old_mill",
-        "name": "The Old Mill",
-        "description": "An abandoned mill on the hillside, silent waterwheel rusted in place. Once the heart of Elena's family prosperity, now holding only secrets.",
-        "districtId": "market_district",
-        "tier": 2,
-        "locationType": "Ruin",
-        "travelHubSpotId": "courtyard"
+        "id": "brass_bell_inn",
+        "name": "The Brass Bell Inn",
+        "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
+        "districtId": "town_center",
+        "tier": 1,
+        "locationType": "Urban",
+        "travelHubSpotId": "common_room"
       },
       {
         "id": "town_square",
         "name": "Town Square",
-        "description": "The heart of the town, where traders gather and townsfolk meet. A memorial stone stands at the center.",
+        "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
         "tier": 1,
         "locationType": "Urban",
@@ -33,27 +33,11 @@
         "id": "square_center",
         "venueId": "town_square",
         "name": "Town Square",
-        "description": "The central square bustles with activity. The memorial stone stands prominently.",
+        "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
             "crossroads"
           ],
-          "all": [
-            "public",
-            "busy"
-          ]
-        },
-        "canInvestigate": true,
-        "obligationScaling": {
-          "default": 1
-        }
-      },
-      {
-        "id": "market_stalls",
-        "venueId": "town_square",
-        "name": "Market Stalls",
-        "description": "Vendors hawk their wares under colorful awnings",
-        "properties": {
           "all": [
             "public",
             "busy"
@@ -65,71 +49,18 @@
         }
       },
       {
-        "id": "mill_entrance",
-        "venueId": "old_mill",
-        "name": "Mill Entrance",
-        "description": "The front of the abandoned mill, boards covering the main door",
+        "id": "common_room",
+        "venueId": "brass_bell_inn",
+        "name": "Common Room",
+        "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
           "all": [
-            "quiet",
-            "isolated"
-          ]
-        },
-        "canInvestigate": true,
-        "obligationScaling": {
-          "default": 1
-        },
-        "obstacleIds": ["mill_entrance_blocked"]
-      },
-      {
-        "id": "courtyard",
-        "venueId": "old_mill",
-        "name": "Mill Courtyard",
-        "description": "The outer courtyard where the great waterwheel stands silent, its rusted mechanism visible against the sky",
-        "properties": {
-          "base": [
-            "crossroads"
-          ],
-          "all": [
-            "quiet",
-            "isolated",
+            "public",
+            "busy",
             "restful"
           ]
         },
-        "canInvestigate": true,
-        "obligationScaling": {
-          "default": 1
-        }
-      },
-      {
-        "id": "main_hall",
-        "venueId": "old_mill",
-        "name": "Main Hall",
-        "description": "The mill's main grinding floor, machinery silent and dust-covered, shafts of light cutting through gaps in the roof",
-        "properties": {
-          "all": [
-            "quiet",
-            "isolated"
-          ]
-        },
-        "canInvestigate": true,
-        "obligationScaling": {
-          "default": 1
-        }
-      },
-      {
-        "id": "workshop",
-        "venueId": "old_mill",
-        "name": "Workshop",
-        "description": "Tool racks and workbenches covered in a layer of neglect, but the organization speaks to careful hands that once worked here",
-        "properties": {
-          "all": [
-            "quiet",
-            "isolated",
-            "restful"
-          ]
-        },
-        "canInvestigate": true,
+        "canInvestigate": false,
         "obligationScaling": {
           "default": 1
         }
@@ -145,7 +76,22 @@
         "cost": {},
         "timeRequired": 1,
         "availability": ["Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": ["rest", "restful"],
+        "requiredProperties": ["restful"],
+        "optionalProperties": [],
+        "excludedProperties": []
+      },
+      {
+        "id": "secure_room",
+        "name": "Secure a Room (10 coins)",
+        "description": "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
+        "actionType": "Rest",
+        "priority": 100,
+        "cost": {
+          "coins": 10
+        },
+        "timeRequired": 1,
+        "availability": ["Evening"],
+        "requiredProperties": [],
         "optionalProperties": [],
         "excludedProperties": []
       }
@@ -168,73 +114,17 @@
         "priority": 200,
         "cost": {},
         "timeRequired": 1
+      },
+      {
+        "id": "sleep_outside",
+        "name": "Sleep Outside",
+        "description": "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
+        "actionType": "SleepOutside",
+        "priority": 300,
+        "cost": {},
+        "timeRequired": 0
       }
     ],
-    "obstacles": [
-      {
-        "id": "mill_entrance_blocked",
-        "name": "Boarded Door",
-        "description": "Heavy boards cover the main entrance. Someone didn't want anyone getting inside easily.",
-        "intensity": 2,
-        "contexts": ["Strength", "Precision"],
-        "isPermanent": false,
-        "goals": [
-          {
-            "id": "force_door",
-            "name": "Force the door open",
-            "description": "Break through the boards with brute strength",
-            "placementLocationId": "mill_entrance",
-            "systemType": "Physical",
-            "deckId": "physical_challenge",
-            "consequenceType": "Resolution",
-            "setsResolutionMethod": "Violence",
-            "setsRelationshipOutcome": "Neutral",
-            "isAvailable": true,
-            "deleteOnSuccess": true,
-            "propertyRequirements": {
-              "maxIntensity": 2
-            },
-            "goalCards": [
-              {
-                "id": "force_door_standard",
-                "name": "Break Through",
-                "description": "Successfully force the door open",
-                "threshold": 8,
-                "rewards": {
-                  "progress": 1
-                }
-              }
-            ]
-          },
-          {
-            "id": "find_alternate_entry",
-            "name": "Find another way in",
-            "description": "Search for an unboarded window or side entrance",
-            "placementLocationId": "courtyard",
-            "systemType": "Mental",
-            "deckId": "mental_challenge",
-            "consequenceType": "Bypass",
-            "setsResolutionMethod": "Cleverness",
-            "setsRelationshipOutcome": "Neutral",
-            "isAvailable": true,
-            "deleteOnSuccess": true,
-            "propertyRequirements": {
-              "maxIntensity": 1
-            },
-            "goalCards": [
-              {
-                "id": "find_entry_standard",
-                "name": "Alternative Found",
-                "description": "Discover accessible entry point",
-                "threshold": 6,
-                "rewards": {
-                  "progress": 1
-                }
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    "obstacles": []
   }
 }

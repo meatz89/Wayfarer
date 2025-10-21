@@ -31,6 +31,15 @@ public class TimeFacade
 
     // ========== TIME STATE ==========
 
+    /// <summary>
+    /// Sets initial time state from package starting conditions.
+    /// MUST be called during game initialization BEFORE any time advancement.
+    /// </summary>
+    public void SetInitialTimeState(int day, TimeBlocks timeBlock, int segment)
+    {
+        _timeManager.TimeModel.SetInitialState(day, timeBlock, segment);
+    }
+
     public int GetCurrentDay()
     {
         return _gameWorld.CurrentDay;

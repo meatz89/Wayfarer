@@ -372,6 +372,15 @@ public class GameFacade
                 });
                 break;
 
+            case PlayerActionType.SleepOutside:
+                // Sleep rough without shelter: -2 Health, no recovery, no time advancement
+                Player player = _gameWorld.GetPlayer();
+                player.ModifyHealth(-2);
+                _messageSystem.AddSystemMessage(
+                    "You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-2 Health)",
+                    SystemMessageTypes.Warning);
+                break;
+
             default:
                 throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
         }
@@ -760,33 +769,17 @@ public class GameFacade
         player.CurrentLocation = startingSpot;
         Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
 
-        // Initialize player resources from GameWorld initial player config
-        if (_gameWorld.InitialPlayerConfig == null)
+        // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
+        // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
+
+        // Initialize time state from GameWorld initial conditions
+        if (_gameWorld.InitialTimeBlock.HasValue && _gameWorld.InitialSegment.HasValue)
         {
-            throw new InvalidOperationException(
-                "InitialPlayerConfig not loaded from package content. " +
-                "Ensure gameplay.json contains playerInitialConfig section.");
-        }
-
-        if (!_gameWorld.InitialPlayerConfig.Coins.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'coins'");
-        if (!_gameWorld.InitialPlayerConfig.Health.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'health'");
-        if (!_gameWorld.InitialPlayerConfig.MaxHealth.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'maxHealth'");
-        if (!_gameWorld.InitialPlayerConfig.Hunger.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'hunger'");
-        if (!_gameWorld.InitialPlayerConfig.StaminaPoints.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'staminaPoints'");
-        if (!_gameWorld.InitialPlayerConfig.MaxStamina.HasValue)
-            throw new InvalidOperationException("InitialPlayerConfig missing required field 'maxStamina'");
-
-        player.Coins = _gameWorld.InitialPlayerConfig.Coins.Value;
-        player.Health = _gameWorld.InitialPlayerConfig.Health.Value;
-        player.MaxHealth = _gameWorld.InitialPlayerConfig.MaxHealth.Value;
-        player.Hunger = _gameWorld.InitialPlayerConfig.Hunger.Value;
-        player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints.Value;
-        player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina.Value;// Initialize exchange inventories
+            _timeFacade.SetInitialTimeState(
+                _gameWorld.InitialDay ?? 1,
+                _gameWorld.InitialTimeBlock.Value,
+                _gameWorld.InitialSegment.Value);
+        }// Initialize exchange inventories
         _exchangeFacade.InitializeNPCExchanges();// Mark game as started
         _gameWorld.IsGameStarted = true;
 

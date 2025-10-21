@@ -72,27 +72,52 @@
 ✅ Journal accessed via button because it's META (out-of-world reference material)
 ✅ Challenges are IMMERSIVE experiences (full screen, no chrome)
 
-**EXAMPLES OF WRONG THINKING:**
-
-❌ "Equipment should be its own screen" → WRONG: Thinking about implementation, not player experience
-❌ "Add Equipment button next to Journal button" → WRONG: More UI chrome, breaks immersion
-❌ "Player clicks Equipment tab" → WRONG: Tabs are menu thinking, not narrative thinking
-❌ "Navigate to Equipment screen" → WRONG: Navigation is for systems, not player actions
-
 **THE CORRECT QUESTION:**
 
 "What would a REAL PERSON in this situation naturally want to do, and how would they express that intention?"
 
 NOT: "Where should I put this button?"
 
-### EXAMPLES OF VIOLATIONS (NEVER DO THIS):
+### ⚠️ CRITICAL PRINCIPLE: NEVER DELETE REQUIRED FEATURES ⚠️
 
-❌ "We need to create a Journal screen" → WRONG: Journal already exists (DiscoveryJournal.razor)
-❌ "We should add Equipment screen" → WRONG: Must verify if Equipment screen exists first
-❌ "Equipment should be its own screen" → WRONG: Didn't check existing UI pattern (Journal is MODAL, not screen!)
-❌ "Let me implement X" → WRONG: Must verify X doesn't already exist
-❌ "This CSS class is missing" → WRONG: Must grep for the class across all CSS files first
-❌ "Add Equipment to ScreenMode enum" → WRONG: Didn't verify if Equipment follows Journal's MODAL pattern
+**IF A FEATURE IS NEEDED BUT NOT YET IMPLEMENTED:**
+
+❌ **WRONG RESPONSE:** "This action type doesn't exist, so I'll remove it from the JSON"
+❌ **WRONG RESPONSE:** "This isn't supported yet, so I'll delete it"
+❌ **WRONG RESPONSE:** "The code doesn't handle this, so I'll comment it out"
+
+✅ **CORRECT RESPONSE:** "This action type doesn't exist. I will IMPLEMENT it by following the complete vertical slice pattern."
+
+**THE RULE:**
+- **NEVER remove necessary content just because it's not implemented yet**
+- **ALWAYS implement the missing code to support required features**
+- **DELETE ONLY when feature is genuinely unnecessary or wrong design**
+
+**EXAMPLE:**
+
+User needs "SleepOutside" player action for tutorial.
+
+❌ **WRONG:** Remove "SleepOutside" from JSON because PlayerActionType enum doesn't have it
+✅ **CORRECT:**
+1. Add `SleepOutside` to PlayerActionType enum
+2. Add handler in GameFacade.ExecutePlayerAction()
+3. Add implementation in ResourceFacade
+4. Keep "SleepOutside" in JSON
+
+**WHY THIS MATTERS:**
+- Deleting required features breaks the design
+- Moving backward instead of forward wastes time
+- Implementation exists for a REASON - fulfill that reason, don't delete it
+
+**WHEN TO DELETE:**
+- Feature is genuinely wrong design
+- Feature duplicates existing functionality (HIGHLANDER violation)
+- Feature is dead code with no references
+
+**WHEN TO IMPLEMENT:**
+- Feature is needed for current task
+- Feature completes a logical pattern
+- Feature supports user requirements
 
 ### CORRECT PROCESS:
 

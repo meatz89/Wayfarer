@@ -7,6 +7,13 @@ using System.Collections.Generic;
 public class PlayerInitialConfigDTO
 {
     /// <summary>
+    /// Progression fields
+    /// </summary>
+    public int? Level { get; set; }
+    public int? CurrentXP { get; set; }
+    public int? XPToNextLevel { get; set; }
+
+    /// <summary>
     /// Starting coins
     /// </summary>
     public int? Coins { get; set; }
@@ -63,4 +70,16 @@ public class PlayerInitialConfigDTO
     /// Initial items in inventory
     /// </summary>
     public List<ResourceEntry> InitialItems { get; set; }
+
+    /// <summary>
+    /// Direct resource values (override categorical if provided)
+    /// Used for tutorial where player starts damaged (4/6 Health)
+    /// </summary>
+    public int? Health { get; set; }
+    public int? MaxHealth { get; set; }
+    public int? MinHealth { get; set; }
+    public int? StaminaPoints { get; set; }
+    public int? MaxStamina { get; set; }
+    public int? Focus { get; set; }
+    public int? MaxFocus { get; set; }
 }

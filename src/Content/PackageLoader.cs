@@ -284,6 +284,31 @@ public class PackageLoader
                 tokenEntry.Shadow = kvp.Value.Shadow;
             }
         }
+
+        // Store time initialization for TimeModel (applied after DI initialization)
+        if (conditions.StartingDay.HasValue)
+        {
+            _gameWorld.InitialDay = conditions.StartingDay.Value;
+        }
+
+        if (!string.IsNullOrEmpty(conditions.StartingTimeBlock))
+        {
+            if (Enum.TryParse<TimeBlocks>(conditions.StartingTimeBlock, out TimeBlocks timeBlock))
+            {
+                _gameWorld.InitialTimeBlock = timeBlock;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Invalid StartingTimeBlock '{conditions.StartingTimeBlock}'. " +
+                    $"Valid values: Morning, Midday, Afternoon, Evening");
+            }
+        }
+
+        if (conditions.StartingSegment.HasValue)
+        {
+            _gameWorld.InitialSegment = conditions.StartingSegment.Value;
+        }
     }
 
     private void LoadPlayerStatsConfiguration(PlayerStatsConfigDTO playerStatsConfig, bool allowSkeletons)

@@ -19,5 +19,12 @@ public enum PlayerActionType
     /// Skip 1 time segment with no resource recovery
     /// Effect: +1 segment, +5 hunger (time passes)
     /// </summary>
-    Wait
+    Wait,
+
+    /// <summary>
+    /// Sleep rough without shelter
+    /// Effect: -2 Health, no time advancement, no recovery
+    /// Tutorial: Save coins but take damage and risk
+    /// </summary>
+    SleepOutside
 }

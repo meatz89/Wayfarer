@@ -70,6 +70,11 @@ public class GameWorld
     public string InitialLocationSpotId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
+    // Time initialization (applied to TimeModel after DI initialization)
+    public int? InitialDay { get; set; }
+    public TimeBlocks? InitialTimeBlock { get; set; }
+    public int? InitialSegment { get; set; }
+
     // Skeleton tracking for lazy content resolution
     public List<SkeletonRegistryEntry> SkeletonRegistry { get; set; } = new List<SkeletonRegistryEntry>();
 
