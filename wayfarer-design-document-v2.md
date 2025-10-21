@@ -322,7 +322,7 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Thematic Coherence**: Stats represent fundamental character traits that manifest differently in different contexts. A highly Insightful character excels at observation (Mental), structural analysis (Physical), and reading people (Social).
 
-**Build Variety**: Players can specialize (focus on 2-3 stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
+**Build Variety**: Players can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
 
 **No Wasted Effort**: Every card played in every system contributes to unified character progression.
 
@@ -363,7 +363,7 @@ The systems differentiate through distinct card mechanics that respect verisimil
 
 **Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth. **ACT does NOT draw cards** - it only generates Leads. OBSERVE Details draws cards equal to your Leads count - zero Leads means zero draw. **OBSERVE is the ONLY action that draws cards.** Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. **EXECUTE uses projection to determine affordability** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression, **applying full projection per card** (Breakthrough, Danger, Aggression), then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. **Effects are calculated before application** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression, then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
 
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statement thoughts from Mind to Spoken pile (said aloud) while Echo thoughts return to Topics (fleeting thoughts that recirculate). LISTEN to Topics draws new cards while thoughts in Mind persist - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
@@ -501,7 +501,7 @@ Player chooses one PathCard from the collection. Each card represents a distinct
 **Example - Creek Crossing:**
 ```
 PathCard 1: "Wade Across" (0 time, 0 stamina, ObstacleId: "shallow_water")
-PathCard 2: "Rope Bridge" (0 time, 1 stamina, requires CoinRequirement: 5, safer)
+PathCard 2: "Rope Bridge" (no time cost, minimal stamina, requires coins, safer)
 PathCard 3: "Search for Ford" (1 time, 0 stamina, reveals hidden path, IsOneTime)
 ```
 
@@ -540,11 +540,11 @@ RouteSegment:
 
 Obstacle: "Bandit Blockade"
   Contexts: [Social, Physical, Authority]
-  Intensity: 3
+  Intensity: Moderate
   Goals:
     - "Intimidate Leader" (Social challenge, costs Focus)
     - "Fight Through" (Physical challenge, costs Stamina, risks Health)
-    - "Bribe Passage" (costs 20 coins, no challenge)
+    - "Bribe Passage" (costs coins, no challenge)
     - "Sneak Around" (Physical challenge, different approach)
 ```
 
@@ -562,7 +562,7 @@ Player selects PathCard
   → Player chooses Goal (approach strategy)
   → Goal triggers challenge (Mental/Physical/Social)
   → Victory reduces Obstacle.Intensity
-  → When Intensity = 0, obstacle cleared, segment complete
+  → When Intensity reaches zero, obstacle cleared, segment complete
 ```
 
 **Example - Fallen Tree Obstacle:**
@@ -571,7 +571,7 @@ PathCard: "Forest Path" (ObstacleId: "fallen_tree")
 
 Obstacle: "Fallen Tree"
   Contexts: [Nature, Physical, Strength]
-  Intensity: 2
+  Intensity: Low
   Goals:
     1. "Climb Over" (Physical challenge - Authority + Strength cards)
     2. "Chop Through" (Physical challenge - requires Axe equipment, higher time cost)
@@ -580,8 +580,8 @@ Obstacle: "Fallen Tree"
 
 **Player evaluation:**
 - Do I have equipment that helps? (Axe reduces intensity)
-- Which stats are strong? (Authority 3 → use cards depth 1-3)
-- What resources can I afford? (Stamina 2/6 → avoid Physical if possible)
+- Which stats are strong? (determines card depth access)
+- What resources can I afford? (Low Stamina → avoid Physical if possible)
 - What's the time pressure? (Deadline soon → fastest path)
 
 **Strategic-Tactical Bridge:**
@@ -1167,10 +1167,10 @@ Relationships deepen gradually through:
 
 Each NPC has conversational personality affecting tactical approach:
 - **Proud**: Must play cards in ascending Initiative order
-- **Devoted**: Doubt accumulates faster (+2 instead of +1)
+- **Devoted**: Doubt accumulates significantly faster
 - **Mercantile**: Highest Initiative card gets bonus effect
 - **Cunning**: Repeated Initiative costs penalty
-- **Steadfast**: All effects capped at ±2
+- **Steadfast**: All effects capped (requires patient grinding)
 
 These transform the conversation puzzle while maintaining core mechanics.
 
@@ -1243,7 +1243,7 @@ Investigation discovery as typed reward property on GoalCards at momentum/progre
 ```
 
 **Why this works:**
-- **Resource Cost**: Reaching 10 Momentum costs 3-4 segments + Focus
+- **Resource Cost**: Reaching Momentum threshold costs time segments and Focus
 - **Opportunity Cost**: Time spent on conversation vs delivery obligation
 - **Strategic Tension**: "Is discovery worth 3 segments NOW given deadline?"
 - **Impossible Choice**: All three thresholds valid, context determines best
@@ -1309,7 +1309,7 @@ All goals tracked individually for investigation journal UI:
 
 ### Phase Structure
 
-Each investigation consists of 3-7 phases resolved sequentially or in parallel (based on requirements):
+Each investigation consists of multiple phases resolved sequentially or in parallel (based on requirements):
 
 **Phase Definition:**
 - **System Type**: Mental, Physical, or Social challenge
@@ -1320,7 +1320,7 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **Completion Reward**: Discoveries granted, phases unlocked, narrative reveals
 
 **Phase Requirements:**
-- **Completed Phases**: Must finish phases 1-3 before phase 4 unlocks
+- **Completed Phases**: Must finish prerequisite phases before later phases unlock
 - **Knowledge**: Must have discovered specific information ("mill_mechanism_broken")
 - **Equipment**: Must possess specific items ("rope", "crowbar")
 - **Stats**: Minimum Observation, Strength, Rapport thresholds
@@ -1352,7 +1352,7 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 - **Exposure persists**: Your investigative "footprint" at location increases difficulty
 - **Attention resets**: Return with fresh mental energy after rest
 - **No forced ending**: High Exposure makes investigation harder but doesn't force failure
-- **Incremental victory**: Reach Progress threshold across multiple visits (typically 10-20 total)
+- **Incremental victory**: Reach Progress threshold across multiple visits
 - **Verisimilitude**: Real investigations take days/weeks with breaks between sessions
 
 ### Core Session Resources
@@ -1452,8 +1452,8 @@ Physical challenges are immediate tests of current capability:
 
 ### Action Pair
 
-- **EXECUTE**: Lock Option as preparation, spend Exertion (from projection including modifiers like fatigue penalties and Foundation generation), increase Aggression (+1 base + card approach modifier from projection). Multiple EXECUTE actions build prepared sequence and aggressive momentum. **Uses projection to determine affordability** - Exertion cost includes all modifiers.
-- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together using full projection per card including Breakthrough, Danger, and Aggression modifiers), decrease Aggression (-2 base + card approach modifier per card from projection), then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state. **Applies full projection per locked card** including approach modifiers.
+- **EXECUTE**: Lock Option as preparation, spend Exertion (including modifiers like fatigue penalties and Foundation generation), increase Aggression. Multiple EXECUTE actions build prepared sequence and aggressive momentum. **Effects are calculated before application** - Exertion cost includes all modifiers.
+- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together), decrease Aggression, then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state.
 
 ### Card Flow Mechanics
 
@@ -1540,12 +1540,12 @@ Conversations are real-time interactions with entities that have agency:
 
 ### Action Pair
 
-- **SPEAK**: Play thought from Mind, advance conversation, increment Cadence (+1)
-- **LISTEN**: Hear Topics, draw cards to Mind (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
+- **SPEAK**: Play thought from Mind, advance conversation, increase Cadence
+- **LISTEN**: Hear Topics, draw cards to Mind (more cards with negative Cadence), decrease Cadence, apply Doubt penalty if Cadence is positive
 
 ### Card Flow Mechanics
 
-**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts already in Mind remain - your mind doesn't empty when you pause to listen. You draw additional Topics into Mind (base 3 + Cadence bonuses) representing new thoughts and considerations from what you hear. Your Mind accumulates considerations, building up your understanding of the conversation as it progresses.
+**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts already in Mind remain - your mind doesn't empty when you pause to listen. You draw additional Topics into Mind (with Cadence bonuses if deferential) representing new thoughts and considerations from what you hear. Your Mind accumulates considerations, building up your understanding of the conversation as it progresses.
 
 ### Stat Binding Examples
 
@@ -1645,7 +1645,7 @@ All three systems follow the same core structure (creating equivalent tactical d
   - Social: Cadence (asymmetric - negative gives bonus card draw, positive gives Doubt penalty)
 - **Special Systems**: Social (Request/Promise/Burden from NPC agency), Mental/Physical (none - locations/challenges lack agency)
 
-**Result**: Three systems with equivalent tactical depth (all ~1,000-1,100 lines of implementation) achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
+**Result**: Three systems with equivalent tactical depth achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
 
 ## Expertise and Progression Systems
 
@@ -1786,9 +1786,9 @@ Investigations use **template-driven generation** where designers author mechani
 **Authored Template (Designer):**
 ```
 Investigation: Waterwheel Mystery
-- Phase 1: Mental challenge, 10 Progress, at [LOCATION], requires [EQUIPMENT]
-- Phase 2: Social challenge, 10 Progress, targets [NPC], requires Phase 1 complete
-- Phase 3: Physical challenge, 12 Progress, at [LOCATION], requires knowledge from Phase 2
+- Phase 1: Mental challenge at [LOCATION], requires [EQUIPMENT]
+- Phase 2: Social challenge targeting [NPC], requires Phase 1 complete
+- Phase 3: Physical challenge at [LOCATION], requires knowledge from Phase 2
 - Completion grants [KNOWLEDGE], unlocks [NEXT_INVESTIGATION]
 ```
 
@@ -1985,7 +1985,7 @@ Build capability:
 **Blocks and Segments:**
 - Day contains 6 blocks (Morning, Midday, Afternoon, Evening, Night, Late Night)
 - Each block contains 4 segments
-- Total: 24 segments per day
+- Total: Multiple segments per day
 
 **Block Properties:**
 - Morning: Fresh start, NPCs in regular venues, quiet investigations
@@ -1996,9 +1996,9 @@ Build capability:
 - Late Night: Sleep recommended, exhaustion penalties, emergency only
 
 **Activity Costs:**
-- Conversations: 1 segment + accumulated doubt
-- Work: 4 segments (entire block)
-- Investigation: 1-4 segments depending on depth
+- Conversations: One segment plus time based on conversation complexity
+- Work: Entire block
+- Investigation: Variable segments depending on depth
 - Travel: Variable by route and obstacles
 - Rest: Typically full block for recovery
 
@@ -2007,31 +2007,28 @@ Build capability:
 Wayfarer features permanent resources that persist across all gameplay. Three challenge-specific resources (Focus, Health, Stamina) create different strategic pressures:
 
 **Focus** (Mental-specific permanent resource):
-- Maximum: 100
-- **Cost**: Mental investigations cost 5-20 Focus to initiate (depending on complexity)
+- **Cost**: Mental investigations cost Focus to initiate (amount depends on complexity)
 - **Lost to**: Mental work, investigation sessions, intense concentration
-- **Depletion effect**: Below 30 Focus → Exposure accumulates faster (+1 per action in Mental challenges)
+- **Depletion effect**: Low Focus → Exposure accumulates faster in Mental challenges
 - **Cannot attempt**: Mental investigations when Focus insufficient for session cost
-- **Recovered through**: Rest blocks (+30 Focus per block), light activity, food, avoiding mental strain
+- **Recovered through**: Rest blocks, light activity, food, avoiding mental strain
 - **Integration**: Must balance Mental investigations against other activities requiring mental clarity
 - **Verisimilitude**: Concentration depletes with mental work, recovers with rest
 
 **Health** (Physical-specific permanent resource):
-- Maximum: 100
-- **Risk**: Physical challenges risk Health (Danger threshold consequences deal 5-15 damage typical)
+- **Risk**: Physical challenges risk Health (Danger threshold consequences deal damage)
 - **Lost to**: Physical hazards, environmental exposure, injuries from challenge failures, combat damage
-- **Depletion effect**: Below 30 Health → Danger accumulates faster (+1 per action in Physical challenges)
+- **Depletion effect**: Low Health → Danger accumulates faster in Physical challenges
 - **Cannot attempt**: Dangerous Physical challenges when Health too low (minimum thresholds vary)
 - **Recovered through**: Rest blocks (slow natural healing), medical treatment (faster recovery), food with restorative properties
-- **Critical threshold**: Below 30 Health increases risk of further injury
+- **Critical threshold**: Low Health increases risk of further injury
 - **Integration**: Must balance Physical challenge attempts against injury risk
 - **Verisimilitude**: Physical challenges risk bodily harm, injuries require recovery time
 
 **Stamina** (Physical-specific permanent resource):
-- Maximum: 100
-- **Cost**: Physical challenges cost 10-30 Stamina to attempt (depending on difficulty)
+- **Cost**: Physical challenges cost Stamina to attempt (amount depends on difficulty)
 - **Lost to**: Physical exertion (challenges, travel, labor)
-- **Depletion effect**: Below 30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
+- **Depletion effect**: Low Stamina → Max Exertion reduced (start challenges with lower capacity)
 - **Cannot attempt**: Stamina-requiring activities when insufficient
 - **Recovered through**: Rest blocks (full recovery), food (moderate recovery), reduced activity
 - **Integration**: Must balance Physical challenges, travel, and work against stamina depletion
@@ -2044,9 +2041,8 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 - **Verisimilitude**: Different activities have different costs in reality
 
 **Hunger** (Universal pressure):
-- Increases: 20 per time block (affects all activities equally)
-- Maximum: 100
-- **Effects**: At 75+ hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
+- Increases: Per time block (affects all activities equally)
+- **Effects**: High hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
 - **Management**: Food costs coins, has weight, must be carried or purchased at venues
 - **Integration**: Creates pressure to work for income vs. pursue investigations/relationships
 - **Verisimilitude**: Everyone needs to eat, regardless of activity type
@@ -2066,7 +2062,7 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 
 ## Verisimilitude: Why Different Is Right
 
-The three challenge systems achieve equivalent tactical depth (~1,000-1,100 lines of implementation each) while respecting fundamentally different interaction models. Asymmetries are features, not bugs.
+The three challenge systems achieve equivalent tactical depth while respecting fundamentally different interaction models. Asymmetries are features, not bugs.
 
 ### Card Flow Reflects Reality
 
@@ -2083,9 +2079,9 @@ Methods in Methods persist when you OBSERVE because investigation knowledge does
 
 **Physical: You Prepare Actions Then Execute Them**
 
-EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1 base, plus card approach modifier from projection) as you commit to action. **EXECUTE uses projection to determine affordability** - the Exertion cost includes modifiers like fatigue penalties and any Foundation generation effects.
+EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression as you commit to action. **Effects are calculated before application to show affordability** - the Exertion cost includes modifiers like fatigue penalties and any Foundation generation effects.
 
-When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence, with **full projection applied per card** (Breakthrough, Danger, Aggression including approach modifiers). ASSESS decreases Aggression (-2 base, plus each card's approach modifier from projection) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
+When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
 
 **Pile Verisimilitude - Physical**:
 - **Situation** (input pile): The evolving physical challenge, what's currently possible
@@ -2093,9 +2089,7 @@ When you ASSESS the Situation, all locked Options trigger together as a combo. T
 - **Locked Cards** (exhaust pile): Prepared sequence of actions ready to execute as combo, **displayed in UI above hand with special "LOCKED" styling**
 - **No traditional discard pile**: All Options exhaust back to Situation after combo execution - the challenge resets with new possibilities
 
-**Projection Principle**: EXECUTE and ASSESS use PhysicalEffectResolver projections as single source of truth for all effects. Projections include: Exertion changes (with modifiers like fatigue penalties or Foundation generation), Aggression changes (action balance + card approach modifier), Breakthrough/Danger changes, and all strategic resource costs. The facade applies projections to session state - never hardcodes values or reads directly from card templates.
-
-Aggression tracks your physical approach: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
+Aggression tracks your physical approach: Both extremes are dangerous. Too overcautious means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless means carelessness increases Danger - you're risking injury. You want to stay balanced, executing with controlled commitment then assessing to recalibrate.
 
 **Social: Thoughts Persist Because That's How Thinking Works**
 
@@ -2223,17 +2217,17 @@ Despite intentional differences, all three systems share:
 - **Physical**: Preparation locking (EXECUTE Options +Aggression) → Combo execution (ASSESS Situation -Aggression, exhausts all Options back to Situation), Aggression penalizes both extremes, no discard pile
 - **Social**: Statement/Echo persistence (SPEAK moves Statements from Mind to Spoken, Echoes to Topics) → Accumulating thoughts (LISTEN to Topics draws while Mind persists), Cadence asymmetrically rewards negative, three distinct piles (Topics/Mind/Spoken)
 
-**Result**: Three systems with equivalent tactical depth (~1,000-1,100 lines each) achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
+**Result**: Three systems with equivalent tactical depth achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
 
 ### Weight Capacity
 
-**Satchel Maximum: 10**
+**Satchel Maximum: Limited**
 
 Must balance:
-- Obligations accepted (letters 1, packages 1-3, goods 3-6)
-- Equipment carried (tools 1-3, supplies 1-2 each)
-- Food reserves (1 per meal)
-- Discovered items (variable 1-4)
+- Obligations accepted (limited capacity for delivery contracts)
+- Equipment carried (limited tool and supply slots)
+- Food reserves (one per meal consumed)
+- Discovered items (variable quantities)
 
 Trade-offs:
 - Accept profitable heavy obligation, can't carry much equipment
@@ -2262,16 +2256,16 @@ Trade-offs:
 **Doubt** (Timer):
 - Starts at 0
 - Increases through effects and Cadence
-- Conversation ends at MaxDoubt (from SocialChallengeDeck.DangerThreshold, typically 8-12)
+- Conversation ends at MaxDoubt (from SocialChallengeDeck.DangerThreshold)
 - Creates urgency
 - Forces efficiency and listening
 
 **Cadence** (Balance):
-- Starts at 0, range -5 to +5
-- SPEAK action: +1
-- LISTEN action: -2
-- High Cadence: +1 Doubt per point on LISTEN
-- Low Cadence: +1 card draw per point on LISTEN
+- Starts at 0, ranges from deferential to dominating
+- SPEAK action: increases Cadence
+- LISTEN action: decreases Cadence
+- High Cadence (dominating): Doubt penalty on LISTEN
+- Low Cadence (deferential): Bonus card draw on LISTEN
 - Rewards strategic listening
 
 **Statements in Spoken** (History):
@@ -2284,7 +2278,7 @@ Trade-offs:
 ### Card Structure
 
 Every card has:
-- **Initiative Cost**: 0 for Foundation (depth 1-2), scales with depth
+- **Initiative Cost**: Free for Foundation cards, scales with card depth/power
 - **Either** requirement OR cost, never both
 - **One deterministic effect**: No branching or randomness
 - **Stat binding**: Which stat gains XP when played
@@ -2293,12 +2287,10 @@ Every card has:
 ### Stat-Gated Depth Access
 
 Stats determine card depth access:
-- Stat Level 1: Access depths 1-2 (Foundation only)
-- Stat Level 2: Access depths 1-3
-- Stat Level 3: Access depths 1-4 (Standard cards)
-- Stat Level 5: Access depths 1-6 (Advanced)
-- Stat Level 7: Access depths 1-8 (Powerful)
-- Stat Level 9+: Access depths 1-10 (Master)
+- Low Stat Levels: Access Foundation cards only
+- Mid Stat Levels: Access Standard cards
+- High Stat Levels: Access Advanced and Powerful cards
+- Master Stat Levels: Access Master-tier cards
 
 Progression represents growing conversational competence and expanded repertoire.
 
@@ -2307,10 +2299,10 @@ Progression represents growing conversational competence and expanded repertoire
 Conversations are **Social Challenges** - the third and most complex parallel tactical system alongside Mental and Physical challenges. Social follows the same architectural pattern but adds significant mechanical depth.
 
 **Social Challenge Resources (Most Complex):**
-- **Momentum** (builder): Progress toward conversation goal (typically 8-16 threshold)
+- **Momentum** (builder): Progress toward conversation goal
 - **Initiative** (session resource): Action economy currency, accumulated through Foundation cards, persists through LISTEN
-- **Doubt** (threshold): Starts at 0, failure when reaching MaxDoubt from SocialChallengeDeck.DangerThreshold (typically 8-12), tracks NPC skepticism
-- **Cadence** (balance): Dominating vs deferential style (-10 to +10), creates Doubt penalties or card draw bonuses
+- **Doubt** (threshold): Starts at 0, failure when reaching MaxDoubt from SocialChallengeDeck.DangerThreshold, tracks NPC skepticism
+- **Cadence** (balance): Dominating vs deferential conversation style, creates Doubt penalties (when dominating) or card draw bonuses (when deferential)
 - **Statements** (history): Count of Statement cards played, determines time cost (1 segment + statements)
 - **Understanding** (tier unlock): Persistent connection depth (shared with Mental/Physical)
 
@@ -2326,8 +2318,8 @@ Goals reference ChallengeDeck entities directly via `deckId`. Each ChallengeDeck
 - **Deck ID**: Unique identifier (e.g., "desperate_request", "mental_challenge", "athletics_challenge")
 - **Card IDs**: Which cards are in this deck (conversation cards, investigation cards, physical action cards)
 - **Description**: Narrative context for this challenge type
-- **Initial Hand Size**: Starting cards (typically 5)
-- **Max Hand Size**: Maximum hand capacity (typically 7)
+- **Initial Hand Size**: Starting cards drawn at conversation start
+- **Max Hand Size**: Maximum hand capacity (limited)
 
 **Architectural Simplification:**
 - **Before**: Goal → ChallengeType (intermediary) → ChallengeDeck (two-step lookup)
