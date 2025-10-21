@@ -16,9 +16,9 @@ public class PackageContent
     public List<DistrictDTO> Districts { get; set; }
 
     /// <summary>
-    /// Card definitions - uses DTO for consistency
+    /// Social card definitions - uses DTO for consistency
     /// </summary>
-    public List<SocialCardDTO> Cards { get; set; }
+    public List<SocialCardDTO> SocialCards { get; set; }
 
     /// <summary>
     /// NPC definitions - uses existing NPCDTO

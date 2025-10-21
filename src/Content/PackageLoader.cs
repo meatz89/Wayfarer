@@ -121,7 +121,7 @@ public class PackageLoader
         LoadLocationSpots(package.Content.Locations, allowSkeletons);
 
         // 3. Cards (foundation for NPCs and conversations)
-        LoadSocialCards(package.Content.Cards, allowSkeletons);
+        LoadSocialCards(package.Content.SocialCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
         // THREE PARALLEL TACTICAL SYSTEMS - Decks only, no Types
@@ -414,9 +414,19 @@ public class PackageLoader
 
         foreach (SocialCardDTO dto in cardDtos)
         {
-            // Use static method from ConversationCardParser
-            SocialCard card = SocialCardParser.ParseCard(dto);
-            _gameWorld.SocialCards.Add(card);
+            try
+            {
+                // Use static method from ConversationCardParser
+                SocialCard card = SocialCardParser.ParseCard(dto);
+                _gameWorld.SocialCards.Add(card);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"FATAL: Failed to parse social card '{dto.Id}'. " +
+                    $"Total cards loaded so far: {_gameWorld.SocialCards.Count}. " +
+                    $"Error: {ex.Message}", ex);
+            }
         }
 
         // Validate Foundation card rules after all cards are loaded
@@ -455,6 +465,24 @@ public class PackageLoader
         foreach (SocialChallengeDeckDTO dto in decks)
         {
             SocialChallengeDeck deck = dto.ToDomain();
+
+            // VALIDATION: Verify every card in deck exists in GameWorld.SocialCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.SocialCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    int totalCards = _gameWorld.SocialCards.Count;
+                    string allCardIds = string.Join(", ", _gameWorld.SocialCards.Select(c => c.Id));
+                    throw new InvalidOperationException(
+                        $"Social deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/08_social_cards.json and loads before deck. " +
+                        $"Total cards loaded: {totalCards}. " +
+                        $"All loaded card IDs: {allCardIds}");
+                }
+            }
+
             _gameWorld.SocialChallengeDecks.Add(deck);
         }
     }
@@ -466,6 +494,21 @@ public class PackageLoader
         foreach (MentalChallengeDeckDTO dto in decks)
         {
             MentalChallengeDeck deck = dto.ToDomain();
+
+            // VALIDATION: Verify every card in deck exists in GameWorld.MentalCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.MentalCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    throw new InvalidOperationException(
+                        $"Mental deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/09_mental_cards.json and loads before deck. " +
+                        $"Available cards: {string.Join(", ", _gameWorld.MentalCards.Take(5).Select(c => c.Id))}...");
+                }
+            }
+
             _gameWorld.MentalChallengeDecks.Add(deck);
         }
     }
@@ -477,6 +520,21 @@ public class PackageLoader
         foreach (PhysicalChallengeDeckDTO dto in decks)
         {
             PhysicalChallengeDeck deck = dto.ToDomain();
+
+            // VALIDATION: Verify every card in deck exists in GameWorld.PhysicalCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.PhysicalCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    throw new InvalidOperationException(
+                        $"Physical deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/10_physical_cards.json and loads before deck. " +
+                        $"Available cards: {string.Join(", ", _gameWorld.PhysicalCards.Take(5).Select(c => c.Id))}...");
+                }
+            }
+
             _gameWorld.PhysicalChallengeDecks.Add(deck);
         }
     }
