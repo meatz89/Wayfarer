@@ -151,7 +151,109 @@ NOT: "Where should I put this button?"
 
 **Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
 
-## Principle 3: Ownership vs Placement vs Reference
+## Principle 3: Categorical Properties → Dynamic Scaling Through Catalogues (AI Content Generation Pattern)
+
+**CRITICAL: JSON contains RELATIVE/CATEGORICAL properties. Catalogues translate to ABSOLUTE values scaled dynamically by game state.**
+
+**THE REASON: AI-Generated Runtime Content**
+
+AI-generated content CANNOT specify absolute mechanical values because AI doesn't know:
+- Current player progression level
+- Existing game balance
+- Global difficulty curve
+- What other entities exist
+
+AI CAN specify RELATIVE categorical properties:
+- "This rope is Fragile" (relative to other ropes)
+- "This card is a Remark" (relative to other conversational moves)
+- "This NPC is Cunning" (relative to other personalities)
+
+**The Pattern:**
+```
+AI generates JSON (Categorical/Relative)
+    → Parser reads game state
+    → Catalogue translates with DYNAMIC SCALING
+    → Domain Entity (Absolute/Scaled values)
+```
+
+**Examples:**
+
+**CORRECT** (AI-friendly categorical properties):
+```csharp
+// AI generates: "durability": "Fragile" (doesn't know absolute values)
+// Parser reads game state: player level 3, difficulty Normal
+// Catalogue scales dynamically:
+DurabilityType durability = ParseEnum(dto.Durability);
+int playerLevel = gameWorld.Player.Level;
+DifficultyMode difficulty = gameWorld.CurrentDifficulty;
+(int uses, int repairCost) = EquipmentDurabilityCatalog.GetDurabilityValues(
+    durability, playerLevel, difficulty);
+
+// Result at Level 1: Fragile → 2 uses, 10 coins
+// Result at Level 5: Fragile → 4 uses, 25 coins (scaled up)
+// Fragile ALWAYS weaker than Sturdy (relative consistency)
+```
+
+```csharp
+// AI generates conversational move without knowing exact values
+CardEffectFormula effect = SocialCardEffectCatalog.GetEffectFromCategoricalProperties(
+    move, stat, depth, cardId, playerLevel);
+
+// Catalogue scales based on progression:
+// Early game: Remark/Rapport/Depth2 → +4 Understanding
+// Late game: Remark/Rapport/Depth2 → +6 Understanding (scaled)
+```
+
+**WRONG** (AI tries to specify absolute values - AI doesn't know game state):
+```json
+// ❌ WRONG - AI specifies absolute values without game context
+{
+  "exhaustAfterUses": 2,     // Too weak for late game? Too strong for early?
+  "repairCost": 10            // AI doesn't know player's coin economy
+}
+
+// ✅ CORRECT - AI specifies relative category
+{
+  "durability": "Fragile"     // Parser scales based on game state
+}
+```
+
+**Why This Matters:**
+
+1. **AI Content Generation**: AI can create entities without knowing global game state
+2. **Dynamic Scaling**: Same categorical value scales with player progression
+3. **Relative Consistency**: "Fragile" always weaker than "Sturdy" regardless of scaling
+4. **Future-Proof**: Works for procedural generation, runtime content, user-generated content
+5. **Balance Maintenance**: Change ONE catalogue formula, ALL content scales consistently
+
+**Catalogue Requirements:**
+- **Static class** with pure scaling functions
+- **Context-aware**: Accept game state parameters (player level, difficulty, etc.)
+- **Deterministic scaling**: Same inputs → same outputs (reproducible)
+- **Relative preservation**: Categorical relationships maintained across all scales
+- **Enum-based**: Use strongly-typed enums for categorical properties
+
+**Scaling Factors Catalogues Can Use:**
+- Player level (progression)
+- Current difficulty mode (Easy/Normal/Hard)
+- Time in game (early/mid/late game)
+- Existing entity counts (balance relative to what exists)
+- Global economy state (coin inflation/deflation)
+
+**Existing Catalogues:**
+- `SocialCardEffectCatalog`: ConversationalMove/Stat/Depth → Scaled card effects
+- `MentalCardEffectCatalog`: ObservationDepth/Stat → Scaled investigation effects
+- `PhysicalCardEffectCatalog`: ActionType/Stat/Depth → Scaled obstacle effects
+- `EquipmentDurabilityCatalog`: DurabilityType → Scaled uses/repair costs
+
+**Test:** If you're adding a numeric property to a DTO, ask:
+1. "Could AI generate this entity at runtime without knowing global game state?"
+2. "Should this value scale with player progression?"
+3. "Is this a RELATIVE property (compared to similar entities)?"
+
+If YES to any → Create categorical enum + scaling catalogue. If NO → Consider if it's truly a design-time constant.
+
+## Principle 4: Ownership vs Placement vs Reference
 
 **Three distinct relationship types. Don't conflate them.**
 
@@ -179,7 +281,7 @@ NOT: "Where should I put this button?"
 - Yes = Ownership
 - No = Placement or Reference
 
-## Principle 4: Inter-Systemic Rules Over Boolean Gates
+## Principle 5: Inter-Systemic Rules Over Boolean Gates
 
 **Strategic depth emerges from shared resource competition, not linear unlocks.**
 
@@ -206,7 +308,7 @@ NOT: "Where should I put this button?"
 
 **Test:** Does the player make a strategic trade-off (accepting one cost to avoid another)? If no, it's a boolean gate.
 
-## Principle 5: Typed Rewards as System Boundaries
+## Principle 6: Typed Rewards as System Boundaries
 
 **Systems connect through explicitly typed rewards applied at completion, not through continuous evaluation or state queries.**
 
@@ -236,7 +338,7 @@ System A sets boolean flag
 
 **Test:** Is the connection a one-time application of a typed effect, or a continuous check of boolean state? First is correct, second is wrong.
 
-## Principle 6: Resource Scarcity Creates Impossible Choices
+## Principle 7: Resource Scarcity Creates Impossible Choices
 
 **For strategic depth to exist, all systems must compete for the same scarce resources.**
 
@@ -256,7 +358,7 @@ System A sets boolean flag
 
 **Test:** Can the player pursue all interesting options without trade-offs? If yes, no strategic depth exists.
 
-## Principle 7: One Purpose Per Entity
+## Principle 8: One Purpose Per Entity
 
 **Every entity type serves exactly one clear purpose.**
 
@@ -273,7 +375,7 @@ System A sets boolean flag
 
 **Test:** Can you describe the entity's purpose in one sentence without "and" or "or"? If not, split it.
 
-## Principle 8: Verisimilitude in Entity Relationships
+## Principle 9: Verisimilitude in Entity Relationships
 
 **Entity relationships should match the conceptual model, not implementation convenience.**
 
@@ -289,7 +391,7 @@ System A sets boolean flag
 
 **Test:** Can you explain the relationship in natural language without feeling confused? If the explanation feels backwards, it is backwards.
 
-## Principle 9: Elegance Through Minimal Interconnection
+## Principle 10: Elegance Through Minimal Interconnection
 
 **Systems should connect at explicit boundaries, not pervasively.**
 
@@ -308,7 +410,7 @@ System A sets boolean flag
 
 **Test:** Can you draw the system interconnections with one arrow per connection? If you need a web of arrows, the design has too many dependencies.
 
-## Principle 10: Perfect Information with Hidden Complexity
+## Principle 11: Perfect Information with Hidden Complexity
 
 **All strategic information visible to player. All tactical complexity hidden in execution.**
 

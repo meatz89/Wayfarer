@@ -32,7 +32,14 @@ public class ItemDTO
     // Intensity reduction when contexts match (e.g., 1 or 2)
     public int? IntensityReduction { get; set; }
 
-    // Equipment usage type - "Permanent" (always functional) or "Consumable" (single use)
+    // Equipment usage type - "Permanent" (always functional), "Consumable" (single use), or "Exhaustible" (multi-use with repair)
     public string UsageType { get; set; }
+
+    // EXHAUSTION SYSTEM (for Exhaustible equipment only)
+    /// <summary>
+    /// Categorical durability property - parser translates to mechanical values
+    /// Values: "Fragile" (2 uses, 10 coins), "Sturdy" (5 uses, 25 coins), "Durable" (8 uses, 40 coins)
+    /// </summary>
+    public string Durability { get; set; }
 
 }

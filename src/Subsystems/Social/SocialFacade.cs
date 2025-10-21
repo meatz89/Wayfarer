@@ -51,7 +51,7 @@ public class SocialFacade
     /// <summary>
     /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public SocialSession StartConversation(string npcId, string requestId)
+    public SocialSession StartConversation(string npcId, string requestId, int effectiveDoubt)
     {
         if (IsConversationActive())
         {
@@ -95,7 +95,8 @@ public class SocialFacade
         int startingUnderstanding = 2 + statBonus;
         int startingMomentum = 2 + statBonus;
         int startingInitiative = 3 + statBonus;
-        int initialDoubt = 0;// Get request text from the goal description
+        // effectiveDoubt passed from GameFacade (already reduced by StoryCubes)
+        // Get request text from the goal description
         string requestText = goal.Description;
 
         // Create session with new properties
@@ -109,7 +110,7 @@ public class SocialFacade
             CurrentInitiative = startingInitiative,
             CurrentUnderstanding = startingUnderstanding,
             CurrentMomentum = startingMomentum,
-            CurrentDoubt = initialDoubt,
+            CurrentDoubt = effectiveDoubt, // GameFacade orchestrated StoryCubes reduction
             Cadence = 0, // Starts at 0
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
@@ -473,7 +474,7 @@ public class SocialFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId, int effectiveDoubt)
     {
         // KEEP - npcId is external input from UI
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -489,8 +490,8 @@ public class SocialFacade
             return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
         }
 
-        // Start conversation with the request
-        SocialSession session = StartConversation(npcId, requestId);
+        // Start conversation with the request (effectiveDoubt already calculated by GameFacade)
+        SocialSession session = StartConversation(npcId, requestId, effectiveDoubt);
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(

@@ -84,8 +84,171 @@ KnowledgeParser      → KnowledgeDTO → Knowledge
 - **JSON FIELD NAMES MUST MATCH C# PROPERTIES**: No JsonPropertyName attributes to hide mismatches
 - **STATELESS**: Parsers are static classes with no side effects
 - **SINGLE PASS**: Each parser converts DTO to domain entity in one operation
+- **CATEGORICAL → MECHANICAL TRANSLATION**: Parsers translate categorical JSON properties to absolute mechanical values through catalogues (see Categorical Properties Pattern below)
 
-### 3. Content Loading Orchestration
+### 3. Categorical Properties → Dynamic Scaling Pattern (AI Content Generation)
+
+**CRITICAL ARCHITECTURE DECISION: Why JSON uses categorical properties instead of absolute values**
+
+**The Problem: AI-Generated Runtime Content**
+
+AI-generated content (procedural generation, LLM-created entities, user-generated content) CANNOT specify absolute mechanical values because AI doesn't know:
+- Current player progression level (Level 1 vs Level 10)
+- Existing game balance (what items/cards/challenges already exist)
+- Global difficulty curve (early game vs late game tuning)
+- Economy state (coin inflation, resource scarcity)
+
+**The Solution: Relative Categorical Properties + Dynamic Scaling Catalogues**
+
+```
+AI generates JSON with categorical properties (relative descriptions)
+    ↓
+Parser reads current game state (player level, difficulty mode, etc.)
+    ↓
+Catalogue translates categorical → absolute values WITH SCALING
+    ↓
+Domain entity receives scaled mechanical values
+```
+
+**Example: Equipment Durability**
+
+```csharp
+// JSON (AI-generated or hand-authored): Categorical property
+{
+  "id": "worn_rope",
+  "name": "Worn Climbing Rope",
+  "durability": "Fragile"    // ← RELATIVE category, not absolute value
+}
+
+// Parser translates using catalogue + game state
+DurabilityType durability = ParseEnum(dto.Durability);  // Fragile
+int playerLevel = gameWorld.Player.Level;                // Current: 3
+DifficultyMode difficulty = gameWorld.CurrentDifficulty; // Normal
+
+(int uses, int repairCost) = EquipmentDurabilityCatalog.GetDurabilityValues(
+    durability, playerLevel, difficulty);
+
+// Catalogue scales based on game state:
+// Level 1:  Fragile → 2 uses, 10 coins
+// Level 5:  Fragile → 4 uses, 25 coins  (scaled up for progression)
+// Level 10: Fragile → 6 uses, 40 coins  (continues scaling)
+
+// CRITICAL: Fragile ALWAYS weaker than Sturdy (relative consistency maintained)
+```
+
+**Example: Card Effects**
+
+```csharp
+// JSON: Categorical move type
+{
+  "conversationalMove": "Remark",
+  "boundStat": "Rapport",
+  "depth": 2
+}
+
+// Parser translates with scaling
+CardEffectFormula effect = SocialCardEffectCatalog.GetEffectFromCategoricalProperties(
+    ConversationalMove.Remark,
+    PlayerStatType.Rapport,
+    depth: 2,
+    cardId,
+    playerLevel);  // ← Scaling factor
+
+// Early game (Level 1): Remark/Rapport/Depth2 → +4 Understanding
+// Late game (Level 5): Remark/Rapport/Depth2 → +6 Understanding (scaled)
+```
+
+**Why This Architecture Exists:**
+
+1. **AI Content Generation**: AI describes entities relatively ("Fragile rope", "Cunning NPC") without needing to know absolute game values
+2. **Dynamic Difficulty Scaling**: Same content scales automatically as player progresses
+3. **Consistent Relative Balance**: "Fragile" ALWAYS weaker than "Sturdy" regardless of scaling factors
+4. **Future-Proof**: Supports procedural generation, LLM content, user mods, runtime content
+5. **Centralized Balance**: Change ONE catalogue formula → ALL entities of that category scale consistently
+
+**Catalogue Implementation Requirements:**
+
+```csharp
+// Location: src/Content/Catalogues/*Catalog.cs
+public static class EquipmentDurabilityCatalog
+{
+    // Context-aware scaling function
+    public static (int exhaustAfterUses, int repairCost) GetDurabilityValues(
+        DurabilityType durability,
+        int playerLevel,           // ← Scaling context
+        DifficultyMode difficulty) // ← Scaling context
+    {
+        // Base values for each category
+        int baseUses = durability switch
+        {
+            DurabilityType.Fragile => 2,
+            DurabilityType.Sturdy => 5,
+            DurabilityType.Durable => 8,
+            _ => throw new InvalidOperationException($"Unknown durability: {durability}")
+        };
+
+        int baseRepair = durability switch
+        {
+            DurabilityType.Fragile => 10,
+            DurabilityType.Sturdy => 25,
+            DurabilityType.Durable => 40,
+            _ => throw new InvalidOperationException($"Unknown durability: {durability}")
+        };
+
+        // Dynamic scaling based on game state
+        float levelScaling = 1.0f + (playerLevel * 0.2f); // +20% per level
+        float difficultyScaling = difficulty switch
+        {
+            DifficultyMode.Easy => 1.2f,
+            DifficultyMode.Normal => 1.0f,
+            DifficultyMode.Hard => 0.8f,
+            _ => 1.0f
+        };
+
+        int scaledUses = (int)(baseUses * levelScaling * difficultyScaling);
+        int scaledRepair = (int)(baseRepair * levelScaling * difficultyScaling);
+
+        return (scaledUses, scaledRepair);
+    }
+}
+```
+
+**Existing Catalogues:**
+- `SocialCardEffectCatalog` (src/Content/Catalogs/SocialCardEffectCatalog.cs)
+- `MentalCardEffectCatalog` (src/Content/Catalogs/MentalCardEffectCatalog.cs)
+- `PhysicalCardEffectCatalog` (src/Content/Catalogs/PhysicalCardEffectCatalog.cs)
+- `EquipmentDurabilityCatalog` (src/Content/Catalogs/EquipmentDurabilityCatalog.cs)
+
+**When to Use Categorical Properties:**
+
+Ask these questions for ANY numeric property in a DTO:
+1. "Could AI generate this entity at runtime without knowing global game state?"
+2. "Should this value scale with player progression or difficulty?"
+3. "Is this RELATIVE (compared to similar entities) rather than ABSOLUTE?"
+
+If YES → Create categorical enum + scaling catalogue
+If NO → Consider if it's truly a design-time constant (rare - most values should scale)
+
+**Anti-Pattern: Hardcoded Absolute Values in JSON**
+
+```json
+// ❌ WRONG - Absolute values break AI generation and scaling
+{
+  "exhaustAfterUses": 2,
+  "repairCost": 10,
+  "understanding": 4,
+  "momentum": 2
+}
+
+// ✅ CORRECT - Categorical properties enable AI + scaling
+{
+  "durability": "Fragile",
+  "conversationalMove": "Remark",
+  "depth": 2
+}
+```
+
+### 4. Content Loading Orchestration
 
 **Location**: `src/Content/PackageLoader.cs` & `GameWorldInitializer.cs`
 

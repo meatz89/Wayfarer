@@ -46,6 +46,12 @@ public class Goal
     public string PlacementNpcId { get; set; }
 
     /// <summary>
+    /// Route ID where this goal's button appears in UI (semantic: placement, not ownership)
+    /// Used for route-based goals (scouting, pathfinding) that grant ExplorationCubes
+    /// </summary>
+    public string PlacementRouteId { get; set; }
+
+    /// <summary>
     /// Investigation ID for UI grouping and label display
     /// </summary>
     public string InvestigationId { get; set; }

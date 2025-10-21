@@ -6,7 +6,17 @@ using Wayfarer.GameState.Enums;
 public enum EquipmentUsageType
 {
     Permanent,      // Always functional, never destroyed (Rope, Waders, Lantern, Quality Clothing)
-    Consumable      // Single use, destroyed after use (Rations, Healing items)
+    Consumable,     // Single use, destroyed after use (Rations, Healing items)
+    Exhaustible     // Multi-use with exhaustion, repairable (Climbing Gear - 3 uses, 25 coins to repair)
+}
+
+/// <summary>
+/// Equipment functional state - determines if equipment can be used
+/// </summary>
+public enum EquipmentState
+{
+    Functional,     // Equipment works normally
+    Exhausted       // Equipment needs repair before use
 }
 
 public class Equipment : Item
@@ -16,6 +26,27 @@ public class Equipment : Item
 
     // Equipment usage type - Permanent (always works) or Consumable (single use)
     public EquipmentUsageType UsageType { get; set; } = EquipmentUsageType.Permanent;
+
+    // EXHAUSTION SYSTEM (for Exhaustible equipment only)
+    /// <summary>
+    /// Number of uses before equipment becomes Exhausted (Exhaustible only)
+    /// </summary>
+    public int ExhaustAfterUses { get; set; } = 0;
+
+    /// <summary>
+    /// Current number of uses (0 = fresh, ExhaustAfterUses = exhausted)
+    /// </summary>
+    public int CurrentUses { get; set; } = 0;
+
+    /// <summary>
+    /// Coins required to repair this equipment when Exhausted
+    /// </summary>
+    public int RepairCost { get; set; } = 0;
+
+    /// <summary>
+    /// Current functional state (Functional or Exhausted)
+    /// </summary>
+    public EquipmentState CurrentState { get; set; } = EquipmentState.Functional;
 
     public bool MatchesContext(ObstacleContext context)
     {

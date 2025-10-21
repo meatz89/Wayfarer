@@ -142,9 +142,20 @@ public class GoalCompletionHandler
                 }
             }
 
-            // EXPLORATION CUBES - grant to route (requires route context - currently not implemented)
+            // EXPLORATION CUBES - grant to route (requires route context from goal)
             if (rewards.ExplorationCubes.HasValue && rewards.ExplorationCubes.Value > 0)
             {
+                if (!string.IsNullOrEmpty(goal.PlacementRouteId))
+                {
+                    _gameWorld.GrantRouteCubes(goal.PlacementRouteId, rewards.ExplorationCubes.Value);
+                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == goal.PlacementRouteId);
+                    string routeName = route?.Name ?? "Unknown Route";
+                }
+                else
+                {
+                    // Goal without route context - exploration cubes can't be granted
+                    // This is expected for non-route goals
+                }
             }
 
             // CREATE OBLIGATION - grant StoryCubes to patron NPC (RESOURCE-BASED PATTERN)

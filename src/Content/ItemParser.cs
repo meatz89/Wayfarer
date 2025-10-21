@@ -107,6 +107,16 @@ public static class ItemParser
                 dto.IntensityReduction ?? 0 // Optional - defaults to 0 if missing
             );
             equipment.UsageType = usageType;
+
+            // Parse exhaustion fields (for Exhaustible equipment only)
+            if (usageType == EquipmentUsageType.Exhaustible)
+            {
+                equipment.ExhaustAfterUses = dto.ExhaustAfterUses ?? 0;
+                equipment.RepairCost = dto.RepairCost ?? 0;
+                equipment.CurrentUses = 0; // Always start fresh
+                equipment.CurrentState = EquipmentState.Functional; // Always start functional
+            }
+
             return equipment;
         }
 

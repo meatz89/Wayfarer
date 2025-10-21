@@ -432,7 +432,12 @@ public class GameFacade
 
     public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
     {
-        return await _conversationFacade.CreateConversationContext(npcId, requestId);
+        // ORCHESTRATION: Calculate effective doubt using CubeFacade before starting conversation
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
+        int baseDoubt = goal?.BaseDifficulty ?? 0;
+        int effectiveDoubt = _cubeFacade.GetEffectiveDoubt(npcId, baseDoubt);
+
+        return await _conversationFacade.CreateConversationContext(npcId, requestId, effectiveDoubt);
     }
 
     /// <summary>
@@ -514,7 +519,13 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId);
+        // ORCHESTRATION: Calculate effective exposure using CubeFacade before starting session
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+        Location location = player.CurrentLocation;
+        int baseExposure = location.Exposure;
+        int effectiveExposure = _cubeFacade.GetEffectiveExposure(baseExposure, goal?.PlacementLocationId ?? locationSpotId);
+
+        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId, effectiveExposure);
     }
 
     /// <summary>
