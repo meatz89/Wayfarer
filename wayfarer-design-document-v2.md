@@ -1019,15 +1019,6 @@ Clean object graph, no cross-file ID references, strongly typed.
 
 ## NPC System
 
-### Five Persistent Decks
-
-Each NPC maintains:
-1. **Conversation Deck**: Base cards for their conversation types
-2. **Request Deck**: Available tasks and deliveries
-3. **Observation Deck**: Cards gained from your discoveries
-4. **Burden Deck**: Consequences of failures and conflicts
-5. **Exchange Deck**: Trade opportunities and special purchases
-
 ### Relationship Progression
 
 Relationships deepen gradually through:
@@ -1037,11 +1028,9 @@ Relationships deepen gradually through:
 - Time spent in conversation (build familiarity)
 
 **Mechanical Benefits:**
-- Signature cards appear in conversations
 - Access to specialized equipment/items
 - Route knowledge and safer paths revealed
 - Investigation clues and context provided
-- Support during dangerous challenges
 
 ### Personality Rules
 

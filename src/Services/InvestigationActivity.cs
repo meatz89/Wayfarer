@@ -341,8 +341,8 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Discover investigation - moves Potential → Discovered
-    /// Simple RPG pattern: Just discovery, no goal spawning (intro action is NOT a goal)
+    /// Discover investigation - moves Potential → Active and immediately spawns intro obstacles
+    /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates investigation
     /// Sets pending discovery result for UI modal display
     /// </summary>
     public void DiscoverInvestigation(string investigationId)
@@ -354,9 +354,36 @@ public class InvestigationActivity
         if (investigation.IntroAction == null)
             throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action defined");
 
-        // Move Potential → Discovered
+        // Move Potential → Active (skip Discovered state entirely)
         _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
-        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+
+        // Create active investigation
+        ActiveInvestigation activeInvestigation = new ActiveInvestigation
+        {
+            InvestigationId = investigationId
+        };
+        _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
+
+        // Spawn obstacles from intro completion reward IMMEDIATELY
+        if (investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        {
+            foreach (ObstacleSpawnInfo spawnInfo in investigation.IntroAction.CompletionReward.ObstaclesSpawned)
+            {
+                SpawnObstacle(spawnInfo);
+            }
+        }
+
+        // Grant Understanding from intro completion reward (0-10 max)
+        if (investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        {
+            Player player = _gameWorld.GetPlayer();
+            int newUnderstanding = Math.Min(10, player.Understanding + investigation.IntroAction.CompletionReward.UnderstandingReward);
+            player.Understanding = newUnderstanding;
+
+            _messageSystem.AddSystemMessage(
+                $"Understanding increased by {investigation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                SystemMessageTypes.Success);
+        }
 
         // Derive venue from location (LocationId is globally unique)
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
@@ -367,7 +394,7 @@ public class InvestigationActivity
         if (venue == null)
             throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
 
-        // Create discovery result for UI modal
+        // Create discovery result for UI modal (narrative only)
         InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
         {
             InvestigationId = investigationId,
@@ -386,11 +413,23 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Complete intro action - moves Discovered → Active, spawns Phase 1 obstacle
-    /// Called when player clicks intro action button in discovery modal
+    /// Complete intro action - LEGACY METHOD, now redundant
+    /// DiscoverInvestigation() now immediately activates and spawns obstacles
+    /// This method is safe to call but does nothing if investigation already active
     /// </summary>
     public void CompleteIntroAction(string investigationId)
     {
+        // Check if already active - discovery now activates immediately
+        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
+            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+
+        if (activeInv != null)
+        {
+            // Already active - discovery handled everything
+            return;
+        }
+
+        // Legacy path - should not be reached with new flow
         Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
         if (investigation == null)
         {
