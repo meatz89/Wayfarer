@@ -263,17 +263,3 @@ body {
     }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .conversation-container {
-        padding: 10px;
-    }
-}
-
-/* Accessibility Improvements */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation: none !important;
-        transition: none !important;
-    }
-}

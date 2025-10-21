@@ -20,7 +20,6 @@ public class JsonNarrativeRepository
         this.contentDirectory = contentDirectory;
     }
 
-
     /// <summary>
     /// Finds the best matching narrative template for the current conversation state.
     /// Uses NPC ID, flow range, and rapport range to determine the best fit.

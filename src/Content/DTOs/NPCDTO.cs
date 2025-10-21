@@ -24,5 +24,6 @@ public class NPCDTO
     public string CurrentState { get; set; }
     public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
 
-    public List<NPCRequestDTO> Requests { get; set; } = new List<NPCRequestDTO>();
+    // Obstacles for this NPC (Social barriers only - NPCs can ONLY have SocialDifficulty obstacles)
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 }

@@ -26,77 +26,29 @@ public static class StrangerParser
             throw new ArgumentException($"Invalid time block: {dto.TimeBlock}");
         }
 
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("StrangerNPC missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.LocationId))
+            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'LocationId'");
+
         NPC stranger = new NPC
         {
-            ID = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            Venue = dto.VenueId ?? "",
+            ID = dto.Id,
+            Name = dto.Name,
+            LocationId = dto.LocationId,
             PersonalityType = personalityType,
             IsStranger = true,
             AvailableTimeBlock = timeBlock,
             Level = dto.Level,
             HasBeenEncountered = false,
             Tier = dto.Level, // Use level as tier for difficulty
-            Description = $"Level {dto.Level} stranger",
-            Requests = new List<GoalCard>()
+            Description = $"Level {dto.Level} stranger"
         };
-
-        // Convert stranger's single request to NPCRequest
-        if (dto.Request != null)
-        {
-            GoalCard request = ConvertRequestDTOToNPCRequest(dto.Request);
-            stranger.Requests.Add(request);
-        }
 
         return stranger;
-    }
-
-    /// <summary>
-    /// Convert stranger request DTO to NPCRequest
-    /// </summary>
-    private static GoalCard ConvertRequestDTOToNPCRequest(StrangerRequestDTO dto)
-    {
-        // Create request from stranger request DTO
-        GoalCard request = new GoalCard
-        {
-            Id = dto.Id ?? "",
-            Title = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            SystemType = TacticalSystemType.Social,  // Strangers use Social system
-            ChallengeTypeId = dto.ConversationTypeId ?? "",  // Map old ConversationTypeId to new ChallengeTypeId
-            Status = GoalStatus.Available,
-            MomentumThresholds = new List<int>(dto.MomentumThresholds ?? new List<int>()),
-            Rewards = ConvertRewards(dto.Rewards)
-        };
-
-        return request;
-    }
-
-    /// <summary>
-    /// Convert stranger rewards to NPCRequest rewards
-    /// </summary>
-    private static List<GoalReward> ConvertRewards(List<StrangerRewardDTO> rewardDtos)
-    {
-        List<GoalReward> rewards = new List<GoalReward>();
-        if (rewardDtos != null)
-        {
-            foreach (StrangerRewardDTO dto in rewardDtos)
-            {
-                GoalReward reward = new GoalReward
-                {
-                    Coins = dto.Coins,
-                    Health = dto.Health,
-                    Food = dto.Food,
-                    Familiarity = dto.Familiarity,
-                    Item = dto.Item,
-                    Permit = dto.Permit,
-                    Observation = dto.Observation,
-                    Tokens = new Dictionary<string, int>(dto.Tokens ?? new Dictionary<string, int>())
-                };
-                rewards.Add(reward);
-            }
-        }
-        return rewards;
     }
 
 }

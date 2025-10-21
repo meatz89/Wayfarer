@@ -8,7 +8,7 @@ using System.Text.Json;
 /// </summary>
 public class ItemValidator : BaseValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "id", "name", "focus", "buyPrice", "sellPrice", "inventorySlots"
         };
@@ -23,33 +23,23 @@ public class ItemValidator : BaseValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Items file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            int index = 0;
-            foreach (JsonElement itemElement in root.EnumerateArray())
-            {
-                ValidateItem(itemElement, index, fileName, errors);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate items: {ex.Message}",
+                "Items file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        int index = 0;
+        foreach (JsonElement itemElement in root.EnumerateArray())
+        {
+            ValidateItem(itemElement, index, fileName, errors);
+            index++;
         }
 
         return errors;
@@ -57,6 +47,7 @@ public class ItemValidator : BaseValidator
 
     private void ValidateItem(JsonElement item, int index, string fileName, List<ValidationError> errors)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string itemId = GetStringProperty(item, "id") ?? $"Item[{index}]";
 
         // Check required fields

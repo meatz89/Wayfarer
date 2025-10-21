@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 // ========== TRAVEL VIEW MODELS ==========
 
 public class TravelDestinationViewModel
@@ -59,7 +58,6 @@ public class TravelRouteViewModel
     public string CannotTravelReason { get; set; }
 
     // New properties for enhanced UI
-    public bool IsDiscovered { get; set; }
     public bool IsBlocked { get; set; }
     public string BlockingReason { get; set; }
     public string HintMessage { get; set; }
@@ -206,7 +204,6 @@ public class TimeBlockServiceViewModel
     public List<ServiceTypes> AvailableServices { get; set; }
     public List<string> AvailableNPCs { get; set; }
 }
-
 
 public class NPCRelationshipViewModel
 {

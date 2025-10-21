@@ -33,7 +33,7 @@
 
             <RhythmScale LeftLabel="Overcautious"
                          RightLabel="Reckless"
-                         CurrentValue="@Session.Commitment"
+                         CurrentValue="@Session.Aggression"
                          MinValue="-10"
                          MaxValue="10" />
 
@@ -74,51 +74,52 @@
         <div class="action-display">
             <div class="pile-display">
                 <div class="pile-count">
-                    <span>Hand:</span>
-                    <span class="pile-number">@GetHandCount()</span>
+                    <span>Situation:</span>
+                    <span class="pile-number">@GetDeckCount()</span>
                 </div>
             </div>
             <div class="action-section">
-                <div class="action-button @(SelectedCard == null || IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteAssess"
-                     disabled="@(SelectedCard == null || IsProcessing)">
-                    ASSESS
-                    @if (SelectedCard != null)
-                    {
-                        <div class="tooltip card-effects-tooltip">
-                            <div class="tooltip-title">Assess</div>
-                            <div class="tooltip-section">
-                                <strong>Effects:</strong>
-                                <ul>
-                                    <li>Balance: -1 (toward Overcautious)</li>
-                                    <li>Play selected card</li>
-                                </ul>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteExecute"
-                     disabled="@(SelectedCard == null || IsProcessing)">
-                    EXECUTE
-                    @if (SelectedCard != null)
-                    {
-                        <div class="tooltip card-effects-tooltip">
-                            <div class="tooltip-title">Execute</div>
-                            <div class="tooltip-section">
-                                <strong>Effects:</strong>
-                                <ul>
-                                    <li>Balance: +1 (toward Reckless)</li>
-                                    <li>Play selected card</li>
-                                </ul>
-                            </div>
-                        </div>
-                    }
-                </div>
-                @if (Session.CurrentBreakthrough >= 20 || Session.CurrentDanger >= Session.MaxDanger)
+                @if (!IsChallengeEnded)
                 {
                     <div class="action-button"
-                         @onclick="EndChallenge">
+                         @onclick="ExecuteAssess">
+                        ASSESS
+                        @if (SelectedCard != null)
+                        {
+                            <div class="tooltip card-effects-tooltip">
+                                <div class="tooltip-title">Assess</div>
+                                <div class="tooltip-section">
+                                    <strong>Effects:</strong>
+                                    <ul>
+                                        <li>Balance: -1 (toward Overcautious)</li>
+                                        <li>Play selected card</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="action-button primary @(SelectedCard == null || IsProcessing ? "disabled" : "")"
+                         @onclick="ExecuteExecute"
+                         disabled="@(SelectedCard == null || IsProcessing)">
+                        EXECUTE
+                        @if (SelectedCard != null)
+                        {
+                            <div class="tooltip card-effects-tooltip">
+                                <div class="tooltip-title">Execute</div>
+                                <div class="tooltip-section">
+                                    <strong>Effects:</strong>
+                                    <ul>
+                                        <li>Balance: +1 (toward Reckless)</li>
+                                        <li>Play selected card</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="action-button primary" @onclick="EndChallenge">
                         END CHALLENGE
                     </div>
                 }
@@ -134,7 +135,7 @@
         <!-- Tier Unlock Display -->
         <div class="tier-display">
             <div class="tier-info">
-                <GameTooltip Content="@TooltipContentProvider.Get("Understanding")" Exertion="right">
+                <GameTooltip Content="@TooltipContentProvider.Get("Understanding")" Position="right">
                     <span class="tier-label">Understanding: @GetCurrentUnderstanding() / @GetMaxUnderstanding()</span>
                 </GameTooltip>
                 <div class="tier-unlocks">
@@ -148,11 +149,65 @@
             </div>
         </div>
 
+        <!-- Available Goal Cards (Victory Conditions) -->
+        @if (GetAvailableGoalCards().Any())
+        {
+            <div class="available-goals-section">
+                <div class="pile-display">
+                    <div class="pile-count">
+                        <span>Available Goals:</span>
+                        <span class="pile-number">@GetAvailableGoalCards().Count</span>
+                    </div>
+                </div>
+
+                <div class="goal-cards-grid">
+                    @foreach (var goalCard in GetAvailableGoalCards())
+                    {
+                        <GoalCard Card="@goalCard"
+                                  CurrentProgress="@Session.CurrentBreakthrough"
+                                  CalculatedDifficulty="@GetGoalDifficulty(goalCard)"
+                                  OnCardClick="@PlayGoalCard" />
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Locked Cards Display (Prepared Combo) -->
+        @if (GetLockedCards().Count > 0)
+        {
+            <div class="locked-cards-section">
+                <div class="pile-display">
+                    <div class="pile-count">
+                        <span>Locked Options (Combo):</span>
+                        <span class="pile-number">@GetLockedCards().Count</span>
+                    </div>
+                </div>
+
+                <div class="card-grid locked-cards-container">
+                    @foreach (var lockedCard in GetLockedCards())
+                    {
+                        <PhysicalCard Card="@lockedCard"
+                                      IsLocked="true"
+                                      IsSelectable="false"
+                                      Session="@Session"
+                                      OnCardClick="@(() => {})">
+                            <SystemSpecificBadges>
+                                <span class="card-approach" title="Physical approach">
+                                    @lockedCard.PhysicalCardTemplate.Approach
+                                </span>
+                                <span class="locked-badge">LOCKED</span>
+                            </SystemSpecificBadges>
+                        </PhysicalCard>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Hand Display -->
         <div class="cards-section">
             <div class="pile-display">
                 <div class="pile-count">
-                    <span>Mind:</span>
+                    <span>Options:</span>
                     <span class="pile-number">@Hand.Count</span>
                 </div>
             </div>

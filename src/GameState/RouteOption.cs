@@ -7,8 +7,8 @@ public class RouteAccessResult
     private RouteAccessResult(bool isAllowed, string blockingReason, List<string> warnings)
     {
         IsAllowed = isAllowed;
-        BlockingReason = blockingReason ?? "";
-        Warnings = warnings ?? new List<string>();
+        BlockingReason = blockingReason;
+        Warnings = warnings;
     }
 
     public static RouteAccessResult Allowed()
@@ -50,14 +50,6 @@ public class RouteModification
     // Removed BlocksRoute - weather makes routes difficult, not impossible
 }
 
-public class RouteUnlockCondition
-{
-    public string? RequiredRouteUsage { get; set; }
-    public int RequiredUsageCount { get; set; }
-    public string? RequiredItem { get; set; }
-    public int RequiredPlayerLevel { get; set; }
-}
-
 public class RouteOption
 {
     public string Id { get; set; }
@@ -70,17 +62,13 @@ public class RouteOption
     public int BaseStaminaCost { get; set; }
     public int TravelTimeSegments { get; set; }
     public TimeBlocks? DepartureTime { get; set; }
-    public bool IsDiscovered { get; set; } = true;
     public List<TerrainCategory> TerrainCategories { get; set; } = new List<TerrainCategory>();
     public int MaxItemCapacity { get; set; } = 3;
     public string Description { get; set; }
 
     // Route condition variations
     public Dictionary<WeatherCondition, RouteModification> WeatherModifications { get; set; } = new Dictionary<WeatherCondition, RouteModification>();
-    public RouteUnlockCondition? UnlockCondition { get; set; }
 
-    // Enhanced Access Requirements (in addition to terrain categories)
-    public AccessRequirement AccessRequirement { get; set; }
     public RouteType RouteType { get; set; }
 
     // Track if this specific route has been unlocked via permit
@@ -94,6 +82,14 @@ public class RouteOption
 
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
+
+    // Obstacles on this route (bandits, flooding, difficult terrain challenges)
+    // References obstacles in GameWorld.Obstacles (single source of truth)
+    public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    // Localized mastery - ExplorationCubes reveal hidden path options on THIS route only
+    // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
+    public int ExplorationCubes { get; set; } = 0;
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {
@@ -249,7 +245,7 @@ public class RouteOption
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
         // Apply weather modifications
-        if (WeatherModifications.TryGetValue(weather, out RouteModification? modification))
+        if (WeatherModifications.TryGetValue(weather, out RouteModification modification))
         {
             baseCost += modification.StaminaCostModifier;
         }
@@ -294,8 +290,6 @@ public class RouteOption
 
     // Season availability removed - game timeframe is only days/weeks
 
-
-
     /// <summary>
     /// Get all equipment categories from player's inventory
     /// </summary>
@@ -305,13 +299,12 @@ public class RouteOption
 
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            if (itemId != null && itemId != string.Empty)
+            if (!string.IsNullOrEmpty(itemId))
             {
                 Item item = itemRepository.GetItemById(itemId);
-                if (item != null)
-                {
-                    categories.AddRange(item.Categories);
-                }
+                if (item == null)
+                    throw new System.InvalidOperationException($"Item not found: {itemId}");
+                categories.AddRange(item.Categories);
             }
         }
 

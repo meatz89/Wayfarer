@@ -25,7 +25,7 @@ public static class TooltipContentProvider
         ["Argument"] = "High-cost cards requiring multiple Statements in Spoken. Powerful conclusion moves.",
 
         // Stats
-        ["Insight"] = "Analytical intelligence. Better with observational cards. Unlocks systematic investigation (Lv2).",
+        ["Insight"] = "Analytical intelligence. Better with observational cards. Unlocks systematic obligation (Lv2).",
         ["Rapport"] = "Emotional intelligence. Better with empathetic cards. Unlocks local inquiry (Lv2).",
         ["Authority"] = "Command presence. Better with directive cards. Unlocks demand access (Lv2).",
         ["Diplomacy"] = "Trade acumen. Better with negotiation cards. Unlocks purchase information (Lv2).",
@@ -36,11 +36,11 @@ public static class TooltipContentProvider
         ["Hunger"] = "Food need. Increases over time. High hunger reduces work efficiency and causes health damage.",
         ["Coins"] = "Currency for purchases, exchanges, and services.",
         ["Stamina"] = "Energy for travel. Restored by rest. Required for long journeys.",
-        ["Attention"] = "Daily mental energy for investigations and deep work. Refreshes each time block.",
+        ["Attention"] = "Daily mental energy for obligations and deep work. Refreshes each time block.",
 
         // Venue Mechanics
         ["Familiarity"] = "Location knowledge (0-3). Investigate to increase. Unlocks observations at specific levels.",
-        ["Investigation"] = "Spend 1 Attention + 1 Segment to increase Familiarity. Different approaches use different stats.",
+        ["Obligation"] = "Spend 1 Attention + 1 Segment to increase Familiarity. Different approaches use different stats.",
 
         // Queue & Obligations
         ["Queue Position"] = "Letter delivery priority. Must complete Position 1 before others. Can be reordered with tokens.",

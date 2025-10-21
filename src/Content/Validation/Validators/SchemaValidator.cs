@@ -59,40 +59,30 @@ public class SchemaValidator : IContentValidator
             return errors;
         }
 
-        try
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
+
+        if (schema.IsArray)
         {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
-
-            if (schema.IsArray)
+            if (root.ValueKind != JsonValueKind.Array)
             {
-                if (root.ValueKind != JsonValueKind.Array)
-                {
-                    errors.Add(new ValidationError(
-                        fileName,
-                        $"Expected JSON array but found {root.ValueKind}",
-                        ValidationSeverity.Critical));
-                    return errors;
-                }
-
-                int index = 0;
-                foreach (JsonElement element in root.EnumerateArray())
-                {
-                    ValidateElement(element, schema, $"{fileName}[{index}]", errors);
-                    index++;
-                }
+                errors.Add(new ValidationError(
+                    fileName,
+                    $"Expected JSON array but found {root.ValueKind}",
+                    ValidationSeverity.Critical));
+                return errors;
             }
-            else
+
+            int index = 0;
+            foreach (JsonElement element in root.EnumerateArray())
             {
-                ValidateElement(root, schema, fileName, errors);
+                ValidateElement(element, schema, $"{fileName}[{index}]", errors);
+                index++;
             }
         }
-        catch (Exception ex)
+        else
         {
-            errors.Add(new ValidationError(
-                fileName,
-                $"Failed to validate schema: {ex.Message}",
-                ValidationSeverity.Critical));
+            ValidateElement(root, schema, fileName, errors);
         }
 
         return errors;
@@ -122,8 +112,9 @@ public class SchemaValidator : IContentValidator
         }
 
         // Check for unknown fields (helps catch typos)
-        HashSet<string> knownFields = schema.RequiredFields.Concat(schema.OptionalFields ?? Array.Empty<string>())
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // OptionalFields might be null - use empty array as fallback
+        List<string> knownFields = schema.RequiredFields.Concat(schema.OptionalFields ?? Array.Empty<string>())
+            .ToList();
 
         foreach (JsonProperty property in element.EnumerateObject())
         {

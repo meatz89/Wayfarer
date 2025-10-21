@@ -310,7 +310,7 @@ public class StandingObligationManager
     /// </summary>
     private void TriggerHostileStateForNPC(string npcId, string obligationName)
     {
-        NPC npc = _gameWorld.WorldState.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null) return;
 
         // Use proper NPCStateOperations to set BETRAYED relationship

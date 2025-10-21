@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 
-
 /// <summary>
 /// Handles all NPC state operations in an immutable, validated manner.
 /// All NPC state changes must go through this class.
@@ -27,20 +26,20 @@ public static class NPCStateOperations
     /// <summary>
     /// Moves an NPC to a new location.
     /// </summary>
-    public static NPCOperationResult MoveToLocation(NPCState state, string venueId, string LocationId)
+    public static NPCOperationResult MoveToLocation(NPCState state, string LocationId)
     {
         if (state == null)
             return NPCOperationResult.Failure("NPC state cannot be null");
 
-        if (string.IsNullOrWhiteSpace(venueId))
+        if (string.IsNullOrWhiteSpace(LocationId))
             return NPCOperationResult.Failure("Location ID cannot be empty");
 
-        if (state.Venue == venueId && state.LocationId == LocationId)
+        if (state.LocationId == LocationId)
             return NPCOperationResult.Success(state, "NPC already at this location");
 
-        NPCState newState = state.WithLocation(venueId, LocationId);
+        NPCState newState = state.WithLocation(LocationId);
         return NPCOperationResult.Success(newState,
-            $"Moved {state.Name} from {state.Venue} to {venueId}");
+            $"Moved {state.Name} to location {LocationId}");
     }
 
     /// <summary>
@@ -64,7 +63,9 @@ public static class NPCStateOperations
     /// </summary>
     public static bool CanProvideService(NPCState state, ServiceTypes service)
     {
-        return state?.ProvidedServices.Contains(service) ?? false;
+        if (state == null)
+            return false;
+        return state.ProvidedServices.Contains(service);
     }
 
     /// <summary>

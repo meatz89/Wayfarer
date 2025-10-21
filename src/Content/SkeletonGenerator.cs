@@ -62,7 +62,6 @@ public static class SkeletonGenerator
         };
 
         // Initialize card decks (required for NPC to function)
-        npc.Requests = new List<GoalCard>();
         npc.ExchangeDeck = new List<ExchangeCard>();
 
         // Add a default service based on profession
@@ -124,7 +123,7 @@ public static class SkeletonGenerator
             // Random but deterministic mechanical values
             Tier = 1 + (hash % 3), // Tier 1-3
             FlowModifier = -1 + (hash % 3), // -1 to +1
-            PlayerKnowledge = false,
+            // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
             // Gameplay properties moved from Location
             LocationType = selectedType,
@@ -164,7 +163,6 @@ public static class SkeletonGenerator
 
         return location;
     }
-
 
     /// <summary>
     /// Generate a skeleton exchange card with mechanical defaults
@@ -232,7 +230,7 @@ public static class SkeletonGenerator
         }
         else if (typeof(T) == typeof(Venue))
         {
-            if (!gameWorld.WorldState.locations.Any(l => l.Id == id))
+            if (!gameWorld.Locations.Any(l => l.Id == id))
             {
                 skeleton = GenerateSkeletonVenue(id, source) as T;
                 return true;
@@ -240,7 +238,7 @@ public static class SkeletonGenerator
         }
         else if (typeof(T) == typeof(Location))
         {
-            if (!gameWorld.WorldState.locations.Any(s => s.Id == id))
+            if (!gameWorld.Locations.Any(s => s.Id == id))
             {
                 // Need to find or create parent Venue first
                 string venueId = source.Contains("location_")

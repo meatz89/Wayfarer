@@ -18,6 +18,241 @@ Low-fantasy historical CRPG with visual novel dialogue and resource management. 
 
 **Not included:** Modern concepts, checkpoints/guards, mountain passes, epic scope. **Focus:** Small timeframes (days), short distances (walking), actions spanning seconds/minutes like D&D sessions.
 
+---
+
+## Core Design Principle: Resource Competition Over Boolean Gates
+
+### The Fundamental Rule
+
+**All system interconnection must happen through SHARED RESOURCE COMPETITION, never through BOOLEAN GATES.**
+
+This principle separates strategic games with meaningful choices from incremental games with checklist progression. Every design decision in Wayfarer flows from this rule.
+
+# General Game Design Principles for Wayfarer
+
+## Principle 1: Single Source of Truth with Explicit Ownership
+
+**Every entity type has exactly one owner.**
+
+- GameWorld owns all runtime entities via flat lists
+- Parent entities reference children by ID, never inline at runtime
+- Child entities reference parents by ID for lifecycle queries
+- NO entity owned by multiple collections simultaneously
+
+**Authoring vs Runtime:**
+- **Authoring (JSON):** Nested objects for content creator clarity
+- **Runtime (GameWorld):** Flat lists for single source of truth
+- Parsers flatten nesting into lists, establish ID references
+
+**Test:** Can you answer "who controls this entity's lifecycle?" with one word? If not, ownership is ambiguous.
+
+## Principle 2: Strong Typing as Design Enforcement
+
+**If you can't express relationships with strongly typed objects and lists, the design is wrong.**
+
+Strong typing forces explicit relationships. Collections of specific entity types, not generic containers of "anything". Entity references by typed ID lists, not string dictionaries. Domain-specific objects, not metadata bags.
+
+**Why:** Generic containers hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
+
+**Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
+
+## Principle 3: Ownership vs Placement vs Reference
+
+**Three distinct relationship types. Don't conflate them.**
+
+**OWNERSHIP (lifecycle control):**
+- Parent creates child
+- Parent destroys child
+- Child cannot exist without parent
+- Example: Investigation owns Obstacles, Obstacle owns Goals
+
+**PLACEMENT (presentation context):**
+- Entity appears at a location for UI/narrative purposes
+- Entity's lifecycle independent of placement
+- Placement is metadata on the entity
+- Example: Goal appears at a location, but location doesn't own the goal
+
+**REFERENCE (lookup relationship):**
+- Entity A needs to find Entity B
+- Entity A stores Entity B's ID
+- No lifecycle dependency
+- Example: Location references obstacles for queries, doesn't control their lifecycle
+
+**Common Error:** Making Location own Obstacles because goals appear there. Location is PLACEMENT context, not OWNER.
+
+**Test:** If Entity A is destroyed, should Entity B be destroyed? 
+- Yes = Ownership
+- No = Placement or Reference
+
+## Principle 4: Inter-Systemic Rules Over Boolean Gates
+
+**Strategic depth emerges from shared resource competition, not linear unlocks.**
+
+**Boolean Gates (Cookie Clicker):**
+- "If completed A, unlock B"
+- No resource cost
+- No opportunity cost
+- No competing priorities
+- Linear progression tree
+- NEVER USE THIS PATTERN
+
+**Inter-Systemic Rules (Strategic Depth):**
+- Systems compete for shared scarce resources
+- Actions have opportunity cost (resource spent here unavailable elsewhere)
+- Decisions close options
+- Multiple valid paths with genuine trade-offs
+- ALWAYS USE THIS PATTERN
+
+**Examples:**
+- ❌ "Complete conversation to discover investigation" (boolean gate)
+- ✅ "Reach 10 Momentum to play GoalCard that discovers investigation" (resource cost)
+- ❌ "Have knowledge token to unlock location" (boolean gate)
+- ✅ "Spend 15 Focus to complete Mental challenge that grants knowledge" (resource cost)
+
+**Test:** Does the player make a strategic trade-off (accepting one cost to avoid another)? If no, it's a boolean gate.
+
+## Principle 5: Typed Rewards as System Boundaries
+
+**Systems connect through explicitly typed rewards applied at completion, not through continuous evaluation or state queries.**
+
+**Correct Pattern:**
+```
+System A completes action
+→ Applies typed reward
+→ Reward has specific effect on System B
+→ Effect applied immediately
+```
+
+**Wrong Pattern:**
+```
+System A sets boolean flag
+→ System B continuously evaluates conditions
+→ Detects flag change
+→ Triggers effect
+```
+
+**Why:** Typed rewards are explicit connections. Boolean gates are implicit dependencies. Explicit connections maintain system boundaries.
+
+**Examples:**
+- ✅ GoalCard.Rewards.DiscoverInvestigation (typed reward)
+- ✅ GoalCard.Rewards.PropertyReduction (typed reward)
+- ❌ Investigation.Prerequisites.CompletedGoalId (boolean gate)
+- ❌ Continuous evaluation of HasKnowledge() (state query)
+
+**Test:** Is the connection a one-time application of a typed effect, or a continuous check of boolean state? First is correct, second is wrong.
+
+## Principle 6: Resource Scarcity Creates Impossible Choices
+
+**For strategic depth to exist, all systems must compete for the same scarce resources.**
+
+**Shared Resources (Universal Costs):**
+- Time (segments) - every action costs time, limited total
+- Focus - Mental system consumes, limited pool
+- Stamina - Physical system consumes, limited pool
+- Health - Physical system risks, hard to recover
+
+**System-Specific Resources (Tactical Only):**
+- Momentum/Progress/Breakthrough - builder resources within challenges
+- Initiative/Cadence/Aggression - tactical flow mechanics
+- These do NOT create strategic depth (confined to one challenge)
+
+**The Impossible Choice:**
+"I can afford to do A OR B, but not both. Both paths are valid. Both have genuine costs. Which cost will I accept?"
+
+**Test:** Can the player pursue all interesting options without trade-offs? If yes, no strategic depth exists.
+
+## Principle 7: One Purpose Per Entity
+
+**Every entity type serves exactly one clear purpose.**
+
+- Goals: Define tactical challenges available at locations/NPCs
+- GoalCards: Define victory conditions within challenges
+- Obstacles: Provide strategic information about challenge difficulty
+- Investigations: Structure multi-phase mystery progression
+- Locations: Host goals and provide spatial context
+- NPCs: Provide social challenge context and relationship tracking
+
+**Anti-Pattern: Multi-Purpose Entities**
+- "Goal sometimes defines a challenge, sometimes defines a conversation topic, sometimes defines a shop transaction"
+- NO. Three purposes = three entity types.
+
+**Test:** Can you describe the entity's purpose in one sentence without "and" or "or"? If not, split it.
+
+## Principle 8: Verisimilitude in Entity Relationships
+
+**Entity relationships should match the conceptual model, not implementation convenience.**
+
+**Correct (matches concept):**
+- Investigations spawn Obstacles (discovering a mystery reveals challenges)
+- Obstacles contain Goals (a challenge has multiple approaches)
+- Goals appear at Locations (approaches happen at places)
+
+**Wrong (backwards):**
+- Obstacles spawn Investigations (a barrier creating a mystery makes no sense)
+- Locations contain Investigations (places don't own mysteries)
+- NPCs own Routes (people don't own paths)
+
+**Test:** Can you explain the relationship in natural language without feeling confused? If the explanation feels backwards, it is backwards.
+
+## Principle 9: Elegance Through Minimal Interconnection
+
+**Systems should connect at explicit boundaries, not pervasively.**
+
+**Correct Interconnection:**
+- System A produces typed output
+- System B consumes typed input
+- ONE connection point (the typed reward)
+- Clean boundary
+
+**Wrong Interconnection:**
+- System A sets flags in SharedData
+- System B queries multiple flags
+- System C also modifies those flags
+- System D evaluates combinations
+- Tangled web of implicit dependencies
+
+**Test:** Can you draw the system interconnections with one arrow per connection? If you need a web of arrows, the design has too many dependencies.
+
+## Principle 10: Perfect Information with Hidden Complexity
+
+**All strategic information visible to player. All tactical complexity hidden in execution.**
+
+**Strategic Layer (Always Visible):**
+- What goals are available
+- What each goal costs (resources)
+- What each goal rewards
+- What requirements must be met
+- What the current world state is
+
+**Tactical Layer (Hidden Until Engaged):**
+- Specific cards in deck
+- Exact card draw order
+- Precise challenge flow
+- Tactical decision complexity
+
+**Why:** Players make strategic decisions based on perfect information, then execute tactically with skill-based play.
+
+**Test:** Can the player make an informed decision about WHETHER to attempt a goal before entering the challenge? If not, strategic layer is leaking tactical complexity.
+
+---
+
+## Meta-Principle: Design Constraint as Quality Filter
+
+**When you find yourself reaching for:**
+- Dictionaries of generic types
+- Boolean flags checked continuously
+- Multi-purpose entities
+- Ambiguous ownership
+- Hidden costs
+
+**STOP. The design is wrong.**
+
+These aren't implementation problems to solve with clever code. They're signals that the game design itself is flawed. Strong typing and explicit relationships aren't constraints that limit you - they're filters that catch bad design before it propagates.
+
+**Good design feels elegant. Bad design requires workarounds.**
+
+---
+
 ## Unified Stat System Architecture
 
 ### Five Universal Stats
@@ -34,18 +269,12 @@ Wayfarer uses a **single unified progression system** across all three challenge
 
 **Every card in every system** is bound to one of these five stats. This binding determines:
 
-1. **Depth Access**: Player's stat level determines which card depths they can play
-   - Level 1: Access depths 1-2 (Foundation cards only)
-   - Level 2: Access depths 1-3
-   - Level 3: Access depths 1-4 (Standard cards)
-   - Level 5: Access depths 1-6 (Advanced cards)
-   - Level 7: Access depths 1-8 (Powerful cards)
-   - Level 9+: Access depths 1-10 (Master cards)
+1. **Depth Access**: Player's stat level determines which card depths they can access. As stats increase through play, progressively more powerful and complex cards become available across all three challenge types.
 
 2. **XP Gain**: Playing any card grants XP to its bound stat
-   - Mental "Insight-bound Observation" → grants Insight XP
-   - Physical "Authority-bound Power Move" → grants Authority XP
-   - Social "Rapport-bound Friendly Approach" → grants Rapport XP
+   - Mental Insight-bound cards grant Insight XP
+   - Physical Authority-bound cards grant Authority XP
+   - Social Rapport-bound cards grant Rapport XP
    - **Single unified progression**: All three challenge types level the same five stats
 
 ### Stat Manifestation Across Challenge Types
@@ -60,32 +289,32 @@ The same stat manifests differently depending on challenge type, creating themat
 | **Diplomacy** | Balanced investigation, patient observation, measured approach | Measured technique, controlled force, pacing endurance | Finding middle ground, compromise, balanced conversation |
 | **Cunning** | Subtle investigation, covering tracks, tactical information gathering | Risk management, tactical precision, adaptive technique | Strategic conversation, subtle manipulation, reading and responding |
 
-### Card Examples Across Systems
+### How Stats Manifest in Card Abilities
 
 **Insight-Bound Cards**:
-- **Mental**: "Detailed Examination" (depth 4, ACT) - Systematic observation (+3 Progress, +2 Leads, +1 Understanding, costs 3 Attention)
-- **Physical**: "Structural Analysis" (depth 4, EXECUTE) - Identify load-bearing points (+2 Breakthrough, if first in combo -2 Danger, costs 2 Exertion)
-- **Social**: "Read Motivation" (depth 4, SPEAK) - Understand NPC's true desires (+2 Momentum, reduce Doubt, costs 3 Initiative)
+- **Mental**: Systematic observation, detailed examination, pattern analysis
+- **Physical**: Structural analysis, identifying weaknesses, reading terrain
+- **Social**: Understanding motivations, reading between lines, seeing agendas
 
 **Rapport-Bound Cards**:
-- **Mental**: "Empathetic Reading" (depth 4, ACT) - Sense emotional context (+2 Progress, +2 Leads, +1 to next Social, costs 3 Attention)
-- **Physical**: "Flow State" (depth 6, EXECUTE) - Natural fluid movement (+3 Breakthrough, costs 1 less Exertion if 2+ in combo, costs 3 Exertion base)
-- **Social**: "Emotional Resonance" (depth 5, SPEAK) - Connect on feeling level (+3 Momentum, +1 Rapport token, costs 4 Initiative)
+- **Mental**: Empathetic reading, sensing emotional context, human understanding
+- **Physical**: Flow state, body awareness, natural fluid movement
+- **Social**: Emotional resonance, building connection, creating trust
 
 **Authority-Bound Cards**:
-- **Mental**: "Command Scene" (depth 5, ACT) - Take investigative control (+3 Progress, +3 Leads, +1 Exposure, costs 3 Attention)
-- **Physical**: "Power Move" (depth 6, EXECUTE) - Decisive forceful action (+4 Breakthrough, +1 Danger, costs 4 Exertion)
-- **Social**: "Assert Position" (depth 5, SPEAK) - Direct conversation firmly (+3 Momentum, +1 Cadence, costs 4 Initiative)
+- **Mental**: Commanding the scene, taking investigative control, decisive analysis
+- **Physical**: Power moves, decisive forceful action, commanding environment
+- **Social**: Asserting position, directing conversation, establishing dominance
 
 **Diplomacy-Bound Cards**:
-- **Mental**: "Patient Observation" (depth 4, ACT) - Methodical investigation (+2 Progress, +2 Leads, -1 Exposure, costs 2 Attention)
-- **Physical**: "Measured Technique" (depth 4, EXECUTE) - Controlled application of force (+2 Breakthrough, costs 2 Exertion)
-- **Social**: "Find Common Ground" (depth 4, SPEAK) - Seek compromise (+2 Momentum, -1 Cadence, costs 3 Initiative)
+- **Mental**: Patient observation, methodical investigation, balanced approach
+- **Physical**: Measured technique, controlled force application, paced endurance
+- **Social**: Finding common ground, seeking compromise, balanced conversation
 
 **Cunning-Bound Cards**:
-- **Mental**: "Cover Tracks" (depth 4, ACT) - Investigate without traces (+2 Progress, +2 Leads, -1 Exposure, costs 3 Attention)
-- **Physical**: "Calculated Risk" (depth 5, EXECUTE) - Tactical risk assessment (+3 Breakthrough, -1 Danger per card in combo, costs 3 Exertion)
-- **Social**: "Strategic Deflection" (depth 5, SPEAK) - Subtle redirection (+2 Momentum, manipulate Cadence, costs 4 Initiative)
+- **Mental**: Covering tracks, subtle investigation, tactical information gathering
+- **Physical**: Calculated risk, tactical precision, adaptive technique
+- **Social**: Strategic deflection, subtle redirection, reading and responding
 
 ### Why Unified Stats Matter
 
@@ -93,7 +322,7 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Thematic Coherence**: Stats represent fundamental character traits that manifest differently in different contexts. A highly Insightful character excels at observation (Mental), structural analysis (Physical), and reading people (Social).
 
-**Build Variety**: Players can specialize (focus on 2-3 stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
+**Build Variety**: Players can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
 
 **No Wasted Effort**: Every card played in every system contributes to unified character progression.
 
@@ -121,28 +350,64 @@ Each system is a distinct tactical game with unique resources and action pairs, 
 - **Builder Resource**: Primary progress toward victory (Progress, Breakthrough, Momentum)
 - **Threshold Resource**: Accumulating danger toward failure (Exposure, Danger, Doubt)
 - **Session Resource**: Tactical capacity for playing cards (Attention from Focus, Exertion from Stamina, Initiative from Foundation cards)
-- **Flow Mechanic**: System-specific card flow reflecting verisimilitude (Leads generation/observation, Preparation/execution combos, Statement/Echo persistence)
-- **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
+- **Flow Mechanic**: System-specific card flow reflecting verisimilitude through distinct pile naming:
+  - **Mental**: Details (input pile) → Methods (hand) → Applied (discard)
+  - **Physical**: Situation (input pile) → Options (hand) → exhausts back to Situation
+  - **Social**: Topics (input pile) → Mind (hand) → Spoken (discard)
+- **Action Pair**: Two actions creating tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, LISTEN/SPEAK)
 - **Understanding**: Shared tier-unlocking resource across all three systems
 
-The systems differentiate through distinct card mechanics that respect verisimilitude. Mental challenges generate investigative Leads through action then follow them through observation. Physical challenges prepare action sequences then execute them as combos. Social challenges accumulate thoughts that persist while you listen.
+The systems differentiate through distinct card mechanics that respect verisimilitude. Mental challenges OBSERVE Details to gather investigative threads, ACT on Methods to apply understanding, moving completed methods to Applied. Physical challenges ASSESS the Situation to evaluate context, EXECUTE Options from prepared choices, with all Options exhausting back to Situation for fresh assessment. Social challenges LISTEN to Topics from NPC words, SPEAK thoughts from Mind, moving Statement thoughts to Spoken while Echo thoughts return to Topics.
 
 ### Why Card Flow Matters
 
-**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT generates Leads (investigative threads) based on card depth. OBSERVE draws exactly Leads count - zero Leads means zero draw. Hands persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open.
+**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth. **ACT does NOT draw cards** - it only generates Leads. OBSERVE Details draws cards equal to your Leads count - zero Leads means zero draw. **OBSERVE is the ONLY action that draws cards.** Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks cards as preparation while increasing Aggression - setting up your stance, building momentum. ASSESS triggers all locked cards as a combo while decreasing Aggression (careful evaluation), then exhausts your entire hand and draws fresh. You want to stay balanced - both overcautious and reckless approaches create penalties.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. **Effects are calculated before application** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression, then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
 
-**Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statements to Spoken pile (said aloud) while Echoes reshuffle (fleeting thoughts). LISTEN draws while your hand persists - your mind doesn't empty when you pause to listen, it accumulates understanding.
+**Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statement thoughts from Mind to Spoken pile (said aloud) while Echo thoughts return to Topics (fleeting thoughts that recirculate). LISTEN to Topics draws new cards while thoughts in Mind persist - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
-### Bridge: LocationGoals
-LocationGoals bridge the strategic and tactical layers. When a player selects an investigation phase or NPC request (strategic decision), the system spawns a LocationGoal at the specified location. Visiting that venue reveals the goal as a card option, which when selected launches the appropriate tactical challenge (Mental, Physical, or Social).
+### Bridge: Goals and GoalCards
+
+**Two-Layer Goal System** bridges strategic planning to tactical execution:
+
+**Goals (Strategic Layer - Defines UI Actions)**:
+- First-class entities in JSON (separate from NPCs/locations)
+- Creates ONE action button in venue UI per goal
+- Has: `id`, `name`, `description`, `systemType` (Social/Mental/Physical), `deckId` (direct deck reference), assignment via `npcId` OR `locationId`
+- Contains: Inline array of GoalCards (`goalCards` property) defining victory conditions
+- Assignment: Goals reference NPCs/locations (not inline within them)
+- Storage: `NPC.ActiveGoals` and `Location.ActiveGoals` lists
+- Purpose: Defines WHAT tactical engagement is available WHERE
+- **Direct Deck Reference**: Goals reference ChallengeDeck directly via `deckId` (no intermediary ChallengeType entity)
+
+**GoalCards (Tactical Layer - Victory Conditions)**:
+- Defined inline within goal JSON (not separate entities)
+- Has: `id`, `name`, `description`, `momentumThreshold`, `rewards`
+- Universal: Same structure across all three challenge types (Social/Mental/Physical)
+- Purpose: Tiered victory conditions - when momentum threshold reached, goal card becomes playable
+- Playing goal card: Completes challenge with specified rewards
+- Contextual: Cannot be reused across goals - bound to parent goal
+- **Self-Contained**: GoalCards are complete cards with no external references - created directly as `CardInstance(goalCard)`
+
+**Architectural Flow**:
+```
+JSON → GoalDTO → GoalParser → Goal (with inline GoalCards) → NPC.ActiveGoals / Location.ActiveGoals
+```
+
+**Key Distinctions**:
+- Goals define WHERE actions appear (strategic placement)
+- GoalCards define WHEN victory occurs (tactical thresholds)
+- Each goal creates ONE button in UI (not multiple buttons per goal card)
+- Goals assigned to entities via reference (not inline definitions)
+- `GameWorld.Goals` dictionary stores all goals for investigation spawning
 
 This architecture ensures:
 - **Clear Separation**: Strategic planning never mixes with tactical execution
 - **Perfect Information**: All requirements visible before committing to tactical challenge
 - **Architectural Consistency**: Three systems follow same structural pattern
 - **Mechanical Diversity**: Each system offers distinct tactical gameplay
+- **Dynamic Assignment**: Investigations can spawn goals at NPCs/locations when phases activate
 
 ## Three Core Loops
 
@@ -178,7 +443,7 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
 - **Mental Challenges**: Observation-based investigation at locations (examine scenes, deduce patterns, search thoroughly)
   - Resources: Progress (builder), Attention (session budget from Focus), Exposure (threshold), Leads (observation flow)
   - Actions: ACT (generate Leads through action) / OBSERVE (follow Leads through observation)
-  - Card Flow: ACT generates Leads by depth (1-2 = +1, 3-4 = +2, 5-6 = +3), OBSERVE draws exactly Leads count
+  - Card Flow: ACT generates Leads by depth, OBSERVE draws equal to Leads count
 
 - **Physical Challenges**: Strength-based obstacles at locations (climb carefully, leverage tools, precise movement)
   - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold), Aggression (balance)
@@ -193,26 +458,697 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
 Each system is a distinct tactical game following the same architectural pattern while respecting what you're actually doing through system-specific card flow mechanics.
 
 **Investigation Lifecycle:**
-1. **Discovery**: Triggered by observation, conversation, item discovery, or obligation
-2. **Phase Spawning**: Each phase creates LocationGoal at specified location with requirements
+1. **Discovery**: Through GoalCard rewards at momentum thresholds (costs time/resources to reach)
+2. **Phase Spawning**: Investigation rewards create obstacles with goals at specified locations
 3. **Strategic Planning**: Evaluate requirements (knowledge, equipment, stats, completed phases)
 4. **Tactical Execution**: Visit location, select goal card, complete Mental/Physical/Social challenge
-5. **Progression**: Victory grants discoveries, unlocks subsequent phases, builds toward completion
+5. **Progression**: Victory grants discoveries, enables subsequent phases, builds toward completion
 
 **AI-Generated Content**: Investigation templates define structure (phases, requirements, rewards). AI generates specific content (venues, NPCs, narratives, card text) from templates, creating unique investigations that follow proven mechanical patterns.
 
 **Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
 
+### Travel System
+
+Routes connect venues through multi-segment journeys where each segment presents **PathCard choices** that create impossible decisions between time costs, stamina costs, obstacle encounters, and narrative outcomes.
+
+**Route Structure:**
+- **Route**: Collection of ordered segments connecting origin venue to destination venue
+- **RouteSegment**: Individual stage with segment type, PathCard collection, and narrative context
+- **SegmentTypes**:
+  - `FixedPath`: Standard path choices (player chooses from predetermined options)
+  - `Event`: Random event from collection (caravan encounters, environmental events)
+  - `Encounter`: Mandatory obstacle that MUST be resolved to proceed
+
+**PathCard System (Rich Narrative Choice):**
+
+PathCards are the core decision-making entities in travel, offering rich mechanical and narrative depth:
+
+**Core Properties:**
+- **Costs**: `StaminaCost`, `TravelTimeSegments` (strategic resources)
+- **Requirements**: `CoinRequirement`, `PermitRequirement`, `StatRequirements` (gates by progression)
+- **Discovery**: `StartsRevealed`, `IsHidden`, `ExplorationThreshold` (progressive revelation)
+- **Effects**: `HungerEffect`, `HealthEffect`, `StaminaRestore`, `CoinReward` (immediate outcomes)
+- **Progression**: `TokenGains`, `OneTimeReward`, `IsOneTime`, `RevealsPaths` (unlocks and rewards)
+- **Obstacles**: `ObstacleId` (references dynamically spawned challenge)
+- **Narrative**: `NarrativeText` (story context and atmospheric description)
+- **Dead Ends**: `ForceReturn` (paths that require backtracking)
+
+**FixedPath Segments:**
+
+Player chooses one PathCard from the collection. Each card represents a distinct approach with different trade-offs:
+
+**Example - Creek Crossing:**
+```
+PathCard 1: "Wade Across" (0 time, 0 stamina, ObstacleId: "shallow_water")
+PathCard 2: "Rope Bridge" (no time cost, minimal stamina, requires coins, safer)
+PathCard 3: "Search for Ford" (1 time, 0 stamina, reveals hidden path, IsOneTime)
+```
+
+**Player sees perfect information:**
+- Time cost vs stamina cost vs coin cost
+- Obstacle difficulty and contexts (can preview equipment applicability)
+- Requirements (can I afford this? do I have the stats?)
+- Narrative outcomes (what happens if I choose this?)
+
+**Impossible choice:** Fast but risky? Slow but safe? Expensive but guaranteed? Each valid, each has consequences.
+
+**Event Segments:**
+
+Random event selected from EventCollection when segment is entered:
+
+**Example - Caravan Route:**
+```
+EventCollection: "caravan_encounters"
+  Event 1: "Broken Wheel" → EventCards: [Help (Social), Ignore, Barter]
+  Event 2: "Merchant Dispute" → EventCards: [Mediate (Social), Walk Away, Side with One]
+  Event 3: "Blocked Road" → EventCards: [Clear Path (Physical), Wait, Find Detour]
+```
+
+**Event draws randomly** but **player choice from EventCards remains perfect information** - creates replayability while maintaining strategic decision-making.
+
+**Encounter Segments:**
+
+Mandatory obstacle with `MandatoryObstacleId`. Player cannot proceed until obstacle resolved (intensity reduced to 0):
+
+**Example - Bandit Ambush:**
+```
+RouteSegment:
+  Type: Encounter
+  MandatoryObstacleId: "bandit_blockade"
+  PathCollectionId: "resolution_approaches"
+
+Obstacle: "Bandit Blockade"
+  Contexts: [Social, Physical, Authority]
+  Intensity: Moderate
+  Goals:
+    - "Intimidate Leader" (Social challenge, costs Focus)
+    - "Fight Through" (Physical challenge, costs Stamina, risks Health)
+    - "Bribe Passage" (costs coins, no challenge)
+    - "Sneak Around" (Physical challenge, different approach)
+```
+
+**Player still has choices** - which approach to use, which resources to spend, which challenge system to engage.
+
+**Obstacle Integration:**
+
+PathCards reference **Obstacles** (not directly embed challenges). Obstacles contain **Goals** which trigger the three challenge systems:
+
+**Flow:**
+```
+Player selects PathCard
+  → PathCard.ObstacleId references Obstacle
+  → Obstacle contains multiple Goals (different approaches)
+  → Player chooses Goal (approach strategy)
+  → Goal triggers challenge (Mental/Physical/Social)
+  → Victory reduces Obstacle.Intensity
+  → When Intensity reaches zero, obstacle cleared, segment complete
+```
+
+**Example - Fallen Tree Obstacle:**
+```
+PathCard: "Forest Path" (ObstacleId: "fallen_tree")
+
+Obstacle: "Fallen Tree"
+  Contexts: [Nature, Physical, Strength]
+  Intensity: Low
+  Goals:
+    1. "Climb Over" (Physical challenge - Authority + Strength cards)
+    2. "Chop Through" (Physical challenge - requires Axe equipment, higher time cost)
+    3. "Find Way Around" (Mental challenge - Insight + Cunning cards, explores)
+```
+
+**Player evaluation:**
+- Do I have equipment that helps? (Axe reduces intensity)
+- Which stats are strong? (determines card depth access)
+- What resources can I afford? (Low Stamina → avoid Physical if possible)
+- What's the time pressure? (Deadline soon → fastest path)
+
+**Strategic-Tactical Bridge:**
+
+Travel connects strategic planning to tactical execution:
+
+1. **Strategic**: Choose route, evaluate segment costs, decide which PathCards to pursue
+2. **Tactical**: Engage obstacles via Goals, play challenge systems (Physical/Mental/Social)
+3. **Integration**: Equipment purchased at locations helps with route obstacles, creating economic loop
+
+**Design Principles Satisfied:**
+
+- **Resource Competition**: Time/Stamina/Focus/Coins compete (impossible choices)
+- **Perfect Information**: All PathCard costs visible, obstacle contexts revealed, equipment applicability calculated
+- **No Soft-Locks**: Dead-end paths have `ForceReturn`, mandatory obstacles always have multiple approach goals
+- **Verisimilitude**: PathCards make narrative sense (wade creek, climb tree, bribe bandits)
+- **Elegant Interconnection**: Routes → PathCards → Obstacles → Goals → Challenges (clear hierarchy)
+
+**AI Content Generation:**
+
+Route templates define structure (segments, types, obstacle slots). AI generates:
+- Venue connections and narrative context
+- PathCard variations with contextual descriptions
+- Event collections themed to location type (caravan routes vs wilderness vs urban)
+- Obstacles scaled to route difficulty and player progression level
+
+## Goal and GoalCard System Architecture
+
+### Two-Layer Design Philosophy
+
+Wayfarer separates **strategic placement** (Goals) from **tactical victory conditions** (GoalCards) to enable dynamic content generation while maintaining clear mechanical boundaries.
+
+### Goals (Strategic Layer)
+
+**Definition**: First-class entities that create action opportunities at specific locations or NPCs.
+
+**Key Properties**:
+- **System Type**: Which tactical system (Social/Mental/Physical)
+- **Deck ID**: Which challenge deck to use (direct reference, no intermediary)
+- **Assignment**: `npcId` OR `locationId` (mutually exclusive)
+- **Goal Cards**: Inline array of victory condition cards (self-contained, no external references)
+- **Requirements**: Knowledge, equipment, stats, completed phases (optional)
+
+**Assignment Models**:
+- **NPC Goals**: Social challenges assigned via `npcId`, stored in `NPC.ActiveGoals`
+- **Location Goals**: Mental/Physical challenges assigned via `locationId`, stored in `Location.ActiveGoals`
+- **Reference Pattern**: Goals reference entities, NOT inline definitions within entities
+
+**Storage and Access**:
+- `GameWorld.Goals` dictionary: All goals indexed by ID for investigation spawning
+- `NPC.ActiveGoals` list: Social goals currently available at this NPC
+- `Location.ActiveGoals` list: Mental/Physical goals currently available at this location
+
+**UI Presentation**:
+- Each goal creates ONE action button in venue UI
+- Button displays goal name and description
+- Clicking button launches appropriate tactical challenge (Social/Mental/Physical)
+- Goal cards NOT directly visible until inside challenge
+
+### GoalCards (Tactical Layer)
+
+**Definition**: Tiered victory conditions defined inline within parent goal.
+
+**Properties**:
+- **Momentum Threshold**: When this card becomes playable (8, 12, 16 typical)
+- **Rewards**: What player receives on completion (coins, knowledge, obligations, items)
+- **Contextual**: Bound to parent goal, cannot be reused across goals
+- **Universal Structure**: Same structure across all three challenge types
+
+**Tactical Flow**:
+1. Player enters challenge (Mental/Physical/Social)
+2. Player builds builder resource through card play:
+   - **Social**: Momentum vs GoalCard.momentumThreshold
+   - **Mental**: Progress vs GoalCard.progressThreshold
+   - **Physical**: Breakthrough vs GoalCard.breakthroughThreshold
+3. When builder resource reaches threshold, goal card becomes playable
+4. **Player choice**: Player CAN play goal card or continue building to unlock better goal cards
+   - No forced completion - player chooses when to end challenge
+   - Higher thresholds unlock better rewards
+   - Strategic decision: Accept current reward or risk continuing
+5. Playing chosen goal card completes challenge with its specified rewards
+6. No partial success - must reach threshold to make card playable
+7. No weighted selection - player explicitly chooses which goal card to play
+
+**Why Inline Definition**:
+- Goal cards are contextual to their parent goal (not reusable entities)
+- Tiered rewards specific to this exact challenge
+- Simplifies content authoring (rewards defined where goal defined)
+- Prevents card reuse across incompatible contexts
+
+### Three Parallel Systems Integration
+
+**Social Goals** (NPC-based):
+```json
+{
+  "id": "elena_delivery",
+  "systemType": "Social",
+  "npcId": "elena",
+  "deckId": "desperate_request",
+  "goalCards": [...]
+}
+```
+- Assigned to NPCs via `npcId`
+- Stored in `NPC.ActiveGoals`
+- Launches Social challenge (conversation) using specified deck
+- Goal cards unlock at momentum thresholds during conversation
+
+**Mental Goals** (Location-based investigation):
+```json
+{
+  "id": "notice_waterwheel",
+  "systemType": "Mental",
+  "locationId": "courtyard",
+  "deckId": "mental_challenge",
+  "goalCards": [...]
+}
+```
+- Assigned to locations via `locationId`
+- Stored in `Location.ActiveGoals`
+- Launches Mental challenge (investigation) using specified deck
+- Goal cards unlock at progress thresholds during investigation
+
+**Physical Goals** (Location-based obstacle):
+```json
+{
+  "id": "climb_waterwheel",
+  "systemType": "Physical",
+  "locationId": "courtyard",
+  "deckId": "physical_challenge",
+  "goalCards": [...]
+}
+```
+- Assigned to locations via `locationId`
+- Stored in `Location.ActiveGoals`
+- Launches Physical challenge (obstacle) using specified deck
+- Goal cards unlock at breakthrough thresholds during challenge
+
+### Investigation System Integration: Motivation / Problem / Solution
+
+**Motivation:**
+Multi-phase investigations need to progress logically, with later phases becoming available as earlier ones complete, while maintaining strategic choice about when to pursue phases.
+
+**Problem (Hard-Coded Progression):**
+Traditional approaches:
+- All phases available immediately (no narrative progression)
+- Linear sequence enforced by code (no player choice)
+- Boolean flags checked continuously (`if completed_phase_1 then show_phase_2`)
+
+**Why this fails:**
+- No narrative pacing (everything available at once OR rigidly sequential)
+- No strategic choice (must do phases in fixed order)
+- Boolean gate checking (Cookie Clicker pattern)
+
+**Solution (Phase Prerequisites + GoalCard Rewards):**
+
+**Phase Prerequisites** enable later phases:
+```json
+{
+  "phase_2": {
+    "requirements": {
+      "completedPhases": ["phase_1"],
+      "knowledge": ["mill_mechanism_broken"]
+    }
+  }
+}
+```
+
+**GoalCard completion** applies phase completion rewards:
+- Knowledge granted
+- Next phase prerequisites satisfied
+- Investigation system creates obstacles for newly-available phases
+
+**Flow:**
+```
+Player completes Phase 1 Goal via GoalCard
+    ↓
+GoalCard reward applies: grants knowledge, marks phase complete
+    ↓
+Investigation system checks prerequisites for all phases
+    ↓
+Phase 2 prerequisites NOW satisfied (Phase 1 complete + knowledge gained)
+    ↓
+Investigation system creates Obstacle for Phase 2
+    ↓
+Obstacle goals placed at specified locations/NPCs
+    ↓
+UI shows new action buttons where Phase 2 goals appear
+```
+
+**Why this works:**
+- **No Boolean Checking**: Prerequisites use actual game state (phase completion, knowledge possession)
+- **Resource Cost**: Must spend time/resources completing Phase 1 before Phase 2 available
+- **Strategic Choice**: Player chooses WHEN to pursue available phases (not forced sequence)
+- **Property-Based**: Numerical/enum checks, not string matching
+- **Inter-Systemic**: Phase completion (goal system) affects investigation availability (investigation system)
+
+**Multi-Phase Example:**
+```
+Waterwheel Mystery Investigation
+├─ Phase 1: Mental obstacle created at "courtyard" (available immediately)
+│   └─ Completion grants knowledge: "mechanism_damaged"
+├─ Phase 2: Social obstacle created at "mill_owner" (requires Phase 1 complete)
+│   └─ Completion grants knowledge: "owner_suspicious"
+├─ Phase 3: Physical obstacle created at "mill_interior" (requires Phase 1+2, "rope" item)
+│   └─ Completion grants knowledge: "sabotage_evidence"
+└─ Phase 4: Social obstacle created at "suspect_npc" (requires Phase 3, knowledge items)
+    └─ Investigation marked complete
+```
+
+**Player agency:**
+- Phase 1 complete → Phase 2 available
+- Player can: pursue Phase 2 immediately OR delay (prepare, pursue other goals, return later)
+- Phase 2+3 available → choose which to tackle first based on resources/preparation
+- No forced sequence beyond prerequisites
+
+This follows the Core Design Principle: Prerequisites check game state properties, not boolean flags. Phase availability has resource cost (must complete earlier phases). Player has strategic choice about timing.
+
+### Content Authoring Pattern
+
+**Goals Defined Separately** (04_goals.json):
+```json
+{
+  "goals": [
+    { "id": "goal1", "npcId": "elena", ... },
+    { "id": "goal2", "locationId": "courtyard", ... }
+  ]
+}
+```
+
+**NPCs/Locations Reference Goals** (via assignment):
+- Parser reads goal definition
+- Parser checks `npcId` or `locationId`
+- Parser adds goal to appropriate `ActiveGoals` list
+- Entity now has available action
+
+**NOT This Pattern** (inline goals in entities):
+```json
+{
+  "npcs": [
+    {
+      "id": "elena",
+      "goals": [ ... ]  // ❌ WRONG - goals not inline
+    }
+  ]
+}
+```
+
+### Architectural Benefits
+
+**Clear Separation**:
+- Strategic layer (Goals) handles WHERE actions appear
+- Tactical layer (GoalCards) handles WHEN victory occurs
+- No confusion between placement and victory conditions
+
+**Dynamic Assignment**:
+- Investigations can spawn goals anywhere in world
+- Goals move between entities as investigations progress
+- Single goal can be reassigned (though rare in practice)
+
+**Universal Victory Conditions**:
+- GoalCards work identically across all three systems
+- Same momentum threshold concept (Progress/Breakthrough/Momentum)
+- Same reward structure regardless of system type
+
+**Content Scalability**:
+- AI can generate goals following mechanical templates
+- Goals reference existing NPCs/locations via IDs
+- GoalCards inline definition keeps context localized
+
+## Obstacle System - Strategic-Tactical Bridge
+
+### Design Philosophy
+
+**Obstacles are strategic information entities, not mechanical modifiers.**
+
+The Obstacle system solves the strategic-tactical disconnect: players encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
+
+**Core Purpose:**
+- Provide multiple tactical approaches to same strategic situation
+- Create persistent world state that multiple goals affect
+- Enable player choice of Physical/Mental/Social solution path
+- Show visible progress toward clearing challenges
+
+**Design Principle:** Obstacles are information for player decision-making, not formulas for mechanical modification. Properties serve strategic planning, not tactical execution.
+
+### Obstacle Entity Definition
+
+Obstacles are first-class entities with five numerical properties representing different challenge aspects:
+
+**Five Universal Properties:**
+- **PhysicalDanger** (int): Bodily harm risk - combat, falling, traps, structural hazards
+- **MentalComplexity** (int): Cognitive load - puzzle difficulty, pattern obscurity, evidence volume
+- **SocialDifficulty** (int): Interpersonal challenge - suspicious NPC, hostile faction, complex negotiation
+- **StaminaCost** (int): Physical exertion required - distance, terrain difficulty, labor intensity
+- **TimeCost** (int): Real-time duration - waiting, traveling, careful work
+
+**Additional Properties:**
+- **Name** (string): Narrative identifier ("Bandit Camp", "Collapsed Passage", "Suspicious Guard")
+- **Description** (string): What player sees and understands about this obstacle
+- **IsPermanent** (bool): Whether obstacle persists when properties reach zero
+  - false: Removed when cleared (investigation obstacles, quest obstacles)
+  - true: Persists even at zero, can increase again (weather obstacles, patrol obstacles)
+
+**Property Semantics:** Each property has natural world meaning - PhysicalDanger means actual physical danger, not an abstract difficulty modifier. Properties compose through simple addition (3 obstacles with PhysicalDanger = sum of all three).
+
+### Where Obstacles Live: Ownership vs Placement
+
+**Motivation:** Enable distributed interaction pattern where one obstacle can have goals at multiple locations while maintaining single source of truth.
+
+**Problem (Ownership Anti-Pattern):**
+```
+Route.Obstacles: List<Obstacle>      // Route OWNS obstacles
+Location.Obstacles: List<Obstacle>    // Location OWNS obstacles
+NPC.Obstacles: List<Obstacle>         // NPC OWNS obstacles
+```
+
+**Why this fails:**
+- **Multiple Sources of Truth**: Same obstacle type owned by three different containers
+- **No Distributed Interaction**: One obstacle cannot have goals at multiple locations
+- **Property Changes Don't Propagate**: Clearing obstacle property at Location A doesn't affect Location B
+- **Violates Single Responsibility**: Routes/Locations/NPCs manage both placement AND lifecycle
+
+**Solution (Reference Pattern with Single Source):**
+
+**OWNERSHIP (Lifecycle Control):**
+```
+GameWorld.Obstacles: List<Obstacle>    // SINGLE source of truth, flat list
+```
+- GameWorld owns ALL obstacles (both investigation-spawned and world-authored)
+- Obstacles created ONCE, stored ONCE
+- Property changes affect ALL placements simultaneously
+
+**PLACEMENT (Rendering Context):**
+```
+Route.ObstacleIds: List<string>       // References obstacles
+Location.ObstacleIds: List<string>    // References obstacles
+NPC.ObstacleIds: List<string>         // References obstacles
+```
+- Routes/Locations/NPCs reference obstacles by ID (not ownership)
+- ONE obstacle can be referenced by MULTIPLE entities
+- UI looks up obstacle from GameWorld.Obstacles by ID
+
+**Why this works:**
+- **Single Source of Truth**: GameWorld.Obstacles is authoritative
+- **Distributed Interaction**: One obstacle ID in multiple entity ObstacleIds lists
+- **Property Propagation**: Change obstacle properties → affects all placements automatically
+- **Clean Separation**: GameWorld controls lifecycle, entities control placement
+
+**Distributed Interaction Example:**
+```json
+GameWorld.Obstacles: [
+  {
+    "id": "gatekeeper_suspicion",
+    "socialDifficulty": 2,
+    "goals": [
+      {"id": "pay_fee", "placementLocationId": "north_gate"},
+      {"id": "show_pass", "placementLocationId": "north_gate"},
+      {"id": "ask_about_miller", "placementLocationId": "town_square"},
+      {"id": "get_official_pass", "placementLocationId": "town_hall"}
+    ]
+  }
+]
+
+Location["north_gate"].ObstacleIds = ["gatekeeper_suspicion"]
+Location["town_square"].ObstacleIds = ["gatekeeper_suspicion"]
+Location["town_hall"].ObstacleIds = ["gatekeeper_suspicion"]
+```
+
+Player discovers connections organically:
+1. North gate: sees "Pay Fee" (expensive)
+2. Explores → town square: sees "Ask About Miller" goal
+3. Completes that → discovers town hall goal
+4. Town hall: "Get Official Pass" reduces gatekeeper SocialDifficulty 2→0
+5. Returns to north gate: NOW sees "Show Pass" (free, unlocked by property reduction)
+
+**Architecture Notes:**
+- NO Route.Obstacles / Location.Obstacles / NPC.Obstacles ownership lists
+- ONLY ObstacleIds reference lists for placement
+- GameWorld.Obstacles is ONLY storage
+- Parsers add to GameWorld.Obstacles, then add ID references to entity.ObstacleIds
+- UI queries GameWorld.Obstacles by ID for display
+
+### Goal-Obstacle Connection
+
+Goals optionally target one obstacle. Multiple goals can target same obstacle (different tactical approaches).
+
+**Goal Properties (New):**
+- **TargetObstacle** (Obstacle reference, optional): Which obstacle this goal affects
+- Goals with TargetObstacle = null are free-standing activities (conversations, knowledge-gathering)
+- Goals with TargetObstacle are obstacle-clearing
+
+**GoalCard Rewards (New):**
+```
+GoalCard.Rewards
+{
+    int Coins;
+    List<string> ItemIds;
+    List<string> GrantKnowledgeIds;
+    ObstaclePropertyReduction Reduction; // NEW
+}
+
+ObstaclePropertyReduction
+{
+    int ReducePhysicalDanger;
+    int ReduceMentalComplexity;
+    int ReduceSocialDifficulty;
+    int ReduceStaminaCost;
+    int ReduceTimeCost;
+}
+```
+
+**How It Works:**
+1. Player completes goal (reaches GoalCard threshold, plays card)
+2. Facade applies GoalCard.Rewards
+3. Finds parent Obstacle (goal knows which obstacle it targets)
+4. Reduces obstacle properties by amounts specified in GoalCard
+5. If all properties reach 0 and IsPermanent = false, remove obstacle from entity
+
+**Multiple Approaches Example:**
+"Bandit Camp" obstacle has three goals:
+- "Confront Bandits" (Physical) → GoalCard reduces PhysicalDanger
+- "Negotiate Passage" (Social) → GoalCard reduces SocialDifficulty
+- "Scout Alternative Path" (Mental) → Discovers alternate route (doesn't modify this obstacle, creates new path)
+
+Player chooses approach based on capabilities, preferred playstyle, and available resources.
+
+### Investigation Integration
+
+**Investigations spawn obstacles dynamically as phase completion rewards.**
+
+**Investigation Flow:**
+1. Complete Phase 2 → Investigation spawns Obstacle at specified Location
+2. Investigation spawns Goals targeting that Obstacle
+3. Goals appear in Location.ActiveGoals (player sees them in UI)
+4. Phase 3 may require obstacle cleared (via Goal.Requirements.CompletedGoals)
+5. Player chooses which goal to attempt (Physical clearance OR Mental alternate route)
+6. Completing goal reduces obstacle properties
+7. When obstacle cleared, Phase 3 becomes accessible
+
+**Dynamic World Improvement:** Investigations don't just grant knowledge - they spawn persistent obstacles that change world state when cleared.
+
+### What Obstacles DON'T Do (Critical Design Boundaries)
+
+**To prevent over-design and maintain elegance:**
+
+**❌ Obstacles DON'T modify challenge difficulty**
+- Challenge difficulty comes from ChallengeDeck design (profiles, personalities, card depths)
+- Obstacle properties are strategic information, not tactical modifiers
+- Player evaluates "Can I handle PhysicalDanger=12 with my current Health/Stamina?" without formulas
+
+**❌ Obstacles DON'T gate access**
+- Obstacle properties inform player choice, don't block attempts
+- Player always CAN attempt goals at obstacles (respecting goal's own Requirements)
+- No "must have PhysicalDanger < 5 to attempt" rules
+- No soft-locks: Properties increase costs/consequences, never create impossibility
+
+**❌ Obstacles DON'T calculate costs through formulas**
+- Goals have their own costs (Physical costs Stamina, Mental costs Focus, Social costs time)
+- Obstacle properties don't feed into "effective cost = base * obstacleMultiplier" calculations
+- Clean separation: Obstacles are world state, goals define challenge costs
+
+**❌ Obstacles DON'T interact with each other mechanically**
+- Multiple obstacles at same location: properties simply sum for display
+- No "if Obstacle A cleared then Obstacle B gets easier" conditional logic
+- Interaction happens through goal Requirements (must clear Goal X before Goal Y appears)
+- Simple composition, no formula complexity
+
+**❌ Obstacles DON'T require equipment initially**
+- Equipment requirements live on Goals (Goal.Requirements.RequiredEquipment)
+- Obstacles describe the challenge, goals describe how to attempt it
+- Can add equipment interactions later where verisimilitude demands
+
+**❌ Knowledge DON'T directly reduce obstacle properties**
+- Knowledge doesn't have "reduces MentalComplexity by 3" effects
+- Knowledge affects tactical challenges contextually (if relevant knowledge exists, challenge might be easier)
+- But this is implementation detail, not part of Obstacle system design
+- Keep Obstacles simple: they're just property containers
+
+**Why These Boundaries Matter:** Obstacles solve ONE problem (multiple approaches to same strategic situation) elegantly. Adding mechanical complexity (difficulty formulas, access gates, conditional interactions) creates implementation burden without design benefit. If complexity proves necessary through playtesting, add it LATER as targeted solution to observed problem.
+
+**Parser Flow:**
+1. RouteParser/LocationParser/NPCParser loads entity with inline obstacles
+2. Creates entity with Obstacles list populated
+3. GoalParser loads goals
+4. Looks up entity by routeId/locationId/npcId
+5. Gets obstacle by targetObstacleIndex: entity.Obstacles[targetObstacleIndex]
+6. Sets Goal.TargetObstacle = obstacle (object reference, not ID string)
+
+Clean object graph, no cross-file ID references, strongly typed.
+
+### Player Experience Flow
+
+**1. Player Arrives at Location**
+- Sees obstacles with visible properties
+- "Structural Instability: PhysicalDanger 10, MentalComplexity 8"
+- "Caretaker Suspicion: SocialDifficulty 8"
+
+**2. Player Evaluates Capabilities**
+- "My Health is 60, Stamina is 80. Can I handle PhysicalDanger=10?"
+- "My Insight is only 2, MentalComplexity=8 seems hard."
+- "My Diplomacy is 4, maybe I can handle SocialDifficulty=8."
+- Perfect information, no hidden calculations
+
+**3. Player Chooses Tactical Approach**
+- Three goals available, all targeting "Structural Instability" obstacle
+- "Clear Debris" (Physical) - uses Health/Stamina, high risk
+- "Study Mechanism" (Mental) - uses Focus, takes time
+- "Ask Caretaker" (Social) - builds relationship, might unlock knowledge
+- Player choice reveals character priorities
+
+**4. Player Completes Challenge**
+- Reaches Physical Breakthrough=10 threshold
+- Plays GoalCard "Debris Cleared"
+- GoalCard.Rewards reduces obstacle.PhysicalDanger by 10
+- Obstacle.PhysicalDanger now 0 (was 10)
+- MentalComplexity still 8 (different goals target different properties)
+
+**5. Strategic Situation Improved**
+- Physical approach to location now safer (PhysicalDanger cleared)
+- Mental approach still complex (MentalComplexity remains)
+- Player made permanent world improvement
+- Future visits benefit from cleared obstacle
+
+**Emergent Narrative:** Story arises from player choice (Physical force vs Mental patience vs Social networking) and consequences (different properties cleared, different world states created). No authored branching, just mechanical choices creating narrative.
+
+### Design Principles Validation
+
+**Obstacles respect all Wayfarer core principles:**
+
+**✅ Elegance Over Complexity**
+- Five numerical properties, simple addition, no formulas
+- Goals reduce properties, that's the entire system
+- One purpose: enable multiple tactical approaches to same strategic challenge
+
+**✅ Verisimilitude Throughout**
+- Properties have natural meaning (PhysicalDanger = actual danger)
+- Different challenge types naturally target different properties
+- Obstacles persist in world, consequences visible
+- Player choice makes narrative sense (force vs analysis vs negotiation)
+
+**✅ Perfect Information**
+- All obstacle properties visible to player
+- All property reduction amounts visible in GoalCards
+- No hidden calculations or random outcomes
+- Player calculates exact benefit of completing each goal
+
+**✅ No Soft-Lock Architecture**
+- Properties inform, never block
+- Player always can attempt goals (subject to goal's Requirements)
+- Failed attempts don't make obstacles worse
+- Multiple approaches always available (Physical/Mental/Social)
+
+**✅ GameWorld Single Source of Truth**
+- Obstacles live on entities in GameWorld collections
+- No parallel storage, no SharedData dictionaries
+- Strong typing: List\<Obstacle>, not Dictionary\<string, object>
+- Clean entity ownership and referencing
+
+**✅ Mechanical Integration**
+- Obstacles integrate through property reduction (Tactical → Strategic flow)
+- Investigations spawn obstacles (Strategic content creation)
+- Goals target obstacles (Strategic-Tactical bridge)
+- Simple connections, no complex interdependencies
+
+**Result:** Obstacles elegantly bridge strategic-tactical disconnect while maintaining all Wayfarer design principles. System is complete enough to work, simple enough to understand, flexible enough to extend.
+
 ## NPC System
-
-### Five Persistent Decks
-
-Each NPC maintains:
-1. **Conversation Deck**: Base cards for their conversation types
-2. **Request Deck**: Available tasks and deliveries
-3. **Observation Deck**: Cards gained from your discoveries
-4. **Burden Deck**: Consequences of failures and conflicts
-5. **Exchange Deck**: Trade opportunities and special purchases
 
 ### Relationship Progression
 
@@ -223,20 +1159,18 @@ Relationships deepen gradually through:
 - Time spent in conversation (build familiarity)
 
 **Mechanical Benefits:**
-- Signature cards appear in conversations
 - Access to specialized equipment/items
 - Route knowledge and safer paths revealed
 - Investigation clues and context provided
-- Support during dangerous challenges
 
 ### Personality Rules
 
 Each NPC has conversational personality affecting tactical approach:
 - **Proud**: Must play cards in ascending Initiative order
-- **Devoted**: Doubt accumulates faster (+2 instead of +1)
+- **Devoted**: Doubt accumulates significantly faster
 - **Mercantile**: Highest Initiative card gets bonus effect
 - **Cunning**: Repeated Initiative costs penalty
-- **Steadfast**: All effects capped at ±2
+- **Steadfast**: All effects capped (requires patient grinding)
 
 These transform the conversation puzzle while maintaining core mechanics.
 
@@ -248,45 +1182,134 @@ Investigations are multi-phase mysteries that bridge strategic planning to tacti
 
 ### Investigation Lifecycle
 
-**1. Potential State**
-Investigation exists as template but not yet discovered by player. Waiting for trigger condition.
+**1. Unknown State**
+Investigation exists as template but not yet discovered by player. Not visible in UI. Waiting for discovery.
 
-**2. Discovery Triggers (Five Types)**
+**2. Investigation Discovery: Motivation / Problem / Solution**
 
-**Immediate Visibility** - Investigation visible upon entering venue
-- Obvious environmental features (collapsed bridge, abandoned waterwheel)
-- Public knowledge mysteries (town's water problem, missing merchant)
-- Location-inherent investigation opportunities
+**Motivation:**
+Players need to discover investigations through gameplay, creating natural narrative flow and meaningful player agency.
 
-**Environmental Observation** - Triggered by examining location features
-- Player examines specific location, reveals hidden investigation
-- "You notice something unusual about the mill mechanism..."
-- Requires player attention, rewards thorough exploration
+**Problem (Boolean Gate Anti-Pattern):**
+Traditional trigger systems create Cookie Clicker progression:
+```
+if (at_location) then unlock_investigation
+if (has_knowledge) then unlock_investigation
+if (completed_quest) then unlock_investigation
+if (has_item) then unlock_investigation
+if (accepted_obligation) then unlock_investigation
+```
 
-**Conversational Discovery** - NPC dialogue reveals investigation existence
-- NPC mentions mystery during conversation
-- Grants observation card mentioning the investigation
-- Playing that card in subsequent conversation spawns investigation
+**Why this fails:**
+- **No Resource Cost**: Discovery is "free" (just checking flags)
+- **No Opportunity Cost**: No alternative use of resources
+- **No Strategic Tension**: Just "did you do the thing?"
+- **Linear Progression**: A → B → C with no meaningful choices
+- **Post-Challenge Evaluation**: System checks flags AFTER challenge, not during
 
-**Item Discovery** - Finding specific item triggers related investigation
-- Discover torn letter → spawns investigation about its sender
-- Find broken mechanism part → spawns investigation about sabotage
-- Physical evidence creates investigation context
+**Solution (GoalCard Reward System):**
+Investigation discovery as typed reward property on GoalCards at momentum/progress thresholds.
 
-**Obligation-Triggered** - Accepting NPC request spawns investigation
-- Merchant asks you to investigate waterwheel
-- Investigation spawns when obligation accepted
-- Direct causal link between social commitment and investigation
+**Martha conversation example:**
+```json
+{
+  "goal": "gather_information",
+  "goalCards": [
+    {
+      "id": "basic_info",
+      "threshold": 6,
+      "rewards": {
+        "knowledge": ["route_advice"]
+      }
+    },
+    {
+      "id": "deep_conversation",
+      "threshold": 10,
+      "rewards": {
+        "knowledge": ["martha_daughter_story"],
+        "discoverInvestigation": "mill_mystery"
+      }
+    },
+    {
+      "id": "full_depth",
+      "threshold": 14,
+      "rewards": {
+        "knowledge": ["martha_full_backstory"],
+        "reputation": {"martha": 3}
+      }
+    }
+  ]
+}
+```
 
-**3. Active State**
-Investigation discovered, phases available based on requirements. Player can see phase structure, requirements, current progress. Investigation persists across sessions - partial progress retained, can retreat and return prepared.
+**Why this works:**
+- **Resource Cost**: Reaching Momentum threshold costs time segments and Focus
+- **Opportunity Cost**: Time spent on conversation vs delivery obligation
+- **Strategic Tension**: "Is discovery worth 3 segments NOW given deadline?"
+- **Impossible Choice**: All three thresholds valid, context determines best
+- **In-Challenge Discovery**: Happens during tactical gameplay, not post-evaluation
+- **Inter-Systemic**: Social challenge affects Investigation system through typed reward
 
-**4. Completion**
-All required phases completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
+**Player decision-making:**
+```
+Player with 20 segments remaining:
+  → Push to threshold 10 (discover investigation, time-abundant)
+
+Player with 8 segments remaining, delivery urgent:
+  → Exit at threshold 6 (skip discovery, save time for delivery)
+  → Or risk pushing to 10 (discover but tight deadline)
+
+Context determines optimal strategy → strategic depth emerges
+```
+
+**Implementation Pattern:**
+1. Goal has multiple GoalCards with escalating thresholds
+2. Higher thresholds have better rewards (including investigation discovery)
+3. Player builds momentum/progress through challenge
+4. When threshold reached, GoalCard becomes playable
+5. Playing GoalCard applies rewards immediately
+6. `discoverInvestigation` reward moves investigation from Unknown → Discovered
+7. Investigation appears in player's journal
+
+**This follows the Core Design Principle:** Resource competition (time/momentum) creates opportunity cost, forcing impossible choices with genuine trade-offs. No boolean gates, no post-challenge evaluation.
+
+**3. Discovered State**
+Investigation discovered, intro goal spawned at appropriate location/NPC. Player sees investigation in journal but must complete intro goal to activate full investigation. Intro goal provides context and unlocks subsequent phases.
+
+**4. Active State**
+Intro goal complete, investigation progressing. All goals tracked individually with their states. Player can see phase structure, requirements, and completion status for each goal. Investigation persists across sessions - partial progress retained, can retreat and return prepared. Active investigation displays list of all goals with their individual states in journal.
+
+**5. Completed State**
+All required goals completed. Investigation marked complete, rewards granted, knowledge added to player state. May unlock subsequent investigations or alter world state.
+
+### Goal Lifecycle
+
+**All goals defined in JSON:**
+- Parser creates all goals at game initialization from JSON
+- Goals stored in GameWorld.Goals dictionary
+- Initial assignment: Parser adds goals to NPC.ActiveGoals or Location.ActiveGoals based on npcId/locationId
+
+**Investigation phase assignment:**
+- Investigation phase definition references goal ID
+- When phase requirements met, investigation system looks up goal in GameWorld.Goals
+- Investigation system adds goal to appropriate NPC.ActiveGoals or Location.ActiveGoals
+- Goal becomes available as action button in venue UI
+
+**Goal completion behavior:**
+- Some goals: DELETED from entity's ActiveGoals on successful completion (investigation progression)
+- Some goals: NEVER deleted, remain in ActiveGoals (persistent/repeatable content)
+- On failure: Goal always REMAINS in ActiveGoals, player can retry
+- Delete-on-success property determines lifecycle behavior
+
+**Goal Tracking:**
+All goals tracked individually for investigation journal UI:
+- Active investigations display all goals with their states (requirements met, completed, blocked)
+- Player sees which goals completed, which remain, what requirements needed
+- Individual tracking enables meaningful progress display
 
 ### Phase Structure
 
-Each investigation consists of 3-7 phases resolved sequentially or in parallel (based on requirements):
+Each investigation consists of multiple phases resolved sequentially or in parallel (based on requirements):
 
 **Phase Definition:**
 - **System Type**: Mental, Physical, or Social challenge
@@ -297,13 +1320,18 @@ Each investigation consists of 3-7 phases resolved sequentially or in parallel (
 - **Completion Reward**: Discoveries granted, phases unlocked, narrative reveals
 
 **Phase Requirements:**
-- **Completed Phases**: Must finish phases 1-3 before phase 4 unlocks
+- **Completed Phases**: Must finish prerequisite phases before later phases unlock
 - **Knowledge**: Must have discovered specific information ("mill_mechanism_broken")
 - **Equipment**: Must possess specific items ("rope", "crowbar")
 - **Stats**: Minimum Observation, Strength, Rapport thresholds
 
-**Phase Spawning:**
-When requirements met, phase spawns LocationGoal at specified location. Mental/Physical goals appear at locations as card options. Social goals target specific NPCs, creating conversation opportunities with investigation context.
+**Phase Spawning (Dynamic Goal Assignment):**
+When phase requirements are met, the investigation system dynamically assigns goals to NPCs or locations:
+- **Mental/Physical Phases**: Goal added to `Location.ActiveGoals` list at specified location
+- **Social Phases**: Goal added to `NPC.ActiveGoals` list for specified NPC
+- Goals become available in venue UI as action buttons (one button per goal)
+- Completing goal advances investigation to next phase
+- Investigations can spawn multiple goals simultaneously across different locations/NPCs
 
 ### Three Challenge Systems Detailed
 
@@ -324,92 +1352,75 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 - **Exposure persists**: Your investigative "footprint" at location increases difficulty
 - **Attention resets**: Return with fresh mental energy after rest
 - **No forced ending**: High Exposure makes investigation harder but doesn't force failure
-- **Incremental victory**: Reach Progress threshold across multiple visits (typically 10-20 total)
+- **Incremental victory**: Reach Progress threshold across multiple visits
 - **Verisimilitude**: Real investigations take days/weeks with breaks between sessions
 
 ### Core Session Resources
 
-- **Progress** (builder, persists): Accumulates toward completion (10-20 total typical)
+- **Progress** (builder, persists): Accumulates toward completion across sessions
 - **Attention** (session budget, resets): Mental capacity for ACT cards, derived from permanent Focus at challenge start (max determined by current Focus level). **Cannot replenish during investigation** - must rest outside challenge to restore.
-- **Exposure** (persistent penalty): Investigative footprint at location (no max, higher = harder future visits)
+- **Exposure** (threshold, persists): **Starts at 0**, accumulates as investigative footprint at location. **MaxExposure from MentalChallengeDeck.DangerThreshold**. Reaching MaxExposure causes consequences (spotted, evidence compromised). Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
 - **Leads** (observation flow, persists): Investigative threads generated by ACT cards, determines OBSERVE draw count. Persists when leaving, resets only on investigation completion.
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk
-- **OBSERVE**: Follow investigative threads, draw cards equal to Leads count (zero Leads = zero draw), plans in hand persist, does not spend Attention
+- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth, build Progress, increase Exposure risk, move completed methods to Applied pile. **Does NOT draw cards** - only generates Leads for future OBSERVE actions.
+- **OBSERVE**: Follow investigative threads, draw Details equal to Leads count (zero Leads = zero draw), methods in Methods pile persist, does not spend Attention. **This is the ONLY action that draws cards in Mental challenges**.
 
 ### Card Flow Mechanics
 
-**You cannot observe what you haven't investigated.** ACT cards generate investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. OBSERVE then follows those Leads by drawing cards equal to your total Leads count. Without Leads, you have nothing to observe.
+**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. **ACT does NOT draw cards immediately** - it only generates Leads as investigative threads.
 
-Plans already in your hand persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero.
+OBSERVE then follows those Leads by drawing Details equal to your total Leads count. Without Leads, you have no Details to observe. **OBSERVE is the ONLY way to draw cards in Mental challenges** - you accumulate Leads through ACT, then follow them through OBSERVE.
+
+Methods already in Methods persist when you OBSERVE because investigation knowledge doesn't vanish. Leads persist when you leave the location because uncovered threads remain available to pursue when you return. Only completing the investigation resets Leads to zero. Successfully applied methods move to the Applied pile, representing investigative understanding that has been put into practice.
 
 ### Stat Binding Examples
 
-Mental cards bind to stats based on investigative approach. ACT cards generate Leads based on depth when played:
+Mental cards bind to stats based on investigative approach:
 
-**Insight-Bound** (pattern recognition, deduction):
-- "Detailed Examination" (depth 4, ACT): Systematic evidence observation (+3 Progress, +2 Leads, +1 Understanding, costs 3 Attention)
-- "Pattern Analysis" (depth 6, ACT): Connect disparate clues (+4 Progress, +3 Leads, reveal hidden connections, costs 4 Attention)
-- "Scientific Method" (depth 8, ACT): Rigorous hypothesis testing (+5 Progress, +4 Leads, +2 Understanding, costs 5 Attention)
-
-**Cunning-Bound** (subtle investigation, covering tracks):
-- "Cover Tracks" (depth 4, ACT): Investigate without leaving traces (+2 Progress, +2 Leads, -1 Exposure, costs 3 Attention)
-- "Subtle Investigation" (depth 6, ACT): Gather evidence discreetly (+3 Progress, +3 Leads, -2 Exposure, costs 4 Attention)
-- "Misdirection" (depth 8, ACT): Redirect attention while investigating (+4 Progress, +4 Leads, manipulate Exposure, costs 5 Attention)
-
-**Authority-Bound** (commanding scene, decisive analysis):
-- "Command Scene" (depth 5, ACT): Take investigative control (+3 Progress, +3 Leads, +1 Exposure from obviousness, costs 3 Attention)
-- "Authoritative Analysis" (depth 7, ACT): Make definitive conclusions (+5 Progress, +4 Leads, +2 Exposure, costs 4 Attention)
-- "Investigative Authority" (depth 9, ACT): Assert investigative dominance (+6 Progress, +5 Leads, force breakthroughs, costs 6 Attention)
-
-**Diplomacy-Bound** (balanced approach, patience):
-- "Patient Observation" (depth 4, ACT): Methodical investigation (+2 Progress, +2 Leads, -1 Exposure, costs 2 Attention)
-- "Balanced Approach" (depth 6, ACT): Steady measured investigation (+3 Progress, +3 Leads, maintain Exposure, costs 3 Attention)
-- "Thorough Method" (depth 8, ACT): Complete systematic coverage (+4 Progress, +4 Leads, +1 Understanding, costs 5 Attention)
-
-**Rapport-Bound** (empathetic observation, human element):
-- "Empathetic Reading" (depth 4, ACT): Sense emotional context (+2 Progress, +2 Leads, +1 to next Social at location, costs 3 Attention)
-- "Human Element Focus" (depth 6, ACT): Understand people involved (+3 Progress, +3 Leads, unlock NPC leads, costs 4 Attention)
-- "Emotional Reconstruction" (depth 8, ACT): Recreate emotional state (+5 Progress, +4 Leads, deep NPC insights, costs 5 Attention)
+**Insight-Bound**: Pattern recognition, systematic examination, deductive reasoning, scientific method
+**Cunning-Bound**: Subtle investigation, covering tracks, misdirection, tactical information gathering
+**Authority-Bound**: Commanding the scene, decisive analysis, authoritative conclusions, assertive investigation
+**Diplomacy-Bound**: Balanced approach, patient observation, methodical investigation, measured techniques
+**Rapport-Bound**: Empathetic observation, understanding human element, emotional context, interpersonal insights
 
 ### Permanent INPUT Resources (Costs to Attempt)
 
-**Focus** (max 100, Mental-specific):
-- Cost: 5-20 Focus per investigation session (depending on complexity)
-- Depletion effect: <30 Focus → Exposure accumulates faster (+1 per action)
-- Recovery: Rest blocks (+30 per block), light activity, food
+**Focus** (Mental-specific):
+- Cost: Focus cost varies by investigation complexity
+- Depletion effect: Low Focus increases Exposure accumulation rate
+- Recovery: Rest blocks, light activity, food
 - Verisimilitude: Mental work depletes concentration
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
 1. **Knowledge Discoveries**: Unlock investigation phases, conversation options, world state changes
-2. **Familiarity Tokens** (per location): +1 per successful investigation, reduce Exposure baseline (-1 per token, max -3 at location)
-3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise (Surface 0-20 → Detailed 20-50 → Deep 50-100 → Expert 100+)
+2. **InvestigationCubes** (per location): Earned per successful investigation, reduce Exposure baseline at that location (0-10 scale, each cube reduces Exposure by 1)
+3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise tiers (Surface → Detailed → Deep → Expert)
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
-6. **Coins**: Investigation completion rewards (5-20 coins typical)
+6. **Coins**: Investigation completion rewards
 7. **Equipment**: Find items during investigations
 
-### Investigation Profiles (5 Tactical Modifiers)
+### Location Properties (5 Tactical Modifiers)
 
-Each location has an investigation profile that fundamentally alters tactics:
+Each location has properties that fundamentally alter investigation tactics:
 
-1. **Delicate** (fragile evidence, high Exposure risk): Exposure +2 per ACT, requires Cunning-focused approach to minimize footprint
-2. **Obscured** (degraded/hidden evidence): Progress -1 per ACT, requires high-depth Insight cards generating more Leads
-3. **Layered** (complex mystery): Requires diverse stat approach, each ACT generates -1 Lead if using same stat consecutively
-4. **Time-Sensitive** (degrading evidence): Leads decay -1 per time segment spent, requires efficient investigation
-5. **Resistant** (subtle patterns): Progress capped at ±2 per ACT, but Leads generation normal, requires patient grinding
+1. **Delicate** (fragile evidence, high Exposure risk): Increased Exposure per ACT, requires Cunning-focused approach to minimize footprint
+2. **Obscured** (degraded/hidden evidence): Reduced Progress per ACT, requires high-depth Insight cards generating more Leads
+3. **Layered** (complex mystery): Requires diverse stat approach, reduced Leads if using same stat consecutively
+4. **Time-Sensitive** (degrading evidence): Leads decay over time, requires efficient investigation
+5. **Resistant** (subtle patterns): Progress capped per ACT, but Leads generation normal, requires patient grinding
 
 ### Victory Condition
 
-Accumulate Progress threshold (10-20 typical) across one or more visits to location. High Exposure doesn't end investigation but makes future visits harder.
+Accumulate Progress threshold across one or more visits to location. High Exposure doesn't end investigation but makes future visits harder.
 
 ### Example Phase
 
-"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, 15 Progress threshold, at Mill Waterwheel location, requires 10 Focus, costs 1 time segment per session
+"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, at Mill Waterwheel location, requires Focus, costs time segments
 
 ---
 
@@ -430,80 +1441,61 @@ Physical challenges are immediate tests of current capability:
 
 ### Core Session Resources
 
-- **Breakthrough** (builder): Toward victory in single session (10-20 typical)
+- **Breakthrough** (builder): Toward victory in single session
 - **Exertion** (session budget): Physical capacity for EXECUTE cards, derived from permanent Stamina at challenge start (max determined by current Stamina level). **Cannot replenish during challenge except through specific Foundation cards** like "Deep Breath" which restore small amounts.
-- **Danger** (threshold): Accumulates from risky actions, max typically 10-15 before injury
-- **Aggression** (balance): Overcautious (-10) to Reckless (+10) spectrum. **Both extremes are bad** - you want to stay near 0 (balanced, controlled).
-  - High Aggression (reckless): +1 Danger per action at +3 or higher, injury risk increases
-  - Low Aggression (overcautious): -1 Breakthrough per action at -3 or lower, wasting opportunities through hesitation
-  - Sweet spot: -2 to +2 range (balanced approach)
+- **Danger** (threshold): **Starts at 0**, accumulates from risky actions. **MaxDanger from PhysicalChallengeDeck.DangerThreshold**. Reaching MaxDanger causes injury and failure. Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
+- **Aggression** (balance): Overcautious to Reckless spectrum. **Both extremes are bad** - you want to stay balanced.
+  - High Aggression (reckless): Increased Danger per action, injury risk increases
+  - Low Aggression (overcautious): Reduced Breakthrough per action, wasting opportunities through hesitation
+  - Sweet spot: Balanced approach
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **EXECUTE**: Lock card as preparation, spend Exertion, increase Aggression (+1). Multiple EXECUTE actions build prepared sequence and aggressive momentum.
-- **ASSESS**: Trigger all locked cards as combo (effects resolve together), decrease Aggression (-2), then exhaust entire hand and draw fresh. Careful assessment brings you back toward balanced state.
+- **EXECUTE**: Lock Option as preparation, spend Exertion (including modifiers like fatigue penalties and Foundation generation), increase Aggression. Multiple EXECUTE actions build prepared sequence and aggressive momentum. **Effects are calculated before application** - Exertion cost includes all modifiers.
+- **ASSESS**: Evaluate Situation, trigger all locked Options as combo (effects resolve together), decrease Aggression, then exhaust all Options back to Situation and draw fresh Options. Careful assessment brings you back toward balanced state.
 
 ### Card Flow Mechanics
 
-**You prepare actions then execute them.** EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. You can EXECUTE multiple cards, building up a sequence of prepared actions. When you ASSESS, all locked cards trigger together as a combo, their effects resolving simultaneously. After the combo executes, you've fundamentally changed the situation - you exhausted your prepared sequence and the physical context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+**You prepare actions then execute them.** EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. You can EXECUTE multiple Options, building up a sequence of prepared actions. When you ASSESS the Situation, all locked Options trigger together as a combo, their effects resolving simultaneously. After the combo executes, you've fundamentally changed the physical context - all Options exhaust back to Situation because you've altered what's possible. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations you didn't act on in that moment.
 
 ### Stat Binding Examples
 
-Physical cards bind to stats based on physical approach. EXECUTE locks cards for combo execution:
+Physical cards bind to stats based on physical approach:
 
-**Authority-Bound** (power, decisive action, command):
-- "Power Move" (depth 6, EXECUTE): Decisive forceful action (+4 Breakthrough when combo triggers, +1 Danger, costs 4 Exertion)
-- "Commanding Presence" (depth 4, EXECUTE): Assert control over environment (+3 Breakthrough, +1 Danger if only locked card, costs 3 Exertion)
-- "Dominant Force" (depth 8, EXECUTE): Overwhelming physical assertion (+6 Breakthrough, +2 Danger, costs 5 Exertion)
-
-**Cunning-Bound** (risk management, tactical precision):
-- "Calculated Risk" (depth 5, EXECUTE): Tactical risk assessment (+3 Breakthrough, -1 Danger per locked card in combo, costs 3 Exertion)
-- "Tactical Precision" (depth 7, EXECUTE): Precise calculated movement (+4 Breakthrough, if 3+ cards in combo restore 1 Exertion, costs 4 Exertion)
-- "Adaptive Technique" (depth 9, EXECUTE): Respond to changing conditions (+5 Breakthrough, combo bonus: +1 per other locked card, costs 5 Exertion)
-
-**Insight-Bound** (structural analysis, finding weaknesses):
-- "Structural Analysis" (depth 4, EXECUTE): Identify load-bearing points (+2 Breakthrough, reveal optimal path, reduces Danger of next card in combo, costs 2 Exertion)
-- "Find Weakness" (depth 6, EXECUTE): Spot structural vulnerabilities (+3 Breakthrough, if first in combo sequence -2 Danger, costs 3 Exertion)
-- "Engineering Assessment" (depth 8, EXECUTE): Complete structural understanding (+4 Breakthrough, combo multiplier: +1 per locked card, costs 4 Exertion)
-
-**Rapport-Bound** (flow state, body awareness, grace):
-- "Flow State" (depth 6, EXECUTE): Natural fluid movement (+3 Breakthrough, costs 1 less Exertion if 2+ cards in combo, costs 3 Exertion base)
-- "Body Awareness" (depth 4, EXECUTE): Kinesthetic understanding (+2 Breakthrough, maintain balance, costs 2 Exertion)
-- "Athletic Grace" (depth 8, EXECUTE): Perfect physical harmony (+4 Breakthrough, if last in combo sequence -1 Danger, costs 4 Exertion)
-
-**Diplomacy-Bound** (measured technique, controlled force):
-- "Measured Technique" (depth 4, EXECUTE): Controlled application of force (+2 Breakthrough, efficient technique, costs 2 Exertion)
-- "Controlled Force" (depth 6, EXECUTE): Balanced power application (+3 Breakthrough, if only card in combo -1 Danger, costs 3 Exertion)
-- "Paced Endurance" (depth 8, EXECUTE): Sustainable effort (+4 Breakthrough, distribute Danger reduction across combo, costs 4 Exertion)
+**Authority-Bound**: Power moves, decisive action, commanding presence, overwhelming force, asserting dominance
+**Cunning-Bound**: Risk management, tactical precision, calculated risks, adaptive techniques, strategic timing
+**Insight-Bound**: Structural analysis, finding weaknesses, engineering assessment, reading terrain, identifying optimal paths
+**Rapport-Bound**: Flow state, body awareness, natural movement, athletic grace, kinesthetic understanding
+**Diplomacy-Bound**: Measured technique, controlled force, paced endurance, balanced power, sustainable effort
 
 ### Permanent INPUT Resources (Costs to Attempt)
 
-**Health** (max 100, Physical-specific):
-- Risk: Danger threshold consequences damage Health (5-15 damage typical)
-- Depletion effect: <30 Health → Danger accumulates faster (+1 per action)
+**Health** (Physical-specific):
+- Risk: Danger threshold consequences damage Health
+- Depletion effect: Low Health increases Danger accumulation rate
 - Recovery: Rest blocks, medical treatment, restorative food
 - Verisimilitude: Physical challenges risk injury
 
-**Stamina** (max 100, Physical-specific):
-- Cost: 10-30 Stamina per challenge attempt (depending on difficulty)
-- Depletion effect: <30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
+**Stamina** (Physical-specific):
+- Cost: Stamina cost varies by challenge difficulty
+- Depletion effect: Low Stamina reduces maximum Exertion (start challenges with lower capacity)
 - Recovery: Rest blocks, food, reduced activity
 - Verisimilitude: Physical exertion drains energy
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
-1. **Mastery Tokens** (per challenge type): +1 per success at Challenge Type (Combat/Athletics/Finesse/Endurance/Strength), reduce Danger baseline (-1 per token, max -3 per type)
-2. **Challenge Proficiency Level** (per challenge type): Cumulative Breakthrough unlocks expertise (Novice 0-20 → Competent 20-50 → Skilled 50-100 → Master 100+)
+1. **Mastery Tokens** (per challenge type): Earned per success at Challenge Type (Combat/Athletics/Finesse/Endurance/Strength), reduce Danger baseline for that type
+2. **Challenge Proficiency Level** (per challenge type): Cumulative Breakthrough unlocks expertise tiers (Novice → Competent → Skilled → Master)
 3. **Equipment Discoveries**: Find items during physical challenges
 4. **Reputation**: Affect Social interactions (physical feats build reputation)
 5. **Understanding**: Tier unlocking across all systems
 6. **Stat XP**: Level unified stats via bound cards
-7. **Coins**: Challenge completion rewards (5-15 coins typical)
+7. **Coins**: Challenge completion rewards
 
-### Challenge Type Profiles (5 Types of Physical Engagement)
+### Challenge Types (5 Types of Physical Engagement)
 
-Physical challenges are categorized by engagement type, affecting combo dynamics:
+Physical challenges are categorized by type, affecting combo dynamics:
 
 1. **Combat** (tactical fighting): Authority/Cunning/Insight-focused, high Danger from aggression, combo bonuses scale with sequence length
 2. **Athletics** (climbing/running/jumping): Insight/Rapport/Cunning-focused, Danger from falls, first card in combo reduces risk for subsequent cards
@@ -513,11 +1505,11 @@ Physical challenges are categorized by engagement type, affecting combo dynamics
 
 ### Victory Condition
 
-Reach Breakthrough threshold (10-20 typical) in single attempt. Reaching Danger maximum causes injury and failure.
+Reach Breakthrough threshold in single attempt. Reaching MaxDanger from deck causes injury and failure.
 
 ### Example Phase
 
-"Climb the damaged mill wheel" - Physical challenge, Athletics type, 15 Breakthrough threshold, 12 Danger maximum, at Mill exterior, costs 20 Stamina, risks 10 Health on failure
+"Climb the damaged mill wheel" - Physical challenge, Athletics type, at Mill exterior, costs Stamina, risks Health on failure
 
 ---
 
@@ -530,30 +1522,30 @@ Reach Breakthrough threshold (10-20 typical) in single attempt. Reaching Danger 
 Conversations are real-time interactions with entities that have agency:
 
 - **Session-bounded**: Must complete in single interaction (conversation happens in real-time)
-- **Doubt=10 ends**: NPC frustration forces conversation end (dynamic entity response)
+- **MaxDoubt ends**: NPC frustration forces conversation end when Doubt reaches maximum from deck (dynamic entity response)
 - **No pause/resume**: Cannot pause mid-conversation and return (unrealistic with dynamic entity)
 - **Can Leave early**: Voluntarily end conversation (consequences to relationship)
 - **Session clears**: Resources reset on conversation end
-- **Relationship persists**: Connection tokens/level remember you between conversations
+- **Relationship persists**: StoryCubes/relationship state remember you between conversations
 - **Verisimilitude**: Conversations happen continuously with entities who have patience limits
 
 ### Core Session Resources
 
-- **Momentum** (builder): Progress toward goal (8-16 typical in single session)
-- **Initiative** (session): Action economy currency, accumulated via Foundation cards, persists through LISTEN (max 10)
-- **Doubt** (threshold): NPC skepticism/frustration, maximum 10 ends conversation
-- **Cadence** (balance): Dominating (+10) vs deferential (-10) conversation style
+- **Momentum** (builder): Progress toward goal in single conversation session
+- **Initiative** (session): Action economy currency, accumulated via Foundation cards, persists through LISTEN
+- **Doubt** (threshold): **Starts at 0**, accumulates as NPC skepticism/frustration. **MaxDoubt from SocialChallengeDeck.DangerThreshold**. Reaching MaxDoubt ends conversation immediately. Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
+- **Cadence** (balance): Dominating vs deferential conversation style
 - **Statements** (history): Count of Statement cards played, determines time cost (1 segment + Statements)
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **SPEAK**: Play card, advance conversation, increment Cadence (+1)
-- **LISTEN**: Reset action, draw cards (base 3 + bonuses from negative Cadence), decrement Cadence (-2), apply Doubt penalty from positive Cadence
+- **SPEAK**: Play thought from Mind, advance conversation, increase Cadence
+- **LISTEN**: Hear Topics, draw cards to Mind (more cards with negative Cadence), decrease Cadence, apply Doubt penalty if Cadence is positive
 
 ### Card Flow Mechanics
 
-**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud) while Echo cards reshuffle into the draw pile (fleeting thoughts that return to consideration). When you LISTEN, all cards already in your hand remain - your mind doesn't empty when you pause to listen. You draw additional cards (base 3 + Cadence bonuses) representing new thoughts and considerations. Your mind accumulates considerations, building up your understanding of the conversation as it progresses.
+**Thoughts persist in your mind because that's how thinking works.** When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts already in Mind remain - your mind doesn't empty when you pause to listen. You draw additional Topics into Mind (with Cadence bonuses if deferential) representing new thoughts and considerations from what you hear. Your Mind accumulates considerations, building up your understanding of the conversation as it progresses.
 
 ### Stat Binding Examples
 
@@ -572,12 +1564,12 @@ Social cards bind to stats based on conversational approach (existing system):
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
-1. **Connection Tokens** (per NPC): Rapport, Trust, Commitment (affect mechanics with that specific NPC)
-2. **Connection Level** (per NPC): Stranger → Acquaintance → Friend → Close Friend (unlocks options, reduces Doubt accumulation)
+1. **StoryCubes** (per NPC): 0-10 scale mastery that reduces Social Doubt with that specific NPC (each cube reduces Doubt by 1)
+2. **ConnectionState** (per NPC): DISCONNECTED → GUARDED → NEUTRAL → RECEPTIVE → TRUSTING (determined by RelationshipFlow, unlocks options, affects conversation dynamics)
 3. **NPC Observation Cards**: Knowledge discoveries add cards to THAT NPC's conversation deck
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
-6. **Coins**: From completing NPC requests/rewards (10-50 coins typical)
+6. **Coins**: From completing NPC requests/rewards
 7. **Equipment**: From NPC gifts/trades
 8. **Knowledge**: From NPC information sharing
 9. **Route Knowledge**: NPCs reveal hidden paths
@@ -587,10 +1579,10 @@ Social cards bind to stats based on conversational approach (existing system):
 Each NPC has personality that fundamentally alters conversation tactics:
 
 1. **Proud**: Must play cards in ascending Initiative order (rewards planning)
-2. **Devoted**: Doubt accumulates +2 per action (requires efficiency)
+2. **Devoted**: Doubt accumulates faster (requires efficiency)
 3. **Mercantile**: Highest Initiative card gets bonus effect (rewards hoarding Initiative)
 4. **Cunning**: Repeated Initiative costs penalty (requires variety)
-5. **Steadfast**: All effects capped at ±2 (requires patient grinding)
+5. **Steadfast**: All effects capped (requires patient grinding)
 
 ### Social-Specific Mechanics (No Mental/Physical Equivalent)
 
@@ -602,16 +1594,16 @@ These exist ONLY in Social because NPCs have agency to offer tasks, make demands
 
 ### Card Persistence Mechanics
 
-**Statement Cards**: Persist in Spoken pile when played (what you've said aloud stays said), count toward Statements total
-**Echo Cards**: Return to draw pile when played (fleeting thoughts that recirculate), can be played multiple times in conversation
+**Statement Cards**: Move from Mind to Spoken pile when played (what you've said aloud stays said), count toward Statements total
+**Echo Cards**: Return from Mind to Topics when played (fleeting thoughts that recirculate), can be played multiple times in conversation
 
 ### Victory Condition
 
-Reach Momentum threshold (8-16 typical) before Doubt reaches 10 (which ends conversation).
+Reach Momentum threshold before Doubt reaches MaxDoubt from deck (which ends conversation immediately).
 
 ### Example Phase
 
-"Question the mill owner about sabotage" - Social challenge, Proud personality, 12 Momentum threshold, targets Mill_Owner NPC at Mill venue, costs 0 resources, takes 1+ time segments
+"Question the mill owner about sabotage" - Social challenge, Proud personality, targets Mill Owner NPC at Mill venue, costs time segments
 
 ---
 
@@ -622,14 +1614,14 @@ All three systems follow the same core structure (creating equivalent tactical d
 **Universal Elements** (identical across all three):
 - **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
 - **Builder Resource** → Victory (Progress, Breakthrough, Momentum)
-- **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt)
+- **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt): **ALL start at 0**, maximum from ChallengeDeck.DangerThreshold, reaching maximum causes immediate failure. **Difficulty expressed through varying maximum** (easy = higher tolerance, hard = lower tolerance).
 - **Session Resource** → Tactical spending (Attention, Exertion, Initiative)
 - **Binary Action Choice** → Tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
 - **Understanding** → Persistent tier unlocking (shared globally)
 - **5 Tactical Modifiers** → Fundamental gameplay variety (Profiles, Challenge Types, Personalities)
 - **Expertise Tokens** → Mechanical benefits from repeated success (Familiarity, Mastery, Connection)
 - **Progression Levels** → Cumulative expertise tracking (Depth, Proficiency, Connection)
-- **Goal Cards** → Victory condition cards unlock at thresholds
+- **Goal Cards** → Universal victory condition cards unlock at momentum thresholds (same structure across all three systems)
 
 **Intentional Differences** (justified by verisimilitude):
 - **Session Models**: Mental (pauseable), Physical (one-shot), Social (session-bounded)
@@ -640,16 +1632,20 @@ All three systems follow the same core structure (creating equivalent tactical d
   - Physical Exertion: Derived from Stamina at start, finite budget, **minimal replenishment via specific Foundation cards only**
   - Social Initiative: Starts at 0, **actively builds during session via Foundation cards**, persists through LISTEN
 - **Card Flow Mechanics** (distinct per system, respecting verisimilitude):
-  - Mental: ACT generates Leads (depth-based), OBSERVE draws Leads count, plans in hand persist, Leads persist until completion
-  - Physical: EXECUTE locks cards as preparation (+Aggression), ASSESS triggers combo (-Aggression) then exhausts entire hand and draws fresh
-  - Social: SPEAK moves Statements to Spoken (Echoes reshuffle), LISTEN draws while hand persists, thoughts accumulate
+  - Mental: ACT on Methods generates Leads (depth-based), OBSERVE draws Details equal to Leads count, Methods persist in hand, Leads persist until completion, completed methods move to Applied pile
+  - Physical: EXECUTE locks Options as preparation (+Aggression), ASSESS Situation triggers combo (-Aggression) then exhausts all Options back to Situation and draws fresh Options
+  - Social: SPEAK moves Statement thoughts from Mind to Spoken (Echo thoughts return to Topics), LISTEN to Topics draws while Mind persists, thoughts accumulate in Mind
+- **Pile Naming** (reflects what system does):
+  - Mental: Details (scene evidence) → Methods (investigative approaches) → Applied (completed understanding)
+  - Physical: Situation (challenge evolution) → Options (available actions) → exhausts back to Situation (no discard - context resets)
+  - Social: Topics (NPC's words) → Mind (your thoughts) → Spoken (what you've said)
 - **Balance Trackers** (different penalty models):
   - Mental: No balance tracker (uses Leads flow instead)
   - Physical: Aggression (both extremes penalized - overcautious reduces Breakthrough, reckless increases Danger)
   - Social: Cadence (asymmetric - negative gives bonus card draw, positive gives Doubt penalty)
 - **Special Systems**: Social (Request/Promise/Burden from NPC agency), Mental/Physical (none - locations/challenges lack agency)
 
-**Result**: Three systems with equivalent tactical depth (all ~1,000-1,100 lines of implementation) achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
+**Result**: Three systems with equivalent tactical depth achieved through parallel architecture that respects the different natures of what you interact with (entities vs places vs challenges).
 
 ## Expertise and Progression Systems
 
@@ -659,27 +1655,24 @@ All three challenge types feature parallel systems for tracking and rewarding re
 
 Tokens provide direct mechanical advantages from repeated success:
 
-**Mental: Familiarity Tokens** (per location)
-- **Earned**: +1 token per successful investigation at specific location
-- **Effect**: Reduce Exposure baseline at that location (-1 Exposure per token, maximum -3)
-- **Stacks**: Accumulate up to 3 tokens per location
+**Mental: InvestigationCubes** (per location)
+- **Earned**: One cube per successful investigation at specific location
+- **Effect**: Start investigations at that location with negative Exposure (each cube reduces Exposure by 1), effectively increasing tolerance before reaching MaxExposure from deck
+- **Stacks**: Accumulate cubes per location (0-10 scale, maximum 10)
 - **Verisimilitude**: You learn how to investigate this place safely and discreetly
-- **Example**: 3 Familiarity tokens at Mill → all future investigations at Mill start with -3 Exposure baseline
 
 **Physical: Mastery Tokens** (per challenge type)
-- **Earned**: +1 token per successful challenge of specific type (Combat, Athletics, Finesse, Endurance, Strength)
-- **Effect**: Reduce Danger baseline for that challenge type (-1 Danger per token, maximum -3)
-- **Stacks**: Accumulate up to 3 tokens per challenge type (15 tokens total across 5 types)
+- **Earned**: One token per successful challenge of specific type (Combat, Athletics, Finesse, Endurance, Strength)
+- **Effect**: Start challenges of that type with negative Danger, effectively increasing tolerance before reaching MaxDanger from deck
+- **Stacks**: Accumulate multiple tokens per challenge type (capped)
 - **Verisimilitude**: Experience with challenge type reduces inherent risk
-- **Example**: 3 Mastery tokens in Athletics → all future Athletics challenges start with -3 Danger baseline
 
-**Social: Connection Tokens** (per NPC)
+**Social: StoryCubes** (per NPC)
 - **Earned**: Through successful conversations and specific card effects with that NPC
-- **Types**: Rapport (emotional bond), Trust (reliability), Commitment (mutual obligation)
-- **Effect**: Affect conversation mechanics with that specific NPC (reduce Doubt accumulation, enable special cards, affect thresholds)
-- **Stacks**: Multiple tokens of each type per NPC
-- **Verisimilitude**: NPCs remember your relationship history and respond accordingly
-- **Example**: 2 Rapport tokens with Mill Owner → reduced Doubt accumulation in conversations
+- **Effect**: Reduce Social Doubt with that specific NPC (each cube reduces Doubt by 1)
+- **Stacks**: Accumulate cubes per NPC (0-10 scale, maximum 10)
+- **Verisimilitude**: NPCs remember your relationship history and respond accordingly - familiarity reduces tension
+- **Example**: 2 StoryCubes with Mill Owner → start conversations at -2 Doubt, giving more tolerance before reaching MaxDoubt
 
 ### Progression Level Systems (Long-Term Expertise)
 
@@ -689,10 +1682,10 @@ Progression levels track cumulative mastery and unlock escalating benefits:
 
 Cumulative Progress at location determines expertise level:
 
-- **Surface** (0-20 cumulative Progress): Basic observations, standard card access
-- **Detailed** (20-50 cumulative): Patterns emerge, unlock depth-specific observation cards
-- **Deep** (50-100 cumulative): Hidden connections visible, advanced cards available
-- **Expert** (100+ cumulative): Complete reconstruction capability, master cards unlocked
+- **Surface**: Basic observations, standard card access
+- **Detailed**: Patterns emerge, unlock depth-specific observation cards
+- **Deep**: Hidden connections visible, advanced cards available
+- **Expert**: Complete reconstruction capability, master cards unlocked
 
 **Benefits by Level**:
 - Higher levels unlock better Mental cards specific to that location type
@@ -705,10 +1698,10 @@ Cumulative Progress at location determines expertise level:
 
 Cumulative Breakthrough per challenge type determines mastery:
 
-- **Novice** (0-20 cumulative Breakthrough): Basic techniques, standard card access
-- **Competent** (20-50 cumulative): Efficient movement, unlock advanced techniques
-- **Skilled** (50-100 cumulative): Advanced techniques available, tactical variety
-- **Master** (100+ cumulative): Risk mitigation expertise, master techniques unlocked
+- **Novice**: Basic techniques, standard card access
+- **Competent**: Efficient movement, unlock advanced techniques
+- **Skilled**: Advanced techniques available, tactical variety
+- **Master**: Risk mitigation expertise, master techniques unlocked
 
 **Benefits by Level**:
 - Higher levels unlock better Physical cards for that challenge type
@@ -721,10 +1714,10 @@ Cumulative Breakthrough per challenge type determines mastery:
 
 Relationship depth through accumulated interactions:
 
-- **Stranger** (0 interactions): Base conversation difficulty, limited options
-- **Acquaintance** (1-3 successful conversations): Reduced Doubt accumulation, basic trust
-- **Friend** (4-7 successful conversations): Significant Doubt reduction, personal conversations unlocked
-- **Close Friend** (8+ successful conversations): Minimal Doubt, deep personal topics available
+- **Stranger**: Base conversation difficulty, limited options
+- **Acquaintance**: Reduced Doubt accumulation, basic trust
+- **Friend**: Significant Doubt reduction, personal conversations unlocked
+- **Close Friend**: Minimal Doubt, deep personal topics available
 
 **Benefits by Level**:
 - Higher levels reduce Doubt accumulation in conversations
@@ -735,7 +1728,7 @@ Relationship depth through accumulated interactions:
 
 ### Why Parallel Progression Matters
 
-**Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (Familiarity/Mastery/Connection and Depth/Proficiency/Levels).
+**Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (InvestigationCubes/MasteryTokens/StoryCubes and Understanding tiers).
 
 **Specialization vs Generalization**: Players can:
 - Specialize in one challenge type (master Mental investigations)
@@ -762,15 +1755,18 @@ Knowledge entries are structured discoveries that connect investigations, unlock
 
 **Knowledge Functions:**
 
-**Phase Unlocking** - Knowledge gates investigation progression
-- Phase 3 requires knowledge from Phase 1 completion
-- Creates meaningful progression, prevents skipping ahead
-- Example: Can't question suspect until you've examined crime scene
+**Phase Prerequisites** - Knowledge as phase requirement (NOT unlock trigger)
+- Phase 3 prerequisites include knowledge from Phase 1 completion
+- Creates meaningful progression through property checking
+- Example: Can't question suspect without "crime_scene_examined" knowledge
+- **NOT boolean gate**: Prerequisites checked when phase rewards would apply, not continuously
+- Knowledge granted as GoalCard reward, prerequisites satisfied naturally
 
-**Investigation Discovery** - Knowledge triggers new investigations
-- Discovering "broken_cog" knowledge spawns "Sabotage Mystery" investigation
-- Creates investigation chains and narrative continuity
-- Knowledge from one investigation opens doors to related mysteries
+**Investigation Chains** - Knowledge enables future discovery opportunities
+- Completing Mill investigation grants "mill_sabotage_discovered" knowledge
+- Later, Martha's conversation at 10+ Momentum can grant "mill_mystery" investigation IF player has sabotage knowledge
+- **NOT automatic triggering**: Knowledge enables GoalCard rewards, doesn't trigger discovery directly
+- Creates narrative continuity through informed decision paths
 
 **Conversation Enhancement** - Knowledge adds observation cards to NPC decks
 - Discover "mill_sabotage" → gain observation card about sabotage
@@ -789,9 +1785,9 @@ Investigations use **template-driven generation** where designers author mechani
 **Authored Template (Designer):**
 ```
 Investigation: Waterwheel Mystery
-- Phase 1: Mental challenge, 10 Progress, at [LOCATION], requires [EQUIPMENT]
-- Phase 2: Social challenge, 10 Progress, targets [NPC], requires Phase 1 complete
-- Phase 3: Physical challenge, 12 Progress, at [LOCATION], requires knowledge from Phase 2
+- Phase 1: Mental challenge at [LOCATION], requires [EQUIPMENT]
+- Phase 2: Social challenge targeting [NPC], requires Phase 1 complete
+- Phase 3: Physical challenge at [LOCATION], requires knowledge from Phase 2
 - Completion grants [KNOWLEDGE], unlocks [NEXT_INVESTIGATION]
 ```
 
@@ -988,7 +1984,7 @@ Build capability:
 **Blocks and Segments:**
 - Day contains 6 blocks (Morning, Midday, Afternoon, Evening, Night, Late Night)
 - Each block contains 4 segments
-- Total: 24 segments per day
+- Total: Multiple segments per day
 
 **Block Properties:**
 - Morning: Fresh start, NPCs in regular venues, quiet investigations
@@ -999,9 +1995,9 @@ Build capability:
 - Late Night: Sleep recommended, exhaustion penalties, emergency only
 
 **Activity Costs:**
-- Conversations: 1 segment + accumulated doubt
-- Work: 4 segments (entire block)
-- Investigation: 1-4 segments depending on depth
+- Conversations: One segment plus time based on conversation complexity
+- Work: Entire block
+- Investigation: Variable segments depending on depth
 - Travel: Variable by route and obstacles
 - Rest: Typically full block for recovery
 
@@ -1010,31 +2006,28 @@ Build capability:
 Wayfarer features permanent resources that persist across all gameplay. Three challenge-specific resources (Focus, Health, Stamina) create different strategic pressures:
 
 **Focus** (Mental-specific permanent resource):
-- Maximum: 100
-- **Cost**: Mental investigations cost 5-20 Focus to initiate (depending on complexity)
+- **Cost**: Mental investigations cost Focus to initiate (amount depends on complexity)
 - **Lost to**: Mental work, investigation sessions, intense concentration
-- **Depletion effect**: Below 30 Focus → Exposure accumulates faster (+1 per action in Mental challenges)
+- **Depletion effect**: Low Focus → Exposure accumulates faster in Mental challenges
 - **Cannot attempt**: Mental investigations when Focus insufficient for session cost
-- **Recovered through**: Rest blocks (+30 Focus per block), light activity, food, avoiding mental strain
+- **Recovered through**: Rest blocks, light activity, food, avoiding mental strain
 - **Integration**: Must balance Mental investigations against other activities requiring mental clarity
 - **Verisimilitude**: Concentration depletes with mental work, recovers with rest
 
 **Health** (Physical-specific permanent resource):
-- Maximum: 100
-- **Risk**: Physical challenges risk Health (Danger threshold consequences deal 5-15 damage typical)
+- **Risk**: Physical challenges risk Health (Danger threshold consequences deal damage)
 - **Lost to**: Physical hazards, environmental exposure, injuries from challenge failures, combat damage
-- **Depletion effect**: Below 30 Health → Danger accumulates faster (+1 per action in Physical challenges)
+- **Depletion effect**: Low Health → Danger accumulates faster in Physical challenges
 - **Cannot attempt**: Dangerous Physical challenges when Health too low (minimum thresholds vary)
 - **Recovered through**: Rest blocks (slow natural healing), medical treatment (faster recovery), food with restorative properties
-- **Critical threshold**: Below 30 Health increases risk of further injury
+- **Critical threshold**: Low Health increases risk of further injury
 - **Integration**: Must balance Physical challenge attempts against injury risk
 - **Verisimilitude**: Physical challenges risk bodily harm, injuries require recovery time
 
 **Stamina** (Physical-specific permanent resource):
-- Maximum: 100
-- **Cost**: Physical challenges cost 10-30 Stamina to attempt (depending on difficulty)
+- **Cost**: Physical challenges cost Stamina to attempt (amount depends on difficulty)
 - **Lost to**: Physical exertion (challenges, travel, labor)
-- **Depletion effect**: Below 30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
+- **Depletion effect**: Low Stamina → Max Exertion reduced (start challenges with lower capacity)
 - **Cannot attempt**: Stamina-requiring activities when insufficient
 - **Recovered through**: Rest blocks (full recovery), food (moderate recovery), reduced activity
 - **Integration**: Must balance Physical challenges, travel, and work against stamina depletion
@@ -1047,9 +2040,8 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 - **Verisimilitude**: Different activities have different costs in reality
 
 **Hunger** (Universal pressure):
-- Increases: 20 per time block (affects all activities equally)
-- Maximum: 100
-- **Effects**: At 75+ hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
+- Increases: Per time block (affects all activities equally)
+- **Effects**: High hunger → movement slowed, work efficiency reduced, Stamina recovery impaired
 - **Management**: Food costs coins, has weight, must be carried or purchased at venues
 - **Integration**: Creates pressure to work for income vs. pursue investigations/relationships
 - **Verisimilitude**: Everyone needs to eat, regardless of activity type
@@ -1069,29 +2061,45 @@ Wayfarer features permanent resources that persist across all gameplay. Three ch
 
 ## Verisimilitude: Why Different Is Right
 
-The three challenge systems achieve equivalent tactical depth (~1,000-1,100 lines of implementation each) while respecting fundamentally different interaction models. Asymmetries are features, not bugs.
+The three challenge systems achieve equivalent tactical depth while respecting fundamentally different interaction models. Asymmetries are features, not bugs.
 
 ### Card Flow Reflects Reality
 
 **Mental: You Cannot Observe What You Haven't Investigated**
 
-ACT cards generate Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). OBSERVE then follows those Leads by drawing cards equal to your total Leads. Zero Leads means zero draw because you have no investigative threads to follow.
+ACT on Methods generates Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover. OBSERVE then follows those Leads by drawing Details equal to your total Leads. Zero Leads means zero draw because you have no investigative Details to observe.
 
-Plans in your hand persist when you OBSERVE because investigation knowledge doesn't vanish when you pause to examine evidence. Leads persist when you leave the location because uncovered threads remain available when you return. Only completing the investigation resets Leads - you've resolved the mystery, threads are no longer open.
+**Pile Verisimilitude - Mental**:
+- **Details** (input pile): Scene evidence, physical clues, observable facts waiting to be examined
+- **Methods** (hand): Investigative approaches held in mind, ready to apply to the scene
+- **Applied** (discard): Methods you've already used, investigative understanding put into practice
+
+Methods in Methods persist when you OBSERVE because investigation knowledge doesn't vanish when you pause to examine Details. Leads persist when you leave the location because uncovered threads remain available when you return. Only completing the investigation resets Leads - you've resolved the mystery, threads are no longer open. Successfully applied methods move to Applied pile, representing investigative techniques you've already employed.
 
 **Physical: You Prepare Actions Then Execute Them**
 
-EXECUTE doesn't immediately perform the action - it locks the card into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple cards, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression (+1) as you commit to action.
+EXECUTE doesn't immediately perform the action - it locks the Option into position, preparing that move. Real physical action requires setup. You can EXECUTE multiple Options, building up a prepared sequence - ready your stance, set your grip, position your weight. Each EXECUTE increases Aggression as you commit to action. **Effects are calculated before application to show affordability** - the Exertion cost includes modifiers like fatigue penalties and any Foundation generation effects.
 
-When you ASSESS, all locked cards trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression (-2) as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical situation - you've exhausted your prepared actions and the context is different. Your entire hand exhausts and you draw fresh cards to assess the new situation. Unplayed cards return to the draw pile because they were considerations you didn't act on.
+When you ASSESS the Situation, all locked Options trigger together as a combo. Their effects resolve simultaneously because you execute the prepared sequence. ASSESS decreases Aggression as careful evaluation brings you back toward balance. After the combo, you've fundamentally changed the physical context - all Options exhaust back to Situation because the challenge has evolved. You draw fresh Options to assess the new Situation. Unplayed Options return to Situation because they were considerations for a context that no longer exists.
 
-**Aggression tracks your physical approach**: Both extremes are dangerous. Too overcautious (-3 or below) means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless (+3 or above) means carelessness increases Danger - you're risking injury. You want to stay balanced (-2 to +2), executing with controlled commitment then assessing to recalibrate.
+**Pile Verisimilitude - Physical**:
+- **Situation** (input pile): The evolving physical challenge, what's currently possible
+- **Options** (hand): Available actions you're considering in this moment
+- **Locked Cards** (exhaust pile): Prepared sequence of actions ready to execute as combo, **displayed in UI above hand with special "LOCKED" styling**
+- **No traditional discard pile**: All Options exhaust back to Situation after combo execution - the challenge resets with new possibilities
+
+Aggression tracks your physical approach: Both extremes are dangerous. Too overcautious means hesitation reduces Breakthrough - you're wasting opportunities. Too reckless means carelessness increases Danger - you're risking injury. You want to stay balanced, executing with controlled commitment then assessing to recalibrate.
 
 **Social: Thoughts Persist Because That's How Thinking Works**
 
-When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud stays said) while Echo cards reshuffle into the draw pile (fleeting thoughts that return to consideration). When you LISTEN, all cards in your hand remain - your mind doesn't empty when you pause to listen. You draw additional cards representing new thoughts and considerations. Your mind accumulates understanding as the conversation progresses.
+When you SPEAK, Statement thoughts move from Mind to Spoken pile (what you've said aloud stays said) while Echo thoughts return to Topics (fleeting thoughts that return to consideration). When you LISTEN to Topics, all thoughts in Mind remain - your mind doesn't empty when you pause to listen. You draw Topics into Mind representing new thoughts and considerations from what you hear. Your Mind accumulates understanding as the conversation progresses.
 
-**Cadence tracks conversation dominance**: Unlike Physical's symmetric penalties, Social's Cadence is asymmetric by design. Negative Cadence (deferential, giving space) REWARDS you with bonus card draw when you LISTEN. Positive Cadence (dominating) PENALIZES you with Doubt accumulation. Sometimes you intentionally go negative to gain card advantage.
+**Pile Verisimilitude - Social**:
+- **Topics** (input pile): The NPC's words, what they're saying that you can hear and consider
+- **Mind** (hand): Your thoughts, considerations, things you're thinking about saying
+- **Spoken** (discard): What you've said aloud, statements that cannot be unsaid
+
+Cadence tracks conversation dominance: Unlike Physical's symmetric penalties, Social's Cadence is asymmetric by design. Negative Cadence (deferential, giving space) REWARDS you with bonus card draw when you LISTEN. Positive Cadence (dominating) PENALIZES you with Doubt accumulation. Sometimes you intentionally go negative to gain card advantage.
 
 ### Balance Tracker Philosophy
 
@@ -1106,8 +2114,8 @@ When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud 
 **Social Interacts with ENTITIES (NPCs)**:
 - NPCs have **agency**: They offer tasks, make demands, judge your actions
 - NPCs have **personalities**: Proud, Devoted, Mercantile, Cunning, Steadfast fundamentally alter tactics
-- NPCs have **memory**: Connection tokens, levels, observation cards remember relationship history
-- Conversations are **real-time**: Dynamic entities have patience limits (Doubt=10 ends interaction)
+- NPCs have **memory**: StoryCubes, ConnectionState, observation cards remember relationship history
+- Conversations are **real-time**: Dynamic entities have patience limits (MaxDoubt ends interaction)
 - **Session-bounded model**: Must complete conversation in one sitting (can't pause mid-conversation)
 - **Special mechanics justified**: Request/Promise/Burden exist because NPCs can offer obligations, make commitments, and inflict relational damage
 
@@ -1153,7 +2161,7 @@ When you SPEAK, Statement cards move to the Spoken pile (what you've said aloud 
 
 **Social Session-Bounded** (respects conversation reality):
 - Conversations happen in real-time with dynamic entities
-- NPCs have patience limits (Doubt accumulates, 10 ends conversation)
+- NPCs have patience limits (Doubt accumulates, MaxDoubt ends conversation)
 - Can't pause mid-conversation and return hours later
 - Relationship state persists between conversations, not mid-conversation
 
@@ -1204,21 +2212,21 @@ Despite intentional differences, all three systems share:
 10. **Understanding**: Shared tier-unlocking resource
 
 **What Differentiates (verisimilitude-justified card flow):**
-- **Mental**: Leads generation (ACT by depth) → Leads-based draw (OBSERVE), plans persist, Leads persist until completion, no balance tracker
-- **Physical**: Preparation locking (EXECUTE +Aggression) → Combo execution (ASSESS -Aggression, exhausts all), Aggression penalizes both extremes
-- **Social**: Statement/Echo persistence (SPEAK) → Accumulating thoughts (LISTEN draws while hand persists), Cadence asymmetrically rewards negative
+- **Mental**: Leads generation (ACT on Methods by depth) → Leads-based draw (OBSERVE Details), Methods persist in hand, Leads persist until completion, Applied pile for completed methods, no balance tracker
+- **Physical**: Preparation locking (EXECUTE Options +Aggression) → Combo execution (ASSESS Situation -Aggression, exhausts all Options back to Situation), Aggression penalizes both extremes, no discard pile
+- **Social**: Statement/Echo persistence (SPEAK moves Statements from Mind to Spoken, Echoes to Topics) → Accumulating thoughts (LISTEN to Topics draws while Mind persists), Cadence asymmetrically rewards negative, three distinct piles (Topics/Mind/Spoken)
 
-**Result**: Three systems with equivalent tactical depth (~1,000-1,100 lines each) achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
+**Result**: Three systems with equivalent tactical depth achieved through parallel architecture that respects verisimilitude. Parity is in depth and complexity, not mechanical sameness.
 
 ### Weight Capacity
 
-**Satchel Maximum: 10**
+**Satchel Maximum: Limited**
 
 Must balance:
-- Obligations accepted (letters 1, packages 1-3, goods 3-6)
-- Equipment carried (tools 1-3, supplies 1-2 each)
-- Food reserves (1 per meal)
-- Discovered items (variable 1-4)
+- Obligations accepted (limited capacity for delivery contracts)
+- Equipment carried (limited tool and supply slots)
+- Food reserves (one per meal consumed)
+- Discovered items (variable quantities)
 
 Trade-offs:
 - Accept profitable heavy obligation, can't carry much equipment
@@ -1247,16 +2255,16 @@ Trade-offs:
 **Doubt** (Timer):
 - Starts at 0
 - Increases through effects and Cadence
-- Conversation ends at 10
+- Conversation ends at MaxDoubt (from SocialChallengeDeck.DangerThreshold)
 - Creates urgency
 - Forces efficiency and listening
 
 **Cadence** (Balance):
-- Starts at 0, range -5 to +5
-- SPEAK action: +1
-- LISTEN action: -2
-- High Cadence: +1 Doubt per point on LISTEN
-- Low Cadence: +1 card draw per point on LISTEN
+- Starts at 0, ranges from deferential to dominating
+- SPEAK action: increases Cadence
+- LISTEN action: decreases Cadence
+- High Cadence (dominating): Doubt penalty on LISTEN
+- Low Cadence (deferential): Bonus card draw on LISTEN
 - Rewards strategic listening
 
 **Statements in Spoken** (History):
@@ -1269,7 +2277,7 @@ Trade-offs:
 ### Card Structure
 
 Every card has:
-- **Initiative Cost**: 0 for Foundation (depth 1-2), scales with depth
+- **Initiative Cost**: Free for Foundation cards, scales with card depth/power
 - **Either** requirement OR cost, never both
 - **One deterministic effect**: No branching or randomness
 - **Stat binding**: Which stat gains XP when played
@@ -1278,12 +2286,10 @@ Every card has:
 ### Stat-Gated Depth Access
 
 Stats determine card depth access:
-- Stat Level 1: Access depths 1-2 (Foundation only)
-- Stat Level 2: Access depths 1-3
-- Stat Level 3: Access depths 1-4 (Standard cards)
-- Stat Level 5: Access depths 1-6 (Advanced)
-- Stat Level 7: Access depths 1-8 (Powerful)
-- Stat Level 9+: Access depths 1-10 (Master)
+- Low Stat Levels: Access Foundation cards only
+- Mid Stat Levels: Access Standard cards
+- High Stat Levels: Access Advanced and Powerful cards
+- Master Stat Levels: Access Master-tier cards
 
 Progression represents growing conversational competence and expanded repertoire.
 
@@ -1292,36 +2298,41 @@ Progression represents growing conversational competence and expanded repertoire
 Conversations are **Social Challenges** - the third and most complex parallel tactical system alongside Mental and Physical challenges. Social follows the same architectural pattern but adds significant mechanical depth.
 
 **Social Challenge Resources (Most Complex):**
-- **Momentum** (builder): Progress toward conversation goal (typically 8-16 threshold)
+- **Momentum** (builder): Progress toward conversation goal
 - **Initiative** (session resource): Action economy currency, accumulated through Foundation cards, persists through LISTEN
-- **Doubt** (threshold): Failure condition at maximum (10), tracks NPC skepticism
-- **Cadence** (balance): Dominating vs deferential style (-10 to +10), creates Doubt penalties or card draw bonuses
+- **Doubt** (threshold): Starts at 0, failure when reaching MaxDoubt from SocialChallengeDeck.DangerThreshold, tracks NPC skepticism
+- **Cadence** (balance): Dominating vs deferential conversation style, creates Doubt penalties (when dominating) or card draw bonuses (when deferential)
 - **Statements** (history): Count of Statement cards played, determines time cost (1 segment + statements)
 - **Understanding** (tier unlock): Persistent connection depth (shared with Mental/Physical)
 
 **Additional Social Complexity:**
 - **Personality Rules**: Each NPC has unique modifier (Proud, Devoted, Mercantile, Cunning, Steadfast) that fundamentally alters card play rules
-- **Token Mechanics**: Relationship tokens (Rapport, Trust, Commitment) unlock special conversation branches and affect momentum thresholds
-- **Connection Progression**: Conversations deepen NPC relationships through multi-stage connection system (Stranger → Acquaintance → Friend → Close Friend)
+- **StoryCubes**: Mastery cubes (0-10) reduce Social Doubt with specific NPCs, making future conversations easier
+- **ConnectionState Progression**: Conversations shift RelationshipFlow to change ConnectionState (DISCONNECTED → GUARDED → NEUTRAL → RECEPTIVE → TRUSTING), unlocking deeper conversation options
 - **Observation Cards**: Knowledge from investigations injects special cards into conversation decks
 - **Request Cards**: NPC-specific cards that drive conversation toward specific outcomes
 
-**SocialChallengeType Configuration:**
-Each SocialChallengeType defines:
-- **Deck ID**: Which card deck to use (investigation conversations, casual chats, negotiations, etc.)
-- **Victory Threshold**: Momentum needed to complete conversation successfully (8-16 typical)
-- **Danger Threshold**: Doubt limit before conversation failure (10 standard)
-- **Initial Hand Size**: Starting cards (typically 5)
-- **Max Hand Size**: Maximum hand capacity (typically 7)
+**ChallengeDeck Configuration (Direct Reference):**
+Goals reference ChallengeDeck entities directly via `deckId`. Each ChallengeDeck defines:
+- **Deck ID**: Unique identifier (e.g., "desperate_request", "mental_challenge", "athletics_challenge")
+- **Card IDs**: Which cards are in this deck (conversation cards, investigation cards, physical action cards)
+- **Description**: Narrative context for this challenge type
+- **Initial Hand Size**: Starting cards drawn at conversation start
+- **Max Hand Size**: Maximum hand capacity (limited)
 
-**Context-Specific Social Challenges:**
-- **Investigation Conversations**: Social phases of investigations (question witnesses, confront suspects)
-- **NPC Requests**: Conversations triggered by accepting obligations (deliveries, tasks)
-- **Relationship Building**: Casual conversations deepening NPC connections
-- **Information Gathering**: Conversations focused on discovering knowledge
-- **Negotiation**: Trade and deal-making conversations
+**Architectural Simplification:**
+- **Before**: Goal → ChallengeType (intermediary) → ChallengeDeck (two-step lookup)
+- **After**: Goal → ChallengeDeck (direct reference, one-step lookup)
+- **Result**: ChallengeType entities eliminated - unnecessary intermediary providing no unique value
+- ChallengeDeck is ONLY card container (CardIds list)
+- GoalCard is single source of truth for victory conditions (thresholds, rewards)
 
-All of the three tactical systems should provide the SAME depth. All three follow the same architectural pattern (builder/threshold/session resources + binary actions + system-specific card flow mechanics).
+**Context-Specific Challenge Decks:**
+- **Social Decks**: Investigation conversations, NPC requests, relationship building, information gathering, negotiation
+- **Mental Decks**: Location investigations, evidence examination, pattern analysis, deduction challenges
+- **Physical Decks**: Combat, Athletics, Finesse, Endurance, Strength challenges
+
+All three tactical systems provide the SAME depth through parallel architecture (builder/threshold/session resources + binary actions + system-specific card flow mechanics).
 
 ## Three-Layer Content Architecture
 
@@ -1348,7 +2359,7 @@ Memorable moments identical for all players:
 
 **Purpose:** Create identity, establish tone, provide structural peaks in slice-of-life flow.
 
-**Constraint:** No branching. Same content for everyone. Happens based on triggers (first visit, relationship level, calendar date).
+**Constraint:** No branching. Same content for everyone. Happens when property thresholds reached (first visit: visitCount==1, relationship milestone: connectionLevel>=threshold, calendar event: currentDate>=eventDate).
 
 ### AI Flavor Layer (Contextual, Pervasive)
 
@@ -1594,3 +2605,113 @@ Wayfarer achieves integration of visual novel and simulation through:
 The result: Slice-of-life adventure where character emerges through decisions under constraint, relationships deepen through time and shared challenges, and world reveals itself to curious preparation and persistent effort.
 
 Player versus nature, small personal scale, grounded in verisimilitude, expressed through text and choice.
+
+---
+
+## FUNDAMENTAL GAME SYSTEM ARCHITECTURE
+
+### THE CORE PROGRESSION FLOW
+
+**Every piece of content must fit into this exact progression:**
+
+```
+Obligation (multi-phase mystery structure)
+  ↓ spawns
+Obstacles (challenges blocking progress)
+  ↓ contain
+Goals (approaches to overcome obstacles)
+  ↓ appear at
+Locations/NPCs/Routes (placement context - NOT ownership)
+  ↓ when player engages, Goals become
+Challenges (Social/Mental/Physical gameplay)
+  ↓ player plays
+GoalCards (tactical victory conditions)
+  ↓ achieve
+Goal Completion
+  ↓ contributes to
+Obstacle Progress
+  ↓ leads to
+Obstacle Defeated
+  ↓ advances
+Obligation Phase Completion
+  ↓ unlocks
+Next Obligation Phase / Completion
+```
+
+### TERMINOLOGY GUIDE (CRITICAL - DO NOT CONFUSE THESE)
+
+#### Obligation
+- **Definition**: Multi-phase mystery or quest structure
+- **Example**: "Investigate the Missing Grain" with 3 phases
+- **Lifecycle**: Discovered → Activated → In Progress → Completed
+- **Owns**: Obstacles (spawned per phase)
+- **NOT**: A card, a challenge, a location-specific thing
+
+#### Obstacle
+- **Definition**: Persistent barrier or challenge in the world
+- **Example**: "Merchant's Suspicion", "Locked Gate", "Missing Evidence"
+- **Lifecycle**: Spawned by Obligation → Defeated when enough goals completed
+- **Owns**: Goals (different approaches to overcome)
+- **Appears**: Can be tied to locations/NPCs but owned by Obligation
+
+#### Goal
+- **Definition**: Specific approach to overcome an obstacle
+- **Example**: "Persuade the merchant", "Pick the lock", "Find alternative route"
+- **Lifecycle**: Created with Obstacle → Attempted → Succeeded/Failed
+- **Owns**: GoalCards (victory conditions for this approach)
+- **Appears At**: Specific location/NPC (placement context)
+- **Defines**: Challenge type (Social/Mental/Physical)
+
+#### GoalCard
+- **Definition**: Tactical victory condition within a Goal's challenge
+- **Example**: "Reach 15 Understanding", "Complete 3-chain combo"
+- **Lifecycle**: Available when Goal engaged → Played during challenge
+- **Has**: Mechanical costs, effects, rewards
+- **NOT**: The Goal itself - Goals CONTAIN GoalCards
+
+#### Challenge
+- **Definition**: Active tactical gameplay session (NOT a persistent entity)
+- **Example**: Social conversation, Mental investigation, Physical obstacle
+- **Lifecycle**: Starts when Goal engaged → Ends when Goal succeeds/fails
+- **Uses**: GoalCards from the Goal being attempted
+- **NOT**: A persistent entity in GameWorld
+
+### WHAT IS NOT A THING
+
+**These DO NOT EXIST in the game - delete on sight:**
+- ❌ "ObligationCard" - Obligations are not cards
+- ❌ "ChallengeCard" - Challenges use GoalCards
+- ❌ "LocationGoal" - Locations don't own Goals
+- ❌ "NPCObstacle" - NPCs don't own Obstacles
+
+### CONTENT CREATION FLOW
+
+**When designing obligation content:**
+
+1. **Define Obligation**: Name, description, narrative arc
+2. **Design Phases**: What phases does this mystery have?
+3. **Create Obstacles**: What barriers exist in each phase?
+4. **Design Goals**: What approaches can overcome each obstacle?
+5. **Place Goals**: Where/with whom does each goal appear?
+6. **Define GoalCards**: What are the victory conditions for each goal?
+7. **Create Challenge Cards**: What cards does player use to achieve GoalCards?
+
+**Example - "Investigate the Missing Grain":**
+
+```
+Obligation: "Investigate the Missing Grain"
+  Phase 1: "Initial Investigation"
+    Obstacle: "Merchant's Suspicion"
+      Goal: "Persuade Merchant" (Social)
+        - Appears at: Market / NPC: Grain Merchant
+        - GoalCards: ["Reach 15 Understanding", "Build Trust Level 3"]
+        - Challenge Cards: ["Sympathetic Remark", "Offer Help", "Share Story"]
+      Goal: "Search Storage Room" (Mental)
+        - Appears at: Storage Room
+        - GoalCards: ["Find 3 Clues", "Complete Investigation"]
+        - Challenge Cards: ["Examine Ledger", "Check Inventory", "Interview Staff"]
+
+  Phase 2: "Following Leads"
+    (Unlocked when Phase 1 obstacle defeated)
+    ...
+```

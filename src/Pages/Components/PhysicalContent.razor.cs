@@ -13,6 +13,9 @@ namespace Wayfarer.Pages.Components
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 
         [Inject] protected GameFacade GameFacade { get; set; }
+        [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected ItemRepository ItemRepository { get; set; }
+        [Inject] protected DifficultyCalculationService DifficultyService { get; set; }
 
         /// <summary>
         /// PROJECTION PRINCIPLE: The PhysicalEffectResolver is a pure projection function
@@ -52,7 +55,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetHandCount()
         {
-            return Hand?.Count ?? 0;
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Count;
         }
 
         // =============================================
@@ -61,38 +66,53 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentBreakthrough()
         {
-            return Session?.CurrentBreakthrough ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentBreakthrough;
         }
 
         protected int GetCurrentExertion()
         {
-            return Session?.CurrentExertion ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentExertion;
         }
 
         protected int GetMaxExertion()
         {
-            return Session?.MaxExertion ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxExertion;
         }
 
         protected int GetCurrentDanger()
         {
-            return Session?.CurrentDanger ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentDanger;
         }
 
         protected int GetMaxDanger()
         {
-            return Session?.MaxDanger ?? 10;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.MaxDanger;
         }
 
-        protected int GetCurrentCommitment()
+        protected int GetCurrentAggression()
         {
-            return Session?.Commitment ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.Aggression;
         }
 
         protected int GetBreakthroughPercentage()
         {
-            if (Session == null || Session.VictoryThreshold <= 0) return 0;
-            return (int)((Session.CurrentBreakthrough / (double)Session.VictoryThreshold) * 100);
+            if (Session == null) return 0;
+            // Physical victory is determined by GoalCard play, not thresholds
+            // This percentage is for UI display only (max progress ~20)
+            int maxProgress = 20;
+            return (int)((Session.CurrentBreakthrough / (double)maxProgress) * 100);
         }
 
         protected int GetDangerPercentage()
@@ -101,18 +121,22 @@ namespace Wayfarer.Pages.Components
             return (int)((Session.CurrentDanger / (double)Session.MaxDanger) * 100);
         }
 
-        protected int GetCommitmentExertion()
+        protected int GetAggressionValue()
         {
-            // Returns exertion on -10 to +10 scale as 0-20 for UI display
-            int commitment = Session?.Commitment ?? 0;
-            return commitment + 10; // Convert -10..10 to 0..20
+            // Returns Aggression on -10 to +10 scale as 0-20 for UI display
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            int aggression = Session.Aggression;
+            return aggression + 10; // Convert -10..10 to 0..20
         }
 
-        protected string GetCommitmentClass()
+        protected string GetAggressionClass()
         {
-            int commitment = Session?.Commitment ?? 0;
-            if (commitment < -5) return "hesitant";
-            if (commitment > 5) return "decisive";
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            int aggression = Session.Aggression;
+            if (aggression < -5) return "overcautious";
+            if (aggression > 5) return "reckless";
             return "balanced";
         }
 
@@ -123,11 +147,18 @@ namespace Wayfarer.Pages.Components
                 : 0;
         }
 
-        protected int GetDiscardCount()
+        protected int GetExhaustCount()
         {
             return GameFacade?.IsPhysicalSessionActive() == true
-                ? GameFacade.GetPhysicalFacade().GetDiscardCount()
+                ? GameFacade.GetPhysicalFacade().GetExhaustCount()
                 : 0;
+        }
+
+        protected List<CardInstance> GetLockedCards()
+        {
+            return GameFacade?.IsPhysicalSessionActive() == true
+                ? GameFacade.GetPhysicalFacade().GetLockedCards()
+                : new List<CardInstance>();
         }
 
         protected void SelectCard(CardInstance card)
@@ -137,7 +168,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteAssess()
         {
-            if (SelectedCard == null || IsProcessing || Session == null)
+            if (Session == null || IsProcessing)
                 return;
 
             IsProcessing = true;
@@ -145,11 +176,10 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalTurnResult result = await GameFacade.ExecuteAssess(SelectedCard);
+                PhysicalTurnResult result = await GameFacade.ExecuteAssess();
 
                 if (result == null)
                 {
-                    Console.WriteLine("[PhysicalContent] ExecuteAssess failed - null result");
                     return;
                 }
 
@@ -168,16 +198,11 @@ namespace Wayfarer.Pages.Components
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
-                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
-                            ? "Challenge complete!"
-                            : "Maximum danger reached";
+                        // Physical sessions only end on Danger threshold (failure)
+                        // Victory is determined by GoalCard play in facade
+                        EndReason = "Maximum danger reached";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PhysicalContent] Error in ExecuteAssess: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -200,7 +225,6 @@ namespace Wayfarer.Pages.Components
 
                 if (result == null)
                 {
-                    Console.WriteLine("[PhysicalContent] ExecuteExecute failed - null result");
                     return;
                 }
 
@@ -219,16 +243,11 @@ namespace Wayfarer.Pages.Components
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
-                        EndReason = Session.CurrentBreakthrough >= Session.VictoryThreshold
-                            ? "Challenge complete!"
-                            : "Maximum danger reached";
+                        // Physical sessions only end on Danger threshold (failure)
+                        // Victory is determined by GoalCard play in facade
+                        EndReason = "Maximum danger reached";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PhysicalContent] Error in ExecuteExecute: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -257,11 +276,6 @@ namespace Wayfarer.Pages.Components
                 }
 
                 await OnChallengeEnd.InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PhysicalContent] Error in EndChallenge: {ex.Message}");
-                LastNarrative = $"Error: {ex.Message}";
             }
             finally
             {
@@ -303,7 +317,7 @@ namespace Wayfarer.Pages.Components
 
             // Use Execute as default action type for preview
             PhysicalCardEffectResult projection = EffectResolver.ProjectCardEffects(card, Session, player, PhysicalActionType.Execute);
-            return projection.EffectDescription ?? "";
+            return projection.EffectDescription;
         }
 
         /// <summary>
@@ -329,7 +343,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentUnderstanding()
         {
-            return Session?.CurrentUnderstanding ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentUnderstanding;
         }
 
         protected int GetUnderstandingPercentage()
@@ -394,7 +410,9 @@ namespace Wayfarer.Pages.Components
         protected string GetCardCategory(CardInstance card)
         {
             // PhysicalCategory represents the type of physical action
-            return card?.PhysicalCardTemplate?.Category.ToString() ?? "Unknown";
+            if (card?.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.PhysicalCardTemplate.Category.ToString();
         }
 
         protected string GetCardCategoryClass(CardInstance card)
@@ -424,7 +442,9 @@ namespace Wayfarer.Pages.Components
             if (IsProcessing) return false;
 
             // Basic validation: check if player has enough Exertion to play card
-            int exertionCost = card?.PhysicalCardTemplate?.ExertionCost ?? 0;
+            if (card.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card template is null");
+            int exertionCost = card.PhysicalCardTemplate.ExertionCost;
             return Session.CurrentExertion >= exertionCost;
         }
 
@@ -444,7 +464,9 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardName(CardInstance card)
         {
-            return card?.PhysicalCardTemplate?.Name ?? "Unknown";
+            if (card?.PhysicalCardTemplate == null)
+                throw new InvalidOperationException("Card or template is null");
+            return card.PhysicalCardTemplate.Name;
         }
 
         // =============================================
@@ -453,7 +475,11 @@ namespace Wayfarer.Pages.Components
 
         protected Dictionary<DiscoveryType, List<string>> GetDiscoveries()
         {
-            return Session?.Discoveries ?? new Dictionary<DiscoveryType, List<string>>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.Discoveries == null)
+                throw new InvalidOperationException("Session.Discoveries is null");
+            return Session.Discoveries;
         }
 
         protected List<string> GetDiscoveriesOfType(DiscoveryType type)
@@ -481,18 +507,23 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCurrentPhase()
         {
-            return Session?.CurrentPhaseIndex ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.CurrentPhaseIndex;
         }
 
         protected int GetVictoryThreshold()
         {
-            return Session?.VictoryThreshold ?? 20;
+            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // This is for UI display only
+            return 20;
         }
 
         protected bool IsChallengeComplete()
         {
-            if (Session == null) return false;
-            return Session.CurrentBreakthrough >= Session.VictoryThreshold;
+            // Physical sessions don't complete via Breakthrough threshold
+            // Victory is determined by GoalCard play (handled in facade)
+            return false;
         }
 
         protected bool IsChallengeFailed()
@@ -510,28 +541,30 @@ namespace Wayfarer.Pages.Components
 
         protected int GetBreakthroughThreshold()
         {
-            return Session?.VictoryThreshold ?? 20;
+            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // This is for UI display only (typical max progress ~20)
+            return 20;
         }
 
         // =============================================
-        // COMMITMENT BALANCE STATE DISPLAY
+        // AGGRESSION BALANCE STATE DISPLAY
         // =============================================
 
-        protected string GetCommitmentState()
+        protected string GetAggressionState()
         {
             if (Session == null) return "Balanced";
 
-            if (Session.IsRecklessBalance()) return "Decisive";
-            if (Session.IsOvercautiousBalance()) return "Hesitant";
+            if (Session.IsRecklessBalance()) return "Reckless";
+            if (Session.IsOvercautiousBalance()) return "Overcautious";
             return "Balanced";
         }
 
-        protected string GetCommitmentStateClass()
+        protected string GetAggressionStateClass()
         {
             if (Session == null) return "balanced";
 
-            if (Session.IsRecklessBalance()) return "decisive";
-            if (Session.IsOvercautiousBalance()) return "hesitant";
+            if (Session.IsRecklessBalance()) return "reckless";
+            if (Session.IsOvercautiousBalance()) return "overcautious";
             return "balanced";
         }
 
@@ -541,12 +574,18 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCategoryCount(PhysicalCategory category)
         {
-            return Session?.GetCategoryCount(category) ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetCategoryCount(category);
         }
 
         protected Dictionary<PhysicalCategory, int> GetAllCategoryCounts()
         {
-            return Session?.CategoryCounts ?? new Dictionary<PhysicalCategory, int>();
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            if (Session.CategoryCounts == null)
+                throw new InvalidOperationException("Session.CategoryCounts is null");
+            return Session.CategoryCounts;
         }
 
         // =============================================
@@ -555,7 +594,9 @@ namespace Wayfarer.Pages.Components
 
         protected int GetApproachHistory()
         {
-            return Session?.ApproachHistory ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.ApproachHistory;
         }
 
         // =============================================
@@ -564,12 +605,16 @@ namespace Wayfarer.Pages.Components
 
         protected int GetTimeSegmentsSpent()
         {
-            return Session?.TimeSegmentsSpent ?? 0;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.TimeSegmentsSpent;
         }
 
         protected int GetDrawCount()
         {
-            return Session?.GetDrawCount() ?? 3;
+            if (Session == null)
+                throw new InvalidOperationException("Session is null");
+            return Session.GetDrawCount();
         }
 
         // =============================================
@@ -578,16 +623,17 @@ namespace Wayfarer.Pages.Components
 
         protected (string locationName, string spotName, string spotTraits) GetLocationContextParts()
         {
-            if (GameFacade == null) return ("Unknown Location", "", "");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is null");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
             Location currentSpot = GameFacade.GetCurrentLocationSpot();
 
             if (currentLocation == null || currentSpot == null)
-                return ("Unknown Location", "", "");
+                throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name ?? "Unknown";
-            string spotName = currentSpot.Name ?? "Unknown";
+            string locationName = currentLocation.Name;
+            string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
             return (locationName, spotName, spotTraits);
@@ -626,7 +672,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetCardExertionCost(CardInstance card)
         {
-            return card?.PhysicalCardTemplate?.ExertionCost ?? 0;
+            if (card?.PhysicalCardTemplate == null) return 0;
+            return card.PhysicalCardTemplate.ExertionCost;
         }
 
         protected int GetCardExertionGeneration(CardInstance card)
@@ -642,6 +689,32 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
+        // GOAL CARD DETECTION & FILTERING
+        // =============================================
+
+        /// <summary>
+        /// Detect if a card is a goal card (self-contained victory condition)
+        /// Goal cards have Context.threshold but NO PhysicalCardTemplate
+        /// </summary>
+        protected bool IsGoalCard(CardInstance card)
+        {
+            if (card == null) return false;
+
+            // Goal cards have threshold in Context and no system-specific template
+            return card.Context?.threshold > 0 && card.PhysicalCardTemplate == null;
+        }
+
+        /// <summary>
+        /// Get all goal cards currently in hand (unlocked at Breakthrough thresholds)
+        /// </summary>
+        protected List<CardInstance> GetAvailableGoalCards()
+        {
+            if (Hand == null)
+                throw new InvalidOperationException("Hand is null");
+            return Hand.Where(c => IsGoalCard(c)).ToList();
+        }
+
+        // =============================================
         // CARD DISPLAY LIST
         // =============================================
 
@@ -650,7 +723,8 @@ namespace Wayfarer.Pages.Components
             List<CardInstance> handCards = Hand ?? new List<CardInstance>();
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            foreach (CardInstance card in handCards)
+            // FILTER OUT GOAL CARDS - they render separately
+            foreach (CardInstance card in handCards.Where(c => !IsGoalCard(c)))
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
@@ -691,11 +765,11 @@ namespace Wayfarer.Pages.Components
             if (Session == null) return "No active challenge";
 
             int breakthrough = Session.CurrentBreakthrough;
-            int threshold = Session.VictoryThreshold;
             int danger = Session.CurrentDanger;
             int maxDanger = Session.MaxDanger;
 
-            return $"Breakthrough: {breakthrough}/{threshold} | Danger: {danger}/{maxDanger}";
+            // Physical victory is determined by GoalCard play, not thresholds
+            return $"Breakthrough: {breakthrough} | Danger: {danger}/{maxDanger}";
         }
 
         protected bool ShouldShowVictoryIndicator()
@@ -732,15 +806,99 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // COMMITMENT SCALE DISPLAY
+        // AGGRESSION SCALE DISPLAY
         // =============================================
 
-        protected string GetCommitmentSegmentClass(int segmentValue)
+        protected string GetAggressionSegmentClass(int segmentValue)
         {
-            // Commitment scale: -10 (Hesitant) to +10 (Decisive)
-            if (segmentValue < -5) return "hesitant";
-            if (segmentValue > 5) return "decisive";
+            // Aggression scale: -10 (Overcautious) to +10 (Reckless)
+            if (segmentValue < -5) return "overcautious";
+            if (segmentValue > 5) return "reckless";
             return "balanced";
+        }
+
+        // =============================================
+        // GOAL CARD PLAY
+        // =============================================
+
+        /// <summary>
+        /// Calculate difficulty for a goal card using DifficultyCalculationService
+        /// Returns calculated difficulty based on player's current modifiers (Understanding, tokens, familiarity)
+        /// </summary>
+        protected int GetGoalDifficulty(CardInstance goalCard)
+        {
+            if (goalCard?.GoalCardTemplate == null) return 0;
+            if (DifficultyService == null || ItemRepository == null) return goalCard.GoalCardTemplate.threshold;
+
+            // Find parent Goal from GameWorld by searching for GoalCard ID
+            Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
+            if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
+
+            // Get base difficulty from deck
+            int baseDifficulty = GetBaseDifficultyForGoal(parentGoal);
+
+            // Calculate actual difficulty using DifficultyCalculationService with all modifiers
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, baseDifficulty, ItemRepository);
+            return result.FinalDifficulty;
+        }
+
+        private int GetBaseDifficultyForGoal(Goal goal)
+        {
+            if (GameWorld == null) return 10;
+
+            PhysicalChallengeDeck deck = GameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+            return deck?.DangerThreshold ?? 10;
+        }
+
+        private Goal FindParentGoal(string goalCardId)
+        {
+            if (GameWorld?.Goals == null) return null;
+
+            foreach (Goal goal in GameWorld.Goals)
+            {
+                if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
+                {
+                    return goal;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Play a goal card to complete the challenge
+        /// Goal cards end the session immediately with success
+        /// </summary>
+        protected async Task PlayGoalCard(CardInstance goalCard)
+        {
+            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (IsProcessing) return;
+
+            IsProcessing = true;
+            StateHasChanged();
+
+            try
+            {
+                // Goal cards use ExecuteExecute - PhysicalFacade handles goal card logic
+                PhysicalTurnResult result = await GameFacade.ExecuteExecute(goalCard);
+
+                if (result != null && result.Success)
+                {
+                    LastNarrative = result.Narrative;
+                    IsChallengeEnded = true;
+                    EndReason = "Challenge complete";
+
+                    // Refresh resource display
+                    if (GameScreen != null)
+                    {
+                        await GameScreen.RefreshResourceDisplay();
+                    }
+                }
+            }
+            finally
+            {
+                IsProcessing = false;
+                StateHasChanged();
+            }
         }
 
     }

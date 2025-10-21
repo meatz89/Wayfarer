@@ -1,10 +1,29 @@
-/* Travel Screen Styles - Based on UI Mockup */
+/* Travel Screen Styles - Based on UI Mockups */
+/* Four distinct contexts: Walking (FixedPath), Caravan (Event), Discovery (Reveal), Dead-End (Blocked) */
 
-.travel-container {
-    width: 100%;
-    min-height: 100vh;
-    background: #faf4ea;
+/* REMOVED - TravelContent now uses shared .game-container from common.css */
+/* .travel-container definition removed to prevent overriding shared styles */
+/* ALL screens share .game-container (max-width: 1024px, background: #faf4ea) */
+
+/* ========== SHARED STYLES (ALL CONTEXTS) ========== */
+
+/* Header - Dark bar with time and deadline */
+.header {
+    background: #2c241a;
+    color: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 2px solid #5c4a3a;
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
 }
+
+.deadline {
+    color: #d4a76a;
+}
+
+/* Removed conflicting .game-container definition */
+/* This is now defined authoritatively in common.css only */
 
 /* Route Selection Header */
 .travel-header {
@@ -20,6 +39,7 @@
 .header-title {
     font-size: 20px;
     letter-spacing: 1px;
+    font-weight: bold;
 }
 
 .current-location {
@@ -100,90 +120,111 @@
 
 /* .state-label and .state-name moved to common.css */
 
-/* Resources Bar */
-.resources-preview {
-    background: #e8dcc4;
-    padding: 10px 20px;
-    border-bottom: 1px solid #c4a684;
+/* Time Status Bar (matches mockup) */
+.time-status-bar {
+    background: #2c241a;
+    padding: 12px 20px;
+    border-bottom: 1px solid #3d3429;
     display: flex;
-    gap: 30px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.current-time-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.time-label {
+    font-size: 11px;
+    color: #8b7355;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.time-value {
+    font-size: 13px;
+    color: #e8dcc4;
+    font-weight: bold;
+}
+
+.segment-dots-display {
+    display: flex;
+    gap: 4px;
+}
+
+.segment-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #5c4a3a;
+    background: transparent;
+}
+
+.segment-dot.filled {
+    background: #5c4a3a;
+}
+
+.segment-dot.current {
+    background: #d4a76a;
+    border-color: #8b7355;
+}
+
+.resources-inline {
+    display: flex;
+    gap: 20px;
     font-size: 12px;
 }
 
-.resource-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.resource-inline {
+    color: #d4a76a;
 }
 
-.resource-label {
+/* Route List */
+.route-list {
+    padding: 20px;
+    background: #f4e8d0;
+}
+
+.route-group {
+    margin-bottom: 25px;
+}
+
+.route-group-header {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     color: #7a6250;
-}
-
-.resource-value {
-    font-weight: bold;
-    color: #5c4a3a;
-}
-
-/* Destination Groups */
-.destinations-list {
-    padding: 15px;
-}
-
-.destination-group {
-    margin-bottom: 20px;
-    background: #f9f3e9;
-    border: 1px solid #c4a684;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.destination-header {
-    background: #e8dcc4;
-    padding: 10px 15px;
-    border-bottom: 1px solid #c4a684;
-}
-
-.destination-name {
-    font-size: 16px;
-    color: #5c4a3a;
-    font-weight: bold;
-}
-
-.destination-info {
-    font-size: 11px;
-    color: #7a6250;
-    margin-top: 2px;
-}
-
-/* Routes */
-.routes-container {
-    padding: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #c4a684;
+    font-weight: 700;
 }
 
 .route-card {
     background: #faf4ea;
     border: 2px solid #c4a684;
-    border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 12px;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .route-card:hover:not(.locked) {
     background: #fefaf0;
     border-color: #a68b6f;
-    transform: translateX(4px);
+    transform: translateX(5px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .route-card.locked {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
     background: #f0ebe4;
+    filter: grayscale(0.3);
 }
 
 .route-card.dangerous {
@@ -195,66 +236,107 @@
 }
 
 .route-card.merchant {
-    border-left: 3px solid #7a8b5a;
+    border-left: 4px solid #7a8b5a;
 }
 
 .route-card.common {
     border-left: 4px solid #c4a684;
 }
 
-.route-main {
+/* Route Header Row */
+.route-header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-}
-
-.route-info {
-    flex: 1;
+    margin-bottom: 6px;
 }
 
 .route-name {
-    font-size: 14px;
+    font-size: 16px;
     color: #5c4a3a;
     font-weight: bold;
-    margin-bottom: 4px;
 }
 
-.route-transport {
-    display: inline-block;
-    font-size: 10px;
-    color: #7a6250;
-    background: #f4e8d0;
-    padding: 2px 6px;
-    border-radius: 2px;
-    margin-right: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.route-details {
-    display: flex;
-    gap: 15px;
-    margin-top: 8px;
+.route-subtitle {
     font-size: 11px;
+    color: #7a6250;
+    font-style: italic;
+    margin-bottom: 8px;
 }
 
-.route-stat {
+.route-type-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    background: #f4e8d0;
+    border-radius: 2px;
+    color: #7a6250;
+}
+
+/* Segment Cost Display - Removed ugly black bar */
+.segment-cost-display {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
+    padding: 0;
+    background: transparent;
+    margin-bottom: 6px;
 }
 
-.stat-label {
+.segment-cost-label {
+    font-size: 11px;
     color: #7a6250;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
-.stat-value {
+.segment-blocks {
+    display: flex;
+    gap: 3px;
+}
+
+.segment-block {
+    width: 14px;
+    height: 14px;
+    background: #d4a76a;
+    border: 1px solid #a68b6f;
+    border-radius: 2px;
+}
+
+.segment-text {
+    font-size: 12px;
     color: #5c4a3a;
+    font-weight: 600;
+}
+
+.instant-badge {
+    font-size: 11px;
+    color: #7a8b5a;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* Route Details Row */
+.route-details-row {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #7a6250;
+    margin-bottom: 6px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-label {
     font-weight: bold;
 }
 
-.stat-cost {
-    color: #8b4726;
+.detail-value {
+    color: #5c4a3a;
 }
 
 .route-tags {
@@ -304,17 +386,14 @@
     color: #2c241a;
 }
 
-/* Requirement Box */
-.requirement-box {
+/* Route Requirements (matches mockup) */
+.route-requirements {
     background: #faf0e6;
     border: 1px solid #d4a76a;
+    padding: 8px 10px;
     border-radius: 2px;
-    padding: 6px 10px;
-    margin-top: 8px;
     font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    margin-top: 10px;
 }
 
 .requirement-label {
@@ -324,13 +403,20 @@
     letter-spacing: 0.5px;
 }
 
-.requirement-text {
+.requirement-list {
     color: #5c4a3a;
+    margin-top: 4px;
 }
 
 .requirement-missing {
     background: #f5e8e8;
     border-color: #8b4726;
+}
+
+/* Route Action */
+.route-action {
+    margin-top: 8px;
+    text-align: right;
 }
 
 /* Cost Display */
@@ -411,14 +497,21 @@
 
 /* No Routes Message */
 .no-routes {
-    padding: 40px;
+    padding: 60px 40px;
     text-align: center;
     color: #7a6250;
     font-style: italic;
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    margin: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .no-routes p {
     margin: 10px 0;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 /* Stamina and Segment Progress (Travel Path) */
@@ -511,38 +604,33 @@
     background: #d4a76a;
 }
 
-/* Encounter Preview */
+/* Encounter Deck Preview (from travel-screens.html) - Shows possible goals/encounters */
 .encounter-preview {
-    background: #faf0e6;
-    border: 1px solid #d4a76a;
-    border-radius: 4px;
-    padding: 12px;
-    margin: 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    padding: 15px 20px;
+    background: #f9f3e9;
+    border-top: 1px solid #c4a684;
 }
 
-.encounter-icon {
-    font-size: 24px;
-}
-
-.encounter-info {
-    flex: 1;
-}
-
-.encounter-type {
+.encounter-title {
     font-size: 11px;
-    color: #8b4726;
+    color: #7a6250;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
+    margin-bottom: 10px;
 }
 
-.encounter-text {
-    font-size: 13px;
+.encounter-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.encounter-item {
+    padding: 4px 10px;
+    background: #faf4ea;
+    border: 1px solid #c4a684;
+    border-radius: 3px;
+    font-size: 12px;
     color: #5c4a3a;
-    font-style: italic;
 }
 
 /* Transport Type Icons */
@@ -556,5 +644,925 @@
     color: #faf4ea;
     border-radius: 50%;
     font-size: 12px;
+}
+
+/* ========== CARAVAN/EVENT SEGMENT STYLES (travel-caravan.html) ========== */
+
+/* Caravan Info Bar - Brown gradient header */
+.caravan-info {
+    background: linear-gradient(to bottom, #a68b6f, #8b7355);
+    color: #faf4ea;
+    padding: 12px 20px;
+    border-bottom: 2px solid #6a5a4a;
+}
+
+.caravan-title {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.caravan-details {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.caravan-icon {
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* Comfort Badge - Green indicator */
+.comfort-badge {
+    display: inline-block;
+    background: #7a8b5a;
+    color: #faf4ea;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    margin-left: 10px;
+    text-transform: uppercase;
+}
+
+/* Event Progress Counter */
+.event-progress {
+    background: #f9f3e9;
+    padding: 12px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.progress-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.event-counter {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.progress-note {
+    font-size: 11px;
+    color: #8b7355;
+    font-style: italic;
+}
+
+/* Resource Display Bar */
+.resource-display {
+    background: #e8dcc4;
+    padding: 10px 20px;
+    border-bottom: 1px solid #a68b6f;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 12px;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.resource-label {
+    color: #7a6250;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+.resource-value {
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+/* Event Card Section */
+.event-section {
+    padding: 25px;
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.event-card {
+    background: #faf4ea;
+    border: 3px solid #d4a76a;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.event-header {
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    padding: 15px 20px;
+    border-bottom: 2px solid #d4a76a;
+}
+
+.event-title {
+    font-size: 18px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.event-type {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.event-narrative {
+    padding: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    font-style: italic;
+    color: #3d3429;
+    background: #fffaf5;
+    border-bottom: 1px solid #e8dcc4;
+}
+
+/* Response Section */
+.response-section {
+    padding: 20px;
+    background: #f4e8d0;
+}
+
+.response-title {
+    font-size: 13px;
+    color: #7a6250;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+/* Response Cards Grid - Vertical list */
+.response-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.response-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+}
+
+.response-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.response-card.unavailable {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.response-card.unavailable:hover {
+    transform: none;
+}
+
+.response-main {
+    flex: 1;
+    padding: 15px;
+}
+
+.response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.response-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.response-cost {
+    font-size: 12px;
+    color: #8b4726;
+    font-weight: bold;
+}
+
+.response-effect {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #2c241a;
+    font-style: italic;
+}
+
+.response-benefit {
+    font-size: 11px;
+    color: #7a8b5a;
+    margin-top: 6px;
+    font-weight: bold;
+}
+
+.response-narrative {
+    font-size: 12px;
+    color: #5c4a3a;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+.response-effects {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+/* Free Response - Green border */
+.response-card.free {
+    border-color: #7a8b5a;
+}
+
+.response-card.free .response-cost {
+    color: #7a8b5a;
+}
+
+/* ========== DISCOVERY REVEAL STYLES (travel-discovery.html) ========== */
+
+/* Discovery Banner - Gold gradient */
+.discovery-banner {
+    background: linear-gradient(to bottom, #d4a76a, #c4966a);
+    color: #2c241a;
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.discovery-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.discovery-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Route Progress Info */
+.route-progress {
+    background: #f9f3e9;
+    padding: 12px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-info {
+    font-size: 13px;
+    color: #7a6250;
+}
+
+.time-elapsed {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+/* Discovery Card Section */
+.discovery-section {
+    padding: 25px;
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.discovery-card {
+    background: #faf4ea;
+    border: 3px solid #d4a76a;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    animation: revealCard 0.5s ease-out;
+}
+
+/* Reveal Animation - Card flip */
+@keyframes revealCard {
+    from {
+        transform: rotateY(90deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotateY(0);
+        opacity: 1;
+    }
+}
+
+.discovery-header {
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    padding: 15px 20px;
+    border-bottom: 2px solid #d4a76a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.discovery-name {
+    font-size: 18px;
+    color: #5c4a3a;
+    font-weight: bold;
+}
+
+.discovery-stamina {
+    width: 32px;
+    height: 32px;
+    background: #5c4a3a;
+    color: #faf4ea;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 32px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.discovery-content {
+    padding: 20px;
+}
+
+.discovery-effect {
+    padding: 15px;
+    background: #fff9f0;
+    border-left: 3px solid #8b4726;
+    border-radius: 2px;
+    margin-bottom: 15px;
+}
+
+.effect-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.effect-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #2c241a;
+    font-style: italic;
+}
+
+.discovery-permanent {
+    padding: 15px;
+    background: #f0f9f0;
+    border-left: 3px solid #7a8b5a;
+    border-radius: 2px;
+}
+
+.permanent-label {
+    font-size: 11px;
+    color: #5a6a3a;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.permanent-text {
+    font-size: 14px;
+    color: #3d3429;
+}
+
+/* Results Section - Outcome Grid */
+.results-section {
+    background: #e8dcc4;
+    padding: 20px;
+    border-bottom: 1px solid #a68b6f;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.result-item {
+    text-align: center;
+}
+
+.result-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.result-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.result-negative {
+    color: #8b4726;
+}
+
+.result-positive {
+    color: #7a8b5a;
+}
+
+/* Continue Section */
+.continue-section {
+    padding: 20px;
+    background: #f4e8d0;
+    text-align: center;
+}
+
+.continue-message {
+    font-size: 13px;
+    color: #7a6250;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.continue-button {
+    padding: 12px 40px;
+    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+    border: 2px solid #5a6a3a;
+    border-radius: 4px;
+    color: #faf4ea;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.continue-button:hover {
+    background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.knowledge-note {
+    font-size: 11px;
+    color: #8b7355;
+    font-style: italic;
+    margin-top: 15px;
+}
+
+.knowledge-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: #d4a76a;
+    color: #2c241a;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 10px;
+    margin-right: 5px;
+}
+
+/* ========== DEAD-END SEGMENT STYLES (travel-dead-end.html) ========== */
+
+/* Blocked Banner - Red/Orange gradient */
+.blocked-banner {
+    background: linear-gradient(to bottom, #d4704a, #b4604a);
+    color: #faf4ea;
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 2px solid #8b4726;
+}
+
+.blocked-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.blocked-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Warning Icon - Circular badge */
+.warning-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: #faf4ea;
+    color: #8b4726;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Dead End Section */
+.deadend-section {
+    padding: 25px;
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.deadend-explanation {
+    background: #faf4ea;
+    border: 2px solid #d4704a;
+    border-radius: 4px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto 20px;
+}
+
+.explanation-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #3d3429;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+.requirements-title {
+    font-size: 13px;
+    color: #7a6250;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+/* Blocked Path Cards */
+.blocked-paths {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.path-card.blocked {
+    border-color: #d4704a;
+    background: #faf0e6;
+    opacity: 0.6;
+}
+
+.blocked-reason {
+    font-size: 12px;
+    color: #8b4726;
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+.blocked-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #d4704a;
+    color: #faf4ea;
+    padding: 4px 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.requirement-missing {
+    color: #d4704a;
+}
+
+/* Turn Back Section */
+.turnback-section {
+    padding: 20px;
+    background: #e8dcc4;
+    text-align: center;
+}
+
+.turnback-message {
+    font-size: 14px;
+    color: #5c4a3a;
+    margin-bottom: 15px;
+}
+
+/* Loss Summary - Stat display */
+.loss-summary {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 20px 0;
+    font-size: 13px;
+}
+
+.loss-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loss-label {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.loss-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #8b4726;
+}
+
+/* Turn Back Button - Red gradient */
+.turnback-button {
+    padding: 12px 40px;
+    background: linear-gradient(to bottom, #8b4726, #7b3716);
+    border: 2px solid #6b2706;
+    border-radius: 4px;
+    color: #faf4ea;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.turnback-button:hover {
+    background: linear-gradient(to bottom, #9b5736, #8b4726);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Alternative Routes Suggestion */
+.alternatives-section {
+    background: #f9f3e9;
+    padding: 15px 20px;
+    border-top: 1px solid #c4a684;
+}
+
+.alternatives-title {
+    font-size: 12px;
+    color: #7a6250;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.alternative-item {
+    font-size: 13px;
+    color: #5c4a3a;
+    padding: 8px;
+    background: #faf4ea;
+    border-left: 3px solid #7a8b5a;
+    margin-bottom: 8px;
+}
+
+.alternative-cost {
+    font-weight: bold;
+    color: #7a8b5a;
+}
+
+/* ========== ENCOUNTER SEGMENT STYLES (Mandatory Challenge) ========== */
+
+/* Encounter Banner - Purple/Combat gradient */
+.encounter-banner {
+    background: linear-gradient(to bottom, #8b5a8b, #6a4a6a);
+    color: #faf4ea;
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 2px solid #5a3a5a;
+}
+
+.encounter-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.encounter-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.encounter-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* Encounter State Bar */
+.encounter-state-bar {
+    background: #f9f3e9;
+    padding: 15px 20px;
+    border-bottom: 1px solid #c4a684;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Encounter Section */
+.encounter-section {
+    padding: 25px;
+    background: #f4e8d0;
+    border-bottom: 2px solid #a68b6f;
+}
+
+.encounter-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: #f0e8f0;
+    border: 2px solid #8b5a8b;
+    border-radius: 4px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto 20px;
+}
+
+.challenge-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.encounter-text {
+    flex: 1;
+}
+
+.encounter-primary {
+    font-size: 18px;
+    font-weight: bold;
+    color: #5c4a3a;
+    margin-bottom: 8px;
+}
+
+.encounter-secondary {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #3d3429;
+    font-style: italic;
+}
+
+/* Obstacle Display */
+.obstacle-display {
+    background: #faf4ea;
+    border: 3px solid #8b5a8b;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.obstacle-name {
+    background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
+    padding: 15px 20px;
+    border-bottom: 2px solid #8b5a8b;
+    font-size: 20px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.obstacle-description {
+    padding: 15px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #3d3429;
+    font-style: italic;
+    background: #fffaf5;
+    border-bottom: 1px solid #e8dcc4;
+}
+
+.obstacle-intensity {
+    padding: 10px 20px;
+    background: #f9f3e9;
+    border-bottom: 2px solid #c4a684;
+    font-size: 13px;
+    font-weight: bold;
+    color: #8b4726;
+    text-transform: uppercase;
+}
+
+/* Goals List */
+.goals-list {
+    padding: 20px;
+    background: #f4e8d0;
+}
+
+.goals-title {
+    font-size: 13px;
+    color: #7a6250;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.goal-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.goal-card:hover {
+    background: #fefaf0;
+    border-color: #8b5a8b;
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.goal-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.goal-system {
+    font-size: 11px;
+    color: #7a6250;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    background: #f9f3e9;
+    border-radius: 2px;
+}
+
+.goal-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #2c241a;
+    font-style: italic;
+}
+
+/* Encounter Actions */
+.encounter-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.encounter-button {
+    padding: 15px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.encounter-button.primary {
+    background: linear-gradient(to bottom, #8b5a8b, #6a4a6a);
+    border: 2px solid #5a3a5a;
+    color: #faf4ea;
+}
+
+.encounter-button.primary:hover {
+    background: linear-gradient(to bottom, #9b6a9b, #8b5a8b);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.encounter-button.secondary {
+    background: linear-gradient(to bottom, #8b4726, #7b3716);
+    border: 2px solid #6b2706;
+    color: #faf4ea;
+}
+
+.encounter-button.secondary:hover {
+    background: linear-gradient(to bottom, #9b5736, #8b4726);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.encounter-button-text {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.encounter-button-subtitle {
+    font-size: 11px;
+    opacity: 0.9;
 }
 

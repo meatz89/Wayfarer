@@ -13,8 +13,6 @@ public static class NPCParser
             throw new InvalidOperationException("NPC DTO missing required 'Id' field");
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
-        if (string.IsNullOrEmpty(dto.VenueId))
-            throw new InvalidOperationException($"NPC {dto.Id} missing required 'VenueId' field");
         if (string.IsNullOrEmpty(dto.LocationId))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
 
@@ -24,14 +22,11 @@ public static class NPCParser
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
-            Venue = dto.VenueId,
             LocationId = dto.LocationId,
             Tier = dto.Tier,
             Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
         };
-
-        Console.WriteLine($"[DEBUG] NPCParser: Parsing NPC {npc.ID} with venueId: '{dto.VenueId}'");
 
         // Parse profession with mapping from JSON values to enum
         if (string.IsNullOrEmpty(dto.Profession))
@@ -42,12 +37,9 @@ public static class NPCParser
         npc.PersonalityDescription = dto.Personality; // Optional field
 
         // Parse personalityType directly from DTO - NO FALLBACKS
-        Console.WriteLine($"[NPCParser] Parsing NPC '{npc.Name}' - personalityType from DTO: '{dto.PersonalityType}'");
-
         if (!string.IsNullOrEmpty(dto.PersonalityType) && Enum.TryParse<PersonalityType>(dto.PersonalityType, true, out PersonalityType parsedType))
         {
             npc.PersonalityType = parsedType;
-            Console.WriteLine($"[NPCParser] Successfully parsed PersonalityType: {parsedType} for {npc.Name}");
 
             // Initialize conversation modifier based on personality type
             npc.ConversationModifier = PersonalityModifier.CreateFromPersonalityType(parsedType);
@@ -104,84 +96,39 @@ public static class NPCParser
         {
             // These would be set during game initialization after player is created
             // For now, store the values to be applied later
-            npc.InitialTokenValues = new Dictionary<string, int>(dto.InitialTokens);
+            foreach (KeyValuePair<string, int> kvp in dto.InitialTokens)
+            {
+                npc.InitialTokenValues.Add(new InitialTokenValue
+                {
+                    TokenId = kvp.Key,
+                    Value = kvp.Value
+                });
+            }
         }
 
-        // Parse one-time requests
-        if (dto.Requests != null && dto.Requests.Count > 0)
+        // Parse obstacles for this NPC (Social barriers only)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
         {
-            foreach (NPCRequestDTO requestDto in dto.Requests)
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
             {
-                // CRITICAL: ConversationTypeId is REQUIRED for all NPCRequests
-                if (string.IsNullOrEmpty(requestDto.ConversationTypeId))
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
+
+                // Duplicate ID protection - prevent data corruption
+                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
                 {
-                    throw new InvalidOperationException($"NPCRequest '{requestDto.Id}' for NPC '{npc.ID}' has no conversationTypeId defined in JSON. All requests must specify a valid conversation type.");
+                    gameWorld.Obstacles.Add(obstacle);
+                    npc.ObstacleIds.Add(obstacle.Id);
                 }
-
-                GoalCard request = new GoalCard
+                else
                 {
-                    Id = requestDto.Id,
-                    Title = requestDto.Name,
-                    Description = requestDto.Description,
-                    SystemType = TacticalSystemType.Social,  // NPCRequests default to Social system
-                    ChallengeTypeId = requestDto.ConversationTypeId,  // Map old ConversationTypeId to new ChallengeTypeId
-                    Status = GoalStatus.Available
-                };
-
-                // Parse tiered goals if present
-                if (requestDto.Goals != null && requestDto.Goals.Count > 0)
-                {
-                    foreach (NPCRequestGoalDTO goalDto in requestDto.Goals)
-                    {
-                        // CRITICAL: CardId is REQUIRED - goals reference existing cards from _cards.json
-                        if (string.IsNullOrEmpty(goalDto.CardId))
-                        {
-                            throw new InvalidOperationException($"Goal '{goalDto.Id}' in request '{request.Id}' has no cardId defined in JSON. All goals must reference a card from _cards.json.");
-                        }
-
-                        NPCRequestGoal goal = new NPCRequestGoal
-                        {
-                            Id = goalDto.Id,
-                            CardId = goalDto.CardId, // Reference to card in _cards.json
-                            Name = goalDto.Name,
-                            Description = goalDto.Description,
-                            MomentumThreshold = goalDto.MomentumThreshold,
-                            Weight = goalDto.Weight,
-                            Rewards = ParseRequestRewards(goalDto.Rewards)
-                        };
-                        request.Goals.Add(goal);
-                    }
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in NPC '{npc.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
                 }
-
-                npc.Requests.Add(request);
             }
         }
 
         return npc;
-    }
-
-    /// <summary>
-    /// Parse request goal rewards from DTO
-    /// </summary>
-    private static NPCRequestRewards ParseRequestRewards(NPCRequestRewardDTO rewardsDto)
-    {
-        if (rewardsDto == null) return new NPCRequestRewards();
-
-        NPCRequestRewards rewards = new NPCRequestRewards
-        {
-            Coins = rewardsDto.Coins,
-            LetterId = rewardsDto.LetterId,
-            Obligation = rewardsDto.Obligation,
-            Item = rewardsDto.Item
-        };
-
-        // Parse token rewards
-        if (rewardsDto.Tokens != null && rewardsDto.Tokens.Count > 0)
-        {
-            rewards.Tokens = new Dictionary<string, int>(rewardsDto.Tokens);
-        }
-
-        return rewards;
     }
 
     private static Professions MapProfessionFromJson(string jsonProfession)
@@ -190,6 +137,7 @@ public static class NPCParser
         {
             "Craftsman" => Professions.Craftsman,
             "Merchant" => Professions.Merchant,
+            "General Merchant" => Professions.Merchant,
             "Innkeeper" => Professions.Innkeeper,
             "Soldier" => Professions.Soldier,
             "Guard" => Professions.Soldier, // Map Guard to Soldier
@@ -202,11 +150,10 @@ public static class NPCParser
             "Miller's Daughter" => Professions.Craftsman,
             "Village Elder" => Professions.Noble,
             "Farmer" => Professions.Craftsman,
+            "Warehouse Foreman" => Professions.Dock_Boss, // Manages warehouse workers and cargo
             _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
         };
     }
-
-
 
     private static ServiceTypes? MapServiceFromJson(string jsonService)
     {

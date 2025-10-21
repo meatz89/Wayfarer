@@ -7,7 +7,7 @@ using System.Text.Json;
 /// </summary>
 public class RouteValidator : BaseValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "id", "originLocationSpot", "destinationLocationSpot", "method", "travelTimeSegments", "baseCoinCost", "baseStaminaCost"
         };
@@ -22,52 +22,50 @@ public class RouteValidator : BaseValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Routes file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            int index = 0;
-            HashSet<string> routeIds = new HashSet<string>();
-
-            foreach (JsonElement routeElement in root.EnumerateArray())
-            {
-                ValidateRoute(routeElement, index, fileName, errors, routeIds);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate routes: {ex.Message}",
+                "Routes file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        int index = 0;
+        List<string> routeIds = new List<string>();
+
+        foreach (JsonElement routeElement in root.EnumerateArray())
+        {
+            ValidateRoute(routeElement, index, fileName, errors, routeIds);
+            index++;
         }
 
         return errors;
     }
 
     private void ValidateRoute(JsonElement route, int index, string fileName,
-        List<ValidationError> errors, HashSet<string> routeIds)
+        List<ValidationError> errors, List<string> routeIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string routeId = GetStringProperty(route, "id") ?? $"Route[{index}]";
 
         // Check for duplicate IDs
-        if (!string.IsNullOrEmpty(routeId) && !routeIds.Add(routeId))
+        if (!string.IsNullOrEmpty(routeId))
         {
-            errors.Add(new ValidationError(
-                $"{fileName}:{routeId}",
-                $"Duplicate route ID: {routeId}",
-                ValidationSeverity.Critical));
+            if (routeIds.Contains(routeId))
+            {
+                errors.Add(new ValidationError(
+                    $"{fileName}:{routeId}",
+                    $"Duplicate route ID: {routeId}",
+                    ValidationSeverity.Critical));
+            }
+            else
+            {
+                routeIds.Add(routeId);
+            }
         }
 
         // Check required fields

@@ -39,21 +39,8 @@
                         </div>
 
                         <div class="stranger-conversations">
-                            @foreach (var request in stranger.GetAvailableRequests())
-                            {
-                                bool canAfford = CanAffordConversation(request.Id);
-
-                                <div class="stranger-conversation @(canAfford ? "" : "unavailable")"
-                                     @onclick="async () => { if (canAfford) await StartStrangerConversation(stranger.ID, request.Id); }">
-                                    <div class="conversation-type">@request.Title</div>
-                                    <div class="conversation-details">
-                                        <span class="xp-gain">+@stranger.Level XP per card</span>
-                                    </div>
-                                    <div class="conversation-rewards">
-                                        @GetRewardsPreview(request)
-                                    </div>
-                                </div>
-                            }
+                            @* DEPRECATED: Strangers no longer have inline requests *@
+                            <div class="stranger-note">No conversations available (legacy code removed)</div>
                         </div>
                     }
                 </div>

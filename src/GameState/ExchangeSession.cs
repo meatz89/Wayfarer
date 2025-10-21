@@ -144,12 +144,6 @@ public class ExchangeSession
 
         CompletedExchanges.Add(completed);
 
-        // Mark single-use exchanges as completed in the underlying ExchangeData
-        if (exchange.ExchangeCard != null)
-        {
-            // TODO: Track completion in ExchangeData if needed
-        }
-
         // Clear active exchange
         ActiveExchangeId = "";
         CurrentPhase = ExchangePhase.Browsing;

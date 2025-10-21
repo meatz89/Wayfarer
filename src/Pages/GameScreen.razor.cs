@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
 /// 
@@ -22,12 +24,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
-    [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
+    [Inject] protected ObligationActivity ObligationActivity { get; set; }
 
     public GameScreenBase()
-    {
-        Console.WriteLine("[GameScreenBase] Constructor called");
-    }
+    { }
 
     // Screen Management
     protected ScreenMode CurrentScreen { get; set; } = ScreenMode.Location;
@@ -37,7 +37,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private Stack<ScreenContext> _navigationStack = new(10);
     private SemaphoreSlim _stateLock = new(1, 1);
-    private HashSet<IDisposable> _subscriptions = new();
+    private List<IDisposable> _subscriptions = new List<IDisposable>();
 
     // Resources Display - Made public for child components to access for Perfect Information principle
     public int Coins { get; set; }
@@ -54,7 +54,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
-    protected ObstacleContext CurrentObstacleContext { get; set; }
+    protected TravelObstacleContext CurrentObstacleContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
@@ -63,39 +63,28 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("[GameScreen] OnInitializedAsync started");
-
-        try
-        {
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
-            await base.OnInitializedAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[GameScreen] ERROR in OnInitializedAsync: {ex.Message}");
-            Console.WriteLine($"[GameScreen] Stack trace: {ex.StackTrace}");
-            throw;
-        }
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+        await base.OnInitializedAsync();
     }
 
     public async Task RefreshResourceDisplay()
     {
         if (GameFacade == null)
         {
-            Console.WriteLine("[GameScreen.RefreshResourceDisplay] GameFacade is null, skipping");
-            return;
+            throw new InvalidOperationException("GameFacade is required");
         }
 
-        Player? player = GameFacade.GetPlayer();
-        if (player != null)
+        Player player = GameFacade.GetPlayer();
+        if (player == null)
         {
-            Coins = player.Coins;
-            Health = player.Health;
-            Hunger = player.Hunger;
+            throw new InvalidOperationException("Player not found");
         }
 
+        Coins = player.Coins;
+        Health = player.Health;
+        Hunger = player.Hunger;
     }
 
     protected async Task RefreshTimeDisplay()
@@ -201,22 +190,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         if (!CanNavigateTo(newMode))
         {
-            Console.WriteLine($"[GameScreen] Cannot navigate from {CurrentScreen} to {newMode}");
             return;
         }
 
         if (!await _stateLock.WaitAsync(5000))
         {
-            Console.WriteLine("[GameScreen] State transition timeout");
             return;
         }
 
         try
         {
-            IsTransitioning = true;
-            Console.WriteLine($"[GameScreen] Navigating from {CurrentScreen} to {newMode}");
-
-            // Save current state
+            IsTransitioning = true;// Save current state
             ScreenContext currentContext = new ScreenContext
             {
                 Mode = CurrentScreen,
@@ -232,14 +216,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             // Transition
             PreviousScreen = CurrentScreen;
             CurrentScreen = newMode;
-            ContentVersion++;
-
-            Console.WriteLine($"[GameScreen] CurrentScreen set to: {CurrentScreen}, ContentVersion: {ContentVersion}");
-
-            await LoadStateForMode(newMode);
-            Console.WriteLine($"[GameScreen] About to call StateHasChanged, CurrentScreen is: {CurrentScreen}");
-            await InvokeAsync(StateHasChanged);
-            Console.WriteLine($"[GameScreen] StateHasChanged called, CurrentScreen is: {CurrentScreen}");
+            ContentVersion++; await LoadStateForMode(newMode); await InvokeAsync(StateHasChanged);
         }
         finally
         {
@@ -280,27 +257,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task HandleNavigation(string target)
     {
-        Console.WriteLine($"[GameScreen] HandleNavigation: {target}");
-
         switch (target.ToLower())
         {
             case "location":
                 await NavigateToScreen(ScreenMode.Location);
                 break;
-            case "obligationqueue":
-            case "obligations":
-            case "queue":
-                await NavigateToScreen(ScreenMode.ObligationQueue);
-                break;
             case "travel":
                 await NavigateToScreen(ScreenMode.Travel);
                 break;
         }
-    }
-
-    public async Task NavigateToQueue()
-    {
-        await NavigateToScreen(ScreenMode.ObligationQueue);
     }
 
     public async Task StartExchange(string npcId)
@@ -318,14 +283,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine("[GameScreen] Failed to create exchange context");
-        }
+        { }
     }
 
     protected async Task HandleExchangeEnd()
     {
-        Console.WriteLine("[GameScreen] Exchange ended");
         CurrentExchangeContext = null;
 
         // Always refresh UI after exchange ends
@@ -338,28 +300,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task ReturnToLocation()
     {
         await NavigateToScreen(ScreenMode.Location);
-    }
-
-    public async Task NavigateToDeckViewer(string npcId)
-    {
-        Console.WriteLine($"[GameScreen] Navigating to deck viewer for NPC: {npcId}");
-
-        // Store the NPC ID for the deck viewer to use
-        CurrentDeckViewerNpcId = npcId;
-
-        // Store the NPC ID in the context for the deck viewer to use
-        ScreenContext context = new ScreenContext
-        {
-            Mode = ScreenMode.DeckViewer,
-            EnteredAt = DateTime.Now,
-            StateData = new ScreenStateData
-            {
-                NpcId = npcId
-            }
-        };
-        _navigationStack.Push(context);
-
-        await NavigateToScreen(ScreenMode.DeckViewer);
     }
 
     public async Task StartConversationSession(string npcId, string goalId)
@@ -378,15 +318,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else if (CurrentSocialContext != null)
         {
-            // Show error message
-            Console.WriteLine($"[GameScreen] Cannot start conversation: {CurrentSocialContext.ErrorMessage}");
-            await InvokeAsync(StateHasChanged);
+            // Show error messageawait InvokeAsync(StateHasChanged);
         }
     }
 
     protected async Task HandleConversationEnd()
     {
-        Console.WriteLine("[GameScreen] Conversation ended");
         CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
@@ -394,8 +331,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         // Special case: allow navigation from conversation when it ends properly
         CurrentScreen = ScreenMode.Location;
@@ -403,18 +340,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
-        Console.WriteLine($"[GameScreen] Starting Mental session: {goalId}");
-
-        MentalSession session = GameFacade.StartMentalSession(challengeTypeId, locationSpotId, goalId, investigationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
-            ChallengeTypeId = challengeTypeId,
+            DeckId = deckId,
             Session = session,
             Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
@@ -431,14 +366,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine($"[GameScreen] {CurrentMentalContext.ErrorMessage}");
-        }
+        { }
     }
 
     public async Task HandleMentalEnd()
     {
-        Console.WriteLine("[GameScreen] Mental session ended");
         CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
@@ -446,26 +378,24 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
-        Console.WriteLine($"[GameScreen] Starting Physical session: {challengeTypeId}");
-
-        PhysicalSession session = GameFacade.StartPhysicalSession(challengeTypeId, locationSpotId, goalId, investigationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
-            ChallengeTypeId = challengeTypeId,
+            DeckId = deckId,
             Session = session,
             Venue = GameFacade.GetCurrentLocation(),
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
@@ -482,14 +412,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
         else
-        {
-            Console.WriteLine($"[GameScreen] {CurrentPhysicalContext.ErrorMessage}");
-        }
+        { }
     }
 
     public async Task HandlePhysicalEnd()
     {
-        Console.WriteLine("[GameScreen] Physical session ended");
         CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends
@@ -497,8 +424,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;
@@ -507,8 +434,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task HandleTravelRoute(string routeId)
     {
-        Console.WriteLine($"[GameScreen] Travel route selected: {routeId}");
-
         RouteOption route = GameFacade.GetRouteById(routeId);
 
         TravelIntent travelIntent = new TravelIntent(routeId);
@@ -526,16 +451,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleObstacleEnd(bool success)
-    {
-        Console.WriteLine($"[GameScreen] Obstacle ended - Success: {success}");
-
-        // If obstacle was successfully overcome, complete the pending travel
+    {// If obstacle was successfully overcome, complete the pending travel
         if (success && CurrentObstacleContext?.Route != null)
         {
-            string routeId = CurrentObstacleContext.Route.Id;
-            Console.WriteLine($"[GameScreen] Completing travel after obstacle success: {routeId}");
-
-            // Clear obstacle context before travel
+            string routeId = CurrentObstacleContext.Route.Id;// Clear obstacle context before travel
             CurrentObstacleContext = null;
 
             // Execute travel via intent system
@@ -550,9 +469,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else
         {
-            // Failed obstacle or no route - just return to location
-            Console.WriteLine("[GameScreen] Obstacle failed or no route - returning to location");
-            CurrentObstacleContext = null;
+            // Failed obstacle or no route - just return to locationCurrentObstacleContext = null;
 
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
@@ -573,6 +490,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
+        await CheckForObligationResults();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -647,7 +565,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected int GetTotalSegmentsInPeriod()
     {
-        return GameFacade?.GetSegmentsInCurrentPeriod() ?? 4;
+        if (GameFacade == null)
+        {
+            throw new InvalidOperationException("GameFacade is required");
+        }
+
+        return GameFacade.GetSegmentsInCurrentPeriod();
     }
 
     protected string GetStaminaDisplay()
@@ -674,106 +597,152 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         StateHasChanged();
     }
 
-    // Investigation Modals
-    protected bool _showInvestigationDiscoveryModal = false;
-    protected bool _showInvestigationActivationModal = false;
-    protected bool _showInvestigationProgressModal = false;
-    protected bool _showInvestigationCompleteModal = false;
-    protected InvestigationDiscoveryResult _investigationDiscoveryResult;
-    protected InvestigationActivationResult _investigationActivationResult;
-    protected InvestigationProgressResult _investigationProgressResult;
-    protected InvestigationCompleteResult _investigationCompleteResult;
+    // Obligation Modals
+    protected bool _showObligationDiscoveryModal = false;
+    protected bool _showObligationIntroModal = false;
+    protected bool _showObligationActivationModal = false;
+    protected bool _showObligationProgressModal = false;
+    protected bool _showObligationCompleteModal = false;
+    protected ObligationDiscoveryResult _obligationDiscoveryResult;
+    protected ObligationIntroResult _obligationIntroResult;
+    protected ObligationActivationResult _obligationActivationResult;
+    protected ObligationProgressResult _obligationProgressResult;
+    protected ObligationCompleteResult _obligationCompleteResult;
 
-    protected async Task CheckForInvestigationResults()
+    protected async Task CheckForObligationResults()
     {
-        InvestigationDiscoveryResult discoveryResult = InvestigationActivity.GetAndClearPendingDiscoveryResult();
+        ObligationDiscoveryResult discoveryResult = ObligationActivity.GetAndClearPendingDiscoveryResult();
         if (discoveryResult != null)
         {
-            _investigationDiscoveryResult = discoveryResult;
-            _showInvestigationDiscoveryModal = true;
+            _obligationDiscoveryResult = discoveryResult;
+            _showObligationDiscoveryModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationActivationResult activationResult = InvestigationActivity.GetAndClearPendingActivationResult();
+        ObligationIntroResult introResult = ObligationActivity.GetAndClearPendingIntroResult();
+        if (introResult != null)
+        {
+            _obligationIntroResult = introResult;
+            _showObligationIntroModal = true;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        ObligationActivationResult activationResult = ObligationActivity.GetAndClearPendingActivationResult();
         if (activationResult != null)
         {
-            _investigationActivationResult = activationResult;
-            _showInvestigationActivationModal = true;
+            _obligationActivationResult = activationResult;
+            _showObligationActivationModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationProgressResult progressResult = InvestigationActivity.GetAndClearPendingProgressResult();
+        ObligationProgressResult progressResult = ObligationActivity.GetAndClearPendingProgressResult();
         if (progressResult != null)
         {
-            _investigationProgressResult = progressResult;
-            _showInvestigationProgressModal = true;
+            _obligationProgressResult = progressResult;
+            _showObligationProgressModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationCompleteResult completeResult = InvestigationActivity.GetAndClearPendingCompleteResult();
+        ObligationCompleteResult completeResult = ObligationActivity.GetAndClearPendingCompleteResult();
         if (completeResult != null)
         {
-            _investigationCompleteResult = completeResult;
-            _showInvestigationCompleteModal = true;
+            _obligationCompleteResult = completeResult;
+            _showObligationCompleteModal = true;
             await InvokeAsync(StateHasChanged);
         }
     }
 
-    protected async Task CloseInvestigationActivationModal()
+    protected async Task CloseObligationActivationModal()
     {
-        _showInvestigationActivationModal = false;
-        _investigationActivationResult = null;
+        _showObligationActivationModal = false;
+        _obligationActivationResult = null;
         await InvokeAsync(StateHasChanged);
 
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
     }
 
-    protected async Task CloseInvestigationProgressModal()
+    protected async Task CloseObligationProgressModal()
     {
-        _showInvestigationProgressModal = false;
-        _investigationProgressResult = null;
+        _showObligationProgressModal = false;
+        _obligationProgressResult = null;
         await InvokeAsync(StateHasChanged);
 
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
     }
 
-    protected async Task CloseInvestigationCompleteModal()
+    protected async Task CloseObligationCompleteModal()
     {
-        _showInvestigationCompleteModal = false;
-        _investigationCompleteResult = null;
+        _showObligationCompleteModal = false;
+        _obligationCompleteResult = null;
         await InvokeAsync(StateHasChanged);
     }
 
-    public void ShowInvestigationDiscoveryModal(InvestigationDiscoveryResult discoveryResult)
+    public void ShowObligationDiscoveryModal(ObligationDiscoveryResult discoveryResult)
     {
-        _investigationDiscoveryResult = discoveryResult;
-        _showInvestigationDiscoveryModal = true;
+        _obligationDiscoveryResult = discoveryResult;
+        _showObligationDiscoveryModal = true;
         StateHasChanged();
     }
 
-    protected async Task BeginInvestigationIntro()
+    protected async Task BeginObligationIntro()
     {
-        _showInvestigationDiscoveryModal = false;
+        _showObligationDiscoveryModal = false;
 
-        string investigationId = _investigationDiscoveryResult.InvestigationId;
-        _investigationDiscoveryResult = null;
+        string obligationId = _obligationDiscoveryResult.ObligationId;
+        _obligationDiscoveryResult = null;
 
-        // Auto-open journal to show discovered investigation
+        // Activate obligation and spawn Phase 1 obstacle
+        ObligationActivity.CompleteIntroAction(obligationId);
+
+        // Refresh UI after activation
+        await RefreshLocationDisplay();
+
+        // Auto-open journal to show activated obligation
+        _showJournal = true;
+
+        // Check for activation modal
+        await CheckForObligationResults();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task DismissObligationDiscovery()
+    {
+        _showObligationDiscoveryModal = false;
+        _obligationDiscoveryResult = null;
+
+        // Auto-open journal to show discovered obligation
         _showJournal = true;
 
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task DismissInvestigationDiscovery()
+    protected async Task CloseObligationIntroModal()
     {
-        _showInvestigationDiscoveryModal = false;
-        _investigationDiscoveryResult = null;
+        _showObligationIntroModal = false;
+        _obligationIntroResult = null;
+        await InvokeAsync(StateHasChanged);
+    }
 
-        // Auto-open journal to show discovered investigation
-        _showJournal = true;
+    protected async Task CompleteObligationIntroAction()
+    {
+        _showObligationIntroModal = false;
+
+        string obligationId = _obligationIntroResult.ObligationId;
+        _obligationIntroResult = null;
+
+        // Activate obligation and spawn Phase 1 obstacle
+        GameFacade.CompleteObligationIntro(obligationId);
+
+        // Refresh UI after activation
+        await RefreshLocationDisplay();
+
+        // Check for activation modal
+        await CheckForObligationResults();
 
         await InvokeAsync(StateHasChanged);
     }
@@ -783,9 +752,7 @@ public enum ScreenMode
 {
     Location,
     Exchange,
-    ObligationQueue,
     Travel,
-    DeckViewer, // Dev mode screen for viewing NPC decks
     SocialChallenge,
     MentalChallenge,
     PhysicalChallenge

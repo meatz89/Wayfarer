@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -22,9 +23,9 @@ public class GameFacade
     private readonly ExchangeFacade _exchangeFacade;
     private readonly MentalFacade _mentalFacade;
     private readonly PhysicalFacade _physicalFacade;
-    private readonly InvestigationActivity _investigationActivity;
-    private readonly InvestigationDiscoveryEvaluator _investigationDiscoveryEvaluator;
-    private readonly KnowledgeService _knowledgeService;
+    private readonly CubeFacade _cubeFacade;
+    private readonly ObligationActivity _obligationActivity;
+    private readonly ObligationDiscoveryEvaluator _obligationDiscoveryEvaluator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -39,9 +40,9 @@ public class GameFacade
         ExchangeFacade exchangeFacade,
         MentalFacade mentalFacade,
         PhysicalFacade physicalFacade,
-        InvestigationActivity investigationActivity,
-        InvestigationDiscoveryEvaluator investigationDiscoveryEvaluator,
-        KnowledgeService knowledgeService)
+        CubeFacade cubeFacade,
+        ObligationActivity obligationActivity,
+        ObligationDiscoveryEvaluator obligationDiscoveryEvaluator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -55,9 +56,9 @@ public class GameFacade
         _exchangeFacade = exchangeFacade;
         _mentalFacade = mentalFacade;
         _physicalFacade = physicalFacade;
-        _investigationActivity = investigationActivity;
-        _investigationDiscoveryEvaluator = investigationDiscoveryEvaluator;
-        _knowledgeService = knowledgeService;
+        _cubeFacade = cubeFacade ?? throw new ArgumentNullException(nameof(cubeFacade));
+        _obligationActivity = obligationActivity;
+        _obligationDiscoveryEvaluator = obligationDiscoveryEvaluator;
     }
 
     // ========== CORE GAME STATE ==========
@@ -82,7 +83,6 @@ public class GameFacade
         return _messageSystem;
     }
 
-
     // ========== PLAYER STATS OPERATIONS ==========
 
     public PlayerStats GetPlayerStats()
@@ -96,72 +96,11 @@ public class GameFacade
         return _gameWorld.GetAvailableStrangers(venueId, currentTime);
     }
 
-    public SocialChallengeContext StartStrangerConversation(string strangerId)
-    {
-        // Find the stranger
-        NPC stranger = _gameWorld.GetStrangerById(strangerId);
-
-        if (stranger == null || !stranger.HasAvailableRequests())
-        {
-            return null;
-        }
-
-        // Get the first available request (strangers have single request)
-        GoalCard request = stranger.GetAvailableRequests().FirstOrDefault();
-        if (request == null || string.IsNullOrEmpty(request.ChallengeTypeId))
-        {
-            return null;
-        }
-
-        // THREE PARALLEL SYSTEMS: Get Social engagement type
-        if (!_gameWorld.SocialChallengeTypes.TryGetValue(request.ChallengeTypeId, out SocialChallengeType challengeType))
-        {
-            return null;
-        }
-
-        // Mark stranger as encountered
-        stranger.MarkAsEncountered();
-
-        // Create conversation context (goal cards now handle domain logic)
-        SocialChallengeContext context = new SocialChallengeContext
-        {
-            IsValid = true,
-            Npc = stranger,
-            NpcId = stranger.ID,
-            ConversationTypeId = challengeType.Id,  // Using SocialChallengeType
-            RequestId = request.Id,
-            RequestText = request.Description,
-            InitialState = ConnectionState.DISCONNECTED, // Strangers always start disconnected
-        };
-
-        return context;
-    }
-
-    public bool CanAffordStrangerConversation(string requestId)
-    {
-        // Find stranger with this request
-        foreach (NPC stranger in _gameWorld.GetAllStrangers())
-        {
-            GoalCard request = stranger.GetRequestById(requestId);
-            if (request != null && !string.IsNullOrEmpty(request.ChallengeTypeId))
-            {
-                // THREE PARALLEL SYSTEMS: Check if Social engagement type exists
-                if (_gameWorld.SocialChallengeTypes.ContainsKey(request.ChallengeTypeId))
-                {
-                    return true; // No attention cost check needed
-                }
-            }
-        }
-        return false;
-    }
-
-
-    public List<InvestigationApproach> GetAvailableInvestigationApproaches()
+    public List<ObligationApproach> GetAvailableObligationApproaches()
     {
         Player player = _gameWorld.GetPlayer();
         return _locationFacade.GetAvailableApproaches(player);
     }
-
 
     // ========== Venue OPERATIONS ==========
 
@@ -189,10 +128,10 @@ public class GameFacade
     {
         bool success = _locationFacade.MoveToSpot(spotName);
 
-        // Movement to new Venue may unlock investigation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
+        // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
         {
-            EvaluateInvestigationDiscovery();
+            EvaluateObligationDiscovery();
         }
 
         return success;
@@ -220,30 +159,8 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        List<NPCConversationOptions> npcConversationOptions = GetNPCConversationOptionsForCurrentLocation();
-        return _locationFacade.GetLocationScreen(npcConversationOptions);
-    }
-
-    private List<NPCConversationOptions> GetNPCConversationOptionsForCurrentLocation()
-    {
-        List<NPC> npcs = _locationFacade.GetNPCsAtCurrentSpot();
-        List<NPCConversationOptions> options = new List<NPCConversationOptions>();
-
-        foreach (NPC npc in npcs)
-        {
-            List<SocialChallengeOption> conversationOptions = _conversationFacade.GetAvailableConversationOptions(npc);
-            List<string> conversationTypeIds = conversationOptions.Select(opt => opt.ChallengeTypeId).Distinct().ToList();
-
-            options.Add(new NPCConversationOptions
-            {
-                NpcId = npc.ID,
-                NpcName = npc.Description,
-                AvailableTypes = conversationTypeIds,
-                CanAfford = true
-            });
-        }
-
-        return options;
+        // NPCs no longer have inline conversation options - goals are location-based in GameWorld.Goals
+        return _locationFacade.GetLocationScreen(new List<NPCConversationOptions>());
     }
 
     // ========== TIME OPERATIONS ==========
@@ -252,7 +169,6 @@ public class GameFacade
     {
         return _timeFacade.GetTimeInfo();
     }
-
 
     public string GetFormattedTimeDisplay()
     {
@@ -263,7 +179,6 @@ public class GameFacade
     {
         return _timeFacade.GetSegmentsInCurrentPeriod();
     }
-
 
     // ========== TRAVEL OPERATIONS ==========
 
@@ -362,7 +277,6 @@ public class GameFacade
                 if (destSpot != null)
                 {
                     player.CurrentLocation = destSpot;
-                    Console.WriteLine($"[GameFacade] Player moved to location: {destSpot.Id} at location: {destSpot.VenueId}");
                 }
             }
 
@@ -383,9 +297,16 @@ public class GameFacade
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Venue? destLocation = _gameWorld.WorldState.venues
-                    ?.FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
-                destinationName = destLocation?.Name ?? finalDestSpot.Name;
+                Venue? destLocation = _gameWorld.Venues
+                    .FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
+                if (destLocation != null)
+                {
+                    destinationName = destLocation.Name;
+                }
+                else if (!string.IsNullOrEmpty(finalDestSpot.Name))
+                {
+                    destinationName = finalDestSpot.Name;
+                }
             }
 
             _narrativeFacade.AddSystemMessage($"Traveled to {destinationName}", SystemMessageTypes.Info);
@@ -420,6 +341,100 @@ public class GameFacade
         return result;
     }
 
+    // ========== ACTION EXECUTION ==========
+
+    /// <summary>
+    /// Execute a PlayerAction by its strongly-typed enum.
+    /// Single dispatch point for all global player actions (Check Belongings, Wait).
+    /// </summary>
+    public async Task ExecutePlayerAction(PlayerActionType actionType)
+    {
+        switch (actionType)
+        {
+            case PlayerActionType.CheckBelongings:
+                // Navigate to equipment screen
+                // TODO: Add navigation when equipment screen is implemented
+                _messageSystem.AddSystemMessage("📦 Check Belongings - Equipment screen coming soon", SystemMessageTypes.Info);
+                break;
+
+            case PlayerActionType.Wait:
+                // Delegate to ResourceFacade for time progression
+                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                _resourceFacade.ExecuteWait();
+                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                ProcessTimeAdvancement(new TimeAdvancementResult
+                {
+                    OldTimeBlock = oldTimeBlock,
+                    NewTimeBlock = newTimeBlock,
+                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                    SegmentsAdvanced = 1
+                });
+                break;
+
+            case PlayerActionType.SleepOutside:
+                // Sleep rough without shelter: -2 Health, no recovery, no time advancement
+                Player player = _gameWorld.GetPlayer();
+                player.ModifyHealth(-2);
+                _messageSystem.AddSystemMessage(
+                    "You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-2 Health)",
+                    SystemMessageTypes.Warning);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Execute a LocationAction by its strongly-typed enum.
+    /// Single dispatch point for all location-specific actions (Travel, Rest, Work, Investigate).
+    /// </summary>
+    public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
+    {
+        switch (actionType)
+        {
+            case LocationActionType.Travel:
+                // Navigate to travel screen
+                // TODO: Add navigation when travel screen routing is updated
+                _messageSystem.AddSystemMessage("🚶 Travel - Use travel screen", SystemMessageTypes.Info);
+                break;
+
+            case LocationActionType.Rest:
+                // Delegate to ResourceFacade for recovery
+                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                _resourceFacade.ExecuteRest();
+                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                ProcessTimeAdvancement(new TimeAdvancementResult
+                {
+                    OldTimeBlock = oldTimeBlock,
+                    NewTimeBlock = newTimeBlock,
+                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                    SegmentsAdvanced = 1
+                });
+                break;
+
+            case LocationActionType.Work:
+                // Delegate to ResourceFacade for work rewards
+                await PerformWork();
+                break;
+
+            case LocationActionType.Investigate:
+                // Delegate to LocationFacade for familiarity gain
+                _locationFacade.InvestigateLocation(locationId);
+                _messageSystem.AddSystemMessage("🔍 Investigated location, gaining familiarity", SystemMessageTypes.Info);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
+        }
+
+        await Task.CompletedTask;
+    }
+
     // ========== CONVERSATION OPERATIONS ==========
 
     public SocialFacade GetConversationFacade()
@@ -430,15 +445,6 @@ public class GameFacade
     public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
     {
         return await _conversationFacade.CreateConversationContext(npcId, requestId);
-    }
-
-    public List<SocialChallengeOption> GetAvailableConversationOptions(string npcId)
-    {
-        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc == null)
-            return new List<SocialChallengeOption>();
-
-        return _conversationFacade.GetAvailableConversationOptions(npc);
     }
 
     /// <summary>
@@ -474,7 +480,7 @@ public class GameFacade
     /// </summary>
     public bool IsConversationActive()
     {
-        return _conversationFacade?.IsConversationActive() ?? false;
+        return _conversationFacade.IsConversationActive();
     }
 
     /// <summary>
@@ -502,30 +508,31 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Start a new Mental tactical session with specified engagement type
+    /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public MentalSession StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        if (!_gameWorld.MentalChallengeTypes.TryGetValue(challengeTypeId, out MentalChallengeType challengeType))
-            throw new InvalidOperationException($"MentalChallengeType {challengeTypeId} not found");
+        MentalChallengeDeck challengeDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
+        if (challengeDeck == null)
+            throw new InvalidOperationException($"MentalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, player);
+            .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
+        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId);
     }
 
     /// <summary>
-    /// Execute observe action in current Mental investigation
+    /// Execute observe action in current Mental obligation
     /// </summary>
-    public async Task<MentalTurnResult> ExecuteObserve(CardInstance card)
+    public async Task<MentalTurnResult> ExecuteObserve()
     {
         if (_mentalFacade == null)
             throw new InvalidOperationException("MentalFacade not available");
@@ -533,11 +540,11 @@ public class GameFacade
         if (!_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("No active mental session");
 
-        return await _mentalFacade.ExecuteObserve(card);
+        return await _mentalFacade.ExecuteObserve();
     }
 
     /// <summary>
-    /// Execute act action in current Mental investigation
+    /// Execute act action in current Mental obligation
     /// </summary>
     public async Task<MentalTurnResult> ExecuteAct(CardInstance card)
     {
@@ -551,7 +558,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// End the current mental investigation and return the outcome
+    /// End the current mental obligation and return the outcome
     /// </summary>
     public MentalOutcome EndMentalSession()
     {
@@ -564,7 +571,7 @@ public class GameFacade
     /// </summary>
     public bool IsMentalSessionActive()
     {
-        return _mentalFacade?.IsSessionActive() ?? false;
+        return _mentalFacade.IsSessionActive();
     }
 
     // ========== PHYSICAL TACTICAL SYSTEM OPERATIONS ==========
@@ -575,30 +582,31 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Start a new Physical tactical session with specified engagement type
+    /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string challengeTypeId, string locationSpotId, string goalId, string investigationId)
+    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        if (!_gameWorld.PhysicalChallengeTypes.TryGetValue(challengeTypeId, out PhysicalChallengeType challengeType))
-            throw new InvalidOperationException($"PhysicalChallengeType {challengeTypeId} not found");
+        PhysicalChallengeDeck challengeDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
+        if (challengeDeck == null)
+            throw new InvalidOperationException($"PhysicalChallengeDeck {deckId} not found");
 
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
-            .BuildDeckWithStartingHand(challengeType, player);
+            .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeType, deck, startingHand, goalId, investigationId);
+        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId);
     }
 
     /// <summary>
     /// Execute assess action in current Physical challenge
     /// </summary>
-    public async Task<PhysicalTurnResult> ExecuteAssess(CardInstance card)
+    public async Task<PhysicalTurnResult> ExecuteAssess()
     {
         if (_physicalFacade == null)
             throw new InvalidOperationException("PhysicalFacade not available");
@@ -606,7 +614,7 @@ public class GameFacade
         if (!_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("No active physical session");
 
-        return await _physicalFacade.ExecuteAssess(card);
+        return await _physicalFacade.ExecuteAssess();
     }
 
     /// <summary>
@@ -637,7 +645,7 @@ public class GameFacade
     /// </summary>
     public bool IsPhysicalSessionActive()
     {
-        return _physicalFacade?.IsSessionActive() ?? false;
+        return _physicalFacade.IsSessionActive();
     }
 
     public async Task<ExchangeContext> CreateExchangeContext(string npcId)
@@ -694,17 +702,18 @@ public class GameFacade
             },
             LocationInfo = new LocationInfo
             {
-                VenueId = currentSpot?.Id ?? "",
-                Name = currentLocation?.Name ?? "",
-                Description = currentLocation?.Description ?? ""
+                VenueId = currentSpot.Id,
+                Name = currentLocation.Name,
+                Description = currentLocation.Description
             },
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             PlayerTokens = npcTokens,
+            PlayerInventory = GetPlayerInventoryAsDictionary(),
             Session = new ExchangeSession
             {
                 NpcId = npcId,
-                VenueId = currentSpot?.Id ?? "",
+                VenueId = currentSpot.Id,
                 AvailableExchanges = availableExchanges
             }
         };
@@ -714,13 +723,7 @@ public class GameFacade
 
     // ========== NARRATIVE OPERATIONS ==========
 
-    public List<TakenObservation> GetTakenObservations()
-    {
-        // ARCHITECTURE: Observations are stored per-NPC, not globally
-        // This method returns empty as there's no global observation list
-        // Each NPC tracks their own observation cards in their ObservationDeck
-        return new List<TakenObservation>();
-    }
+    // ObservationDeck system eliminated - replaced by transparent resource competition
 
     // ========== GAME INITIALIZATION ==========
 
@@ -742,43 +745,31 @@ public class GameFacade
         // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
         {
-            Console.WriteLine($"[GameFacade.StartGameAsync] Game already started, skipping initialization");
             return;
         }
 
         // Initialize player at starting Venue from GameWorld initial conditions
         Player player = _gameWorld.GetPlayer();
-        string startingSpotId = _gameWorld.InitialLocationSpotId ?? "courtyard";
-        Location? startingSpot = _gameWorld.Locations.GetAllSpots().FirstOrDefault(s => s.Id == startingSpotId);
-        if (startingSpot != null)
+        string startingSpotId = _gameWorld.InitialLocationSpotId;
+        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
+        if (startingSpot == null)
+            throw new InvalidOperationException($"Invalid InitialLocationSpotId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
+
+        player.CurrentLocation = startingSpot;
+        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+
+        // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
+        // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
+
+        // Initialize time state from GameWorld initial conditions
+        if (_gameWorld.InitialTimeBlock.HasValue && _gameWorld.InitialSegment.HasValue)
         {
-            player.CurrentLocation = startingSpot;
-            Venue? startingLocation = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
-            Console.WriteLine($"[GameFacade.StartGameAsync] Player initialized at {startingLocation?.Name ?? "Unknown"} - {startingSpot.Name}");
-        }
-        else
-        {
-            Console.WriteLine($"[GameFacade.StartGameAsync] WARNING: Starting location '{startingSpotId}' not found!");
-        }
-
-        // Initialize player resources from GameWorld initial player config
-        if (_gameWorld.InitialPlayerConfig != null)
-        {
-            player.Coins = _gameWorld.InitialPlayerConfig.Coins ?? 20;
-            player.Health = _gameWorld.InitialPlayerConfig.Health ?? 10;
-            player.MaxHealth = _gameWorld.InitialPlayerConfig.MaxHealth ?? 10;
-            player.Hunger = _gameWorld.InitialPlayerConfig.Hunger ?? 0;
-            player.Stamina = _gameWorld.InitialPlayerConfig.StaminaPoints ?? 12;
-            player.MaxStamina = _gameWorld.InitialPlayerConfig.MaxStamina ?? 12;
-        }
-
-        Console.WriteLine($"[GameFacade.StartGameAsync] Player resources initialized - Coins: {player.Coins}, Health: {player.Health}, Stamina: {player.Stamina}, Hunger: {player.Hunger}");
-
-        // Initialize exchange inventories
-        _exchangeFacade.InitializeNPCExchanges();
-        Console.WriteLine($"[GameFacade.StartGameAsync] Exchange inventories initialized");
-
-        // Mark game as started
+            _timeFacade.SetInitialTimeState(
+                _gameWorld.InitialDay ?? 1,
+                _gameWorld.InitialTimeBlock.Value,
+                _gameWorld.InitialSegment.Value);
+        }// Initialize exchange inventories
+        _exchangeFacade.InitializeNPCExchanges();// Mark game as started
         _gameWorld.IsGameStarted = true;
 
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
@@ -838,7 +829,6 @@ public class GameFacade
         return false;
     }
 
-
     public ConnectionState GetNPCConnectionState(string npcId)
     {
         return ConnectionState.NEUTRAL;
@@ -849,12 +839,10 @@ public class GameFacade
         return _travelFacade.GetAvailableRoutesFromCurrentLocation();
     }
 
-
     public List<RouteOption> GetRoutesToDestination(string destinationId)
     {
         return new List<RouteOption>();
     }
-
 
     /// <summary>
     /// Get the LocationActionManager for managing location-specific actions.
@@ -866,12 +854,45 @@ public class GameFacade
 
     // ========== PRIVATE HELPERS ==========
 
+    /// <summary>
+    /// HIGHLANDER: THE ONLY place for processing time advancement side effects.
+    /// All time-based resource changes happen here (hunger, day transitions).
+    /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
+    /// </summary>
     private void ProcessTimeAdvancement(TimeAdvancementResult result)
     {
-        if (result.CrossedTimeBlock)
+        // HUNGER: +5 per segment (universal time cost)
+        // This is THE ONLY place hunger increases due to time
+        int hungerIncrease = result.SegmentsAdvanced * 5;
+        _resourceFacade.IncreaseHunger(hungerIncrease, "Time passes");
+
+        // DAY TRANSITION: Process dawn effects (NPC decay)
+        // Only when crossing into Morning (new day starts)
+        if (result.CrossedDayBoundary && result.NewTimeBlock == TimeBlocks.Morning)
         {
-            _resourceFacade.ProcessTimeBlockTransition(result.OldTimeBlock, result.NewTimeBlock);
+            _resourceFacade.ProcessDayTransition();
         }
+    }
+
+    /// <summary>
+    /// Converts player inventory to Dictionary format for ExchangeContext
+    /// Key: ItemId, Value: Quantity
+    /// </summary>
+    private Dictionary<string, int> GetPlayerInventoryAsDictionary()
+    {
+        Player player = _gameWorld.GetPlayer();
+        Dictionary<string, int> inventoryDict = new Dictionary<string, int>();
+
+        List<string> allItems = player.Inventory.GetAllItems();
+        List<string> uniqueItemIds = player.Inventory.GetItemIds();
+
+        foreach (string itemId in uniqueItemIds)
+        {
+            int count = player.Inventory.GetItemCount(itemId);
+            inventoryDict[itemId] = count;
+        }
+
+        return inventoryDict;
     }
 
     /// <summary>
@@ -879,7 +900,7 @@ public class GameFacade
     /// </summary>
     public District GetDistrictForLocation(string venueId)
     {
-        return _gameWorld.WorldState.GetDistrictForLocation(venueId);
+        return _gameWorld.GetDistrictForLocation(venueId);
     }
 
     /// <summary>
@@ -887,15 +908,15 @@ public class GameFacade
     /// </summary>
     public Region GetRegionForDistrict(string districtId)
     {
-        return _gameWorld.WorldState.GetRegionForDistrict(districtId);
+        return _gameWorld.GetRegionForDistrict(districtId);
     }
 
     /// <summary>
-    /// Gets all locations in WorldState
+    /// Gets all locations in GameWorld
     /// </summary>
     public List<Venue> GetAllLocations()
     {
-        return _gameWorld.WorldState.venues;
+        return _gameWorld.Venues;
     }
 
     /// <summary>
@@ -903,9 +924,8 @@ public class GameFacade
     /// </summary>
     public District GetDistrictById(string districtId)
     {
-        return _gameWorld.WorldState.Districts.FirstOrDefault(d => d.Id == districtId);
+        return _gameWorld.Districts.FirstOrDefault(d => d.Id == districtId);
     }
-
 
     // ============================================
     // DEBUG COMMANDS
@@ -1037,7 +1057,7 @@ public class GameFacade
 
         if (health != 0)
         {
-            player.Health = Math.Clamp(player.Health + health, 0, 100);
+            player.Health = Math.Clamp(player.Health + health, 0, player.MaxHealth);
             _messageSystem.AddSystemMessage($"Health {(health > 0 ? "+" : "")}{health} (now {player.Health})", SystemMessageTypes.Success);
         }
 
@@ -1059,7 +1079,7 @@ public class GameFacade
             return;
         }
 
-        Venue? venue = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null)
         {
             _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);
@@ -1072,51 +1092,55 @@ public class GameFacade
         _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
     }
 
-    // ========== INVESTIGATION SYSTEM ==========
+    // ========== OBLIGATION SYSTEM ==========
 
     /// <summary>
-    /// Evaluate and trigger investigation discovery based on current player state
+    /// Evaluate and trigger obligation discovery based on current player state
     /// Called when player moves to new location/location, gains knowledge, items, or accepts obligations
-    /// Discovered investigations will have their intro goals added to the appropriate location
+    /// Discovered obligations will have their intro goals added to the appropriate location
     /// and discovery modals will be triggered via pending results
     /// </summary>
-    public void EvaluateInvestigationDiscovery()
+    public void EvaluateObligationDiscovery()
     {
-        Player player = _gameWorld.GetPlayer();
-        Console.WriteLine($"[InvestigationDiscovery] Evaluating discovery - Potential investigations: {_gameWorld.InvestigationJournal.PotentialInvestigationIds.Count}, Player at location: {player.CurrentLocation?.Id ?? "NULL"}");
+        Player player = _gameWorld.GetPlayer();// Evaluate which obligations can be discovered
+        List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations(player);// For each discovered obligation, trigger discovery flow
+        foreach (Obligation obligation in discoverable)
+        {// DiscoverObligation moves Potential→Discovered and spawns intro goal at location
+            // No return value - goal is added directly to Location.ActiveGoals
+            _obligationActivity.DiscoverObligation(obligation.Id);
 
-        // Evaluate which investigations can be discovered
-        List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);
-        Console.WriteLine($"[InvestigationDiscovery] Found {discoverable.Count} discoverable investigations");
-
-        // For each discovered investigation, trigger discovery flow
-        foreach (Investigation investigation in discoverable)
-        {
-            Console.WriteLine($"[InvestigationDiscovery] Discovering investigation '{investigation.Name}' (ID: {investigation.Id})");
-
-            // DiscoverInvestigation moves Potential→Discovered and returns intro LocationGoal
-            ChallengeGoal introGoal = _investigationActivity.DiscoverInvestigation(investigation.Id);
-
-            // Add intro goal directly to the location (Locations are the only entity that matters)
-            LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == investigation.IntroAction.LocationId);
-            if (spotEntry != null)
-            {
-                if (spotEntry.location.Goals == null)
-                    spotEntry.location.Goals = new List<ChallengeGoal>();
-                spotEntry.location.Goals.Add(introGoal);
-                Console.WriteLine($"[InvestigationDiscovery] Added intro goal to location '{spotEntry.location.Id}' ({spotEntry.location.Name})");
-            }
-            else
-            {
-                Console.WriteLine($"[InvestigationDiscovery] ERROR: Could not find location '{investigation.IntroAction.LocationId}' to add intro goal!");
-            }
-
-            // Pending discovery result is now set in InvestigationActivity
+            // Pending discovery result is now set in ObligationActivity
             // GameScreen will check for it and display the modal
 
             // Only handle one discovery at a time for POC
             break;
         }
+    }
+
+    /// <summary>
+    /// Complete obligation intro action - activates obligation and spawns Phase 1
+    /// RPG quest acceptance pattern: Player clicks button → Obligation activates immediately
+    /// </summary>
+    public void CompleteObligationIntro(string obligationId)
+    {
+        _obligationActivity.CompleteIntroAction(obligationId);
+    }
+
+    /// <summary>
+    /// Set pending intro action - prepares quest acceptance modal
+    /// RPG quest acceptance: Button → Modal → "Begin" → Activate
+    /// </summary>
+    public void SetPendingIntroAction(string obligationId)
+    {
+        _obligationActivity.SetPendingIntroAction(obligationId);
+    }
+
+    /// <summary>
+    /// Get pending intro result for modal display
+    /// </summary>
+    public ObligationIntroResult GetPendingIntroResult()
+    {
+        return _obligationActivity.GetAndClearPendingIntroResult();
     }
 
     /// <summary>

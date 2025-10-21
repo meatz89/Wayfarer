@@ -47,7 +47,7 @@ public static class SocialCardParser
         }
 
         // Parse depth (required for template derivation)
-        CardDepth depth = CardDepth.Depth1;
+        CardDepth depth = CardDepth.Depth1; // Default to Depth1 if missing
         if (dto.Depth.HasValue)
         {
             depth = (CardDepth)dto.Depth.Value;
@@ -131,9 +131,6 @@ public static class SocialCardParser
             }
         }
 
-        // Parse NPC-specific targeting
-        string npcSpecific = dto.NpcSpecific;
-
         // All effects now use EffectFormula system
         // FORMULA-BASED EFFECT SYSTEM
         CardEffectFormula effectFormula;
@@ -146,11 +143,7 @@ public static class SocialCardParser
         if (effectFormula == null)
         {
             throw new InvalidOperationException($"No effect formula found for card '{dto.Id}' with move {move.Value} stat {boundStat.Value} depth {(int)depth}!");
-        }
-
-        Console.WriteLine($"[ConversationCardParser] Card '{dto.Id}' using {move.Value} formula: {effectFormula}");
-
-        // Parse Delivery property (NEW: Controls cadence on SPEAK)
+        }// Parse Delivery property (NEW: Controls cadence on SPEAK)
         DeliveryType delivery = DeliveryType.Standard; // Default
         if (!string.IsNullOrEmpty(dto.Delivery))
         {
@@ -162,6 +155,14 @@ public static class SocialCardParser
             }
         }
 
+        // VALIDATION: Title is REQUIRED field (100% frequency in JSON)
+        if (string.IsNullOrEmpty(dto.Title))
+        {
+            throw new InvalidOperationException(
+                $"MISSING REQUIRED FIELD: SocialCard '{dto.Id}' missing required field 'title'. " +
+                $"Check Content/Core/08_social_cards.json");
+        }
+
         // Auto-assign traits based on effect formula (NOT from JSON)
         List<CardTrait> traits = DeriveTraitsFromEffect(effectFormula);
 
@@ -169,7 +170,7 @@ public static class SocialCardParser
         return new SocialCard
         {
             Id = dto.Id,
-            Title = dto.Title ?? "",
+            Title = dto.Title,
             TokenType = tokenType,
             Depth = depth,
             InitiativeCost = initiativeCost,
@@ -181,16 +182,12 @@ public static class SocialCardParser
             PersonalityTypes = dto.PersonalityTypes != null ? new List<string>(dto.PersonalityTypes) : new List<string>(),
             DialogueText = dto.DialogueText,
             VerbPhrase = "",
-            MinimumTokensRequired = dto.MinimumTokensRequired ?? 0,
-            MomentumThreshold = dto.MomentumThreshold ?? 0,
+            MomentumThreshold = dto.MomentumThreshold ?? 0, // Optional - defaults to 0 if missing
             BoundStat = boundStat,
             RequiredStat = requiredStat,
             RequiredStatements = requiredStatements,
             Traits = traits,
-            TokenRequirements = tokenRequirements,
-            NpcSpecific = npcSpecific,
-            KnowledgeGranted = dto.KnowledgeGranted ?? new List<string>(),
-            SecretsGranted = dto.SecretsGranted ?? new List<string>()
+            TokenRequirements = tokenRequirements
         };
     }
 
@@ -213,17 +210,12 @@ public static class SocialCardParser
 
         if (!foundationCards.Any())
         {
-            Console.WriteLine("[ConversationCardParser] WARNING: No Foundation cards (depth 1-2) found");
             return;
         }
 
         // Report Foundation card distribution (no arbitrary percentage requirement)
         int echoFoundationCount = foundationCards.Count(c => c.Persistence == PersistenceType.Echo);
-        decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;
-
-        Console.WriteLine($"[ConversationCardParser] Foundation cards: {foundationCards.Count}, Echo: {echoFoundationCount} ({echoPercentage:P1}), Statement: {foundationCards.Count - echoFoundationCount} ({(1 - echoPercentage):P1})");
-
-        // Report on card distribution (no strict validation)
+        decimal echoPercentage = (decimal)echoFoundationCount / foundationCards.Count;// Report on card distribution (no strict validation)
         // Cards can be Echo or Statement based on narrative weight, not mechanical requirements
         List<SocialCard> cunningCards = allCards
             .Where(c => c.BoundStat == PlayerStatType.Cunning)
@@ -231,9 +223,6 @@ public static class SocialCardParser
 
         int cunningEcho = cunningCards.Count(c => c.Persistence == PersistenceType.Echo);
         int cunningStatement = cunningCards.Count(c => c.Persistence == PersistenceType.Statement);
-
-        Console.WriteLine($"[ConversationCardParser] ✓ Card validation passed. " +
-                         $"Cunning cards: {cunningCards.Count} total ({cunningEcho} Echo, {cunningStatement} Statement)");
     }
 
     /// <summary>

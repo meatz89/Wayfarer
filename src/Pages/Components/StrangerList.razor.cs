@@ -34,36 +34,14 @@ namespace Wayfarer.Pages.Components
             {
                 // Get current Venue if not specified
                 Venue currentLocation = GameFacade.GetCurrentLocation();
-                VenueId = currentLocation?.Id;
+                if (currentLocation == null)
+                {
+                    throw new InvalidOperationException("Current location not found");
+                }
+                VenueId = currentLocation.Id;
             }
 
-            if (!string.IsNullOrEmpty(VenueId))
-            {
-                AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
-            }
-            else
-            {
-                AvailableStrangers = new List<NPC>();
-            }
-        }
-
-        protected async Task StartStrangerConversation(string strangerId, string conversationType)
-        {
-            // For now, use the simpler approach - start conversation without specific type
-            SocialChallengeContext context = GameFacade.StartStrangerConversation(strangerId);
-            if (context != null)
-            {
-                RefreshStrangers();
-                await OnActionExecuted.InvokeAsync();
-            }
-            else
-            {
-                NPC stranger = AvailableStrangers.FirstOrDefault(s => s.ID == strangerId);
-                string strangerName = stranger?.Name ?? "stranger";
-                GameFacade.GetMessageSystem().AddSystemMessage(
-                    $"Unable to start conversation with {strangerName}. They may be unavailable or you lack the required resources.",
-                    SystemMessageTypes.Warning);
-            }
+            AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
         }
 
         protected bool CanAffordConversation(string requestId)
@@ -110,6 +88,11 @@ namespace Wayfarer.Pages.Components
 
         protected string GetConversationTypeDisplay(string conversationType)
         {
+            if (conversationType == null)
+            {
+                throw new InvalidOperationException("Conversation type is required");
+            }
+
             return conversationType switch
             {
                 "friendly_chat" => "Friendly Chat",
@@ -120,24 +103,32 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(GoalCard request)
+        protected string GetRewardsPreview(Goal goal)
         {
-            if (request?.Rewards == null || !request.Rewards.Any())
+            if (goal?.GoalCards == null || !goal.GoalCards.Any())
+            {
+                return "Experience and insights";
+            }
+
+            // Show first goal card's rewards as preview
+            GoalCard firstGoalCard = goal.GoalCards.First();
+            GoalCardRewards rewards = firstGoalCard.Rewards;
+
+            if (rewards == null)
             {
                 return "Experience and insights";
             }
 
             List<string> rewardTexts = new List<string>();
-            GoalReward reward = request.Rewards.First(); // Show first tier reward as preview
 
-            if (reward.Coins > 0)
-                rewardTexts.Add($"{reward.Coins} coins");
-            if (reward.Health > 0)
-                rewardTexts.Add($"+{reward.Health} health");
-            if (reward.Food > 0)
-                rewardTexts.Add($"+{reward.Food} food");
-            if (!string.IsNullOrEmpty(reward.Item))
-                rewardTexts.Add(reward.Item);
+            if (rewards.Coins.HasValue && rewards.Coins.Value > 0)
+                rewardTexts.Add($"{rewards.Coins.Value} coins");
+            if (rewards.Progress.HasValue && rewards.Progress.Value > 0)
+                rewardTexts.Add($"+{rewards.Progress.Value} progress");
+            if (rewards.Breakthrough.HasValue && rewards.Breakthrough.Value > 0)
+                rewardTexts.Add($"+{rewards.Breakthrough.Value} breakthrough");
+            if (!string.IsNullOrEmpty(rewards.Item))
+                rewardTexts.Add(rewards.Item);
 
             return rewardTexts.Any() ? string.Join(", ", rewardTexts) : "Experience and insights";
         }

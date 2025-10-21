@@ -1,0 +1,43 @@
+@inherits LandingBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="location-landing-view">
+    <div class="section-header">What do you do?</div>
+    <div class="actions-grid">
+        @* HIGH-LEVEL NAVIGATION CHOICES (3-5 options) *@
+
+        <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.LookingAround)">
+            <div class="action-name">Look Around</div>
+            <div class="action-detail">See who's here and what's happening - people, challenges, opportunities</div>
+        </div>
+
+        @* REMOVED: "Examine Location" - consolidated into Look Around *@
+
+        @if (HasSpots)
+        {
+            <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.Spots)">
+                <div class="action-name">Move to Another Spot</div>
+                <div class="action-detail">Explore other areas in @CurrentLocationName</div>
+            </div>
+        }
+
+        @* Travel actions from location *@
+        @foreach (var action in TravelActions)
+        {
+            <div class="action-card travel" @onclick="async () => await OnExecuteLocationAction.InvokeAsync(action)">
+                <div class="action-name">@action.Title</div>
+                <div class="action-detail">@action.Detail</div>
+            </div>
+        }
+
+        @* Player actions (global actions like check belongings) *@
+        @foreach (var action in PlayerActions)
+        {
+            <div class="action-card" @onclick="async () => await OnExecuteLocationAction.InvokeAsync(action)">
+                <div class="action-name">@action.Title</div>
+                <div class="action-detail">@action.Detail</div>
+            </div>
+        }
+    </div>
+</div>

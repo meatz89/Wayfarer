@@ -68,44 +68,56 @@
         </div>
     }
 
-    <!-- Investigation Discovery Modal -->
-    @if (_showInvestigationDiscoveryModal && _investigationDiscoveryResult != null)
+    <!-- Obligation Discovery Modal -->
+    @if (_showObligationDiscoveryModal && _obligationDiscoveryResult != null)
     {
-        <div class="modal-overlay" @onclick="DismissInvestigationDiscovery">
+        <div class="modal-overlay" @onclick="DismissObligationDiscovery">
             <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationDiscoveryModal Data="@_investigationDiscoveryResult"
-                                           OnBeginIntro="BeginInvestigationIntro"
-                                           OnDismiss="DismissInvestigationDiscovery" />
+                <ObligationDiscoveryModal Data="@_obligationDiscoveryResult"
+                                           OnBeginIntro="BeginObligationIntro"
+                                           OnDismiss="DismissObligationDiscovery" />
             </div>
         </div>
     }
 
-    <!-- Investigation Activation Modal -->
-    @if (_showInvestigationActivationModal && _investigationActivationResult != null)
+    <!-- Obligation Intro Modal -->
+    @if (_showObligationIntroModal && _obligationIntroResult != null)
     {
-        <div class="modal-overlay" @onclick="CloseInvestigationActivationModal">
+        <div class="modal-overlay" @onclick="CloseObligationIntroModal">
             <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationActivationModal Data="@_investigationActivationResult" OnClose="CloseInvestigationActivationModal" />
+                <ObligationIntroModal Data="@_obligationIntroResult"
+                                        OnBegin="CompleteObligationIntroAction"
+                                        OnDismiss="CloseObligationIntroModal" />
             </div>
         </div>
     }
 
-    <!-- Investigation Progress Modal -->
-    @if (_showInvestigationProgressModal && _investigationProgressResult != null)
+    <!-- Obligation Activation Modal -->
+    @if (_showObligationActivationModal && _obligationActivationResult != null)
     {
-        <div class="modal-overlay" @onclick="CloseInvestigationProgressModal">
+        <div class="modal-overlay" @onclick="CloseObligationActivationModal">
             <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationProgressModal Data="@_investigationProgressResult" OnClose="CloseInvestigationProgressModal" />
+                <ObligationActivationModal Data="@_obligationActivationResult" OnClose="CloseObligationActivationModal" />
             </div>
         </div>
     }
 
-    <!-- Investigation Complete Modal -->
-    @if (_showInvestigationCompleteModal && _investigationCompleteResult != null)
+    <!-- Obligation Progress Modal -->
+    @if (_showObligationProgressModal && _obligationProgressResult != null)
     {
-        <div class="modal-overlay" @onclick="CloseInvestigationCompleteModal">
+        <div class="modal-overlay" @onclick="CloseObligationProgressModal">
             <div class="modal-content" @onclick:stopPropagation>
-                <InvestigationCompleteModal Data="@_investigationCompleteResult" OnClose="CloseInvestigationCompleteModal" />
+                <ObligationProgressModal Data="@_obligationProgressResult" OnClose="CloseObligationProgressModal" />
+            </div>
+        </div>
+    }
+
+    <!-- Obligation Complete Modal -->
+    @if (_showObligationCompleteModal && _obligationCompleteResult != null)
+    {
+        <div class="modal-overlay" @onclick="CloseObligationCompleteModal">
+            <div class="modal-content" @onclick:stopPropagation>
+                <ObligationCompleteModal Data="@_obligationCompleteResult" OnClose="CloseObligationCompleteModal" />
             </div>
         </div>
     }
@@ -126,10 +138,6 @@
                     <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
                     break;
                     
-                case ScreenMode.ObligationQueue:
-                    <ObligationQueueContent OnNavigate="HandleNavigation" ReturnView="@PreviousScreen" />
-                    break;
-                    
                 case ScreenMode.Travel:
                     <TravelContent 
                         CurrentLocation="@GetCurrentLocation()"
@@ -137,10 +145,6 @@
                         OnNavigate="HandleNavigation" />
                     break;
                     
-                case ScreenMode.DeckViewer:
-                    <NPCDeckViewer />
-                    break;
-
                 case ScreenMode.SocialChallenge:
                     <ConversationContent Context="@CurrentSocialContext" OnConversationEnd="HandleConversationEnd" />
                     break;

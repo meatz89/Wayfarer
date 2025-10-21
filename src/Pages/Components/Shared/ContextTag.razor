@@ -1,0 +1,83 @@
+@namespace Wayfarer.Pages.Components.Shared
+@*
+Context Tag - Visual badge for obstacle/equipment contexts
+Color-coded by domain (Physical, Mental, Social)
+*@
+
+<span class="context-tag @DomainClass @(IsMatch ? "match" : "") @(IsHighlight ? "highlight" : "")"
+      title="@ContextName @(IsMatch ? "(Equipment Matches!)" : "")">
+    @ContextName
+</span>
+
+@code {
+    [Parameter] public string ContextName { get; set; }
+    [Parameter] public bool IsMatch { get; set; } = false;
+    [Parameter] public bool IsHighlight { get; set; } = false;
+
+    private string DomainClass
+    {
+        get
+        {
+            // Physical contexts
+            if (IsPhysicalContext(ContextName))
+                return "context-physical";
+
+            // Mental contexts
+            if (IsMentalContext(ContextName))
+                return "context-mental";
+
+            // Social contexts
+            if (IsSocialContext(ContextName))
+                return "context-social";
+
+            // Environmental contexts
+            if (IsEnvironmentalContext(ContextName))
+                return "context-environmental";
+
+            return "context-utility";
+        }
+    }
+
+    private bool IsPhysicalContext(string context)
+    {
+        return context switch
+        {
+            "climbing" or "water" or "strength" or "precision" or "endurance" or "cold" or
+            "height" or "securing" or "water_hazard" or "heights" or "descent_required" or
+            "blocked_entry" or "wooden_barrier" or "force_required" or "locked_door" or
+            "secure_entry" or "stealth_required" or "rough_terrain" or "uneven_ground" or
+            "rocky_path" => true,
+            _ => false
+        };
+    }
+
+    private bool IsMentalContext(string context)
+    {
+        return context switch
+        {
+            "darkness" or "mechanical" or "spatial" or "deduction" or "search" or
+            "pattern" or "memory" or "low_visibility" or "underground" or
+            "night_obligation" => true,
+            _ => false
+        };
+    }
+
+    private bool IsSocialContext(string context)
+    {
+        return context switch
+        {
+            "authority" or "persuasion" or "intimidation" or "empathy" or
+            "negotiation" or "etiquette" => true,
+            _ => false
+        };
+    }
+
+    private bool IsEnvironmentalContext(string context)
+    {
+        return context switch
+        {
+            "cold_weather" or "wet_conditions" or "rain" or "exposure" => true,
+            _ => false
+        };
+    }
+}

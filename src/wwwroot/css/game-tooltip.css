@@ -246,20 +246,3 @@
     font-size: 12px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .game-tooltip {
-        max-width: 250px;
-        min-width: 150px;
-    }
-
-    .tooltip-content {
-        padding: 10px 14px;
-        font-size: 10px;
-    }
-
-    .action-tooltip .tooltip-content {
-        min-width: 180px;
-        padding: 12px 16px;
-    }
-}

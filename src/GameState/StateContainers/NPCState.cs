@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-
 /// <summary>
 /// Immutable state container for NPC data.
 /// All modifications must go through operations/commands.
@@ -13,7 +12,6 @@ public sealed class NPCState
     public string Name { get; }
     public string Role { get; }
     public string Description { get; }
-    public string Venue { get; }
     public string LocationId { get; }
 
     // Categorical Properties
@@ -26,8 +24,7 @@ public sealed class NPCState
         string name,
         string role,
         string description,
-        string location,
-        string LocationId,
+        string locationId,
         Professions profession,
         IEnumerable<ServiceTypes> providedServices,
         NPCRelationship playerRelationship)
@@ -36,10 +33,9 @@ public sealed class NPCState
         Name = name;
         Role = role;
         Description = description;
-        Venue = location;
-        LocationId = LocationId;
+        LocationId = locationId;
         Profession = profession;
-        ProvidedServices = providedServices?.ToImmutableList() ?? ImmutableList<ServiceTypes>.Empty;
+        ProvidedServices = providedServices == null ? ImmutableList<ServiceTypes>.Empty : providedServices.ToImmutableList();
         PlayerRelationship = playerRelationship;
     }
 
@@ -49,17 +45,17 @@ public sealed class NPCState
     public NPCState WithRelationship(NPCRelationship relationship)
     {
         return new NPCState(
-        ID, Name, Role, Description, Venue, LocationId,
+        ID, Name, Role, Description, LocationId,
         Profession, ProvidedServices, relationship);
     }
 
     /// <summary>
     /// Creates a new NPCState with updated location.
     /// </summary>
-    public NPCState WithLocation(string newLocation, string newSpotId)
+    public NPCState WithLocation(string newSpotId)
     {
         return new NPCState(
-        ID, Name, Role, Description, newLocation, newSpotId,
+        ID, Name, Role, Description, newSpotId,
         Profession, ProvidedServices, PlayerRelationship);
     }
 
@@ -69,7 +65,7 @@ public sealed class NPCState
     public NPCState WithAddedService(ServiceTypes service)
     {
         return new NPCState(
-        ID, Name, Role, Description, Venue, LocationId,
+        ID, Name, Role, Description, LocationId,
         Profession, ProvidedServices.Add(service), PlayerRelationship);
     }
 
@@ -83,7 +79,6 @@ public sealed class NPCState
             npc.Name,
             npc.Role,
             npc.Description,
-            npc.Venue,
             npc.LocationId,
             npc.Profession,
             npc.ProvidedServices,

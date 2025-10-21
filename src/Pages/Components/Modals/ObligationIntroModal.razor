@@ -1,0 +1,29 @@
+@inherits ObligationIntroModalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="obligation-notification-container">
+    <div class="obligation-header" style="background: linear-gradient(to bottom, @GetHeaderColor(), @GetHeaderColorLight()); border-bottom: 2px solid @GetBorderColor();">
+        <div class="obligation-icon">🔍</div>
+        <div class="obligation-title-section">
+            <div class="obligation-main-title">Begin Obligation</div>
+            <div class="obligation-subtitle">@Data.ObligationName</div>
+        </div>
+    </div>
+
+    <div class="obligation-discovery-section">
+        <div class="discovery-narrative">@Data.IntroNarrative</div>
+
+        @if (!string.IsNullOrEmpty(Data.LocationName))
+        {
+            <div class="intro-action-hint">
+                <div class="hint-icon">→</div>
+                <div class="hint-text">Available at: <span style="font-weight: bold; color: @GetHeaderColor();">@Data.LocationName - @Data.SpotName</span></div>
+            </div>
+        }
+    </div>
+
+    <div class="action-section discovery-actions" style="padding: 20px;">
+        <button class="continue-button primary-action" @onclick="BeginObligation">@Data.IntroActionText</button>
+        <button class="secondary-action dismiss-button" @onclick="DismissModal">Not Now</button>
+    </div>
+</div>

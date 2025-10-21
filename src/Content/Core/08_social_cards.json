@@ -847,33 +847,6 @@
           "ALL"
         ],
         "delivery": "Standard"
-      },
-      {
-        "id": "elena_basic_delivery",
-        "title": "Letter Delivery",
-        "dialogueText": "I'll deliver your letter to Lord Blackwood before sunset",
-        "type": "Request",
-        "momentumThreshold": 8,
-        "persistence": "Statement",
-        "delivery": "Standard"
-      },
-      {
-        "id": "elena_enhanced_delivery",
-        "title": "Letter + Safety Escort",
-        "dialogueText": "I'll deliver the letter and escort you to safety",
-        "type": "Request",
-        "momentumThreshold": 12,
-        "persistence": "Statement",
-        "delivery": "Standard"
-      },
-      {
-        "id": "elena_premium_delivery",
-        "title": "Complete Protection",
-        "dialogueText": "I'll deliver the letter, escort you to safety, and provide additional protection",
-        "type": "Request",
-        "momentumThreshold": 16,
-        "persistence": "Statement",
-        "delivery": "Standard"
       }
     ]
   }

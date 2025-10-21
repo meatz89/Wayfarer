@@ -30,7 +30,10 @@ public class LocationActionManager
     /// </summary>
     public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
     {
-        if (venue == null || location == null) return new List<LocationActionViewModel>();
+        if (venue == null)
+            throw new ArgumentNullException(nameof(venue));
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
         // Get dynamic actions from GameWorld data
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
@@ -56,7 +59,8 @@ public class LocationActionManager
 
         // Get the location to check its properties
         Location location = _gameWorld.GetLocation(LocationId);
-        if (location == null) return actions;
+        if (location == null)
+            throw new InvalidOperationException($"Location not found: {LocationId}");
 
         // Get actions that match this location's properties
         List<LocationAction> availableActions = _gameWorld.LocationActions
@@ -66,11 +70,11 @@ public class LocationActionManager
             .ThenBy(action => action.Name)
             .ToList();
 
-        foreach (LocationAction? action in availableActions)
+        foreach (LocationAction action in availableActions)
         {
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
-                ActionType = action.ActionType ?? action.Id,
+                ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
                 Title = action.Name,
                 Detail = action.Description,
                 Cost = GetCostDisplay(action.Cost),
@@ -111,7 +115,6 @@ public class LocationActionManager
     {
         Player player = _gameWorld.GetPlayer();
 
-
         // Check coin cost
         if (action.Cost.ContainsKey("coins"))
         {
@@ -126,9 +129,10 @@ public class LocationActionManager
     /// </summary>
     public List<LocationActionViewModel> GenerateLocationActions(Location location)
     {
-        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
-        if (location == null) return actions;
+        List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
@@ -190,10 +194,9 @@ public class LocationActionManager
             foreach (ServiceTypes service in npc.ProvidedServices)
             {
                 LocationActionViewModel serviceAction = GenerateServiceAction(service, npc);
-                if (serviceAction != null)
-                {
-                    actions.Add(serviceAction);
-                }
+                if (serviceAction == null)
+                    throw new InvalidOperationException($"Unsupported service type: {service}");
+                actions.Add(serviceAction);
             }
         }
 
@@ -236,7 +239,7 @@ public class LocationActionManager
                 };
 
             default:
-                return null;
+                throw new InvalidOperationException($"Unsupported service type: {service}");
         }
     }
 
@@ -251,7 +254,7 @@ public class LocationActionManager
         return property switch
         {
             LocationPropertyType.Commercial => "Market closed at this hour",
-            _ => null
+            _ => throw new InvalidOperationException($"Unsupported property type: {property}")
         };
     }
 
@@ -293,13 +296,15 @@ public class LocationActionManager
         return true;
     }
 
-
     /// <summary>
     /// Check if a specific action is available at the current location.
     /// </summary>
     public bool IsActionAvailable(string actionType, Location location)
     {
-        if (string.IsNullOrEmpty(actionType) || location == null) return false;
+        if (string.IsNullOrEmpty(actionType))
+            throw new ArgumentException("Action type cannot be null or empty", nameof(actionType));
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
         List<LocationActionViewModel> actions = GetLocationActions(null, location);
         return actions.Any(a => a.ActionType.Equals(actionType, StringComparison.OrdinalIgnoreCase) && a.IsAvailable);
@@ -322,7 +327,6 @@ public class LocationActionManager
         };
     }
 
-
     /// <summary>
     /// Get display name for tactical system type
     /// </summary>
@@ -339,41 +343,12 @@ public class LocationActionManager
 
     /// <summary>
     /// Evaluate goal prerequisites
+    /// GoalRequirements system eliminated - goals always visible, difficulty varies via DifficultyModifiers
+    /// Boolean gate elimination: No more hiding goals based on equipment/knowledge/stats
     /// </summary>
-    private bool EvaluateGoalPrerequisites(ChallengeGoal goal, Player player, string currentVenueId)
+    private bool EvaluateGoalPrerequisites(Goal goal, Player player, string currentVenueId)
     {
-        if (goal.Requirements == null) return true;
-
-        foreach (string knowledgeId in goal.Requirements.RequiredKnowledge)
-        {
-            if (!player.Knowledge.HasKnowledge(knowledgeId))
-                return false;
-        }
-
-        foreach (string equipmentId in goal.Requirements.RequiredEquipment)
-        {
-            if (!player.Inventory.HasItem(equipmentId))
-                return false;
-        }
-
-        if (goal.Requirements.MinimumLocationFamiliarity > 0)
-        {
-            int familiarity = player.GetLocationFamiliarity(currentVenueId);
-            if (familiarity < goal.Requirements.MinimumLocationFamiliarity)
-                return false;
-        }
-
-        foreach (string requiredGoalId in goal.Requirements.CompletedGoals)
-        {
-            // Search across all location goals (Locations are the only entity that matters)
-            ChallengeGoal requiredGoal = _gameWorld.Locations
-                .SelectMany(spotEntry => spotEntry.location.Goals ?? new List<ChallengeGoal>())
-                .FirstOrDefault(g => g.Id == requiredGoalId);
-
-            if (requiredGoal == null || !requiredGoal.IsCompleted)
-                return false;
-        }
-
+        // Goals always visible - difficulty adjusts based on DifficultyModifiers instead
         return true;
     }
 }

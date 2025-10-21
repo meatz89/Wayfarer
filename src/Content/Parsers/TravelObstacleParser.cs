@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-
 public class TravelObstacleParser
 {
     public TravelObstacle ParseTravelObstacle(TravelObstacleDTO dto)
@@ -41,15 +40,8 @@ public class TravelObstacleParser
             StaminaRequired = dto.StaminaRequired
         };
 
-        if (dto.KnowledgeRequirements != null)
-        {
-            approach.KnowledgeRequirements = ParseKnowledgeRequirement(dto.KnowledgeRequirements);
-        }
-
-        if (dto.EquipmentRequirements != null)
-        {
-            approach.EquipmentRequirements = ParseEquipmentRequirement(dto.EquipmentRequirements);
-        }
+        // Knowledge system eliminated - no knowledge requirements
+        // EquipmentRequirement system eliminated - no equipment gates
 
         if (dto.StatRequirements != null)
         {
@@ -83,8 +75,8 @@ public class TravelObstacleParser
             Description = dto.Description,
             TimeSegmentCost = dto.TimeSegmentCost,
             StaminaCost = dto.StaminaCost,
-            HealthChange = dto.HealthChange,
-            KnowledgeGained = dto.KnowledgeGained ?? new List<string>()
+            HealthChange = dto.HealthChange
+            // Knowledge system eliminated - no knowledge rewards
         };
 
         if (dto.RouteImprovement != null)
@@ -105,21 +97,4 @@ public class TravelObstacleParser
         };
     }
 
-    private KnowledgeRequirement ParseKnowledgeRequirement(KnowledgeRequirementDTO dto)
-    {
-        return new KnowledgeRequirement
-        {
-            RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
-            RequiredSecrets = dto.RequiredSecrets ?? new List<string>()
-        };
-    }
-
-    private EquipmentRequirement ParseEquipmentRequirement(EquipmentRequirementDTO dto)
-    {
-        return new EquipmentRequirement
-        {
-            RequiredEquipment = dto.RequiredEquipment ?? new List<string>(),
-            RequiredActions = dto.RequiredActions ?? new List<string>()
-        };
-    }
 }

@@ -7,6 +7,11 @@ public class MentalChallengeDeckDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string Description { get; set; }
+    public int DangerThreshold { get; set; }
+    public int? FocusCost { get; set; }
+    public int InitialHandSize { get; set; }
+    public int MaxHandSize { get; set; }
     public List<string> CardIds { get; set; } = new List<string>();
 
     public MentalChallengeDeck ToDomain()
@@ -15,7 +20,12 @@ public class MentalChallengeDeckDTO
         {
             Id = Id,
             Name = Name,
-            CardIds = CardIds ?? new List<string>()
+            Description = Description,
+            DangerThreshold = DangerThreshold,
+            FocusCost = FocusCost,
+            InitialHandSize = InitialHandSize,
+            MaxHandSize = MaxHandSize,
+            CardIds = CardIds // DTO has inline init, trust it
         };
     }
 }

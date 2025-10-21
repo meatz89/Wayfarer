@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Public facade for all travel-related operations.
@@ -10,28 +11,28 @@ public class TravelFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly RouteManager _routeManager;
-    private readonly RouteDiscoveryManager _routeDiscoveryManager;
     private readonly PermitValidator _permitValidator;
     private readonly TravelTimeCalculator _travelTimeCalculator;
     private readonly TravelManager _travelManager;
     private readonly MessageSystem _messageSystem;
+    private readonly ItemRepository _itemRepository;
 
     public TravelFacade(
         GameWorld gameWorld,
         RouteManager routeManager,
-        RouteDiscoveryManager routeDiscoveryManager,
         PermitValidator permitValidator,
         TravelTimeCalculator travelTimeCalculator,
         TravelManager travelManager,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        ItemRepository itemRepository)
     {
         _gameWorld = gameWorld;
         _routeManager = routeManager;
-        _routeDiscoveryManager = routeDiscoveryManager;
         _permitValidator = permitValidator;
         _travelTimeCalculator = travelTimeCalculator;
         _travelManager = travelManager;
         _messageSystem = messageSystem;
+        _itemRepository = itemRepository;
     }
 
     // ========== ROUTE OPERATIONS ==========
@@ -53,18 +54,20 @@ public class TravelFacade
         {
             // Extract Venue ID from destination location (format: venueId.spotName)
             string venueId = route.DestinationLocationSpot.Split('.')[0];
-            Venue? destination = _gameWorld.WorldState.venues.FirstOrDefault(l => l.Id == venueId);
+            Venue? destination = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
             if (destination != null)
             {
-                bool canTravel = IsRouteDiscovered(route.Id);
+                // Core Loop: All routes physically exist and are visible from game start
+                // Can travel unless missing permits
+                bool hasPermit = _permitValidator.HasRequiredPermit(route);
 
                 destinations.Add(new TravelDestinationViewModel
                 {
                     VenueId = destination.Id,
                     LocationName = destination.Name,
-                    Description = destination.Description ?? "",
-                    CanTravel = canTravel,
-                    CannotTravelReason = !canTravel ? "Route not discovered" : null,
+                    Description = destination.Description,
+                    CanTravel = hasPermit,
+                    CannotTravelReason = !hasPermit ? "Missing required permits" : null,
                     MinimumCost = CalculateTravelCost(route, TravelMethods.Walking),
                     MinimumTime = route.TravelTimeSegments,
                     IsCurrent = false,
@@ -76,19 +79,9 @@ public class TravelFacade
         return destinations;
     }
 
-    public List<RouteOption> GetDiscoveredRoutes()
-    {
-        return _routeManager.GetDiscoveredRoutes();
-    }
-
     public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
     {
         return _routeManager.GetRouteBetweenLocations(fromVenueId, toVenueId);
-    }
-
-    public bool IsRouteDiscovered(string routeId)
-    {
-        return _routeManager.IsRouteDiscovered(routeId);
     }
 
     // ========== TRAVEL OPERATIONS ==========
@@ -195,34 +188,6 @@ public class TravelFacade
         };
     }
 
-    // ========== DISCOVERY OPERATIONS ==========
-
-    public bool AttemptRouteDiscovery(string toVenueId)
-    {
-        Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
-        {
-            return false;
-        }
-        return _routeDiscoveryManager.AttemptRouteDiscovery(currentVenueId, toVenueId);
-    }
-
-    public List<RouteOption> GetUndiscoveredRoutes()
-    {
-        return _routeDiscoveryManager.GetUndiscoveredRoutesFromCurrentLocation();
-    }
-
-    public DiscoveryProgressInfo GetDiscoveryProgress()
-    {
-        return _routeDiscoveryManager.GetDiscoveryProgress();
-    }
-
-    public bool CanExploreFromCurrentLocation()
-    {
-        return _routeDiscoveryManager.CanExploreFromCurrentLocation();
-    }
-
     // ========== PERMIT OPERATIONS ==========
 
     public bool HasRequiredPermit(RouteOption route)
@@ -282,14 +247,11 @@ public class TravelFacade
         List<TravelMethods> methods = new List<TravelMethods> { TravelMethods.Walking }; // Always can walk
 
         // Check for unlocked transport methods
-        if (player.UnlockedTravelMethods != null)
+        foreach (string method in player.UnlockedTravelMethods)
         {
-            foreach (string method in player.UnlockedTravelMethods)
+            if (Enum.TryParse<TravelMethods>(method, out TravelMethods travelMethod))
             {
-                if (Enum.TryParse<TravelMethods>(method, out TravelMethods travelMethod))
-                {
-                    methods.Add(travelMethod);
-                }
+                methods.Add(travelMethod);
             }
         }
 
@@ -299,12 +261,8 @@ public class TravelFacade
     public void UnlockTransportMethod(TravelMethods method)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.UnlockedTravelMethods == null)
-        {
-            player.UnlockedTravelMethods = new List<string>();
-        }
-
         string methodName = method.ToString();
+
         if (!player.UnlockedTravelMethods.Contains(methodName))
         {
             player.UnlockedTravelMethods.Add(methodName);
@@ -493,7 +451,8 @@ public class TravelFacade
 
         // Delegate to TravelManager to actually start the journey
         // TravelManager will create the session and set up initial state
-        return true;
+        TravelSession session = _travelManager.StartJourney(routeId);
+        return session != null;
     }
 
     /// <summary>
@@ -659,7 +618,7 @@ public class TravelFacade
     /// </summary>
     private RouteOption GetRouteById(string routeId)
     {
-        return _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == routeId);
+        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>
@@ -685,6 +644,60 @@ public class TravelFacade
     public bool FinishRoute()
     {
         return _travelManager.FinishRoute();
+    }
+
+    /// <summary>
+    /// Resolve pending obstacle after player completes obstacle goals
+    /// Called after obstacle intensity reaches 0
+    /// </summary>
+    public bool ResolveObstacle(string obstacleId)
+    {
+        return _travelManager.ResolveObstacle(obstacleId);
+    }
+
+    // ========== CORE LOOP: PATH FILTERING ==========
+
+    /// <summary>
+    /// Get available paths for route segment (filtered by exploration cubes)
+    /// <summary>
+    /// Calculate obstacle intensity after equipment reductions
+    /// Uses equipment contexts to reduce base intensity
+    /// </summary>
+    private int CalculateObstacleIntensityWithEquipment(Obstacle obstacle, Player player)
+    {
+        int baseIntensity = obstacle.Intensity;
+        int totalReduction = 0;
+
+        foreach (ObstacleContext context in obstacle.Contexts)
+        {
+            int contextReduction = GetContextReductionFromEquipment(context, player);
+            totalReduction += contextReduction;
+        }
+
+        int finalIntensity = Math.Max(0, baseIntensity - totalReduction);
+        return finalIntensity;
+    }
+
+    /// <summary>
+    /// Get total intensity reduction for a context from player equipment
+    /// </summary>
+    private int GetContextReductionFromEquipment(ObstacleContext context, Player player)
+    {
+        int totalReduction = 0;
+
+        foreach (string itemId in player.Inventory.GetAllItems())
+        {
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                Item item = _itemRepository.GetItemById(itemId);
+                if (item is Equipment equipment && equipment.MatchesContext(context))
+                {
+                    totalReduction += equipment.IntensityReduction;
+                }
+            }
+        }
+
+        return totalReduction;
     }
 }
 

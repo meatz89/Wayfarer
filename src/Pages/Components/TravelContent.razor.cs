@@ -42,9 +42,12 @@ namespace Wayfarer.Pages.Components
         protected RouteViewModel SelectedRoute { get; set; }
         protected TravelContext CurrentTravelContext { get; set; }
 
+        // Properties for template display
+        protected Player CurrentPlayer => GameFacade.GetPlayer();
+        protected TimeBlocks CurrentTimeBlock => TimeManager.GetCurrentTimeBlock();
+
         protected override async Task OnInitializedAsync()
         {
-            Console.WriteLine("[TravelContent] OnInitializedAsync called");
             LoadTravelState();
         }
 
@@ -68,9 +71,12 @@ namespace Wayfarer.Pages.Components
         private void LoadAvailableRoutes()
         {
             Venue currentLoc = GameFacade.GetCurrentLocation();
-            if (currentLoc == null) return;
-
-            List<RouteOption> routes = GameFacade.GetAvailableRoutes();
+            if (currentLoc == null)
+            {
+                return;
+            }
+            List<RouteOption> routes = GameFacade.GetAvailableRoutes(); foreach (RouteOption route in routes)
+            { }
 
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
@@ -106,14 +112,22 @@ namespace Wayfarer.Pages.Components
         {
             // Get the actual Venue location from GameWorld to find its name
             Location location = GameFacade.GetLocationSpot(destinationSpotId);
-            return location?.Name ?? destinationSpotId;
+            if (location == null)
+            {
+                throw new InvalidOperationException($"Location spot not found: {destinationSpotId}");
+            }
+
+            return location.Name;
         }
 
         private string GetDestinationDistrict(string destinationSpotId)
         {
             // Get all locations from GameFacade
             List<Venue> locations = GameFacade.GetAllLocations();
-            if (locations == null) return "City Center";
+            if (locations == null)
+            {
+                throw new InvalidOperationException("Locations not found from facade");
+            }
 
             // Find the venue containing this location
             foreach (Venue venue in locations)
@@ -206,11 +220,7 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Add tags based on access requirements
-            if (route.AccessRequirement != null)
-            {
-                tags.Add("RESTRICTED");
-            }
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             // Add tags based on transport method
             if (route.Method == TravelMethods.Walking)
@@ -255,13 +265,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Tier requirements removed - all routes accessible
-
-            // Add access requirements if any
-            if (route.AccessRequirement != null)
-            {
-                // Add specific access requirement descriptions based on the AccessRequirement
-                requirements.Add("Special access required");
-            }
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             return requirements;
         }
@@ -407,6 +411,27 @@ namespace Wayfarer.Pages.Components
                 "RESTRICTED" => "tag-restricted",
                 _ => "tag-public"
             };
+        }
+
+        /// <summary>
+        /// Get segment dots for time display (4 dots per time block)
+        /// </summary>
+        protected List<string> GetSegmentDotClasses()
+        {
+            List<string> dotClasses = new List<string>();
+            int segmentsInBlock = 4 - TimeManager.SegmentsRemainingInBlock;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (i < segmentsInBlock)
+                    dotClasses.Add("segment-dot filled");
+                else if (i == segmentsInBlock)
+                    dotClasses.Add("segment-dot current");
+                else
+                    dotClasses.Add("segment-dot");
+            }
+
+            return dotClasses;
         }
 
         /// <summary>

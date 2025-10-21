@@ -6,7 +6,7 @@
     Lockpicking,
 
     // Intellectual skills
-    Investigation,
+    Obligation,
     Perception,
     Strategy,
 

@@ -1,0 +1,28 @@
+@inherits ObligationDiscoveryModalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="obligation-notification-container">
+    <div class="obligation-header discovery-header">
+        <div class="obligation-icon">🔍</div>
+        <div class="obligation-title-section">
+            <div class="obligation-main-title">Obligation Discovered</div>
+            <div class="obligation-subtitle">@Data.ObligationName</div>
+        </div>
+    </div>
+
+    <div class="obligation-discovery-section">
+        <div class="discovery-narrative">@Data.IntroNarrative</div>
+        @if (!string.IsNullOrEmpty(Data.LocationName))
+        {
+            <div class="location-hint">
+                <div class="hint-icon">→</div>
+                <div class="hint-text">Available at: <span class="location-highlight">@Data.LocationName - @Data.SpotName</span></div>
+            </div>
+        }
+    </div>
+
+    <div class="action-section discovery-actions">
+        <button class="continue-button primary-action" @onclick="BeginIntroAction">@Data.IntroActionText</button>
+        <button class="dismiss-button secondary-action" @onclick="DismissModal">Not Now</button>
+    </div>
+</div>

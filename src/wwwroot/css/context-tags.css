@@ -1,0 +1,83 @@
+/* Context Tags CSS
+   Color-coded badges for obstacle/equipment contexts
+   Domain-specific coloring (Physical, Mental, Social, Environmental, Utility) */
+
+.context-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 2px 4px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+/* Physical contexts - Red/Orange */
+.context-tag.context-physical {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border-color: #c0392b;
+}
+
+/* Mental contexts - Purple */
+.context-tag.context-mental {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    border-color: #8e44ad;
+}
+
+/* Social contexts - Blue */
+.context-tag.context-social {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border-color: #2980b9;
+}
+
+/* Environmental contexts - Teal */
+.context-tag.context-environmental {
+    background: linear-gradient(135deg, #16a085, #1abc9c);
+    color: white;
+    border-color: #16a085;
+}
+
+/* Utility contexts - Gray */
+.context-tag.context-utility {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+    border-color: #7f8c8d;
+}
+
+/* Match indicator - equipment matches this context */
+.context-tag.match {
+    box-shadow: 0 0 12px rgba(46, 204, 113, 0.8);
+    border-color: #27ae60;
+    border-width: 3px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Highlight state */
+.context-tag.highlight {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Context tags list container */
+.context-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.context-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}

@@ -52,7 +52,7 @@ public class SocialChallengeState
     /// Conversation beats that have occurred.
     /// Used to track progression and prevent repetition.
     /// </summary>
-    public HashSet<ConversationBeat> CompletedBeats { get; set; } = new HashSet<ConversationBeat>();
+    public List<ConversationBeat> CompletedBeats { get; set; } = new List<ConversationBeat>();
 
     /// <summary>
     /// Number of turns spent at current topic layer.

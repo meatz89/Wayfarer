@@ -70,11 +70,6 @@ public class AINarrativeProvider : INarrativeProvider
             // Timeout - use fallback
             npcResponse = string.Empty;
         }
-        catch
-        {
-            // AI generation failed - use fallback
-            npcResponse = string.Empty;
-        }
 
         // Step 4: Parse NPC response into structured output
         NarrativeOutput output = ParseAIResponse(npcResponse, activeCards, state);
@@ -114,42 +109,25 @@ public class AINarrativeProvider : INarrativeProvider
         CardCollection activeCards,
         string npcDialogue)
     {
-        Console.WriteLine($"[AIProvider] GenerateCardNarrativesAsync called with {activeCards.Cards.Count} cards");
         List<CardNarrative> cardNarratives = new List<CardNarrative>();
 
         if (string.IsNullOrEmpty(npcDialogue))
-        {
-            Console.WriteLine("[AIProvider] No NPC dialogue - using fallback card narratives");
-            // Return fallback narratives if no NPC dialogue
+        {// Return fallback narratives if no NPC dialogue
             return GenerateFallbackCardNarratives(activeCards, state.Momentum);
         }
 
         // Build prompt for card generation
-        string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue);
-        Console.WriteLine($"[AIProvider] Card generation prompt built, length: {cardPrompt.Length}");
-
-        try
+        string cardPrompt = promptBuilder.BuildBatchCardGenerationPrompt(state, npcData, activeCards, npcDialogue); try
         {
             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token);
-            Console.WriteLine($"[AIProvider] AI card response received, length: {cardResponse?.Length ?? 0}");
-
-            if (!string.IsNullOrEmpty(cardResponse))
+            string cardResponse = await GenerateAIResponseAsync(cardPrompt, cts.Token); if (!string.IsNullOrEmpty(cardResponse))
             {
                 // Parse the card narratives from AI response
                 cardNarratives = ParseCardNarrativesAsList(cardResponse, activeCards);
-                Console.WriteLine($"[AIProvider] Parsed {cardNarratives.Count} card narratives from AI response");
             }
         }
         catch (OperationCanceledException)
-        {
-            Console.WriteLine("[AIProvider] Card generation timed out - using fallback");
-            // Timeout - use fallback
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[AIProvider] Card generation failed: {ex.Message}");
-            // AI generation failed - use fallback
+        {// Timeout - use fallback
         }
 
         // Fill in any missing card narratives with fallbacks
@@ -178,22 +156,11 @@ public class AINarrativeProvider : INarrativeProvider
     /// <returns>True if AI provider can generate content, false otherwise</returns>
     public async Task<bool> IsAvailableAsync()
     {
-        try
-        {
-            // Properly await the async operation instead of blocking
-            bool isAvailable = await ollamaClient.CheckHealthAsync();
-            if (!isAvailable)
-            {
-                Console.WriteLine("[AIConversationNarrativeProvider] Health check returned false");
-            }
-            return isAvailable;
-        }
-        catch (Exception ex)
-        {
-            // Any exception means provider is not available
-            Console.WriteLine($"[AIConversationNarrativeProvider] Health check exception: {ex.Message}");
-            return false;
-        }
+        // Properly await the async operation instead of blocking
+        bool isAvailable = await ollamaClient.CheckHealthAsync();
+        if (!isAvailable)
+        { }
+        return isAvailable;
     }
 
     /// <summary>
@@ -207,23 +174,13 @@ public class AINarrativeProvider : INarrativeProvider
 
     private async Task<string> GenerateAIResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        Console.WriteLine($"[AIProvider] GenerateAIResponseAsync called, prompt length: {prompt?.Length ?? 0}");
         StringBuilder responseBuilder = new StringBuilder();
 
-        try
+        await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
         {
-            await foreach (string token in ollamaClient.StreamCompletionAsync(prompt).WithCancellation(cancellationToken))
-            {
-                responseBuilder.Append(token);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[AIProvider] GenerateAIResponseAsync error: {ex.Message}");
-            throw;
+            responseBuilder.Append(token);
         }
 
-        Console.WriteLine($"[AIProvider] GenerateAIResponseAsync response length: {responseBuilder.Length}");
         return responseBuilder.ToString();
     }
 
@@ -239,41 +196,26 @@ public class AINarrativeProvider : INarrativeProvider
 
         if (string.IsNullOrEmpty(jsonResponse))
         {
-            Console.WriteLine("[AIProvider] ParseCardNarrativesAsList: Empty response");
             return cardNarratives;
         }
 
-        Console.WriteLine($"[AIProvider] ParseCardNarrativesAsList: Parsing response: {jsonResponse.Substring(0, Math.Min(200, jsonResponse.Length))}...");
+        NarrativeOutput cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
 
-        try
+        // Convert dictionary to list of CardNarrative objects
+        if (cardNarrativeOutput.CardNarratives != null)
         {
-            NarrativeOutput cardNarrativeOutput = ParseCardGenerationJSON(jsonResponse, null);
-
-            // Convert dictionary to list of CardNarrative objects
-            if (cardNarrativeOutput.CardNarratives != null)
+            foreach (CardNarrative cn in cardNarrativeOutput.CardNarratives)
             {
-                Console.WriteLine($"[AIProvider] Found {cardNarrativeOutput.CardNarratives.Count} card narratives in parsed output");
-                foreach (CardNarrative cn in cardNarrativeOutput.CardNarratives)
+                cardNarratives.Add(new CardNarrative
                 {
-                    Console.WriteLine($"[AIProvider] Adding card narrative: {cn.CardId} = '{cn.NarrativeText}'");
-                    cardNarratives.Add(new CardNarrative
-                    {
-                        CardId = cn.CardId,
-                        NarrativeText = cn.NarrativeText,
-                        ProviderSource = NarrativeProviderType.AIGenerated
-                    });
-                }
-            }
-            else
-            {
-                Console.WriteLine("[AIProvider] No card narratives found in parsed output");
+                    CardId = cn.CardId,
+                    NarrativeText = cn.NarrativeText,
+                    ProviderSource = NarrativeProviderType.AIGenerated
+                });
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[AIProvider] JSON parsing failed: {ex.Message}");
-            // JSON parsing failed - return empty list for fallback handling
-        }
+        else
+        { }
 
         return cardNarratives;
     }
@@ -311,24 +253,16 @@ public class AINarrativeProvider : INarrativeProvider
             return output;
         }
 
-        try
+        // Parse as JSON based on conversation state
+        if (state.TotalTurns == 0)
         {
-            // Parse as JSON based on conversation state
-            if (state.TotalTurns == 0)
-            {
-                // Introduction JSON format
-                return ParseIntroductionJSON(aiResponse, activeCards);
-            }
-            else
-            {
-                // Try parsing as dialogue JSON first, then fall back to card generation JSON
-                return ParseDialogueJSON(aiResponse, activeCards) ?? ParseCardGenerationJSON(aiResponse, activeCards);
-            }
+            // Introduction JSON format
+            return ParseIntroductionJSON(aiResponse, activeCards);
         }
-        catch
+        else
         {
-            // JSON parsing failed - try legacy text parsing as fallback
-            return ParseLegacyTextResponse(aiResponse, activeCards);
+            // Try parsing as dialogue JSON first, then fall back to card generation JSON
+            return ParseDialogueJSON(aiResponse, activeCards) ?? ParseCardGenerationJSON(aiResponse, activeCards);
         }
     }
 

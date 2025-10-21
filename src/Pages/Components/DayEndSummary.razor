@@ -1,0 +1,166 @@
+@namespace Wayfarer.Pages.Components
+@inject GameWorld GameWorld
+@inject TimeFacade TimeFacade
+@*
+Day End Summary - Session evaluation screen
+Shows obligations met/failed, economy, progression, stats
+Core Loop: Consumes DayEndReport data structure from TimeFacade.EndDay()
+*@
+
+<div class="day-end-summary">
+    <h2 class="summary-title">Day @DayNumber Complete</h2>
+
+    <!-- Obligations Section -->
+    <div class="summary-section obligations-section">
+        <h3 class="section-title">Obligations</h3>
+        @if (!Summary.CompletedObligations.Any() && !Summary.FailedObligations.Any())
+        {
+            <p class="no-obligations">No obligations active</p>
+        }
+        else
+        {
+            @if (Summary.CompletedObligations.Any())
+            {
+                <div class="completed-obligations">
+                    <h4 class="subsection-title">✓ Completed</h4>
+                    @foreach (CompletedObligationInfo result in Summary.CompletedObligations)
+                    {
+                        <div class="obligation-result success">
+                            <span class="obligation-name">@result.ObligationName</span>
+                            <span class="obligation-reward">+@result.RewardCoins coins, +@result.RewardCubes cubes</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Summary.FailedObligations.Any())
+            {
+                <div class="failed-obligations">
+                    <h4 class="subsection-title">✗ Failed</h4>
+                    @foreach (FailedObligationInfo result in Summary.FailedObligations)
+                    {
+                        <div class="obligation-result failure">
+                            <span class="obligation-name">@result.ObligationName</span>
+                            <span class="obligation-penalty">-@result.CubesRemoved Story cubes (from @result.PatronName)</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Economy Section -->
+    <div class="summary-section economy-section">
+        <h3 class="section-title">Economy</h3>
+        <div class="economy-stats">
+            <div class="economy-stat earned">
+                <span class="stat-label">Earned:</span>
+                <span class="stat-value">+@Summary.CoinsEarned coins</span>
+            </div>
+            <div class="economy-stat spent">
+                <span class="stat-label">Spent:</span>
+                <span class="stat-value">-@Summary.CoinsSpent coins</span>
+            </div>
+            <div class="economy-stat net">
+                <span class="stat-label">Net:</span>
+                <span class="stat-value @(Summary.NetCoins >= 0 ? "positive" : "negative")">
+                    @(Summary.NetCoins >= 0 ? "+" : "")@Summary.NetCoins coins
+                </span>
+            </div>
+            <div class="economy-stat total">
+                <span class="stat-label">Total Coins:</span>
+                <span class="stat-value">@Summary.CurrentResources.Coins</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progression Section -->
+    <div class="summary-section progression-section">
+        <h3 class="section-title">Progression</h3>
+        @if (Summary.NewObligations.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">New Obligations:</h4>
+                <ul class="item-list">
+                    @foreach (NewObligationInfo obligation in Summary.NewObligations)
+                    {
+                        <li>@obligation.ObligationName (@obligation.ObligationType)</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (Summary.NewEquipment.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Equipment Acquired:</h4>
+                <ul class="item-list">
+                    @foreach (string equipment in Summary.NewEquipment)
+                    {
+                        <li>@equipment</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (Summary.StatsIncreased.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Stats Increased:</h4>
+                <ul class="item-list">
+                    @foreach (StatIncreaseInfo stat in Summary.StatsIncreased)
+                    {
+                        <li>@stat.StatName: @stat.OldLevel → @stat.NewLevel</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (Summary.CubesGained.Any())
+        {
+            <div class="progression-item">
+                <h4 class="item-title">Mastery Cubes Earned:</h4>
+                <ul class="item-list">
+                    @foreach (CubeGainInfo cube in Summary.CubesGained)
+                    {
+                        <li>@cube.EntityName: +@cube.Amount @cube.Type cubes</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <!-- Resources Section -->
+    <div class="summary-section resources-section">
+        <h3 class="section-title">Resources</h3>
+        <div class="resource-summary">
+            <div class="resource-item">
+                <span class="resource-label">Health:</span>
+                <span class="resource-value">@Summary.CurrentResources.Health/6</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Focus:</span>
+                <span class="resource-value">@Summary.CurrentResources.Focus/6 (restored)</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-label">Stamina:</span>
+                <span class="resource-value">@Summary.CurrentResources.Stamina/6 (restored)</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-continue" @onclick="OnContinue">Continue to Next Day</button>
+</div>
+
+@code {
+    [Parameter] public int DayNumber { get; set; }
+    [Parameter] public EventCallback OnContinue { get; set; }
+
+    private DayEndReport Summary { get; set; } = new DayEndReport();
+
+    protected override void OnInitialized()
+    {
+        // Call TimeFacade.EndDay() to get complete day-end evaluation
+        Summary = TimeFacade.EndDay();
+    }
+}

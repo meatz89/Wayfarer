@@ -18,8 +18,6 @@ public class ObstacleApproachDTO
     public string Description { get; set; }
     public int SuccessProbability { get; set; }
 
-    public KnowledgeRequirementDTO KnowledgeRequirements { get; set; }
-    public EquipmentRequirementDTO EquipmentRequirements { get; set; }
     public int StaminaRequired { get; set; }
     public Dictionary<string, int> StatRequirements { get; set; }
 
@@ -34,7 +32,7 @@ public class ObstacleOutcomeDTO
     public int StaminaCost { get; set; }
     public int HealthChange { get; set; }
 
-    public List<string> KnowledgeGained { get; set; }
+    // Knowledge system eliminated
 
     public RouteImprovementDTO RouteImprovement { get; set; }
 }

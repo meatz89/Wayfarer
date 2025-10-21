@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +9,11 @@ public class NPCService
 {
     private readonly NPCRepository _repository;
     private readonly TimeManager _timeManager;
-    private readonly ILogger<NPCService> _logger;
 
-    public NPCService(NPCRepository repository, TimeManager timeManager, ILogger<NPCService> logger)
+    public NPCService(NPCRepository repository, TimeManager timeManager)
     {
         _repository = repository;
         _timeManager = timeManager;
-        _logger = logger;
     }
 
     /// <summary>
@@ -101,7 +98,6 @@ public class NPCService
         NPC npc = _repository.GetById(npcId);
         if (npc == null)
         {
-            _logger.LogWarning($"NPC with ID '{npcId}' not found");
             return false;
         }
 

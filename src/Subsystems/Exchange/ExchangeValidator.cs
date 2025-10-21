@@ -73,14 +73,8 @@ public class ExchangeValidator
             return result;
         }
 
-        // Check item requirements
-        if (!CheckItemRequirements(exchange, playerResources))
-        {
-            result.IsVisible = true; // Show but disabled
-            result.IsValid = false;
-            result.ValidationMessage = GetItemRequirementMessage(exchange);
-            return result;
-        }
+        // Item requirements removed - PRINCIPLE 4: Items are resource costs (ConsumedItemIds), not boolean gates
+        // Affordability check below handles ConsumedItemIds as part of resource costs
 
         // Check affordability
         if (!CanAffordExchange(exchange, playerResources, npcTokens))
@@ -104,7 +98,8 @@ public class ExchangeValidator
     }
 
     /// <summary>
-    /// Check if player can afford the exchange costs
+    /// Check if player can afford the exchange costs (resources only, NOT items)
+    /// Item affordability is checked at runtime by ExchangeContext.CanAfford()
     /// </summary>
     public bool CanAffordExchange(ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens)
     {
@@ -148,7 +143,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckDomainRequirements(ExchangeCard exchange, List<string> currentSpotDomains)
     {
-        if (exchange.RequiredDomains == null || !exchange.RequiredDomains.Any())
+        if (!exchange.RequiredDomains.Any())
         {
             return true; // No domain requirements
         }
@@ -163,7 +158,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckTimeRequirements(ExchangeCard exchange)
     {
-        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
+        if (!exchange.AvailableTimeBlocks.Any())
         {
             return true; // No time restrictions
         }
@@ -177,7 +172,7 @@ public class ExchangeValidator
     /// </summary>
     private bool CheckTokenRequirements(ExchangeCard exchange, NPC npc, Dictionary<ConnectionType, int> npcTokens)
     {
-        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
+        if (exchange.Cost.TokenRequirements.Count == 0)
         {
             return true; // No token requirements
         }
@@ -186,28 +181,6 @@ public class ExchangeValidator
         {
             int currentTokens = npcTokens.GetValueOrDefault(requirement.Key, 0);
             if (currentTokens < requirement.Value)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Check if player has required items
-    /// </summary>
-    private bool CheckItemRequirements(ExchangeCard exchange, PlayerResourceState playerResources)
-    {
-        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
-        {
-            return true; // No item requirements
-        }
-
-        foreach (string itemId in exchange.Cost.RequiredItemIds)
-        {
-            Player player = _gameWorld.GetPlayer();
-            if (!player.Inventory.HasItem(itemId))
             {
                 return false;
             }
@@ -274,7 +247,7 @@ public class ExchangeValidator
 
     private string GetTimeRestrictionMessage(ExchangeCard exchange)
     {
-        if (exchange.AvailableTimeBlocks == null || !exchange.AvailableTimeBlocks.Any())
+        if (!exchange.AvailableTimeBlocks.Any())
         {
             return "Not available at this time";
         }
@@ -285,23 +258,13 @@ public class ExchangeValidator
 
     private string GetTokenRequirementMessage(ExchangeCard exchange)
     {
-        if (exchange.Cost?.TokenRequirements == null || exchange.Cost.TokenRequirements.Count == 0)
+        if (exchange.Cost.TokenRequirements.Count == 0)
         {
             return "Insufficient relationship";
         }
 
         KeyValuePair<ConnectionType, int> firstRequirement = exchange.Cost.TokenRequirements.First();
         return $"Requires {firstRequirement.Value} {firstRequirement.Key} tokens";
-    }
-
-    private string GetItemRequirementMessage(ExchangeCard exchange)
-    {
-        if (exchange.Cost?.RequiredItemIds == null || !exchange.Cost.RequiredItemIds.Any())
-        {
-            return "Missing required items";
-        }
-
-        return $"Requires: {string.Join(", ", exchange.Cost.RequiredItemIds)}";
     }
 }
 

@@ -53,12 +53,6 @@ public class CardAnimationManager
         stateChangedCallback?.Invoke();
     }
 
-
-
-
-
-
-
     /// <summary>
     /// Clear all animation states.
     /// Called when starting a new action to reset visual state.

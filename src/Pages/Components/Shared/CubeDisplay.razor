@@ -1,0 +1,41 @@
+@namespace Wayfarer.Pages.Components.Shared
+@*
+Cube Display - Shows localized mastery cubes (0-10 scale)
+Used for InvestigationCubes (Location), StoryCubes (NPC), ExplorationCubes (Route)
+*@
+
+<div class="cube-display">
+    <div class="cube-display-header">
+        <span class="cube-display-label">@Label</span>
+        <span class="cube-display-count">@CurrentCubes/10</span>
+    </div>
+    <div class="cube-grid-10">
+        @for (int i = 1; i <= 10; i++)
+        {
+            <div class="mastery-cube @(i <= CurrentCubes ? "earned" : "unearned") @CubeTypeClass"
+                 title="@CubeTypeName @i/10">
+            </div>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(EffectDescription))
+    {
+        <div class="cube-effect-description">@EffectDescription</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; }
+    [Parameter] public int CurrentCubes { get; set; }
+    [Parameter] public string CubeType { get; set; } = "obligation"; // obligation, story, exploration
+    [Parameter] public string EffectDescription { get; set; }
+
+    private string CubeTypeClass => $"cube-{CubeType}";
+
+    private string CubeTypeName => CubeType switch
+    {
+        "obligation" => "Obligation Cube",
+        "story" => "Story Cube",
+        "exploration" => "Exploration Cube",
+        _ => "Mastery Cube"
+    };
+}

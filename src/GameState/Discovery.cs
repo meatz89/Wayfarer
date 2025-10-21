@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Named clue discovered during investigation
+/// Named clue discovered during obligation
 /// </summary>
 public class Discovery
 {

@@ -3,7 +3,7 @@
 public class CardSelectionManager
 {
     private readonly ConnectionState _currentState;
-    private readonly HashSet<CardInstance> _selectedCards = new();
+    private readonly List<CardInstance> _selectedCards = new List<CardInstance>();
 
     public CardSelectionManager(ConnectionState currentState)
     {
@@ -17,6 +17,5 @@ public class CardSelectionManager
         else
             _selectedCards.Add(card);
     }
-
 
 }

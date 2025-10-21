@@ -1,19 +1,38 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Starting conditions for a game - reuses existing PlayerInitialConfig
+/// Starting conditions for a game - uses DTO for JSON deserialization
 /// </summary>
 public class PackageStartingConditions
 {
     /// <summary>
-    /// Player initial configuration - reuses existing PlayerInitialConfig from GameWorld.cs
+    /// Player initial configuration DTO - contains categorical properties from JSON
+    /// Parser translates to concrete PlayerInitialConfig domain entity
     /// </summary>
-    public PlayerInitialConfig PlayerConfig { get; set; }
+    public PlayerInitialConfigDTO PlayerConfig { get; set; }
 
     /// <summary>
     /// Starting Venue location ID
     /// </summary>
     public string StartingSpotId { get; set; }
+
+    /// <summary>
+    /// Starting day (default: 1)
+    /// </summary>
+    public int? StartingDay { get; set; }
+
+    /// <summary>
+    /// Starting time block (Morning/Midday/Afternoon/Evening)
+    /// </summary>
+    public string StartingTimeBlock { get; set; }
+
+    /// <summary>
+    /// Starting segment WITHIN the time block (1-4, relative to block start)
+    /// CRITICAL: This is NOT the absolute segment of day - it's position within the time block.
+    /// Example: Evening segment 1 = first segment of Evening (13th segment of full day)
+    /// Example: Midday segment 3 = third segment of Midday (7th segment of full day)
+    /// </summary>
+    public int? StartingSegment { get; set; }
 
     /// <summary>
     /// Initial obligations in queue

@@ -6,8 +6,8 @@
 public enum MentalCategory
 {
     Analytical,     // Logical deduction, systematic analysis
-    Physical,       // Physical investigation, hands-on examination
+    Physical,       // Physical obligation, hands-on examination
     Observational,  // Perception, noticing details
-    Social,         // Interpersonal investigation, questioning
+    Social,         // Interpersonal obligation, questioning
     Synthesis       // Connecting disparate clues, pattern recognition
 }

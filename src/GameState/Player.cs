@@ -8,21 +8,22 @@ public class Player
     // Archetype
     public Professions Archetype { get; set; }
 
-    // Progression systems
-    public int Level { get; set; } = 1;
-    public int CurrentXP { get; set; } = 0;
-    public int XPToNextLevel { get; set; } = 100; // Base XP required for next level
+    // Progression systems - ALL values from JSON via ApplyInitialConfiguration
+    public int Level { get; set; }
+    public int CurrentXP { get; set; }
+    public int XPToNextLevel { get; set; }
 
-    // Resources
-    public int Coins { get; set; } // Starting coins - intentionally kept as literal as it's game balance
-    public int Health { get; set; } // Starting health
-    public int Hunger { get; set; } // Starting hunger (0 = not hungry)
-    public int Stamina { get; set; } // Starting stamina for travel
-    public int MaxStamina { get; set; } = 10; // Maximum stamina
+    // Resources - ALL values from JSON via ApplyInitialConfiguration
+    public int Coins { get; set; }
+    public int Health { get; set; }
+    public int Hunger { get; set; }
+    public int Stamina { get; set; }
+    public int MaxStamina { get; set; }
 
-    public int MinHealth { get; set; } = 0; // Minimum health before death
-    public int MaxHealth { get; set; } = 100; // Maximum health
-    public int MaxHunger { get; set; } = 100; // Maximum hunger before problems
+    public int MinHealth { get; set; }
+    public int MaxHealth { get; set; }
+    public int MaxFocus { get; set; }
+    public int MaxHunger { get; set; }
 
     public Inventory Inventory { get; set; } = new Inventory(10); // 10 weight capacity per documentation
 
@@ -35,12 +36,8 @@ public class Player
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
-    public List<string> DiscoveredRoutes { get; set; } = new List<string>();
-
-    public bool IsInitialized { get; set; } = false;
 
     public PlayerStats Stats { get; private set; } = new();
-    public PlayerKnowledge Knowledge { get; private set; } = new PlayerKnowledge();
 
     public Location CurrentLocation { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
@@ -59,6 +56,15 @@ public class Player
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
+    // Active Obligations (Core Loop design)
+    // Tracks obligations player has activated (NPCCommissioned have deadlines)
+    // References obligations in GameWorld.Obligations (single source of truth)
+    public List<string> ActiveObligationIds { get; set; } = new List<string>();
+
+    // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
+    // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
+    // No inline Equipment storage - references by ID only (architecture principle)
+
     // Token Favor System
     public List<string> UnlockedVenueIds { get; set; } = new List<string>();
 
@@ -66,8 +72,8 @@ public class Player
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
     public List<FamiliarityEntry> RouteFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
-    // Venue Familiarity System (Work Packet 1)
-    // ID is Venue ID, level is familiarity level (0-3)
+    // Location Familiarity System (Work Packet 1)
+    // ID is Location ID (spot like "courtyard", "mill_entrance"), level is familiarity level (0-3)
     public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
     // Observation tracking - IDs of observation cards collected
@@ -79,14 +85,23 @@ public class Player
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
 
-    // Physical progression - Mastery tokens earned through repeated challenge success
-    // Reduces Danger baseline at familiar challenge types (Combat, Athletics, etc.)
-    public List<MasteryTokenEntry> MasteryTokens { get; set; } = new List<MasteryTokenEntry>();
+    // Physical progression - Mastery cubes earned through repeated challenge success (0-10 per deck)
+    // Reduces Physical Danger threshold for specific challenge types (Combat, Athletics, etc.)
+    public List<MasteryCubeEntry> MasteryCubes { get; set; } = new List<MasteryCubeEntry>();
 
-    // Mental resource - Focus depletes with investigation, recovers with rest
-    // Below 30 Focus: Exposure accumulates faster (+1 per action)
-    // Maximum: 100, Cost: 5-20 per investigation start
-    public int Focus { get; set; } = 100;
+    // Mental resource - Focus depletes with obligation, recovers with rest
+    // 6-point scale: Each point = ~16.7% of capacity
+    // Below 2 Focus: Exposure accumulates faster (+1 per action)
+    // Maximum: 6, Cost: 1-2 per obligation start
+    public int Focus { get; set; } = 6;
+
+    // Mental resource - Understanding cumulative expertise (0-10 scale)
+    // Granted by ALL Mental challenges (+1 to +3 based on difficulty)
+    // Used by DifficultyModifiers to reduce Exposure baseline
+    // Never depletes - permanent player growth (Knowledge system replacement)
+    // Competition: Multiple obligations need it, limited Focus/Time to accumulate
+    // Strategic choice: Build Understanding through easy challenges, or attempt hard challenges early
+    public int Understanding { get; set; } = 0;
 
     public void AddKnownRoute(RouteOption route)
     {
@@ -132,19 +147,19 @@ public class Player
     }
 
     /// <summary>
-    /// Get familiarity level for a Venue (0-3 scale)
+    /// Get familiarity level for a Location (0-3 scale)
     /// </summary>
-    public int GetLocationFamiliarity(string venueId)
+    public int GetLocationFamiliarity(string locationId)
     {
-        return LocationFamiliarity.GetFamiliarity(venueId);
+        return LocationFamiliarity.GetFamiliarity(locationId);
     }
 
     /// <summary>
-    /// Set Venue familiarity to a specific value (max 3)
+    /// Set Location familiarity to a specific value (max 3)
     /// </summary>
-    public void SetLocationFamiliarity(string venueId, int value)
+    public void SetLocationFamiliarity(string locationId, int value)
     {
-        LocationFamiliarity.SetFamiliarity(venueId, Math.Min(3, Math.Max(0, value)));
+        LocationFamiliarity.SetFamiliarity(locationId, Math.Min(3, Math.Max(0, value)));
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
@@ -178,80 +193,8 @@ public class Player
         Background = GameRules.StandardRuleset.Background;
         Inventory = new Inventory(10); // 10 weight capacity
 
-        // HIGHLANDER PRINCIPLE: Delete hardcoded defaults
-        // ALL values set by ApplyInitialConfiguration from JSON
-        // These are minimal defaults ONLY for safety
-        Coins = 0;
-        Level = 1;
-        CurrentXP = 0;
-        XPToNextLevel = 100;
-
-        // JSON will set these via ApplyInitialConfiguration
-        MaxHealth = 100;
-        MaxHunger = 100;
-
-        // Skill cards removed - using letter queue system
-
-        // Token system is purely relational (NPC-specific)
-    }
-
-    public void Initialize(string playerName, Professions selectedArchetype, Genders gender)
-    {
-        Name = playerName;
-        Gender = gender;
-        SetArchetype(selectedArchetype);
-
-        HealFully();
-
-        IsInitialized = true;
-    }
-
-    public void HealFully()
-    {
-        Health = MaxHealth;
-        Hunger = 0; // Reset hunger to not hungry
-    }
-
-
-    public void SetArchetype(Professions archetype)
-    {
-        Archetype = archetype;
-
-        switch (archetype)
-        {
-            case Professions.Soldier:
-                InitializeGuard();
-                break;
-            case Professions.Merchant:
-                InitializeMerchant();
-                break;
-            case Professions.Scholar:
-                InitializeScholar();
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(archetype));
-        }
-    }
-
-    private void InitializeGuard()
-    {
-        ClearInventory();
-    }
-
-    private void InitializeScholar()
-    {
-        ClearInventory();
-    }
-
-    private void InitializeMerchant()
-    {
-        ClearInventory();
-    }
-
-    private void ClearInventory()
-    {
-        Inventory.Clear();
+        // HIGHLANDER PRINCIPLE: ALL values set by ApplyInitialConfiguration from JSON
+        // NO hardcoded defaults - values come from package starting conditions
     }
 
     public bool ModifyHealth(int count)
@@ -264,7 +207,6 @@ public class Player
         }
         return false;
     }
-
 
     public bool ModifyHunger(int amount)
     {
@@ -281,6 +223,25 @@ public class Player
     {
         // Eating reduces hunger
         return ModifyHunger(-amount);
+    }
+
+    // Hunger helper methods (moved from HungerManager)
+    public bool IsStarving()
+    {
+        return Hunger >= 80;
+    }
+
+    public bool IsHungry()
+    {
+        return Hunger >= 50;
+    }
+
+    public string GetHungerLevelDescription()
+    {
+        if (Hunger >= 80) return "Starving";
+        if (Hunger >= 50) return "Hungry";
+        if (Hunger >= 20) return "Peckish";
+        return "Well Fed";
     }
 
     public void AddExperiencePoints(int xpBonus)
@@ -301,7 +262,6 @@ public class Player
         }
     }
 
-
     public void ModifyCoins(int amount)
     {
         Coins += amount;
@@ -311,13 +271,10 @@ public class Player
         }
     }
 
-
-
     internal void SetCoins(int value)
     {
         Coins = Math.Max(0, value);
     }
-
 
     /// <summary>
     /// Apply initial player configuration from package starting conditions
@@ -326,11 +283,22 @@ public class Player
     {
         if (config == null) return;
 
+        // Progression
+        if (config.Level.HasValue) Level = config.Level.Value;
+        if (config.CurrentXP.HasValue) CurrentXP = config.CurrentXP.Value;
+        if (config.XPToNextLevel.HasValue) XPToNextLevel = config.XPToNextLevel.Value;
+
+        // Resources
         if (config.Coins.HasValue) Coins = config.Coins.Value;
         if (config.Health.HasValue) Health = config.Health.Value;
         if (config.MaxHealth.HasValue) MaxHealth = config.MaxHealth.Value;
+        if (config.MinHealth.HasValue) MinHealth = config.MinHealth.Value;
         if (config.Hunger.HasValue) Hunger = config.Hunger.Value;
         if (config.MaxHunger.HasValue) MaxHunger = config.MaxHunger.Value;
+        if (config.StaminaPoints.HasValue) Stamina = config.StaminaPoints.Value;
+        if (config.MaxStamina.HasValue) MaxStamina = config.MaxStamina.Value;
+        if (config.Focus.HasValue) Focus = config.Focus.Value;
+        if (config.MaxFocus.HasValue) MaxFocus = config.MaxFocus.Value;
 
         // Apply satchel capacity - update inventory max weight
         if (config.SatchelCapacity.HasValue)

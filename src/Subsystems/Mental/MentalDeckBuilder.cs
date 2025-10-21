@@ -16,19 +16,16 @@ public class MentalDeckBuilder
     }
 
     /// <summary>
-    /// Build deck from engagement type's specific deck (parallel to Social system)
+    /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge cards)
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeType challengeType, Player player)
+    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
-        // THREE PARALLEL SYSTEMS: Get Mental engagement deck from engagement type
-        if (!_gameWorld.MentalChallengeDecks.TryGetValue(challengeType.DeckId, out MentalChallengeDeck deckDefinition))
-        {
-            throw new InvalidOperationException($"[MentalDeckBuilder] Mental engagement deck '{challengeType.DeckId}' not found in GameWorld.MentalChallengeDecks");
-        }
+        // THREE PARALLEL SYSTEMS: Use Mental engagement deck directly (no lookup needed)
+        MentalChallengeDeck deckDefinition = challengeDeck;
 
         // Build card instances from engagement deck (parallel to ConversationDeckBuilder pattern)
         List<CardInstance> deck = deckDefinition.BuildCardInstances(_gameWorld);
@@ -54,17 +51,46 @@ public class MentalDeckBuilder
         return (deck, startingHand);
     }
 
+    /// <summary>
+    /// Create goal card instances for Mental challenges
+    /// Goal cards are self-contained templates - no lookup required
+    /// Goal cards start unplayable until Progress threshold met
+    /// </summary>
+    private List<CardInstance> CreateGoalCardInstances(Goal goal)
+    {
+        List<CardInstance> goalCardInstances = new List<CardInstance>();
+
+        foreach (GoalCard goalCard in goal.GoalCards)
+        {
+            // Create CardInstance directly from GoalCard (self-contained template)
+            CardInstance instance = new CardInstance(goalCard);
+
+            // Set context for threshold checking (Mental system uses Progress threshold)
+            instance.Context = new CardContext
+            {
+                threshold = goalCard.threshold,
+                RequestId = goal.Id
+            };
+
+            // Goal cards start unplayable until threshold met
+            instance.IsPlayable = false;
+
+            goalCardInstances.Add(instance);
+        }
+
+        return goalCardInstances;
+    }
 
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
-            if (item?.ProvidedEquipmentCategories != null)
-            {
-                categories.AddRange(item.ProvidedEquipmentCategories);
-            }
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item == null)
+                throw new InvalidOperationException($"Item not found in GameWorld: {itemId}");
+
+            categories.AddRange(item.ProvidedEquipmentCategories);
         }
         return categories.Distinct().ToList();
     }

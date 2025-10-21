@@ -66,7 +66,6 @@ public class MentalSessionDeck
         {
             if (deckPile.Count == 0)
             {
-                Console.WriteLine($"[MentalSessionDeck] No cards remaining in deck");
                 break;
             }
 
@@ -82,7 +81,6 @@ public class MentalSessionDeck
     {
         if (card == null || !handPile.Contains(card))
         {
-            Console.WriteLine($"[MentalSessionDeck] ERROR: Card not in hand");
             return;
         }
 
@@ -96,7 +94,7 @@ public class MentalSessionDeck
     public List<CardInstance> CheckGoalThresholds(int currentProgress)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.MomentumThreshold <= currentProgress)  // Reusing MomentumThreshold field for Progress
+            .Where(c => c.Context != null && c.Context.threshold <= currentProgress)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();
@@ -107,7 +105,6 @@ public class MentalSessionDeck
             card.IsPlayable = true;
             handPile.Add(card);
             movedCards.Add(card);
-            Console.WriteLine($"[MentalSessionDeck] Goal card {card.MentalCardTemplate?.Id} unlocked (progress {currentProgress})");
         }
 
         return movedCards;

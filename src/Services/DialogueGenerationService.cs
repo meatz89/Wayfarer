@@ -15,17 +15,12 @@ public class DialogueGenerationService
 
     public DialogueGenerationService(GameWorld gameWorld)
     {
-        _templates = gameWorld.DialogueTemplates ?? new DialogueTemplates();
+        _templates = gameWorld.DialogueTemplates;
         if (_templates.ConnectionStateDialogue == null)
-        {
-            Console.WriteLine("[DialogueGenerationService] No dialogue templates found in GameWorld, using empty templates");
-        }
+        { }
         else
-        {
-            Console.WriteLine($"[DialogueGenerationService] Loaded dialogue templates from GameWorld with {_templates.ConnectionStateDialogue.Count} connection state templates");
-        }
+        { }
     }
-
 
     /// <summary>
     /// Generate NPC dialogue from connection state and context
@@ -45,15 +40,14 @@ public class DialogueGenerationService
         ConnectionStateTemplate stateTemplate = _templates.ConnectionStateDialogue[stateKey];
 
         // Use personality-based dialogue
-        if (stateTemplate.Personality != null &&
-            stateTemplate.Personality.ContainsKey(personality.ToString()))
+        if (stateTemplate.Personality.ContainsKey(personality.ToString()))
         {
             List<string> options = stateTemplate.Personality[personality.ToString()];
             return options[_random.Next(options.Count)];
         }
 
         // Fall back to default for state
-        if (stateTemplate.Default != null && stateTemplate.Default.Any())
+        if (stateTemplate.Default.Any())
         {
             return stateTemplate.Default[_random.Next(stateTemplate.Default.Count)];
         }
@@ -69,12 +63,12 @@ public class DialogueGenerationService
     {
         string key = templateId;
 
-        if (_templates.CardDialogue?.Categories?.ContainsKey(key) == true)
+        if (_templates.CardDialogue.Categories.ContainsKey(key))
         {
             CardCategoryDialogue category = _templates.CardDialogue.Categories[key];
             List<string> options = isPlayer ? category.Player : category.Npc;
 
-            if (options != null && options.Any())
+            if (options.Any())
             {
                 return options[_random.Next(options.Count)];
             }

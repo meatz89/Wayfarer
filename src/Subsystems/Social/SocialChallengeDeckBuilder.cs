@@ -27,22 +27,18 @@ public class SocialChallengeDeckBuilder
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Get the request which drives everything
-        GoalCard request = npc.GetRequestById(requestId);
-        if (request == null)
+        // Get the goal which drives everything - from centralized GameWorld storage
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
+        if (goal == null)
         {
-            throw new ArgumentException($"Request {requestId} not found for NPC {npc.ID}");
+            throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
         }
 
-        // THREE PARALLEL SYSTEMS: Get Social engagement type and conversation deck
-        if (!_gameWorld.SocialChallengeTypes.TryGetValue(request.ChallengeTypeId, out SocialChallengeType challengeType))
+        // THREE PARALLEL SYSTEMS: Get Social engagement deck directly (no Types, just Decks)
+        SocialChallengeDeck deckDefinition = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+        if (deckDefinition == null)
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Social engagement type '{request.ChallengeTypeId}' not found in GameWorld.SocialChallengeTypes");
-        }
-
-        if (!_gameWorld.SocialChallengeDecks.TryGetValue(challengeType.DeckId, out SocialChallengeDeck deckDefinition))
-        {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{challengeType.DeckId}' not found in GameWorld.SocialChallengeDecks");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{goal.DeckId}' not found in GameWorld.SocialChallengeDecks");
         }
 
         // Build card instances from engagement deck (no depth distribution - deck has explicit card list)
@@ -73,13 +69,13 @@ public class SocialChallengeDeckBuilder
         // Create session deck
         SocialSessionCardDeck deck = SocialSessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
-        // Process request cards
-        List<CardInstance> GoalCardInstances = CreateGoalCardInstances(request, npc);
+        // Process goal cards (victory conditions)
+        List<CardInstance> goalCardInstances = CreateGoalCardInstances(goal, npc);
 
-        // Add request cards to deck's request pile
-        foreach (CardInstance GoalCard in GoalCardInstances)
+        // Add goal cards to deck's request pile
+        foreach (CardInstance goalCard in goalCardInstances)
         {
-            deck.AddGoalCard(GoalCard);
+            deck.AddGoalCard(goalCard);
         }
 
         // Shuffle the deck after all cards have been added
@@ -90,42 +86,32 @@ public class SocialChallengeDeckBuilder
     }
 
     /// <summary>
-    /// Create request card instances from request goals
+    /// Create goal card instances from goal's victory conditions
+    /// Goal cards are self-contained templates - no lookup required
     /// </summary>
-    private List<CardInstance> CreateGoalCardInstances(GoalCard request, NPC npc)
+    private List<CardInstance> CreateGoalCardInstances(Goal goal, NPC npc)
     {
-        List<CardInstance> GoalCards = new List<CardInstance>();
+        List<CardInstance> goalCardInstances = new List<CardInstance>();
 
-        // Load cards from goals (goals reference cards from _cards.json)
-        foreach (NPCRequestGoal goal in request.Goals)
+        foreach (GoalCard goalCard in goal.GoalCards)
         {
-            // Find the card referenced by this goal (CardId references card in _cards.json)
-            GoalCard? goalCard = _gameWorld.GoalCards.Where(c => c.Id == goal.CardId).FirstOrDefault();
-            if (goalCard == null)
-            {
-                throw new InvalidOperationException($"[ConversationDeckBuilder] Goal card '{goal.CardId}' not found in AllCardDefinitions. Ensure card is defined in _cards.json and referenced in NPC goal.");
-            }
-
-            goalCard.NpcId = npc.ID;
-
-            // Create instance from the goal card
+            // Create CardInstance directly from GoalCard (self-contained template)
             CardInstance instance = new CardInstance(goalCard);
 
-            // Store context for momentum threshold and request tracking
+            // Set context for threshold checking
             instance.Context = new CardContext
             {
-                MomentumThreshold = goal.MomentumThreshold,
-                RequestId = request.Id
+                threshold = goalCard.threshold,
+                RequestId = goal.Id
             };
 
-            // Request cards start as unplayable until momentum threshold is met
+            // Goal cards start unplayable until momentum threshold met
             instance.IsPlayable = false;
 
-            GoalCards.Add(instance);
-            Console.WriteLine($"[ConversationDeckBuilder] Added request card '{goalCard.Title}' (threshold: {goal.MomentumThreshold}) to request pile");
+            goalCardInstances.Add(instance);
         }
 
-        return GoalCards;
+        return goalCardInstances;
     }
 
     /// <summary>
@@ -187,7 +173,7 @@ public class SocialChallengeDeckBuilder
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

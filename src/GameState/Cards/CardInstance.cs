@@ -24,25 +24,25 @@ public class CardInstance
 
     public CardInstance(GoalCard template)
     {
-        GoalCardTemplate = template;
+        GoalCardTemplate = template ?? throw new ArgumentNullException("no template card");
         CardType = CardTypes.Goal;
     }
 
     public CardInstance(SocialCard template)
     {
-        SocialCardTemplate = template;
+        SocialCardTemplate = template ?? throw new ArgumentNullException("no template card");
         CardType = CardTypes.Social;
     }
 
     public CardInstance(MentalCard template)
     {
-        MentalCardTemplate = template;
+        MentalCardTemplate = template ?? throw new ArgumentNullException("no template card");
         CardType = CardTypes.Mental;
     }
 
     public CardInstance(PhysicalCard template)
     {
-        PhysicalCardTemplate = template;
+        PhysicalCardTemplate = template ?? throw new ArgumentNullException("no template card");
         CardType = CardTypes.Physical;
     }
 }

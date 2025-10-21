@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-
 // Simple ViewModels for UI data transfer - no business logic
 // All content comes from JSON or mechanical states
 
@@ -33,7 +32,7 @@ public class LocationActionViewModel
     public bool IsAvailable { get; set; } = true;
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
-    public string InvestigationLabel { get; set; }
+    public string ObligationLabel { get; set; }
 }
 
 public class NPCInteractionViewModel
@@ -94,7 +93,7 @@ public class RouteOptionViewModel
     public bool IsLocked { get; set; }
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
-    public string InvestigationLabel { get; set; }
+    public string ObligationLabel { get; set; }
     public bool CanUnlockWithPermit { get; set; }
 
     // Modal-specific properties
@@ -122,7 +121,6 @@ public class TravelProgressViewModel
     public string TimeWalked { get; set; }
     public string TimeRemaining { get; set; }
 }
-
 
 public class MechanicEffectViewModel
 {
@@ -168,4 +166,132 @@ public class LeverageViewModel
         >= 1 => "info",
         _ => "default"
     };
+}
+
+// ============================================
+// LOCATION CONTENT VIEW MODELS
+// ============================================
+// View models for LocationContent component - all filtering/querying done in backend
+
+/// <summary>
+/// Complete view model for LocationContent component
+/// Contains ALL data needed for all sub-views pre-built by LocationFacade
+/// </summary>
+public class LocationContentViewModel
+{
+    // Header information
+    public LocationHeaderViewModel Header { get; set; } = new();
+
+    // Landing view data
+    public List<LocationActionViewModel> TravelActions { get; set; } = new();
+    public List<LocationActionViewModel> PlayerActions { get; set; } = new();
+    public bool HasSpots { get; set; }
+
+    // LookingAround view data (NPCs with their social goals PRE-GROUPED)
+    public List<NpcWithGoalsViewModel> NPCsWithGoals { get; set; } = new();
+
+    // Mental challenges - grouped by obstacles
+    public List<GoalCardViewModel> AmbientMentalGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> MentalObstacles { get; set; } = new();  // Goals from obstacles
+
+    // Physical challenges - grouped by obstacles
+    public List<GoalCardViewModel> AmbientPhysicalGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> PhysicalObstacles { get; set; } = new();  // Goals from obstacles
+
+    // Spots view data
+    public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
+}
+
+/// <summary>
+/// Location header information (venue name, spot name, time, traits)
+/// </summary>
+public class LocationHeaderViewModel
+{
+    public string VenueName { get; set; }
+    public string SpotName { get; set; }
+    public string TimeOfDayTrait { get; set; }
+    public List<string> SpotTraits { get; set; } = new();
+    public string AtmosphereText { get; set; }
+    public TimeBlocks CurrentTime { get; set; }
+    public List<NPC> NPCsPresent { get; set; } = new();
+}
+
+/// <summary>
+/// NPC with their social goals already filtered and attached
+/// NO FILTERING NEEDED IN UI - backend pre-groups goals by NPC and obstacles
+/// </summary>
+public class NpcWithGoalsViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string PersonalityType { get; set; }
+    public string ConnectionState { get; set; }
+    public string StateClass { get; set; }  // CSS class for connection state
+    public string Description { get; set; }
+
+    // Social goals FOR THIS NPC - grouped by obstacles
+    public List<GoalCardViewModel> AmbientSocialGoals { get; set; } = new();  // Goals without obstacles
+    public List<ObstacleWithGoalsViewModel> SocialObstacles { get; set; } = new();  // Goals from obstacles
+
+    // Exchange availability for MERCANTILE NPCs
+    public bool HasExchange { get; set; }
+    public string ExchangeDescription { get; set; }
+}
+
+/// <summary>
+/// Goal card for display - simplified from domain Goal entity
+/// Contains all display information pre-calculated
+/// </summary>
+public class GoalCardViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string SystemType { get; set; }  // "social", "mental", "physical"
+    public int Difficulty { get; set; }  // Pre-calculated difficulty
+    public string DifficultyLabel { get; set; }  // "Doubt", "Exposure", "Danger"
+    public string ObligationId { get; set; }
+    public bool IsIntroAction { get; set; }
+
+    // Costs
+    public int FocusCost { get; set; }
+    public int StaminaCost { get; set; }
+}
+
+/// <summary>
+/// Obstacle with its goals for hierarchical display
+/// Shows obstacle context (name, description, intensity, contexts) with nested goals
+/// </summary>
+public class ObstacleWithGoalsViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int Intensity { get; set; }
+    public List<string> Contexts { get; set; } = new();  // e.g., ["Search", "Deduction", "Pattern"]
+    public string ContextsDisplay { get; set; }  // e.g., "Search, Deduction, Pattern"
+
+    // Goals that belong to this obstacle
+    public List<GoalCardViewModel> Goals { get; set; } = new();
+}
+
+/// <summary>
+/// Spot with NPCs already attached
+/// NO FILTERING NEEDED IN UI - backend pre-attaches NPCs to spots
+/// </summary>
+public class SpotWithNpcsViewModel
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public bool IsCurrentSpot { get; set; }
+    public List<NpcAtSpotViewModel> NPCs { get; set; } = new();
+}
+
+/// <summary>
+/// Simplified NPC info for spot list
+/// </summary>
+public class NpcAtSpotViewModel
+{
+    public string Name { get; set; }
+    public string ConnectionState { get; set; }
 }

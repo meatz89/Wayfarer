@@ -31,7 +31,6 @@ public class ExchangeRewardStructure
     /// </summary>
     public List<string> EffectIds { get; set; } = new List<string>();
 
-
     /// <summary>
     /// Gets a human-readable description of the rewards.
     /// </summary>

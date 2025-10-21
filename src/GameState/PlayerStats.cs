@@ -167,7 +167,6 @@ public class PlayerStats
         return _stats[stat].Level >= 3;
     }
 
-
     /// <summary>
     /// Get maximum accessible card depth for a stat
     /// </summary>
@@ -270,7 +269,7 @@ public class PlayerStats
     }
 
     /// <summary>
-    /// Check if player meets stat requirement for investigation approaches
+    /// Check if player meets stat requirement for obligation approaches
     /// </summary>
     public bool MeetsStatRequirement(PlayerStatType stat, int requiredLevel)
     {

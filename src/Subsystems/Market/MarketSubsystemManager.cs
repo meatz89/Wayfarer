@@ -116,8 +116,8 @@ public class MarketSubsystemManager
             return "No traders at this location";
         }
 
-        TimeBlocks[] allTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Midday,
-                                 TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+        TimeBlocks[] allTimes = { TimeBlocks.Morning, TimeBlocks.Midday,
+                                 TimeBlocks.Afternoon, TimeBlocks.Evening };
 
         foreach (TimeBlocks time in allTimes)
         {
@@ -310,7 +310,7 @@ public class MarketSubsystemManager
         TradeResult result = new TradeResult
         {
             ItemId = itemId,
-            ItemName = item?.Name ?? itemId,
+            ItemName = item.Name,
             VenueId = venueId,
             Action = TradeAction.Buy,
             CoinsBefore = player.Coins,
@@ -336,7 +336,7 @@ public class MarketSubsystemManager
             player.AddCoins(-buyPrice);
             player.Inventory.AddItem(itemId);
             success = true;
-            _messageSystem.AddSystemMessage($"Bought {item?.Name ?? itemId} for {buyPrice} coins", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Bought {item.Name} for {buyPrice} coins", SystemMessageTypes.Success);
         }
 
         result.Success = success;
@@ -345,8 +345,8 @@ public class MarketSubsystemManager
 
         if (success)
         {
-            result.Message = $"Successfully purchased {item?.Name ?? itemId} for {buyPrice} coins";
-            result.SystemMessages.Add($"💰 Bought {item?.Name ?? itemId} for {buyPrice} coins");
+            result.Message = $"Successfully purchased {item.Name} for {buyPrice} coins";
+            result.SystemMessages.Add($"💰 Bought {item.Name} for {buyPrice} coins");
             result.SystemMessages.Add($"Coins remaining: {player.Coins}");
         }
         else
@@ -363,7 +363,7 @@ public class MarketSubsystemManager
             {
                 result.ErrorReason = "Purchase failed";
             }
-            result.Message = $"Failed to purchase {item?.Name ?? itemId}: {result.ErrorReason}";
+            result.Message = $"Failed to purchase {item.Name}: {result.ErrorReason}";
         }
 
         return result;
@@ -380,7 +380,7 @@ public class MarketSubsystemManager
         TradeResult result = new TradeResult
         {
             ItemId = itemId,
-            ItemName = item?.Name ?? itemId,
+            ItemName = item.Name,
             VenueId = venueId,
             Action = TradeAction.Sell,
             CoinsBefore = player.Coins,
@@ -406,7 +406,7 @@ public class MarketSubsystemManager
             player.Inventory.RemoveItem(itemId);
             player.AddCoins(sellPrice);
             success = true;
-            _messageSystem.AddSystemMessage($"Sold {item?.Name ?? itemId} for {sellPrice} coins", SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage($"Sold {item.Name} for {sellPrice} coins", SystemMessageTypes.Success);
         }
 
         result.Success = success;
@@ -415,8 +415,8 @@ public class MarketSubsystemManager
 
         if (success)
         {
-            result.Message = $"Successfully sold {item?.Name ?? itemId} for {sellPrice} coins";
-            result.SystemMessages.Add($"💰 Sold {item?.Name ?? itemId} for {sellPrice} coins");
+            result.Message = $"Successfully sold {item.Name} for {sellPrice} coins";
+            result.SystemMessages.Add($"💰 Sold {item.Name} for {sellPrice} coins");
             result.SystemMessages.Add($"Total coins: {player.Coins}");
         }
         else
@@ -433,7 +433,7 @@ public class MarketSubsystemManager
             {
                 result.ErrorReason = "Sale failed";
             }
-            result.Message = $"Failed to sell {item?.Name ?? itemId}: {result.ErrorReason}";
+            result.Message = $"Failed to sell {item.Name}: {result.ErrorReason}";
         }
 
         return result;
@@ -485,7 +485,7 @@ public class MarketSubsystemManager
             if (sellPriceHere <= 0) continue;
 
             // Check if this is a good place to sell
-            List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+            List<Venue> locations = _gameWorld.Venues;
             int avgSellPrice = 0;
             int validLocations = 0;
 
@@ -532,7 +532,7 @@ public class MarketSubsystemManager
 
                 // Check profit potential
                 int buyPriceHere = item.BuyPrice;
-                List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+                List<Venue> locations = _gameWorld.Venues;
                 int maxSellPrice = 0;
                 string bestSellLocation = null;
 
@@ -612,8 +612,8 @@ public class MarketSubsystemManager
             summary.MarketStatus = GetMarketAvailabilityStatus(venueId, currentTime);
 
             // Find next open time
-            TimeBlocks[] futureTimes = { TimeBlocks.Dawn, TimeBlocks.Morning, TimeBlocks.Midday,
-                                        TimeBlocks.Afternoon, TimeBlocks.Evening, TimeBlocks.Night };
+            TimeBlocks[] futureTimes = { TimeBlocks.Morning, TimeBlocks.Midday,
+                                        TimeBlocks.Afternoon, TimeBlocks.Evening };
             foreach (TimeBlocks time in futureTimes)
             {
                 if (time <= currentTime) continue;
@@ -655,8 +655,8 @@ public class MarketSubsystemManager
     /// </summary>
     private string GetLocationName(string venueId)
     {
-        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
-        return venue?.Name ?? venueId;
+        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        return venue.Name;
     }
 
     /// <summary>
@@ -676,7 +676,7 @@ public class MarketSubsystemManager
 
         // Check player location
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation?.VenueId != venueId)
+        if (player.CurrentLocation.VenueId != venueId)
         {
             error = "You must be at the Venue to trade";
             return false;

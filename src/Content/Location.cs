@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 public class Location
 {
@@ -11,15 +12,26 @@ public class Location
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    public Dictionary<TimeBlocks, List<LocationPropertyType>> TimeSpecificProperties { get; set; } = new Dictionary<TimeBlocks, List<LocationPropertyType>>();
+    public List<TimeSpecificProperty> TimeSpecificProperties { get; set; } = new List<TimeSpecificProperty>();
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
-    public bool PlayerKnowledge { get; set; }
+    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
-    public AccessRequirement AccessRequirement { get; set; }
+    // Active goal IDs for this location (Mental/Physical challenges)
+    // References goals in GameWorld.Goals dictionary (single source of truth)
+    public List<string> ActiveGoalIds { get; set; } = new List<string>();
+    public List<string> ObstacleIds { get; set; } = new List<string>();
 
-    public List<ChallengeGoal> Goals { get; set; } = new List<ChallengeGoal>();
+    /// <summary>
+    /// Object references to active goals (for runtime navigation)
+    /// </summary>
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+
+    /// <summary>
+    /// Object references to obstacles (for runtime navigation)
+    /// </summary>
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 
@@ -47,13 +59,15 @@ public class Location
     public int Familiarity { get; set; } = 0;
     public int MaxFamiliarity { get; set; } = 3;
     public int HighestObservationCompleted { get; set; } = 0;
-    public List<ObservationReward> ObservationRewards { get; set; } = new List<ObservationReward>();
+    // ObservationRewards system eliminated - replaced by transparent resource competition
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
-    public int Exposure { get; set; } = 0;
+    // Localized mastery - InvestigationCubes reduce Mental Exposure at THIS location only
+    // 0-10 scale: 0 cubes = full exposure, 10 cubes = mastery (no exposure)
+    public int InvestigationCubes { get; set; } = 0;
 
     // Gameplay properties moved from Location
-    public InvestigationDiscipline InvestigationProfile { get; set; } = InvestigationDiscipline.Research;
+    public ObligationDiscipline ObligationProfile { get; set; } = ObligationDiscipline.Research;
     public List<string> DomainTags { get; set; } = new List<string>();
     public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
@@ -72,9 +86,9 @@ public class Location
     {
         List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
 
-        if (TimeSpecificProperties.ContainsKey(currentTime))
+        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            activeProperties.AddRange(TimeSpecificProperties[currentTime]);
+            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
         }
 
         return activeProperties;
@@ -90,9 +104,9 @@ public class Location
 
         // Get all active properties (base + time-specific)
         List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
-        if (TimeSpecificProperties.ContainsKey(currentTime))
+        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            activeProperties.AddRange(TimeSpecificProperties[currentTime]);
+            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
         }
 
         // Apply property-based modifiers

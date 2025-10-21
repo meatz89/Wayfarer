@@ -5,7 +5,7 @@ using System.Linq;
 /// Context object for travel obstacle UI rendering.
 /// Contains all data needed to display and interact with obstacles.
 /// </summary>
-public class ObstacleContext
+public class TravelObstacleContext
 {
     /// <summary>
     /// The obstacle encountered.
@@ -43,7 +43,7 @@ public class ObstacleContext
     /// </summary>
     public List<ObstacleApproach> GetAvailableApproaches()
     {
-        if (Obstacle?.Approaches == null)
+        if (Obstacle == null || Obstacle.Approaches == null)
             return new List<ObstacleApproach>();
 
         return Obstacle.Approaches
@@ -56,7 +56,7 @@ public class ObstacleContext
     /// </summary>
     public List<(ObstacleApproach approach, List<string> reasons)> GetUnavailableApproaches()
     {
-        if (Obstacle?.Approaches == null)
+        if (Obstacle == null || Obstacle.Approaches == null)
             return new List<(ObstacleApproach, List<string>)>();
 
         List<(ObstacleApproach, List<string>)> result = new List<(ObstacleApproach, List<string>)>();
@@ -80,17 +80,8 @@ public class ObstacleContext
     {
         List<string> reasons = new List<string>();
 
-        if (approach.KnowledgeRequirements != null && !approach.KnowledgeRequirements.MeetsRequirements(Player.Knowledge))
-        {
-            List<string> missing = approach.KnowledgeRequirements.GetMissingRequirements(Player.Knowledge);
-            reasons.AddRange(missing.Select(m => $"Missing knowledge: {m}"));
-        }
-
-        if (approach.EquipmentRequirements != null && !approach.EquipmentRequirements.MeetsRequirements(Player, ItemRepository))
-        {
-            List<string> missing = approach.EquipmentRequirements.GetMissingRequirements(Player, ItemRepository);
-            reasons.AddRange(missing.Select(m => $"Missing equipment: {m}"));
-        }
+        // Knowledge system eliminated
+        // EquipmentRequirement system eliminated - PRINCIPLE 4: Equipment reduces costs, never gates visibility
 
         if (Player.Stamina < approach.StaminaRequired)
         {
@@ -132,7 +123,7 @@ public class ObstacleContext
                 TimeSegmentCost = approach.SuccessOutcome.TimeSegmentCost,
                 StaminaCost = approach.SuccessOutcome.StaminaCost,
                 HealthChange = approach.SuccessOutcome.HealthChange,
-                KnowledgeGained = approach.SuccessOutcome.KnowledgeGained,
+                // Knowledge system eliminated
                 HasRouteImprovement = approach.SuccessOutcome.RouteImprovement != null
             } : null,
             FailureOutcome = approach.FailureOutcome != null ? new ObstacleOutcomePreview
@@ -141,7 +132,7 @@ public class ObstacleContext
                 TimeSegmentCost = approach.FailureOutcome.TimeSegmentCost,
                 StaminaCost = approach.FailureOutcome.StaminaCost,
                 HealthChange = approach.FailureOutcome.HealthChange,
-                KnowledgeGained = approach.FailureOutcome.KnowledgeGained,
+                // Knowledge system eliminated
                 HasRouteImprovement = approach.FailureOutcome.RouteImprovement != null
             } : null
         };
@@ -172,6 +163,6 @@ public class ObstacleOutcomePreview
     public int TimeSegmentCost { get; set; }
     public int StaminaCost { get; set; }
     public int HealthChange { get; set; }
-    public List<string> KnowledgeGained { get; set; } = new List<string>();
+    // Knowledge system eliminated
     public bool HasRouteImprovement { get; set; }
 }

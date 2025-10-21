@@ -207,14 +207,13 @@ public class ExchangeCard
         return true;
     }
 
-
     /// <summary>
     /// Gets the exchange ratio as a readable string.
     /// </summary>
     public string GetExchangeRatio()
     {
-        string costDesc = Cost?.GetDescription() ?? "Nothing";
-        string rewardDesc = Reward?.GetDescription() ?? "Nothing";
+        string costDesc = Cost.GetDescription();
+        string rewardDesc = Reward.GetDescription();
         return $"{costDesc} → {rewardDesc}";
     }
 
@@ -231,7 +230,7 @@ public class ExchangeCard
     /// </summary>
     public List<ResourceAmount> GetCostAsList()
     {
-        return Cost?.Resources ?? new List<ResourceAmount>();
+        return Cost.Resources;
     }
 
     /// <summary>
@@ -239,7 +238,7 @@ public class ExchangeCard
     /// </summary>
     public List<ResourceAmount> GetRewardAsList()
     {
-        return Reward?.Resources ?? new List<ResourceAmount>();
+        return Reward.Resources;
     }
 
     /// <summary>
@@ -247,7 +246,7 @@ public class ExchangeCard
     /// </summary>
     public List<string> GetItemRewards()
     {
-        return Reward?.ItemIds ?? new List<string>();
+        return Reward.ItemIds;
     }
 
     /// <summary>
@@ -255,7 +254,7 @@ public class ExchangeCard
     /// </summary>
     public bool CanAfford(PlayerResourceState playerResources)
     {
-        return Cost?.CanAfford(playerResources) ?? true;
+        return Cost.CanAfford(playerResources);
     }
 
     /// <summary>
@@ -263,8 +262,8 @@ public class ExchangeCard
     /// </summary>
     public string GetNarrativeContext()
     {
-        string costDesc = Cost?.GetDescription() ?? "Nothing";
-        string rewardDesc = Reward?.GetDescription() ?? "Nothing";
+        string costDesc = Cost.GetDescription();
+        string rewardDesc = Reward.GetDescription();
         return $"Trading {costDesc} for {rewardDesc}";
     }
 

@@ -16,34 +16,24 @@ public class GameConfigValidator : IContentValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Object)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Game config file must contain a JSON object",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            // Validate main sections
-            ValidateTimeConfig(root, fileName, errors);
-            ValidateStaminaConfig(root, fileName, errors);
-            ValidateTokenEconomyConfig(root, fileName, errors);
-            ValidateDayTransitionConfig(root, fileName, errors);
-            ValidateWorkRewardsConfig(root, fileName, errors);
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Object)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate game config: {ex.Message}",
+                "Game config file must contain a JSON object",
                 ValidationSeverity.Critical));
+            return errors;
         }
+
+        // Validate main sections
+        ValidateTimeConfig(root, fileName, errors);
+        ValidateStaminaConfig(root, fileName, errors);
+        ValidateTokenEconomyConfig(root, fileName, errors);
+        ValidateDayTransitionConfig(root, fileName, errors);
+        ValidateWorkRewardsConfig(root, fileName, errors);
 
         return errors;
     }

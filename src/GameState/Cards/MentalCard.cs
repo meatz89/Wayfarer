@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Mental Tactical System Card - represents investigation/puzzle-solving actions
+/// Mental Tactical System Card - represents obligation/puzzle-solving actions
 /// Parallel to ConversationCard but for Mental tactical challenges
 /// </summary>
 public class MentalCard
@@ -20,16 +20,16 @@ public class MentalCard
     public int AttentionCost { get; init; } = 0;  // Action economy cost
     public Method Method { get; init; } = Method.Standard;  // Rhythm effect
     public MentalCategory Category { get; init; }  // Card category determines thematic approach and effects
-    public InvestigationDiscipline Discipline { get; init; } = InvestigationDiscipline.Research;  // Specialization for bonus matching
+    public ObligationDiscipline Discipline { get; init; } = ObligationDiscipline.Research;  // Specialization for bonus matching
 
     // Universal card properties (apply across all tactical systems)
-    // NOTE: RiskLevel removed - Mental investigations have mental strain (ExertionLevel), not physical risk
+    // NOTE: RiskLevel removed - Mental obligations have mental strain (ExertionLevel), not physical risk
     public Visibility Visibility { get; init; } = Visibility.Moderate;
     public ExertionLevel ExertionLevel { get; init; } = ExertionLevel.Light;
     public MethodType MethodType { get; init; } = MethodType.Direct;
 
     // Strategic resource costs (calculated at parse time from categorical properties via MentalCardEffectCatalog)
-    // NOTE: Mental cards have NO health/stamina costs - Mental investigations cost Focus at SESSION level only
+    // NOTE: Mental cards have NO health/stamina costs - Mental obligations cost Focus at SESSION level only
     // Individual cards cost ZERO permanent resources (only session resources: Attention, Progress, Exposure)
     public int CoinCost { get; init; } = 0;  // Rare - bribes, equipment purchases
     public int XPReward { get; init; } = 0;  // Pre-calculated XP from depth (parse time, not runtime)

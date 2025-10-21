@@ -1,0 +1,31 @@
+@namespace Wayfarer.Pages.Components.Shared
+@*
+6-Point Resource Bar - Displays resources as individual cubes (1-6 scale)
+Each cube is individually visible for clear counting
+*@
+
+<div class="resource-6point">
+    <div class="resource-label-6point">@Label</div>
+    <div class="resource-cubes-6point">
+        @for (int i = 1; i <= MaxValue; i++)
+        {
+            <div class="resource-cube @(i <= CurrentValue ? "filled" : "empty") @CubeTypeClass"
+                 title="@Label: @CurrentValue/@MaxValue">
+            </div>
+        }
+    </div>
+    @if (ShowNumeric)
+    {
+        <div class="resource-numeric-6point">@CurrentValue/@MaxValue</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; }
+    [Parameter] public int CurrentValue { get; set; }
+    [Parameter] public int MaxValue { get; set; } = 6;
+    [Parameter] public string ResourceType { get; set; } = "default"; // health, focus, stamina, default
+    [Parameter] public bool ShowNumeric { get; set; } = false;
+
+    private string CubeTypeClass => $"cube-{ResourceType}";
+}

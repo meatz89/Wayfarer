@@ -12,32 +12,56 @@
             {
                 "id": "mental_challenge",
                 "name": "Mental Challenge Deck",
+                "description": "Mental challenges requiring observation and deduction",
+                "dangerThreshold": 5,
                 "cardIds": [
                     "mental_examine_scene",
+                    "mental_examine_scene",
+                    "mental_examine_scene",
+                    "mental_search_thoroughly",
                     "mental_search_thoroughly",
                     "mental_interview_witness",
+                    "mental_interview_witness",
+                    "mental_interview_witness",
                     "mental_deduce_pattern",
+                    "mental_deduce_pattern",
+                    "mental_trust_instinct",
                     "mental_trust_instinct"
-                ]
+                ],
+                "initialHandSize": 5,
+                "maxHandSize": 7
             }
         ],
         "physicalChallengeDecks": [
             {
                 "id": "physical_challenge",
                 "name": "Physical Challenge Deck",
+                "description": "Physical challenges requiring strength and dexterity",
+                "dangerThreshold": 5,
                 "cardIds": [
                     "physical_climb_carefully",
-                    "physical_sprint_forward",
+                    "physical_climb_carefully",
+                    "physical_climb_carefully",
                     "physical_leverage_tool",
+                    "physical_leverage_tool",
+                    "physical_leverage_tool",
+                    "physical_sprint_forward",
+                    "physical_sprint_forward",
                     "physical_brute_force",
+                    "physical_brute_force",
+                    "physical_precise_movement",
                     "physical_precise_movement"
-                ]
+                ],
+                "initialHandSize": 5,
+                "maxHandSize": 7
             }
         ],
         "socialChallengeDecks": [
             {
                 "id": "desperate_request",
                 "name": "Desperate Request Deck",
+                "description": "Someone in crisis needs help - heavy Rapport/Insight, zero Authority",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "rapport_show_understanding",
                     "rapport_show_understanding",
@@ -65,11 +89,15 @@
                     "diplomacy_calculate_risk",
                     "cunning_feint",
                     "cunning_subtle_maneuver"
-                ]
+                ],
+                "initialHandSize": 5,
+                "maxHandSize": 7
             },
             {
                 "id": "friendly_chat",
                 "name": "Friendly Chat Deck",
+                "description": "Casual conversation with balanced stat mix",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "insight_quick_scan",
                     "insight_ask_question",
@@ -86,7 +114,9 @@
                     "cunning_feint",
                     "cunning_bait",
                     "cunning_subtle_maneuver"
-                ]
+                ],
+                "initialHandSize": 5,
+                "maxHandSize": 7
             }
         ]
     }

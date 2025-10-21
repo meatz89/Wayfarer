@@ -10,36 +10,38 @@ public class PhysicalCardParser
 {
     public PhysicalCard ParseCard(PhysicalCardDTO dto)
     {
-        // Parse categorical properties from DTO
-        Approach approach = ParseApproach(dto.Approach);
-        PhysicalCategory category = ParseCategory(dto.Category);
-        PhysicalDiscipline discipline = ParseDiscipline(dto.Discipline);
-        RiskLevel riskLevel = ParseRiskLevel(dto.RiskLevel);
-        ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
-        MethodType methodType = ParseMethodType(dto.MethodType);
+        // VALIDATION: Required fields crash if missing
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidOperationException("PhysicalCard missing required field 'id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"PhysicalCard '{dto.Id}' missing required field 'name'");
+        if (string.IsNullOrEmpty(dto.Approach))
+            throw new InvalidOperationException($"PhysicalCard '{dto.Id}' missing required field 'approach'");
+        if (string.IsNullOrEmpty(dto.TechniqueType))
+            throw new InvalidOperationException($"PhysicalCard '{dto.Id}' missing required field 'techniqueType'");
 
-        // PARSER CATALOG INTEGRATION: Auto-derive values from categorical properties if not specified in JSON
-        int exertionCost = dto.ExertionCost > 0
-            ? dto.ExertionCost
-            : PhysicalCardEffectCatalog.GetExertionCostFromDepth(dto.Depth);
+        // Parse categorical properties from DTO (NO DEFAULTS - crash if invalid)
+        Approach approach = ParseApproach(dto.Approach, dto.Id);
+        PhysicalCategory category = ParseCategory(dto.TechniqueType, dto.Id);  // FIXED: Use TechniqueType from JSON
+        PlayerStatType boundStat = ParseStat(dto.BoundStat, dto.Id);
 
-        // Parse simple requirement properties (NOT objects)
+        // ExertionCost ALWAYS calculated from catalog (no JSON override)
+        int exertionCost = PhysicalCardEffectCatalog.GetExertionCostFromDepth(dto.Depth);
+
+        // Fixed values for universal properties (catalog provides these, not JSON)
+        RiskLevel riskLevel = RiskLevel.Cautious;  // Fixed until JSON needs variation
+        ExertionLevel exertionLevel = ExertionLevel.Light;  // Fixed until JSON needs variation
+
+        // Parse stat requirements
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
         if (dto.Requirements?.Stats != null)
         {
             foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
             {
-                if (Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
-                {
-                    statThresholds[statType] = kvp.Value;
-                }
+                if (!Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
+                    throw new InvalidOperationException($"PhysicalCard '{dto.Id}' has invalid stat requirement '{kvp.Key}'");
+                statThresholds[statType] = kvp.Value;
             }
-        }
-
-        EquipmentCategory equipmentCategory = EquipmentCategory.None;
-        if (dto.Requirements?.EquipmentCategory != null)
-        {
-            Enum.TryParse<EquipmentCategory>(dto.Requirements.EquipmentCategory, out equipmentCategory);
         }
 
         return new PhysicalCard
@@ -48,80 +50,64 @@ public class PhysicalCardParser
             Name = dto.Name,
             Description = dto.Description,
             Depth = dto.Depth,
-            BoundStat = ParseStat(dto.BoundStat),
+            BoundStat = boundStat,
             ExertionCost = exertionCost,
             Approach = approach,
             Category = category,
-            Discipline = discipline,
 
-            // Universal card properties
+            // Universal properties - catalog provides defaults (not JSON)
+            Discipline = PhysicalDiscipline.Combat,  // Fixed value until JSON needs variation
             RiskLevel = riskLevel,
             ExertionLevel = exertionLevel,
-            MethodType = methodType,
+            MethodType = MethodType.Direct,  // Fixed value until JSON needs variation
 
-            // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG (calculated ONCE at parse time)
+            // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG
             StaminaCost = PhysicalCardEffectCatalog.GetStaminaCost(approach, dto.Depth, exertionLevel),
             DirectHealthCost = PhysicalCardEffectCatalog.GetHealthCost(approach, riskLevel, dto.Depth),
             CoinCost = PhysicalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = PhysicalCardEffectCatalog.GetXPReward(dto.Depth),
 
-            // Simple requirement properties - parser calculates costs/effects from categorical properties via PhysicalCardEffectCatalog
-            EquipmentCategory = equipmentCategory,
+            // Requirements
+            EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation
             StatThresholds = statThresholds,
-            MinimumHealth = dto.Requirements?.MinHealth ?? 0,
-            MinimumStamina = dto.Requirements?.MinStamina ?? 0
+            MinimumHealth = 0,  // Physical cards never require minimum health (costs.health is what you PAY)
+            MinimumStamina = 0  // Physical cards never require minimum stamina (costs.stamina is what you PAY)
         };
     }
 
     // NOTE: Effects are calculated at card play time from categorical properties (Approach, TechniqueType, Depth, RiskLevel, etc.)
     // using PhysicalCardEffectCatalog formulas. This follows the documented parser-based architecture.
 
-    private PlayerStatType ParseStat(string statString)
+    private PlayerStatType ParseStat(string statString, string cardId)
     {
-        return Enum.TryParse<PlayerStatType>(statString, out PlayerStatType stat)
-            ? stat
-            : PlayerStatType.Authority;  // Authority = Forceful Approach (physical default per architecture)
+        if (string.IsNullOrEmpty(statString))
+            throw new InvalidOperationException($"PhysicalCard '{cardId}' missing required field 'boundStat'");
+
+        if (!Enum.TryParse<PlayerStatType>(statString, out PlayerStatType stat))
+            throw new InvalidOperationException(
+                $"PhysicalCard '{cardId}' has invalid boundStat '{statString}'. " +
+                $"Valid values: Insight, Rapport, Authority, Diplomacy, Cunning");
+
+        return stat;
     }
 
-    private Approach ParseApproach(string approachString)
+    private Approach ParseApproach(string approachString, string cardId)
     {
-        return Enum.TryParse<Approach>(approachString, out Approach approach)
-            ? approach
-            : Approach.Standard;
+        if (!Enum.TryParse<Approach>(approachString, out Approach approach))
+            throw new InvalidOperationException(
+                $"PhysicalCard '{cardId}' has invalid approach '{approachString}'. " +
+                $"Valid values: Careful, Standard, Bold, Reckless");
+
+        return approach;
     }
 
-    private PhysicalCategory ParseCategory(string categoryString)
+    private PhysicalCategory ParseCategory(string categoryString, string cardId)
     {
-        return Enum.TryParse<PhysicalCategory>(categoryString, out PhysicalCategory category)
-            ? category
-            : PhysicalCategory.Aggressive;
-    }
+        if (!Enum.TryParse<PhysicalCategory>(categoryString, out PhysicalCategory category))
+            throw new InvalidOperationException(
+                $"PhysicalCard '{cardId}' has invalid techniqueType '{categoryString}'. " +
+                $"Valid values: Aggressive, Defensive, Tactical, Evasive, Endurance");
 
-    private RiskLevel ParseRiskLevel(string riskString)
-    {
-        return Enum.TryParse<RiskLevel>(riskString, out RiskLevel risk)
-            ? risk
-            : RiskLevel.Cautious;
-    }
-
-    private ExertionLevel ParseExertionLevel(string exertionString)
-    {
-        return Enum.TryParse<ExertionLevel>(exertionString, out ExertionLevel exertion)
-            ? exertion
-            : ExertionLevel.Light;
-    }
-
-    private MethodType ParseMethodType(string methodTypeString)
-    {
-        return Enum.TryParse<MethodType>(methodTypeString, out MethodType methodType)
-            ? methodType
-            : MethodType.Direct;
-    }
-
-    private PhysicalDiscipline ParseDiscipline(string disciplineString)
-    {
-        return Enum.TryParse<PhysicalDiscipline>(disciplineString, out PhysicalDiscipline discipline)
-            ? discipline
-            : PhysicalDiscipline.Combat;
+        return category;
     }
 }

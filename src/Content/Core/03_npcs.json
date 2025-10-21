@@ -1,11 +1,11 @@
 {
   "packageId": "npcs_all",
   "metadata": {
-    "name": "POC NPCs - Elena and Aldric Only",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Minimal POC: Elena and Aldric at Old Mill courtyard",
+    "name": "Tutorial NPCs - Elena and Thomas",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Tutorial: Elena (Innkeeper) offers Social work, Thomas (Foreman) offers Physical work",
     "author": "Wayfarer Team",
-    "version": "3.0.0"
+    "version": "4.0.0"
   },
   "content": {
     "npcs": [
@@ -13,77 +13,33 @@
         "id": "elena",
         "name": "Elena",
         "level": 2,
-        "profession": "Miller's Daughter",
-        "venueId": "old_mill",
-        "spotId": "courtyard",
-        "description": "A young woman with flour still dusting her sleeves, worry etched in her brow. Her family's old mill holds mysteries she's not ready to confront alone.",
-        "personality": "Determined but burdened by family secrets.",
+        "profession": "Innkeeper",
+        "venueId": "brass_bell_inn",
+        "locationId": "common_room",
+        "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
+        "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
         "personalityType": "DEVOTED",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0
         },
-        "conversationDifficulty": 2,
-        "requests": [
-          {
-            "id": "elena_aldric_delivery",
-            "conversationTypeId": "desperate_request",
-            "name": "Delivery to Farmer Aldric",
-            "description": "Elena needs grain seeds delivered to Aldric's farm beyond the creek. She'll pay well, and there might be more to this errand than meets the eye.",
-            "goals": [
-              {
-                "id": "elena_basic_delivery",
-                "cardId": "elena_basic_delivery",
-                "name": "Simple Delivery",
-                "description": "Deliver the package to Aldric",
-                "momentumThreshold": 8,
-                "weight": 1,
-                "rewards": {
-                  "coins": 20,
-                  "obligationId": "delivery_to_aldric"
-                }
-              },
-              {
-                "id": "elena_enhanced_delivery",
-                "cardId": "elena_enhanced_delivery",
-                "name": "Delivery + Investigation Offer",
-                "description": "Deliver the package and Elena shares something about the old mill",
-                "momentumThreshold": 12,
-                "weight": 2,
-                "rewards": {
-                    "coins": 25,
-                    "obligationId": "delivery_to_aldric",
-                    "knowledge": [ "mill_has_secrets" ]
-                }
-              }
-            ]
-          }
-        ]
+        "conversationDifficulty": 2
       },
       {
-        "id": "aldric",
-        "name": "Farmer Aldric",
+        "id": "thomas",
+        "name": "Thomas",
         "level": 1,
-        "profession": "Farmer",
-        "venueId": "old_mill",
-        "spotId": "courtyard",
-        "description": "A weathered farmer who tends his fields beyond the creek. He knew Elena's family before tragedy struck.",
-        "personality": "Simple and direct. A man of few words but honest dealings.",
+        "profession": "Warehouse Foreman",
+        "venueId": "brass_bell_inn",
+        "locationId": "common_room",
+        "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
+        "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0
         },
-        "conversationDifficulty": 1,
-        "requests": [
-          {
-            "id": "aldric_friendly_chat",
-            "conversationTypeId": "friendly_chat",
-            "name": "Casual chat",
-            "description": "Have a friendly conversation with Aldric",
-            "goals": []
-          }
-        ]
+        "conversationDifficulty": 1
       }
     ]
   }

@@ -46,7 +46,6 @@ public class NarrativeFacade
         _messageSystem.AddSystemMessage(message, type);
     }
 
-
     // ========== NARRATIVE GENERATION ==========
 
     /// <summary>

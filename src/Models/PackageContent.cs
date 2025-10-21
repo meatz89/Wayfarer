@@ -16,9 +16,9 @@ public class PackageContent
     public List<DistrictDTO> Districts { get; set; }
 
     /// <summary>
-    /// Card definitions - uses DTO for consistency
+    /// Social card definitions - uses DTO for consistency
     /// </summary>
-    public List<SocialCardDTO> Cards { get; set; }
+    public List<SocialCardDTO> SocialCards { get; set; }
 
     /// <summary>
     /// NPC definitions - uses existing NPCDTO
@@ -45,10 +45,7 @@ public class PackageContent
     /// </summary>
     public List<ObservationDTO> Observations { get; set; }
 
-    /// <summary>
-    /// Investigation rewards - defines what observation cards are earned from Venue familiarity
-    /// </summary>
-    public List<ObservationRewardDTO> InvestigationRewards { get; set; }
+    // ObligationRewards system eliminated - replaced by transparent resource competition
 
     /// <summary>
     /// Standing obligations - uses existing StandingObligationDTO
@@ -56,14 +53,10 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
 
     /// <summary>
-    /// NPC goal cards - goal cards specific to NPCs (promises, connection tokens, etc)
+    /// Goals - strategic layer entities that define UI actions (replaces inline NPC requests)
+    /// Universal across all three tactical systems (Social/Mental/Physical)
     /// </summary>
-    public List<GoalCardDTO> NpcGoalCards { get; set; }
-
-    /// <summary>
-    /// NPC requests - bundles of request and promise cards for one-time requests
-    /// </summary>
-    public List<NPCRequestDTO> NpcRequests { get; set; }
+    public List<GoalDTO> Goals { get; set; }
 
     /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments
@@ -86,9 +79,14 @@ public class PackageContent
     public List<ItemDTO> Items { get; set; }
 
     /// <summary>
-    /// Venue actions - uses LocationActionDTO for consistency
+    /// Location actions - location-specific actions matched by properties
     /// </summary>
-    public List<VenueActionDTO> LocationActions { get; set; }
+    public List<LocationActionDTO> LocationActions { get; set; }
+
+    /// <summary>
+    /// Player actions - global actions available everywhere (e.g., check belongings)
+    /// </summary>
+    public List<PlayerActionDTO> PlayerActions { get; set; }
 
     /// <summary>
     /// Deck compositions - defines how many copies of each card in decks
@@ -136,21 +134,15 @@ public class PackageContent
     public Dictionary<string, int> ListenDrawCounts { get; set; }
 
     /// <summary>
-    /// Investigation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
+    /// Obligation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
     /// </summary>
-    // public List<Wayfarer.Content.DTOs.InvestigationCardDTO> InvestigationCards { get; set; }
+    // public List<Wayfarer.Content.DTOs.ObligationCardDTO> ObligationCards { get; set; }
 
     /// <summary>
-    /// Investigation templates - strategic multi-phase activities that orchestrate tactical systems
-    /// V3: Now using InvestigationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
+    /// Obligation templates - strategic multi-phase activities that orchestrate tactical systems
+    /// V3: Now using ObligationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
     /// </summary>
-    public List<InvestigationDTO> Investigations { get; set; }
-
-    /// <summary>
-    /// Knowledge definitions - structured discoveries that connect investigations and enhance conversations
-    /// Serves as connective tissue: unlocks investigations, unlocks goals, grants observation cards
-    /// </summary>
-    public List<KnowledgeDTO> Knowledge { get; set; }
+    public List<ObligationDTO> Obligations { get; set; }
 
     /// <summary>
     /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
@@ -158,7 +150,7 @@ public class PackageContent
     public List<TravelObstacleDTO> TravelObstacles { get; set; }
 
     /// <summary>
-    /// Mental cards for investigation system - parallel to conversation cards for mental tactical challenges
+    /// Mental cards for obligation system - parallel to conversation cards for mental tactical challenges
     /// </summary>
     public List<MentalCardDTO> MentalCards { get; set; }
 
@@ -167,11 +159,14 @@ public class PackageContent
     /// </summary>
     public List<PhysicalCardDTO> PhysicalCards { get; set; }
 
-    // THREE PARALLEL TACTICAL SYSTEMS - NO UNIFIED CLASSES
-    public List<SocialChallengeTypeDTO> SocialChallengeTypes { get; set; } = new List<SocialChallengeTypeDTO>();
+    // THREE PARALLEL TACTICAL SYSTEMS - Decks only (no Types, they're redundant)
     public List<SocialChallengeDeckDTO> SocialChallengeDecks { get; set; } = new List<SocialChallengeDeckDTO>();
-    public List<MentalChallengeTypeDTO> MentalChallengeTypes { get; set; } = new List<MentalChallengeTypeDTO>();
     public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
-    public List<PhysicalChallengeTypeDTO> PhysicalChallengeTypes { get; set; } = new List<PhysicalChallengeTypeDTO>();
     public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
+
+    /// <summary>
+    /// Obstacle definitions - challenges with multiple resolution paths and property-based gating
+    /// Can be placed on Locations, NPCs, or Routes
+    /// </summary>
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 }

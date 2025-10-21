@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 /// <summary>
 /// Exception thrown when package loading encounters missing dependencies or validation errors
@@ -12,7 +13,7 @@ public class PackageLoadException : Exception
     public string PackageId { get; set; }
 
     /// <summary>
-    /// The type of entity that has missing dependencies (e.g., "NPCRequest", "Route", "Exchange")
+    /// The type of entity that has missing dependencies (e.g., "Goal", "Route", "Exchange")
     /// </summary>
     public string EntityType { get; set; }
 

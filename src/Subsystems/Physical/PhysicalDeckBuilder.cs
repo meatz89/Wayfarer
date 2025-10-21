@@ -16,20 +16,17 @@ public class PhysicalDeckBuilder
     }
 
     /// <summary>
-    /// Build deck from engagement type's specific deck (parallel to Social system)
+    /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
     /// Returns (deck to draw from, starting hand with knowledge and injury cards)
     /// </summary>
     public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(
-        PhysicalChallengeType challengeType, Player player)
+        PhysicalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
-        // THREE PARALLEL SYSTEMS: Get Physical engagement deck from engagement type
-        if (!_gameWorld.PhysicalChallengeDecks.TryGetValue(challengeType.DeckId, out PhysicalChallengeDeck deckDefinition))
-        {
-            throw new InvalidOperationException($"[PhysicalDeckBuilder] Physical engagement deck '{challengeType.DeckId}' not found in GameWorld.PhysicalChallengeDecks");
-        }
+        // THREE PARALLEL SYSTEMS: Use Physical engagement deck directly (no lookup needed)
+        PhysicalChallengeDeck deckDefinition = challengeDeck;
 
         // Build card instances from engagement deck (parallel to ConversationDeckBuilder pattern)
         List<CardInstance> deck = deckDefinition.BuildCardInstances(_gameWorld);
@@ -70,13 +67,42 @@ public class PhysicalDeckBuilder
         return (deck, startingHand);
     }
 
+    /// <summary>
+    /// Create goal card instances for Physical challenges
+    /// Goal cards are self-contained templates - no lookup required
+    /// Goal cards start unplayable until Breakthrough threshold met
+    /// </summary>
+    private List<CardInstance> CreateGoalCardInstances(Goal goal)
+    {
+        List<CardInstance> goalCardInstances = new List<CardInstance>();
+
+        foreach (GoalCard goalCard in goal.GoalCards)
+        {
+            // Create CardInstance directly from GoalCard (self-contained template)
+            CardInstance instance = new CardInstance(goalCard);
+
+            // Set context for threshold checking (Physical system uses Breakthrough threshold)
+            instance.Context = new CardContext
+            {
+                threshold = goalCard.threshold,
+                RequestId = goal.Id
+            };
+
+            // Goal cards start unplayable until threshold met
+            instance.IsPlayable = false;
+
+            goalCardInstances.Add(instance);
+        }
+
+        return goalCardInstances;
+    }
 
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
         foreach (string itemId in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.WorldState.Items?.FirstOrDefault(i => i.Id == itemId);
+            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

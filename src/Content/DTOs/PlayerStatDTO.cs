@@ -9,7 +9,7 @@ public class PlayerStatDefinitionDTO
     public string Name { get; set; }
     public string Description { get; set; }
     public string ConversationBenefit { get; set; }
-    public string InvestigationUnlock { get; set; }
+    public string ObligationUnlock { get; set; }
     public string TravelUnlock { get; set; }
 }
 

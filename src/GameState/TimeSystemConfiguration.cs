@@ -11,7 +11,7 @@ public static class TimeSystemConfiguration
     /// </summary>
     public static IServiceCollection AddTimeSystem(this IServiceCollection services)
     {
-        // Register the core time components
+        // Register the core time components - SIMPLE DI REGISTRATION ONLY
         services.AddSingleton<TimeModel>();
 
         // Register the TimeManager

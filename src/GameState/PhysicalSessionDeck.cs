@@ -8,18 +8,18 @@ using System.Linq;
 /// </summary>
 public class PhysicalSessionDeck
 {
-    // Pile system: Deck → Hand → Played
+    // THREE-PILE SYSTEM: Deck (draw) → Hand (active) → Locked (exhaust)
     private readonly Pile deckPile = new();
     private readonly Pile handPile = new();
-    private readonly Pile playedPile = new();
     private readonly Pile requestPile = new();  // GOAL CARDS for this engagement
+    private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // EXHAUST PILE - locked for combo execution on ASSESS
 
     public PhysicalSessionDeck() { }
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
     public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
-    public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
+    public IReadOnlyList<CardInstance> LockedCards => lockedCards.AsReadOnly();
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;
 
@@ -66,7 +66,6 @@ public class PhysicalSessionDeck
         {
             if (deckPile.Count == 0)
             {
-                Console.WriteLine($"[PhysicalSessionDeck] No cards remaining in deck");
                 break;
             }
 
@@ -76,27 +75,12 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
-    /// Play card from hand
-    /// </summary>
-    public void PlayCard(CardInstance card)
-    {
-        if (card == null || !handPile.Contains(card))
-        {
-            Console.WriteLine($"[PhysicalSessionDeck] ERROR: Card not in hand");
-            return;
-        }
-
-        handPile.Remove(card);
-        playedPile.Add(card);
-    }
-
-    /// <summary>
     /// Check request pile and move goal cards to hand if Breakthrough threshold met
     /// </summary>
     public List<CardInstance> CheckGoalThresholds(int currentBreakthrough)
     {
         List<CardInstance> toMove = requestPile.Cards
-            .Where(c => c.Context?.MomentumThreshold <= currentBreakthrough)  // Reusing MomentumThreshold field for Breakthrough
+            .Where(c => c.Context != null && c.Context.threshold <= currentBreakthrough)
             .ToList();
 
         List<CardInstance> movedCards = new List<CardInstance>();
@@ -107,10 +91,85 @@ public class PhysicalSessionDeck
             card.IsPlayable = true;
             handPile.Add(card);
             movedCards.Add(card);
-            Console.WriteLine($"[PhysicalSessionDeck] Goal card {card.PhysicalCardTemplate?.Id} unlocked (breakthrough {currentBreakthrough})");
         }
 
         return movedCards;
+    }
+
+    /// <summary>
+    /// Exhaust all hand cards back to deck pile
+    /// Used on ASSESS before drawing fresh Options
+    /// </summary>
+    public void ExhaustHandToDeck()
+    {
+        List<CardInstance> cardsToMove = handPile.Cards.ToList();
+
+        foreach (CardInstance card in cardsToMove)
+        {
+            handPile.Remove(card);
+            deckPile.Add(card);
+        }
+    }
+
+    /// <summary>
+    /// Lock a card for combo execution
+    /// Used on EXECUTE - card is removed from hand and locked for ASSESS combo trigger
+    /// </summary>
+    public void LockCard(CardInstance card)
+    {
+        if (card == null || !handPile.Contains(card))
+        {
+            return;
+        }
+
+        handPile.Remove(card);
+        lockedCards.Add(card);
+    }
+
+    /// <summary>
+    /// Get currently locked cards
+    /// </summary>
+    public IReadOnlyList<CardInstance> GetLockedCards()
+    {
+        return lockedCards.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Clear locked cards after combo execution
+    /// Used after ASSESS triggers all locked cards
+    /// </summary>
+    public void ClearLockedCards()
+    {
+        int count = lockedCards.Count;
+        lockedCards.Clear();
+    }
+
+    /// <summary>
+    /// Shuffle exhaust pile (locked cards) and hand back to deck
+    /// Used on ASSESS to reset card flow: exhaust + hand → deck → shuffle → draw fresh
+    /// CORE PHYSICAL MECHANIC: All cards cycle back through Situation deck
+    /// </summary>
+    public void ShuffleExhaustAndHandBackToDeck()
+    {
+        int exhaustCount = lockedCards.Count;
+        int handCount = handPile.Count;
+
+        // Move all locked cards (exhaust pile) to deck
+        foreach (CardInstance card in lockedCards.ToList())
+        {
+            deckPile.Add(card);
+        }
+        lockedCards.Clear();
+
+        // Move all hand cards to deck
+        foreach (CardInstance card in handPile.Cards.ToList())
+        {
+            handPile.Remove(card);
+            deckPile.Add(card);
+        }
+
+        // Shuffle deck
+        deckPile.Shuffle();
     }
 
     /// <summary>
@@ -120,7 +179,7 @@ public class PhysicalSessionDeck
     {
         deckPile.Clear();
         handPile.Clear();
-        playedPile.Clear();
         requestPile.Clear();
+        lockedCards.Clear();
     }
 }

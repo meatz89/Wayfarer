@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 /// <summary>
 /// Data Transfer Object for deserializing Venue location data from JSON.
@@ -17,22 +16,22 @@ public class LocationDTO
     public List<string> DomainTags { get; set; } = new List<string>();
 
     // The JSON has a "properties" object with time-based keys
-    [JsonPropertyName("properties")]
     public LocationPropertiesDTO Properties { get; set; } = new LocationPropertiesDTO();
 
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }
-    public Dictionary<string, int> InvestigationScaling { get; set; } = new Dictionary<string, int>();
+    public Dictionary<string, int> ObligationScaling { get; set; } = new Dictionary<string, int>();
     public bool CanWork { get; set; }
     public string WorkType { get; set; }
     public int WorkPay { get; set; }
 
-    public AccessRequirementDTO AccessRequirement { get; set; }
+    // Obstacles at this location (Mental/Physical challenges)
+    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
 
     // Gameplay properties moved from LocationDTO
     public string LocationType { get; set; }
     public bool IsStartingLocation { get; set; }
-    public string InvestigationProfile { get; set; }
+    public string ObligationProfile { get; set; }
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
     public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
 }

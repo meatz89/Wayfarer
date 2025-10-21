@@ -8,6 +8,9 @@ public class PhysicalNarrativeService
 
     public string GenerateActionNarrative(CardInstance card, PhysicalSession session)
     {
-        return card.PhysicalCardTemplate?.Description ?? "You face the challenge.";
+        if (card.PhysicalCardTemplate == null)
+            throw new InvalidOperationException("CardInstance missing PhysicalCardTemplate");
+
+        return card.PhysicalCardTemplate.Description;
     }
 }

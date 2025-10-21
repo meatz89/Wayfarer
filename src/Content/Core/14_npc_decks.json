@@ -1,0 +1,26 @@
+{
+  "packageId": "npc_decks",
+  "metadata": {
+    "name": "NPC Deck Compositions",
+    "timestamp": "2025-10-17T00:00:00Z",
+    "description": "Deck compositions for NPCs - defines which cards each NPC has",
+    "version": "1.0.0"
+  },
+  "content": {
+    "deckCompositions": {
+      "npcDecks": {
+        "merchant_general": {
+          "exchangeDeck": {
+            "buy_rope": 1,
+            "buy_waders": 1,
+            "buy_lantern": 1,
+            "buy_tools": 1,
+            "buy_quality_clothing": 1,
+            "buy_rations": 1,
+            "buy_climbing_gear": 1
+          }
+        }
+      }
+    }
+  }
+}

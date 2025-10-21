@@ -1,10 +1,10 @@
 public class ContentValidator
 {
-    private WorldState _worldState;
+    private GameWorld _gameWorld;
 
     public ContentValidator(GameWorld gameWorld)
     {
-        _worldState = gameWorld.WorldState;
+        _gameWorld = gameWorld;
     }
 
     public ContentValidationResult ValidateContent()
@@ -12,11 +12,11 @@ public class ContentValidator
         ContentValidationResult result = new ContentValidationResult();
 
         // Check venues have valid Venue location references
-        foreach (Venue venue in _worldState.venues)
+        foreach (Venue venue in _gameWorld.Venues)
         {
             foreach (string locationSpotId in venue.LocationSpotIds)
             {
-                if (!_worldState.venues.Any(ls => ls.Id == locationSpotId))
+                if (!_gameWorld.Venues.Any(ls => ls.Id == locationSpotId))
                 {
                     result.AddMissingLocationSpot(locationSpotId, venue);
                 }

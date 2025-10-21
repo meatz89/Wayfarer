@@ -62,42 +62,22 @@ public class ContentValidationPipeline
     {
         List<ValidationError> localErrors = new List<ValidationError>();
 
-        try
+        string content = File.ReadAllText(filePath);
+        string fileName = Path.GetFileName(filePath);
+
+        // Validate JSON syntax - let JsonException propagate
+        using (JsonDocument doc = JsonDocument.Parse(content))
         {
-            string content = File.ReadAllText(filePath);
-            string fileName = Path.GetFileName(filePath);
-
-            // First check if it's valid JSON
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(content);
-            }
-            catch (JsonException ex)
-            {
-                localErrors.Add(new ValidationError(
-                    fileName,
-                    $"Invalid JSON: {ex.Message}",
-                    ValidationSeverity.Critical));
-                _errors.AddRange(localErrors);
-                return new ValidationResult(localErrors);
-            }
-
-            // Run all validators
-            foreach (IContentValidator validator in _validators)
-            {
-                if (validator.CanValidate(fileName))
-                {
-                    IEnumerable<ValidationError> validationErrors = validator.Validate(content, fileName);
-                    localErrors.AddRange(validationErrors);
-                }
-            }
         }
-        catch (Exception ex)
+
+        // Run all validators
+        foreach (IContentValidator validator in _validators)
         {
-            localErrors.Add(new ValidationError(
-                filePath,
-                $"Failed to validate file: {ex.Message}",
-                ValidationSeverity.Critical));
+            if (validator.CanValidate(fileName))
+            {
+                IEnumerable<ValidationError> validationErrors = validator.Validate(content, fileName);
+                localErrors.AddRange(validationErrors);
+            }
         }
 
         _errors.AddRange(localErrors);

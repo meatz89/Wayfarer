@@ -1,6 +1,5 @@
 
 
-
 public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
@@ -12,19 +11,15 @@ public class NPCRepository
         DebugLogger debugLogger,
         NPCVisibilityService visibilityService)
     {
-        _gameWorld = gameWorld;
-        _debugLogger = debugLogger; // Can be null during initialization
-        _visibilityService = visibilityService;
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _debugLogger = debugLogger; // Optional - can be null during initialization, used for debugging
+        _visibilityService = visibilityService ?? throw new ArgumentNullException(nameof(visibilityService));
 
-        if (_gameWorld.WorldState.GetCharacters() == null)
-        {
-            Console.WriteLine("WARNING: No NPCs collection exists in WorldState.");
-        }
+        if (_gameWorld.GetCharacters() == null)
+        { }
 
-        if (!_gameWorld.WorldState.GetCharacters().Any())
-        {
-            Console.WriteLine("INFO: No NPCs loaded from GameWorld. This may be expected if npcs.json is not available.");
-        }
+        if (!_gameWorld.GetCharacters().Any())
+        { }
     }
 
     #region Read Methods
@@ -47,10 +42,9 @@ public class NPCRepository
 
     public NPC GetById(string id)
     {
-        List<NPC> characters = _gameWorld.WorldState.GetCharacters();
+        List<NPC> characters = _gameWorld.GetCharacters();
         if (characters == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetById({id})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
@@ -61,13 +55,11 @@ public class NPCRepository
         return npc;
     }
 
-
     public NPC GetByName(string name)
     {
-        List<NPC> characters = _gameWorld.WorldState.GetCharacters();
+        List<NPC> characters = _gameWorld.GetCharacters();
         if (characters == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetByName({name})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
@@ -79,33 +71,30 @@ public class NPCRepository
 
     public List<NPC> GetAllNPCs()
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine("ERROR: Characters collection is null in GetAllNPCs");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
         return FilterByVisibility(npcs);
     }
 
-    public List<NPC> GetNPCsForLocation(string venueId)
+    public List<NPC> GetNPCsForLocation(string locationId)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForLocation({venueId})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        List<NPC> locationNpcs = npcs.Where(n => n.Venue == venueId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.LocationId == locationId).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
     public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetAvailableNPCs({currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
         List<NPC> availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
@@ -114,10 +103,9 @@ public class NPCRepository
 
     public List<NPC> GetNPCsByProfession(Professions profession)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsByProfession({profession})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
         List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
@@ -126,44 +114,36 @@ public class NPCRepository
 
     public List<NPC> GetNPCsProvidingService(ServiceTypes service)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsProvidingService({service})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
         List<NPC> serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
         return FilterByVisibility(serviceNpcs);
     }
 
-    public List<NPC> GetNPCsForVenueAndTime(string venueId, TimeBlocks currentTime)
+    public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
     {
-        // Return all NPCs at venue, regardless of availability
-        // UI will handle whether they're interactable based on availability
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
-        if (npcs == null)
-        {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForVenueAndTime({venueId}, {currentTime})");
-            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-        }
-        List<NPC> venueNpcs = npcs.Where(n => n.Venue == venueId).ToList();
-        return FilterByVisibility(venueNpcs);
+        // DEPRECATED: Use GetNPCsForLocationAndTime instead
+        // This method is kept temporarily for compatibility
+        return GetNPCsForLocationAndTime(locationId, currentTime);
     }
 
     /// <summary>
-    /// Gets NPCs available at a specific Venue location and time
+    /// Gets NPCs available at a specific location and time
     /// </summary>
     public List<NPC> GetNPCsForLocationAndTime(string LocationId, TimeBlocks currentTime)
     {
         // Return all NPCs at this location, regardless of availability
         // UI will handle whether they're interactable based on availability
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetNPCsForLocationAndTime({LocationId}, {currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
+        // Optional - debugLogger might be null during initialization
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
             $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 
@@ -179,14 +159,13 @@ public class NPCRepository
     }
 
     /// <summary>
-    /// Gets the primary NPC for a specific Venue location if available at the current time
+    /// Gets the primary NPC for a specific location if available at the current time
     /// </summary>
     public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
-            Console.WriteLine($"ERROR: Characters collection is null in GetPrimaryNPCForSpot({locationSpotId}, {currentTime})");
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
         NPC? npc = npcs.FirstOrDefault(n => n.LocationId == locationSpotId && n.IsAvailable(currentTime));
@@ -198,12 +177,12 @@ public class NPCRepository
     /// <summary>
     /// Get time block service planning data for UI display
     /// </summary>
-    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string venueId)
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
     {
         List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
         // GetNPCsForLocation already applies visibility filtering
-        List<NPC> locationNPCs = GetNPCsForLocation(venueId);
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
 
         foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
@@ -223,21 +202,21 @@ public class NPCRepository
     }
 
     /// <summary>
-    /// Get all unique services available at a Venue across all time blocks
+    /// Get all unique services available at a Location across all time blocks
     /// </summary>
-    public List<ServiceTypes> GetAllLocationServices(string venueId)
+    public List<ServiceTypes> GetAllLocationServices(string locationId)
     {
-        List<NPC> locationNPCs = GetNPCsForLocation(venueId);
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
         return locationNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
     }
 
     /// <summary>
     /// Get service availability summary for a specific service across all time blocks
     /// </summary>
-    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string venueId, ServiceTypes service)
+    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string locationId, ServiceTypes service)
     {
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-        List<NPC> locationNPCs = GetNPCsForLocation(venueId);
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
         List<NPC> serviceProviders = locationNPCs.Where(npc => npc.ProvidedServices.Contains(service)).ToList();
 
         List<TimeBlocks> availableTimeBlocks = new List<TimeBlocks>();
@@ -261,12 +240,9 @@ public class NPCRepository
 
     #region Write Methods
 
-
-
-
     public void UpdateNPC(NPC npc)
     {
-        List<NPC> npcs = _gameWorld.WorldState.GetCharacters();
+        List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
             throw new InvalidOperationException("No NPCs collection exists.");
@@ -281,7 +257,6 @@ public class NPCRepository
         int index = npcs.IndexOf(existingNPC);
         npcs[index] = npc;
     }
-
 
     #endregion
 

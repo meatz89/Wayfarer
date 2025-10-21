@@ -123,7 +123,6 @@ public class TravelConfig
     public Dictionary<string, float> TerrainStaminaModifiers { get; set; } = new();
 }
 
-
 public class DebtConfig
 {
     public int BorrowMoneyAmount { get; set; }

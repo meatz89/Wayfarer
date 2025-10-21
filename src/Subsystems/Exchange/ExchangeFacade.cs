@@ -14,7 +14,6 @@ public class ExchangeFacade
     private readonly ExchangeOrchestrator _orchestrator;
     private readonly ExchangeValidator _validator;
     private readonly ExchangeProcessor _processor;
-    private readonly ExchangeInventory _inventory;
 
     // External dependencies
     private readonly TimeManager _timeManager;
@@ -25,7 +24,6 @@ public class ExchangeFacade
         ExchangeOrchestrator orchestrator,
         ExchangeValidator validator,
         ExchangeProcessor processor,
-        ExchangeInventory inventory,
         TimeManager timeManager,
         MessageSystem messageSystem)
     {
@@ -33,7 +31,6 @@ public class ExchangeFacade
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-        _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
@@ -43,6 +40,7 @@ public class ExchangeFacade
     /// </summary>
     public ExchangeSession CreateExchangeSession(string npcId)
     {
+        // KEEP - npcId is external input from UI
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
@@ -57,7 +55,7 @@ public class ExchangeFacade
         List<ExchangeOption> availableExchanges = GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
         if (!availableExchanges.Any())
         {
-            return null;
+            throw new InvalidOperationException($"NPC {npcId} has no available exchanges");
         }
 
         return _orchestrator.CreateSession(npc, availableExchanges);
@@ -68,24 +66,40 @@ public class ExchangeFacade
     /// </summary>
     public List<ExchangeOption> GetAvailableExchanges(string npcId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
     {
+        // KEEP - npcId is external input from UI
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
             return new List<ExchangeOption>();
         }
 
-        // Get exchanges from NPC's inventory
-        List<ExchangeCard> npcExchanges = _inventory.GetNPCExchanges(npcId);
+        // Get exchanges from GameWorld directly
+        // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        List<ExchangeCard> npcExchanges = entry.ExchangeCards;
+
+        // Also check NPC.ExchangeDeck
+        foreach (ExchangeCard card in npc.ExchangeDeck)
+        {
+            if (!npcExchanges.Any(e => e.Id == card.Id))
+            {
+                npcExchanges.Add(card);
+            }
+        }
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
-        Location currentSpot = _gameWorld.WorldState.locations
-            .FirstOrDefault(s => s.Id == player.CurrentLocation?.Id);
+        if (player.CurrentLocation == null)
+        {
+            throw new InvalidOperationException("Player has no current location");
+        }
+        Location currentSpot = _gameWorld.Locations
+            .FirstOrDefault(s => s.Id == player.CurrentLocation.Id);
 
         // Convert SpotProperties to domain strings for validation
-        List<string> spotDomains = currentSpot?.LocationProperties?
+        List<string> spotDomains = currentSpot.LocationProperties
             .Select(p => p.ToString())
-            .ToList() ?? new List<string>();
+            .ToList();
 
         // Validate each exchange
         List<ExchangeOption> validExchanges = new List<ExchangeOption>();
@@ -106,8 +120,8 @@ public class ExchangeFacade
                 validExchanges.Add(new ExchangeOption
                 {
                     ExchangeId = exchange.Id,
-                    Name = exchange.Name ?? "Trade",
-                    Description = exchange.Description ?? FormatExchangeDescription(exchange),
+                    Name = exchange.Name,
+                    Description = exchange.Description,
                     Cost = FormatCost(exchange.GetCostAsList()),
                     Reward = FormatReward(exchange.GetRewardAsList()),
                     CanAfford = validation.CanAfford,
@@ -117,7 +131,7 @@ public class ExchangeFacade
                         IsValid = validation.IsValid,
                         IsVisible = validation.IsVisible,
                         ValidationMessage = validation.ValidationMessage,
-                        RequirementDetails = string.Join(", ", validation.MissingRequirements ?? new List<string>())
+                        RequirementDetails = string.Join(", ", validation.MissingRequirements)
                     }
                 });
             }
@@ -131,6 +145,7 @@ public class ExchangeFacade
     /// </summary>
     public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
     {
+        // KEEP - npcId is external input from UI
         // Get NPC
         NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
@@ -142,14 +157,18 @@ public class ExchangeFacade
             };
         }
 
-        // Get exchange data
-        Console.WriteLine($"[ExchangeFacade] Attempting to get exchange - NpcId: '{npcId}', ExchangeId: '{exchangeId}'");
-        ExchangeCard? exchange = _inventory.GetExchange(npcId, exchangeId);
+        // Get exchange data from GameWorld// Query GameWorld for the exchange
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Id == exchangeId);
+
+        // Also check NPC.ExchangeDeck if not found
         if (exchange == null)
         {
-            Console.WriteLine($"[ExchangeFacade] Exchange not found! Available NPCs: {string.Join(", ", _inventory.GetNPCsWithExchanges())}");
-            List<ExchangeCard> availableExchanges = _inventory.GetNPCExchanges(npcId);
-            Console.WriteLine($"[ExchangeFacade] Available exchanges for '{npcId}': {string.Join(", ", availableExchanges.Select(e => e.Id))}");
+            exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
+        }
+
+        if (exchange == null)
+        {
             return new ExchangeResult
             {
                 Success = false,
@@ -171,32 +190,54 @@ public class ExchangeFacade
             return new ExchangeResult
             {
                 Success = false,
-                Message = validation.ValidationMessage ?? "Cannot afford this exchange"
+                Message = validation.ValidationMessage
             };
         }
 
-        // Process the exchange - return operation data for GameFacade to execute
-        ExchangeOperationData operationData = _processor.PrepareExchangeOperation(exchange, npc, playerResources);
-        ExchangeResult result = new ExchangeResult
-        {
-            Success = true,
-            Message = "Exchange ready for execution",
-            OperationData = operationData
-        };
+        // EXECUTE the exchange immediately (apply costs and rewards)
+        Player player = _gameWorld.GetPlayer();
 
-        // Track exchange history if successful
-        if (result.Success)
+        // Apply costs
+        if (!ApplyExchangeCosts(exchange, player, npc))
         {
-            _inventory.RecordExchange(npcId, exchangeId);
-
-            // Check if this was a single-use exchange
-            if (exchange.SingleUse)
+            return new ExchangeResult
             {
-                _inventory.RemoveExchange(npcId, exchangeId);
-            }
+                Success = false,
+                Message = "Failed to apply exchange costs"
+            };
         }
 
-        return result;
+        // Apply rewards
+        Dictionary<ResourceType, int> rewardsGranted = ApplyExchangeRewards(exchange, player, npc);
+        List<string> itemsGranted = ApplyExchangeItemRewards(exchange, player);
+
+        // Track exchange history in GameWorld
+        ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
+        {
+            ExchangeId = exchangeId,
+            ExchangeName = exchange.Name,
+            Timestamp = DateTime.Now,
+            Day = _gameWorld.CurrentDay,
+            TimeBlock = _gameWorld.CurrentTimeBlock,
+            WasSuccessful = true
+        };
+        _gameWorld.ExchangeHistory.Add(historyEntry);
+
+        // Record use (increments TimesUsed, marks IsCompleted for SingleUse)
+        exchange.RecordUse();
+
+        // Note: SingleUse exchanges become unavailable via IsExhausted() check, no need to remove from list
+
+        // Generate success message
+        _messageSystem.AddSystemMessage($"Exchange with {npc.Name} completed successfully", SystemMessageTypes.Success);
+
+        return new ExchangeResult
+        {
+            Success = true,
+            Message = "Exchange completed",
+            RewardsGranted = rewardsGranted,
+            ItemsGranted = itemsGranted
+        };
     }
 
     /// <summary>
@@ -214,7 +255,9 @@ public class ExchangeFacade
     /// </summary>
     public List<ExchangeHistoryEntry> GetExchangeHistory(string npcId)
     {
-        return _inventory.GetExchangeHistory(npcId);
+        return _gameWorld.ExchangeHistory
+            .Where(h => h.ExchangeId.StartsWith(npcId) || h.ExchangeName.Contains(npcId))
+            .ToList();
     }
 
     /// <summary>
@@ -230,27 +273,47 @@ public class ExchangeFacade
     }
 
     /// <summary>
-    /// Initialize NPC exchange inventories from GameWorld data
+    /// Initialize NPC exchange inventories - no longer needed (data already in GameWorld)
     /// </summary>
     public void InitializeNPCExchanges()
     {
-        _inventory.InitializeFromGameWorld(_gameWorld);
+        // No-op: Exchange data now loaded directly into GameWorld by parsers
     }
 
     /// <summary>
-    /// Add an exchange to an NPC's inventory (for dynamic exchanges)
+    /// Add an exchange to an NPC's deck (for dynamic exchanges)
     /// </summary>
     public void AddExchangeToNPC(string npcId, ExchangeCard exchange)
     {
-        _inventory.AddExchange(npcId, exchange);
+        // KEEP - npcId is external input from caller
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+        {
+            throw new ArgumentException($"NPC with ID {npcId} not found");
+        }
+
+        npc.ExchangeDeck.Add(exchange);
     }
 
     /// <summary>
-    /// Remove an exchange from an NPC's inventory
+    /// Remove an exchange from an NPC's deck - marks as exhausted instead
     /// </summary>
     public void RemoveExchangeFromNPC(string npcId, string exchangeId)
     {
-        _inventory.RemoveExchange(npcId, exchangeId);
+        // KEEP - npcId is external input from caller
+        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+        {
+            throw new ArgumentException($"NPC with ID {npcId} not found");
+        }
+
+        ExchangeCard? exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Id == exchangeId);
+        if (exchange == null)
+        {
+            throw new ArgumentException($"Exchange {exchangeId} not found in NPC {npcId} deck");
+        }
+
+        exchange.RecordUse(); // Marks as complete/exhausted
     }
 
     /// <summary>
@@ -259,15 +322,15 @@ public class ExchangeFacade
     public ExchangeRequirements GetExchangeRequirements(ExchangeCard exchange)
     {
         // Get first token requirement if exists
-        ConnectionType? firstTokenType = exchange.Cost?.TokenRequirements?.Keys.FirstOrDefault();
-        int minimumTokens = exchange.Cost?.TokenRequirements?.Values.FirstOrDefault() ?? 0;
+        ConnectionType? firstTokenType = exchange.Cost.TokenRequirements.Keys.FirstOrDefault();
+        int minimumTokens = exchange.Cost.TokenRequirements.Values.FirstOrDefault();
 
         return new ExchangeRequirements
         {
             MinimumTokens = minimumTokens,
             RequiredTokenType = firstTokenType,
             RequiredDomains = exchange.RequiredDomains,
-            RequiredItems = exchange.Cost?.RequiredItemIds?.ToList() ?? new List<string>(),
+            ConsumedItems = exchange.Cost.ConsumedItemIds.ToList(),
             TimeRestrictions = exchange.AvailableTimeBlocks
         };
     }
@@ -324,6 +387,99 @@ public class ExchangeFacade
             _ => type.ToString().ToLower()
         };
     }
+
+    // ========== EXECUTION LOGIC ==========
+
+    /// <summary>
+    /// Apply exchange costs to player (resources + items)
+    /// </summary>
+    private bool ApplyExchangeCosts(ExchangeCard exchange, Player player, NPC npc)
+    {
+        // Apply resource costs
+        foreach (ResourceAmount cost in exchange.GetCostAsList())
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.Coins:
+                    if (player.Coins < cost.Amount)
+                        return false;
+                    player.Coins -= cost.Amount;
+                    break;
+
+                case ResourceType.Health:
+                    if (player.Health < cost.Amount)
+                        return false;
+                    player.Health -= cost.Amount;
+                    break;
+
+                case ResourceType.Hunger:
+                    player.Hunger = Math.Min(player.MaxHunger, player.Hunger + cost.Amount);
+                    break;
+            }
+        }
+
+        // Apply item costs (consume items from inventory)
+        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        {
+            if (!player.Inventory.HasItem(itemId))
+            {
+                _messageSystem.AddSystemMessage($"Missing required item: {itemId}", SystemMessageTypes.Danger);
+                return false;
+            }
+            player.Inventory.RemoveItem(itemId);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Apply exchange resource rewards to player
+    /// </summary>
+    private Dictionary<ResourceType, int> ApplyExchangeRewards(ExchangeCard exchange, Player player, NPC npc)
+    {
+        Dictionary<ResourceType, int> rewardsGranted = new Dictionary<ResourceType, int>();
+
+        foreach (ResourceAmount reward in exchange.GetRewardAsList())
+        {
+            switch (reward.Type)
+            {
+                case ResourceType.Coins:
+                    player.Coins += reward.Amount;
+                    rewardsGranted[ResourceType.Coins] = reward.Amount;
+                    break;
+
+                case ResourceType.Health:
+                    int healthBefore = player.Health;
+                    player.Health = Math.Min(player.MaxHealth, player.Health + reward.Amount);
+                    rewardsGranted[ResourceType.Health] = player.Health - healthBefore;
+                    break;
+
+                case ResourceType.Hunger:
+                    int hungerBefore = player.Hunger;
+                    player.Hunger = Math.Max(0, player.Hunger - reward.Amount);
+                    rewardsGranted[ResourceType.Hunger] = hungerBefore - player.Hunger;
+                    break;
+            }
+        }
+
+        return rewardsGranted;
+    }
+
+    /// <summary>
+    /// Apply exchange item rewards to player
+    /// </summary>
+    private List<string> ApplyExchangeItemRewards(ExchangeCard exchange, Player player)
+    {
+        List<string> itemsGranted = new List<string>();
+
+        foreach (string itemId in exchange.GetItemRewards())
+        {
+            player.Inventory.AddItem(itemId);
+            itemsGranted.Add(itemId);
+        }
+
+        return itemsGranted;
+    }
 }
 
 /// <summary>
@@ -370,7 +526,7 @@ public class ExchangeRequirements
     public int MinimumTokens { get; set; }
     public ConnectionType? RequiredTokenType { get; set; }
     public List<string> RequiredDomains { get; set; }
-    public List<string> RequiredItems { get; set; }
+    public List<string> ConsumedItems { get; set; }
     public List<TimeBlocks> TimeRestrictions { get; set; }
 }
 

@@ -10,7 +10,6 @@ public interface IInteractiveChoice
     /// <summary>Display text shown to player</summary>
     string DisplayText { get; }
 
-
     /// <summary>Time cost in minutes (for Venue actions)</summary>
     int TimeCostMinutes { get; }
 
@@ -60,7 +59,7 @@ public enum InteractionStyle
     Default,
     Urgent,      // Red/warning styling
     Beneficial,  // Green/positive styling
-    Mysterious,  // Purple/investigation styling
+    Mysterious,  // Purple/obligation styling
     Locked       // Grayed out
 }
 

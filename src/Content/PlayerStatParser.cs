@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 
 /// <summary>
@@ -14,42 +15,50 @@ public static class PlayerStatParser
     {
         List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
 
-        // Parse stat definitions
-        if (configDto.Stats != null)
-        {
-            foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
-            {
-                // Parse stat type from ID
-                if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
-                {
-                    throw new ArgumentException($"Invalid player stat ID: {statDto.Id}");
-                }
+        // Parse stat definitions - configDto.Stats has inline init in DTO, but validate required data
+        if (configDto.Stats == null)
+            throw new InvalidDataException("PlayerStatsConfig missing required field 'Stats'");
 
-                stats.Add(new PlayerStatDefinition
-                {
-                    StatType = statType,
-                    Name = statDto.Name ?? "",
-                    Description = statDto.Description ?? "",
-                    ConversationBenefit = statDto.ConversationBenefit ?? "",
-                    InvestigationUnlock = statDto.InvestigationUnlock ?? "",
-                    TravelUnlock = statDto.TravelUnlock ?? ""
-                });
+        foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
+        {
+            // Validate required fields
+            if (string.IsNullOrEmpty(statDto.Id))
+                throw new InvalidDataException("PlayerStatDefinition missing required field 'Id'");
+            if (string.IsNullOrEmpty(statDto.Name))
+                throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Name'");
+            if (string.IsNullOrEmpty(statDto.Description))
+                throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Description'");
+
+            // Parse stat type from ID
+            if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
+            {
+                throw new InvalidDataException($"Invalid player stat ID: {statDto.Id}");
             }
+
+            stats.Add(new PlayerStatDefinition
+            {
+                StatType = statType,
+                Name = statDto.Name,
+                Description = statDto.Description,
+                ConversationBenefit = statDto.ConversationBenefit ?? "", // Optional - defaults to empty if missing
+                ObligationUnlock = statDto.ObligationUnlock ?? "", // Optional - defaults to empty if missing
+                TravelUnlock = statDto.TravelUnlock ?? "" // Optional - defaults to empty if missing
+            });
         }
 
-        // Parse progression rules
+        // Parse progression rules - optional section
         StatProgression progression = null;
         if (configDto.Progression != null)
         {
             progression = new StatProgression();
 
-            // Set XP thresholds
+            // Set XP thresholds - optional field
             if (configDto.Progression.XpThresholds != null)
             {
                 progression.XpThresholds = new List<int>(configDto.Progression.XpThresholds);
             }
 
-            // Parse level bonuses
+            // Parse level bonuses - optional field
             if (configDto.Progression.LevelBonuses != null)
             {
                 progression.LevelBonuses = new List<StatLevelBonus>();
@@ -59,10 +68,10 @@ public static class PlayerStatParser
                     {
                         Level = bonusDto.Level,
                         SuccessBonus = bonusDto.SuccessBonus,
-                        Description = bonusDto.Description ?? ""
+                        Description = bonusDto.Description ?? "" // Optional - defaults to empty if missing
                     };
 
-                    // Parse special effects
+                    // Parse special effects - optional field, only set if present
                     if (!string.IsNullOrEmpty(bonusDto.Effect))
                     {
                         switch (bonusDto.Effect.ToLower())
@@ -81,8 +90,6 @@ public static class PlayerStatParser
         return new PlayerStatsParseResult(stats, progression);
     }
 
-
-
 }
 
 /// <summary>
@@ -94,7 +101,7 @@ public class PlayerStatDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string ConversationBenefit { get; set; }
-    public string InvestigationUnlock { get; set; }
+    public string ObligationUnlock { get; set; }
     public string TravelUnlock { get; set; }
 }
 

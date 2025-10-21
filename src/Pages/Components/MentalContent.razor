@@ -9,15 +9,15 @@
         <!-- Venue context bar -->
         <div class="location-context">
             <span>
-                Investigation: @Session.InvestigationId
+                Obligation: @Session.ObligationId
             </span>
         </div>
 
-        <!-- Investigation Bar -->
-        <div class="investigation-bar">
-            <div class="investigation-info">
-                <div class="investigation-name">Mental Investigation</div>
-                <div class="investigation-status">
+        <!-- Obligation Bar -->
+        <div class="obligation-bar">
+            <div class="obligation-info">
+                <div class="obligation-name">Mental Obligation</div>
+                <div class="obligation-status">
                     Phase @Session.CurrentPhaseIndex | Tier @GetCurrentTier()
                 </div>
             </div>
@@ -50,7 +50,7 @@
                 </div>
                 <div class="goal-card @(Session.CurrentProgress >= 20 ? "achievable active" : "")">
                     <div class="goal-threshold">20</div>
-                    <div class="goal-name">Full Investigation</div>
+                    <div class="goal-name">Full Obligation</div>
                     <div class="goal-reward">Complete + Knowledge</div>
                 </div>
             </div>
@@ -68,13 +68,17 @@
 
         <!-- Action Section -->
         <div class="action-display">
-            <div></div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Details:</span>
+                    <span class="pile-number">@GetDeckCount()</span>
+                </div>
+            </div>
             <div class="action-section">
-                @if (!IsInvestigationEnded)
+                @if (!IsObligationEnded)
                 {
-                <div class="action-button @(IsProcessing ? "disabled" : "")"
-                     @onclick="ExecuteObserve"
-                     disabled="@(IsProcessing)">
+                <div class="action-button"
+                     @onclick="ExecuteObserve">
                     OBSERVE
                     @if (SelectedCard != null)
                     {
@@ -111,12 +115,17 @@
                 }
                 else
                 {
-                    <div class="action-button primary" @onclick="EndInvestigation">
-                        END INVESTIGATION
+                    <div class="action-button primary" @onclick="EndObligation">
+                        END OBLIGATION
                     </div>
                 }
             </div>
-            <div></div>
+            <div class="pile-display">
+                <div class="pile-count">
+                    <span>Applied:</span>
+                    <span class="pile-number">@GetDiscardCount()</span>
+                </div>
+            </div>
         </div>
 
         <!-- Attention Display (with glowing orbs matching mockup) -->
@@ -142,11 +151,34 @@
             </div>
         </div>
 
+        <!-- Available Goal Cards (Victory Conditions) -->
+        @if (GetAvailableGoalCards().Any())
+        {
+            <div class="available-goals-section">
+                <div class="pile-display">
+                    <div class="pile-count">
+                        <span>Available Goals:</span>
+                        <span class="pile-number">@GetAvailableGoalCards().Count</span>
+                    </div>
+                </div>
+
+                <div class="goal-cards-grid">
+                    @foreach (var goalCard in GetAvailableGoalCards())
+                    {
+                        <GoalCard Card="@goalCard"
+                                  CurrentProgress="@Session.CurrentProgress"
+                                  CalculatedDifficulty="@GetGoalDifficulty(goalCard)"
+                                  OnCardClick="@PlayGoalCard" />
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Hand Display -->
         <div class="cards-section">
             <div class="pile-display">
                 <div class="pile-count">
-                    <span>Hand:</span>
+                    <span>Methods:</span>
                     <span class="pile-number">@Hand.Count</span>
                 </div>
             </div>
@@ -182,6 +214,6 @@
 else
 {
     <div class="no-session">
-        <p>No active mental investigation session</p>
+        <p>No active mental obligation session</p>
     </div>
 }

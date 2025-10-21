@@ -25,12 +25,10 @@ public class TimeBlockCalculator
 
         TimeBlocks[] timeOrder = new[]
         {
-            TimeBlocks.Dawn,
             TimeBlocks.Morning,
             TimeBlocks.Midday,
             TimeBlocks.Afternoon,
-            TimeBlocks.Evening,
-            TimeBlocks.Night
+            TimeBlocks.Evening
         };
 
         int currentIndex = Array.IndexOf(timeOrder, current);
@@ -63,12 +61,10 @@ public class TimeBlockCalculator
     {
         return timeBlock switch
         {
-            TimeBlocks.Dawn => "Dawn (4-8 AM)",
-            TimeBlocks.Morning => "Morning (8 AM-12 PM)",
-            TimeBlocks.Midday => "Afternoon (12-5 PM)",
-            TimeBlocks.Afternoon => "Evening (5-8 PM)",
-            TimeBlocks.Evening => "Night (8 PM-10 PM)",
-            TimeBlocks.Night => "Late Night (10 PM-4 AM)",
+            TimeBlocks.Morning => "Morning (6 AM-10 AM)",
+            TimeBlocks.Midday => "Midday (10 AM-2 PM)",
+            TimeBlocks.Afternoon => "Afternoon (2 PM-6 PM)",
+            TimeBlocks.Evening => "Evening (6 PM-10 PM)",
             _ => "Unknown"
         };
     }
@@ -80,12 +76,10 @@ public class TimeBlockCalculator
     {
         return targetTime switch
         {
-            TimeBlocks.Dawn => "You wait as the first light breaks over the horizon.",
             TimeBlocks.Morning => "The morning sun climbs higher as time passes.",
             TimeBlocks.Midday => "The day wears on toward afternoon.",
             TimeBlocks.Afternoon => "Shadows lengthen as evening approaches.",
             TimeBlocks.Evening => "Darkness falls across the town.",
-            TimeBlocks.Night => "The deep of night settles in.",
             _ => "Time passes..."
         };
     }
@@ -99,13 +93,11 @@ public class TimeBlockCalculator
     {
         return timeBlock switch
         {
-            TimeBlocks.Dawn => 0,
-            TimeBlocks.Morning => 4,
-            TimeBlocks.Midday => 8,
-            TimeBlocks.Afternoon => 12,
-            TimeBlocks.Evening => 16,
-            TimeBlocks.Night => 20,
-            _ => 0
+            TimeBlocks.Morning => 1,
+            TimeBlocks.Midday => 5,
+            TimeBlocks.Afternoon => 9,
+            TimeBlocks.Evening => 13,
+            _ => 1
         };
     }
 
@@ -116,13 +108,11 @@ public class TimeBlockCalculator
     {
         return timeBlock switch
         {
-            TimeBlocks.Dawn => 3,
-            TimeBlocks.Morning => 7,
-            TimeBlocks.Midday => 11,
-            TimeBlocks.Afternoon => 15,
-            TimeBlocks.Evening => 19,
-            TimeBlocks.Night => 23,
-            _ => 23
+            TimeBlocks.Morning => 4,
+            TimeBlocks.Midday => 8,
+            TimeBlocks.Afternoon => 12,
+            TimeBlocks.Evening => 16,
+            _ => 16
         };
     }
 

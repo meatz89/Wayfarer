@@ -7,7 +7,7 @@ using System.Text.Json;
 /// </summary>
 public class NarrativeValidator : IContentValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "id", "name", "description"
         };
@@ -23,53 +23,48 @@ public class NarrativeValidator : IContentValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Narratives file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            HashSet<string> narrativeIds = new HashSet<string>();
-            int index = 0;
-
-            foreach (JsonElement narrativeElement in root.EnumerateArray())
-            {
-                ValidateNarrative(narrativeElement, index, fileName, errors, narrativeIds);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate narratives: {ex.Message}",
+                "Narratives file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        List<string> narrativeIds = new List<string>();
+        int index = 0;
+
+        foreach (JsonElement narrativeElement in root.EnumerateArray())
+        {
+            ValidateNarrative(narrativeElement, index, fileName, errors, narrativeIds);
+            index++;
         }
 
         return errors;
     }
 
-    private void ValidateNarrative(JsonElement narrative, int index, string fileName, List<ValidationError> errors, HashSet<string> narrativeIds)
+    private void ValidateNarrative(JsonElement narrative, int index, string fileName, List<ValidationError> errors, List<string> narrativeIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string narrativeId = GetStringProperty(narrative, "id") ?? $"Narrative[{index}]";
 
         // Check for duplicate IDs
         if (!string.IsNullOrEmpty(narrativeId) && narrativeId != $"Narrative[{index}]")
         {
-            if (!narrativeIds.Add(narrativeId))
+            if (narrativeIds.Contains(narrativeId))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{narrativeId}",
                     $"Duplicate narrative ID: {narrativeId}",
                     ValidationSeverity.Critical));
+            }
+            else
+            {
+                narrativeIds.Add(narrativeId);
             }
         }
 
@@ -103,7 +98,7 @@ public class NarrativeValidator : IContentValidator
         if (narrative.TryGetProperty("steps", out JsonElement steps) &&
             steps.ValueKind == JsonValueKind.Array)
         {
-            HashSet<string> stepIds = new HashSet<string>();
+            List<string> stepIds = new List<string>();
             int stepIndex = 0;
 
             foreach (JsonElement step in steps.EnumerateArray())
@@ -129,20 +124,25 @@ public class NarrativeValidator : IContentValidator
         }
     }
 
-    private void ValidateNarrativeStep(JsonElement step, int index, string narrativeId, string fileName, List<ValidationError> errors, HashSet<string> stepIds)
+    private void ValidateNarrativeStep(JsonElement step, int index, string narrativeId, string fileName, List<ValidationError> errors, List<string> stepIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string stepId = GetStringProperty(step, "id") ?? $"Step[{index}]";
         string fullStepId = $"{narrativeId}:{stepId}";
 
         // Check for duplicate step IDs
         if (!string.IsNullOrEmpty(stepId) && stepId != $"Step[{index}]")
         {
-            if (!stepIds.Add(stepId))
+            if (stepIds.Contains(stepId))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{fullStepId}",
                     $"Duplicate step ID: {stepId}",
                     ValidationSeverity.Critical));
+            }
+            else
+            {
+                stepIds.Add(stepId);
             }
         }
 

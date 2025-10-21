@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 /// <summary>
 /// JSON-based narrative provider that serves as a fallback when AI providers are unavailable.
 /// Provides smart mechanical fallbacks based on game state using flow, rapport, and card properties.
@@ -343,7 +342,6 @@ public class JsonNarrativeProvider : INarrativeProvider
         };
     }
 
-
     /// <summary>
     /// Generates utility card narratives based on card effect.
     /// </summary>
@@ -372,7 +370,6 @@ public class JsonNarrativeProvider : INarrativeProvider
         {
             return "An urgent matter requires immediate attention.";
         }
-
 
         // State-based hints
         if (state.Doubt < 3)

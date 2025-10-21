@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Pages.Components
 {
@@ -17,6 +18,9 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TravelManager TravelManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
+        [Inject] protected EquipmentFacade EquipmentFacade { get; set; }
+        [Inject] protected ObstacleFacade ObstacleFacade { get; set; }
+        [Inject] protected GameWorld GameWorld { get; set; }
 
         protected List<PathCardInfo> AvailablePathCards { get; set; } = new();
 
@@ -53,7 +57,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetBaseTravelTime()
         {
-            return TravelContext?.CurrentRoute?.TravelTimeSegments ?? 0;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            return TravelContext.CurrentRoute.TravelTimeSegments;
         }
 
         /// <summary>
@@ -61,7 +69,13 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetSegmentCount()
         {
-            return TravelContext?.CurrentRoute?.Segments?.Count ?? 0;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            if (TravelContext.CurrentRoute.Segments == null)
+                throw new InvalidOperationException("Route has no segments");
+            return TravelContext.CurrentRoute.Segments.Count;
         }
 
         /// <summary>
@@ -69,7 +83,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetCurrentSegment()
         {
-            return TravelContext?.Session?.CurrentSegment ?? 1;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            return TravelContext.Session.CurrentSegment;
         }
 
         /// <summary>
@@ -148,7 +166,9 @@ namespace Wayfarer.Pages.Components
             PathCardAvailability availability = TravelFacade.GetPathCardAvailability(pathCardId);
             if (availability != null && !availability.CanPlay)
             {
-                return availability.Reason ?? "Cannot select this path";
+                if (string.IsNullOrEmpty(availability.Reason))
+                    return "Cannot select this path";
+                return availability.Reason;
             }
             return "";
         }
@@ -179,8 +199,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetDestinationName()
         {
-            if (TravelContext?.CurrentRoute == null)
-                return "Unknown Destination";
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
 
             // Extract destination from route
             string destinationSpot = TravelContext.CurrentRoute.DestinationLocationSpot;
@@ -206,43 +228,30 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task SelectPathCard(string pathCardId)
         {
-            Console.WriteLine($"[TravelPathContent] SelectPathCard called with: {pathCardId}");
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
-            if (TravelContext?.Session == null)
-            {
-                Console.WriteLine("[TravelPathContent] No travel session, returning");
-                return;
-            }
-
-            // Check if player can afford the card
-            Console.WriteLine($"[TravelPathContent] Looking for card in {TravelContext.CurrentSegmentCards?.Count ?? 0} cards");
-            if (TravelContext.CurrentSegmentCards != null)
+            // Check if player can afford the cardif (TravelContext.CurrentSegmentCards != null)
             {
                 foreach (PathCardDTO c in TravelContext.CurrentSegmentCards)
-                {
-                    Console.WriteLine($"[TravelPathContent]   Available card: {c.Id}");
-                }
+                { }
             }
 
-            PathCardDTO card = TravelContext.CurrentSegmentCards?.FirstOrDefault(c => c.Id == pathCardId);
+            if (TravelContext.CurrentSegmentCards == null)
+                throw new InvalidOperationException("No segment cards available");
+            PathCardDTO card = TravelContext.CurrentSegmentCards.FirstOrDefault(c => c.Id == pathCardId);
             if (card == null)
             {
-                Console.WriteLine($"[TravelPathContent] Card not found: {pathCardId}");
                 return;
             }
 
             if (!TravelFacade.CanPlayPathCard(pathCardId))
             {
-                Console.WriteLine($"[TravelPathContent] Cannot play card: {pathCardId}");
                 return;
-            }
-
-            Console.WriteLine($"[TravelPathContent] Calling TravelManager.SelectPathCard for: {pathCardId}");
-            // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
-            bool success = TravelManager.SelectPathCard(pathCardId);
-            Console.WriteLine($"[TravelPathContent] SelectPathCard result: {success}");
-
-            if (success)
+            }// Call TravelManager - all cards now use reveal mechanic (no face-down checks)
+            bool success = TravelManager.SelectPathCard(pathCardId); if (success)
             {
                 // Refresh the context after card selection
                 await RefreshTravelContext();
@@ -255,8 +264,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task RestAction()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelManager.RestAction();
             if (success)
@@ -271,8 +282,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task TurnBack()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelManager.TurnBack();
             if (success)
@@ -287,8 +300,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<StaminaDot> GetStaminaDots()
         {
-            if (TravelContext?.Session == null)
-                return new List<StaminaDot>();
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             List<StaminaDot> dots = new();
             int capacity = TravelContext.Session.StaminaCapacity;
@@ -310,8 +325,12 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<SegmentDot> GetSegmentDots()
         {
-            if (TravelContext?.CurrentRoute == null || TravelContext.Session == null)
-                return new List<SegmentDot>();
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             List<SegmentDot> dots = new();
             int totalSegments = TravelContext.CurrentRoute.Segments.Count;
@@ -334,8 +353,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetTravelStateText()
         {
-            if (TravelContext?.Session == null)
-                return "Unknown State";
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             return TravelContext.Session.CurrentState switch
             {
@@ -353,7 +374,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool IsCardDiscovered(string pathCardId)
         {
-            return TravelContext?.CardDiscoveries.Any(d => d.CardId == pathCardId) == true &&
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            return TravelContext.CardDiscoveries.Any(d => d.CardId == pathCardId) &&
                    TravelContext.CardDiscoveries.IsDiscovered(pathCardId);
         }
 
@@ -500,8 +523,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task ConfirmRevealedCard()
         {
-            if (TravelContext?.Session == null)
-                return;
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
 
             bool success = TravelFacade.ConfirmRevealedCard();
             if (success)
@@ -530,7 +555,6 @@ namespace Wayfarer.Pages.Components
         {
             return TravelFacade.IsReadyToComplete();
         }
-
 
         /// <summary>
         /// Check if we're in card reveal state
@@ -580,6 +604,205 @@ namespace Wayfarer.Pages.Components
                 // Journey finished, navigate back to location
                 await OnNavigate.InvokeAsync("location");
             }
+        }
+
+        /// <summary>
+        /// Get goal previews for a path (challenges player will face)
+        /// Goals are fetched from parent Obstacle, equipment matching via Obstacle contexts
+        /// </summary>
+        protected System.Collections.Generic.List<GoalPreviewData> GetGoalPreviewsForPath(string obstacleId)
+        {
+            if (string.IsNullOrEmpty(obstacleId))
+                return new System.Collections.Generic.List<GoalPreviewData>();
+
+            Obstacle obstacle = ObstacleFacade.GetObstacleById(obstacleId);
+            if (obstacle == null || obstacle.GoalIds == null || !obstacle.GoalIds.Any())
+                return new System.Collections.Generic.List<GoalPreviewData>();
+
+            System.Collections.Generic.List<Equipment> playerEquipment = EquipmentFacade.GetPlayerEquipment();
+
+            System.Collections.Generic.List<GoalPreviewData> goalPreviews = new System.Collections.Generic.List<GoalPreviewData>();
+
+            foreach (string goalId in obstacle.GoalIds)
+            {
+                Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+                if (goal == null)
+                    continue;
+
+                System.Collections.Generic.List<EquipmentMatchData> matchingEquipment = new System.Collections.Generic.List<EquipmentMatchData>();
+                int totalReduction = 0;
+
+                foreach (Equipment equipment in playerEquipment)
+                {
+                    System.Collections.Generic.List<ObstacleContext> matchedContexts = equipment.ApplicableContexts
+                        .Intersect(obstacle.Contexts)
+                        .ToList();
+
+                    if (matchedContexts.Any())
+                    {
+                        matchingEquipment.Add(new EquipmentMatchData
+                        {
+                            EquipmentName = equipment.Name,
+                            IntensityReduction = equipment.IntensityReduction,
+                            MatchedContexts = matchedContexts
+                        });
+                        totalReduction += equipment.IntensityReduction;
+                    }
+                }
+
+                goalPreviews.Add(new GoalPreviewData
+                {
+                    Name = goal.Name,
+                    Description = goal.Description,
+                    SystemType = goal.SystemType.ToString(),
+                    Contexts = obstacle.Contexts,
+                    MatchingEquipment = matchingEquipment,
+                    TotalReduction = totalReduction
+                });
+            }
+
+            return goalPreviews;
+        }
+
+        // ========== TRAVEL CONTEXT DETECTION (FOR UI CONDITIONAL RENDERING) ==========
+
+        /// <summary>
+        /// Get current route segment object (not just the number)
+        /// </summary>
+        protected RouteSegment GetCurrentRouteSegment()
+        {
+            if (TravelContext == null)
+                throw new InvalidOperationException("No active travel context");
+            if (TravelContext.Session == null)
+                throw new InvalidOperationException("No active travel session");
+            if (TravelContext.CurrentRoute == null)
+                throw new InvalidOperationException("No current route in travel context");
+
+            int currentSegmentNum = TravelContext.Session.CurrentSegment;
+            if (currentSegmentNum < 1 || currentSegmentNum > TravelContext.CurrentRoute.Segments.Count)
+                return null;
+
+            return TravelContext.CurrentRoute.Segments[currentSegmentNum - 1];
+        }
+
+        /// <summary>
+        /// Check if current segment is a dead-end (all paths blocked/unavailable)
+        /// Mockup: travel-dead-end.html
+        /// </summary>
+        protected bool IsDeadEnd()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            // PathCard system
+            List<PathCardInfo> availableCards = GetAvailablePathCards();
+            if (availableCards.Any())
+            {
+                // Check if all cards are unplayable
+                return availableCards.All(c => !c.CanPlay);
+            }
+
+            // No paths available at all
+            return true;
+        }
+
+        /// <summary>
+        /// Check if displaying discovery reveal animation
+        /// Mockup: travel-discovery.html
+        /// </summary>
+        protected bool IsDiscoveryReveal()
+        {
+            return IsRevealingCard();
+        }
+
+        /// <summary>
+        /// Check if current segment is Event type (caravan)
+        /// Mockup: travel-caravan.html
+        /// </summary>
+        protected bool IsEventSegment()
+        {
+            return IsCurrentSegmentEventType();
+        }
+
+        /// <summary>
+        /// Check if current segment is FixedPath type (walking)
+        /// Mockup: travel-walking.html
+        /// </summary>
+        protected bool IsFixedPathSegment()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            return segment.Type == SegmentType.FixedPath;
+        }
+
+        /// <summary>
+        /// Check if current segment is Encounter type (mandatory challenge)
+        /// Renders as challenge screen where player must resolve obstacle to proceed
+        /// </summary>
+        protected bool IsEncounterSegment()
+        {
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return false;
+
+            return segment.Type == SegmentType.Encounter;
+        }
+
+        /// <summary>
+        /// Get all unique encounter goal names for current segment
+        /// Aggregates goal names from all obstacles on all paths in current segment
+        /// </summary>
+        protected List<string> GetEncounterGoalsForCurrentSegment()
+        {
+            List<string> goalNames = new List<string>();
+            RouteSegment segment = GetCurrentRouteSegment();
+            if (segment == null)
+                return goalNames;
+
+            // PathCard system - get obstacles from PathCards
+            List<PathCardInfo> availableCards = GetAvailablePathCards();
+            foreach (PathCardInfo cardInfo in availableCards)
+            {
+                if (!string.IsNullOrEmpty(cardInfo.Card.ObstacleId))
+                {
+                    List<GoalPreviewData> goalPreviews = GetGoalPreviewsForPath(cardInfo.Card.ObstacleId);
+                    foreach (GoalPreviewData preview in goalPreviews)
+                    {
+                        if (!string.IsNullOrEmpty(preview.Name) && !goalNames.Contains(preview.Name))
+                        {
+                            goalNames.Add(preview.Name);
+                        }
+                    }
+                }
+            }
+
+            return goalNames;
+        }
+
+        /// <summary>
+        /// Helper class for goal preview data
+        /// </summary>
+        protected class GoalPreviewData
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string SystemType { get; set; }
+            public System.Collections.Generic.List<ObstacleContext> Contexts { get; set; }
+            public System.Collections.Generic.List<EquipmentMatchData> MatchingEquipment { get; set; }
+            public int TotalReduction { get; set; }
+        }
+
+        /// <summary>
+        /// Helper class for equipment match data
+        /// </summary>
+        protected class EquipmentMatchData
+        {
+            public string EquipmentName { get; set; }
+            public int IntensityReduction { get; set; }
+            public System.Collections.Generic.List<ObstacleContext> MatchedContexts { get; set; }
         }
     }
 

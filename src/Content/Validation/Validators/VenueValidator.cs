@@ -7,7 +7,7 @@ using System.Text.Json;
 /// </summary>
 public class VenueValidator : IContentValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "id", "name", "description", "connectedTo", "locations"
         };
@@ -22,53 +22,48 @@ public class VenueValidator : IContentValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "Locations file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            HashSet<string> venueIds = new HashSet<string>();
-            int index = 0;
-
-            foreach (JsonElement locationElement in root.EnumerateArray())
-            {
-                ValidateLocation(locationElement, index, fileName, errors, venueIds);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate locations: {ex.Message}",
+                "Locations file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        List<string> venueIds = new List<string>();
+        int index = 0;
+
+        foreach (JsonElement locationElement in root.EnumerateArray())
+        {
+            ValidateLocation(locationElement, index, fileName, errors, venueIds);
+            index++;
         }
 
         return errors;
     }
 
-    private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, HashSet<string> venueIds)
+    private void ValidateLocation(JsonElement location, int index, string fileName, List<ValidationError> errors, List<string> venueIds)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string venueId = GetStringProperty(location, "id") ?? $"Location[{index}]";
 
         // Check for duplicate IDs
         if (!string.IsNullOrEmpty(venueId) && venueId != $"Location[{index}]")
         {
-            if (!venueIds.Add(venueId))
+            if (venueIds.Contains(venueId))
             {
                 errors.Add(new ValidationError(
                     $"{fileName}:{venueId}",
                     $"Duplicate Venue ID: {venueId}",
                     ValidationSeverity.Critical));
+            }
+            else
+            {
+                venueIds.Add(venueId);
             }
         }
 

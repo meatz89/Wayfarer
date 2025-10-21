@@ -32,31 +32,17 @@ public class NarrativeProviderFactory
     {
         // Check if AI narrative is enabled in configuration
         bool useAiNarrative = _configuration.GetValue<bool>("useAiNarrative", false);
-        Console.WriteLine($"[NarrativeProviderFactory] useAiNarrative config: {useAiNarrative}");
-
         if (useAiNarrative)
         {
             // Check availability directly every time - no caching
-            try
+            bool isAvailable = await _aiProvider.IsAvailableAsync();
+            if (isAvailable)
             {
-                Console.WriteLine("[NarrativeProviderFactory] Checking AI availability...");
-                bool isAvailable = await _aiProvider.IsAvailableAsync();
-                Console.WriteLine($"[NarrativeProviderFactory] AI availability: {isAvailable}");
-
-                if (isAvailable)
-                {
-                    Console.WriteLine("[NarrativeProviderFactory] Using AI provider");
-                    return _aiProvider;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[NarrativeProviderFactory] AI availability check failed: {ex.Message}");
+                return _aiProvider;
             }
         }
 
         // Fall back to JSON provider (always available)
-        Console.WriteLine("[NarrativeProviderFactory] Using JSON fallback provider");
         return _jsonProvider;
     }
 }

@@ -10,36 +10,34 @@ public class MentalCardParser
 {
     public MentalCard ParseCard(MentalCardDTO dto)
     {
-        // Parse categorical properties from DTO
-        Method method = ParseMethod(dto.Method);
-        MentalCategory category = ParseCategory(dto.Category);
-        InvestigationDiscipline discipline = ParseDiscipline(dto.Discipline);
-        // NOTE: RiskLevel removed - Mental investigations have mental strain, not physical risk
-        ExertionLevel exertionLevel = ParseExertionLevel(dto.ExertionLevel);
-        MethodType methodType = ParseMethodType(dto.MethodType);
+        // VALIDATION: Required fields crash if missing
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidOperationException("MentalCard missing required field 'id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"MentalCard '{dto.Id}' missing required field 'name'");
+        if (string.IsNullOrEmpty(dto.Method))
+            throw new InvalidOperationException($"MentalCard '{dto.Id}' missing required field 'method'");
+        if (string.IsNullOrEmpty(dto.ClueType))
+            throw new InvalidOperationException($"MentalCard '{dto.Id}' missing required field 'clueType'");
 
-        // PARSER CATALOG INTEGRATION: Auto-derive values from categorical properties if not specified in JSON
-        int attentionCost = dto.AttentionCost > 0
-            ? dto.AttentionCost
-            : MentalCardEffectCatalog.GetAttentionCostFromDepth(dto.Depth);
+        // Parse categorical properties from DTO (NO DEFAULTS - crash if invalid)
+        Method method = ParseMethod(dto.Method, dto.Id);
+        MentalCategory category = ParseCategory(dto.ClueType, dto.Id);  // FIXED: Use ClueType from JSON
+        PlayerStatType boundStat = ParseStat(dto.BoundStat, dto.Id);
 
-        // Parse simple requirement properties (NOT objects)
+        // AttentionCost ALWAYS calculated from catalog (no JSON override)
+        int attentionCost = MentalCardEffectCatalog.GetAttentionCostFromDepth(dto.Depth);
+
+        // Parse stat requirements
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
         if (dto.Requirements?.Stats != null)
         {
             foreach (KeyValuePair<string, int> kvp in dto.Requirements.Stats)
             {
-                if (Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
-                {
-                    statThresholds[statType] = kvp.Value;
-                }
+                if (!Enum.TryParse<PlayerStatType>(kvp.Key, out PlayerStatType statType))
+                    throw new InvalidOperationException($"MentalCard '{dto.Id}' has invalid stat requirement '{kvp.Key}'");
+                statThresholds[statType] = kvp.Value;
             }
-        }
-
-        EquipmentCategory equipmentCategory = EquipmentCategory.None;
-        if (dto.Requirements?.EquipmentCategory != null)
-        {
-            Enum.TryParse<EquipmentCategory>(dto.Requirements.EquipmentCategory, out equipmentCategory);
         }
 
         return new MentalCard
@@ -48,71 +46,61 @@ public class MentalCardParser
             Name = dto.Name,
             Description = dto.Description,
             Depth = dto.Depth,
-            BoundStat = ParseStat(dto.BoundStat),
+            BoundStat = boundStat,
             AttentionCost = attentionCost,
             Method = method,
             Category = category,
-            Discipline = discipline,
 
-            // Universal card properties (RiskLevel removed - mental strain, not physical risk)
-            ExertionLevel = exertionLevel,
-            MethodType = methodType,
+            // Universal properties - catalog provides defaults (not JSON)
+            Discipline = ObligationDiscipline.Research,  // Fixed value until JSON needs variation
+            ExertionLevel = ExertionLevel.Light,  // Fixed value until JSON needs variation
+            MethodType = MethodType.Direct,  // Fixed value until JSON needs variation
 
-            // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG (calculated ONCE at parse time)
-            // NOTE: Mental cards have NO health/stamina costs - only Focus at session level
+            // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG
             CoinCost = MentalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = MentalCardEffectCatalog.GetXPReward(dto.Depth),
 
-            // Simple requirement properties - parser calculates costs/effects from categorical properties via MentalCardEffectCatalog
-            EquipmentCategory = equipmentCategory,
+            // Requirements
+            EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation
             StatThresholds = statThresholds,
-            MinimumHealth = dto.Requirements?.MinHealth ?? 0,
-            MinimumStamina = dto.Requirements?.MinStamina ?? 0
+            MinimumHealth = 0,  // Mental cards never require minimum health (see entity comment line 32)
+            MinimumStamina = 0  // Mental cards never require minimum stamina (see entity comment line 32)
         };
     }
 
     // NOTE: Effects are calculated at card play time from categorical properties (Method, ClueType, Depth, RiskLevel, etc.)
     // using MentalCardEffectCatalog formulas. This follows the documented parser-based architecture.
 
-    private PlayerStatType ParseStat(string statString)
+    private PlayerStatType ParseStat(string statString, string cardId)
     {
-        return Enum.TryParse<PlayerStatType>(statString, out PlayerStatType stat)
-            ? stat
-            : PlayerStatType.Insight;
+        if (string.IsNullOrEmpty(statString))
+            throw new InvalidOperationException($"MentalCard '{cardId}' missing required field 'boundStat'");
+
+        if (!Enum.TryParse<PlayerStatType>(statString, out PlayerStatType stat))
+            throw new InvalidOperationException(
+                $"MentalCard '{cardId}' has invalid boundStat '{statString}'. " +
+                $"Valid values: Insight, Rapport, Authority, Diplomacy, Cunning");
+
+        return stat;
     }
 
-    private Method ParseMethod(string methodString)
+    private Method ParseMethod(string methodString, string cardId)
     {
-        return Enum.TryParse<Method>(methodString, out Method method)
-            ? method
-            : Method.Standard;
+        if (!Enum.TryParse<Method>(methodString, out Method method))
+            throw new InvalidOperationException(
+                $"MentalCard '{cardId}' has invalid method '{methodString}'. " +
+                $"Valid values: Careful, Standard, Bold, Reckless");
+
+        return method;
     }
 
-    private MentalCategory ParseCategory(string categoryString)
+    private MentalCategory ParseCategory(string categoryString, string cardId)
     {
-        return Enum.TryParse<MentalCategory>(categoryString, out MentalCategory category)
-            ? category
-            : MentalCategory.Analytical;
-    }
+        if (!Enum.TryParse<MentalCategory>(categoryString, out MentalCategory category))
+            throw new InvalidOperationException(
+                $"MentalCard '{cardId}' has invalid clueType '{categoryString}'. " +
+                $"Valid values: Analytical, Physical, Observational, Social, Synthesis");
 
-    private ExertionLevel ParseExertionLevel(string exertionString)
-    {
-        return Enum.TryParse<ExertionLevel>(exertionString, out ExertionLevel exertion)
-            ? exertion
-            : ExertionLevel.Light;
-    }
-
-    private MethodType ParseMethodType(string methodTypeString)
-    {
-        return Enum.TryParse<MethodType>(methodTypeString, out MethodType methodType)
-            ? methodType
-            : MethodType.Direct;
-    }
-
-    private InvestigationDiscipline ParseDiscipline(string disciplineString)
-    {
-        return Enum.TryParse<InvestigationDiscipline>(disciplineString, out InvestigationDiscipline discipline)
-            ? discipline
-            : InvestigationDiscipline.Research;
+        return category;
     }
 }

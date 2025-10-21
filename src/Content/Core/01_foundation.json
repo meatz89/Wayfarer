@@ -1,125 +1,131 @@
 {
   "packageId": "core_foundation",
   "metadata": {
-    "name": "Core Foundation - POC Only",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Minimal POC: Old Mill Venue only with waterwheel investigation",
+    "name": "Core Foundation - Tutorial POC",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Tutorial: Evening arrival at Brass Bell Inn, work for shelter",
     "author": "Wayfarer Team",
-    "version": "5.0.0"
+    "version": "6.0.0"
   },
   "content": {
-    "locations": [
+    "venues": [
       {
-        "id": "old_mill",
-        "name": "The Old Mill",
-        "description": "An abandoned mill on the hillside, silent waterwheel rusted in place. Once the heart of Elena's family prosperity, now holding only secrets.",
-        "districtId": "market_district",
-        "tier": 2,
-        "locationType": "Ruin",
-        "travelHubSpotId": "courtyard",
-        "baseFamiliarity": 0,
-        "maxFamiliarity": 3,
-        "goals": [
-          {
-            "id": "notice_waterwheel",
-            "name": "Notice the silent waterwheel",
-            "description": "The great waterwheel stands eerily still, water flowing past unused. The silence where grinding stone should echo is unsettling.",
-            "systemType": "Mental",
-            "challengeTypeId": "mental_challenge",
-            "spotId": "courtyard",
-            "investigationId": "waterwheel_mystery",
-            "isIntroAction": true,
-            "isAvailable": true,
-            "isCompleted": false
-          }
-        ]
-      }
-    ],
-    "spots": [
-      {
-        "id": "mill_entrance",
-        "venueId": "old_mill",
-        "name": "Mill Entrance",
-        "description": "The front of the abandoned mill, boards covering the main door",
-        "properties": {
-          "all": [
-            "quiet",
-            "isolated"
-          ]
-        },
-        "canInvestigate": true,
-        "investigationScaling": {
-          "default": 1
-        }
+        "id": "brass_bell_inn",
+        "name": "The Brass Bell Inn",
+        "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
+        "districtId": "town_center",
+        "tier": 1,
+        "locationType": "Urban"
       },
       {
-        "id": "courtyard",
-        "venueId": "old_mill",
-        "name": "Mill Courtyard",
-        "description": "The outer courtyard where the great waterwheel stands silent, its rusted mechanism visible against the sky",
+        "id": "town_square",
+        "name": "Town Square",
+        "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
+        "districtId": "town_center",
+        "tier": 1,
+        "locationType": "Urban"
+      }
+    ],
+    "locations": [
+      {
+        "id": "square_center",
+        "venueId": "town_square",
+        "name": "Town Square Center",
+        "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
             "crossroads"
           ],
           "all": [
-            "quiet",
-            "isolated"
+            "public",
+            "busy"
           ]
         },
-        "canInvestigate": true,
-        "investigationScaling": {
+        "canInvestigate": false,
+        "obligationScaling": {
           "default": 1
         }
       },
       {
-        "id": "main_hall",
-        "venueId": "old_mill",
-        "name": "Main Hall",
-        "description": "The mill's main grinding floor, machinery silent and dust-covered, shafts of light cutting through gaps in the roof",
+        "id": "common_room",
+        "venueId": "brass_bell_inn",
+        "name": "Common Room",
+        "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
+          "base": [
+            "crossroads"
+          ],
           "all": [
-            "quiet",
-            "isolated"
+            "public",
+            "busy",
+            "restful"
           ]
         },
-        "canInvestigate": true,
-        "investigationScaling": {
-          "default": 1
-        }
-      },
-      {
-        "id": "workshop",
-        "venueId": "old_mill",
-        "name": "Workshop",
-        "description": "Tool racks and workbenches covered in a layer of neglect, but the organization speaks to careful hands that once worked here",
-        "properties": {
-          "all": [
-            "quiet",
-            "isolated"
-          ]
-        },
-        "canInvestigate": true,
-        "investigationScaling": {
+        "canInvestigate": false,
+        "obligationScaling": {
           "default": 1
         }
       }
     ],
     "locationActions": [
       {
-        "id": "rest_on_bench",
-        "name": "Rest on bench",
-        "description": "Take a moment to rest",
-        "actionType": "rest",
-        "priority": 10,
+        "id": "rest",
+        "name": "Rest",
+        "description": "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
+        "actionType": "Rest",
+        "priority": 50,
+        "cost": {},
+        "timeRequired": 1,
+        "availability": ["Morning", "Midday", "Afternoon", "Evening"],
+        "requiredProperties": ["restful"],
+        "optionalProperties": [],
+        "excludedProperties": []
+      },
+      {
+        "id": "secure_room",
+        "name": "Secure a Room (10 coins)",
+        "description": "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
+        "actionType": "Rest",
+        "priority": 100,
         "cost": {
-          "segments": 0
+          "coins": 10
         },
-        "timeRequired": 0,
-        "availability": ["Dawn", "Morning", "Midday", "Afternoon", "Evening"],
+        "timeRequired": 1,
+        "availability": ["Evening"],
         "requiredProperties": [],
         "optionalProperties": [],
         "excludedProperties": []
       }
-    ]
+    ],
+    "playerActions": [
+      {
+        "id": "check_belongings",
+        "name": "Check Belongings",
+        "description": "Review your current equipment and inventory",
+        "actionType": "CheckBelongings",
+        "priority": 100,
+        "cost": {},
+        "timeRequired": 0
+      },
+      {
+        "id": "wait",
+        "name": "Wait",
+        "description": "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",
+        "actionType": "Wait",
+        "priority": 200,
+        "cost": {},
+        "timeRequired": 1
+      },
+      {
+        "id": "sleep_outside",
+        "name": "Sleep Outside",
+        "description": "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
+        "actionType": "SleepOutside",
+        "priority": 300,
+        "cost": {},
+        "timeRequired": 0
+      }
+    ],
+    "obstacles": []
   }
 }

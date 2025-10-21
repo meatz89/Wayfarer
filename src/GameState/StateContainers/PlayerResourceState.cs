@@ -1,6 +1,5 @@
 using System;
 
-
 /// <summary>
 /// Immutable state container for player resources with validation.
 /// Ensures resource values stay within valid bounds.
@@ -35,19 +34,16 @@ public sealed class PlayerResourceState
 
     public int Hunger => _hunger;
 
-
     public int MaxStamina => _maxStamina;
 
     public int MaxHealth => _maxHealth;
 
     public int MaxHunger => _maxHunger;
 
-
     // Derived properties
     public bool IsExhausted => _stamina == 0;
 
     public bool IsHealthy => _health == _maxHealth;
-
 
     public bool CanPerformDangerousAction => _stamina >= 4;
 
@@ -164,8 +160,6 @@ public sealed class PlayerResourceState
         );
     }
 
-
-
     /// <summary>
     /// Creates a new state with full restoration of all resources.
     /// </summary>
@@ -187,7 +181,10 @@ public sealed class PlayerResourceState
     /// </summary>
     public ResourceModificationResult ApplyLodgingRecovery(string lodgingType)
     {
-        int recoveryAmount = lodgingType?.ToLower() switch
+        if (string.IsNullOrEmpty(lodgingType))
+            lodgingType = "rough";
+
+        int recoveryAmount = lodgingType.ToLower() switch
         {
             "rough" => 2,
             "common" => 4,

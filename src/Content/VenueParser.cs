@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 public static class VenueParser
 {
     /// <summary>
@@ -19,28 +21,6 @@ public static class VenueParser
         };
 
         return venue;
+
     }
-
-    private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
-    {
-        List<string> results = new List<string>();
-
-        if (element.TryGetProperty(propertyName, out JsonElement arrayElement) &&
-            arrayElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement item in arrayElement.EnumerateArray())
-            {
-                if (item.ValueKind == JsonValueKind.String)
-                {
-                    string value = item.GetString();
-                    if (string.IsNullOrWhiteSpace(value))
-                        throw new InvalidOperationException($"Array property '{propertyName}' contains empty string in Venue JSON");
-                    results.Add(value);
-                }
-            }
-        }
-
-        return results;
-    }
-
 }

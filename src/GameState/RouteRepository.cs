@@ -13,20 +13,19 @@ public class RouteRepository : IRouteRepository
     // Check if a route is blocked
     public bool IsRouteBlocked(string routeId)
     {
-        return _gameWorld.WorldState.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
+        return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
-
 
     // Get routes from a specific Venue (by checking all Locations in that location)
     public IEnumerable<RouteOption> GetRoutesFromLocation(string venueId)
     {
         List<RouteOption> allRoutes = new List<RouteOption>();
 
-        // ONLY use WorldState.Routes as the single source of truth
-        if (_gameWorld.WorldState.Routes != null)
+        // ONLY use GameWorld.Routes as the single source of truth
+        if (_gameWorld.Routes != null)
         {
             // Find all routes that originate from any location in this location
-            foreach (RouteOption route in _gameWorld.WorldState.Routes)
+            foreach (RouteOption route in _gameWorld.Routes)
             {
                 // Look up the origin location to get its location
                 if (!string.IsNullOrEmpty(route.OriginLocationSpot))
@@ -46,8 +45,10 @@ public class RouteRepository : IRouteRepository
     // Get all routes in the world
     public List<RouteOption> GetAll()
     {
-        // ONLY use WorldState.Routes as the single source of truth
-        return _gameWorld.WorldState.Routes ?? new List<RouteOption>();
+        // ONLY use GameWorld.Routes as the single source of truth
+        if (_gameWorld.Routes == null)
+            throw new System.InvalidOperationException("GameWorld.Routes is null - package content not loaded");
+        return _gameWorld.Routes;
     }
 
     // Get a specific route by ID
@@ -70,26 +71,12 @@ public class RouteRepository : IRouteRepository
 
         foreach (RouteOption route in allRoutes)
         {
-            // Check if route is discovered
-            if (!route.IsDiscovered)
-                continue;
-
-            // Check if route has special access requirements (unless unlocked by permit)
-            if (route.AccessRequirement != null && !route.HasPermitUnlock)
-                continue;
+            // Core Loop: All routes physically exist and are visible
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             // Check if route is blocked
             if (IsRouteBlocked(route.Id))
                 continue;
-
-            // Check access requirements if any
-            if (route.AccessRequirement != null)
-            {
-                // For now, just check if permit has been received
-                // Transport permits will be handled in task 4
-                if (!route.AccessRequirement.HasReceivedPermit)
-                    continue;
-            }
 
             availableRoutes.Add(route);
         }

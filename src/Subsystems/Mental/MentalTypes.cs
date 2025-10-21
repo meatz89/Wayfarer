@@ -50,7 +50,7 @@ public class MentalOutcome
     public bool Success { get; set; }
     public int FinalProgress { get; set; }
     public int FinalExposure { get; set; }
-    public bool SessionSaved { get; set; } = false; // True if player left investigation to return later
+    public bool SessionSaved { get; set; } = false; // True if player left obligation to return later
 }
 
 public class MentalTurnResult

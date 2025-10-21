@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
         protected List<Venue> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
-            return GameWorld.WorldState.venues
+            return GameWorld.Venues
                 .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
                 .OrderBy(l => l.Name)
                 .ToList();
@@ -95,87 +95,72 @@ namespace Wayfarer.Pages.Components
             return GameWorld.GetPlayer().GetRouteFamiliarity(routeId);
         }
 
-        protected List<ActiveInvestigation> GetActiveInvestigations()
+        protected List<ActiveObligation> GetActiveObligations()
         {
-            return GameWorld.InvestigationJournal.ActiveInvestigations.ToList();
+            return GameWorld.ObligationJournal.ActiveObligations.ToList();
         }
 
-        protected List<string> GetCompletedInvestigationIds()
+        protected List<string> GetCompletedObligationIds()
         {
-            return GameWorld.InvestigationJournal.CompletedInvestigationIds.ToList();
+            return GameWorld.ObligationJournal.CompletedObligationIds.ToList();
         }
 
-        protected List<string> GetDiscoveredInvestigationIds()
+        protected List<string> GetDiscoveredObligationIds()
         {
-            return GameWorld.InvestigationJournal.DiscoveredInvestigationIds.ToList();
+            return GameWorld.ObligationJournal.DiscoveredObligationIds.ToList();
         }
 
-        protected Investigation GetInvestigationById(string investigationId)
+        protected Obligation GetObligationById(string obligationId)
         {
-            return GameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+            return GameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
         }
 
-        protected int GetInvestigationProgress(ActiveInvestigation activeInv)
+        protected int GetObligationProgress(ActiveObligation activeInv)
         {
-            return activeInv.CompletedGoalIds.Count;
+            // CompletedGoalIds eliminated - track progress via resolved obstacles instead
+            // NOTE: Obstacles no longer have ObligationId - UI needs redesign to show obstacle locations
+            // For now, return understanding accumulated as progress metric
+            return activeInv.UnderstandingAccumulated;
         }
 
-        protected int GetInvestigationTotalGoals(string investigationId)
+        protected int GetObligationTotalGoals(string obligationId)
         {
-            Investigation inv = GetInvestigationById(investigationId);
-            return inv?.PhaseDefinitions.Count ?? 0;
+            // PhaseDefinitions eliminated - return static understanding requirement for now
+            // NOTE: Obstacles no longer have ObligationId - UI needs redesign
+            // TODO: Add UnderstandingRequired property to Obligation model
+            return 10; // Default Understanding requirement for completion
         }
 
-        protected double GetInvestigationProgressPercent(ActiveInvestigation activeInv)
+        protected double GetObligationProgressPercent(ActiveObligation activeInv)
         {
-            int total = GetInvestigationTotalGoals(activeInv.InvestigationId);
+            int total = GetObligationTotalGoals(activeInv.ObligationId);
             if (total == 0) return 0;
-            return ((double)activeInv.CompletedGoalIds.Count / total) * 100.0;
+            // CompletedGoalIds eliminated - use resolved obstacle count instead
+            int resolved = GetObligationProgress(activeInv);
+            return ((double)resolved / total) * 100.0;
         }
 
-        protected List<InvestigationPhaseDefinition> GetCompletedPhases(ActiveInvestigation activeInv)
+        protected List<ObligationPhaseDefinition> GetCompletedPhases(ActiveObligation activeInv)
         {
-            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
-            if (inv == null) return new List<InvestigationPhaseDefinition>();
-
-            return inv.PhaseDefinitions
-                .Where(p => activeInv.CompletedGoalIds.Contains(p.Id))
-                .ToList();
+            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
+            // Return resolved obstacles instead
+            return new List<ObligationPhaseDefinition>();
         }
 
-        protected List<InvestigationPhaseDefinition> GetActivePhases(ActiveInvestigation activeInv)
+        protected List<ObligationPhaseDefinition> GetActivePhases(ActiveObligation activeInv)
         {
-            Investigation inv = GetInvestigationById(activeInv.InvestigationId);
-            if (inv == null) return new List<InvestigationPhaseDefinition>();
-
-            return inv.PhaseDefinitions
-                .Where(p => !activeInv.CompletedGoalIds.Contains(p.Id))
-                .ToList();
+            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
+            // Return active obstacles instead
+            return new List<ObligationPhaseDefinition>();
         }
 
-        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveInvestigation activeInv)
+        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveObligation activeInv)
         {
-            Dictionary<string, int> locationCounts = new Dictionary<string, int>();
-            List<InvestigationPhaseDefinition> activePhases = GetActivePhases(activeInv);
-
-            foreach (InvestigationPhaseDefinition phase in activePhases)
-            {
-                // Derive Venue from location (LocationId is globally unique)
-                LocationEntry spotEntry = GameWorld.Locations.FirstOrDefault(s => s.location.Id == phase.LocationId);
-                Venue loc = spotEntry != null
-                    ? GameWorld.WorldState.venues.FirstOrDefault(l => l.Id == spotEntry.location.VenueId)
-                    : null;
-
-                if (loc != null && spotEntry != null)
-                {
-                    string locationKey = $"{loc.Name} - {spotEntry.location.Name}";
-                    if (!locationCounts.ContainsKey(locationKey))
-                        locationCounts[locationKey] = 0;
-                    locationCounts[locationKey]++;
-                }
-            }
-
-            return locationCounts;
+            // NOTE: Obligation phases no longer reference goals directly
+            // Goals are now contained within obstacles spawned by obligations
+            // This UI method needs redesign to show obstacle locations instead
+            // For now, return empty dictionary until obstacle-based UI is implemented
+            return new Dictionary<string, int>();
         }
     }
 

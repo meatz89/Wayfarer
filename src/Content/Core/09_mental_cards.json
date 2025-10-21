@@ -1,7 +1,7 @@
 {
   "packageId": "mental_cards",
   "metadata": {
-    "name": "Mental Investigation Cards",
+    "name": "Mental Obligation Cards",
     "timestamp": "2025-09-16T00:00:00Z",
     "description": "Card deck for Mental tactical system",
     "author": "Wayfarer Team",
@@ -16,7 +16,7 @@
         "depth": 1,
         "boundStat": "Insight",
         "method": "Standard",
-        "clueType": "Physical",
+        "clueType": "Observational",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -27,7 +27,7 @@
           "stats": {}
         },
         "effects": {
-          "progress": 3,
+          "progress": 1,
           "exposure": 1
         }
       },
@@ -49,7 +49,7 @@
           "stats": {}
         },
         "effects": {
-          "progress": 5,
+          "progress": 2,
           "exposure": 2
         }
       },
@@ -60,7 +60,7 @@
         "depth": 1,
         "boundStat": "Rapport",
         "method": "Standard",
-        "clueType": "Testimonial",
+        "clueType": "Social",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -71,7 +71,7 @@
           "stats": {}
         },
         "effects": {
-          "progress": 4,
+          "progress": 2,
           "exposure": 3
         }
       },
@@ -82,7 +82,7 @@
         "depth": 2,
         "boundStat": "Insight",
         "method": "Standard",
-        "clueType": "Deductive",
+        "clueType": "Analytical",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -95,7 +95,7 @@
           }
         },
         "effects": {
-          "progress": 6,
+          "progress": 2,
           "exposure": 1
         }
       },
@@ -106,7 +106,7 @@
         "depth": 2,
         "boundStat": "Cunning",
         "method": "Standard",
-        "clueType": "Intuitive",
+        "clueType": "Synthesis",
         "costs": {
           "stamina": 0,
           "health": 0,
@@ -119,7 +119,7 @@
           }
         },
         "effects": {
-          "progress": 7,
+          "progress": 3,
           "exposure": 4
         }
       }

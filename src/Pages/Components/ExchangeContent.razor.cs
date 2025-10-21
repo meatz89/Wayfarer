@@ -42,13 +42,18 @@ namespace Wayfarer.Pages.Components
         {
             await base.OnParametersSetAsync();
 
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            if (Context.Session == null)
+                throw new InvalidOperationException("Exchange session is required");
+
             // Reset selection when context changes
-            if (Context?.Session?.SessionId != LastContextId)
+            if (Context.Session.SessionId != LastContextId)
             {
                 SelectedExchangeId = null;
                 LastResult = null;
                 GenerateInitialNarrative();
-                LastContextId = Context?.Session?.SessionId;
+                LastContextId = Context.Session.SessionId;
             }
         }
 
@@ -59,7 +64,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetLocationContext()
         {
-            if (Context?.LocationInfo != null)
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            if (Context.LocationInfo != null)
             {
                 string timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
                 return $"{timeStr} - {Context.LocationInfo.Name}";
@@ -75,12 +82,10 @@ namespace Wayfarer.Pages.Components
             // Convert time block to approximate time
             return timeBlock switch
             {
-                TimeBlocks.Dawn => "Dawn",
                 TimeBlocks.Morning => "Morning",
                 TimeBlocks.Midday => "Midday",
                 TimeBlocks.Afternoon => "Afternoon",
                 TimeBlocks.Evening => "Evening",
-                TimeBlocks.Night => "Night",
                 _ => "Unknown Time"
             };
         }
@@ -90,7 +95,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetNpcStatusLine()
         {
-            if (Context?.NpcInfo == null)
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            if (Context.NpcInfo == null)
                 return "";
 
             List<string> parts = new List<string>();
@@ -112,7 +119,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetDiplomacyTokens()
         {
-            if (Context?.NpcInfo?.TokenCounts == null)
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            if (Context.NpcInfo == null || Context.NpcInfo.TokenCounts == null)
                 return 0;
 
             return Context.NpcInfo.TokenCounts.GetValueOrDefault(ConnectionType.Diplomacy, 0);
@@ -137,12 +146,15 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected void GenerateInitialNarrative()
         {
-            if (Context?.NpcInfo != null)
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+
+            if (Context.NpcInfo != null)
             {
                 // NPC-based exchange
                 CurrentNarrative = GenerateNpcGreeting();
             }
-            else if (Context?.LocationInfo != null)
+            else if (Context.LocationInfo != null)
             {
                 // Location-based exchange
                 CurrentNarrative = $"You examine the available services at {Context.LocationInfo.Name}.";
@@ -158,8 +170,17 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GenerateNpcGreeting()
         {
-            string npcName = Context?.NpcInfo?.Name ?? "The merchant";
-            bool hasQueue = Context?.Session?.AvailableExchanges?.Any(e => e.ExchangeCard?.ExchangeType == ExchangeType.Service) ?? false;
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+
+            string npcName = Context.NpcInfo != null ? Context.NpcInfo.Name : "The merchant";
+
+            if (Context.Session == null)
+                throw new InvalidOperationException("Exchange session is required");
+            if (Context.Session.AvailableExchanges == null)
+                throw new InvalidOperationException("Available exchanges list is required");
+
+            bool hasQueue = Context.Session.AvailableExchanges.Any(e => e.ExchangeCard != null && e.ExchangeCard.ExchangeType == ExchangeType.Service);
 
             if (hasQueue)
             {
@@ -176,7 +197,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected List<ExchangeCard> GetAvailableExchanges()
         {
-            return Context?.GetAvailableExchanges() ?? new List<ExchangeCard>();
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            return Context.GetAvailableExchanges();
         }
 
         /// <summary>
@@ -213,13 +236,16 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected bool CanExecuteTrade()
         {
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+
             if (IsProcessingTrade)
                 return false;
 
             if (string.IsNullOrEmpty(SelectedExchangeId))
                 return false;
 
-            ExchangeCard? exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
+            ExchangeCard exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
             return exchange != null && Context.CanAfford(exchange);
         }
 
@@ -250,17 +276,27 @@ namespace Wayfarer.Pages.Components
 
             try
             {
+                if (Context == null)
+                    throw new InvalidOperationException("Exchange context is required");
+
                 // Execute the exchange through the facade
-                string npcId = Context?.NpcInfo?.NpcId ?? "";
+                string npcId = Context.NpcInfo != null ? Context.NpcInfo.NpcId : "";
 
                 // Get required parameters
-                PlayerResourceState playerResources = Context?.PlayerResources ?? new PlayerResourceState();
-                Dictionary<ConnectionType, int> npcTokens = Context?.NpcInfo?.TokenCounts ?? new Dictionary<ConnectionType, int>();
+                if (Context.PlayerResources == null)
+                    throw new InvalidOperationException("Player resources are required");
+                PlayerResourceState playerResources = Context.PlayerResources;
+                Dictionary<ConnectionType, int> npcTokens = Context.NpcInfo != null && Context.NpcInfo.TokenCounts != null
+                    ? Context.NpcInfo.TokenCounts
+                    : new Dictionary<ConnectionType, int>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
                 LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, npcTokens, relationshipTier);
 
-                if (LastResult?.Success == true)
+                if (LastResult == null)
+                    throw new InvalidOperationException("Exchange execution returned null result");
+
+                if (LastResult.Success)
                 {
                     // Generate success narrative
                     CurrentNarrative = GenerateSuccessNarrative(LastResult);
@@ -269,9 +305,9 @@ namespace Wayfarer.Pages.Components
                     SelectedExchangeId = null;
 
                     // Update context with new state
-                    Context = await GameFacade.CreateExchangeContext(Context.NpcInfo?.NpcId);
+                    Context = await GameFacade.CreateExchangeContext(Context.NpcInfo != null ? Context.NpcInfo.NpcId : null);
                 }
-                else if (LastResult != null)
+                else
                 {
                     // Generate failure narrative
                     CurrentNarrative = GenerateFailureNarrative(LastResult);
@@ -289,20 +325,27 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GenerateSuccessNarrative(ExchangeResult result)
         {
-            if (result == null || !result.Success)
-                return "The exchange was completed.";
+            if (result == null)
+                throw new ArgumentNullException(nameof(result));
+            if (!result.Success)
+                throw new InvalidOperationException("Cannot generate success narrative for failed exchange");
 
             string rewardDesc = "";
             if ((result.RewardsGranted != null && result.RewardsGranted.Any()) ||
                 (result.ItemsGranted != null && result.ItemsGranted.Any()))
             {
-                IEnumerable<string> rewards = result.RewardsGranted?.Select(kvp => $"{kvp.Value} {kvp.Key}") ?? new List<string>();
-                List<string> items = result.ItemsGranted ?? new List<string>();
+                IEnumerable<string> rewards = result.RewardsGranted != null
+                    ? result.RewardsGranted.Select(kvp => $"{kvp.Value} {kvp.Key}")
+                    : new List<string>();
+                List<string> items = result.ItemsGranted != null ? result.ItemsGranted : new List<string>();
                 IEnumerable<string> allRewards = rewards.Concat(items);
                 rewardDesc = string.Join(", ", allRewards);
             }
 
-            if (Context?.NpcInfo != null)
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+
+            if (Context.NpcInfo != null)
             {
                 return $"{Context.NpcInfo.Name} nods. \"Good doing business with you. You receive {rewardDesc}.\"";
             }
@@ -317,7 +360,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GenerateFailureNarrative(ExchangeResult result)
         {
-            if (string.IsNullOrEmpty(result?.Message))
+            if (result == null)
+                throw new ArgumentNullException(nameof(result));
+
+            if (string.IsNullOrEmpty(result.Message))
                 return "The exchange could not be completed.";
 
             return result.Message;
@@ -328,8 +374,11 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task ExitExchange()
         {
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+
             // End the exchange session
-            if (Context?.Session != null)
+            if (Context.Session != null)
             {
                 Context.Session.EndSession();
             }
@@ -349,7 +398,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetCostDisplay(ExchangeCard exchange)
         {
-            if (exchange?.Cost == null)
+            if (exchange == null)
+                throw new ArgumentNullException(nameof(exchange));
+            if (exchange.Cost == null)
                 return "Free";
 
             List<string> parts = new List<string>();
@@ -401,7 +452,9 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected string GetRewardDisplay(ExchangeCard exchange)
         {
-            if (exchange?.Reward == null)
+            if (exchange == null)
+                throw new ArgumentNullException(nameof(exchange));
+            if (exchange.Reward == null)
                 return "Nothing";
 
             return exchange.Reward.GetDescription();
@@ -414,6 +467,9 @@ namespace Wayfarer.Pages.Components
         {
             if (exchange == null)
                 return "Invalid exchange";
+
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
 
             // Check resource costs
             foreach (ResourceAmount cost in exchange.Cost.Resources)
@@ -437,12 +493,12 @@ namespace Wayfarer.Pages.Components
                 }
             }
 
-            // Check item requirements
-            foreach (string itemId in exchange.Cost.RequiredItemIds)
+            // Check consumed item costs (resource costs, not boolean gates)
+            foreach (string itemId in exchange.Cost.ConsumedItemIds)
             {
                 if (!Context.PlayerInventory.ContainsKey(itemId) || Context.PlayerInventory[itemId] <= 0)
                 {
-                    return $"Requires {itemId}";
+                    return $"Requires {itemId} (will be consumed)";
                 }
             }
 
@@ -454,8 +510,10 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected int GetAvailableResource(ResourceType type)
         {
-            if (Context?.PlayerResources == null)
-                return 0;
+            if (Context == null)
+                throw new InvalidOperationException("Exchange context is required");
+            if (Context.PlayerResources == null)
+                throw new InvalidOperationException("Player resources are required");
 
             return type switch
             {

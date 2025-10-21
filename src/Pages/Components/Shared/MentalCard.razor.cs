@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Wayfarer.Pages.Components.Shared
 {
     /// <summary>
-    /// Mental (Investigation) tactical card component
+    /// Mental (Obligation) tactical card component
     /// ONLY knows about MentalCard - parallel to SocialCard and PhysicalCard
     /// THREE PARALLEL SYSTEMS: Each card type has its own component with NO coupling
     /// </summary>
@@ -29,62 +29,97 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardCategoryClass()
         {
-            if (Card?.MentalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.Category.ToString().ToLower();
         }
 
         protected string GetCardCategoryName()
         {
-            if (Card?.MentalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.Category.ToString();
         }
 
         protected int GetCardDepth()
         {
-            if (Card?.MentalCardTemplate == null) return 1;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.Depth;
         }
 
         protected string GetCardName()
         {
-            if (Card?.MentalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.Name;
         }
 
         protected int GetCardAttentionCost()
         {
-            if (Card?.MentalCardTemplate == null) return 0;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.AttentionCost;
         }
 
         protected string GetCardDescription()
         {
-            if (Card?.MentalCardTemplate == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.Description ?? "";
         }
 
         protected bool HasEquipmentRequirement()
         {
-            if (Card?.MentalCardTemplate == null) return false;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             return Card.MentalCardTemplate.EquipmentCategory != EquipmentCategory.None;
         }
 
         protected string GetEquipmentRequirement()
         {
-            if (!HasEquipmentRequirement()) return "";
+            if (!HasEquipmentRequirement())
+                return "";
+
             return $"Requires: {Card.MentalCardTemplate.EquipmentCategory}";
         }
 
         protected bool HasCardCost()
         {
-            if (Card?.MentalCardTemplate == null) return false;
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+
             // NOTE: Mental cards have NO health/stamina costs - only CoinCost (rare)
             return Card.MentalCardTemplate.CoinCost > 0;
         }
 
         protected string GetCardCost()
         {
-            if (!HasCardCost()) return "";
+            if (!HasCardCost())
+                return "";
 
             List<string> costs = new System.Collections.Generic.List<string>();
             if (Card.MentalCardTemplate.CoinCost > 0) costs.Add($"Coins -{Card.MentalCardTemplate.CoinCost}");
@@ -94,9 +129,14 @@ namespace Wayfarer.Pages.Components.Shared
 
         protected string GetCardEffectDescription()
         {
-            if (Card?.MentalCardTemplate == null) return "";
-            if (Session == null) return "";
-            if (GameFacade == null) return "";
+            if (Card == null)
+                throw new InvalidOperationException("Card parameter is required");
+            if (Card.MentalCardTemplate == null)
+                throw new InvalidOperationException("MentalCardTemplate is required");
+            if (Session == null)
+                throw new InvalidOperationException("Session is required for effect projection");
+            if (GameFacade == null)
+                throw new InvalidOperationException("GameFacade is required for effect projection");
 
             Player player = GameFacade.GetPlayer();
 

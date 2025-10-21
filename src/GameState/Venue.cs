@@ -18,7 +18,7 @@ public class Venue
     public int Tier { get; set; } = 1;
 
     public List<string> LocationSpotIds { get; set; } = new List<string>();
-   
+
     public Venue(string id, string name)
     {
         Id = id;

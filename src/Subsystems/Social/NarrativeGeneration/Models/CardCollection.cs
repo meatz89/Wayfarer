@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 /// <summary>
 /// Wrapper for active cards available to the player.
 /// Used by narrative providers to analyze card options and generate appropriate NPC dialogue.
@@ -31,7 +30,6 @@ public class CardInfo
     /// Indicates the intensity/commitment level of the card's effect.
     /// </summary>
     public int InitiativeCost { get; set; }
-
 
     /// <summary>
     /// Description of the card's mechanical effect.

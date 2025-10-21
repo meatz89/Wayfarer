@@ -9,12 +9,12 @@ public static class LocationParser
     /// <summary>
     /// Convert a LocationDTO to a Location domain model
     /// </summary>
-    public static Location ConvertDTOToLocation(LocationDTO dto)
+    public static Location ConvertDTOToLocation(LocationDTO dto, GameWorld gameWorld)
     {
         Location location = new Location(dto.Id, dto.Name)
         {
-            InitialState = dto.InitialState ?? "",
-            VenueId = dto.VenueId ?? ""
+            InitialState = dto.InitialState ?? "", // Optional - defaults to empty if missing
+            VenueId = dto.VenueId ?? "" // Optional - defaults to empty if missing
         };
 
         // Parse time windows
@@ -39,44 +39,31 @@ public static class LocationParser
 
         // Parse location properties from the new structure
         if (dto.Properties != null)
-        {
-            Console.WriteLine($"[LocationParser] Parsing location {location.Id} properties");
-
-            // Parse base properties (always active)
+        {// Parse base properties (always active)
             if (dto.Properties.Base != null)
             {
-                Console.WriteLine($"[LocationParser] Found {dto.Properties.Base.Count} base properties");
                 foreach (string propString in dto.Properties.Base)
                 {
-                    Console.WriteLine($"[LocationParser] Trying to parse base property: {propString}");
                     if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
-                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
                         location.LocationProperties.Add(prop);
                     }
                     else
-                    {
-                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
-                    }
+                    { }
                 }
             }
 
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
             {
-                Console.WriteLine($"[LocationParser] Found {dto.Properties.All.Count} 'all' properties");
                 foreach (string propString in dto.Properties.All)
                 {
-                    Console.WriteLine($"[LocationParser] Trying to parse 'all' property: {propString}");
                     if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
-                        Console.WriteLine($"[LocationParser] Successfully parsed: {prop}");
                         location.LocationProperties.Add(prop);
                     }
                     else
-                    {
-                        Console.WriteLine($"[LocationParser] Failed to parse property: {propString}");
-                    }
+                    { }
                 }
             }
 
@@ -91,29 +78,26 @@ public static class LocationParser
             ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
             // Evening properties
             ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
-            // Night properties
-            ParseTimeProperties(dto.Properties.Night, TimeBlocks.Night, timeProperties);
-            // Dawn properties
-            ParseTimeProperties(dto.Properties.Dawn, TimeBlocks.Dawn, timeProperties);
+            // Night and Dawn removed from 4-block system
 
             // Assign to location
             foreach (KeyValuePair<TimeBlocks, List<LocationPropertyType>> kvp in timeProperties)
             {
                 if (kvp.Value.Count > 0)
                 {
-                    location.TimeSpecificProperties[kvp.Key] = kvp.Value;
+                    location.TimeSpecificProperties.Add(new TimeSpecificProperty
+                    {
+                        TimeBlock = kvp.Key,
+                        Properties = kvp.Value
+                    });
                 }
             }
         }
 
-        // Parse access requirements
-        if (dto.AccessRequirement != null)
-        {
-            location.AccessRequirement = AccessRequirementParser.ConvertDTOToAccessRequirement(dto.AccessRequirement);
-        }
+        // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties moved from Location
-        location.DomainTags = dto.DomainTags ?? new List<string>();
+        location.DomainTags = dto.DomainTags ?? new List<string>(); // Optional - defaults to empty list if missing
 
         if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
         {
@@ -122,11 +106,11 @@ public static class LocationParser
 
         location.IsStartingLocation = dto.IsStartingLocation;
 
-        if (!string.IsNullOrEmpty(dto.InvestigationProfile))
+        if (!string.IsNullOrEmpty(dto.ObligationProfile))
         {
-            if (System.Enum.TryParse<InvestigationDiscipline>(dto.InvestigationProfile, out InvestigationDiscipline investigationProfile))
+            if (System.Enum.TryParse<ObligationDiscipline>(dto.ObligationProfile, out ObligationDiscipline obligationProfile))
             {
-                location.InvestigationProfile = investigationProfile;
+                location.ObligationProfile = obligationProfile;
             }
         }
 
@@ -175,6 +159,28 @@ public static class LocationParser
             }
         }
 
+        // Parse obstacles at this location (Mental/Physical challenges)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        {
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
+            {
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id, gameWorld);
+
+                // Duplicate ID protection - prevent data corruption
+                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+                {
+                    gameWorld.Obstacles.Add(obstacle);
+                    location.ObstacleIds.Add(obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in location '{location.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
+            }
+        }
+
         return location;
     }
 
@@ -201,7 +207,6 @@ public static class LocationParser
             timeProperties[timeBlock] = properties;
         }
     }
-
 
     private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)
     {

@@ -63,10 +63,6 @@ public class LocationNarrativeGenerator
         List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Debug log
-        Console.WriteLine($"[LocationNarrativeGenerator] Generating atmosphere for: {location.Id}");
-        Console.WriteLine($"  Properties: {string.Join(", ", activeProperties)}");
-        Console.WriteLine($"  Time: {currentTime}, NPCs: {npcsPresent}");
-
         return descGenerator.GenerateDescription(
             activeProperties,
             currentTime,
@@ -79,7 +75,8 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        if (string.IsNullOrEmpty(_gameWorld.WorldState.locations.FirstOrDefault(x => x.Id == venue.Id)?.Description))
+        Location venueLocation = _gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id);
+        if (venueLocation == null || string.IsNullOrEmpty(venueLocation.Description))
         {
             return GenerateDefaultLocationDescription(venue, currentTime);
         }
@@ -111,12 +108,10 @@ public class LocationNarrativeGenerator
     {
         return timeBlock switch
         {
-            TimeBlocks.Dawn => "The early morning light casts long shadows.",
             TimeBlocks.Morning => "The morning bustle is beginning to pick up.",
             TimeBlocks.Midday => "The afternoon sun warms the area.",
             TimeBlocks.Afternoon => "Evening approaches, bringing a change of pace.",
             TimeBlocks.Evening => "Night has fallen, bringing quiet to most areas.",
-            TimeBlocks.Night => "The deep of night brings stillness.",
             _ => ""
         };
     }
@@ -128,12 +123,10 @@ public class LocationNarrativeGenerator
     {
         return timeBlock switch
         {
-            TimeBlocks.Dawn => "It's early dawn",
             TimeBlocks.Morning => "It's morning",
             TimeBlocks.Midday => "It's afternoon",
             TimeBlocks.Afternoon => "It's evening",
             TimeBlocks.Evening => "It's nighttime",
-            TimeBlocks.Night => "It's late at night",
             _ => "The time is uncertain"
         };
     }
@@ -186,10 +179,13 @@ public class LocationNarrativeGenerator
     /// </summary>
     public string GenerateContextualFlavor(Location location, NarrativeContext context)
     {
+        if (context == null)
+            throw new ArgumentNullException(nameof(context));
+
         List<string> flavorParts = new List<string>();
 
         // Check for weather effects
-        if (!string.IsNullOrEmpty(context?.Weather))
+        if (!string.IsNullOrEmpty(context.Weather))
         {
             string weatherFlavor = GetWeatherFlavor(context.Weather, location);
             if (!string.IsNullOrEmpty(weatherFlavor))
@@ -197,13 +193,13 @@ public class LocationNarrativeGenerator
         }
 
         // Check for crowding
-        if (context?.NpcCount > 3)
+        if (context.NpcCount > 3)
         {
             flavorParts.Add("The area is quite crowded.");
         }
 
         // Check for urgent business
-        if (context?.UrgentLetters > 0)
+        if (context.UrgentLetters > 0)
         {
             flavorParts.Add("You feel the focus of urgent obligations.");
         }
@@ -217,8 +213,9 @@ public class LocationNarrativeGenerator
     private string GetWeatherFlavor(string weather, Location location)
     {
         // Assume we're outdoors unless location has warm/shaded properties (indicating shelter)
-        bool isIndoor = location?.LocationProperties?.Contains(LocationPropertyType.Warm) == true ||
-                       location?.LocationProperties?.Contains(LocationPropertyType.Shaded) == true;
+        bool isIndoor = location != null &&
+                       (location.LocationProperties.Contains(LocationPropertyType.Warm) ||
+                        location.LocationProperties.Contains(LocationPropertyType.Shaded));
 
         return weather switch
         {

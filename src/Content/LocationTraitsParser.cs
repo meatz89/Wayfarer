@@ -15,10 +15,10 @@ public static class LocationTraitsParser
         if (location == null)
             return traits;
 
-        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties dictionary
-        if (location.TimeSpecificProperties.ContainsKey(currentTime))
+        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties list
+        if (location.TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
         {
-            List<LocationPropertyType> properties = location.TimeSpecificProperties[currentTime];
+            List<LocationPropertyType> properties = location.TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties;
             foreach (LocationPropertyType prop in properties)
             {
                 string trait = prop.ToString();
@@ -34,6 +34,7 @@ public static class LocationTraitsParser
         {
             foreach (string tag in location.DomainTags)
             {
+                // Handle null tags gracefully (optional null-conditional for safety)
                 string trait = tag?.ToUpper() switch
                 {
                     "COMMERCE" => "Diplomacy Hub",
@@ -64,8 +65,5 @@ public static class LocationTraitsParser
         // Limit to 3-4 most relevant traits (as per mockup)
         return traits.Take(4).ToList();
     }
-
-
-
 
 }

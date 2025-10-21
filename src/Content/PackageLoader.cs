@@ -54,63 +54,39 @@ public class PackageLoader
     /// </summary>
     public void LoadStaticPackages(List<string> packageFilePaths)
     {
-        Console.WriteLine("[PackageLoader] Starting static package loading...");
-
         // Sort by filename to ensure proper loading order (01_, 02_, etc.)
         List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
 
-        Console.WriteLine($"[PackageLoader] Loading {sortedPackages.Count} packages in order:");
-        foreach (string? path in sortedPackages)
-        {
-            Console.WriteLine($"  - {Path.GetFileName(path)}");
-        }
-
         // Load each package sequentially
         foreach (string packagePath in sortedPackages)
         {
-            try
+            string json = File.ReadAllText(packagePath);
+            Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
             {
-                string json = File.ReadAllText(packagePath);
-                Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    AllowTrailingCommas = true
-                });
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true
+            });
 
-                // Check if already loaded
-                if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
-                {
-                    Console.WriteLine($"[PackageLoader] Skipping already loaded package: {package.PackageId}");
-                    continue;
-                }
-
-                Console.WriteLine($"[PackageLoader] Loading package: {Path.GetFileName(packagePath)}");
-
-                // Track as loaded
-                if (package.PackageId != null)
-                {
-                    _loadedPackageIds.Add(package.PackageId);
-                }
-
-                // Load with no skeletons allowed for static content
-                LoadPackageContent(package, allowSkeletons: false);
-
-                Console.WriteLine($"[PackageLoader] Successfully loaded: {Path.GetFileName(packagePath)}");
-            }
-            catch (Exception ex)
+            // Check if already loaded
+            if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
             {
-                throw new Exception($"[PackageLoader] Failed to load package {packagePath}: {ex.Message}", ex);
+                continue;
+            }// Track as loaded
+            if (package.PackageId != null)
+            {
+                _loadedPackageIds.Add(package.PackageId);
             }
+
+            // Load with no skeletons allowed for static content
+            LoadPackageContent(package, allowSkeletons: false);
         }
 
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
         InitializeTravelDiscoverySystem();
-        InitializeInvestigationJournal();
-
-        Console.WriteLine($"[PackageLoader] Static loading complete: {sortedPackages.Count} packages loaded");
+        InitializeObligationJournal();
     }
 
     /// <summary>
@@ -119,7 +95,9 @@ public class PackageLoader
     private void LoadPackageContent(Package package, bool allowSkeletons)
     {
         // Set current package ID for error reporting
-        _currentPackageId = package.PackageId ?? "unknown";
+        if (string.IsNullOrEmpty(package.PackageId))
+            throw new InvalidDataException("Package missing required field 'PackageId'");
+        _currentPackageId = package.PackageId;
 
         // Apply starting conditions only from the first package
         if (_isFirstPackage && package.StartingConditions != null)
@@ -143,20 +121,19 @@ public class PackageLoader
         LoadLocationSpots(package.Content.Locations, allowSkeletons);
 
         // 3. Cards (foundation for NPCs and conversations)
-        LoadSocialCards(package.Content.Cards, allowSkeletons);
+        LoadSocialCards(package.Content.SocialCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
-        // THREE PARALLEL TACTICAL SYSTEMS
-        LoadSocialChallengeTypes(package.Content.SocialChallengeTypes, allowSkeletons);
+
+        // THREE PARALLEL TACTICAL CHALLENGE SYSTEMS - Decks only, no Types
         LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, allowSkeletons);
-        LoadMentalChallengeTypes(package.Content.MentalChallengeTypes, allowSkeletons);
         LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
-        LoadPhysicalChallengeTypes(package.Content.PhysicalChallengeTypes, allowSkeletons);
         LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
 
-        // 3.5 Investigation Templates (strategic multi-phase activities)
-        LoadInvestigations(package.Content.Investigations, allowSkeletons);
-        LoadKnowledge(package.Content.Knowledge, allowSkeletons);
+        // 3.5 Obligation Templates (strategic multi-phase activities)
+        LoadObligations(package.Content.Obligations, allowSkeletons);
+        LoadGoals(package.Content.Goals, allowSkeletons);
+        LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
         // 4. NPCs (reference locations, Locations, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -167,13 +144,13 @@ public class PackageLoader
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
-        InitializeNPCRequests(package.Content.NpcRequests, package.Content.NpcGoalCards, package.Content.DeckCompositions);
         InitializeNPCExchangeDecks(package.Content.DeckCompositions);
 
         // 7. Complex entities
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
         LoadLocationActions(package.Content.LocationActions, allowSkeletons);
+        LoadPlayerActions(package.Content.PlayerActions, allowSkeletons);
 
         // 8. Travel content
         List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
@@ -181,7 +158,7 @@ public class PackageLoader
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
-        // 9. V2 Investigation and Travel Systems
+        // 9. V2 Obligation and Travel Systems
         LoadTravelObstacles(package.Content.TravelObstacles, allowSkeletons);
     }
 
@@ -203,42 +180,30 @@ public class PackageLoader
     /// </summary>
     public List<string> LoadDynamicPackage(string packageFilePath)
     {
-        Console.WriteLine($"[PackageLoader] Loading dynamic package: {packageFilePath}");
-
-        try
+        string json = File.ReadAllText(packageFilePath);
+        Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
         {
-            string json = File.ReadAllText(packageFilePath);
-            Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
-            });
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true
+        });
 
-            // Check if already loaded
-            if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
-            {
-                Console.WriteLine($"[PackageLoader] Package {package.PackageId} already loaded");
-                return new List<string>();
-            }
-
-            // Track as loaded
-            if (package.PackageId != null)
-            {
-                _loadedPackageIds.Add(package.PackageId);
-            }
-
-            // Load with skeletons allowed for dynamic content
-            LoadPackageContent(package, allowSkeletons: true);
-
-            Console.WriteLine($"[PackageLoader] Dynamic package loaded with {_gameWorld.SkeletonRegistry.Count} skeletons");
-
-            // Return skeleton IDs for AI completion
-            return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
-        }
-        catch (Exception ex)
+        // Check if already loaded
+        if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
         {
-            throw new Exception($"[PackageLoader] Failed to load dynamic package: {ex.Message}", ex);
+            return new List<string>();
         }
+
+        // Track as loaded
+        if (package.PackageId != null)
+        {
+            _loadedPackageIds.Add(package.PackageId);
+        }
+
+        // Load with skeletons allowed for dynamic content
+        LoadPackageContent(package, allowSkeletons: true);
+
+        // Return skeleton IDs for AI completion
+        return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }
 
     /// <summary>
@@ -247,54 +212,44 @@ public class PackageLoader
     /// </summary>
     public List<string> LoadDynamicPackageFromJson(string json, string packageId)
     {
-        Console.WriteLine($"[PackageLoader] Loading dynamic package from JSON: {packageId ?? "unnamed"}");
-
-        try
+        Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
         {
-            Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
-            });
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true
+        });
 
-            // Set package ID if not present
-            if (string.IsNullOrEmpty(package.PackageId))
-            {
-                package.PackageId = packageId ?? $"dynamic_{DateTime.Now.Ticks}";
-            }
-
-            // Check if already loaded
-            if (_loadedPackageIds.Contains(package.PackageId))
-            {
-                Console.WriteLine($"[PackageLoader] Package {package.PackageId} already loaded");
-                return new List<string>();
-            }
-
-            // Track as loaded
-            _loadedPackageIds.Add(package.PackageId);
-
-            // Load with skeletons allowed for dynamic content
-            LoadPackageContent(package, allowSkeletons: true);
-
-            Console.WriteLine($"[PackageLoader] Dynamic package {package.PackageId} loaded with {_gameWorld.SkeletonRegistry.Count} skeletons");
-
-            // Return skeleton IDs for AI completion
-            return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
-        }
-        catch (Exception ex)
+        // Set package ID if not present
+        if (string.IsNullOrEmpty(package.PackageId))
         {
-            throw new Exception($"[PackageLoader] Failed to load dynamic package: {ex.Message}", ex);
+            if (string.IsNullOrEmpty(packageId))
+                throw new InvalidDataException("Package and packageId parameter both missing - cannot identify package");
+            package.PackageId = packageId;
         }
+
+        // Check if already loaded
+        if (_loadedPackageIds.Contains(package.PackageId))
+        {
+            return new List<string>();
+        }
+
+        // Track as loaded
+        _loadedPackageIds.Add(package.PackageId);
+
+        // Load with skeletons allowed for dynamic content
+        LoadPackageContent(package, allowSkeletons: true);
+
+        // Return skeleton IDs for AI completion
+        return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }
-
-
 
     private void ApplyStartingConditions(PackageStartingConditions conditions)
     {
         // Apply player initial config
         if (conditions.PlayerConfig != null)
         {
-            _gameWorld.InitialPlayerConfig = conditions.PlayerConfig;
+            // Parse DTO (categorical properties) → Domain Entity (concrete values)
+            PlayerInitialConfig parsedConfig = PlayerInitialConfigParser.Parse(conditions.PlayerConfig);
+            _gameWorld.InitialPlayerConfig = parsedConfig;
             // Apply the initial configuration to the player immediately
             _gameWorld.ApplyInitialPlayerConfiguration();
         }
@@ -330,13 +285,36 @@ public class PackageLoader
                 tokenEntry.Shadow = kvp.Value.Shadow;
             }
         }
+
+        // Store time initialization for TimeModel (applied after DI initialization)
+        if (conditions.StartingDay.HasValue)
+        {
+            _gameWorld.InitialDay = conditions.StartingDay.Value;
+        }
+
+        if (!string.IsNullOrEmpty(conditions.StartingTimeBlock))
+        {
+            if (Enum.TryParse<TimeBlocks>(conditions.StartingTimeBlock, out TimeBlocks timeBlock))
+            {
+                _gameWorld.InitialTimeBlock = timeBlock;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Invalid StartingTimeBlock '{conditions.StartingTimeBlock}'. " +
+                    $"Valid values: Morning, Midday, Afternoon, Evening");
+            }
+        }
+
+        if (conditions.StartingSegment.HasValue)
+        {
+            _gameWorld.InitialSegment = conditions.StartingSegment.Value;
+        }
     }
 
     private void LoadPlayerStatsConfiguration(PlayerStatsConfigDTO playerStatsConfig, bool allowSkeletons)
     {
         if (playerStatsConfig == null) return;
-
-        Console.WriteLine("[PackageLoader] Loading player stats configuration...");
 
         // Parse the player stats configuration using PlayerStatParser
         PlayerStatsParseResult parseResult = PlayerStatParser.ParseStatsPackage(playerStatsConfig);
@@ -344,15 +322,11 @@ public class PackageLoader
         // Store the configuration in GameWorld
         _gameWorld.PlayerStatDefinitions = parseResult.StatDefinitions;
         _gameWorld.StatProgression = parseResult.Progression;
-
-        Console.WriteLine($"[PackageLoader] Loaded {parseResult.StatDefinitions.Count} stat definitions and progression configuration");
     }
 
     private void LoadListenDrawCounts(Dictionary<string, int> listenDrawCounts)
     {
         if (listenDrawCounts == null) return;
-
-        Console.WriteLine("[PackageLoader] Loading listen draw counts...");
 
         // Convert string keys to ConnectionState enum and create ListenDrawCountEntry list
         List<ListenDrawCountEntry> drawCountEntries = new List<ListenDrawCountEntry>();
@@ -367,7 +341,6 @@ public class PackageLoader
                     State = state,
                     DrawCount = kvp.Value
                 });
-                Console.WriteLine($"[PackageLoader] Set draw count for {state}: {kvp.Value} cards");
             }
             else
             {
@@ -377,14 +350,11 @@ public class PackageLoader
 
         // Apply to GameRules
         GameRules.StandardRuleset.ListenDrawCounts = drawCountEntries;
-        Console.WriteLine($"[PackageLoader] Loaded {drawCountEntries.Count} listen draw count entries");
     }
 
     private void LoadStrangers(List<StrangerNPCDTO> strangerDtos, bool allowSkeletons)
     {
         if (strangerDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {strangerDtos.Count} stranger NPCs...");
 
         foreach (StrangerNPCDTO dto in strangerDtos)
         {
@@ -393,11 +363,7 @@ public class PackageLoader
 
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
-
-            Console.WriteLine($"[PackageLoader] Added stranger '{stranger.Name}' (Level {stranger.Level}) to Venue '{stranger.Venue}' for time block '{stranger.AvailableTimeBlock}'");
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading strangers. Total strangers loaded: {strangerDtos.Count}");
     }
 
     private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
@@ -411,14 +377,14 @@ public class PackageLoader
                 Id = dto.Id,
                 Name = dto.Name,
                 Description = dto.Description,
-                DistrictIds = dto.DistrictIds ?? new List<string>(),
+                DistrictIds = dto.DistrictIds,
                 Government = dto.Government,
                 Culture = dto.Culture,
                 Population = dto.Population,
-                MajorExports = dto.MajorExports ?? new List<string>(),
-                MajorImports = dto.MajorImports ?? new List<string>()
+                MajorExports = dto.MajorExports,
+                MajorImports = dto.MajorImports
             };
-            _gameWorld.WorldState.Regions.Add(region);
+            _gameWorld.Regions.Add(region);
         }
     }
 
@@ -434,29 +400,12 @@ public class PackageLoader
                 Name = dto.Name,
                 Description = dto.Description,
                 RegionId = dto.RegionId,
-                VenueIds = dto.VenueIds ?? new List<string>(),
+                VenueIds = dto.VenueIds,
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
-                Characteristics = dto.Characteristics ?? new List<string>()
+                Characteristics = dto.Characteristics
             };
-            _gameWorld.WorldState.Districts.Add(district);
-        }
-    }
-
-    private void LoadGoalCards(Dictionary<string, List<GoalCardDTO>> goalCards, bool allowSkeletons)
-    {
-        if (goalCards == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading NPC request cards...");
-        foreach (KeyValuePair<string, List<GoalCardDTO>> kvp in goalCards)
-        {
-            string npcId = kvp.Key;
-            foreach (GoalCardDTO dto in kvp.Value)
-            {
-                GoalCard card = GoalCardParser.ParseCard(dto);
-                _gameWorld.GoalCards.Add(card);
-                Console.WriteLine($"[PackageLoader] Loaded request card '{card.Id}' for NPC '{npcId}'");
-            }
+            _gameWorld.Districts.Add(district);
         }
     }
 
@@ -466,9 +415,19 @@ public class PackageLoader
 
         foreach (SocialCardDTO dto in cardDtos)
         {
-            // Use static method from ConversationCardParser
-            SocialCard card = SocialCardParser.ParseCard(dto);
-            _gameWorld.SocialCards.Add(card);
+            try
+            {
+                // Use static method from ConversationCardParser
+                SocialCard card = SocialCardParser.ParseCard(dto);
+                _gameWorld.SocialCards.Add(card);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"FATAL: Failed to parse social card '{dto.Id}'. " +
+                    $"Total cards loaded so far: {_gameWorld.SocialCards.Count}. " +
+                    $"Error: {ex.Message}", ex);
+            }
         }
 
         // Validate Foundation card rules after all cards are loaded
@@ -480,143 +439,176 @@ public class PackageLoader
     {
         if (mentalCards == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading mental cards...");
         MentalCardParser parser = new MentalCardParser();
         foreach (MentalCardDTO dto in mentalCards)
         {
             MentalCard card = parser.ParseCard(dto);
             _gameWorld.MentalCards.Add(card);
-            Console.WriteLine($"[PackageLoader] Loaded mental card '{card.Id}': {card.Name} (Depth {card.Depth})");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading mental cards. Total: {_gameWorld.MentalCards.Count}");
     }
 
     private void LoadPhysicalCards(List<PhysicalCardDTO> physicalCards, bool allowSkeletons)
     {
         if (physicalCards == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading physical cards...");
         PhysicalCardParser parser = new PhysicalCardParser();
         foreach (PhysicalCardDTO dto in physicalCards)
         {
             PhysicalCard card = parser.ParseCard(dto);
             _gameWorld.PhysicalCards.Add(card);
-            Console.WriteLine($"[PackageLoader] Loaded physical card '{card.Id}': {card.Name} (Depth {card.Depth})");
         }
-        Console.WriteLine($"[PackageLoader] Completed loading physical cards. Total: {_gameWorld.PhysicalCards.Count}");
-    }
-
-    private void LoadSocialChallengeTypes(List<SocialChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading social engagement types...");
-        foreach (SocialChallengeTypeDTO dto in challengeTypes)
-        {
-            SocialChallengeType challengeType = dto.ToDomain();
-            _gameWorld.SocialChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded social engagement type '{challengeType.Id}': {challengeType.Name}");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading social engagement types. Total: {_gameWorld.SocialChallengeTypes.Count}");
     }
 
     private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading conversation engagement decks...");
         foreach (SocialChallengeDeckDTO dto in decks)
         {
             SocialChallengeDeck deck = dto.ToDomain();
-            _gameWorld.SocialChallengeDecks[deck.Id] = deck;
-            Console.WriteLine($"[PackageLoader] Loaded conversation deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading conversation engagement decks. Total: {_gameWorld.SocialChallengeDecks.Count}");
-    }
 
-    private void LoadMentalChallengeTypes(List<MentalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
+            // VALIDATION: Verify every card in deck exists in GameWorld.SocialCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.SocialCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    int totalCards = _gameWorld.SocialCards.Count;
+                    string allCardIds = string.Join(", ", _gameWorld.SocialCards.Select(c => c.Id));
+                    throw new InvalidOperationException(
+                        $"Social deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/08_social_cards.json and loads before deck. " +
+                        $"Total cards loaded: {totalCards}. " +
+                        $"All loaded card IDs: {allCardIds}");
+                }
+            }
 
-        Console.WriteLine($"[PackageLoader] Loading mental engagement types...");
-        foreach (MentalChallengeTypeDTO dto in challengeTypes)
-        {
-            MentalChallengeType challengeType = dto.ToDomain();
-            _gameWorld.MentalChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded mental engagement type '{challengeType.Id}': {challengeType.Name}");
+            _gameWorld.SocialChallengeDecks.Add(deck);
         }
-        Console.WriteLine($"[PackageLoader] Completed loading mental engagement types. Total: {_gameWorld.MentalChallengeTypes.Count}");
     }
 
     private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading mental engagement decks...");
         foreach (MentalChallengeDeckDTO dto in decks)
         {
             MentalChallengeDeck deck = dto.ToDomain();
-            _gameWorld.MentalChallengeDecks[deck.Id] = deck;
-            Console.WriteLine($"[PackageLoader] Loaded mental deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
-        }
-        Console.WriteLine($"[PackageLoader] Completed loading mental engagement decks. Total: {_gameWorld.MentalChallengeDecks.Count}");
-    }
 
-    private void LoadPhysicalChallengeTypes(List<PhysicalChallengeTypeDTO> challengeTypes, bool allowSkeletons)
-    {
-        if (challengeTypes == null) return;
+            // VALIDATION: Verify every card in deck exists in GameWorld.MentalCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.MentalCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    throw new InvalidOperationException(
+                        $"Mental deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/09_mental_cards.json and loads before deck. " +
+                        $"Available cards: {string.Join(", ", _gameWorld.MentalCards.Take(5).Select(c => c.Id))}...");
+                }
+            }
 
-        Console.WriteLine($"[PackageLoader] Loading physical engagement types...");
-        foreach (PhysicalChallengeTypeDTO dto in challengeTypes)
-        {
-            PhysicalChallengeType challengeType = dto.ToDomain();
-            _gameWorld.PhysicalChallengeTypes[challengeType.Id] = challengeType;
-            Console.WriteLine($"[PackageLoader] Loaded physical engagement type '{challengeType.Id}': {challengeType.Name}");
+            _gameWorld.MentalChallengeDecks.Add(deck);
         }
-        Console.WriteLine($"[PackageLoader] Completed loading physical engagement types. Total: {_gameWorld.PhysicalChallengeTypes.Count}");
     }
 
     private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
     {
         if (decks == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading physical engagement decks...");
         foreach (PhysicalChallengeDeckDTO dto in decks)
         {
             PhysicalChallengeDeck deck = dto.ToDomain();
-            _gameWorld.PhysicalChallengeDecks[deck.Id] = deck;
-            Console.WriteLine($"[PackageLoader] Loaded physical deck '{deck.Id}': {deck.Name} with {deck.CardIds.Count} cards");
+
+            // VALIDATION: Verify every card in deck exists in GameWorld.PhysicalCards
+            // FAIL FAST at initialization, not at runtime when player clicks BEGIN CHALLENGE
+            foreach (string cardId in deck.CardIds)
+            {
+                bool cardExists = _gameWorld.PhysicalCards.Any(c => c.Id == cardId);
+                if (!cardExists)
+                {
+                    throw new InvalidOperationException(
+                        $"Physical deck '{deck.Id}' references missing card '{cardId}'. " +
+                        $"Ensure card is defined in Content/Core/10_physical_cards.json and loads before deck. " +
+                        $"Available cards: {string.Join(", ", _gameWorld.PhysicalCards.Take(5).Select(c => c.Id))}...");
+                }
+            }
+
+            _gameWorld.PhysicalChallengeDecks.Add(deck);
         }
-        Console.WriteLine($"[PackageLoader] Completed loading physical engagement decks. Total: {_gameWorld.PhysicalChallengeDecks.Count}");
     }
 
-    private void LoadInvestigations(List<InvestigationDTO> investigations, bool allowSkeletons)
+    private void LoadObligations(List<ObligationDTO> obligations, bool allowSkeletons)
     {
-        if (investigations == null) return;
+        if (obligations == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading investigation templates...");
-        InvestigationParser parser = new InvestigationParser(_gameWorld);
-        foreach (InvestigationDTO dto in investigations)
+        ObligationParser parser = new ObligationParser(_gameWorld);
+        foreach (ObligationDTO dto in obligations)
         {
-            Investigation investigation = parser.ParseInvestigation(dto);
-            _gameWorld.Investigations.Add(investigation);
-            Console.WriteLine($"[PackageLoader] Loaded investigation '{investigation.Id}': {investigation.Name} ({investigation.PhaseDefinitions.Count} phases)");
+            Obligation obligation = parser.ParseObligation(dto);
+            _gameWorld.Obligations.Add(obligation);
         }
-        Console.WriteLine($"[PackageLoader] Completed loading investigations. Total: {_gameWorld.Investigations.Count}");
     }
 
-    private void LoadKnowledge(List<KnowledgeDTO> knowledgeList, bool allowSkeletons)
+    private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
     {
-        if (knowledgeList == null) return;
+        if (goalDtos == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading knowledge definitions...");
-        foreach (KnowledgeDTO dto in knowledgeList)
+        foreach (GoalDTO dto in goalDtos)
         {
-            Knowledge knowledge = KnowledgeParser.ParseKnowledge(dto);
-            _gameWorld.Knowledge.Add(knowledge.Id, knowledge);
-            Console.WriteLine($"[PackageLoader] Loaded knowledge '{knowledge.Id}': {knowledge.DisplayName}");
+            // Parse goal using GoalParser
+            Goal goal = GoalParser.ConvertDTOToGoal(dto, _gameWorld);
+
+            // Add to centralized GameWorld.Goals storage
+            _gameWorld.Goals.Add(goal);// Assign goal to NPC or Location based on PlacementNpcId/PlacementLocationId
+            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
+            {
+                // Social goal - assign to NPC.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
+                if (npc != null)
+                {
+                    npc.ActiveGoalIds.Add(goal.Id);
+                }
+                else
+                { }
+            }
+            else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
+            {
+                // Mental/Physical goal - assign to Location.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
+                Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
+                if (location != null)
+                {
+                    location.ActiveGoalIds.Add(goal.Id);
+                }
+                else
+                { }
+            }
         }
-        Console.WriteLine($"[PackageLoader] Completed loading knowledge. Total: {_gameWorld.Knowledge.Count}");
+    }
+
+    private void LoadObstacles(List<ObstacleDTO> obstacleDtos, bool allowSkeletons)
+    {
+        if (obstacleDtos == null) return;
+
+        foreach (ObstacleDTO dto in obstacleDtos)
+        {
+            // Parse obstacle using ObstacleParser
+            Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(dto, _currentPackageId, _gameWorld);
+
+            // Duplicate ID protection - prevent data corruption
+            if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+            {
+                _gameWorld.Obstacles.Add(obstacle);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Duplicate obstacle ID '{obstacle.Id}' found in package '{_currentPackageId}'. " +
+                    $"Obstacle IDs must be globally unique across all packages.");
+            }
+        }
     }
 
     private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)
@@ -626,16 +618,14 @@ public class PackageLoader
         foreach (VenueDTO dto in venueDtos)
         {
             // Check if this venue was previously a skeleton, if so replace it
-            Venue? existingSkeleton = _gameWorld.WorldState.venues
+            Venue? existingSkeleton = _gameWorld.Venues
                 .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
 
             Venue venue = VenueParser.ConvertDTOToVenue(dto);
 
             if (existingSkeleton != null)
             {
-                Console.WriteLine($"[PackageLoader] Replacing skeleton venue {dto.Id}");
-
-                _gameWorld.WorldState.venues.Remove(existingSkeleton);
+                _gameWorld.Venues.Remove(existingSkeleton);
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
                 if (skeletonEntry != null)
                 {
@@ -643,7 +633,7 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.WorldState.venues.Add(venue);
+            _gameWorld.Venues.Add(venue);
         }
     }
 
@@ -668,7 +658,7 @@ public class PackageLoader
                 _gameWorld.Locations.RemoveSpot(dto.Id);
             }
 
-            Location location = LocationParser.ConvertDTOToLocation(dto);
+            Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
 
             // Add to primary Locations dictionary
             _gameWorld.Locations.AddOrUpdateSpot(location.Id, location);
@@ -683,14 +673,14 @@ public class PackageLoader
         {
             // Check if NPC references a Venue that doesn't exist
             if (!string.IsNullOrEmpty(dto.VenueId) &&
-                !_gameWorld.WorldState.venues.Any(l => l.Id == dto.VenueId))
+                !_gameWorld.Venues.Any(l => l.Id == dto.VenueId))
             {
                 // Create skeleton venue
                 Venue skeletonVenue = SkeletonGenerator.GenerateSkeletonVenue(
                     dto.VenueId,
                     $"npc_{dto.Id}_reference");
 
-                _gameWorld.WorldState.venues.Add(skeletonVenue);
+                _gameWorld.Venues.Add(skeletonVenue);
                 _gameWorld.SkeletonRegistry.AddSkeleton(dto.VenueId, "Venue");
 
                 // Also create a skeleton location for the location
@@ -709,9 +699,12 @@ public class PackageLoader
                 _gameWorld.GetLocation(dto.LocationId) == null)
             {
                 // Create skeleton location
+                if (string.IsNullOrEmpty(dto.VenueId))
+                    throw new InvalidDataException($"NPC '{dto.Id}' references LocationId '{dto.LocationId}' but VenueId is missing - cannot create skeleton");
+
                 Location skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
                     dto.LocationId,
-                    dto.VenueId ?? "unknown_location",
+                    dto.VenueId,
                     $"npc_{dto.Id}_spot_reference");
 
                 _gameWorld.Locations.AddOrUpdateSpot(dto.LocationId, skeletonSpot);
@@ -721,22 +714,11 @@ public class PackageLoader
             // Check if this NPC was previously a skeleton, if so replace it and preserve persistent decks
             NPC? existingSkeleton = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
             if (existingSkeleton != null)
-            {
-                Console.WriteLine($"[PackageLoader] Replacing skeleton NPC '{existingSkeleton.Name}' (ID: {existingSkeleton.ID}) with real content");
+            {// Preserve all cards from the persistent decks
+                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck.ToList();
 
-                // Preserve all cards from the persistent decks
-                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck?.ToList() ?? new List<ExchangeCard>();
-                List<GoalCard> preservedRequests = existingSkeleton.Requests?.ToList() ?? new List<GoalCard>();
-
-                int totalPreservedCards = preservedExchangeCards.Count;
-
-                Console.WriteLine($"[PackageLoader] Preserving {totalPreservedCards} cards from persistent decks:");
-                Console.WriteLine($"  - Exchange: {preservedExchangeCards.Count} cards");
-                Console.WriteLine($"  - Requests: {preservedRequests.Count} request objects");
-
-                // Remove skeleton from game world
+                int totalPreservedCards = preservedExchangeCards.Count;// Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
-                _gameWorld.WorldState.NPCs.Remove(existingSkeleton);
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
                 if (skeletonEntry != null)
                 {
@@ -750,27 +732,14 @@ public class PackageLoader
                 if (preservedExchangeCards.Any())
                 {
                     npc.ExchangeDeck.AddRange(preservedExchangeCards);
-                }
-
-                if (preservedRequests.Any())
-                {
-                    // Merge preserved requests with new NPC's requests
-                    // Note: This assumes no ID conflicts between preserved and new requests
-                    npc.Requests.AddRange(preservedRequests);
-                }
-
-                Console.WriteLine($"[PackageLoader] Successfully replaced skeleton with real NPC and preserved all persistent deck cards");
-
-                // Add the new NPC to game world
+                }// Add the new NPC to game world
                 _gameWorld.NPCs.Add(npc);
-                _gameWorld.WorldState.NPCs.Add(npc);
             }
             else
             {
                 // No skeleton to replace, just create new NPC normally
                 NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
                 _gameWorld.NPCs.Add(npc);
-                _gameWorld.WorldState.NPCs.Add(npc);
             }
         }
     }
@@ -779,12 +748,8 @@ public class PackageLoader
     {
         if (routeDtos == null)
         {
-            Console.WriteLine("[PackageLoader] No routes to load - routeDtos is null");
             return;
         }
-
-        Console.WriteLine($"[PackageLoader] Loading {routeDtos.Count} routes...");
-        Console.WriteLine($"[PackageLoader] Currently loaded Locations: {string.Join(", ", _gameWorld.Locations.Select(s => s.LocationId))}");
 
         // Check for missing Locations and handle based on allowSkeletons
         foreach (RouteDTO dto in routeDtos)
@@ -795,12 +760,13 @@ public class PackageLoader
             {
                 if (allowSkeletons)
                 {
-                    Console.WriteLine($"[PackageLoader] Route '{dto.Id}' references missing origin location '{dto.OriginSpotId}' - creating skeleton");
+                    if (string.IsNullOrEmpty(dto.OriginVenueId))
+                        throw new InvalidDataException($"Route '{dto.Id}' missing OriginVenueId - cannot create skeleton origin location");
 
                     // Create skeleton location with crossroads property (required for routes)
                     originSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.OriginSpotId,
-                        dto.OriginVenueId ?? "unknown_location",
+                        dto.OriginVenueId,
                         $"route_{dto.Id}_origin"
                     );
 
@@ -812,8 +778,6 @@ public class PackageLoader
 
                     _gameWorld.Locations.AddOrUpdateSpot(dto.OriginSpotId, originSpot);
                     _gameWorld.SkeletonRegistry.AddSkeleton(dto.OriginSpotId, "Location");
-
-                    Console.WriteLine($"[PackageLoader] Created skeleton location '{dto.OriginSpotId}' for route '{dto.Id}'");
                 }
                 else
                 {
@@ -827,12 +791,13 @@ public class PackageLoader
             {
                 if (allowSkeletons)
                 {
-                    Console.WriteLine($"[PackageLoader] Route '{dto.Id}' references missing destination location '{dto.DestinationSpotId}' - creating skeleton");
+                    if (string.IsNullOrEmpty(dto.DestinationVenueId))
+                        throw new InvalidDataException($"Route '{dto.Id}' missing DestinationVenueId - cannot create skeleton destination location");
 
                     // Create skeleton location with crossroads property (required for routes)
                     destSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.DestinationSpotId,
-                        dto.DestinationVenueId ?? "unknown_location",
+                        dto.DestinationVenueId,
                         $"route_{dto.Id}_destination"
                     );
 
@@ -844,8 +809,6 @@ public class PackageLoader
 
                     _gameWorld.Locations.AddOrUpdateSpot(dto.DestinationSpotId, destSpot);
                     _gameWorld.SkeletonRegistry.AddSkeleton(dto.DestinationSpotId, "Location");
-
-                    Console.WriteLine($"[PackageLoader] Created skeleton location '{dto.DestinationSpotId}' for route '{dto.Id}'");
                 }
                 else
                 {
@@ -857,64 +820,46 @@ public class PackageLoader
         // BIDIRECTIONAL ROUTE PRINCIPLE: Routes are defined once in JSON but automatically
         // generate both directions. This eliminates redundancy and ensures consistency.
         // The return journey has segments in reversed order (A->B->C becomes C->B->A).
+        // Routes can opt-out via CreateBidirectional=false for internal venue navigation.
         foreach (RouteDTO dto in routeDtos)
         {
             // Create the forward route from JSON
             RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
-            _gameWorld.WorldState.Routes.Add(forwardRoute);
-            Console.WriteLine($"[PackageLoader] Added route {forwardRoute.Id}: {forwardRoute.OriginLocationSpot} -> {forwardRoute.DestinationLocationSpot}");
-
-            // Automatically generate the reverse route
-            RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
-            _gameWorld.WorldState.Routes.Add(reverseRoute);
-            Console.WriteLine($"[PackageLoader] Generated reverse route {reverseRoute.Id}: {reverseRoute.OriginLocationSpot} -> {reverseRoute.DestinationLocationSpot}");
+            _gameWorld.Routes.Add(forwardRoute);// Automatically generate the reverse route if CreateBidirectional is true
+            if (dto.CreateBidirectional)
+            {
+                RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
+                _gameWorld.Routes.Add(reverseRoute);
+            }
+            else
+            { }
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading {routeDtos.Count} routes. Total routes with bidirectional: {_gameWorld.WorldState.Routes.Count}");
     }
 
     private string GetVenueIdFromSpotId(string LocationId)
     {
-        Location? location = _gameWorld.GetLocation(LocationId);
+        Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
-        {
-            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: location '{LocationId}' not found");
-            Console.WriteLine($"[PackageLoader] Available Locations: {string.Join(", ", _gameWorld.Locations.Select(s => s.LocationId))}");
-        }
-        else if (string.IsNullOrEmpty(location.VenueId))
-        {
-            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: location '{LocationId}' found but has no VenueId set");
-        }
-        else
-        {
-            Console.WriteLine($"[PackageLoader] GetVenueIdFromSpotId: Found location '{LocationId}' with VenueId '{location.VenueId}'");
-        }
-        return location?.VenueId;
+            throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
+        if (string.IsNullOrEmpty(location.VenueId))
+            throw new InvalidDataException($"Location '{LocationId}' has no VenueId assigned");
+        return location.VenueId;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
     {
-        if (dialogueTemplates == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading dialogue templates...");
-        _gameWorld.DialogueTemplates = dialogueTemplates;
-        Console.WriteLine($"[PackageLoader] Dialogue templates loaded successfully");
+        if (dialogueTemplates == null) return; _gameWorld.DialogueTemplates = dialogueTemplates;
     }
 
     private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
     {
         if (pathCardDtos == null) return new List<PathCardEntry>();
 
-        Console.WriteLine($"[PackageLoader] Loading {pathCardDtos.Count} path cards...");
-
         List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in pathCardDtos)
         {
             pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
-            Console.WriteLine($"[PackageLoader] Loaded path card '{dto.Id}': {dto.Name}");
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading path cards. Total: {pathCardLookup.Count}");
         return pathCardLookup;
     }
 
@@ -922,24 +867,17 @@ public class PackageLoader
     {
         if (eventCardDtos == null) return new List<PathCardEntry>();
 
-        Console.WriteLine($"[PackageLoader] Loading {eventCardDtos.Count} event cards...");
-
         List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
         foreach (PathCardDTO dto in eventCardDtos)
         {
             eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
-            Console.WriteLine($"[PackageLoader] Loaded event card '{dto.Id}': {dto.Name}");
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading event cards. Total: {eventCardLookup.Count}");
         return eventCardLookup;
     }
 
     private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {travelEventDtos.Count} travel events...");
 
         foreach (TravelEventDTO dto in travelEventDtos)
         {
@@ -957,21 +895,24 @@ public class PackageLoader
             }
 
             _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });
-            Console.WriteLine($"[PackageLoader] Loaded travel event '{dto.Id}': {dto.Name} with {dto.EventCards.Count} event cards");
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading travel events. Total: {_gameWorld.AllTravelEvents.Count}");
     }
-
 
     private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
 
-        Console.WriteLine($"[PackageLoader] Loading {collectionDtos.Count} collections and embedding cards directly...");
-
         foreach (PathCardCollectionDTO dto in collectionDtos)
         {
+            // VALIDATION: Fail fast if required 'id' field is missing (common error: using "collectionId" instead of "id")
+            if (string.IsNullOrEmpty(dto.Id))
+            {
+                throw new InvalidOperationException(
+                    "PathCardCollection missing required 'id' field. " +
+                    "Check JSON - field name must be 'id' (lowercase), not 'collectionId'. " +
+                    $"Collection data: PathCards={dto.PathCards?.Count ?? 0}, Events={dto.Events?.Count ?? 0}");
+            }
+
             // Embed actual path cards if this collection has path card IDs (for JSON loaded collections)
             if (dto.PathCards != null && dto.PathCards.Count == 0 && dto.PathCardIds != null)
             {
@@ -993,171 +934,79 @@ public class PackageLoader
             {
                 // This is an event collection - contains child events for random selection
                 _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
-                Console.WriteLine($"[PackageLoader] Loaded event collection '{dto.Id}': {dto.Name} with {dto.Events.Count} events");
             }
             else if (isPathCollection)
             {
                 // This is a path collection - contains actual path cards for FixedPath segments
                 _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
-                Console.WriteLine($"[PackageLoader] Loaded path collection '{dto.Id}': {dto.Name} with {dto.PathCards.Count} path cards");
             }
             else
             {
                 // Fallback: treat as path collection if no clear indicators
                 _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
-                Console.WriteLine($"[PackageLoader] Loaded collection '{dto.Id}' as path collection (default): {dto.Name}");
             }
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading collections. Path collections: {_gameWorld.AllPathCollections.Count}, Event collections: {_gameWorld.AllEventCollections.Count}");
     }
-
-
-
-    /// <summary>
-    /// Initialize one-time requests for NPCs from NpcGoalCards and deck compositions
-    /// </summary>
-    private void InitializeNPCRequests(List<NPCRequestDTO> npcRequestDtos, List<GoalCardDTO> npcGoalCardDtos, DeckCompositionDTO deckCompositions)
-    {
-        Console.WriteLine($"[PackageLoader] Initializing NPC one-time requests... npcRequestDtos={npcRequestDtos?.Count ?? 0}, npcGoalCardDtos={npcGoalCardDtos?.Count ?? 0}");
-        List<string> validationErrors = new List<string>();
-
-        // First load NPCRequest bundles from npcRequests section
-        if (npcRequestDtos != null && npcRequestDtos.Count > 0)
-        {
-            Console.WriteLine($"[PackageLoader] Processing {npcRequestDtos.Count} NPC requests from npcRequests section...");
-            foreach (NPCRequestDTO requestDto in npcRequestDtos)
-            {
-                try
-                {
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requestDto.NpcId);
-                    if (npc == null)
-                    {
-                        // Check if this is a skeleton NPC
-                        if (!_gameWorld.SkeletonRegistry.Any(s => s.SkeletonKey == requestDto.NpcId))
-                        {
-                            throw PackageLoadException.CreateMissingDependency(
-                                _currentPackageId,
-                                "NPCRequest",
-                                requestDto.Id,
-                                $"NPC '{requestDto.NpcId}'",
-                                $"Ensure NPC '{requestDto.NpcId}' is defined in the npcs section of this or a dependency package");
-                        }
-                        continue; // Skip skeleton NPCs for now
-                    }
-
-                    GoalCard request = new GoalCard
-                    {
-                        Id = requestDto.Id,
-                        Title = requestDto.Name,
-                        Description = requestDto.Description,
-                        NpcRequestText = requestDto.NpcRequestText,
-                        Status = GoalStatus.Available
-                    };
-
-                    // Add request to NPC (cards are created from goals during NPC parsing)
-                    npc.Requests.Add(request);
-                    Console.WriteLine($"[PackageLoader] Added request '{requestDto.Id}' to NPC '{npc.Name}' with {request.Goals.Count} goals");
-                }
-                catch (PackageLoadException)
-                {
-                    throw; // Re-throw PackageLoadException as-is
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"[PackageLoader] Failed to load request '{requestDto.Id}': {ex.Message}", ex);
-                }
-            }
-
-            // If we collected any validation errors, throw them all at once
-            if (validationErrors.Count > 0)
-            {
-                throw PackageLoadException.MultipleValidationErrors(_currentPackageId, validationErrors);
-            }
-
-            Console.WriteLine($"[PackageLoader] Loaded {npcRequestDtos.Count} NPC request bundles");
-        }
-    }
-
 
     /// <summary>
     /// Initialize exchange decks for Mercantile NPCs only
     /// </summary>
     private void InitializeNPCExchangeDecks(DeckCompositionDTO deckCompositions)
     {
-        Console.WriteLine("[PackageLoader] Initializing NPC exchange decks...");
-
         foreach (NPC npc in _gameWorld.NPCs)
         {
-            try
+            List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
+
+            // Check deck compositions for this NPC's exchange deck
+            NPCDeckDefinitionDTO deckDef = null;
+            if (deckCompositions != null)
             {
-                List<ExchangeCard> npcExchangeCards = new List<ExchangeCard>();
-
-                // Check deck compositions for this NPC's exchange deck
-                NPCDeckDefinitionDTO deckDef = null;
-                if (deckCompositions != null)
+                // Check for NPC-specific deck first
+                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
                 {
-                    // Check for NPC-specific deck first
-                    if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
-                    {
-                        deckDef = deckCompositions.NpcDecks[npc.ID];
-                        Console.WriteLine($"[PackageLoader] Using custom exchange deck for {npc.Name}");
-                    }
-                    // No default deck anymore - NPCs only have specific decks
+                    deckDef = deckCompositions.NpcDecks[npc.ID];
                 }
+                // No default deck anymore - NPCs only have specific decks
+            }
 
-                // Build exchange deck from composition
-                if (deckDef != null && deckDef.ExchangeDeck != null)
+            // Build exchange deck from composition
+            if (deckDef != null && deckDef.ExchangeDeck != null)
+            {
+                foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
                 {
-                    foreach (KeyValuePair<string, int> kvp in deckDef.ExchangeDeck)
-                    {
-                        string cardId = kvp.Key;
-                        int count = kvp.Value;
+                    string cardId = kvp.Key;
+                    int count = kvp.Value;
 
-                        // Find the exchange card from the parsed exchange cards
-                        ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
-                        if (exchangeEntry != null)
+                    // Find the exchange card from the parsed exchange cards
+                    ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
+                    if (exchangeEntry != null)
+                    {
+                        ExchangeCard exchangeCard = exchangeEntry.Card;
+                        // Add the specified number of copies to the deck
+                        for (int i = 0; i < count; i++)
                         {
-                            ExchangeCard exchangeCard = exchangeEntry.Card;
-                            // Add the specified number of copies to the deck
-                            for (int i = 0; i < count; i++)
-                            {
-                                // Exchange cards are templates, no need to clone
-                                npcExchangeCards.Add(exchangeCard);
-                                Console.WriteLine($"[PackageLoader] Added exchange card {cardId} to {npc.Name}'s deck");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[PackageLoader] WARNING: Exchange card {cardId} not found in parsed exchanges for {npc.Name}");
+                            // Exchange cards are templates, no need to clone
+                            npcExchangeCards.Add(exchangeCard);
                         }
                     }
+                    else
+                    { }
                 }
-                else if (npc.PersonalityType == PersonalityType.MERCANTILE)
-                {
-                    // Create default exchanges for mercantile NPCs without specific exchanges
-                    npcExchangeCards = ExchangeParser.CreateDefaultExchangesForNPC(npc);
-                    if (npcExchangeCards.Count > 0)
-                    {
-                        Console.WriteLine($"[PackageLoader] Created {npcExchangeCards.Count} default exchange cards for {npc.Name}");
-                    }
-                }
-
-                // Initialize exchange deck
-                npc.InitializeExchangeDeck(npcExchangeCards);
-
+            }
+            else if (npc.PersonalityType == PersonalityType.MERCANTILE)
+            {
+                // Create default exchanges for mercantile NPCs without specific exchanges
+                npcExchangeCards = ExchangeParser.CreateDefaultExchangesForNPC(npc);
                 if (npcExchangeCards.Count > 0)
-                {
-                    Console.WriteLine($"[PackageLoader] Initialized exchange deck for {npc.Name} with {npcExchangeCards.Count} cards");
-                }
+                { }
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"[PackageLoader] Failed to initialize exchange deck for NPC {npc.Name}: {ex.Message}", ex);
-            }
-        }
 
-        Console.WriteLine("[PackageLoader] NPC exchange deck initialization completed");
+            // Initialize exchange deck
+            npc.InitializeExchangeDeck(npcExchangeCards);
+
+            if (npcExchangeCards.Count > 0)
+            { }
+        }
     }
 
     private void LoadItems(List<ItemDTO> itemDtos, bool allowSkeletons)
@@ -1167,7 +1016,7 @@ public class PackageLoader
         foreach (ItemDTO dto in itemDtos)
         {
             Item item = ItemParser.ConvertDTOToItem(dto);
-            _gameWorld.WorldState.Items.Add(item);
+            _gameWorld.Items.Add(item);
         }
     }
 
@@ -1178,41 +1027,60 @@ public class PackageLoader
         foreach (StandingObligationDTO dto in obligationDtos)
         {
             StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
-            _gameWorld.WorldState.StandingObligationTemplates.Add(obligation);
+            _gameWorld.StandingObligationTemplates.Add(obligation);
         }
     }
 
-    private void LoadLocationActions(List<VenueActionDTO> locationActionDtos, bool allowSkeletons)
+    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
     {
         if (locationActionDtos == null) return;
 
-        foreach (VenueActionDTO dto in locationActionDtos)
+        foreach (LocationActionDTO dto in locationActionDtos)
         {
-            LocationAction locationAction = ConvertLocationActionDTOToModel(dto);
+            LocationAction locationAction = LocationActionParser.ParseLocationAction(dto);
             _gameWorld.LocationActions.Add(locationAction);
+        }
+    }
+
+    private void LoadPlayerActions(List<PlayerActionDTO> playerActionDtos, bool allowSkeletons)
+    {
+        if (playerActionDtos == null) return;
+
+        foreach (PlayerActionDTO dto in playerActionDtos)
+        {
+            PlayerAction playerAction = PlayerActionParser.ParsePlayerAction(dto);
+            _gameWorld.PlayerActions.Add(playerAction);
         }
     }
 
     // Conversion methods that don't have dedicated parsers yet
 
-
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("Route missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.OriginSpotId))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'OriginSpotId'");
+        if (string.IsNullOrEmpty(dto.DestinationSpotId))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'DestinationSpotId'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Description'");
+
         RouteOption route = new RouteOption
         {
             Id = dto.Id,
-            Name = dto.Name ?? "",
-            OriginLocationSpot = dto.OriginSpotId ?? "",
-            DestinationLocationSpot = dto.DestinationSpotId ?? "",
+            Name = dto.Name,
+            OriginLocationSpot = dto.OriginSpotId,
+            DestinationLocationSpot = dto.DestinationSpotId,
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
             TravelTimeSegments = dto.TravelTimeSegments,
-            IsDiscovered = dto.IsDiscovered,
-            Description = dto.Description ?? "",
+            Description = dto.Description,
             MaxItemCapacity = dto.MaxItemCapacity > 0 ? dto.MaxItemCapacity : 3
         };
-
 
         // Parse terrain categories
         if (dto.TerrainCategories != null)
@@ -1244,7 +1112,8 @@ public class PackageLoader
                 RouteSegment segment = new RouteSegment
                 {
                     SegmentNumber = segmentDto.SegmentNumber,
-                    Type = segmentType
+                    Type = segmentType,
+                    NarrativeDescription = segmentDto.NarrativeDescription
                 };
 
                 // Set collection properties based on segment type using normalized properties
@@ -1253,18 +1122,21 @@ public class PackageLoader
                     // FixedPath segments use pathCollectionId from JSON
                     segment.PathCollectionId = segmentDto.PathCollectionId;
                     if (!string.IsNullOrEmpty(segment.PathCollectionId))
-                    {
-                        Console.WriteLine($"[PackageLoader] FixedPath segment {segmentDto.SegmentNumber} uses path collection '{segment.PathCollectionId}'");
-                    }
+                    { }
                 }
                 else if (segmentType == SegmentType.Event)
                 {
                     // Event segments use eventCollectionId from JSON
                     segment.EventCollectionId = segmentDto.EventCollectionId;
                     if (!string.IsNullOrEmpty(segment.EventCollectionId))
-                    {
-                        Console.WriteLine($"[PackageLoader] Event segment {segmentDto.SegmentNumber} uses event collection '{segment.EventCollectionId}'");
-                    }
+                    { }
+                }
+                else if (segmentType == SegmentType.Encounter)
+                {
+                    // Encounter segments have mandatory obstacle that MUST be resolved
+                    segment.MandatoryObstacleId = segmentDto.MandatoryObstacleId;
+                    if (!string.IsNullOrEmpty(segment.MandatoryObstacleId))
+                    { }
                 }
 
                 route.Segments.Add(segment);
@@ -1277,105 +1149,33 @@ public class PackageLoader
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
         }
 
+        // Parse obstacles on this route (bandits, flooding, difficult terrain)
+        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        {
+            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
+            {
+                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id, _gameWorld);
+
+                // Duplicate ID protection - prevent data corruption
+                if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
+                {
+                    _gameWorld.Obstacles.Add(obstacle);
+                    route.ObstacleIds.Add(obstacle.Id);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate obstacle ID '{obstacle.Id}' found in route '{route.Name}'. " +
+                        $"Obstacle IDs must be globally unique across all packages.");
+                }
+            }
+        }
+
         return route;
     }
 
-    private ObservationCard ConvertObservationDTOToCard(ObservationDTO dto)
-    {
-        ObservationCard observationCard = new()
-        {
-            Id = dto.Id,
-            Title = dto.DisplayText ?? "",
-            InitiativeCost = dto.InitiativeCost,
-            TokenType = ConnectionType.Trust,
-            Persistence = PersistenceType.Statement,
-            SuccessType = SuccessEffectType.None,
-            DialogueText = "",
-        };
-
-        return observationCard;
-    }
-
-    private Observation ConvertDTOToObservation(ObservationDTO dto)
-    {
-        // Parse observation type from category
-        ObservationType observationType = ObservationType.Normal;
-        if (dto.Category != null && Enum.TryParse<ObservationType>(dto.Category, out ObservationType parsedType))
-        {
-            observationType = parsedType;
-        }
-
-        return new Observation
-        {
-            Id = dto.Id ?? "",
-            Text = dto.DisplayText ?? dto.Description ?? dto.Name ?? "",
-            Type = observationType,
-            AttentionCost = 0, // From DTO or default to 0
-            RelevantNPCs = new string[0], // Empty by default - could be populated from properties
-            CreatesState = ConnectionState.NEUTRAL, // No state creation from DTO
-            CardTemplate = dto.Id ?? "", // Use ID as template
-            Description = dto.Description ?? dto.DisplayText ?? "",
-            ProvidesInfo = ObservationInfoType.Location, // Could be derived from properties
-            CreatesUrgency = false, // Default false
-            Automatic = false, // Default false
-            LocationId = dto.LocationId // Will be set by location-specific loading if needed
-        };
-    }
-
-    private LocationAction ConvertLocationActionDTOToModel(VenueActionDTO dto)
-    {
-        LocationAction action = new LocationAction
-        {
-            Id = dto.Id ?? "",
-            Name = dto.Name ?? "",
-            Description = dto.Description ?? "",
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
-            Reward = dto.Reward ?? new Dictionary<string, int>(),
-            TimeRequired = dto.TimeRequired,
-            Availability = dto.Availability ?? new List<string>(),
-            Priority = dto.Priority,
-            ActionType = dto.ActionType ?? "",
-            InvestigationId = dto.InvestigationId
-        };
-
-        // Parse required properties
-        if (dto.RequiredProperties != null)
-        {
-            foreach (string prop in dto.RequiredProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.RequiredProperties.Add(propertyType);
-                }
-            }
-        }
-
-        // Parse optional properties
-        if (dto.OptionalProperties != null)
-        {
-            foreach (string prop in dto.OptionalProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.OptionalProperties.Add(propertyType);
-                }
-            }
-        }
-
-        // Parse excluded properties
-        if (dto.ExcludedProperties != null)
-        {
-            foreach (string prop in dto.ExcludedProperties)
-            {
-                if (Enum.TryParse<LocationPropertyType>(prop, true, out LocationPropertyType propertyType))
-                {
-                    action.ExcludedProperties.Add(propertyType);
-                }
-            }
-        }
-
-        return action;
-    }
+    // ObservationCard system eliminated - ConvertObservationDTOToCard removed
+    // LocationAction/PlayerAction conversion - replaced by dedicated parsers (LocationActionParser, PlayerActionParser)
 
     private void LoadExchanges(List<ExchangeDTO> exchangeDtos, bool allowSkeletons)
     {
@@ -1385,7 +1185,6 @@ public class PackageLoader
         foreach (ExchangeDTO dto in exchangeDtos)
         {
             _gameWorld.ExchangeDefinitions.Add(dto);
-            Console.WriteLine($"[PackageLoader] Loaded exchange definition: {dto.Id} ({dto.GiveAmount} {dto.GiveCurrency} for {dto.ReceiveAmount} {dto.ReceiveCurrency})");
         }
 
         // Parse exchanges into ExchangeCard objects and store them
@@ -1395,7 +1194,6 @@ public class PackageLoader
         {
             ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId);
             _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
-            Console.WriteLine($"[PackageLoader] Created ExchangeCard: {exchangeCard.Id} - {exchangeCard.GetExchangeRatio()}");
         }
     }
 
@@ -1403,17 +1201,13 @@ public class PackageLoader
     /// Initialize the travel discovery system state after all content is loaded
     /// </summary>
     private void InitializeTravelDiscoverySystem()
-    {
-        Console.WriteLine("[PackageLoader] Initializing travel discovery system...");
-
-        // Initialize PathCardDiscoveries from cards embedded in collections
+    {// Initialize PathCardDiscoveries from cards embedded in collections
         // First from path collections
         foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.GetAllCollections())
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
                 _gameWorld.PathCardDiscoveries.SetDiscovered(pathCard.Id, pathCard.StartsRevealed);
-                Console.WriteLine($"[PackageLoader] Path card '{pathCard.Id}' discovery state: {(pathCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
 
@@ -1423,7 +1217,6 @@ public class PackageLoader
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
                 _gameWorld.PathCardDiscoveries.SetDiscovered(eventCard.Id, eventCard.StartsRevealed);
-                Console.WriteLine($"[PackageLoader] Event card '{eventCard.Id}' discovery state: {(eventCard.StartsRevealed ? "face-up" : "face-down")}");
             }
         }
 
@@ -1440,43 +1233,22 @@ public class PackageLoader
             _gameWorld.EventDeckPositions.SetPosition(deckKey, 0);
 
             int eventCount = entry.Collection.Events?.Count ?? 0;
-            Console.WriteLine($"[PackageLoader] Initialized event deck position for route '{routeId}' with {eventCount} events");
         }
-
-        // Initialize route discovery states
-        // Routes can start discovered based on IsDiscovered property
-        foreach (RouteOption route in _gameWorld.WorldState.Routes)
-        {
-            if (route.IsDiscovered)
-            {
-                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts discovered");
-            }
-            else
-            {
-                Console.WriteLine($"[PackageLoader] Route '{route.Id}' starts hidden, needs discovery");
-            }
-        }
-
-        Console.WriteLine($"[PackageLoader] Travel discovery system initialized: {_gameWorld.PathCardDiscoveries.Count} path cards, {_gameWorld.EventDeckPositions.Count} event decks");
     }
 
     /// <summary>
-    /// Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
-    /// Called AFTER all packages are loaded to ensure all investigations exist
+    /// Initialize obligation journal with all obligations as Potential (awaiting discovery triggers)
+    /// Called AFTER all packages are loaded to ensure all obligations exist
     /// </summary>
-    private void InitializeInvestigationJournal()
+    private void InitializeObligationJournal()
     {
-        Console.WriteLine("[PackageLoader] Initializing investigation journal...");
+        ObligationJournal obligationJournal = _gameWorld.ObligationJournal;
 
-        InvestigationJournal investigationJournal = _gameWorld.InvestigationJournal;
-
-        investigationJournal.PotentialInvestigationIds.Clear();
-        foreach (Investigation investigation in _gameWorld.Investigations)
+        obligationJournal.PotentialObligationIds.Clear();
+        foreach (Obligation obligation in _gameWorld.Obligations)
         {
-            investigationJournal.PotentialInvestigationIds.Add(investigation.Id);
-            Console.WriteLine($"[PackageLoader] Added investigation to journal: {investigation.Id} ({investigation.Name})");
+            obligationJournal.PotentialObligationIds.Add(obligation.Id);
         }
-        Console.WriteLine($"[PackageLoader] Investigation journal initialized with {investigationJournal.PotentialInvestigationIds.Count} potential investigations");
     }
 
     /// <summary>
@@ -1515,10 +1287,9 @@ public class PackageLoader
             BaseStaminaCost = forwardRoute.BaseStaminaCost,
             TravelTimeSegments = forwardRoute.TravelTimeSegments,
             DepartureTime = forwardRoute.DepartureTime,
-            IsDiscovered = forwardRoute.IsDiscovered,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
             Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
-            AccessRequirement = forwardRoute.AccessRequirement,
+            // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
             RouteType = forwardRoute.RouteType,
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
             StartingStamina = forwardRoute.StartingStamina
@@ -1533,12 +1304,6 @@ public class PackageLoader
             reverseRoute.WeatherModifications[kvp.Key] = kvp.Value;
         }
 
-        // Copy unlock condition if present
-        if (forwardRoute.UnlockCondition != null)
-        {
-            reverseRoute.UnlockCondition = forwardRoute.UnlockCondition;
-        }
-
         // CRITICAL: Reverse the segments order for the return journey
         // This ensures the path is traversed in reverse (C->B->A instead of A->B->C)
         List<RouteSegment> reversedSegments = forwardRoute.Segments.OrderByDescending(s => s.SegmentNumber).ToList();
@@ -1551,7 +1316,8 @@ public class PackageLoader
                 Type = originalSegment.Type,
                 // Keep the same collections - they represent the same physical locations
                 PathCollectionId = originalSegment.PathCollectionId,
-                EventCollectionId = originalSegment.EventCollectionId
+                EventCollectionId = originalSegment.EventCollectionId,
+                MandatoryObstacleId = originalSegment.MandatoryObstacleId
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
@@ -1573,23 +1339,20 @@ public class PackageLoader
     {
         // Helper to get friendly Venue name from ID for route naming
         if (string.IsNullOrEmpty(venueId))
-        {
-            return "Unknown Location";
-        }
+            throw new InvalidDataException("GetLocationNameFromId called with null/empty venueId");
 
-        Venue? venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
-        return venue?.Name ?? venueId.Replace("_", " ").Replace("-", " ");
+        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null)
+            return venueId.Replace("_", " ").Replace("-", " "); // Fallback to formatted ID if venue not found
+        return venue.Name;
     }
 
     private void ValidateCrossroadsConfiguration()
     {
-        Console.WriteLine("[PackageLoader] Starting crossroads configuration validation...");
-
         // Group Locations by Venue using tuples
         List<(string VenueId, List<Location> Locations)> spotsByLocation = new List<(string VenueId, List<Location> Locations)>();
-        foreach (LocationEntry entry in _gameWorld.Locations)
+        foreach (Location location in _gameWorld.Locations)
         {
-            Location location = entry.location;
             int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.VenueId);
             if (groupIndex == -1)
             {
@@ -1604,7 +1367,7 @@ public class PackageLoader
         }
 
         // Validate each venue has exactly one crossroads location
-        foreach (Venue venue in _gameWorld.WorldState.venues)
+        foreach (Venue venue in _gameWorld.Venues)
         {
             (string VenueId, List<Location> Locations) locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
             if (locationGroup.VenueId == null)
@@ -1626,13 +1389,11 @@ public class PackageLoader
                 string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Id}' ({s.Name})"));
                 throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has {crossroadsSpots.Count} Locations with Crossroads property: {spotsInfo}. Only one crossroads location is allowed per location.");
             }
-
-            Console.WriteLine($"[PackageLoader] Venue '{venue.Id}' has valid crossroads location: '{crossroadsSpots[0].Id}'");
         }
 
         // Validate all route Locations have crossroads property
         List<string> routeSpotIds = new List<string>();
-        foreach (RouteOption route in _gameWorld.WorldState.Routes)
+        foreach (RouteOption route in _gameWorld.Routes)
         {
             if (!routeSpotIds.Contains(route.OriginLocationSpot))
                 routeSpotIds.Add(route.OriginLocationSpot);
@@ -1644,10 +1405,7 @@ public class PackageLoader
         {
             Location location = _gameWorld.GetLocation(LocationId);
             if (location == null)
-            {
-                Console.WriteLine($"[PackageLoader] Route references missing location '{LocationId}' - creating skeleton");
-
-                // Create skeleton location with crossroads property (required for routes)
+            {// Create skeleton location with crossroads property (required for routes)
                 location = SkeletonGenerator.GenerateSkeletonSpot(
                     LocationId,
                     "unknown_location",
@@ -1662,38 +1420,25 @@ public class PackageLoader
 
                 _gameWorld.Locations.AddOrUpdateSpot(LocationId, location);
                 _gameWorld.SkeletonRegistry.AddSkeleton(LocationId, "Location");
-
-                Console.WriteLine($"[PackageLoader] Created skeleton location '{LocationId}' with Crossroads property for route validation");
             }
 
             if (!location.LocationProperties?.Contains(LocationPropertyType.Crossroads) == true)
             {
-                Console.WriteLine($"[PackageLoader] Route location '{LocationId}' ({location.Name}) missing Crossroads property - adding it");
                 location.LocationProperties.Add(LocationPropertyType.Crossroads);
             }
-
-            Console.WriteLine($"[PackageLoader] Route location '{LocationId}' has valid Crossroads property");
         }
-
-        Console.WriteLine($"[PackageLoader] Crossroads validation completed successfully. Validated {_gameWorld.WorldState.venues.Count} venues and {routeSpotIds.Count} route Locations.");
     }
-
 
     private void LoadTravelObstacles(List<TravelObstacleDTO> obstacleDtos, bool allowSkeletons)
     {
         if (obstacleDtos == null) return;
-
-        Console.WriteLine($"[PackageLoader] Loading {obstacleDtos.Count} travel obstacles...");
 
         TravelObstacleParser parser = new TravelObstacleParser();
         foreach (TravelObstacleDTO dto in obstacleDtos)
         {
             TravelObstacle obstacle = parser.ParseTravelObstacle(dto);
             _gameWorld.TravelObstacles.Add(obstacle);
-            Console.WriteLine($"[PackageLoader] Loaded travel obstacle '{obstacle.Id}': {obstacle.Name} ({obstacle.Type}) with {obstacle.Approaches.Count} approaches");
         }
-
-        Console.WriteLine($"[PackageLoader] Completed loading travel obstacles. Total: {_gameWorld.TravelObstacles.Count}");
     }
 
 }

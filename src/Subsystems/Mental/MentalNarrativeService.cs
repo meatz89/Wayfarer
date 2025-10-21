@@ -8,6 +8,9 @@ public class MentalNarrativeService
 
     public string GenerateActionNarrative(CardInstance card, MentalSession session)
     {
-        return card.MentalCardTemplate?.Description ?? "You investigate further.";
+        if (card.MentalCardTemplate == null)
+            throw new InvalidOperationException("CardInstance missing MentalCardTemplate");
+
+        return card.MentalCardTemplate.Description;
     }
 }

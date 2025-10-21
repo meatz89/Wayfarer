@@ -1,57 +1,65 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for Mental Card (parallel to ConversationCardDTO)
+/// DTO for Mental Card
+/// Field optionality contract documented in field-optionality-contract.md
 /// </summary>
 public class MentalCardDTO
 {
+    // ========== REQUIRED FIELDS (100% frequency in JSON) ==========
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-
-    public string Type { get; set; } = "Mental";
     public int Depth { get; set; }
     public string BoundStat { get; set; }
+    public string Method { get; set; }
 
-    // Mental-specific properties
-    public int AttentionCost { get; set; } = 0;
-    public string Method { get; set; } = "Standard";
-    public string Category { get; set; }  // MentalCategory: Analytical/Physical/Observational/Social/Synthesis
-    public string Discipline { get; set; } = "Research";  // InvestigationDiscipline: Research/Observation/Deduction/Interrogation/Infiltration
+    // CRITICAL FIX: JSON uses "clueType", not "Category"!
+    // MentalCategory: Physical/Testimonial/Deductive/Intuitive
+    public string ClueType { get; set; }
 
-    // Universal card properties (for catalog-based cost calculation)
-    // NOTE: RiskLevel removed - Mental investigations have mental strain, not physical risk
-    public string ExertionLevel { get; set; } = "Light";
-    public string MethodType { get; set; } = "Direct";
-
-    // Requirements/effects
+    // ========== REQUIRED NESTED OBJECTS (100% frequency) ==========
+    // Costs nested object (time, coins) - health/stamina always 0, vestigial
+    // Requirements nested object (stats dictionary)
+    // Effects nested object (progress, exposure)
     public MentalCardRequirementsDTO Requirements { get; set; }
     public MentalCardEffectsDTO Effects { get; set; }
-    public MentalCardDangerDTO Danger { get; set; }
+
+    // DEPRECATED FIELDS REMOVED (0% frequency in JSON):
+    // - Type → hardcoded "Mental", never in JSON, deleted
+    // - AttentionCost → calculated by catalog, deleted (use catalog, not JSON!)
+    // - Discipline → always defaulted to "Research", never in JSON, deleted
+    // - ExertionLevel → always defaulted to "Light", never in JSON, deleted
+    // - MethodType → always defaulted to "Direct", never in JSON, deleted
+    // - Danger → entire object never in JSON, deleted
 }
 
+/// <summary>
+/// Requirements nested object - only stats dictionary appears in JSON
+/// </summary>
 public class MentalCardRequirementsDTO
 {
-    public string EquipmentCategory { get; set; }  // Categorical equipment requirement (None/Climbing/Mechanical/etc.)
-    public List<string> Equipment { get; set; } = new List<string>();  // Legacy - use EquipmentCategory instead
-    public List<string> Knowledge { get; set; } = new List<string>();
-    public List<string> Discoveries { get; set; } = new List<string>();
+    // REQUIRED: Stats dictionary (always present, may be empty)
     public Dictionary<string, int> Stats { get; set; } = new Dictionary<string, int>();
-    public int MinStamina { get; set; } = 0;
-    public int MinHealth { get; set; } = 0;
+
+    // DEPRECATED FIELDS REMOVED (0% frequency):
+    // - EquipmentCategory → never in JSON, deleted
+    // - Discoveries → never in JSON, deleted
+    // - MinStamina → never in JSON (costs.stamina exists but always 0, vestigial), deleted
+    // - MinHealth → never in JSON (costs.health exists but always 0, vestigial), deleted
 }
 
+/// <summary>
+/// Effects nested object - progress and exposure appear in JSON
+/// </summary>
 public class MentalCardEffectsDTO
 {
+    // REQUIRED: Progress and Exposure (100% frequency)
     public int Progress { get; set; } = 0;
     public int Exposure { get; set; } = 0;
-    public List<string> Discoveries { get; set; } = new List<string>();
+
+    // DEPRECATED FIELDS REMOVED (0% frequency):
+    // - Discoveries → never in JSON, deleted
 }
 
-public class MentalCardDangerDTO
-{
-    public string Type { get; set; }
-    public int Probability { get; set; }
-    public string Severity { get; set; }
-    public DangerEffectDTO Effect { get; set; }
-}
+// DELETED: MentalCardDangerDTO - entire object never appears in JSON (0% frequency)

@@ -98,7 +98,7 @@ public class TravelManager
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Return embedded cards directly - no lookup needed
-        return collection.PathCards ?? new List<PathCardDTO>();
+        return collection.PathCards;
     }
 
     /// <summary>
@@ -151,9 +151,8 @@ public class TravelManager
         session.CurrentEventNarrative = travelEvent.NarrativeText;
 
         // Step 5: Return embedded event cards directly - no lookup needed
-        return travelEvent.EventCards ?? new List<PathCardDTO>();
+        return travelEvent.EventCards;
     }
-
 
     /// <summary>
     /// Get or draw an event for a segment (ensures deterministic behavior)
@@ -173,7 +172,6 @@ public class TravelManager
 
         return eventId;
     }
-
 
     /// <summary>
     /// Reveal a face-down path card without playing it
@@ -246,7 +244,22 @@ public class TravelManager
             return false;
         }
 
-        // Final affordability check (in case something changed)
+        // Clear reveal state
+        session.IsRevealingCard = false;
+        session.RevealedCardId = "";
+
+        // Apply selection effects (shared logic with discovered cards)
+        return ApplyPathCardSelectionEffects(card, pathCardId);
+    }
+
+    /// <summary>
+    /// Apply path card selection effects - shared logic for both revealed and already-discovered cards
+    /// </summary>
+    private bool ApplyPathCardSelectionEffects(PathCardDTO card, string pathCardId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+
+        // Affordability checks
         if (session.StaminaRemaining < card.StaminaCost)
         {
             return false;
@@ -280,10 +293,6 @@ public class TravelManager
             session.SegmentsElapsed += card.TravelTimeSegments;
             _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeSegments} segments", SystemMessageTypes.Info);
         }
-
-        // Clear reveal state
-        session.IsRevealingCard = false;
-        session.RevealedCardId = "";
 
         // Update travel state based on stamina
         UpdateTravelState(session);
@@ -340,17 +349,50 @@ public class TravelManager
         // Check if card is already discovered (face-up)
         bool isDiscovered = _gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId);
 
-        // For already discovered cards, set them as revealed immediately so player can confirm
+        // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
         {
-            // Set reveal state for already discovered card
-            session.IsRevealingCard = true;
-            session.RevealedCardId = pathCardId;
-            return true;
+            return ApplyPathCardSelectionEffects(card, pathCardId);
         }
 
         // For undiscovered cards, use the reveal mechanic
         return RevealPathCard(pathCardId);
+    }
+
+    /// <summary>
+    /// Resolve pending obstacle after player completes obstacle goals
+    /// Called by GameFacade after obstacle intensity reaches 0
+    /// </summary>
+    public bool ResolveObstacle(string obstacleId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+        if (session == null || session.PendingObstacleId != obstacleId)
+        {
+            return false;
+        }
+
+        Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
+        if (obstacle == null || !obstacle.IsCleared())
+        {
+            return false;
+        }
+
+        // Clear pending obstacle
+        session.PendingObstacleId = null;
+        _messageSystem.AddSystemMessage($"Obstacle resolved: {obstacle.Name}", SystemMessageTypes.Success);
+
+        // Now advance segment or complete route
+        RouteOption route = GetRoute(session.RouteId);
+        if (route != null && session.CurrentSegment == route.Segments.Count)
+        {
+            session.IsReadyToComplete = true;
+        }
+        else
+        {
+            AdvanceSegment(session);
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -418,7 +460,9 @@ public class TravelManager
     public string GetCurrentEventNarrative()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        return session?.CurrentEventNarrative;
+        if (session == null)
+            return null;
+        return session.CurrentEventNarrative;
     }
 
     // ========== HELPER METHODS ==========
@@ -469,7 +513,7 @@ public class TravelManager
         PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
 
         // Look in embedded path cards
-        return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
+        return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
     }
 
     /// <summary>
@@ -489,7 +533,7 @@ public class TravelManager
         TravelEventDTO travelEvent = eventEntry.TravelEvent;
 
         // Find the card in the embedded event cards
-        return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
+        return travelEvent.EventCards.FirstOrDefault(c => c.Id == cardId);
     }
 
     /// <summary>
@@ -497,8 +541,8 @@ public class TravelManager
     /// </summary>
     private RouteOption GetRoute(string routeId)
     {
-        // Find route in world state - routes are stored centrally in WorldState
-        return _gameWorld.WorldState.Routes.FirstOrDefault(r => r.Id == routeId);
+        // Find route in world state - routes are stored centrally in GameWorld
+        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>
@@ -639,6 +683,7 @@ public class TravelManager
 
     /// <summary>
     /// Complete the journey and update player location
+    /// Grants +1 ExplorationCube per completion (max 10 cubes total)
     /// </summary>
     private void CompleteJourney(TravelSession session)
     {
@@ -648,7 +693,7 @@ public class TravelManager
         Player player = _gameWorld.GetPlayer();
 
         // Move player to destination
-        Location targetSpot = _gameWorld.WorldState.locations
+        Location targetSpot = _gameWorld.Locations
             .FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
 
         if (targetSpot != null)
@@ -669,6 +714,15 @@ public class TravelManager
 
         // Increase route familiarity (max 5)
         player.IncreaseRouteFamiliarity(session.RouteId, 1);
+
+        // Grant ExplorationCubes for route mastery (max 10)
+        // Each completion grants +1 cube, revealing more hidden paths
+        int currentCubes = route.ExplorationCubes;
+        if (currentCubes < 10)
+        {
+            route.ExplorationCubes = currentCubes + 1;
+            _messageSystem.AddSystemMessage($"Route mastery increased: {route.ExplorationCubes}/10 exploration cubes", SystemMessageTypes.Success);
+        }
 
         // Apply travel time to game world
         _timeManager.AdvanceSegments(session.SegmentsElapsed);
@@ -728,5 +782,4 @@ public class TravelManager
         };
     }
 }
-
 

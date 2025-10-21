@@ -10,7 +10,7 @@ public enum TacticalSystemType
     Social,
 
     /// <summary>
-    /// Mental system (Investigation) - uses MentalSessionDeck, MentalCards, MentalEngagementTypes
+    /// Mental system (Obligation) - uses MentalSessionDeck, MentalCards, MentalEngagementTypes
     /// </summary>
     Mental,
 

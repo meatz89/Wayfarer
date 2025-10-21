@@ -162,11 +162,13 @@ public class PriceManager
     /// </summary>
     private float CalculateLocationModifier(string itemId, string venueId)
     {
-        Venue venue = _gameWorld.WorldState.venues?.FirstOrDefault(l => l.Id == venueId);
-        if (venue == null) return 1.0f;
+        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue not found: {venueId}");
 
         Item item = _itemRepository.GetItemById(itemId);
-        if (item == null) return 1.0f;
+        if (item == null)
+            throw new InvalidOperationException($"Item not found: {itemId}");
 
         float modifier = 1.0f;
 
@@ -296,7 +298,7 @@ public class PriceManager
     public List<PricingInfo> GetItemPriceComparison(string itemId)
     {
         List<PricingInfo> prices = new List<PricingInfo>();
-        List<Venue> locations = _gameWorld.WorldState.venues ?? new List<Venue>();
+        List<Venue> locations = _gameWorld.Venues;
 
         foreach (Venue venue in locations)
         {

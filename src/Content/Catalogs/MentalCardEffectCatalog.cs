@@ -16,7 +16,7 @@ public static class MentalCardEffectCatalog
     /// Called by parser at card load time.
     /// </summary>
     public static MentalBaseEffects GetBaseEffectsFromProperties(
-        InvestigationDiscipline discipline,
+        ObligationDiscipline discipline,
         MentalCategory category,
         Method method,
         PlayerStatType stat,
@@ -34,7 +34,7 @@ public static class MentalCardEffectCatalog
     /// Calculate base Progress (victory resource) from categorical properties.
     /// Progress scales with depth and modified by category.
     /// </summary>
-    private static int CalculateProgress(InvestigationDiscipline discipline, int depth, MentalCategory category)
+    private static int CalculateProgress(ObligationDiscipline discipline, int depth, MentalCategory category)
     {
         // Base progress by depth tier
         int baseValue = depth switch
@@ -51,7 +51,7 @@ public static class MentalCardEffectCatalog
             MentalCategory.Analytical => 1,      // High progress, structured thinking
             MentalCategory.Synthesis => 1,       // High progress, connecting clues
             MentalCategory.Observational => 0,   // Moderate progress, gathering info
-            MentalCategory.Physical => -1,       // Lower progress, hands-on investigation
+            MentalCategory.Physical => -1,       // Lower progress, hands-on obligation
             MentalCategory.Social => 0,          // Moderate progress, questioning
             _ => 0
         };
@@ -74,7 +74,7 @@ public static class MentalCardEffectCatalog
             _ => 1
         };
 
-        // Higher depth investigations have slightly more exposure (complexity)
+        // Higher depth obligations have slightly more exposure (complexity)
         if (depth >= 5) baseExposure += 1;
 
         return baseExposure;
@@ -133,7 +133,7 @@ public static class MentalCardEffectCatalog
     /// </summary>
     public static int GetCoinCost(MentalCategory category, int depth)
     {
-        // Some investigation cards might require resources (bribes, equipment)
+        // Some obligation cards might require resources (bribes, equipment)
         // For now, most mental cards don't cost coins
         return 0;
     }

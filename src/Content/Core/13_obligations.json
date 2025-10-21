@@ -1,0 +1,50 @@
+{
+  "packageId": "obligations",
+  "metadata": {
+    "name": "Tutorial Investigations",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Minimal investigation template for tutorial - preserves JSON structure reference",
+    "author": "Wayfarer Team",
+    "version": "2.0.0"
+  },
+  "content": {
+    "obligations": [
+      {
+        "id": "investigate_inn_opportunities",
+        "name": "Survey the Common Room",
+        "description": "Look around the inn's common room to understand who might offer work or information",
+        "obligationType": "SelfDiscovered",
+        "deadlineSegment": 0,
+        "colorCode": "#7a9eb8",
+        "intro": {
+          "triggerType": "Manual",
+          "actionText": "Survey the common room",
+          "locationId": "common_room",
+          "introNarrative": "The common room hums with evening activity. A few patrons sit at tables, some nursing drinks, others in quiet conversation. Elena moves efficiently between tables. A warehouse foreman sits in the corner, looking like he needs capable hands.",
+          "completionReward": {
+            "obstaclesSpawned": []
+          }
+        },
+        "personality": "SequentialSite",
+        "exposureThreshold": 0,
+        "timeLimit": 0,
+        "phases": [
+          {
+            "id": "observe_common_room",
+            "name": "Observe the common room",
+            "description": "Take in the scene and identify potential opportunities",
+            "outcomeNarrative": "You observe the room carefully. Elena seems approachable - she manages the evening crowd with practiced ease. The warehouse foreman looks like he values hard work over conversation. Both might have work to offer.",
+            "completionReward": {}
+          }
+        ],
+        "completionNarrative": "You've surveyed the room and identified two potential work opportunities: Elena's evening service (social work) and Thomas's warehouse loading (physical labor).",
+        "completionRewards": {
+          "coins": 0,
+          "experience": 5
+        },
+        "observationCardRewards": [],
+        "requiredGoals": []
+      }
+    ]
+  }
+}

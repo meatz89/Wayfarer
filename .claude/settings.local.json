@@ -82,7 +82,9 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6600\" dotnet run --no-build)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" dotnet run --no-build)",
       "Bash(taskkill:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" timeout 30 dotnet run --no-build)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" timeout 30 dotnet run --no-build)",
+      "mcp__playwright__playwright_close",
+      "Read(//c/mnt/c/Git/Wayfarer/**)"
     ],
     "deny": [],
     "ask": []

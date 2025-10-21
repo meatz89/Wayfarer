@@ -7,7 +7,7 @@ using System.Text.Json;
 /// </summary>
 public class NPCValidator : IContentValidator
 {
-    private readonly HashSet<string> _requiredFields = new HashSet<string>
+    private readonly List<string> _requiredFields = new List<string>
         {
             "id", "name", "profession", "venueId"
         };
@@ -22,33 +22,23 @@ public class NPCValidator : IContentValidator
     {
         List<ValidationError> errors = new List<ValidationError>();
 
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(content);
-            JsonElement root = doc.RootElement;
+        using JsonDocument doc = JsonDocument.Parse(content);
+        JsonElement root = doc.RootElement;
 
-            if (root.ValueKind != JsonValueKind.Array)
-            {
-                errors.Add(new ValidationError(
-                    fileName,
-                    "NPCs file must contain a JSON array",
-                    ValidationSeverity.Critical));
-                return errors;
-            }
-
-            int index = 0;
-            foreach (JsonElement npcElement in root.EnumerateArray())
-            {
-                ValidateNPC(npcElement, index, fileName, errors);
-                index++;
-            }
-        }
-        catch (Exception ex)
+        if (root.ValueKind != JsonValueKind.Array)
         {
             errors.Add(new ValidationError(
                 fileName,
-                $"Failed to validate NPCs: {ex.Message}",
+                "NPCs file must contain a JSON array",
                 ValidationSeverity.Critical));
+            return errors;
+        }
+
+        int index = 0;
+        foreach (JsonElement npcElement in root.EnumerateArray())
+        {
+            ValidateNPC(npcElement, index, fileName, errors);
+            index++;
         }
 
         return errors;
@@ -56,6 +46,7 @@ public class NPCValidator : IContentValidator
 
     private void ValidateNPC(JsonElement npc, int index, string fileName, List<ValidationError> errors)
     {
+        // Use index as fallback identifier if id field is missing (for error reporting only)
         string npcId = GetStringProperty(npc, "id") ?? $"NPC[{index}]";
 
         // Check required fields

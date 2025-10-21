@@ -1,0 +1,37 @@
+@inherits ObligationCompleteModalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="obligation-complete-box">
+    <div class="completion-header">
+        <span class="completion-icon">✨</span>
+        <div class="completion-title-area">
+            <div class="completion-label">Obligation Solved</div>
+            <div class="completion-title">@Data.ObligationName</div>
+        </div>
+    </div>
+
+    <div class="completion-content">
+        <div class="outcome-narrative-complete">@Data.CompletionNarrative</div>
+
+        @if (Data.Rewards != null && Data.Rewards.Coins > 0)
+        {
+            <div class="rewards-section">
+                <div class="rewards-title">
+                    <span>💎</span>
+                    <span>Rewards Earned</span>
+                </div>
+                <div class="reward-grid">
+                    <div class="reward-item">
+                        <span class="reward-icon">💰</span>
+                        <div class="reward-details">
+                            <div class="reward-name">Payment</div>
+                            <div class="reward-value">+@Data.Rewards.Coins Coins</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <button class="continue-journey-button" @onclick="CloseModal">Continue Your Journey</button>
+    </div>
+</div>

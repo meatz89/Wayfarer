@@ -1,0 +1,43 @@
+@inherits SpotsViewBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="location-spots-view">
+    <div class="section-header">Other Spots in @CurrentLocationName</div>
+
+    <div class="spots-grid">
+        @foreach (var spot in AvailableSpots)
+        {
+            <div class="spot-card @(spot.IsCurrentSpot ? "current" : "")"
+                 @onclick="async () => { if (!spot.IsCurrentSpot) await OnMoveToSpot.InvokeAsync(spot.Id); }">
+                <div class="spot-card-name">@spot.Name</div>
+                @if (spot.NPCs.Any())
+                {
+                    <div class="spot-occupants">
+                        @foreach (var npc in spot.NPCs)
+                        {
+                            <span class="npc-at-spot">
+                                @npc.Name
+                                <span class="npc-state">(@npc.ConnectionState)</span>
+                            </span>
+                            @if (npc != spot.NPCs.Last())
+                            {
+                                <span>, </span>
+                            }
+                        }
+                    </div>
+                }
+                @if (spot.IsCurrentSpot)
+                {
+                    <div class="you-are-here">You are here</div>
+                }
+                else
+                {
+                    <div class="spot-move-action">Move here (instant, free)</div>
+                }
+            </div>
+        }
+    </div>
+
+    <button class="back-button" @onclick="() => OnNavigateBack.InvokeAsync()">Back</button>
+</div>

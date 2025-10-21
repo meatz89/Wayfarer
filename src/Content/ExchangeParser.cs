@@ -16,10 +16,14 @@ public static class ExchangeParser
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
+        // VALIDATION: Name is REQUIRED field
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required field 'name'");
+
         ExchangeCard card = new ExchangeCard
         {
             Id = dto.Id,
-            Name = dto.Name ?? $"Exchange {dto.Id}",
+            Name = dto.Name,
             Description = GenerateDescription(dto),
             NpcId = npcId,
 
@@ -33,7 +37,7 @@ public static class ExchangeParser
                 {
                     new ResourceAmount
                     {
-                        Type = dto.GiveCurrency?.ToLower() switch
+                        Type = (dto.GiveCurrency ?? "coins").ToLower() switch // Optional - defaults to "coins" if missing
                         {
                             "coins" or "coin" => ResourceType.Coins,
                             "food" => ResourceType.Hunger,
@@ -47,7 +51,8 @@ public static class ExchangeParser
                         Amount = dto.GiveAmount
                     }
                 } : new List<ResourceAmount>(),
-                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null
+                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null,
+                ConsumedItemIds = new List<string>() // DEPRECATED: consumedItems never appears in JSON (0% frequency)
             },
 
             // Parse reward structure
@@ -57,7 +62,7 @@ public static class ExchangeParser
                 {
                     new ResourceAmount
                     {
-                        Type = dto.ReceiveCurrency?.ToLower() switch
+                        Type = (dto.ReceiveCurrency ?? "coins").ToLower() switch // Optional - defaults to "coins" if missing
                         {
                             "coins" or "coin" => ResourceType.Coins,
                             "food" => ResourceType.Hunger,
@@ -74,8 +79,8 @@ public static class ExchangeParser
                     }
                 } : new List<ResourceAmount>(),
 
-                // Handle specific item rewards
-                ItemIds = !string.IsNullOrEmpty(dto.ReceiveItem) ? new List<string> { dto.ReceiveItem } : new List<string>()
+                // Handle item rewards (support both legacy single item and new multi-item)
+                ItemIds = MergeItemRewards(dto)
             },
 
             // Default properties
@@ -87,7 +92,6 @@ public static class ExchangeParser
         return card;
     }
 
-
     /// <summary>
     /// Generate a description from the exchange DTO
     /// </summary>
@@ -95,14 +99,28 @@ public static class ExchangeParser
     {
         string receiveText = !string.IsNullOrEmpty(dto.ReceiveItem)
             ? dto.ReceiveItem
-            : $"{dto.ReceiveAmount} {dto.ReceiveCurrency}";
+            : $"{dto.ReceiveAmount} {dto.ReceiveCurrency ?? "coins"}"; // Optional - defaults to "coins" if missing
 
-        return $"Trade {dto.GiveAmount} {dto.GiveCurrency} for {receiveText}";
+        return $"Trade {dto.GiveAmount} {dto.GiveCurrency ?? "coins"} for {receiveText}"; // Optional - defaults to "coins" if missing
     }
 
+    /// <summary>
+    /// Merge legacy single item reward (ReceiveItem) with new multi-item rewards (GrantedItems)
+    /// </summary>
+    private static List<string> MergeItemRewards(ExchangeDTO dto)
+    {
+        List<string> items = new List<string>();
 
+        // Support legacy single item field
+        if (!string.IsNullOrEmpty(dto.ReceiveItem))
+            items.Add(dto.ReceiveItem);
 
+        // Support new multi-item field
+        if (dto.GrantedItems != null && dto.GrantedItems.Any())
+            items.AddRange(dto.GrantedItems);
 
+        return items;
+    }
 
     /// <summary>
     /// Create exchange cards for an NPC based on their personality type

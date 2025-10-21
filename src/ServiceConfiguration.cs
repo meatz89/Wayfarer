@@ -7,8 +7,6 @@ public static class ServiceConfiguration
 {
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        Console.WriteLine("[SERVICE] Starting service configuration...");
-
         // Register dev mode service (needs to be early for other services to use)
         services.AddSingleton<DevModeService>();
 
@@ -19,18 +17,13 @@ public static class ServiceConfiguration
         services.AddSingleton<GameConfiguration>();
         services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
-
         // Register GameWorld using static GameWorldInitializer
-        Console.WriteLine("[SERVICE] Registering GameWorld...");
         services.AddSingleton<GameWorld>(_ =>
         {
-            Console.WriteLine("[SERVICE] Creating GameWorld instance...");
             // Call GameWorldInitializer statically - no DI dependencies needed
             GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-            Console.WriteLine("[SERVICE] GameWorld instance created");
             return gameWorld;
         });
-        Console.WriteLine("[SERVICE] GameWorld registered");
 
         // Register the content validator
         services.AddSingleton<ContentValidator>();
@@ -48,8 +41,8 @@ public static class ServiceConfiguration
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        // V3 Card-Based Investigation System - DELETED (wrong architecture)
-        // Investigation is strategic activity, not tactical system
+        // V3 Card-Based Obligation System - DELETED (wrong architecture)
+        // Obligation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
         services.AddSingleton<TravelObstacleService>();
 
@@ -62,12 +55,10 @@ public static class ServiceConfiguration
         // DeliveryObligation Queue System
         services.AddSingleton<StandingObligationManager>();
 
-
         // ConversationSubsystem services
         services.AddSingleton<MomentumManager>();
         services.AddSingleton<SocialEffectResolver>();
         services.AddSingleton<SocialChallengeDeckBuilder>();
-        services.AddSingleton<ExchangeHandler>();
         services.AddSingleton<SocialFacade>();
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
@@ -85,10 +76,19 @@ public static class ServiceConfiguration
         services.AddSingleton<PhysicalNarrativeService>();
         services.AddSingleton<PhysicalDeckBuilder>();
 
-        // Investigation Activity - Strategic orchestrator for multi-phase investigations
-        services.AddSingleton<InvestigationActivity>();
-        services.AddSingleton<InvestigationDiscoveryEvaluator>();
-        services.AddSingleton<KnowledgeService>();
+        // Obligation Activity - Strategic orchestrator for multi-phase obligations
+        services.AddSingleton<ObligationActivity>();
+        services.AddSingleton<ObligationDiscoveryEvaluator>();
+
+        // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
+        services.AddSingleton<ObstacleGoalFilter>();
+        services.AddSingleton<GoalCompletionHandler>();
+        services.AddSingleton<DifficultyCalculationService>();
+        services.AddSingleton<ObstacleFacade>();
+
+        // Equipment Subsystem
+        services.AddSingleton<EquipmentUsageService>();
+        services.AddSingleton<EquipmentFacade>();
 
         // NPC deck initialization handled directly in PackageLoader
 
@@ -123,18 +123,14 @@ public static class ServiceConfiguration
         // Wire up circular dependencies after initial creation
         services.AddSingleton<TokenMechanicsManager>();
 
-        // Observation management system
-        services.AddSingleton<ObservationManager>();
-
         // Environmental Storytelling Systems
+        // ObservationManager eliminated - observation system removed
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();
 
         // Transaction and Preview System
-        services.AddSingleton<AccessRequirementChecker>();
+        // AccessRequirementChecker eliminated - PRINCIPLE 4: Economic affordability determines access
         services.AddSingleton<NarrativeService>();
-        services.AddSingleton<RouteDiscoveryManager>();
-
 
         // Action generation service
         services.AddSingleton<ActionGenerator>();
@@ -143,7 +139,6 @@ public static class ServiceConfiguration
         services.AddScoped<MusicService>();
 
         // Venue Subsystem
-        services.AddSingleton<LocationManager>();
         services.AddSingleton<LocationManager>();
         services.AddSingleton<MovementValidator>();
         services.AddSingleton<NPCLocationTracker>();
@@ -154,22 +149,18 @@ public static class ServiceConfiguration
         // Obligation Subsystem
         services.AddSingleton<MeetingManager>();
 
-        // Resource Subsystem
-        services.AddSingleton<CoinManager>();
-        services.AddSingleton<HealthManager>();
-        services.AddSingleton<HungerManager>();
-        services.AddSingleton<ResourceCalculator>();
-        services.AddSingleton<ResourceFacade>();
-
-        // Time Subsystem
+        // Time Subsystem (registered BEFORE ResourceFacade - dependency ordering)
         services.AddSingleton<TimeBlockCalculator>();
         services.AddSingleton<TimeProgressionManager>();
         services.AddSingleton<TimeDisplayFormatter>();
         services.AddSingleton<TimeFacade>();
 
+        // Resource Subsystem (depends on TimeFacade)
+        services.AddSingleton<ResourceCalculator>();
+        services.AddSingleton<ResourceFacade>();
+
         // Travel Subsystem
         services.AddSingleton<RouteManager>();
-        services.AddSingleton<RouteDiscoveryManager>();
         services.AddSingleton<PermitValidator>();
         services.AddSingleton<TravelTimeCalculator>();
         services.AddSingleton<TravelFacade>();
@@ -184,7 +175,6 @@ public static class ServiceConfiguration
         // Exchange Subsystem
         services.AddSingleton<ExchangeValidator>();
         services.AddSingleton<ExchangeProcessor>();
-        services.AddSingleton<ExchangeInventory>();
         services.AddSingleton<ExchangeOrchestrator>();
         services.AddSingleton<ExchangeFacade>();
 
@@ -202,14 +192,15 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationNarrativeGenerator>();
         services.AddSingleton<NarrativeFacade>();
 
+        // Mastery (Cubes) Subsystem
+        services.AddSingleton<CubeFacade>();
+
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();
         services.AddSingleton<LoadingStateService>();
 
-
         return services;
     }
-
 
 }

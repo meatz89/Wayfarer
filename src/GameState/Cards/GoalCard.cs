@@ -1,86 +1,104 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Represents a one-time request from an NPC with multiple cards at different rapport thresholds
+/// GoalCard - tactical layer victory condition
+/// Universal across all three challenge types (Social/Mental/Physical)
+/// Defines WHEN victory occurs (momentum threshold and rewards)
+/// Defined inline within goals (not separate reusable entities)
 /// </summary>
 public class GoalCard
 {
     /// <summary>
-    /// Unique identifier for the request
+    /// Unique identifier for this goal card
     /// </summary>
     public string Id { get; set; }
 
     /// <summary>
-    /// Display name for the request
+    /// Display name of this victory condition
     /// </summary>
-    public string Title { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Narrative description of what the NPC is asking
+    /// Description of this victory condition
     /// </summary>
     public string Description { get; set; }
 
     /// <summary>
-    /// The text displayed when the NPC presents this request (shown on LISTEN action)
+    /// Universal threshold required to achieve this victory condition
+    /// Interpretation depends on Goal.systemType:
+    /// - Social: Momentum threshold
+    /// - Mental: Progress threshold
+    /// - Physical: Breakthrough threshold
     /// </summary>
-    public string NpcRequestText { get; set; }
+    public int threshold { get; set; }
 
     /// <summary>
-    /// THREE PARALLEL SYSTEMS - which tactical system this request uses (default Social for NPCs)
+    /// Rewards granted when this victory condition is achieved
     /// </summary>
-    public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
+    public GoalCardRewards Rewards { get; set; }
 
     /// <summary>
-    /// The engagement type ID this request uses (ID within SystemType collection)
-    /// Replaces ConversationTypeId - now supports all three systems
+    /// Whether this goal card has been achieved
     /// </summary>
-    public string ChallengeTypeId { get; set; }
+    public bool IsAchieved { get; set; } = false;
+}
+
+/// <summary>
+/// Runtime data for CreateObligation reward (Resource-Based Pattern)
+/// PRINCIPLE 4: No boolean gates - grants StoryCubes to PatronNPC
+/// Generic delivery goals become visible when NPC.StoryCubes >= threshold
+/// </summary>
+public class CreateObligationReward
+{
+    /// <summary>
+    /// NPC receiving StoryCubes (creates obligation with this patron)
+    /// </summary>
+    public string PatronNpcId { get; set; }
 
     /// <summary>
-    /// Category that must match the conversation type's category
+    /// Number of StoryCubes granted to patron (typically 2-5)
+    /// Enables visibility of generic delivery goals when threshold met
     /// </summary>
-    public string Category { get; set; }
+    public int StoryCubesGranted { get; set; }
 
     /// <summary>
-    /// Connection type (token type) for this request
+    /// Coins rewarded when delivery goal completes
+    /// Stored on NPC for generic goal reward calculation
     /// </summary>
-    public ConnectionType ConnectionType { get; set; } = ConnectionType.Trust;
+    public int RewardCoins { get; set; }
+}
 
-    /// <summary>
-    /// Current status of the request
-    /// </summary>
-    public GoalStatus Status { get; set; } = GoalStatus.Available;
+/// <summary>
+/// Runtime data for RouteSegmentUnlock reward
+/// </summary>
+public class RouteSegmentUnlock
+{
+    public string RouteId { get; set; }
+    public int SegmentPosition { get; set; }
+    public string PathId { get; set; }
+}
 
-    /// <summary>
-    /// Momentum thresholds for tiered rewards (used by stranger conversations)
-    /// </summary>
-    public List<int> MomentumThresholds { get; set; } = new List<int>();
+/// <summary>
+/// Rewards for achieving a goal card
+/// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
+/// </summary>
+public class GoalCardRewards
+{
+    public int? Coins { get; set; }
+    public int? Progress { get; set; }
+    public int? Breakthrough { get; set; }
+    public string ObligationId { get; set; }
+    public string Item { get; set; }
 
-    /// <summary>
-    /// Rewards for reaching momentum thresholds (used by stranger conversations)
-    /// </summary>
-    public List<GoalReward> Rewards { get; set; } = new List<GoalReward>();
+    // Cube rewards (strong typing, auto-applied to goal's context)
+    public int? InvestigationCubes { get; set; }
+    public int? StoryCubes { get; set; }
+    public int? ExplorationCubes { get; set; }
 
-    /// <summary>
-    /// Tiered goals with different momentum thresholds and weights (new system)
-    /// </summary>
-    public List<NPCRequestGoal> Goals { get; set; } = new List<NPCRequestGoal>();
-    public string NpcId { get; internal set; }
-    public string Location { get; internal set; }
+    // Core Loop reward types
+    public string EquipmentId { get; set; }
+    public CreateObligationReward CreateObligationData { get; set; }
+    public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
 
-    /// <summary>
-    /// Check if this request is available to attempt
-    /// </summary>
-    public bool IsAvailable()
-    {
-        return Status == GoalStatus.Available;
-    }
-
-    /// <summary>
-    /// Mark this request as completed
-    /// </summary>
-    public void Complete()
-    {
-        Status = GoalStatus.Completed;
-    }
+    public ObstaclePropertyReduction ObstacleReduction { get; set; }
 }

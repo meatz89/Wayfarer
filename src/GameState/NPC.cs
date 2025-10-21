@@ -9,7 +9,6 @@ public class NPC
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
-    public string Venue { get; set; }
     public string LocationId { get; set; }
 
     // Skeleton tracking
@@ -48,10 +47,8 @@ public class NPC
     // DeliveryObligation offering system
 
     // Work and Home locations (for deeper world building)
-    public string WorkVenueId { get; set; }
-    public string WorkSpotId { get; set; }
-    public string HomeVenueId { get; set; }
-    public string HomeSpotId { get; set; }
+    public string WorkLocationId { get; set; }
+    public string HomeLocationId { get; set; }
 
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
@@ -60,21 +57,50 @@ public class NPC
 
     // Relationship Flow (Single value 0-24 encoding both state and battery)
     // 0-4: DISCONNECTED, 5-9: GUARDED, 10-14: NEUTRAL, 15-19: RECEPTIVE, 20-24: TRUSTING
-    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ±4)
+    // Within each range: 0=-2, 1=-1, 2=0, 3=+1, 4=+2 (displays as -3 to +3, transition at ï¿½4)
     public int RelationshipFlow { get; set; } = 12; // Start at NEUTRAL with 0 flow
+
+    // Localized mastery - StoryCubes reduce Social Doubt with THIS NPC only
+    // 0-10 scale: 0 cubes = full doubt, 10 cubes = complete understanding (no doubt)
+    public int StoryCubes { get; set; } = 0;
 
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
 
-
     // NPC DECK ARCHITECTURE
-    public List<ObservationCard> ObservationDeck { get; internal set; }
-    public List<BurdenCard> BurdenDeck { get; internal set; }
+    // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
-    public List<GoalCard> Requests { get; set; } = new List<GoalCard>();
+
+    // Active goal IDs for this NPC (Social challenges)
+    // References goals in GameWorld.Goals dictionary (single source of truth)
+    public List<string> ActiveGoalIds { get; set; } = new List<string>();
+
+    // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
+    // References obstacles in GameWorld.Obstacles list
+    public List<string> ObstacleIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Object reference to location (for runtime navigation)
+    /// </summary>
+    public Location Location { get; set; }
+
+    /// <summary>
+    /// Object references to active goals (for runtime navigation)
+    /// </summary>
+    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
+
+    /// <summary>
+    /// Object references to obstacles (for runtime navigation)
+    /// </summary>
+    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+
+    // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
+    // References equipment in GameWorld.Equipment list (single source of truth)
+    // Only applicable for NPCs with Mercantile or vendor service types
+    public List<string> AvailableEquipment { get; set; } = new List<string>();
 
     // Initial token values to be applied during game initialization
-    public Dictionary<string, int> InitialTokenValues { get; set; } = new Dictionary<string, int>();
+    public List<InitialTokenValue> InitialTokenValues { get; set; } = new List<InitialTokenValue>();
 
     // Stranger-specific properties (for unnamed one-time NPCs)
     public bool IsStranger { get; set; } = false;
@@ -90,10 +116,8 @@ public class NPC
             // Only Mercantile NPCs have exchange decks
             if (PersonalityType == PersonalityType.MERCANTILE && exchangeCards != null)
             {
-                Console.WriteLine($"[NPC.InitializeExchangeDeck] Adding {exchangeCards.Count} exchange cards for {Name}");
                 foreach (ExchangeCard card in exchangeCards)
                 {
-                    Console.WriteLine($"[NPC.InitializeExchangeDeck] Card {card.Id}");
                     ExchangeDeck.Add(card);
                 }
             }
@@ -156,9 +180,6 @@ public class NPC
         }
     }
 
-
-
-
     /// <summary>
     /// Get connection state from single flow value
     /// </summary>
@@ -173,7 +194,6 @@ public class NPC
             _ => ConnectionState.TRUSTING
         };
     }
-
 
     /// <summary>
     /// Apply daily decay - move flow toward global neutral value 12
@@ -190,63 +210,6 @@ public class NPC
             RelationshipFlow--; // Move down toward neutral
         }
         // If at neutral (12), stay there
-    }
-
-    /// <summary>
-    /// Get available one-time requests
-    /// </summary>
-    public List<GoalCard> GetAvailableRequests()
-    {
-        List<GoalCard> available = new List<GoalCard>();
-        if (Requests != null)
-        {
-            foreach (GoalCard request in Requests)
-            {
-                if (request.IsAvailable())
-                {
-                    available.Add(request);
-                }
-            }
-        }
-        return available;
-    }
-
-    /// <summary>
-    /// Check if NPC has any available one-time requests
-    /// </summary>
-    public bool HasAvailableRequests()
-    {
-        return GetAvailableRequests().Count > 0;
-    }
-
-    /// <summary>
-    /// Get a specific request by ID
-    /// </summary>
-    public GoalCard GetRequestById(string requestId)
-    {
-        if (Requests != null)
-        {
-            foreach (GoalCard request in Requests)
-            {
-                if (request.Id == requestId)
-                {
-                    return request;
-                }
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Mark a request as completed
-    /// </summary>
-    public void CompleteRequest(string requestId)
-    {
-        GoalCard request = GetRequestById(requestId);
-        if (request != null)
-        {
-            request.Complete();
-        }
     }
 
     // Stranger-specific methods

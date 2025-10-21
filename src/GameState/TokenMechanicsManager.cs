@@ -101,7 +101,6 @@ public class TokenMechanicsManager
         // Token change notifications are handled by GameFacade orchestration
     }
 
-
     // Spend tokens with specific NPC context (for queue manipulation)
     public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
     {
@@ -168,17 +167,6 @@ public class TokenMechanicsManager
     {
         Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npcId);
         return tokensWithNPC.GetValueOrDefault(type, 0);
-    }
-
-    // Add tokens without NPC context (DEPRECATED - tokens must be NPC-specific)
-    public void AddTokens(ConnectionType type, int count)
-    {
-        // This method violates the relational token architecture
-        // Tokens must always be associated with a specific NPC
-        _messageSystem.AddSystemMessage(
-            $"ERROR: Cannot add tokens without NPC context. Tokens are relational.",
-            SystemMessageTypes.Danger
-        );
     }
 
     /// <summary>

@@ -12,7 +12,6 @@ public class SocialCard
     public SuccessEffectType SuccessType { get; init; } = SuccessEffectType.None;
     public ConversationalMove? Move { get; init; } // Null for Letter/Promise/Burden cards (not part of conversation mechanics)
 
-
     // New 5-Resource System Properties
     public CardDepth Depth { get; init; } = CardDepth.Depth1;
     public int InitiativeCost { get; init; } = 0;
@@ -40,8 +39,7 @@ public class SocialCard
     // Card properties
     public ConnectionType TokenType { get; init; }
 
-    // Token requirements for gated exchanges
-    public int MinimumTokensRequired { get; init; } = 0;
+    // DELETED: MinimumTokensRequired (0% frequency in JSON - deprecated field)
     public ConnectionType? RequiredTokenType { get; init; }
 
     // Personality targeting - which NPCs can use this card
@@ -53,7 +51,6 @@ public class SocialCard
     // Promise card specific properties
     public int QueuePosition { get; init; } = 0; // Position to force in queue (usually 1)
     public int InstantMomentum { get; init; } = 0; // Momentum gained from burning tokens
-    public string RequestId { get; init; } // Links card to its parent NPCRequest
 
     // Display properties
     public string DialogueText { get; init; }
@@ -74,12 +71,8 @@ public class SocialCard
     // Token requirements for signature cards
     public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
 
-    // NPC-specific targeting for signature cards
-    public string NpcSpecific { get; init; }
-
-    // V2 Investigation System - Knowledge gained when card is played
-    public IReadOnlyList<string> KnowledgeGranted { get; init; } = new List<string>();
-    public IReadOnlyList<string> SecretsGranted { get; init; } = new List<string>();
+    // DELETED: NpcSpecific (0% frequency in JSON - deprecated field)
+    // DELETED: SecretsGranted (0% frequency in JSON - deprecated field - Knowledge system eliminated)
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(SocialSession session)
@@ -144,7 +137,6 @@ public class SocialCard
         }
         return true;
     }
-
 
     /// <summary>
     /// Check if Statement requirements are met for this card

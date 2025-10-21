@@ -46,12 +46,10 @@ public class LocationDescriptionGenerator
     // Activity descriptions based on time of day
     private static readonly Dictionary<TimeBlocks, string[]> TimeActivity = new()
     {
-        [TimeBlocks.Dawn] = new[] { "Early risers begin their day", "First light reveals empty streets", "The city slowly awakens" },
         [TimeBlocks.Morning] = new[] { "Morning routines unfold", "Business begins in earnest", "The day's work commences" },
         [TimeBlocks.Midday] = new[] { "Activity reaches its peak", "The busiest time of day", "Full daylight illuminates all" },
         [TimeBlocks.Afternoon] = new[] { "Shadows lengthen noticeably", "Day's end approaches", "Evening preparations begin" },
-        [TimeBlocks.Evening] = new[] { "Darkness cloaks activity", "Night sounds replace day", "Most have retired" },
-        [TimeBlocks.Night] = new[] { "Deep night silence", "Only the disconnected move", "The darkest hours" }
+        [TimeBlocks.Evening] = new[] { "Darkness cloaks activity", "Night sounds replace day", "Most have retired" }
     };
 
     // Tension modifiers based on urgent obligations
@@ -105,11 +103,8 @@ public class LocationDescriptionGenerator
 
         if (unmappedProperties.Any())
         {
-            Console.WriteLine($"LocationDescriptionGenerator: Found {unmappedProperties.Count} unmapped properties:");
             foreach (LocationPropertyType property in unmappedProperties)
-            {
-                Console.WriteLine($"  - {property}");
-            }
+            { }
         }
 
         return unmappedProperties;

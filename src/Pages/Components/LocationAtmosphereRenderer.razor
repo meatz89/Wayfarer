@@ -14,9 +14,9 @@
 
         // Get active properties including time-specific ones
         var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
-        if (CurrentLocation.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
+        if (CurrentLocation.TimeSpecificProperties?.Any(t => t.TimeBlock == CurrentTime) == true)
         {
-            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties[CurrentTime]);
+            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties.First(t => t.TimeBlock == CurrentTime).Properties);
         }
 
         // Generate description from categorical properties
@@ -96,9 +96,9 @@
             return null;
 
         var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
-        if (CurrentLocation.TimeSpecificProperties?.ContainsKey(CurrentTime) == true)
+        if (CurrentLocation.TimeSpecificProperties?.Any(t => t.TimeBlock == CurrentTime) == true)
         {
-            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties[CurrentTime]);
+            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties.First(t => t.TimeBlock == CurrentTime).Properties);
         }
 
         // Generate hints based on view properties
@@ -122,7 +122,7 @@
 }
 
 <div class="atmosphere-section">
-    <div class="atmosphere-text">
+    <div class="atmosphere-section">
         @GetAtmosphereText()
     </div>
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 public class PhysicalFacade
 {
@@ -10,12 +11,7 @@ public class PhysicalFacade
     private readonly PhysicalNarrativeService _narrativeService;
     private readonly PhysicalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
-    private readonly InvestigationActivity _investigationActivity;
-
-    private PhysicalSession _currentSession;
-    private PhysicalSessionDeck _sessionDeck;
-    private string _currentGoalId; // Track which investigation goal this session is for
-    private string _currentInvestigationId; // Track which investigation this goal belongs to
+    private readonly ObligationActivity _obligationActivity;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -23,29 +19,29 @@ public class PhysicalFacade
         PhysicalNarrativeService narrativeService,
         PhysicalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        InvestigationActivity investigationActivity)
+        ObligationActivity obligationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
+        _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
     }
 
     public PhysicalSession GetCurrentSession()
     {
-        return _currentSession;
+        return _gameWorld.CurrentPhysicalSession;
     }
 
     public bool IsSessionActive()
     {
-        return _currentSession != null;
+        return _gameWorld.CurrentPhysicalSession != null;
     }
 
     public List<CardInstance> GetHand()
     {
-        return _sessionDeck?.Hand.ToList() ?? new List<CardInstance>();
+        return _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList();
     }
 
     public PhysicalDeckBuilder GetDeckBuilder()
@@ -55,29 +51,34 @@ public class PhysicalFacade
 
     public int GetDeckCount()
     {
-        return _sessionDeck?.RemainingDeckCards ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck.RemainingDeckCards;
     }
 
-    public int GetDiscardCount()
+    public int GetExhaustCount()
     {
-        return _sessionDeck?.PlayedCards.Count ?? 0;
+        return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.Count;
     }
 
-    public PhysicalSession StartSession(PhysicalChallengeType engagement, List<CardInstance> deck, List<CardInstance> startingHand, 
-        string goalId, string investigationId)
+    public List<CardInstance> GetLockedCards()
+    {
+        return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
+    }
+
+    public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
+        string goalId, string obligationId)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
 
-        // Track investigation context
-        _currentGoalId = goalId;
-        _currentInvestigationId = investigationId;
+        // Track obligation context
+        _gameWorld.CurrentPhysicalGoalId = goalId;
+        _gameWorld.CurrentPhysicalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
 
-        _currentSession = new PhysicalSession
+        _gameWorld.CurrentPhysicalSession = new PhysicalSession
         {
             ChallengeId = engagement.Id,
             CurrentExertion = 0,
@@ -86,115 +87,94 @@ public class PhysicalFacade
             CurrentBreakthrough = 0,
             CurrentDanger = 0,
             MaxDanger = engagement.DangerThreshold,
-            VictoryThreshold = engagement.VictoryThreshold,
-            Commitment = 0
+            Aggression = 0
         };
 
         // Use PhysicalSessionDeck with Pile abstraction
-        _sessionDeck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
+        _gameWorld.CurrentPhysicalSession.Deck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
+        _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
+
+        // Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
+        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
+        if (!string.IsNullOrEmpty(goalId) && goal != null)
+        {
+            if (goal.GoalCards.Any())
+            {
+                foreach (GoalCard goalCard in goal.GoalCards)
+                {
+                    // Create CardInstance from GoalCard (constructor sets CardType automatically)
+                    CardInstance goalCardInstance = new CardInstance(goalCard)
+                    {
+                        Context = new CardContext { threshold = goalCard.threshold }
+                    };
+
+                    // Add to session deck's requestPile
+                    _gameWorld.CurrentPhysicalSession.Deck.AddGoalCard(goalCardInstance);
+                }
+            }
+        }
 
         // Draw remaining cards to reach InitialHandSize
         int cardsToDrawStartingSized = engagement.InitialHandSize - startingHand.Count;
         if (cardsToDrawStartingSized > 0)
         {
-            _sessionDeck.DrawToHand(cardsToDrawStartingSized);
+            _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDrawStartingSized);
         }
-
-        Console.WriteLine($"[PhysicalFacade] Started session with {startingHand.Count} cards in starting hand");
-
-        return _currentSession;
-    }
-
-    public async Task<PhysicalTurnResult> ExecuteAssess(CardInstance card)
-    {
-        // Advance time by 1 segment per action (per documentation)
-        _timeManager.AdvanceSegments(1);
-
-        return await ExecuteCard(card, PhysicalActionType.Assess);
-    }
-
-    public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
-    {
-        // Advance time by 1 segment per action (per documentation)
-        _timeManager.AdvanceSegments(1);
-
-        return await ExecuteCard(card, PhysicalActionType.Execute);
+        return _gameWorld.CurrentPhysicalSession;
     }
 
     /// <summary>
-    /// PROJECTION PRINCIPLE: Execute card using projection pattern
-    /// 1. Get projection from resolver (single source of truth)
-    /// 2. Apply projection to session
-    /// DUAL BALANCE: Action type (Assess/Execute) combined with card Approach
-    /// Parallel to ConversationFacade.SelectCard() and MentalFacade.ExecuteCard()
+    /// ASSESS: Trigger all locked cards as combo, shuffle everything back, draw fresh
+    /// CORE PHYSICAL MECHANIC: Locked cards execute together, then all cards cycle back through Situation deck
+    /// PROJECTION PRINCIPLE: Apply full projection for each locked card (Breakthrough, Danger, Aggression with approach)
     /// </summary>
-    private async Task<PhysicalTurnResult> ExecuteCard(CardInstance card, PhysicalActionType actionType)
+    public async Task<PhysicalTurnResult> ExecuteAssess()
     {
         if (!IsSessionActive())
         {
             throw new InvalidOperationException("No active physical session");
         }
 
-        if (!_sessionDeck.Hand.Contains(card))
-        {
-            throw new InvalidOperationException("Card not in hand");
-        }
-
-        if (card.PhysicalCardTemplate == null)
-        {
-            throw new InvalidOperationException("Card has no Physical template");
-        }
-
+        _timeManager.AdvanceSegments(1);
         Player player = _gameWorld.GetPlayer();
 
-        // PROJECTION PRINCIPLE: Get projection from resolver (single source of truth)
-        // DUAL BALANCE: Pass action type to combine with card Approach
-        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _currentSession, player, actionType);
+        // Get all locked cards for combo execution
+        List<CardInstance> lockedCards = _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
 
-        // Check Exertion cost BEFORE applying
-        if (_currentSession.CurrentExertion < card.PhysicalCardTemplate.ExertionCost)
+        // TRIGGER COMBO: Apply full projection for each locked card
+        foreach (CardInstance card in lockedCards)
         {
-            throw new InvalidOperationException($"Insufficient Exertion. Need {card.PhysicalCardTemplate.ExertionCost}, have {_currentSession.CurrentExertion}");
-        }
+            if (card.PhysicalCardTemplate != null)
+            {
+                // PROJECTION PRINCIPLE: Get projection for this card with Assess action
+                PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _gameWorld.CurrentPhysicalSession, player, PhysicalActionType.Assess);
 
-        // Apply projection to session state
-        ApplyProjectionToSession(projection, _currentSession, player);
+                // Apply FULL projection: Breakthrough, Danger, Aggression (includes action -2 + card approach)
+                // NOTE: Exertion was already spent on EXECUTE, projection.ExertionChange should be 0 here
+                _gameWorld.CurrentPhysicalSession.CurrentBreakthrough += projection.BreakthroughChange;
+                _gameWorld.CurrentPhysicalSession.CurrentDanger += projection.DangerChange;
+                _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange; // Includes action -2 AND card approach modifier
+
+                // Award XP for this card
+                if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
+                {
+                    player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
+                }
+            }
+        }// Shuffle exhaust (locked cards) + hand back to deck, draw fresh
+        _gameWorld.CurrentPhysicalSession.Deck.ShuffleExhaustAndHandBackToDeck();
+
+        int cardsToDraw = _gameWorld.CurrentPhysicalSession.GetDrawCount();
+        _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDraw);
 
         // Check and unlock goal cards if Breakthrough threshold met
-        List<CardInstance> unlockedGoals = _sessionDeck.CheckGoalThresholds(_currentSession.CurrentBreakthrough);
-        foreach (CardInstance goalCard in unlockedGoals)
-        {
-            Console.WriteLine($"[PhysicalFacade] Goal card unlocked: {goalCard.PhysicalCardTemplate?.Id} (Breakthrough threshold met)");
-        }
+        _gameWorld.CurrentPhysicalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentPhysicalSession.CurrentBreakthrough);
 
-        // Track approach history for Decisive card requirements
-        if (actionType == PhysicalActionType.Execute)
-        {
-            _currentSession.ApproachHistory++;
-        }
-
-        // PROGRESSION SYSTEM: Award XP to bound stat (XP pre-calculated at parse time)
-        if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
-        {
-            player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
-            Console.WriteLine($"[PhysicalFacade] Awarded {card.PhysicalCardTemplate.XPReward} XP to {card.PhysicalCardTemplate.BoundStat} (Depth {card.PhysicalCardTemplate.Depth})");
-        }
-
-        _sessionDeck.PlayCard(card);
-        _sessionDeck.DrawToHand(projection.CardsToDraw);
-
-        string narrative = _narrativeService.GenerateActionNarrative(card, _currentSession);
-
-        // Check victory/consequence thresholds
+        // Check if danger threshold reached
         bool sessionEnded = false;
-        if (_currentSession.ShouldEnd())
+        if (_gameWorld.CurrentPhysicalSession.ShouldEnd())
         {
-            // Apply consequences if Danger threshold reached
-            if (_currentSession.CurrentDanger >= _currentSession.MaxDanger)
-            {
-                ApplyDangerConsequences(player);
-            }
-
+            ApplyDangerConsequences(player);
             EndSession();
             sessionEnded = true;
         }
@@ -202,20 +182,252 @@ public class PhysicalFacade
         return new PhysicalTurnResult
         {
             Success = true,
-            Narrative = narrative,
-            CurrentBreakthrough = _currentSession?.CurrentBreakthrough ?? 0,
-            CurrentDanger = _currentSession?.CurrentDanger ?? 0,
+            Narrative = $"You assess the situation. {lockedCards.Count} prepared actions execute as a combo.",
+            CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             SessionEnded = sessionEnded
         };
     }
 
     /// <summary>
+    /// EXECUTE: Lock card for combo, spend Exertion, increase Aggression
+    /// Card effects (Breakthrough, Danger) DON'T apply yet - they trigger on ASSESS
+    /// PROJECTION PRINCIPLE: Use projection to check affordability and apply Exertion + Aggression + costs
+    /// </summary>
+    public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
+    {
+        if (!IsSessionActive())
+        {
+            throw new InvalidOperationException("No active physical session");
+        }
+
+        if (!_gameWorld.CurrentPhysicalSession.Deck.Hand.Contains(card))
+        {
+            throw new InvalidOperationException("Card not in hand");
+        }
+
+        // Check goal card type BEFORE template check
+        // Goal cards have no PhysicalCardTemplate, so must be checked first
+        if (card.CardType == CardTypes.Goal)
+        {
+            // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
+            // DISTRIBUTED INTERACTION: Find parent obstacle from Goal.ParentObstacle
+            Player currentPlayer = _gameWorld.GetPlayer();
+            Location location = currentPlayer.CurrentLocation;
+
+            // Get goal and its parent obstacle via object references
+            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalGoalId);
+            if (goal == null)
+                return null; // Goal not found
+
+            Obstacle parentObstacle = goal.ParentObstacle;
+
+            if (parentObstacle != null)
+            {
+                switch (goal.ConsequenceType)
+                {
+                    case ConsequenceType.Resolution:
+                        // Permanently overcome
+                        parentObstacle.State = ObstacleState.Resolved;
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        // Remove from active play (but keep in GameWorld for history)
+                        if (!parentObstacle.IsPermanent)
+                        {
+                            location.ObstacleIds.Remove(parentObstacle.Id);
+                        }
+                        break;
+
+                    case ConsequenceType.Bypass:
+                        // Player passes, obstacle persists
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
+
+                    case ConsequenceType.Transform:
+                        // Fundamentally changed
+                        parentObstacle.State = ObstacleState.Transformed;
+                        parentObstacle.Intensity = 0;
+                        if (!string.IsNullOrEmpty(goal.TransformDescription))
+                            parentObstacle.TransformedDescription = goal.TransformDescription;
+                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
+
+                    case ConsequenceType.Modify:
+                        // Intensity reduced
+                        parentObstacle.Intensity = Math.Max(0,
+                            parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
+                        parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
+                        // Check if intensity is now 0 (fully modified)
+                        if (parentObstacle.Intensity == 0)
+                        {
+                            parentObstacle.State = ObstacleState.Transformed;
+                        }
+                        break;
+
+                    case ConsequenceType.Grant:
+                        // Grant knowledge/items, no obstacle change
+                        // Knowledge cards handled in Phase 3
+                        // Items already handled by existing reward system
+                        break;
+                }
+            }
+            // Else: ambient goal with no obstacle parent
+
+            // GoalCards execute immediately (not locked for combo)
+            _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList().Remove(card); // Remove from hand
+            string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
+            EndSession();
+
+            return new PhysicalTurnResult
+            {
+                Success = true,
+                Narrative = narrative,
+                CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+                CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
+                SessionEnded = true
+            };
+        }
+
+        if (card.PhysicalCardTemplate == null)
+        {
+            throw new InvalidOperationException("Card has no Physical template");
+        }
+
+        _timeManager.AdvanceSegments(1);
+        Player player = _gameWorld.GetPlayer();
+
+        // PROJECTION PRINCIPLE: Get projection from resolver (single source of truth)
+        PhysicalCardEffectResult projection = _effectResolver.ProjectCardEffects(card, _gameWorld.CurrentPhysicalSession, player, PhysicalActionType.Execute);
+
+        // Check Exertion cost from projection (includes modifiers like fatigue penalties, Foundation generation)
+        if (_gameWorld.CurrentPhysicalSession.CurrentExertion + projection.ExertionChange < 0)
+        {
+            int actualCost = -projection.ExertionChange;
+            throw new InvalidOperationException($"Insufficient Exertion. Need {actualCost}, have {_gameWorld.CurrentPhysicalSession.CurrentExertion}");
+        }
+
+        // EXECUTE: Lock card for combo
+        _gameWorld.CurrentPhysicalSession.Deck.LockCard(card);
+
+        // Apply PARTIAL projection: Exertion + Aggression + strategic costs
+        // DON'T apply Breakthrough/Danger yet (they trigger on ASSESS)
+        _gameWorld.CurrentPhysicalSession.CurrentExertion += projection.ExertionChange;
+        if (_gameWorld.CurrentPhysicalSession.CurrentExertion > _gameWorld.CurrentPhysicalSession.MaxExertion)
+        {
+            _gameWorld.CurrentPhysicalSession.CurrentExertion = _gameWorld.CurrentPhysicalSession.MaxExertion;
+        }
+
+        // Apply Aggression from projection (includes action +1 AND card approach modifier)
+        _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange;
+
+        // Apply strategic resource costs
+        if (projection.HealthCost > 0) player.Health -= projection.HealthCost;
+        if (projection.StaminaCost > 0) player.Stamina -= projection.StaminaCost;
+        if (projection.CoinsCost > 0) player.Coins -= projection.CoinsCost;
+
+        _gameWorld.CurrentPhysicalSession.ApproachHistory++;
+
+        Console.WriteLine($"[PhysicalFacade] EXECUTE: Locked {card.PhysicalCardTemplate.Id}, Exertion {projection.ExertionChange:+#;-#;0}, Aggression {projection.BalanceChange:+#;-#;0} (now {_gameWorld.CurrentPhysicalSession.Aggression})");
+
+        string executeNarrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
+
+        return new PhysicalTurnResult
+        {
+            Success = true,
+            Narrative = executeNarrative,
+            CurrentBreakthrough = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            CurrentDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
+            SessionEnded = false
+        };
+    }
+
+    /// <summary>
+    /// Escape physical challenge - costs resources, potentially fails
+    /// Physical challenges make retreat difficult
+    /// </summary>
+    public PhysicalOutcome EscapeChallenge(Player player)
+    {
+        if (!IsSessionActive())
+        {
+            return null;
+        }
+
+        // Escape costs - health and stamina damage from retreat
+        int healthCost = 5 + (_gameWorld.CurrentPhysicalSession.CurrentDanger / 2);
+        int staminaCost = 10;
+
+        player.Health -= healthCost;
+        player.Stamina -= staminaCost;
+
+        PhysicalOutcome outcome = new PhysicalOutcome
+        {
+            Success = false, // Escape is failure
+            FinalProgress = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            FinalDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
+            EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
+        };
+
+        _gameWorld.CurrentPhysicalSession.Deck.Clear();
+        _gameWorld.CurrentPhysicalSession = null;
+
+        return outcome;
+    }
+
+    public PhysicalOutcome EndSession()
+    {
+        if (!IsSessionActive())
+        {
+            return null;
+        }
+
+        // Success determined by GoalCard play (GoalCards end session immediately in ExecuteExecute)
+        bool success = !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId);
+
+        PhysicalOutcome outcome = new PhysicalOutcome
+        {
+            Success = success,
+            FinalProgress = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough,
+            FinalDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
+            EscapeCost = ""
+        };
+
+        // Check for obligation progress if this was an obligation goal
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
+        {
+            CheckObligationProgress(_gameWorld.CurrentPhysicalGoalId, _gameWorld.CurrentPhysicalObligationId);
+        }
+
+        // Award Reputation on success (Reputation system)
+        // Physical success builds reputation affecting future Social and Physical engagements
+        if (success)
+        {
+            Player player = _gameWorld.GetPlayer();
+            int reputationGain = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough >= 20 ? 1 : 0;
+            player.Reputation += reputationGain;// PROGRESSION SYSTEM: Award mastery cube for this challenge type
+            if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSession.ChallengeId))
+            {
+                player.MasteryCubes.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
+                int masteryLevel = player.MasteryCubes.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);
+            }
+        }
+
+        // Clear obligation context
+        _gameWorld.CurrentPhysicalGoalId = null;
+        _gameWorld.CurrentPhysicalObligationId = null;
+
+        _gameWorld.CurrentPhysicalSession.Deck.Clear();
+        _gameWorld.CurrentPhysicalSession = null;
+
+        return outcome;
+    }
+
+    /// <summary>
     /// PROJECTION PRINCIPLE: ONLY place where projections become reality
-    /// Parallel to ConversationFacade.ApplyProjectionToSession() and MentalFacade.ApplyProjectionToSession()
+    /// Parallel to MentalFacade.ApplyProjectionToSession() and ConversationFacade.ApplyProjectionToSession()
     /// </summary>
     private void ApplyProjectionToSession(PhysicalCardEffectResult projection, PhysicalSession session, Player player)
     {
-        // Builder resource: Exertion
+        // Builder resource: Exertion (can be negative for cost, positive for generation)
         session.CurrentExertion += projection.ExertionChange;
         if (session.CurrentExertion > session.MaxExertion)
         {
@@ -226,7 +438,7 @@ public class PhysicalFacade
             session.CurrentExertion = 0;
         }
 
-        // Victory resource: Breakthrough (stored as Progress in session)
+        // Victory resource: Breakthrough
         if (projection.BreakthroughChange != 0)
         {
             session.CurrentBreakthrough += projection.BreakthroughChange;
@@ -238,13 +450,13 @@ public class PhysicalFacade
             session.CurrentDanger += projection.DangerChange;
         }
 
-        // Balance resource
+        // Balance tracker: Aggression (includes action balance + card approach)
         if (projection.BalanceChange != 0)
         {
-            session.Commitment += projection.BalanceChange;
+            session.Aggression += projection.BalanceChange;
         }
 
-        // Persistent progress: Readiness (stored as Understanding in session)
+        // Persistent progress: Understanding
         if (projection.ReadinessChange != 0)
         {
             session.CurrentUnderstanding += projection.ReadinessChange;
@@ -266,150 +478,55 @@ public class PhysicalFacade
     }
 
     /// <summary>
-    /// Escape physical challenge - costs resources, potentially fails
-    /// Physical challenges make retreat difficult
-    /// </summary>
-    public PhysicalOutcome EscapeChallenge(Player player)
-    {
-        if (!IsSessionActive())
-        {
-            return null;
-        }
-
-        // Escape costs - health and stamina damage from retreat
-        int healthCost = 5 + (_currentSession.CurrentDanger / 2);
-        int staminaCost = 10;
-
-        player.Health -= healthCost;
-        player.Stamina -= staminaCost;
-
-        PhysicalOutcome outcome = new PhysicalOutcome
-        {
-            Success = false, // Escape is failure
-            FinalProgress = _currentSession.CurrentBreakthrough,
-            FinalDanger = _currentSession.CurrentDanger,
-            EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
-        };
-
-        _currentSession = null;
-        _sessionDeck?.Clear();
-
-        return outcome;
-    }
-
-    public PhysicalOutcome EndSession()
-    {
-        if (!IsSessionActive())
-        {
-            return null;
-        }
-
-        bool success = _currentSession.CurrentBreakthrough >= 20;
-
-        PhysicalOutcome outcome = new PhysicalOutcome
-        {
-            Success = success,
-            FinalProgress = _currentSession.CurrentBreakthrough,
-            FinalDanger = _currentSession.CurrentDanger,
-            EscapeCost = ""
-        };
-
-        // Check for investigation progress if this was an investigation goal
-        if (success && !string.IsNullOrEmpty(_currentGoalId) && !string.IsNullOrEmpty(_currentInvestigationId))
-        {
-            CheckInvestigationProgress(_currentGoalId, _currentInvestigationId);
-        }
-
-        // Award Reputation on success (Reputation system)
-        // Physical success builds reputation affecting future Social and Physical engagements
-        if (success)
-        {
-            Player player = _gameWorld.GetPlayer();
-            int reputationGain = _currentSession.CurrentBreakthrough >= 20 ? 1 : 0;
-            player.Reputation += reputationGain;
-            Console.WriteLine($"[PhysicalFacade] Awarded {reputationGain} reputation for victory (total: {player.Reputation})");
-
-            // PROGRESSION SYSTEM: Award mastery token for this challenge type
-            if (!string.IsNullOrEmpty(_currentSession.ChallengeId))
-            {
-                player.MasteryTokens.AddMastery(_currentSession.ChallengeId, 1);
-                int masteryLevel = player.MasteryTokens.GetMastery(_currentSession.ChallengeId);
-                Console.WriteLine($"[PhysicalFacade] Earned mastery token for '{_currentSession.ChallengeId}'. Total: {masteryLevel}");
-            }
-        }
-
-        // Clear investigation context
-        _currentGoalId = null;
-        _currentInvestigationId = null;
-
-        _currentSession = null;
-        _sessionDeck?.Clear();
-
-        return outcome;
-    }
-
-    /// <summary>
     /// Apply consequences when Danger threshold reached
     /// Health/stamina damage, injury cards, forced defeat
     /// </summary>
     private void ApplyDangerConsequences(Player player)
     {
-        // Health damage from physical consequences
-        int healthDamage = 5 + (_currentSession.CurrentDanger - _currentSession.MaxDanger);
-        player.Health -= healthDamage;
+        // Health damage from physical consequences (6-point scale)
+        // Base: 1 point + excess danger (capped at 2 for total max of 3 damage)
+        int excessDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger - _gameWorld.CurrentPhysicalSession.MaxDanger;
+        int healthDamage = 1 + Math.Min(2, excessDanger);
+        player.Health = Math.Max(0, player.Health - healthDamage);
 
-        // Stamina damage from exhaustion
-        int staminaDamage = 10;
-        player.Stamina -= staminaDamage;
+        // Stamina damage from exhaustion (6-point scale)
+        // 2 points = 33% of max stamina
+        int staminaDamage = 2;
+        player.Stamina = Math.Max(0, player.Stamina - staminaDamage);
 
-        player.InjuryCardIds.Add("injury_physical_moderate");
-
-        Console.WriteLine($"[PhysicalFacade] DANGER THRESHOLD: Took {healthDamage} health and {staminaDamage} stamina damage, gained injury card");
+        // Only add injury card if health drops below 2 (critical state)
+        if (player.Health < 2)
+        {
+            player.InjuryCardIds.Add("injury_physical_moderate");
+        }
     }
 
     /// <summary>
-    /// Check for investigation progress when Physical goal completes
+    /// Check for obligation progress when Physical goal completes
     /// </summary>
-    private void CheckInvestigationProgress(string goalId, string investigationId)
+    private void CheckObligationProgress(string goalId, string obligationId)
     {
+        // KEEP - obligationId is external input from session
         // Check if this is an intro action (Discovered → Active transition)
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation != null && goalId == $"{investigationId}_intro")
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation != null && goalId == "notice_waterwheel")
         {
-            // This is intro completion - activate investigation
-            List<ChallengeGoal> firstGoals = _investigationActivity.CompleteIntroAction(investigationId);
-
-            // Add first goals to their respective Locations (Locations are the only entity that matters)
-            if (firstGoals.Count > 0)
-            {
-                foreach (ChallengeGoal goal in firstGoals)
-                {
-                    LocationEntry spotEntry = _gameWorld.Locations.FirstOrDefault(s => s.location.Id == goal.LocationId);
-                    if (spotEntry != null)
-                    {
-                        if (spotEntry.location.Goals == null)
-                            spotEntry.location.Goals = new List<ChallengeGoal>();
-                        spotEntry.location.Goals.Add(goal);
-                    }
-                }
-            }
-
-            Console.WriteLine($"[PhysicalFacade] Investigation '{investigation.Name}' ACTIVATED - {firstGoals.Count} goals spawned");
+            // This is intro completion - activate obligation
+            // CompleteIntroAction spawns goals directly to ActiveGoals
+            _obligationActivity.CompleteIntroAction(obligationId);
             return;
         }
 
         // Regular goal completion
-        InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
+        ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(goalId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
-        Console.WriteLine($"[PhysicalFacade] Investigation progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
 
-        // Check if investigation is now complete
-        InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
+        // Check if obligation is now complete
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
         if (completeResult != null)
         {
-            // Investigation complete - UI will display completion modal
-            Console.WriteLine($"[PhysicalFacade] Investigation '{completeResult.InvestigationName}' COMPLETE!");
+            // Obligation complete - UI will display completion modal
         }
     }
 }

@@ -1,5 +1,5 @@
 /// <summary>
-/// Represents a investigation depth tier with its unlock requirements
+/// Represents a obligation depth tier with its unlock requirements
 /// Tiers unlock at specific Understanding thresholds and grant access to deeper card depths
 /// </summary>
 public class MentalTier
@@ -18,7 +18,7 @@ public class MentalTier
     }
 
     /// <summary>
-    /// All investigation tiers in the game
+    /// All obligation tiers in the game
     /// SINGLE SOURCE OF TRUTH for tier definitions
     /// </summary>
     public static readonly MentalTier[] AllTiers = new[]

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 /// <summary>
 /// Integration service that bridges the game's existing conversation system 
 /// with the new narrative generation system. Converts between game models
@@ -27,13 +26,10 @@ public class SocialNarrativeService
         NPC npc,
         List<CardInstance> activeCards)
     {
-        Console.WriteLine("[ConversationNarrativeService] GenerateOnlyNPCDialogueAsync called");
         try
         {
             // Get provider from factory
             INarrativeProvider provider = await _providerFactory.GetProviderAsync();
-            Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 1: {provider?.GetProviderType().ToString() ?? "null"}");
-
             // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
@@ -67,13 +63,10 @@ public class SocialNarrativeService
         List<CardInstance> activeCards,
         string npcDialogue)
     {
-        Console.WriteLine("[ConversationNarrativeService] GenerateOnlyCardNarrativesAsync called");
         try
         {
             // Get provider from factory
             INarrativeProvider provider = await _providerFactory.GetProviderAsync();
-            Console.WriteLine($"[ConversationNarrativeService] Got provider for phase 2: {provider?.GetProviderType().ToString() ?? "null"}");
-
             // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);
@@ -91,7 +84,6 @@ public class SocialNarrativeService
         catch
         {
             // If narrative generation fails, provide empty list
-            Console.WriteLine("[ConversationNarrativeService] Failed to generate card narratives, returning empty list");
             return new List<CardNarrative>();
         }
     }
@@ -110,14 +102,10 @@ public class SocialNarrativeService
         NPC npc,
         List<CardInstance> activeCards)
     {
-        Console.WriteLine("[ConversationNarrativeService] GenerateNarrativeAsync called");
         try
         {
             // Get provider from factory - properly await async operation
-            Console.WriteLine("[ConversationNarrativeService] Getting provider from factory...");
             INarrativeProvider provider = await _providerFactory.GetProviderAsync();
-            Console.WriteLine($"[ConversationNarrativeService] Got provider: {provider?.GetProviderType().ToString() ?? "null"}");
-
             // Convert game models to narrative models
             SocialChallengeState conversationState = BuildConversationState(session);
             NPCData npcData = BuildNPCData(npc);

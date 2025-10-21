@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -29,6 +30,15 @@ public class TimeFacade
     }
 
     // ========== TIME STATE ==========
+
+    /// <summary>
+    /// Sets initial time state from package starting conditions.
+    /// MUST be called during game initialization BEFORE any time advancement.
+    /// </summary>
+    public void SetInitialTimeState(int day, TimeBlocks timeBlock, int segment)
+    {
+        _timeManager.TimeModel.SetInitialState(day, timeBlock, segment);
+    }
 
     public int GetCurrentDay()
     {
@@ -68,7 +78,27 @@ public class TimeFacade
 
     public TimeBlocks AdvanceSegments(int segments)
     {
-        return _timeProgressionManager.AdvanceSegments(segments);
+        int oldSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
+        TimeBlocks result = _timeProgressionManager.AdvanceSegments(segments);
+        int newSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
+
+        // Check for deadline failures when crossing day boundary
+        if (_gameWorld.CurrentDay != _timeManager.TimeModel.CurrentState.CurrentDay)
+        {
+            CheckAndProcessDeadlineFailures(newSegment);
+        }
+
+        return result;
+    }
+
+    private void CheckAndProcessDeadlineFailures(int currentSegment)
+    {
+        List<string> expiredObligations = _gameWorld.CheckDeadlines(currentSegment);
+
+        foreach (string obligationId in expiredObligations)
+        {
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
+        }
     }
 
     public TimeBlocks JumpToNextPeriod()
@@ -134,13 +164,11 @@ public class TimeFacade
     {
         return current switch
         {
-            TimeBlocks.Dawn => TimeBlocks.Morning,
             TimeBlocks.Morning => TimeBlocks.Midday,
             TimeBlocks.Midday => TimeBlocks.Afternoon,
             TimeBlocks.Afternoon => TimeBlocks.Evening,
-            TimeBlocks.Evening => TimeBlocks.Night,
-            TimeBlocks.Night => TimeBlocks.Dawn,
-            _ => TimeBlocks.Dawn
+            TimeBlocks.Evening => TimeBlocks.Morning, // Sleep wraps to next morning
+            _ => TimeBlocks.Morning
         };
     }
 
@@ -213,6 +241,67 @@ public class TimeFacade
     public bool IsCurrentlyAvailable(List<TimeBlocks> availableTimes)
     {
         return IsTimeBlockAvailable(GetCurrentTimeBlock(), availableTimes);
+    }
+
+    // ========== DAY-END PROCESSING ==========
+
+    /// <summary>
+    /// End the current day - process deadlines, restore resources, generate summary
+    /// Called explicitly when player chooses to rest/sleep
+    /// </summary>
+    public DayEndReport EndDay()
+    {
+        Player player = _gameWorld.GetPlayer();
+        int currentSegment = GetCurrentSegment();
+
+        DayEndReport report = new DayEndReport();
+
+        // 1. Check for expired obligations (deadlines)
+        List<string> expiredObligationIds = _gameWorld.CheckDeadlines(currentSegment);
+
+        // 2. Apply deadline consequences and build failure report
+        foreach (string obligationId in expiredObligationIds)
+        {
+            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation == null) continue;
+
+            // USE OBJECT REFERENCE - Obligation.PatronNpc (O(1) instead of O(n) lookup)
+            NPC patron = obligation.PatronNpc;
+
+            int cubesBeforeConsequence = patron.StoryCubes;
+
+            // Apply consequences
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
+
+            int cubesAfterConsequence = patron.StoryCubes;
+
+            report.FailedObligations.Add(new FailedObligationInfo
+            {
+                ObligationName = obligation.Name,
+                PatronName = patron.Name,
+                CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
+            });
+        }
+
+        // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
+        player.Focus = 6; // Hardcoded max per design
+        player.Stamina = player.MaxStamina;
+
+        // 4. Build current resource snapshot
+        report.CurrentResources = new ResourceSnapshot
+        {
+            Health = player.Health,
+            Focus = player.Focus,
+            Stamina = player.Stamina,
+            Coins = player.Coins
+        };
+
+        // NOTE: CoinsEarned, CoinsSpent, CompletedObligations, NewEquipment, StatsIncreased, CubesGained
+        // are NOT tracked by TimeFacade - these require tracking throughout the day
+        // This would require day-scoped state tracking which violates stateless facade principle
+        // For now, these fields remain empty - can be populated by caller if needed
+
+        return report;
     }
 
     // ========== LEGACY COMPATIBILITY METHODS ==========
