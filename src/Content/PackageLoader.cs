@@ -124,7 +124,8 @@ public class PackageLoader
         LoadSocialCards(package.Content.SocialCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
         LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
-        // THREE PARALLEL TACTICAL SYSTEMS - Decks only, no Types
+
+        // THREE PARALLEL TACTICAL CHALLENGE SYSTEMS - Decks only, no Types
         LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, allowSkeletons);
         LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
         LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
