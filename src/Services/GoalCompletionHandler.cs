@@ -193,7 +193,7 @@ public class GoalCompletionHandler
                 }
             }
 
-            // ROUTE SEGMENT UNLOCK - reveal hidden path by reducing HiddenUntilExploration threshold
+            // ROUTE SEGMENT UNLOCK - reveal hidden PathCard by setting ExplorationThreshold to 0
             if (rewards.RouteSegmentUnlock != null)
             {
                 RouteSegmentUnlock unlock = rewards.RouteSegmentUnlock;
@@ -203,15 +203,21 @@ public class GoalCompletionHandler
                     if (unlock.SegmentPosition >= 0 && unlock.SegmentPosition < route.Segments.Count)
                     {
                         RouteSegment segment = route.Segments[unlock.SegmentPosition];
-                        RoutePath path = segment.AvailablePaths.FirstOrDefault(p => p.Id == unlock.PathId);
-                        if (path != null)
+
+                        // Get PathCard collection for this segment
+                        if (!string.IsNullOrEmpty(segment.PathCollectionId))
                         {
-                            // Reveal hidden path by setting HiddenUntilExploration to 0 (always visible)
-                            int previousThreshold = path.HiddenUntilExploration;
-                            path.HiddenUntilExploration = 0;
-                        }
-                        else
-                        {
+                            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(segment.PathCollectionId);
+                            if (collection != null)
+                            {
+                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Id == unlock.PathId);
+                                if (pathCard != null)
+                                {
+                                    // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
+                                    int previousThreshold = pathCard.ExplorationThreshold;
+                                    pathCard.ExplorationThreshold = 0;
+                                }
+                            }
                         }
                     }
                     else

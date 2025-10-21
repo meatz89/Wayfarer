@@ -664,87 +664,6 @@ namespace Wayfarer.Pages.Components
             return goalPreviews;
         }
 
-        // ========== CORE LOOP ROUTE PATH SUPPORT ==========
-
-        /// <summary>
-        /// Get available route paths for current segment (Core Loop system)
-        /// Paths filtered by ExplorationCubes - hidden paths revealed through familiarity
-        /// </summary>
-        protected List<RoutePath> GetAvailableRoutePaths()
-        {
-            if (TravelContext == null)
-                throw new InvalidOperationException("No active travel context");
-            if (TravelContext.Session == null)
-                throw new InvalidOperationException("No active travel session");
-            if (TravelContext.CurrentRoute == null)
-                throw new InvalidOperationException("No current route in travel context");
-
-            return TravelFacade.GetAvailablePaths(
-                TravelContext.Session.RouteId,
-                TravelContext.Session.CurrentSegment
-            );
-        }
-
-        /// <summary>
-        /// Check if current segment uses Core Loop RoutePath system (NEW) vs PathCard system (OLD)
-        /// </summary>
-        protected bool IsCurrentSegmentRoutePathType()
-        {
-            if (TravelContext == null)
-                throw new InvalidOperationException("No active travel context");
-            if (TravelContext.Session == null)
-                throw new InvalidOperationException("No active travel session");
-            if (TravelContext.CurrentRoute == null)
-                throw new InvalidOperationException("No current route in travel context");
-
-            int currentSegment = TravelContext.Session.CurrentSegment;
-            if (currentSegment < 1 || currentSegment > TravelContext.CurrentRoute.Segments.Count)
-                return false;
-
-            RouteSegment segment = TravelContext.CurrentRoute.Segments[currentSegment - 1];
-
-            // NEW system: has AvailablePaths
-            return segment.AvailablePaths != null && segment.AvailablePaths.Any();
-        }
-
-        /// <summary>
-        /// Select and apply a route path (Core Loop system)
-        /// Direct selection with perfect information - no reveal mechanic
-        /// </summary>
-        protected async Task SelectRoutePath(string routePathId)
-        {
-            if (TravelContext == null)
-                throw new InvalidOperationException("No active travel context");
-            if (TravelContext.Session == null)
-                throw new InvalidOperationException("No active travel session");
-
-            bool success = TravelManager.SelectRoutePath(routePathId);
-            if (success)
-            {
-                await RefreshTravelContext();
-                StateHasChanged();
-            }
-        }
-
-        /// <summary>
-        /// Check if player can afford to select this route path
-        /// </summary>
-        protected bool CanSelectRoutePath(string routePathId)
-        {
-            if (TravelContext == null)
-                throw new InvalidOperationException("No active travel context");
-            if (TravelContext.Session == null)
-                throw new InvalidOperationException("No active travel session");
-
-            List<RoutePath> availablePaths = GetAvailableRoutePaths();
-            RoutePath path = availablePaths.FirstOrDefault(p => p.Id == routePathId);
-            if (path == null)
-                return false;
-
-            // Check stamina affordability
-            return TravelContext.Session.StaminaRemaining >= path.StaminaCost;
-        }
-
         // ========== TRAVEL CONTEXT DETECTION (FOR UI CONDITIONAL RENDERING) ==========
 
         /// <summary>
@@ -776,14 +695,7 @@ namespace Wayfarer.Pages.Components
             if (segment == null)
                 return false;
 
-            // Core Loop system (RoutePath)
-            if (segment.AvailablePaths != null && segment.AvailablePaths.Any())
-            {
-                // Check if all paths are unaffordable
-                return segment.AvailablePaths.All(p => !CanSelectRoutePath(p.Id));
-            }
-
-            // PathCard system (legacy)
+            // PathCard system
             List<PathCardInfo> availableCards = GetAvailablePathCards();
             if (availableCards.Any())
             {
@@ -850,26 +762,7 @@ namespace Wayfarer.Pages.Components
             if (segment == null)
                 return goalNames;
 
-            // Core Loop system (RoutePath)
-            if (segment.AvailablePaths != null && segment.AvailablePaths.Any())
-            {
-                foreach (RoutePath path in segment.AvailablePaths)
-                {
-                    if (!string.IsNullOrEmpty(path.OptionalObstacleId))
-                    {
-                        List<GoalPreviewData> goalPreviews = GetGoalPreviewsForPath(path.OptionalObstacleId);
-                        foreach (GoalPreviewData preview in goalPreviews)
-                        {
-                            if (!string.IsNullOrEmpty(preview.Name) && !goalNames.Contains(preview.Name))
-                            {
-                                goalNames.Add(preview.Name);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // PathCard system (legacy)
+            // PathCard system - get obstacles from PathCards
             List<PathCardInfo> availableCards = GetAvailablePathCards();
             foreach (PathCardInfo cardInfo in availableCards)
             {

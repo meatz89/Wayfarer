@@ -10,6 +10,7 @@ public class PathCardDTO
     public int StaminaCost { get; set; }
     public bool StartsRevealed { get; set; } = false;  // Whether card is face-up at game start
     public bool IsHidden { get; set; } = false;
+    public int ExplorationThreshold { get; set; } = 0;  // Route exploration cubes required to reveal (0=always visible, 10=extremely hidden) - replaces RoutePath.HiddenUntilExploration
     public bool IsOneTime { get; set; } = false;
 
     // Requirements (visible when face-up)

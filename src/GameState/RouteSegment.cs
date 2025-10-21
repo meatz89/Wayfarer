@@ -27,11 +27,7 @@ public class RouteSegment
     // For Encounter segments - mandatory obstacle that must be resolved
     public string MandatoryObstacleId { get; set; }  // References Obstacle that player MUST engage
 
-    // Core Loop: Path choices within this segment (1-3 paths with different trade-offs)
-    // References RoutePath entities for time/stamina/obstacle combinations
-    public List<RoutePath> AvailablePaths { get; set; } = new List<RoutePath>();
-
-    // Core Loop: Narrative description of this segment location
+    // Narrative description of this segment location
     // Example: "Forest Approach" or "Creek Crossing"
     public string NarrativeDescription { get; set; }
 }

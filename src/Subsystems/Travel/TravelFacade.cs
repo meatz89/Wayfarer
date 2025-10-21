@@ -659,82 +659,6 @@ public class TravelFacade
 
     /// <summary>
     /// Get available paths for route segment (filtered by exploration cubes)
-    /// Returns paths visible based on route ExplorationCubes threshold
-    /// Hidden paths revealed when route.ExplorationCubes >= path.HiddenUntilExploration
-    /// </summary>
-    public List<RoutePath> GetAvailablePaths(string routeId, int segmentNumber)
-    {
-        RouteOption route = GetRouteById(routeId);
-        if (route == null)
-            return new List<RoutePath>();
-
-        if (segmentNumber < 1 || segmentNumber > route.Segments.Count)
-            return new List<RoutePath>();
-
-        RouteSegment segment = route.Segments[segmentNumber - 1];
-        if (segment.AvailablePaths == null || segment.AvailablePaths.Count == 0)
-            return new List<RoutePath>();
-
-        int explorationCubes = route.ExplorationCubes;
-        List<RoutePath> availablePaths = new List<RoutePath>();
-
-        foreach (RoutePath path in segment.AvailablePaths)
-        {
-            if (path.HiddenUntilExploration <= explorationCubes)
-            {
-                availablePaths.Add(path);
-            }
-        }
-
-        return availablePaths;
-    }
-
-    /// <summary>
-    /// Calculate complete costs for a specific path including obstacle resolution
-    /// Perfect information: All costs visible to player BEFORE path selection
-    /// Formula: TotalCost = BaseTimeCost + BaseStaminaCost + ObstacleCost
-    /// Deterministic: Same inputs always produce same outputs
-    /// </summary>
-    public RoutePathCosts CalculatePathCosts(RoutePath path, Player player)
-    {
-        if (path == null)
-        {
-            return new RoutePathCosts
-            {
-                TimeSegmentsCost = 0,
-                StaminaCost = 0,
-                ObstacleIntensity = 0,
-                TotalCombinedCost = 0,
-                HasObstacle = false,
-                ObstacleId = null
-            };
-        }
-
-        int timeSegmentsCost = path.TimeSegments;
-        int staminaCost = path.StaminaCost;
-        int obstacleIntensity = 0;
-        string obstacleId = null;
-
-        // USE OBJECT REFERENCE - RoutePath.Obstacle (O(1) instead of O(n) lookup)
-        if (path.Obstacle != null)
-        {
-            obstacleId = path.Obstacle.Id;
-            obstacleIntensity = CalculateObstacleIntensityWithEquipment(path.Obstacle, player);
-        }
-
-        int totalCombinedCost = timeSegmentsCost + staminaCost + obstacleIntensity;
-
-        return new RoutePathCosts
-        {
-            TimeSegmentsCost = timeSegmentsCost,
-            StaminaCost = staminaCost,
-            ObstacleIntensity = obstacleIntensity,
-            TotalCombinedCost = totalCombinedCost,
-            HasObstacle = !string.IsNullOrEmpty(obstacleId),
-            ObstacleId = obstacleId
-        };
-    }
-
     /// <summary>
     /// Calculate obstacle intensity after equipment reductions
     /// Uses equipment contexts to reduce base intensity
@@ -775,20 +699,6 @@ public class TravelFacade
 
         return totalReduction;
     }
-}
-
-/// <summary>
-/// Complete cost breakdown for a route path
-/// Perfect information structure - player sees ALL variables
-/// </summary>
-public class RoutePathCosts
-{
-    public int TimeSegmentsCost { get; set; }
-    public int StaminaCost { get; set; }
-    public int ObstacleIntensity { get; set; }
-    public int TotalCombinedCost { get; set; }
-    public bool HasObstacle { get; set; }
-    public string ObstacleId { get; set; }
 }
 
 /// <summary>

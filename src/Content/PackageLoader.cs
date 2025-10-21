@@ -1071,24 +1071,6 @@ public class PackageLoader
                     { }
                 }
 
-                // Core Loop: Parse available paths within this segment
-                if (segmentDto.AvailablePaths != null)
-                {
-                    foreach (RoutePathDTO pathDto in segmentDto.AvailablePaths)
-                    {
-                        RoutePath path = new RoutePath
-                        {
-                            Id = pathDto.Id,
-                            TimeSegments = pathDto.TimeSegments,
-                            StaminaCost = pathDto.StaminaCost,
-                            OptionalObstacleId = pathDto.OptionalObstacleId,
-                            Description = pathDto.Description,
-                            HiddenUntilExploration = pathDto.HiddenUntilExploration
-                        };
-                        segment.AvailablePaths.Add(path);
-                    }
-                }
-
                 route.Segments.Add(segment);
             }
         }

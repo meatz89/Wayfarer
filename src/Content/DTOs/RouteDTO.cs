@@ -54,23 +54,6 @@ public class RouteSegmentDTO
     // For Encounter segments: mandatory obstacle that must be resolved to proceed
     public string MandatoryObstacleId { get; set; }
 
-    // Core Loop: Path choices within this segment (1-3 paths with different trade-offs)
-    public List<RoutePathDTO> AvailablePaths { get; set; } = new List<RoutePathDTO>();
-
-    // Core Loop: Narrative description of this segment location
+    // Narrative description of this segment location
     public string NarrativeDescription { get; set; }
-}
-
-/// <summary>
-/// Data Transfer Object for individual path options within a route segment (Core Loop design).
-/// Each segment offers 1-3 paths with different time/stamina/obstacle trade-offs.
-/// </summary>
-public class RoutePathDTO
-{
-    public string Id { get; set; }
-    public int TimeSegments { get; set; }
-    public int StaminaCost { get; set; }
-    public string OptionalObstacleId { get; set; }
-    public string Description { get; set; }
-    public int HiddenUntilExploration { get; set; } = 0;
 }

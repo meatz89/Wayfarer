@@ -11,7 +11,23 @@
     "pathCards": [],
     "eventCards": [],
     "travelEvents": [],
-    "pathCardCollections": [],
+    "pathCardCollections": [
+      {
+        "collectionId": "tutorial_square_to_inn_paths",
+        "pathCards": [
+          {
+            "id": "walk_to_inn",
+            "name": "Walk to the Inn",
+            "narrativeText": "A short walk across the square. The warm glow of the Brass Bell Inn beckons. Inside: warmth, food, safety.",
+            "staminaCost": 0,
+            "travelTimeSegments": 0,
+            "startsRevealed": true,
+            "explorationThreshold": 0,
+            "obstacleId": null
+          }
+        ]
+      }
+    ],
     "routes": [
       {
         "id": "square_to_inn",
@@ -25,17 +41,9 @@
         "segments": [
           {
             "segmentNumber": 1,
+            "type": "FixedPath",
             "narrativeDescription": "You cross the square toward the inn. Lamplight spills from its windows. Inside: warmth, food, safety.",
-            "availablePaths": [
-              {
-                "id": "walk_to_inn",
-                "description": "Walk to the inn",
-                "timeSegments": 0,
-                "staminaCost": 0,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              }
-            ]
+            "pathCollectionId": "tutorial_square_to_inn_paths"
           }
         ]
       }
