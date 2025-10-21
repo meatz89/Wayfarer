@@ -3,7 +3,7 @@
   "metadata": {
     "name": "Core Goals - Miller's Daughter POC",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Goal definitions: Permanent goals assigned at initialization + Investigation-dynamic goals spawned by waterwheel mystery",
+    "description": "Goal definitions: Permanent goals assigned at initialization + Obligation-dynamic goals spawned by waterwheel mystery",
     "author": "Wayfarer Team",
     "version": "2.0.0"
   },
@@ -19,7 +19,7 @@
         "consequenceType": "Resolution",
         "setsResolutionMethod": "Preparation",
         "setsRelationshipOutcome": "Neutral",
-        "investigationId": "elena_workshop_delivery",
+        "obligationId": "elena_workshop_delivery",
         "isAvailable": true,
         "deleteOnSuccess": true,
         "propertyRequirements": {},
@@ -45,7 +45,7 @@
         "consequenceType": "Resolution",
         "setsResolutionMethod": "Preparation",
         "setsRelationshipOutcome": "Neutral",
-        "investigationId": "aldric_tool_request",
+        "obligationId": "aldric_tool_request",
         "isAvailable": true,
         "deleteOnSuccess": true,
         "propertyRequirements": {},

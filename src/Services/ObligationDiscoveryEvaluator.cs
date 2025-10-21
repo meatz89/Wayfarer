@@ -3,44 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Evaluates which investigations can be discovered based on game state
+/// Evaluates which obligations can be discovered based on game state
 /// STATELESS service - all state in GameWorld
 /// Follows ARCHITECTURE.md principles: service operates on GameWorld, doesn't store state
 /// </summary>
-public class InvestigationDiscoveryEvaluator
+public class ObligationDiscoveryEvaluator
 {
     private readonly GameWorld _gameWorld;
 
-    public InvestigationDiscoveryEvaluator(GameWorld gameWorld)
+    public ObligationDiscoveryEvaluator(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     }
 
     /// <summary>
-    /// Evaluate all Potential investigations and return those ready to be discovered
+    /// Evaluate all Potential obligations and return those ready to be discovered
     /// Called on: Venue entry, knowledge gain, item acquisition, obligation acceptance
     /// </summary>
-    public List<Investigation> EvaluateDiscoverableInvestigations(Player player)
+    public List<Obligation> EvaluateDiscoverableObligations(Player player)
     {
-        List<Investigation> discoverable = new List<Investigation>();
+        List<Obligation> discoverable = new List<Obligation>();
 
-        foreach (string investigationId in _gameWorld.InvestigationJournal.PotentialInvestigationIds)
+        foreach (string obligationId in _gameWorld.ObligationJournal.PotentialObligationIds)
         {
-            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-            if (investigation == null)
+            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation == null)
             {
                 continue;
             }
 
             // Skip if no intro action defined
-            if (investigation.IntroAction == null)
+            if (obligation.IntroAction == null)
             {
                 continue;
             }
 
-            if (IsTriggerConditionMet(investigation, player))
+            if (IsTriggerConditionMet(obligation, player))
             {
-                discoverable.Add(investigation);
+                discoverable.Add(obligation);
             }
         }
 
@@ -48,15 +48,15 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// Check if specific investigation's trigger condition is met
+    /// Check if specific obligation's trigger condition is met
     /// </summary>
-    private bool IsTriggerConditionMet(Investigation investigation, Player player)
+    private bool IsTriggerConditionMet(Obligation obligation, Player player)
     {
-        InvestigationPrerequisites prereqs = investigation.IntroAction.TriggerPrerequisites;
+        ObligationPrerequisites prereqs = obligation.IntroAction.TriggerPrerequisites;
         if (prereqs == null) return true; // No prerequisites = always available
 
         // Check prerequisites based on trigger type
-        return investigation.IntroAction.TriggerType switch
+        return obligation.IntroAction.TriggerType switch
         {
             DiscoveryTriggerType.ImmediateVisibility => CheckImmediateVisibility(prereqs, player),
             DiscoveryTriggerType.EnvironmentalObservation => CheckEnvironmentalObservation(prereqs, player),
@@ -72,7 +72,7 @@ public class InvestigationDiscoveryEvaluator
     /// ImmediateVisibility: Player is at required location
     /// Prerequisites: LocationId (globally unique)
     /// </summary>
-    private bool CheckImmediateVisibility(InvestigationPrerequisites prereqs, Player player)
+    private bool CheckImmediateVisibility(ObligationPrerequisites prereqs, Player player)
     {
         // Check if player is at required location (LocationId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
@@ -86,7 +86,7 @@ public class InvestigationDiscoveryEvaluator
     /// EnvironmentalObservation: Player is at required location
     /// Prerequisites: LocationId (globally unique)
     /// </summary>
-    private bool CheckEnvironmentalObservation(InvestigationPrerequisites prereqs, Player player)
+    private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs, Player player)
     {
         // Check if player is at required location (LocationId is globally unique)
         if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
@@ -96,11 +96,11 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ConversationalDiscovery: Investigation discovered through conversations
+    /// ConversationalDiscovery: Obligation discovered through conversations
     /// KNOWLEDGE SYSTEM ELIMINATED: No more boolean gates
     /// Prerequisites: None (Knowledge system was deleted in Phase 2)
     /// </summary>
-    private bool CheckConversationalDiscovery(InvestigationPrerequisites prereqs, Player player)
+    private bool CheckConversationalDiscovery(ObligationPrerequisites prereqs, Player player)
     {
         // Knowledge system eliminated - no prerequisites to check
         // ConversationalDiscovery now represents narrative triggers without gating
@@ -108,11 +108,11 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ItemDiscovery: Investigation discovered through item-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// ItemDiscovery: Obligation discovered through item-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
     /// Prerequisites: None (RequiredItems system eliminated)
     /// </summary>
-    private bool CheckItemDiscovery(InvestigationPrerequisites prereqs, Player player)
+    private bool CheckItemDiscovery(ObligationPrerequisites prereqs, Player player)
     {
         // RequiredItems system eliminated - no prerequisites to check
         // ItemDiscovery now represents narrative triggers without gating
@@ -120,11 +120,11 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// ObligationTriggered: Investigation discovered through obligation-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// ObligationTriggered: Obligation discovered through obligation-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
     /// Prerequisites: None (RequiredObligation system eliminated)
     /// </summary>
-    private bool CheckObligationTriggered(InvestigationPrerequisites prereqs, Player player)
+    private bool CheckObligationTriggered(ObligationPrerequisites prereqs, Player player)
     {
         // RequiredObligation system eliminated - no prerequisites to check
         // ObligationTriggered now represents narrative triggers without gating
@@ -132,11 +132,11 @@ public class InvestigationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// GoalCompletionTrigger: Investigation discovered through goal-based narrative triggers
-    /// PRINCIPLE 4: No boolean gates - investigations visible based on narrative context
+    /// GoalCompletionTrigger: Obligation discovered through goal-based narrative triggers
+    /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
     /// Prerequisites: None (CompletedGoalId system eliminated)
     /// </summary>
-    private bool CheckGoalCompletionTrigger(InvestigationPrerequisites prereqs)
+    private bool CheckGoalCompletionTrigger(ObligationPrerequisites prereqs)
     {
         // CompletedGoalId system eliminated - no prerequisites to check
         // GoalCompletionTrigger now represents narrative triggers without gating

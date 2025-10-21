@@ -86,7 +86,7 @@ public class PackageLoader
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
         InitializeTravelDiscoverySystem();
-        InitializeInvestigationJournal();
+        InitializeObligationJournal();
     }
 
     /// <summary>
@@ -129,8 +129,8 @@ public class PackageLoader
         LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
         LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
 
-        // 3.5 Investigation Templates (strategic multi-phase activities)
-        LoadInvestigations(package.Content.Investigations, allowSkeletons);
+        // 3.5 Obligation Templates (strategic multi-phase activities)
+        LoadObligations(package.Content.Obligations, allowSkeletons);
         LoadGoals(package.Content.Goals, allowSkeletons);
         LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
@@ -157,7 +157,7 @@ public class PackageLoader
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
-        // 9. V2 Investigation and Travel Systems
+        // 9. V2 Obligation and Travel Systems
         LoadTravelObstacles(package.Content.TravelObstacles, allowSkeletons);
     }
 
@@ -456,15 +456,15 @@ public class PackageLoader
         }
     }
 
-    private void LoadInvestigations(List<InvestigationDTO> investigations, bool allowSkeletons)
+    private void LoadObligations(List<ObligationDTO> obligations, bool allowSkeletons)
     {
-        if (investigations == null) return;
+        if (obligations == null) return;
 
-        InvestigationParser parser = new InvestigationParser(_gameWorld);
-        foreach (InvestigationDTO dto in investigations)
+        ObligationParser parser = new ObligationParser(_gameWorld);
+        foreach (ObligationDTO dto in obligations)
         {
-            Investigation investigation = parser.ParseInvestigation(dto);
-            _gameWorld.Investigations.Add(investigation);
+            Obligation obligation = parser.ParseObligation(dto);
+            _gameWorld.Obligations.Add(obligation);
         }
     }
 
@@ -1162,17 +1162,17 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Initialize investigation journal with all investigations as Potential (awaiting discovery triggers)
-    /// Called AFTER all packages are loaded to ensure all investigations exist
+    /// Initialize obligation journal with all obligations as Potential (awaiting discovery triggers)
+    /// Called AFTER all packages are loaded to ensure all obligations exist
     /// </summary>
-    private void InitializeInvestigationJournal()
+    private void InitializeObligationJournal()
     {
-        InvestigationJournal investigationJournal = _gameWorld.InvestigationJournal;
+        ObligationJournal obligationJournal = _gameWorld.ObligationJournal;
 
-        investigationJournal.PotentialInvestigationIds.Clear();
-        foreach (Investigation investigation in _gameWorld.Investigations)
+        obligationJournal.PotentialObligationIds.Clear();
+        foreach (Obligation obligation in _gameWorld.Obligations)
         {
-            investigationJournal.PotentialInvestigationIds.Add(investigation.Id);
+            obligationJournal.PotentialObligationIds.Add(obligation.Id);
         }
     }
 

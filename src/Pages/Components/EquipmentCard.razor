@@ -27,6 +27,37 @@ Shows contexts, state, durability, and actions
             <span class="stat-label">Reduction:</span>
             <span class="stat-value">-@Equipment.IntensityReduction intensity</span>
         </div>
+
+        @if (Equipment.UsageType != EquipmentUsageType.Permanent)
+        {
+            <div class="equipment-stat">
+                <span class="stat-label">Type:</span>
+                <span class="stat-value">@Equipment.UsageType.ToString()</span>
+            </div>
+        }
+
+        @if (Equipment.UsageType == EquipmentUsageType.Exhaustible)
+        {
+            <div class="equipment-stat">
+                <span class="stat-label">State:</span>
+                <span class="stat-value state-@Equipment.CurrentState.ToString().ToLower()">
+                    @Equipment.CurrentState.ToString()
+                </span>
+            </div>
+
+            <div class="equipment-stat">
+                <span class="stat-label">Durability:</span>
+                <span class="stat-value">@Equipment.CurrentUses / @Equipment.ExhaustAfterUses uses</span>
+            </div>
+
+            @if (Equipment.CurrentState == EquipmentState.Exhausted)
+            {
+                <div class="equipment-stat">
+                    <span class="stat-label">Repair Cost:</span>
+                    <span class="stat-value">@Equipment.RepairCost coins</span>
+                </div>
+            }
+        }
     </div>
 
     <div class="equipment-prices">
@@ -37,6 +68,15 @@ Shows contexts, state, durability, and actions
     @if (ShowActions)
     {
         <div class="equipment-actions">
+            @if (Equipment.UsageType == EquipmentUsageType.Exhaustible &&
+                 Equipment.CurrentState == EquipmentState.Exhausted &&
+                 OnRepair.HasDelegate)
+            {
+                <button class="btn-repair" @onclick="OnRepair">
+                    Repair (@Equipment.RepairCost coins)
+                </button>
+            }
+
             @if (OnSell.HasDelegate)
             {
                 <button class="btn-sell" @onclick="OnSell">
@@ -51,4 +91,5 @@ Shows contexts, state, durability, and actions
     [Parameter] public Equipment Equipment { get; set; }
     [Parameter] public bool ShowActions { get; set; } = false;
     [Parameter] public EventCallback OnSell { get; set; }
+    [Parameter] public EventCallback OnRepair { get; set; }
 }

@@ -41,8 +41,8 @@ public static class ServiceConfiguration
         services.AddSingleton<MessageSystem>();
         services.AddSingleton<DebugLogger>();
 
-        // V3 Card-Based Investigation System - DELETED (wrong architecture)
-        // Investigation is strategic activity, not tactical system
+        // V3 Card-Based Obligation System - DELETED (wrong architecture)
+        // Obligation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
         services.AddSingleton<TravelObstacleService>();
 
@@ -76,9 +76,9 @@ public static class ServiceConfiguration
         services.AddSingleton<PhysicalNarrativeService>();
         services.AddSingleton<PhysicalDeckBuilder>();
 
-        // Investigation Activity - Strategic orchestrator for multi-phase investigations
-        services.AddSingleton<InvestigationActivity>();
-        services.AddSingleton<InvestigationDiscoveryEvaluator>();
+        // Obligation Activity - Strategic orchestrator for multi-phase obligations
+        services.AddSingleton<ObligationActivity>();
+        services.AddSingleton<ObligationDiscoveryEvaluator>();
 
         // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
         services.AddSingleton<ObstacleGoalFilter>();
@@ -87,6 +87,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ObstacleFacade>();
 
         // Equipment Subsystem
+        services.AddSingleton<EquipmentUsageService>();
         services.AddSingleton<EquipmentFacade>();
 
         // NPC deck initialization handled directly in PackageLoader
@@ -190,6 +191,9 @@ public static class ServiceConfiguration
         services.AddSingleton<NarrativeRenderer>();
         services.AddSingleton<LocationNarrativeGenerator>();
         services.AddSingleton<NarrativeFacade>();
+
+        // Mastery (Cubes) Subsystem
+        services.AddSingleton<CubeFacade>();
 
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();

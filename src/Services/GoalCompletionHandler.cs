@@ -3,21 +3,21 @@ using System.Linq;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Handles goal completion lifecycle - marking complete, removing from ActiveGoals if DeleteOnSuccess, and investigation progress
+/// Handles goal completion lifecycle - marking complete, removing from ActiveGoals if DeleteOnSuccess, and obligation progress
 /// </summary>
 public class GoalCompletionHandler
 {
     private readonly GameWorld _gameWorld;
-    private readonly InvestigationActivity _investigationActivity;
+    private readonly ObligationActivity _obligationActivity;
 
-    public GoalCompletionHandler(GameWorld gameWorld, InvestigationActivity investigationActivity)
+    public GoalCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
+        _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
     }
 
     /// <summary>
-    /// Complete a goal - mark as complete, remove from ActiveGoals if DeleteOnSuccess=true, and check investigation progress
+    /// Complete a goal - mark as complete, remove from ActiveGoals if DeleteOnSuccess=true, and check obligation progress
     /// </summary>
     /// <param name="goal">Goal that was successfully completed</param>
     public void CompleteGoal(Goal goal)
@@ -37,38 +37,38 @@ public class GoalCompletionHandler
             RemoveGoalFromActiveGoals(goal);
         }
 
-        // Check for investigation progress (system-agnostic - works for Mental, Physical, Social)
-        if (!string.IsNullOrEmpty(goal.InvestigationId))
+        // Check for obligation progress (system-agnostic - works for Mental, Physical, Social)
+        if (!string.IsNullOrEmpty(goal.ObligationId))
         {
-            CheckInvestigationProgress(goal.Id, goal.InvestigationId);
+            CheckObligationProgress(goal.Id, goal.ObligationId);
         }
     }
 
     /// <summary>
-    /// Check for investigation progress when goal completes
+    /// Check for obligation progress when goal completes
     /// Handles both intro actions (Discovered → Active) and regular goals (phase progression)
     /// </summary>
-    private void CheckInvestigationProgress(string goalId, string investigationId)
+    private void CheckObligationProgress(string goalId, string obligationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
         Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
         if (goal != null && goal.IsIntroAction)
         {
-            // This is intro completion - activate investigation and spawn Phase 1
-            _investigationActivity.CompleteIntroAction(investigationId);
+            // This is intro completion - activate obligation and spawn Phase 1
+            _obligationActivity.CompleteIntroAction(obligationId);
             return;
         }
 
         // Regular goal completion
-        InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
+        ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(goalId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 
-        // Check if investigation is now complete
-        InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
+        // Check if obligation is now complete
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
         if (completeResult != null)
         {
-            // Investigation complete - UI will display completion modal
+            // Obligation complete - UI will display completion modal
         }
     }
 
@@ -114,12 +114,12 @@ public class GoalCompletionHandler
                 player.Inventory.AddItem(rewards.EquipmentId);
             }
 
-            // INVESTIGATION CUBES - grant to goal's placement Location (localized mastery)
-            if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
+            // OBLIGATION CUBES - grant to goal's placement Location (localized mastery)
+            if (rewards.XXXOBLIGATIONCUBESXXX.HasValue && rewards.XXXOBLIGATIONCUBESXXX.Value > 0)
             {
                 if (!string.IsNullOrEmpty(goal.PlacementLocationId))
                 {
-                    _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.InvestigationCubes.Value);
+                    _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.XXXOBLIGATIONCUBESXXX.Value);
                     Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                     string locationName = location.Name;
                 }
@@ -176,17 +176,17 @@ public class GoalCompletionHandler
                 }
             }
 
-            // OBLIGATION ID - spawn existing investigation (SelfDiscovered or NPCCommissioned)
+            // OBLIGATION ID - spawn existing obligation (SelfDiscovered or NPCCommissioned)
             if (!string.IsNullOrEmpty(rewards.ObligationId))
             {
-                Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == rewards.ObligationId);
-                if (investigation != null)
+                Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == rewards.ObligationId);
+                if (obligation != null)
                 {
-                    // Move investigation to Discovered state (player must accept via intro action)
-                    if (!_gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Contains(rewards.ObligationId))
+                    // Move obligation to Discovered state (player must accept via intro action)
+                    if (!_gameWorld.ObligationJournal.DiscoveredObligationIds.Contains(rewards.ObligationId))
                     {
-                        _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(rewards.ObligationId);
-                        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(rewards.ObligationId);
+                        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(rewards.ObligationId);
+                        _gameWorld.ObligationJournal.DiscoveredObligationIds.Add(rewards.ObligationId);
                     }
                     else
                     {

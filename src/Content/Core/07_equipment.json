@@ -34,24 +34,26 @@
       {
         "Id": "lantern",
         "Name": "Oil Lantern",
-        "Description": "Oil lantern providing light in dark places",
+        "Description": "Oil lantern providing light in dark places - oil runs out with use",
         "BuyPrice": 15,
         "SellPrice": 7,
         "Categories": ["Equipment"],
         "ApplicableContexts": ["Darkness", "Search"],
         "IntensityReduction": 1,
-        "UsageType": "Permanent"
+        "UsageType": "Exhaustible",
+        "Durability": "Fragile"
       },
       {
         "Id": "tools",
         "Name": "Tools",
-        "Description": "Set of precision tools for mechanical work",
+        "Description": "Set of precision tools for mechanical work - wear out with use",
         "BuyPrice": 20,
         "SellPrice": 10,
         "Categories": ["Equipment"],
         "ApplicableContexts": ["Mechanical", "Precision"],
         "IntensityReduction": 1,
-        "UsageType": "Permanent"
+        "UsageType": "Exhaustible",
+        "Durability": "Sturdy"
       },
       {
         "Id": "quality_clothing",
@@ -78,13 +80,14 @@
       {
         "Id": "climbing_gear",
         "Name": "Climbing Gear",
-        "Description": "Professional climbing equipment",
+        "Description": "Professional climbing equipment - durable but requires maintenance",
         "BuyPrice": 30,
         "SellPrice": 15,
         "Categories": ["Equipment"],
         "ApplicableContexts": ["Climbing", "Height"],
         "IntensityReduction": 2,
-        "UsageType": "Permanent"
+        "UsageType": "Exhaustible",
+        "Durability": "Durable"
       }
     ]
   }

@@ -111,8 +111,29 @@ public static class ItemParser
             // Parse exhaustion fields (for Exhaustible equipment only)
             if (usageType == EquipmentUsageType.Exhaustible)
             {
-                equipment.ExhaustAfterUses = dto.ExhaustAfterUses ?? 0;
-                equipment.RepairCost = dto.RepairCost ?? 0;
+                // Parse categorical durability property → translate to mechanical values via catalogue
+                if (!string.IsNullOrEmpty(dto.Durability))
+                {
+                    if (EnumParser.TryParse<DurabilityType>(dto.Durability, out DurabilityType durability))
+                    {
+                        (int uses, int repairCost) = EquipmentDurabilityCatalog.GetDurabilityValues(durability);
+                        equipment.ExhaustAfterUses = uses;
+                        equipment.RepairCost = repairCost;
+                    }
+                    else
+                    {
+                        throw new InvalidDataException(
+                            $"Invalid durability '{dto.Durability}' in equipment '{dto.Id}'. " +
+                            $"Must be one of: {string.Join(", ", Enum.GetNames<DurabilityType>())}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidDataException(
+                        $"Exhaustible equipment '{dto.Id}' missing required field 'Durability'. " +
+                        $"Must specify: {string.Join(", ", Enum.GetNames<DurabilityType>())}");
+                }
+
                 equipment.CurrentUses = 0; // Always start fresh
                 equipment.CurrentState = EquipmentState.Functional; // Always start functional
             }

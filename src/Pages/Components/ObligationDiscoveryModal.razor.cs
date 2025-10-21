@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
-    public class InvestigationDiscoveryModalBase : ComponentBase
+    public class ObligationDiscoveryModalBase : ComponentBase
     {
-        [Parameter] public InvestigationDiscoveryResult Data { get; set; }
+        [Parameter] public ObligationDiscoveryResult Data { get; set; }
         [Parameter] public EventCallback OnBeginIntro { get; set; }
         [Parameter] public EventCallback OnDismiss { get; set; }
 

@@ -42,7 +42,7 @@ public class SocialChallengeOption
     public int MomentumThreshold { get; set; }
 
     /// <summary>
-    /// Investigation ID if this conversation option is part of an active investigation
+    /// Obligation ID if this conversation option is part of an active obligation
     /// </summary>
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
 }

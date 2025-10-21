@@ -33,12 +33,12 @@ public class GoalDTO
     public string PlacementNpcId { get; set; }
 
     /// <summary>
-    /// Investigation ID for UI grouping and label display
+    /// Obligation ID for UI grouping and label display
     /// </summary>
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
 
     /// <summary>
-    /// Whether this goal is an investigation intro action
+    /// Whether this goal is an obligation intro action
     /// </summary>
     public bool IsIntroAction { get; set; } = false;
 
@@ -54,7 +54,7 @@ public class GoalDTO
 
     /// <summary>
     /// Whether this goal should be deleted from ActiveGoals on successful completion.
-    /// Default: true (investigation progression pattern)
+    /// Default: true (obligation progression pattern)
     /// </summary>
     public bool DeleteOnSuccess { get; set; } = true;
 

@@ -32,7 +32,7 @@ namespace Wayfarer.Pages.Components
         protected CardInstance SelectedCard { get; set; }
         protected string LastNarrative { get; set; }
         protected bool IsProcessing { get; set; } = false;
-        protected bool IsInvestigationEnded { get; set; } = false;
+        protected bool IsObligationEnded { get; set; } = false;
         protected string EndReason { get; set; }
 
         protected override void OnInitialized()
@@ -158,12 +158,12 @@ namespace Wayfarer.Pages.Components
                         await GameScreen.RefreshResourceDisplay();
                     }
 
-                    // Check if investigation should end
+                    // Check if obligation should end
                     if (Session != null && Session.ShouldEnd())
                     {
-                        IsInvestigationEnded = true;
+                        IsObligationEnded = true;
                         EndReason = Session.CurrentProgress >= Session.VictoryThreshold
-                            ? "Investigation complete!"
+                            ? "Obligation complete!"
                             : "Maximum exposure reached";
                     }
                 }
@@ -203,12 +203,12 @@ namespace Wayfarer.Pages.Components
                         await GameScreen.RefreshResourceDisplay();
                     }
 
-                    // Check if investigation should end
+                    // Check if obligation should end
                     if (Session != null && Session.ShouldEnd())
                     {
-                        IsInvestigationEnded = true;
+                        IsObligationEnded = true;
                         EndReason = Session.CurrentProgress >= Session.VictoryThreshold
-                            ? "Investigation complete!"
+                            ? "Obligation complete!"
                             : "Maximum exposure reached";
                     }
                 }
@@ -220,7 +220,7 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task EndInvestigation()
+        protected async Task EndObligation()
         {
             if (IsProcessing || Session == null)
                 return;
@@ -235,8 +235,8 @@ namespace Wayfarer.Pages.Components
                 if (outcome != null)
                 {
                     LastNarrative = outcome.Success
-                        ? $"Investigation complete! Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}"
-                        : $"Investigation incomplete. Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}";
+                        ? $"Obligation complete! Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}"
+                        : $"Obligation incomplete. Progress: {outcome.FinalProgress}, Exposure: {outcome.FinalExposure}";
                 }
 
                 await OnChallengeEnd.InvokeAsync();
@@ -368,7 +368,7 @@ namespace Wayfarer.Pages.Components
 
         protected string GetCardCategory(CardInstance card)
         {
-            // MentalCategory: Investigation type
+            // MentalCategory: Obligation type
             if (card?.MentalCardTemplate == null)
                 throw new InvalidOperationException("Card or template is null");
             return card.MentalCardTemplate.Category.ToString();
@@ -478,22 +478,22 @@ namespace Wayfarer.Pages.Components
             return Session.VictoryThreshold;
         }
 
-        protected bool IsInvestigationComplete()
+        protected bool IsObligationComplete()
         {
             if (Session == null) return false;
             return Session.CurrentProgress >= Session.VictoryThreshold;
         }
 
-        protected bool IsInvestigationFailed()
+        protected bool IsObligationFailed()
         {
             if (Session == null) return false;
             return Session.CurrentExposure >= Session.MaxExposure;
         }
 
-        protected string GetInvestigationStatus()
+        protected string GetObligationStatus()
         {
-            if (IsInvestigationComplete()) return "Complete";
-            if (IsInvestigationFailed()) return "Exposed";
+            if (IsObligationComplete()) return "Complete";
+            if (IsObligationFailed()) return "Exposed";
             return "Active";
         }
 
@@ -574,10 +574,10 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // MANUAL INVESTIGATION END
+        // MANUAL OBLIGATION END
         // =============================================
 
-        protected async Task ManuallyEndInvestigation()
+        protected async Task ManuallyEndObligation()
         {
             if (IsProcessing) return;
 
@@ -675,12 +675,12 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // INVESTIGATION STATUS DISPLAY
+        // OBLIGATION STATUS DISPLAY
         // =============================================
 
         protected string GetProgressStatusText()
         {
-            if (Session == null) return "No active investigation";
+            if (Session == null) return "No active obligation";
 
             int progress = Session.CurrentProgress;
             int threshold = Session.VictoryThreshold;
@@ -692,12 +692,12 @@ namespace Wayfarer.Pages.Components
 
         protected bool ShouldShowVictoryIndicator()
         {
-            return IsInvestigationComplete();
+            return IsObligationComplete();
         }
 
         protected bool ShouldShowFailureIndicator()
         {
-            return IsInvestigationFailed();
+            return IsObligationFailed();
         }
 
         // =============================================
@@ -760,7 +760,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Play a goal card to complete the investigation
+        /// Play a goal card to complete the obligation
         /// Goal cards end the session immediately with success
         /// </summary>
         protected async Task PlayGoalCard(CardInstance goalCard)
@@ -779,8 +779,8 @@ namespace Wayfarer.Pages.Components
                 if (result != null && result.Success)
                 {
                     LastNarrative = result.Narrative;
-                    IsInvestigationEnded = true;
-                    EndReason = "Investigation complete";
+                    IsObligationEnded = true;
+                    EndReason = "Obligation complete";
 
                     // Refresh resource display
                     if (GameScreen != null)

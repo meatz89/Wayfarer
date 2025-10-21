@@ -91,7 +91,7 @@ public class GoalCardRewards
     public string Item { get; set; }
 
     // Cube rewards (strong typing, auto-applied to goal's context)
-    public int? InvestigationCubes { get; set; }
+    public int? XXXOBLIGATIONCUBESXXX { get; set; }
     public int? StoryCubes { get; set; }
     public int? ExplorationCubes { get; set; }
 

@@ -42,8 +42,8 @@ public static class GameWorldInitializer
             if (!string.IsNullOrEmpty(goal.PlacementNpcId))
                 goal.PlacementNpc = gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
 
-            if (!string.IsNullOrEmpty(goal.InvestigationId))
-                goal.Investigation = gameWorld.Investigations.FirstOrDefault(i => i.Id == goal.InvestigationId);
+            if (!string.IsNullOrEmpty(goal.ObligationId))
+                goal.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == goal.ObligationId);
         }// Wire NPCs
         foreach (NPC npc in gameWorld.NPCs)
         {

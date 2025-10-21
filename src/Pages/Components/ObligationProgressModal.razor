@@ -1,16 +1,16 @@
-@inherits InvestigationProgressModalBase
+@inherits ObligationProgressModalBase
 @namespace Wayfarer.Pages.Components
 
-<div class="investigation-notification-container">
-    <div class="investigation-header">
-        <div class="investigation-icon">🔍</div>
-        <div class="investigation-title-section">
-            <div class="investigation-main-title">Investigation Progress</div>
-            <div class="investigation-subtitle">@Data.InvestigationName</div>
+<div class="obligation-notification-container">
+    <div class="obligation-header">
+        <div class="obligation-icon">🔍</div>
+        <div class="obligation-title-section">
+            <div class="obligation-main-title">Obligation Progress</div>
+            <div class="obligation-subtitle">@Data.ObligationName</div>
         </div>
     </div>
 
-    <div class="investigation-outcome-section">
+    <div class="obligation-outcome-section">
         <div class="outcome-text">@Data.OutcomeNarrative</div>
 
         <div class="goal-completed-box">
@@ -42,8 +42,8 @@
         </div>
     }
 
-    <div class="investigation-progress-section">
-        <div class="progress-label">Investigation Progress: @Data.InvestigationName</div>
+    <div class="obligation-progress-section">
+        <div class="progress-label">Obligation Progress: @Data.ObligationName</div>
         <div class="progress-bar">
             <div class="progress-fill" style="width: @GetProgressPercent()%"></div>
         </div>
@@ -51,6 +51,6 @@
     </div>
 
     <div class="action-section">
-        <button class="continue-button" @onclick="CloseModal">Continue Investigation</button>
+        <button class="continue-button" @onclick="CloseModal">Continue Obligation</button>
     </div>
 </div>

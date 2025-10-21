@@ -34,7 +34,7 @@ public static class LocationActionParser
             TimeRequired = dto.TimeRequired,
             Availability = dto.Availability ?? new List<string>(),
             Priority = dto.Priority,
-            InvestigationId = dto.InvestigationId,
+            ObligationId = dto.ObligationId,
             RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
             OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
             ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)

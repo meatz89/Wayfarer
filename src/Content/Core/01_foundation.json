@@ -3,7 +3,7 @@
   "metadata": {
     "name": "Core Foundation - POC Only",
     "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Minimal POC: Old Mill Venue only with waterwheel investigation",
+    "description": "Minimal POC: Old Mill Venue only with waterwheel obligation",
     "author": "Wayfarer Team",
     "version": "5.0.0"
   },
@@ -44,7 +44,7 @@
           ]
         },
         "canInvestigate": true,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         }
       },
@@ -60,7 +60,7 @@
           ]
         },
         "canInvestigate": false,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         }
       },
@@ -76,7 +76,7 @@
           ]
         },
         "canInvestigate": true,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         },
         "obstacleIds": ["mill_entrance_blocked"]
@@ -97,7 +97,7 @@
           ]
         },
         "canInvestigate": true,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         }
       },
@@ -113,7 +113,7 @@
           ]
         },
         "canInvestigate": true,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         }
       },
@@ -130,7 +130,7 @@
           ]
         },
         "canInvestigate": true,
-        "investigationScaling": {
+        "obligationScaling": {
           "default": 1
         }
       }

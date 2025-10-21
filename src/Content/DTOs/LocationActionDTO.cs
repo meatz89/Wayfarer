@@ -63,12 +63,12 @@ public class LocationActionDTO
     public int Priority { get; set; } = 100;
 
     /// <summary>
-    /// Action type for special handling (e.g., "travel", "work", "rest", "investigation")
+    /// Action type for special handling (e.g., "travel", "work", "rest", "obligation")
     /// </summary>
     public string ActionType { get; set; }
 
     /// <summary>
-    /// Investigation ID if this action launches an investigation (V2)
+    /// Obligation ID if this action launches an obligation (V2)
     /// </summary>
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
 }

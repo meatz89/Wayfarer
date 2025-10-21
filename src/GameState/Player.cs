@@ -57,10 +57,10 @@ public class Player
     // Standing Obligations System
     public List<StandingObligation> StandingObligations { get; private set; } = new List<StandingObligation>();
 
-    // Active Investigations (Core Loop design)
-    // Tracks investigations player has activated (NPCCommissioned have deadlines)
-    // References investigations in GameWorld.Investigations (single source of truth)
-    public List<string> ActiveInvestigationIds { get; set; } = new List<string>();
+    // Active Obligations (Core Loop design)
+    // Tracks obligations player has activated (NPCCommissioned have deadlines)
+    // References obligations in GameWorld.Obligations (single source of truth)
+    public List<string> ActiveObligationIds { get; set; } = new List<string>();
 
     // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
     // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
@@ -90,17 +90,17 @@ public class Player
     // Reduces Danger baseline at familiar challenge types (Combat, Athletics, etc.)
     public List<MasteryTokenEntry> MasteryTokens { get; set; } = new List<MasteryTokenEntry>();
 
-    // Mental resource - Focus depletes with investigation, recovers with rest
+    // Mental resource - Focus depletes with obligation, recovers with rest
     // 6-point scale: Each point = ~16.7% of capacity
     // Below 2 Focus: Exposure accumulates faster (+1 per action)
-    // Maximum: 6, Cost: 1-2 per investigation start
+    // Maximum: 6, Cost: 1-2 per obligation start
     public int Focus { get; set; } = 6;
 
     // Mental resource - Understanding cumulative expertise (0-10 scale)
     // Granted by ALL Mental challenges (+1 to +3 based on difficulty)
     // Used by DifficultyModifiers to reduce Exposure baseline
     // Never depletes - permanent player growth (Knowledge system replacement)
-    // Competition: Multiple investigations need it, limited Focus/Time to accumulate
+    // Competition: Multiple obligations need it, limited Focus/Time to accumulate
     // Strategic choice: Build Understanding through easy challenges, or attempt hard challenges early
     public int Understanding { get; set; } = 0;
 

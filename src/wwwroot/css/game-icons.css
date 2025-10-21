@@ -254,12 +254,12 @@
     -webkit-mask-size: contain;
 }
 
-.icon-investigation {
+.icon-obligation {
     display: inline-block;
     position: relative;
 }
 
-.icon-investigation::before {
+.icon-obligation::before {
     content: '';
     display: inline-block;
     width: 14px;

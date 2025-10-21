@@ -52,7 +52,7 @@ public enum ModifierType
     /// Global Mental expertise (0-10 scale)
     /// Accumulated through ALL Mental challenges (+1 to +3 based on difficulty)
     /// Never depletes (permanent player growth)
-    /// Competition: Multiple investigations need it, limited Focus/Time to accumulate
+    /// Competition: Multiple obligations need it, limited Focus/Time to accumulate
     /// Context: null (global resource)
     /// Threshold: Minimum Understanding needed (e.g., 2)
     /// Effect: Exposure reduction (e.g., -3)
@@ -74,7 +74,7 @@ public enum ModifierType
     /// Location understanding (0-3 scale per location)
     /// Accumulated through Mental challenges at that specific location
     /// Never depletes (cumulative per-location growth)
-    /// Competition: Multiple locations need investigation, limited Focus
+    /// Competition: Multiple locations need obligation, limited Focus
     /// Context: NOT USED (service uses goal.PlacementLocationId instead - NO ID MATCHING)
     /// Threshold: Minimum Familiarity needed (e.g., 2)
     /// Effect: Exposure or Doubt reduction (e.g., -2)

@@ -27,7 +27,7 @@
         "name": "Insight",
         "description": "Analytical intelligence and systematic observation. Represents your ability to understand patterns, analyze situations, and apply logical reasoning.",
         "conversationBenefit": "Better success with analytical and observational cards. Unlocks cards that examine evidence and identify patterns.",
-        "investigationUnlock": "Systematic Observation at level 2: +1 familiarity gain when investigating",
+        "obligationUnlock": "Systematic Observation at level 2: +1 familiarity gain when investigating",
         "travelUnlock": "Scholar shortcuts at level 2: Access to library passages, observatory routes, and academic pathways"
       },
       {
@@ -35,7 +35,7 @@
         "name": "Rapport",
         "description": "Emotional intelligence and empathetic connection. Represents your ability to understand feelings, build trust, and connect with others.",
         "conversationBenefit": "Better success with empathetic and supportive cards. Unlocks cards that offer comfort and understanding.",
-        "investigationUnlock": "Local Inquiry at level 2: Learn NPC observation preferences through conversation",
+        "obligationUnlock": "Local Inquiry at level 2: Learn NPC observation preferences through conversation",
         "travelUnlock": "Community paths at level 2: Access to local favors, friendship routes, and neighborhood shortcuts"
       },
       {
@@ -43,7 +43,7 @@
         "name": "Authority",
         "description": "Leadership and persuasive command. Represents your ability to take charge, demand respect, and influence through presence.",
         "conversationBenefit": "Better success with commanding and directive cards. Unlocks cards that establish dominance and demand compliance.",
-        "investigationUnlock": "Demand Access at level 2: Force entry to restricted spots through authority",
+        "obligationUnlock": "Demand Access at level 2: Force entry to restricted spots through authority",
         "travelUnlock": "Noble gates at level 2: Access to checkpoint bypasses, official routes, and command passages"
       },
       {
@@ -51,7 +51,7 @@
         "name": "Diplomacy",
         "description": "Negotiation and trade acumen. Represents your ability to identify value, negotiate deals, and think in terms of profit and exchange.",
         "conversationBenefit": "Better success with negotiation and trade-focused cards. Unlocks cards that propose deals and calculate value.",
-        "investigationUnlock": "Purchase Information at level 2: Pay coins for instant familiarity gain",
+        "obligationUnlock": "Purchase Information at level 2: Pay coins for instant familiarity gain",
         "travelUnlock": "Merchant caravans at level 2: Access to trade routes, market passages, and commercial transport"
       },
       {
@@ -59,7 +59,7 @@
         "name": "Cunning",
         "description": "Subtlety and indirect influence. Represents your ability to work in shadows, find alternative angles, and achieve goals through misdirection.",
         "conversationBenefit": "Better success with subtle and indirect cards. Unlocks cards that hint, deflect, and work around obstacles.",
-        "investigationUnlock": "Covert Search at level 2: Investigate without alerting NPCs or drawing attention",
+        "obligationUnlock": "Covert Search at level 2: Investigate without alerting NPCs or drawing attention",
         "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"
       }
     ],

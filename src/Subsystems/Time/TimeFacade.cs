@@ -253,11 +253,11 @@ public class TimeFacade
         // 2. Apply deadline consequences and build failure report
         foreach (string obligationId in expiredObligationIds)
         {
-            Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == obligationId);
-            if (investigation == null) continue;
+            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation == null) continue;
 
-            // USE OBJECT REFERENCE - Investigation.PatronNpc (O(1) instead of O(n) lookup)
-            NPC patron = investigation.PatronNpc;
+            // USE OBJECT REFERENCE - Obligation.PatronNpc (O(1) instead of O(n) lookup)
+            NPC patron = obligation.PatronNpc;
 
             int cubesBeforeConsequence = patron.StoryCubes;
 
@@ -268,7 +268,7 @@ public class TimeFacade
 
             report.FailedObligations.Add(new FailedObligationInfo
             {
-                ObligationName = investigation.Name,
+                ObligationName = obligation.Name,
                 PatronName = patron.Name,
                 CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
             });

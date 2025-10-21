@@ -136,7 +136,7 @@
     overflow: hidden;
 }
 
-/* Investigation Journal Tabs */
+/* Obligation Journal Tabs */
 .journal-tabs {
     display: flex;
     background: #2a2419;
@@ -172,8 +172,8 @@
     color: #d4c4a1;
 }
 
-/* Investigation Cards */
-.investigation-card {
+/* Obligation Cards */
+.obligation-card {
     background: #2a2419;
     border: 2px solid #3a3020;
     border-radius: 4px;
@@ -181,11 +181,11 @@
     margin-bottom: 20px;
 }
 
-.investigation-card:last-child {
+.obligation-card:last-child {
     margin-bottom: 0;
 }
 
-.investigation-header-row {
+.obligation-header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -194,13 +194,13 @@
     border-bottom: 1px solid #3a3020;
 }
 
-.investigation-title {
+.obligation-title {
     font-size: 18px;
     color: #f4e4c1;
     font-weight: bold;
 }
 
-.investigation-progress-label {
+.obligation-progress-label {
     font-size: 13px;
     color: #8b7355;
     background: #1a1410;
@@ -208,7 +208,7 @@
     border-radius: 3px;
 }
 
-.investigation-progress-bar {
+.obligation-progress-bar {
     width: 100%;
     height: 8px;
     background: #1a1410;
@@ -217,7 +217,7 @@
     overflow: hidden;
 }
 
-.investigation-progress-fill {
+.obligation-progress-fill {
     height: 100%;
     background: linear-gradient(to right, #7a8b5a, #9eb87a);
     transition: width 0.3s;
@@ -330,7 +330,7 @@
     font-style: italic;
 }
 
-/* Completed Investigation Styles */
+/* Completed Obligation Styles */
 .completed-summary {
     background: #2a2419;
     border: 1px solid #3a3020;

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// V4 Mental Session - runtime state for active investigation
+/// V4 Mental Session - runtime state for active obligation
 /// Unified architecture with ConversationSession
 /// </summary>
 public class MentalSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
     public string VenueId { get; set; } // Track Venue for familiarity bonuses
     public MentalSessionDeck Deck { get; set; }
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
@@ -21,7 +21,7 @@ public class MentalSession
     public List<int> UnlockedTiers { get; set; } = new List<int> { 1 };
     public Dictionary<MentalCategory, int> CategoryCounts { get; set; } = new Dictionary<MentalCategory, int>();
 
-    // Investigation-Local Resources (reset between investigations)
+    // Obligation-Local Resources (reset between obligations)
     public int CurrentProgress { get; set; } = 0; // Progress toward current phase threshold
     public int CurrentExposure { get; set; } = 0; // Cumulative disturbance/detection
     public int MaxExposure { get; set; } = 10; // Configured via EngagementType

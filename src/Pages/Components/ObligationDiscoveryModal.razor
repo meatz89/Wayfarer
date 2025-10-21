@@ -1,16 +1,16 @@
-@inherits InvestigationDiscoveryModalBase
+@inherits ObligationDiscoveryModalBase
 @namespace Wayfarer.Pages.Components
 
-<div class="investigation-notification-container">
-    <div class="investigation-header discovery-header">
-        <div class="investigation-icon">🔍</div>
-        <div class="investigation-title-section">
-            <div class="investigation-main-title">Investigation Discovered</div>
-            <div class="investigation-subtitle">@Data.InvestigationName</div>
+<div class="obligation-notification-container">
+    <div class="obligation-header discovery-header">
+        <div class="obligation-icon">🔍</div>
+        <div class="obligation-title-section">
+            <div class="obligation-main-title">Obligation Discovered</div>
+            <div class="obligation-subtitle">@Data.ObligationName</div>
         </div>
     </div>
 
-    <div class="investigation-discovery-section">
+    <div class="obligation-discovery-section">
         <div class="discovery-narrative">@Data.IntroNarrative</div>
         @if (!string.IsNullOrEmpty(Data.LocationName))
         {

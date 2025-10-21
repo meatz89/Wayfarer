@@ -41,7 +41,7 @@ public static class PlayerStatParser
                 Name = statDto.Name,
                 Description = statDto.Description,
                 ConversationBenefit = statDto.ConversationBenefit ?? "", // Optional - defaults to empty if missing
-                InvestigationUnlock = statDto.InvestigationUnlock ?? "", // Optional - defaults to empty if missing
+                ObligationUnlock = statDto.ObligationUnlock ?? "", // Optional - defaults to empty if missing
                 TravelUnlock = statDto.TravelUnlock ?? "" // Optional - defaults to empty if missing
             });
         }
@@ -101,7 +101,7 @@ public class PlayerStatDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string ConversationBenefit { get; set; }
-    public string InvestigationUnlock { get; set; }
+    public string ObligationUnlock { get; set; }
     public string TravelUnlock { get; set; }
 }
 

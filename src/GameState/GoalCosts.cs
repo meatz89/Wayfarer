@@ -9,7 +9,7 @@ public class GoalCosts
     /// Time segments consumed by this goal
     /// Competition: Limited time until deadline (obligation system)
     /// Strategic choice: Fast risky goal vs slow safe goal
-    /// Example: Investigation A takes 3 segments, B takes 5 segments
+    /// Example: Obligation A takes 3 segments, B takes 5 segments
     /// </summary>
     public int Time { get; set; } = 0;
 
@@ -17,8 +17,8 @@ public class GoalCosts
     /// Focus consumed by Mental challenges
     /// Competition: Limited Focus pool (0-100), shared by ALL Mental goals
     /// Recovery: Rest actions, time passing
-    /// Strategic choice: Multiple small investigations vs one large investigation
-    /// Example: Investigation A costs 20 Focus, B costs 30 Focus
+    /// Strategic choice: Multiple small obligations vs one large obligation
+    /// Example: Obligation A costs 20 Focus, B costs 30 Focus
     /// Player has 50 Focus: Can do A+A, or A+B, or B+other
     /// </summary>
     public int Focus { get; set; } = 0;

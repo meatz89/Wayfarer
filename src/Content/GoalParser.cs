@@ -53,7 +53,7 @@ public static class GoalParser
             DeckId = dto.DeckId,
             PlacementLocationId = dto.PlacementLocationId,
             PlacementNpcId = dto.PlacementNpcId,
-            InvestigationId = dto.InvestigationId,
+            ObligationId = dto.ObligationId,
             IsIntroAction = dto.IsIntroAction,
             IsAvailable = dto.IsAvailable,
             IsCompleted = dto.IsCompleted,
@@ -121,7 +121,7 @@ public static class GoalParser
             Item = dto.Item,
 
             // Cube rewards (strong typing)
-            InvestigationCubes = dto.InvestigationCubes,
+            XXXOBLIGATIONCUBESXXX = dto.XXXOBLIGATIONCUBESXXX,
             StoryCubes = dto.StoryCubes,
             ExplorationCubes = dto.ExplorationCubes,
 

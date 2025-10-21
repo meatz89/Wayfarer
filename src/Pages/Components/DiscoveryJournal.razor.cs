@@ -95,69 +95,69 @@ namespace Wayfarer.Pages.Components
             return GameWorld.GetPlayer().GetRouteFamiliarity(routeId);
         }
 
-        protected List<ActiveInvestigation> GetActiveInvestigations()
+        protected List<ActiveObligation> GetActiveObligations()
         {
-            return GameWorld.InvestigationJournal.ActiveInvestigations.ToList();
+            return GameWorld.ObligationJournal.ActiveObligations.ToList();
         }
 
-        protected List<string> GetCompletedInvestigationIds()
+        protected List<string> GetCompletedObligationIds()
         {
-            return GameWorld.InvestigationJournal.CompletedInvestigationIds.ToList();
+            return GameWorld.ObligationJournal.CompletedObligationIds.ToList();
         }
 
-        protected List<string> GetDiscoveredInvestigationIds()
+        protected List<string> GetDiscoveredObligationIds()
         {
-            return GameWorld.InvestigationJournal.DiscoveredInvestigationIds.ToList();
+            return GameWorld.ObligationJournal.DiscoveredObligationIds.ToList();
         }
 
-        protected Investigation GetInvestigationById(string investigationId)
+        protected Obligation GetObligationById(string obligationId)
         {
-            return GameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
+            return GameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
         }
 
-        protected int GetInvestigationProgress(ActiveInvestigation activeInv)
+        protected int GetObligationProgress(ActiveObligation activeInv)
         {
             // CompletedGoalIds eliminated - track progress via resolved obstacles instead
-            // NOTE: Obstacles no longer have InvestigationId - UI needs redesign to show obstacle locations
+            // NOTE: Obstacles no longer have ObligationId - UI needs redesign to show obstacle locations
             // For now, return understanding accumulated as progress metric
             return activeInv.UnderstandingAccumulated;
         }
 
-        protected int GetInvestigationTotalGoals(string investigationId)
+        protected int GetObligationTotalGoals(string obligationId)
         {
             // PhaseDefinitions eliminated - return static understanding requirement for now
-            // NOTE: Obstacles no longer have InvestigationId - UI needs redesign
-            // TODO: Add UnderstandingRequired property to Investigation model
+            // NOTE: Obstacles no longer have ObligationId - UI needs redesign
+            // TODO: Add UnderstandingRequired property to Obligation model
             return 10; // Default Understanding requirement for completion
         }
 
-        protected double GetInvestigationProgressPercent(ActiveInvestigation activeInv)
+        protected double GetObligationProgressPercent(ActiveObligation activeInv)
         {
-            int total = GetInvestigationTotalGoals(activeInv.InvestigationId);
+            int total = GetObligationTotalGoals(activeInv.ObligationId);
             if (total == 0) return 0;
             // CompletedGoalIds eliminated - use resolved obstacle count instead
-            int resolved = GetInvestigationProgress(activeInv);
+            int resolved = GetObligationProgress(activeInv);
             return ((double)resolved / total) * 100.0;
         }
 
-        protected List<InvestigationPhaseDefinition> GetCompletedPhases(ActiveInvestigation activeInv)
+        protected List<ObligationPhaseDefinition> GetCompletedPhases(ActiveObligation activeInv)
         {
-            // PhaseDefinitions and CompletedGoalIds eliminated - investigations no longer have sequential phases
+            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
             // Return resolved obstacles instead
-            return new List<InvestigationPhaseDefinition>();
+            return new List<ObligationPhaseDefinition>();
         }
 
-        protected List<InvestigationPhaseDefinition> GetActivePhases(ActiveInvestigation activeInv)
+        protected List<ObligationPhaseDefinition> GetActivePhases(ActiveObligation activeInv)
         {
-            // PhaseDefinitions and CompletedGoalIds eliminated - investigations no longer have sequential phases
+            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
             // Return active obstacles instead
-            return new List<InvestigationPhaseDefinition>();
+            return new List<ObligationPhaseDefinition>();
         }
 
-        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveInvestigation activeInv)
+        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveObligation activeInv)
         {
-            // NOTE: Investigation phases no longer reference goals directly
-            // Goals are now contained within obstacles spawned by investigations
+            // NOTE: Obligation phases no longer reference goals directly
+            // Goals are now contained within obstacles spawned by obligations
             // This UI method needs redesign to show obstacle locations instead
             // For now, return empty dictionary until obstacle-based UI is implemented
             return new Dictionary<string, int>();

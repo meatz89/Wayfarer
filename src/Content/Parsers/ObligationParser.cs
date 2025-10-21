@@ -4,30 +4,30 @@ using System.IO;
 using System.Linq;
 
 /// <summary>
-/// Parser for Investigation definitions - converts DTOs to domain models
-/// Creates Investigation entities with phase definitions for goal spawning
+/// Parser for Obligation definitions - converts DTOs to domain models
+/// Creates Obligation entities with phase definitions for goal spawning
 /// Validates challenge type IDs against GameWorld at parse time
 /// </summary>
-public class InvestigationParser
+public class ObligationParser
 {
     private readonly GameWorld _gameWorld;
 
-    public InvestigationParser(GameWorld gameWorld)
+    public ObligationParser(GameWorld gameWorld)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     }
 
-    public Investigation ParseInvestigation(InvestigationDTO dto)
+    public Obligation ParseObligation(ObligationDTO dto)
     {
         // Validate required fields
         if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("Investigation missing required field 'Id'");
+            throw new InvalidDataException("Obligation missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"Investigation '{dto.Id}' missing required field 'Name'");
+            throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Name'");
         if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"Investigation '{dto.Id}' missing required field 'Description'");
+            throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Description'");
 
-        return new Investigation
+        return new Obligation
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -40,14 +40,14 @@ public class InvestigationParser
             CompletionRewardCoins = dto.CompletionRewardCoins,
             CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
             CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
-            SpawnedInvestigationIds = dto.SpawnedInvestigationIds, // DTO has inline init, trust it
+            SpawnedObligationIds = dto.SpawnedObligationIds, // DTO has inline init, trust it
             PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
         };
     }
 
-    private InvestigationPhaseDefinition ParsePhaseDefinition(InvestigationPhaseDTO dto, string investigationId)
+    private ObligationPhaseDefinition ParsePhaseDefinition(ObligationPhaseDTO dto, string obligationId)
     {
-        return new InvestigationPhaseDefinition
+        return new ObligationPhaseDefinition
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -103,7 +103,7 @@ public class InvestigationParser
     {
         if (string.IsNullOrEmpty(deckId))
         {
-            throw new InvalidDataException($"Investigation intro action '{phaseId}' has no deckId specified");
+            throw new InvalidDataException($"Obligation intro action '{phaseId}' has no deckId specified");
         }
 
         bool exists = systemType switch
@@ -117,7 +117,7 @@ public class InvestigationParser
         if (!exists)
         {
             throw new InvalidDataException(
-                $"Investigation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
+                $"Obligation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
                 $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
             );
         }
@@ -142,14 +142,14 @@ public class InvestigationParser
             : TacticalSystemType.Mental;
     }
 
-    private InvestigationIntroAction ParseIntroAction(InvestigationIntroActionDTO dto)
+    private ObligationIntroAction ParseIntroAction(ObligationIntroActionDTO dto)
     {
         if (dto == null) return null; // Optional intro action - valid to be null
 
-        return new InvestigationIntroAction
+        return new ObligationIntroAction
         {
             TriggerType = ParseTriggerType(dto.TriggerType), // Handles null with default
-            TriggerPrerequisites = ParseInvestigationPrerequisites(dto.TriggerPrerequisites), // Handles null
+            TriggerPrerequisites = ParseObligationPrerequisites(dto.TriggerPrerequisites), // Handles null
             ActionText = dto.ActionText,
             LocationId = dto.LocationId,
             IntroNarrative = dto.IntroNarrative,
@@ -168,22 +168,22 @@ public class InvestigationParser
             : DiscoveryTriggerType.ImmediateVisibility;
     }
 
-    private InvestigationObligationType ParseObligationType(string typeString)
+    private ObligationObligationType ParseObligationType(string typeString)
     {
         // Optional field - defaults to SelfDiscovered if missing/invalid
         if (string.IsNullOrEmpty(typeString))
-            return InvestigationObligationType.SelfDiscovered;
+            return ObligationObligationType.SelfDiscovered;
 
-        return Enum.TryParse<InvestigationObligationType>(typeString, out InvestigationObligationType type)
+        return Enum.TryParse<ObligationObligationType>(typeString, out ObligationObligationType type)
             ? type
-            : InvestigationObligationType.SelfDiscovered;
+            : ObligationObligationType.SelfDiscovered;
     }
 
-    private InvestigationPrerequisites ParseInvestigationPrerequisites(InvestigationPrerequisitesDTO dto)
+    private ObligationPrerequisites ParseObligationPrerequisites(ObligationPrerequisitesDTO dto)
     {
-        if (dto == null) return new InvestigationPrerequisites(); // Optional prerequisites - return empty if null
+        if (dto == null) return new ObligationPrerequisites(); // Optional prerequisites - return empty if null
 
-        return new InvestigationPrerequisites
+        return new ObligationPrerequisites
         {
             LocationId = dto.LocationId
         };

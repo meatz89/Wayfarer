@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Domain Service for equipment usage, exhaustion, and repair
@@ -195,7 +196,7 @@ public class EquipmentUsageService
         Player player = _gameWorld.GetPlayer();
 
         // Get all equipment player owns
-        List<string> ownedEquipmentIds = player.Inventory.GetItems();
+        List<string> ownedEquipmentIds = player.Inventory.GetAllItems();
 
         // Filter to functional equipment matching context
         List<Equipment> applicableEquipment = _gameWorld.Items

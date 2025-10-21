@@ -62,7 +62,7 @@ public class Obstacle
 
     /// <summary>
     /// Whether obstacle persists when all properties reach zero
-    /// false: Removed when cleared (investigation obstacles, quest obstacles)
+    /// false: Removed when cleared (obligation obstacles, quest obstacles)
     /// true: Persists even at zero, can increase again (weather obstacles, patrol obstacles)
     /// </summary>
     public bool IsPermanent { get; set; }
@@ -70,7 +70,7 @@ public class Obstacle
     /// <summary>
     /// Goal IDs that target this obstacle (references to GameWorld.Goals)
     /// Two types: preparation goals (reduce properties) and resolution goals (remove obstacle)
-    /// Goals from investigation content are registered in GameWorld.Goals when obstacle spawns
+    /// Goals from obligation content are registered in GameWorld.Goals when obstacle spawns
     /// Filtered by property requirements for visibility
     /// Single source of truth: All goals live in GameWorld.Goals dictionary
     /// </summary>

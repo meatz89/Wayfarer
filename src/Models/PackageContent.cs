@@ -45,7 +45,7 @@ public class PackageContent
     /// </summary>
     public List<ObservationDTO> Observations { get; set; }
 
-    // InvestigationRewards system eliminated - replaced by transparent resource competition
+    // ObligationRewards system eliminated - replaced by transparent resource competition
 
     /// <summary>
     /// Standing obligations - uses existing StandingObligationDTO
@@ -134,15 +134,15 @@ public class PackageContent
     public Dictionary<string, int> ListenDrawCounts { get; set; }
 
     /// <summary>
-    /// Investigation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
+    /// Obligation cards - DELETED (wrong architecture, will be replaced with MentalCardDTO in Phase 1)
     /// </summary>
-    // public List<Wayfarer.Content.DTOs.InvestigationCardDTO> InvestigationCards { get; set; }
+    // public List<Wayfarer.Content.DTOs.ObligationCardDTO> ObligationCards { get; set; }
 
     /// <summary>
-    /// Investigation templates - strategic multi-phase activities that orchestrate tactical systems
-    /// V3: Now using InvestigationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
+    /// Obligation templates - strategic multi-phase activities that orchestrate tactical systems
+    /// V3: Now using ObligationDTO with TacticalSystemType to spawn Social/Mental/Physical sessions
     /// </summary>
-    public List<InvestigationDTO> Investigations { get; set; }
+    public List<ObligationDTO> Obligations { get; set; }
 
     /// <summary>
     /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
@@ -150,7 +150,7 @@ public class PackageContent
     public List<TravelObstacleDTO> TravelObstacles { get; set; }
 
     /// <summary>
-    /// Mental cards for investigation system - parallel to conversation cards for mental tactical challenges
+    /// Mental cards for obligation system - parallel to conversation cards for mental tactical challenges
     /// </summary>
     public List<MentalCardDTO> MentalCards { get; set; }
 

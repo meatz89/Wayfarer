@@ -19,7 +19,7 @@ public enum ObstacleContext
     Navigation,
     Securing,
 
-    // Mental contexts - investigation and observation challenges
+    // Mental contexts - obligation and observation challenges
     Darkness,
     Mechanical,
     Spatial,

@@ -59,7 +59,7 @@ public enum InteractionStyle
     Default,
     Urgent,      // Red/warning styling
     Beneficial,  // Green/positive styling
-    Mysterious,  // Purple/investigation styling
+    Mysterious,  // Purple/obligation styling
     Locked       // Grayed out
 }
 

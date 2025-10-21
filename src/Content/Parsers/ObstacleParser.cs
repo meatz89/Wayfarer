@@ -54,7 +54,7 @@ public static class ObstacleParser
             GoalIds = new List<string>()
         };
 
-        // Parse inline goals (for investigation-spawned obstacles)
+        // Parse inline goals (for obligation-spawned obstacles)
         if (dto.Goals != null && dto.Goals.Count > 0)
         {
             foreach (GoalDTO goalDto in dto.Goals)

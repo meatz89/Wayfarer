@@ -1,16 +1,16 @@
 /// <summary>
-/// Investigation discipline - categorical card property that determines specialization.
+/// Obligation discipline - categorical card property that determines specialization.
 /// Cards with discipline matching Venue profile get specialist bonuses.
 /// Parser must convert JSON strings to these enum values.
 ///
 /// Parallel to ConversationalMove in Social system - this is a CARD PROPERTY,
-/// not an environmental property. Locations have investigation profiles that
+/// not an environmental property. Locations have obligation profiles that
 /// reference these disciplines.
 /// </summary>
-public enum InvestigationDiscipline
+public enum ObligationDiscipline
 {
     /// <summary>
-    /// Archives, books, documents, scholarly investigation
+    /// Archives, books, documents, scholarly obligation
     /// </summary>
     Research,
 
@@ -25,12 +25,12 @@ public enum InvestigationDiscipline
     Deduction,
 
     /// <summary>
-    /// Questioning people, social investigation, interpersonal inquiry
+    /// Questioning people, social obligation, interpersonal inquiry
     /// </summary>
     Interrogation,
 
     /// <summary>
-    /// Stealth investigation, unauthorized access, covert examination
+    /// Stealth obligation, unauthorized access, covert examination
     /// </summary>
     Infiltration
 }

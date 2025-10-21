@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// DTO for Investigation Template - complete investigation definition
-/// Maps to InvestigationTemplate domain model
+/// DTO for Obligation Template - complete obligation definition
+/// Maps to ObligationTemplate domain model
 /// </summary>
-public class InvestigationDTO
+public class ObligationDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -15,7 +15,7 @@ public class InvestigationDTO
     public int TimeLimit { get; set; } = 0; // 0 = no hard limit, >0 = hard Time Segment cap
 
     // NEW: Intro action for discovery system
-    public InvestigationIntroActionDTO Intro { get; set; }
+    public ObligationIntroActionDTO Intro { get; set; }
 
     // NEW: Color code for UI grouping
     public string ColorCode { get; set; }
@@ -25,20 +25,20 @@ public class InvestigationDTO
     public string PatronNpcId { get; set; }
     public int? DeadlineSegment { get; set; }
 
-    // Completion rewards (NPCCommissioned investigations)
+    // Completion rewards (NPCCommissioned obligations)
     public int CompletionRewardCoins { get; set; } = 0;
     public List<string> CompletionRewardItems { get; set; } = new List<string>();
     public Dictionary<string, int> CompletionRewardXP { get; set; } = new Dictionary<string, int>(); // JSON: {"Insight": 10, "Rapport": 5}
-    public List<string> SpawnedInvestigationIds { get; set; } = new List<string>();
+    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
 
-    public List<InvestigationPhaseDTO> Phases { get; set; } = new List<InvestigationPhaseDTO>();
-    public List<InvestigationObservationRewardDTO> ObservationCardRewards { get; set; } = new List<InvestigationObservationRewardDTO>();
+    public List<ObligationPhaseDTO> Phases { get; set; } = new List<ObligationPhaseDTO>();
+    public List<ObligationObservationRewardDTO> ObservationCardRewards { get; set; } = new List<ObligationObservationRewardDTO>();
 }
 
 /// <summary>
-/// DTO for Investigation Phase
+/// DTO for Obligation Phase
 /// </summary>
-public class InvestigationPhaseDTO
+public class ObligationPhaseDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -74,7 +74,7 @@ public class PhaseCompletionRewardDTO
 }
 
 /// <summary>
-/// DTO for obstacle spawn information in investigation phase rewards
+/// DTO for obstacle spawn information in obligation phase rewards
 /// </summary>
 public class ObstacleSpawnInfoDTO
 {
@@ -84,9 +84,9 @@ public class ObstacleSpawnInfoDTO
 }
 
 /// <summary>
-/// DTO for Investigation Observation Reward
+/// DTO for Obligation Observation Reward
 /// </summary>
-public class InvestigationObservationRewardDTO
+public class ObligationObservationRewardDTO
 {
     public string DiscoveryId { get; set; }
     public string NpcId { get; set; }
@@ -94,14 +94,14 @@ public class InvestigationObservationRewardDTO
 }
 
 /// <summary>
-/// DTO for Investigation Intro Action
+/// DTO for Obligation Intro Action
 /// Defines discovery trigger and activation mechanics
 /// Simple RPG quest acceptance pattern - no challenge, just accept and begin
 /// </summary>
-public class InvestigationIntroActionDTO
+public class ObligationIntroActionDTO
 {
     public string TriggerType { get; set; } // "ImmediateVisibility", "EnvironmentalObservation", etc.
-    public InvestigationPrerequisitesDTO TriggerPrerequisites { get; set; }
+    public ObligationPrerequisitesDTO TriggerPrerequisites { get; set; }
     public string ActionText { get; set; } // Button text: "Search for safe entry to the mill"
     public string LocationId { get; set; } // LocationId where intro button appears
     public string IntroNarrative { get; set; } // Modal narrative when button clicked
@@ -109,12 +109,12 @@ public class InvestigationIntroActionDTO
 }
 
 /// <summary>
-/// DTO for Investigation Prerequisites
+/// DTO for Obligation Prerequisites
 /// Used for both intro triggers and phase requirements
 /// </summary>
-public class InvestigationPrerequisitesDTO
+public class ObligationPrerequisitesDTO
 {
     public string LocationId { get; set; } // LocationId is globally unique
     // PRINCIPLE 4: Knowledge system, RequiredItems, and RequiredObligation eliminated
-    // All boolean gate prerequisites removed - investigations visible based on narrative context only
+    // All boolean gate prerequisites removed - obligations visible based on narrative context only
 }

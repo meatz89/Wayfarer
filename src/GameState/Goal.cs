@@ -52,9 +52,9 @@ public class Goal
     public string PlacementRouteId { get; set; }
 
     /// <summary>
-    /// Investigation ID for UI grouping and label display
+    /// Obligation ID for UI grouping and label display
     /// </summary>
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
 
     /// <summary>
     /// Object reference to placement location (for runtime navigation)
@@ -67,9 +67,9 @@ public class Goal
     public NPC PlacementNpc { get; set; }
 
     /// <summary>
-    /// Object reference to parent investigation (for runtime navigation)
+    /// Object reference to parent obligation (for runtime navigation)
     /// </summary>
-    public Investigation Investigation { get; set; }
+    public Obligation Obligation { get; set; }
 
     /// <summary>
     /// Object reference to parent obstacle (for runtime navigation)
@@ -78,7 +78,7 @@ public class Goal
     public Obstacle ParentObstacle { get; set; }
 
     /// <summary>
-    /// Whether this goal is an investigation intro action
+    /// Whether this goal is an obligation intro action
     /// </summary>
     public bool IsIntroAction { get; set; } = false;
 
@@ -109,9 +109,9 @@ public class Goal
 
     /// <summary>
     /// Whether this goal should be deleted from ActiveGoals on successful completion.
-    /// Investigation progression goals: true (one-time, remove after complete)
+    /// Obligation progression goals: true (one-time, remove after complete)
     /// Repeatable goals: false (persist for retry)
-    /// Default: true (investigation progression pattern)
+    /// Default: true (obligation progression pattern)
     /// </summary>
     public bool DeleteOnSuccess { get; set; } = true;
 

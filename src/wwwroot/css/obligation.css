@@ -1,11 +1,11 @@
 /* ===========================================
-   INVESTIGATION MODAL STYLES
-   Based on investigation-notification.html and wayfarer-investigation-complete.html mockups
+   OBLIGATION MODAL STYLES
+   Based on obligation-notification.html and wayfarer-obligation-complete.html mockups
    Wayfarer color palette from common.css
    =========================================== */
 
 /* Progress Notification Modal */
-.investigation-notification-container {
+.obligation-notification-container {
     width: 100%;
     max-width: 700px;
     background: #e8dcc4;
@@ -27,7 +27,7 @@
     }
 }
 
-.investigation-header {
+.obligation-header {
     background: linear-gradient(to bottom, #7a8b5a, #9eb87a);
     color: white;
     padding: 15px 20px;
@@ -37,28 +37,28 @@
     gap: 12px;
 }
 
-.investigation-icon {
+.obligation-icon {
     font-size: 28px;
 }
 
-.investigation-title-section {
+.obligation-title-section {
     flex: 1;
 }
 
-.investigation-main-title {
+.obligation-main-title {
     font-size: 18px;
     font-weight: bold;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
-.investigation-subtitle {
+.obligation-subtitle {
     font-size: 13px;
     opacity: 0.95;
     margin-top: 2px;
 }
 
-.investigation-outcome-section {
+.obligation-outcome-section {
     background: white;
     padding: 20px;
     border-bottom: 2px solid #d4c5a0;
@@ -161,7 +161,7 @@
     font-style: italic;
 }
 
-.investigation-progress-section {
+.obligation-progress-section {
     padding: 15px 20px;
     background: #f9f3e9;
     border-top: 2px solid #d4c5a0;
@@ -228,7 +228,7 @@
 }
 
 /* Completion Modal */
-.investigation-complete-box {
+.obligation-complete-box {
     background: linear-gradient(to bottom, #faf4ea, #f4e8d0);
     border: 4px solid #d4a76a;
     border-radius: 8px;
@@ -436,7 +436,7 @@
     background: linear-gradient(to bottom, #5a7a8b, #7a9eb8);
 }
 
-.investigation-discovery-section {
+.obligation-discovery-section {
     background: white;
     padding: 20px;
     border-bottom: 2px solid #d4c5a0;
@@ -485,7 +485,7 @@
     max-width: 200px;
 }
 
-/* Discovered Investigations Tab Styles */
+/* Discovered Obligations Tab Styles */
 .discovered-card {
     border-left: 4px solid #5a7a8b;
 }

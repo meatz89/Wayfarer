@@ -32,7 +32,7 @@ public class LocationActionViewModel
     public bool IsAvailable { get; set; } = true;
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
-    public string InvestigationLabel { get; set; }
+    public string ObligationLabel { get; set; }
 }
 
 public class NPCInteractionViewModel
@@ -93,7 +93,7 @@ public class RouteOptionViewModel
     public bool IsLocked { get; set; }
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
-    public string InvestigationLabel { get; set; }
+    public string ObligationLabel { get; set; }
     public bool CanUnlockWithPermit { get; set; }
 
     // Modal-specific properties
@@ -250,7 +250,7 @@ public class GoalCardViewModel
     public string SystemType { get; set; }  // "social", "mental", "physical"
     public int Difficulty { get; set; }  // Pre-calculated difficulty
     public string DifficultyLabel { get; set; }  // "Doubt", "Exposure", "Danger"
-    public string InvestigationId { get; set; }
+    public string ObligationId { get; set; }
     public bool IsIntroAction { get; set; }
 
     // Costs

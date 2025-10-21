@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
-    public class InvestigationActivationModalBase : ComponentBase
+    public class ObligationActivationModalBase : ComponentBase
     {
-        [Parameter] public InvestigationActivationResult Data { get; set; }
+        [Parameter] public ObligationActivationResult Data { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }
 
         protected async Task CloseModal()

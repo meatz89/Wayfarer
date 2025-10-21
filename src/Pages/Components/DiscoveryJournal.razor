@@ -3,14 +3,14 @@
 
 <div class="discovery-journal">
     <div class="journal-header">
-        <h2>📖 Investigation Journal</h2>
+        <h2>📖 Obligation Journal</h2>
         <button class="close-btn" @onclick="CloseJournal">✕</button>
     </div>
 
     <!-- Tabs -->
     <div class="journal-tabs">
         <div class="journal-tab @(CurrentTab == "active" ? "active" : "")" @onclick='() => SelectTab("active")'>
-            Active Investigations
+            Active Obligations
         </div>
         <div class="journal-tab @(CurrentTab == "discovered" ? "active" : "")" @onclick='() => SelectTab("discovered")'>
             Discovered
@@ -26,23 +26,23 @@
     <div class="journal-content">
         @if (CurrentTab == "active")
         {
-            <!-- Active Investigations Tab -->
-            var activeInvestigations = GetActiveInvestigations();
-            @if (activeInvestigations.Any())
+            <!-- Active Obligations Tab -->
+            var activeObligations = GetActiveObligations();
+            @if (activeObligations.Any())
             {
-                @foreach (var activeInv in activeInvestigations)
+                @foreach (var activeInv in activeObligations)
                 {
-                    Investigation inv = GetInvestigationById(activeInv.InvestigationId);
+                    Obligation inv = GetObligationById(activeInv.ObligationId);
                     if (inv != null)
                     {
-                        <div class="investigation-card">
-                            <div class="investigation-header-row">
-                                <div class="investigation-title">@inv.Name</div>
-                                <div class="investigation-progress-label">@GetInvestigationProgress(activeInv)/@GetInvestigationTotalGoals(activeInv.InvestigationId) completed</div>
+                        <div class="obligation-card">
+                            <div class="obligation-header-row">
+                                <div class="obligation-title">@inv.Name</div>
+                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalGoals(activeInv.ObligationId) completed</div>
                             </div>
 
-                            <div class="investigation-progress-bar">
-                                <div class="investigation-progress-fill" style="width: @GetInvestigationProgressPercent(activeInv)%"></div>
+                            <div class="obligation-progress-bar">
+                                <div class="obligation-progress-fill" style="width: @GetObligationProgressPercent(activeInv)%"></div>
                             </div>
 
                             <div class="goal-list">
@@ -88,22 +88,22 @@
             {
                 <div class="empty-state">
                     <div class="empty-icon">🔍</div>
-                    <div class="empty-text">No active investigations</div>
+                    <div class="empty-text">No active obligations</div>
                 </div>
             }
         }
         else if (CurrentTab == "discovered")
         {
-            <!-- Discovered Investigations Tab -->
-            var discoveredIds = GetDiscoveredInvestigationIds();
+            <!-- Discovered Obligations Tab -->
+            var discoveredIds = GetDiscoveredObligationIds();
             @if (discoveredIds.Any())
             {
                 @foreach (string discoveredId in discoveredIds)
                 {
-                    Investigation inv = GetInvestigationById(discoveredId);
+                    Obligation inv = GetObligationById(discoveredId);
                     if (inv != null && inv.IntroAction != null)
                     {
-                        <div class="investigation-card discovered-card">
+                        <div class="obligation-card discovered-card">
                             <div class="discovered-header">
                                 <div class="discovered-icon">🔍</div>
                                 <div class="discovered-title">@inv.Name</div>
@@ -121,22 +121,22 @@
             {
                 <div class="empty-state">
                     <div class="empty-icon">🔍</div>
-                    <div class="empty-text">No investigations discovered yet</div>
+                    <div class="empty-text">No obligations discovered yet</div>
                 </div>
             }
         }
         else if (CurrentTab == "completed")
         {
-            <!-- Completed Investigations Tab -->
-            var completedIds = GetCompletedInvestigationIds();
+            <!-- Completed Obligations Tab -->
+            var completedIds = GetCompletedObligationIds();
             @if (completedIds.Any())
             {
                 @foreach (string completedId in completedIds)
                 {
-                    Investigation inv = GetInvestigationById(completedId);
+                    Obligation inv = GetObligationById(completedId);
                     if (inv != null)
                     {
-                        <div class="investigation-card">
+                        <div class="obligation-card">
                             <div class="completed-summary">
                                 <div class="completed-title">@inv.Name</div>
                                 @if (inv.CompletionRewardCoins > 0)
@@ -153,7 +153,7 @@
             {
                 <div class="empty-state">
                     <div class="empty-icon">✨</div>
-                    <div class="empty-text">No completed investigations yet</div>
+                    <div class="empty-text">No completed obligations yet</div>
                 </div>
             }
         }

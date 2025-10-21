@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Wayfarer.Pages.Components.Shared
 {
     /// <summary>
-    /// Mental (Investigation) tactical card component
+    /// Mental (Obligation) tactical card component
     /// ONLY knows about MentalCard - parallel to SocialCard and PhysicalCard
     /// THREE PARALLEL SYSTEMS: Each card type has its own component with NO coupling
     /// </summary>

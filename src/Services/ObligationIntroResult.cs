@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Result returned when player clicks investigation intro button
+/// Result returned when player clicks obligation intro button
 /// Contains data for displaying the RPG quest acceptance modal
-/// Modal shows narrative and "Begin Investigation" button
+/// Modal shows narrative and "Begin Obligation" button
 /// </summary>
-public class InvestigationIntroResult
+public class ObligationIntroResult
 {
-    public string InvestigationId { get; set; }
-    public string InvestigationName { get; set; }
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
     public string IntroNarrative { get; set; }
     public string IntroActionText { get; set; }
     public string ColorCode { get; set; }

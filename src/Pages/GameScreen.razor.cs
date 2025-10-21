@@ -24,7 +24,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
-    [Inject] protected InvestigationActivity InvestigationActivity { get; set; }
+    [Inject] protected ObligationActivity ObligationActivity { get; set; }
 
     public GameScreenBase()
     { }
@@ -331,8 +331,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         // Special case: allow navigation from conversation when it ends properly
         CurrentScreen = ScreenMode.Location;
@@ -340,9 +340,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, investigationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -378,17 +378,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
+    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, investigationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
@@ -424,8 +424,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Check for investigation results before returning to location
-        await CheckForInvestigationResults();
+        // Check for obligation results before returning to location
+        await CheckForObligationResults();
 
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;
@@ -490,7 +490,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -597,152 +597,152 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         StateHasChanged();
     }
 
-    // Investigation Modals
-    protected bool _showInvestigationDiscoveryModal = false;
-    protected bool _showInvestigationIntroModal = false;
-    protected bool _showInvestigationActivationModal = false;
-    protected bool _showInvestigationProgressModal = false;
-    protected bool _showInvestigationCompleteModal = false;
-    protected InvestigationDiscoveryResult _investigationDiscoveryResult;
-    protected InvestigationIntroResult _investigationIntroResult;
-    protected InvestigationActivationResult _investigationActivationResult;
-    protected InvestigationProgressResult _investigationProgressResult;
-    protected InvestigationCompleteResult _investigationCompleteResult;
+    // Obligation Modals
+    protected bool _showObligationDiscoveryModal = false;
+    protected bool _showObligationIntroModal = false;
+    protected bool _showObligationActivationModal = false;
+    protected bool _showObligationProgressModal = false;
+    protected bool _showObligationCompleteModal = false;
+    protected ObligationDiscoveryResult _obligationDiscoveryResult;
+    protected ObligationIntroResult _obligationIntroResult;
+    protected ObligationActivationResult _obligationActivationResult;
+    protected ObligationProgressResult _obligationProgressResult;
+    protected ObligationCompleteResult _obligationCompleteResult;
 
-    protected async Task CheckForInvestigationResults()
+    protected async Task CheckForObligationResults()
     {
-        InvestigationDiscoveryResult discoveryResult = InvestigationActivity.GetAndClearPendingDiscoveryResult();
+        ObligationDiscoveryResult discoveryResult = ObligationActivity.GetAndClearPendingDiscoveryResult();
         if (discoveryResult != null)
         {
-            _investigationDiscoveryResult = discoveryResult;
-            _showInvestigationDiscoveryModal = true;
+            _obligationDiscoveryResult = discoveryResult;
+            _showObligationDiscoveryModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationIntroResult introResult = InvestigationActivity.GetAndClearPendingIntroResult();
+        ObligationIntroResult introResult = ObligationActivity.GetAndClearPendingIntroResult();
         if (introResult != null)
         {
-            _investigationIntroResult = introResult;
-            _showInvestigationIntroModal = true;
+            _obligationIntroResult = introResult;
+            _showObligationIntroModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationActivationResult activationResult = InvestigationActivity.GetAndClearPendingActivationResult();
+        ObligationActivationResult activationResult = ObligationActivity.GetAndClearPendingActivationResult();
         if (activationResult != null)
         {
-            _investigationActivationResult = activationResult;
-            _showInvestigationActivationModal = true;
+            _obligationActivationResult = activationResult;
+            _showObligationActivationModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationProgressResult progressResult = InvestigationActivity.GetAndClearPendingProgressResult();
+        ObligationProgressResult progressResult = ObligationActivity.GetAndClearPendingProgressResult();
         if (progressResult != null)
         {
-            _investigationProgressResult = progressResult;
-            _showInvestigationProgressModal = true;
+            _obligationProgressResult = progressResult;
+            _showObligationProgressModal = true;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        InvestigationCompleteResult completeResult = InvestigationActivity.GetAndClearPendingCompleteResult();
+        ObligationCompleteResult completeResult = ObligationActivity.GetAndClearPendingCompleteResult();
         if (completeResult != null)
         {
-            _investigationCompleteResult = completeResult;
-            _showInvestigationCompleteModal = true;
+            _obligationCompleteResult = completeResult;
+            _showObligationCompleteModal = true;
             await InvokeAsync(StateHasChanged);
         }
     }
 
-    protected async Task CloseInvestigationActivationModal()
+    protected async Task CloseObligationActivationModal()
     {
-        _showInvestigationActivationModal = false;
-        _investigationActivationResult = null;
+        _showObligationActivationModal = false;
+        _obligationActivationResult = null;
         await InvokeAsync(StateHasChanged);
 
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
     }
 
-    protected async Task CloseInvestigationProgressModal()
+    protected async Task CloseObligationProgressModal()
     {
-        _showInvestigationProgressModal = false;
-        _investigationProgressResult = null;
+        _showObligationProgressModal = false;
+        _obligationProgressResult = null;
         await InvokeAsync(StateHasChanged);
 
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
     }
 
-    protected async Task CloseInvestigationCompleteModal()
+    protected async Task CloseObligationCompleteModal()
     {
-        _showInvestigationCompleteModal = false;
-        _investigationCompleteResult = null;
+        _showObligationCompleteModal = false;
+        _obligationCompleteResult = null;
         await InvokeAsync(StateHasChanged);
     }
 
-    public void ShowInvestigationDiscoveryModal(InvestigationDiscoveryResult discoveryResult)
+    public void ShowObligationDiscoveryModal(ObligationDiscoveryResult discoveryResult)
     {
-        _investigationDiscoveryResult = discoveryResult;
-        _showInvestigationDiscoveryModal = true;
+        _obligationDiscoveryResult = discoveryResult;
+        _showObligationDiscoveryModal = true;
         StateHasChanged();
     }
 
-    protected async Task BeginInvestigationIntro()
+    protected async Task BeginObligationIntro()
     {
-        _showInvestigationDiscoveryModal = false;
+        _showObligationDiscoveryModal = false;
 
-        string investigationId = _investigationDiscoveryResult.InvestigationId;
-        _investigationDiscoveryResult = null;
+        string obligationId = _obligationDiscoveryResult.ObligationId;
+        _obligationDiscoveryResult = null;
 
-        // Activate investigation and spawn Phase 1 obstacle
-        InvestigationActivity.CompleteIntroAction(investigationId);
+        // Activate obligation and spawn Phase 1 obstacle
+        ObligationActivity.CompleteIntroAction(obligationId);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();
 
-        // Auto-open journal to show activated investigation
+        // Auto-open journal to show activated obligation
         _showJournal = true;
 
         // Check for activation modal
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
 
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task DismissInvestigationDiscovery()
+    protected async Task DismissObligationDiscovery()
     {
-        _showInvestigationDiscoveryModal = false;
-        _investigationDiscoveryResult = null;
+        _showObligationDiscoveryModal = false;
+        _obligationDiscoveryResult = null;
 
-        // Auto-open journal to show discovered investigation
+        // Auto-open journal to show discovered obligation
         _showJournal = true;
 
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task CloseInvestigationIntroModal()
+    protected async Task CloseObligationIntroModal()
     {
-        _showInvestigationIntroModal = false;
-        _investigationIntroResult = null;
+        _showObligationIntroModal = false;
+        _obligationIntroResult = null;
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task CompleteInvestigationIntroAction()
+    protected async Task CompleteObligationIntroAction()
     {
-        _showInvestigationIntroModal = false;
+        _showObligationIntroModal = false;
 
-        string investigationId = _investigationIntroResult.InvestigationId;
-        _investigationIntroResult = null;
+        string obligationId = _obligationIntroResult.ObligationId;
+        _obligationIntroResult = null;
 
-        // Activate investigation and spawn Phase 1 obstacle
-        GameFacade.CompleteInvestigationIntro(investigationId);
+        // Activate obligation and spawn Phase 1 obstacle
+        GameFacade.CompleteObligationIntro(obligationId);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();
 
         // Check for activation modal
-        await CheckForInvestigationResults();
+        await CheckForObligationResults();
 
         await InvokeAsync(StateHasChanged);
     }

@@ -30,7 +30,7 @@ public class DayEndReport
 }
 
 /// <summary>
-/// Information about a completed obligation (investigation)
+/// Information about a completed obligation (obligation)
 /// </summary>
 public class CompletedObligationInfo
 {
@@ -83,7 +83,7 @@ public class CubeGainInfo
 /// </summary>
 public enum CubeType
 {
-    Investigation,
+    Obligation,
     Story,
     Exploration
 }

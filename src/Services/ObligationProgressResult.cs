@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Result returned when an investigation goal is completed
-/// Contains data for displaying the investigation progress modal
+/// Result returned when an obligation goal is completed
+/// Contains data for displaying the obligation progress modal
 /// </summary>
-public class InvestigationProgressResult
+public class ObligationProgressResult
 {
-    public string InvestigationId { get; set; }
-    public string InvestigationName { get; set; }
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
     public string CompletedGoalName { get; set; }
     public string OutcomeNarrative { get; set; }
     public List<NewLeadInfo> NewLeads { get; set; } = new List<NewLeadInfo>();
@@ -16,7 +16,7 @@ public class InvestigationProgressResult
 }
 
 /// <summary>
-/// Information about a newly unlocked investigation goal
+/// Information about a newly unlocked obligation goal
 /// </summary>
 public class NewLeadInfo
 {

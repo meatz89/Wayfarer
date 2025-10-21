@@ -421,7 +421,7 @@ body * {
     color: #7a6250;
 }
 
-.investigation-label {
+.obligation-label {
     font-size: 11px;
     padding: 2px 8px;
     border-radius: 3px;
@@ -502,7 +502,7 @@ body * {
     margin-top: 4px;
 }
 
-.investigation-header {
+.obligation-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -511,19 +511,19 @@ body * {
     border-bottom: 1px solid #e8dcc4;
 }
 
-.investigation-title {
+.obligation-title {
     font-size: 14px;
     font-weight: bold;
     color: #5c4a3a;
 }
 
-.investigation-info {
+.obligation-info {
     font-size: 11px;
     color: #7a6250;
     font-style: italic;
 }
 
-.investigation-approaches {
+.obligation-approaches {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 10px;
@@ -1411,7 +1411,7 @@ body * {
 }
 
 /* .back-button moved to common.css */
-/* Investigation Goal Action Buttons */
+/* Obligation Goal Action Buttons */
 .goal-action-btn {
     background: #f9f3e9;
     border: 2px solid #d4c5a0;
@@ -1486,7 +1486,7 @@ body * {
     font-style: italic;
 }
 
-.goal-investigation-tag {
+.goal-obligation-tag {
     display: inline-block;
     padding: 3px 8px;
     background: #d4a76a;
@@ -1498,7 +1498,7 @@ body * {
     margin-top: 6px;
 }
 
-.goal-investigation-tag.intro-tag {
+.goal-obligation-tag.intro-tag {
     background: #8b6726;
 }
 

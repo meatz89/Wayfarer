@@ -1,0 +1,20 @@
+@inherits ObligationActivationModalBase
+@namespace Wayfarer.Pages.Components
+
+<div class="obligation-notification-container">
+    <div class="obligation-header activation-header">
+        <div class="obligation-icon">🔍</div>
+        <div class="obligation-title-section">
+            <div class="obligation-main-title">Obligation Activated</div>
+            <div class="obligation-subtitle">@Data.ObligationName</div>
+        </div>
+    </div>
+
+    <div class="obligation-outcome-section">
+        <div class="outcome-text">@Data.IntroNarrative</div>
+    </div>
+
+    <div class="action-section">
+        <button class="continue-button primary-action" @onclick="CloseModal">Begin Obligation</button>
+    </div>
+</div>

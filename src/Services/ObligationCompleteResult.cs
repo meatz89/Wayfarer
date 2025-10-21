@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Result returned when an investigation is fully completed
-/// Contains data for displaying the investigation complete modal
+/// Result returned when an obligation is fully completed
+/// Contains data for displaying the obligation complete modal
 /// </summary>
-public class InvestigationCompleteResult
+public class ObligationCompleteResult
 {
-    public string InvestigationId { get; set; }
-    public string InvestigationName { get; set; }
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
     public string CompletionNarrative { get; set; }
-    public InvestigationRewards Rewards { get; set; } = new InvestigationRewards();
+    public ObligationRewards Rewards { get; set; } = new ObligationRewards();
     // ObservationCards system eliminated - replaced by transparent resource competition
 }
 
 /// <summary>
-/// Rewards granted on investigation completion
+/// Rewards granted on obligation completion
 /// </summary>
-public class InvestigationRewards
+public class ObligationRewards
 {
     public int Coins { get; set; }
     public List<StatXPReward> XPRewards { get; set; } = new List<StatXPReward>();

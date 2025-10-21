@@ -42,8 +42,8 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         private async Task RefreshLocationData()
         {
-            // Evaluate investigation discovery
-            GameFacade.EvaluateInvestigationDiscovery();
+            // Evaluate obligation discovery
+            GameFacade.EvaluateObligationDiscovery();
 
             // ONE call to backend - receives ALL data pre-built
             ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
@@ -115,7 +115,7 @@ namespace Wayfarer.Pages.Components
                 if (player.CurrentLocation == null)
                     throw new InvalidOperationException("Player has no current location");
 
-                await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
             }
             else if (goal.SystemType == TacticalSystemType.Physical)
             {
@@ -126,7 +126,7 @@ namespace Wayfarer.Pages.Components
                 if (player.CurrentLocation == null)
                     throw new InvalidOperationException("Player has no current location");
 
-                await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.InvestigationId);
+                await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
             }
         }
 

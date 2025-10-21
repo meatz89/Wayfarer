@@ -1,7 +1,7 @@
 /* BLAZOR CSS ISOLATION: Conversation-specific styles only */
 /* Shared card system styles moved to card-system-shared.css (HIGHLANDER) */
 
-/* CONVERSATION-SPECIFIC: NPC Dialogue (not used by investigations) */
+/* CONVERSATION-SPECIFIC: NPC Dialogue (not used by obligations) */
 .npc-dialogue {
     padding: 15px;
     background: #faf4ea;

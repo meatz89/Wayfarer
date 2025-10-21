@@ -106,11 +106,11 @@ public static class LocationParser
 
         location.IsStartingLocation = dto.IsStartingLocation;
 
-        if (!string.IsNullOrEmpty(dto.InvestigationProfile))
+        if (!string.IsNullOrEmpty(dto.ObligationProfile))
         {
-            if (System.Enum.TryParse<InvestigationDiscipline>(dto.InvestigationProfile, out InvestigationDiscipline investigationProfile))
+            if (System.Enum.TryParse<ObligationDiscipline>(dto.ObligationProfile, out ObligationDiscipline obligationProfile))
             {
-                location.InvestigationProfile = investigationProfile;
+                location.ObligationProfile = obligationProfile;
             }
         }
 

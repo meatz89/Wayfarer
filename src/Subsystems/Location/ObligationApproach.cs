@@ -2,7 +2,7 @@
 /// <summary>
 /// Different approaches to investigate a location, unlocked by player stats
 /// </summary>
-public enum InvestigationApproach
+public enum ObligationApproach
 {
     Standard,      // Always available
     Systematic,    // Insight 2+: +1 familiarity

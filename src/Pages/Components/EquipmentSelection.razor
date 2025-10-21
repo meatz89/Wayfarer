@@ -1,0 +1,215 @@
+@namespace Wayfarer.Pages.Components
+@using Wayfarer.Pages.Components.Shared
+@using Wayfarer.GameState.Enums
+@inject EquipmentUsageService EquipmentUsageService
+@*
+Equipment Selection - Interactive component for choosing equipment during obstacle resolution
+Allows player to select which functional equipment to use, shows cumulative intensity reduction
+*@
+
+<div class="equipment-selection">
+    <h4 class="selection-header">Equipment Options:</h4>
+
+    @if (BaseIntensity == 0)
+    {
+        <div class="intensity-trivial">
+            <span class="trivial-notice">Obstacle intensity already reduced to 0 (trivial)</span>
+        </div>
+    }
+    else
+    {
+        <div class="intensity-preview">
+            <div class="intensity-current">
+                <span class="intensity-label">Current Intensity:</span>
+                <span class="intensity-value">@BaseIntensity</span>
+            </div>
+
+            @if (TotalReduction > 0)
+            {
+                <div class="intensity-arrow">→</div>
+                <div class="intensity-final">
+                    <span class="intensity-label">After Equipment:</span>
+                    <span class="intensity-value final">@Math.Max(0, BaseIntensity - TotalReduction)</span>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!ApplicableEquipment.Any())
+    {
+        <div class="no-applicable-equipment">
+            <span class="no-match-icon">✗</span>
+            <span class="no-match-text">No functional equipment matches this obstacle</span>
+        </div>
+    }
+    else
+    {
+        <div class="applicable-equipment-list">
+            @foreach (SelectableEquipment selectable in ApplicableEquipment)
+            {
+                <div class="equipment-selection-item @(selectable.IsSelected ? "selected" : "")">
+                    <div class="selection-checkbox">
+                        <input
+                            type="checkbox"
+                            id="equipment-@selectable.Equipment.Id"
+                            checked="@selectable.IsSelected"
+                            @onchange="@(() => ToggleEquipment(selectable))"
+                            disabled="@(!selectable.CanUse)" />
+                    </div>
+
+                    <div class="equipment-details">
+                        <div class="equipment-header-row">
+                            <label for="equipment-@selectable.Equipment.Id" class="equipment-name">
+                                @selectable.Equipment.Name
+                            </label>
+                            <span class="equipment-state state-@selectable.Equipment.CurrentState.ToString().ToLower()">
+                                @selectable.Equipment.CurrentState.ToString()
+                            </span>
+                        </div>
+
+                        <div class="match-contexts">
+                            <span class="matches-label">Matches:</span>
+                            @foreach (ObstacleContext context in selectable.MatchedContexts)
+                            {
+                                <ContextTag ContextName="@context.ToString()" IsMatch="true" />
+                            }
+                        </div>
+
+                        <div class="match-effect">
+                            <span class="effect-label">Reduction:</span>
+                            <span class="effect-value">-@selectable.Equipment.IntensityReduction intensity</span>
+                        </div>
+
+                        @if (selectable.Equipment.UsageType == EquipmentUsageType.Exhaustible)
+                        {
+                            <div class="equipment-warning">
+                                <span class="warning-icon">⚠</span>
+                                <span class="warning-text">Exhausts after use (@selectable.Equipment.CurrentUses/@selectable.Equipment.ExhaustAfterUses uses)</span>
+                            </div>
+                        }
+                        else if (selectable.Equipment.UsageType == EquipmentUsageType.Consumable)
+                        {
+                            <div class="equipment-warning">
+                                <span class="warning-icon">⚠</span>
+                                <span class="warning-text">Destroyed after use (consumable)</span>
+                            </div>
+                        }
+
+                        @if (!selectable.CanUse)
+                        {
+                            <div class="equipment-disabled-reason">
+                                Equipment exhausted - repair needed
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (NonApplicableEquipment.Any())
+    {
+        <details class="non-applicable-equipment">
+            <summary class="non-applicable-header">
+                Non-Applicable Equipment (@NonApplicableEquipment.Count)
+            </summary>
+            <div class="non-applicable-list">
+                @foreach (Equipment equipment in NonApplicableEquipment)
+                {
+                    <div class="equipment-no-match">
+                        <span class="equipment-name">@equipment.Name</span>
+                        <span class="no-match-reason">No matching contexts</span>
+                    </div>
+                }
+            </div>
+        </details>
+    }
+
+    @if (ApplicableEquipment.Any(e => e.CanUse))
+    {
+        <div class="selection-actions">
+            <button class="btn-confirm-selection" @onclick="ConfirmSelection">
+                @if (SelectedEquipmentIds.Any())
+                {
+                    <text>Use Selected Equipment (@SelectedEquipmentIds.Count items)</text>
+                }
+                else
+                {
+                    <text>Continue Without Equipment</text>
+                }
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Obstacle Obstacle { get; set; }
+    [Parameter] public int BaseIntensity { get; set; }
+    [Parameter] public ObstacleContext ObstacleContext { get; set; }
+    [Parameter] public EventCallback<List<string>> OnEquipmentSelected { get; set; }
+
+    private List<SelectableEquipment> ApplicableEquipment { get; set; } = new List<SelectableEquipment>();
+    private List<Equipment> NonApplicableEquipment { get; set; } = new List<Equipment>();
+    private List<string> SelectedEquipmentIds { get; set; } = new List<string>();
+
+    private int TotalReduction =>
+        ApplicableEquipment
+            .Where(e => e.IsSelected)
+            .Sum(e => e.Equipment.IntensityReduction);
+
+    protected override void OnParametersSet()
+    {
+        LoadEquipment();
+    }
+
+    private void LoadEquipment()
+    {
+        List<Equipment> functionalEquipment = EquipmentUsageService.GetApplicableEquipment(ObstacleContext);
+
+        ApplicableEquipment = functionalEquipment
+            .Where(e => e.ApplicableContexts.Any(c => Obstacle.Contexts.Contains(c)))
+            .Select(e => new SelectableEquipment
+            {
+                Equipment = e,
+                MatchedContexts = e.ApplicableContexts.Intersect(Obstacle.Contexts).ToList(),
+                IsSelected = false,
+                CanUse = e.CurrentState == EquipmentState.Functional
+            })
+            .ToList();
+
+        NonApplicableEquipment = functionalEquipment
+            .Where(e => !e.ApplicableContexts.Any(c => Obstacle.Contexts.Contains(c)))
+            .ToList();
+    }
+
+    private void ToggleEquipment(SelectableEquipment selectable)
+    {
+        if (!selectable.CanUse) return;
+
+        selectable.IsSelected = !selectable.IsSelected;
+
+        if (selectable.IsSelected)
+        {
+            SelectedEquipmentIds.Add(selectable.Equipment.Id);
+        }
+        else
+        {
+            SelectedEquipmentIds.Remove(selectable.Equipment.Id);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ConfirmSelection()
+    {
+        await OnEquipmentSelected.InvokeAsync(SelectedEquipmentIds);
+    }
+
+    private class SelectableEquipment
+    {
+        public Equipment Equipment { get; set; }
+        public List<ObstacleContext> MatchedContexts { get; set; }
+        public bool IsSelected { get; set; }
+        public bool CanUse { get; set; }
+    }
+}

@@ -435,50 +435,50 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get available investigation approaches based on player stats
+    /// Get available obligation approaches based on player stats
     /// </summary>
-    public List<InvestigationApproach> GetAvailableApproaches(Player player)
+    public List<ObligationApproach> GetAvailableApproaches(Player player)
     {
-        List<InvestigationApproach> approaches = new List<InvestigationApproach> { InvestigationApproach.Standard };
+        List<ObligationApproach> approaches = new List<ObligationApproach> { ObligationApproach.Standard };
 
         if (player.Stats.GetLevel(PlayerStatType.Insight) >= 2)
-            approaches.Add(InvestigationApproach.Systematic);
+            approaches.Add(ObligationApproach.Systematic);
 
         if (player.Stats.GetLevel(PlayerStatType.Rapport) >= 2)
-            approaches.Add(InvestigationApproach.LocalInquiry);
+            approaches.Add(ObligationApproach.LocalInquiry);
 
         if (player.Stats.GetLevel(PlayerStatType.Authority) >= 2)
-            approaches.Add(InvestigationApproach.DemandAccess);
+            approaches.Add(ObligationApproach.DemandAccess);
 
         if (player.Stats.GetLevel(PlayerStatType.Diplomacy) >= 2)
-            approaches.Add(InvestigationApproach.PurchaseInfo);
+            approaches.Add(ObligationApproach.PurchaseInfo);
 
         if (player.Stats.GetLevel(PlayerStatType.Cunning) >= 2)
-            approaches.Add(InvestigationApproach.CovertSearch);
+            approaches.Add(ObligationApproach.CovertSearch);
 
         return approaches;
     }
 
     /// <summary>
-    /// OLD V2 Investigation - Stubbed out (replaced by V3 card-based system)
+    /// OLD V2 Obligation - Stubbed out (replaced by V3 card-based system)
     /// </summary>
-    /// <param name="LocationId">ID of the location where investigation takes place</param>
-    /// <returns>Always returns false - V2 investigation system removed</returns>
+    /// <param name="LocationId">ID of the location where obligation takes place</param>
+    /// <returns>Always returns false - V2 obligation system removed</returns>
     public bool InvestigateLocation(string LocationId)
     {
-        return InvestigateLocation(LocationId, InvestigationApproach.Standard);
+        return InvestigateLocation(LocationId, ObligationApproach.Standard);
     }
 
     /// <summary>
-    /// OLD V2 Investigation - Stubbed out (replaced by V3 card-based system)
+    /// OLD V2 Obligation - Stubbed out (replaced by V3 card-based system)
     /// </summary>
-    /// <param name="LocationId">ID of the location where investigation takes place</param>
-    /// <param name="approach">Investigation approach to use</param>
-    /// <returns>Always returns false - V2 investigation system removed</returns>
-    public bool InvestigateLocation(string LocationId, InvestigationApproach approach)
+    /// <param name="LocationId">ID of the location where obligation takes place</param>
+    /// <param name="approach">Obligation approach to use</param>
+    /// <returns>Always returns false - V2 obligation system removed</returns>
+    public bool InvestigateLocation(string LocationId, ObligationApproach approach)
     {
-        // V2 Investigation system removed - replaced by V3 card-based investigation
-        _messageSystem.AddSystemMessage("Investigation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);
+        // V2 Obligation system removed - replaced by V3 card-based obligation
+        _messageSystem.AddSystemMessage("Obligation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);
         return false;
     }
 
@@ -668,7 +668,7 @@ public class LocationFacade
             List<Goal> allNpcGoals = _obstacleGoalFilter.GetVisibleNPCGoals(npc, _gameWorld);
 
             // Filter to Social goals only, available
-            // NOTE: Investigation goals ARE included - they may have parent obstacles for hierarchical display
+            // NOTE: Obligation goals ARE included - they may have parent obstacles for hierarchical display
             List<Goal> npcSocialGoals = allNpcGoals
                 .Where(g => g.SystemType == TacticalSystemType.Social)
                 .Where(g => g.IsAvailable && !g.IsCompleted)
@@ -740,7 +740,7 @@ public class LocationFacade
         List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
 
         // Filter to this system type only
-        // NOTE: Investigation goals ARE included - they may have parent obstacles for hierarchical display
+        // NOTE: Obligation goals ARE included - they may have parent obstacles for hierarchical display
         List<Goal> systemGoals = allVisibleGoals
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
@@ -884,8 +884,8 @@ public class LocationFacade
             SystemType = systemType,
             Difficulty = difficultyResult.FinalDifficulty,
             DifficultyLabel = difficultyLabel,
-            InvestigationId = goal.InvestigationId,
-            IsIntroAction = !string.IsNullOrEmpty(goal.InvestigationId),
+            ObligationId = goal.ObligationId,
+            IsIntroAction = !string.IsNullOrEmpty(goal.ObligationId),
             FocusCost = goal.Costs.Focus,
             StaminaCost = goal.Costs.Stamina
         };

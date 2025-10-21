@@ -1,6 +1,6 @@
 /* Context Cubes CSS
    10-cube grid displays for localized mastery
-   InvestigationCubes, StoryCubes, ExplorationCubes */
+   XXXOBLIGATIONCUBESXXX, StoryCubes, ExplorationCubes */
 
 .cube-display {
     border: 1px solid #ddd;
@@ -55,7 +55,7 @@
 }
 
 /* Cube type colors */
-.mastery-cube.cube-investigation.earned {
+.mastery-cube.cube-obligation.earned {
     background: linear-gradient(135deg, #9b59b6, #8e44ad);
     border-color: #8e44ad;
 }

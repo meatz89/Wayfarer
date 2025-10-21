@@ -41,7 +41,7 @@ public class GameWorld
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
-    // Mental cards for investigation system
+    // Mental cards for obligation system
     public List<Goal> Goals { get; set; } = new List<Goal>();
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
@@ -59,8 +59,8 @@ public class GameWorld
 
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
-    public List<Investigation> Investigations { get; private set; } = new List<Investigation>();
-    public InvestigationJournal InvestigationJournal { get; private set; } = new InvestigationJournal();
+    public List<Obligation> Obligations { get; private set; } = new List<Obligation>();
+    public ObligationJournal ObligationJournal { get; private set; } = new ObligationJournal();
 
     // Travel System
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
@@ -93,11 +93,11 @@ public class GameWorld
     public MentalSession CurrentMentalSession { get; set; }
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
-    // Session context (investigation tracking for Mental/Physical)
+    // Session context (obligation tracking for Mental/Physical)
     public string CurrentMentalGoalId { get; set; }
-    public string CurrentMentalInvestigationId { get; set; }
+    public string CurrentMentalObligationId { get; set; }
     public string CurrentPhysicalGoalId { get; set; }
-    public string CurrentPhysicalInvestigationId { get; set; }
+    public string CurrentPhysicalObligationId { get; set; }
 
     // Last outcomes (UI display after session ends)
     public SocialChallengeOutcome LastSocialOutcome { get; set; }
@@ -443,70 +443,70 @@ public class GameWorld
     }
 
     // ============================================
-    // INVESTIGATION MANAGEMENT (Core Loop design)
+    // OBLIGATION MANAGEMENT (Core Loop design)
     // ============================================
 
     /// <summary>
-    /// Activate an investigation - mark as active and start deadline tracking
-    /// NPCCommissioned: Sets absolute deadline segment and tracks in active investigations
+    /// Activate an obligation - mark as active and start deadline tracking
+    /// NPCCommissioned: Sets absolute deadline segment and tracks in active obligations
     /// SelfDiscovered: No deadline tracking (freedom-based exploration)
     /// </summary>
-    public void ActivateInvestigation(string investigationId, TimeManager timeManager)
+    public void ActivateObligation(string obligationId, TimeManager timeManager)
     {
-        Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null) return;
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null) return;
 
-        if (!Player.ActiveInvestigationIds.Contains(investigationId))
+        if (!Player.ActiveObligationIds.Contains(obligationId))
         {
-            Player.ActiveInvestigationIds.Add(investigationId);
+            Player.ActiveObligationIds.Add(obligationId);
         }
 
-        if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned)
+        if (obligation.ObligationType == ObligationObligationType.NPCCommissioned)
         {
             int currentSegment = timeManager.CurrentSegment;
-            if (!investigation.DeadlineSegment.HasValue)
-                throw new System.InvalidOperationException($"Investigation {investigationId} is NPCCommissioned but has no DeadlineSegment configured");
-            int deadlineDuration = investigation.DeadlineSegment.Value;
-            investigation.DeadlineSegment = currentSegment + deadlineDuration;
+            if (!obligation.DeadlineSegment.HasValue)
+                throw new System.InvalidOperationException($"Obligation {obligationId} is NPCCommissioned but has no DeadlineSegment configured");
+            int deadlineDuration = obligation.DeadlineSegment.Value;
+            obligation.DeadlineSegment = currentSegment + deadlineDuration;
         }
     }
 
     /// <summary>
-    /// Complete an investigation - apply rewards, chain spawned investigations, clear deadline
+    /// Complete an obligation - apply rewards, chain spawned obligations, clear deadline
     /// Applies coins, items, XP, and increases relationship with patron (NPCCommissioned only)
-    /// Chains spawned investigations by activating each spawned investigation
+    /// Chains spawned obligations by activating each spawned obligation
     /// </summary>
-    public void CompleteInvestigation(string investigationId, TimeManager timeManager)
+    public void CompleteObligation(string obligationId, TimeManager timeManager)
     {
-        Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null) return;
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null) return;
 
-        Player.ModifyCoins(investigation.CompletionRewardCoins);
+        Player.ModifyCoins(obligation.CompletionRewardCoins);
 
-        foreach (string itemId in investigation.CompletionRewardItems)
+        foreach (string itemId in obligation.CompletionRewardItems)
         {
             Player.Inventory.AddItem(itemId);
         }
 
-        foreach (StatXPReward xpReward in investigation.CompletionRewardXP)
+        foreach (StatXPReward xpReward in obligation.CompletionRewardXP)
         {
             Player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
         }
 
-        foreach (string spawnedId in investigation.SpawnedInvestigationIds)
+        foreach (string spawnedId in obligation.SpawnedObligationIds)
         {
-            ActivateInvestigation(spawnedId, timeManager);
+            ActivateObligation(spawnedId, timeManager);
         }
 
-        if (Player.ActiveInvestigationIds.Contains(investigationId))
+        if (Player.ActiveObligationIds.Contains(obligationId))
         {
-            Player.ActiveInvestigationIds.Remove(investigationId);
+            Player.ActiveObligationIds.Remove(obligationId);
         }
 
-        if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
-            !string.IsNullOrEmpty(investigation.PatronNpcId))
+        if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
+            !string.IsNullOrEmpty(obligation.PatronNpcId))
         {
-            NPC patron = NPCs.FirstOrDefault(n => n.ID == investigation.PatronNpcId);
+            NPC patron = NPCs.FirstOrDefault(n => n.ID == obligation.PatronNpcId);
             if (patron != null)
             {
                 patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
@@ -515,41 +515,41 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Check for expired investigations by comparing current segment to deadline
-    /// Returns list of investigation IDs that have exceeded their deadline
+    /// Check for expired obligations by comparing current segment to deadline
+    /// Returns list of obligation IDs that have exceeded their deadline
     /// </summary>
     public List<string> CheckDeadlines(int currentSegment)
     {
-        List<string> expiredInvestigations = new List<string>();
+        List<string> expiredObligations = new List<string>();
 
-        foreach (string investigationId in Player.ActiveInvestigationIds)
+        foreach (string obligationId in Player.ActiveObligationIds)
         {
-            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
-            if (investigation != null &&
-                investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
-                investigation.DeadlineSegment.HasValue &&
-                currentSegment >= investigation.DeadlineSegment.Value)
+            Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation != null &&
+                obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
+                obligation.DeadlineSegment.HasValue &&
+                currentSegment >= obligation.DeadlineSegment.Value)
             {
-                expiredInvestigations.Add(investigationId);
+                expiredObligations.Add(obligationId);
             }
         }
 
-        return expiredInvestigations;
+        return expiredObligations;
     }
 
     /// <summary>
-    /// Apply deadline consequences for missed investigation
-    /// Penalizes relationship with patron NPC, removes StoryCubes, and removes from active investigations
+    /// Apply deadline consequences for missed obligation
+    /// Penalizes relationship with patron NPC, removes StoryCubes, and removes from active obligations
     /// </summary>
-    public void ApplyDeadlineConsequences(string investigationId)
+    public void ApplyDeadlineConsequences(string obligationId)
     {
-        Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null) return;
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null) return;
 
-        if (investigation.ObligationType == InvestigationObligationType.NPCCommissioned &&
-            !string.IsNullOrEmpty(investigation.PatronNpcId))
+        if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
+            !string.IsNullOrEmpty(obligation.PatronNpcId))
         {
-            NPC patron = NPCs.FirstOrDefault(n => n.ID == investigation.PatronNpcId);
+            NPC patron = NPCs.FirstOrDefault(n => n.ID == obligation.PatronNpcId);
             if (patron != null)
             {
                 patron.RelationshipFlow = Math.Max(0, patron.RelationshipFlow - 3);
@@ -559,29 +559,29 @@ public class GameWorld
             }
         }
 
-        if (Player.ActiveInvestigationIds.Contains(investigationId))
+        if (Player.ActiveObligationIds.Contains(obligationId))
         {
-            Player.ActiveInvestigationIds.Remove(investigationId);
+            Player.ActiveObligationIds.Remove(obligationId);
         }
 
-        investigation.IsFailed = true;
+        obligation.IsFailed = true;
     }
 
     /// <summary>
-    /// Get all active investigations for player
+    /// Get all active obligations for player
     /// </summary>
-    public List<Investigation> GetActiveInvestigations()
+    public List<Obligation> GetActiveObligations()
     {
-        List<Investigation> activeInvestigations = new List<Investigation>();
-        foreach (string investigationId in Player.ActiveInvestigationIds)
+        List<Obligation> activeObligations = new List<Obligation>();
+        foreach (string obligationId in Player.ActiveObligationIds)
         {
-            Investigation investigation = Investigations.FirstOrDefault(i => i.Id == investigationId);
-            if (investigation != null)
+            Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation != null)
             {
-                activeInvestigations.Add(investigation);
+                activeObligations.Add(obligation);
             }
         }
-        return activeInvestigations;
+        return activeObligations;
     }
 
     // ============================================
@@ -623,7 +623,7 @@ public class GameWorld
     // ============================================
 
     /// <summary>
-    /// Get InvestigationCubes for a location (0-10 scale)
+    /// Get XXXOBLIGATIONCUBESXXX for a location (0-10 scale)
     /// </summary>
     public int GetLocationCubes(string locationId)
     {
@@ -631,7 +631,7 @@ public class GameWorld
         if (location == null)
             throw new InvalidOperationException($"Location not found: {locationId}");
 
-        return location.InvestigationCubes;
+        return location.XXXOBLIGATIONCUBESXXX;
     }
 
     /// <summary>
@@ -657,14 +657,14 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Grant InvestigationCubes to a location (max 10)
+    /// Grant XXXOBLIGATIONCUBESXXX to a location (max 10)
     /// </summary>
     public void GrantLocationCubes(string locationId, int amount)
     {
         Location location = GetLocation(locationId);
         if (location != null)
         {
-            location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
+            location.XXXOBLIGATIONCUBESXXX = Math.Min(10, location.XXXOBLIGATIONCUBESXXX + amount);
         }
     }
 

@@ -23,8 +23,9 @@ public class GameFacade
     private readonly ExchangeFacade _exchangeFacade;
     private readonly MentalFacade _mentalFacade;
     private readonly PhysicalFacade _physicalFacade;
-    private readonly InvestigationActivity _investigationActivity;
-    private readonly InvestigationDiscoveryEvaluator _investigationDiscoveryEvaluator;
+    private readonly CubeFacade _cubeFacade;
+    private readonly ObligationActivity _obligationActivity;
+    private readonly ObligationDiscoveryEvaluator _obligationDiscoveryEvaluator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -39,8 +40,9 @@ public class GameFacade
         ExchangeFacade exchangeFacade,
         MentalFacade mentalFacade,
         PhysicalFacade physicalFacade,
-        InvestigationActivity investigationActivity,
-        InvestigationDiscoveryEvaluator investigationDiscoveryEvaluator)
+        CubeFacade cubeFacade,
+        ObligationActivity obligationActivity,
+        ObligationDiscoveryEvaluator obligationDiscoveryEvaluator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -54,8 +56,9 @@ public class GameFacade
         _exchangeFacade = exchangeFacade;
         _mentalFacade = mentalFacade;
         _physicalFacade = physicalFacade;
-        _investigationActivity = investigationActivity;
-        _investigationDiscoveryEvaluator = investigationDiscoveryEvaluator;
+        _cubeFacade = cubeFacade ?? throw new ArgumentNullException(nameof(cubeFacade));
+        _obligationActivity = obligationActivity;
+        _obligationDiscoveryEvaluator = obligationDiscoveryEvaluator;
     }
 
     // ========== CORE GAME STATE ==========
@@ -93,7 +96,7 @@ public class GameFacade
         return _gameWorld.GetAvailableStrangers(venueId, currentTime);
     }
 
-    public List<InvestigationApproach> GetAvailableInvestigationApproaches()
+    public List<ObligationApproach> GetAvailableObligationApproaches()
     {
         Player player = _gameWorld.GetPlayer();
         return _locationFacade.GetAvailableApproaches(player);
@@ -125,10 +128,10 @@ public class GameFacade
     {
         bool success = _locationFacade.MoveToSpot(spotName);
 
-        // Movement to new Venue may unlock investigation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
+        // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
         {
-            EvaluateInvestigationDiscovery();
+            EvaluateObligationDiscovery();
         }
 
         return success;
@@ -504,7 +507,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string deckId, string locationSpotId, string goalId, string investigationId)
+    public MentalSession StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
@@ -523,13 +526,13 @@ public class GameFacade
         Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
         Location location = player.CurrentLocation;
         int baseExposure = location.Exposure;
-        int effectiveExposure = _cubeFacade.GetEffectiveExposure(baseExposure, goal?.PlacementLocationId ?? locationSpotId);
+        int effectiveExposure = _cubeFacade.GetEffectiveExposure(goal?.PlacementLocationId ?? locationSpotId, baseExposure);
 
-        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId, effectiveExposure);
+        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId, effectiveExposure);
     }
 
     /// <summary>
-    /// Execute observe action in current Mental investigation
+    /// Execute observe action in current Mental obligation
     /// </summary>
     public async Task<MentalTurnResult> ExecuteObserve()
     {
@@ -543,7 +546,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Execute act action in current Mental investigation
+    /// Execute act action in current Mental obligation
     /// </summary>
     public async Task<MentalTurnResult> ExecuteAct(CardInstance card)
     {
@@ -557,7 +560,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// End the current mental investigation and return the outcome
+    /// End the current mental obligation and return the outcome
     /// </summary>
     public MentalOutcome EndMentalSession()
     {
@@ -584,7 +587,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string goalId, string investigationId)
+    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
@@ -599,7 +602,7 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, goalId, investigationId);
+        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId);
     }
 
     /// <summary>
@@ -1107,24 +1110,24 @@ public class GameFacade
         _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
     }
 
-    // ========== INVESTIGATION SYSTEM ==========
+    // ========== OBLIGATION SYSTEM ==========
 
     /// <summary>
-    /// Evaluate and trigger investigation discovery based on current player state
+    /// Evaluate and trigger obligation discovery based on current player state
     /// Called when player moves to new location/location, gains knowledge, items, or accepts obligations
-    /// Discovered investigations will have their intro goals added to the appropriate location
+    /// Discovered obligations will have their intro goals added to the appropriate location
     /// and discovery modals will be triggered via pending results
     /// </summary>
-    public void EvaluateInvestigationDiscovery()
+    public void EvaluateObligationDiscovery()
     {
-        Player player = _gameWorld.GetPlayer();// Evaluate which investigations can be discovered
-        List<Investigation> discoverable = _investigationDiscoveryEvaluator.EvaluateDiscoverableInvestigations(player);// For each discovered investigation, trigger discovery flow
-        foreach (Investigation investigation in discoverable)
-        {// DiscoverInvestigation moves Potential→Discovered and spawns intro goal at location
+        Player player = _gameWorld.GetPlayer();// Evaluate which obligations can be discovered
+        List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations(player);// For each discovered obligation, trigger discovery flow
+        foreach (Obligation obligation in discoverable)
+        {// DiscoverObligation moves Potential→Discovered and spawns intro goal at location
             // No return value - goal is added directly to Location.ActiveGoals
-            _investigationActivity.DiscoverInvestigation(investigation.Id);
+            _obligationActivity.DiscoverObligation(obligation.Id);
 
-            // Pending discovery result is now set in InvestigationActivity
+            // Pending discovery result is now set in ObligationActivity
             // GameScreen will check for it and display the modal
 
             // Only handle one discovery at a time for POC
@@ -1133,29 +1136,29 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Complete investigation intro action - activates investigation and spawns Phase 1
-    /// RPG quest acceptance pattern: Player clicks button → Investigation activates immediately
+    /// Complete obligation intro action - activates obligation and spawns Phase 1
+    /// RPG quest acceptance pattern: Player clicks button → Obligation activates immediately
     /// </summary>
-    public void CompleteInvestigationIntro(string investigationId)
+    public void CompleteObligationIntro(string obligationId)
     {
-        _investigationActivity.CompleteIntroAction(investigationId);
+        _obligationActivity.CompleteIntroAction(obligationId);
     }
 
     /// <summary>
     /// Set pending intro action - prepares quest acceptance modal
     /// RPG quest acceptance: Button → Modal → "Begin" → Activate
     /// </summary>
-    public void SetPendingIntroAction(string investigationId)
+    public void SetPendingIntroAction(string obligationId)
     {
-        _investigationActivity.SetPendingIntroAction(investigationId);
+        _obligationActivity.SetPendingIntroAction(obligationId);
     }
 
     /// <summary>
     /// Get pending intro result for modal display
     /// </summary>
-    public InvestigationIntroResult GetPendingIntroResult()
+    public ObligationIntroResult GetPendingIntroResult()
     {
-        return _investigationActivity.GetAndClearPendingIntroResult();
+        return _obligationActivity.GetAndClearPendingIntroResult();
     }
 
     /// <summary>

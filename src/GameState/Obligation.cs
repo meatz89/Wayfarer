@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Investigation template - contains metadata and phase definitions for goal creation
-/// Investigation does NOT spawn tactical sessions directly - it creates LocationGoals/NPCGoals
+/// Obligation template - contains metadata and phase definitions for goal creation
+/// Obligation does NOT spawn tactical sessions directly - it creates LocationGoals/NPCGoals
 /// which are evaluated by the existing goal system
 /// </summary>
-public class Investigation
+public class Obligation
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
+    public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
 
     /// <summary>
-    /// Intro action defines how investigation is discovered and activated
-    /// Player must complete intro action to move investigation from Discovered → Active
+    /// Intro action defines how obligation is discovered and activated
+    /// Player must complete intro action to move obligation from Discovered → Active
     /// </summary>
-    public InvestigationIntroAction IntroAction { get; set; }
+    public ObligationIntroAction IntroAction { get; set; }
 
     /// <summary>
     /// Color code for UI grouping and visual distinction
@@ -26,18 +26,18 @@ public class Investigation
     /// <summary>
     /// Phase definitions - used to create goals dynamically when prerequisites met
     /// </summary>
-    public List<InvestigationPhaseDefinition> PhaseDefinitions { get; set; } = new List<InvestigationPhaseDefinition>();
+    public List<ObligationPhaseDefinition> PhaseDefinitions { get; set; } = new List<ObligationPhaseDefinition>();
 
     /// <summary>
     /// Type of obligation - determines pressure and mechanics
     /// NPCCommissioned: Has patron, deadline, failure consequences
     /// SelfDiscovered: No patron, no deadline, pure exploration
     /// </summary>
-    public InvestigationObligationType ObligationType { get; set; } = InvestigationObligationType.SelfDiscovered;
+    public ObligationObligationType ObligationType { get; set; } = ObligationObligationType.SelfDiscovered;
 
     /// <summary>
-    /// NPC who commissioned this investigation (if NPCCommissioned type)
-    /// Null for SelfDiscovered investigations
+    /// NPC who commissioned this obligation (if NPCCommissioned type)
+    /// Null for SelfDiscovered obligations
     /// </summary>
     public string PatronNpcId { get; set; }
 
@@ -49,35 +49,35 @@ public class Investigation
     public NPC PatronNpc { get; set; }
 
     /// <summary>
-    /// Absolute segment number when investigation must be completed (if NPCCommissioned)
+    /// Absolute segment number when obligation must be completed (if NPCCommissioned)
     /// Failure to complete by deadline damages relationship with patron
-    /// Null for SelfDiscovered investigations
+    /// Null for SelfDiscovered obligations
     /// </summary>
     public int? DeadlineSegment { get; set; }
 
     /// <summary>
-    /// Coins granted when investigation completes (NPCCommissioned type)
+    /// Coins granted when obligation completes (NPCCommissioned type)
     /// </summary>
     public int CompletionRewardCoins { get; set; } = 0;
 
     /// <summary>
-    /// Items granted when investigation completes (equipment IDs)
+    /// Items granted when obligation completes (equipment IDs)
     /// </summary>
     public List<string> CompletionRewardItems { get; set; } = new List<string>();
 
     /// <summary>
-    /// Player stat XP rewards granted when investigation completes
+    /// Player stat XP rewards granted when obligation completes
     /// </summary>
     public List<StatXPReward> CompletionRewardXP { get; set; } = new List<StatXPReward>();
 
     /// <summary>
-    /// New investigations spawned when investigation completes
-    /// References to other Investigation IDs in GameWorld.Investigations
+    /// New obligations spawned when obligation completes
+    /// References to other Obligation IDs in GameWorld.Obligations
     /// </summary>
-    public List<string> SpawnedInvestigationIds { get; set; } = new List<string>();
+    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Tracks whether this investigation failed to meet deadline
+    /// Tracks whether this obligation failed to meet deadline
     /// Set to true when ApplyDeadlineConsequences is called
     /// </summary>
     public bool IsFailed { get; set; } = false;
@@ -87,14 +87,14 @@ public class Investigation
 
 /// <summary>
 /// Phase definition - references an existing goal from GameWorld.Goals
-/// When prerequisites met, investigation system looks up goal and adds to ActiveGoals
+/// When prerequisites met, obligation system looks up goal and adds to ActiveGoals
 /// </summary>
-public class InvestigationPhaseDefinition
+public class ObligationPhaseDefinition
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string CompletionNarrative { get; set; } // Narrative shown when investigation completes
+    public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
     public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
 
     // Rewards granted on completion
@@ -118,7 +118,7 @@ public class PhaseCompletionReward
 }
 
 /// <summary>
-/// Defines where and what obstacle to spawn as investigation phase reward
+/// Defines where and what obstacle to spawn as obligation phase reward
 /// </summary>
 public class ObstacleSpawnInfo
 {
@@ -138,21 +138,21 @@ public enum ObstacleSpawnTargetType
 }
 
 /// <summary>
-/// Investigation intro action - defines discovery trigger and activation mechanics
-/// Simple RPG quest acceptance pattern: Show button → Player clicks → Modal displays → Accept quest → Activate investigation
-/// NO CHALLENGE - intro action immediately activates investigation and spawns Phase 1
+/// Obligation intro action - defines discovery trigger and activation mechanics
+/// Simple RPG quest acceptance pattern: Show button → Player clicks → Modal displays → Accept quest → Activate obligation
+/// NO CHALLENGE - intro action immediately activates obligation and spawns Phase 1
 /// </summary>
-public class InvestigationIntroAction
+public class ObligationIntroAction
 {
     /// <summary>
-    /// Type of trigger that makes this investigation discoverable
+    /// Type of trigger that makes this obligation discoverable
     /// </summary>
     public DiscoveryTriggerType TriggerType { get; set; }
 
     /// <summary>
     /// Prerequisites that must be met for discovery trigger to fire
     /// </summary>
-    public InvestigationPrerequisites TriggerPrerequisites { get; set; }
+    public ObligationPrerequisites TriggerPrerequisites { get; set; }
 
     /// <summary>
     /// Button text shown to player ("Search for safe entry to the mill")
@@ -171,28 +171,28 @@ public class InvestigationIntroAction
 
     /// <summary>
     /// Rewards granted when player accepts quest
-    /// Typically spawns Phase 1 obstacle to begin investigation
+    /// Typically spawns Phase 1 obstacle to begin obligation
     /// </summary>
     public PhaseCompletionReward CompletionReward { get; set; }
 }
 
 /// <summary>
-/// Prerequisites for investigation discovery trigger
-/// Resource-based pattern: Investigations visible when player present at location
-/// NO boolean gates - all investigations immediately discoverable
+/// Prerequisites for obligation discovery trigger
+/// Resource-based pattern: Obligations visible when player present at location
+/// NO boolean gates - all obligations immediately discoverable
 /// </summary>
-public class InvestigationPrerequisites
+public class ObligationPrerequisites
 {
     /// <summary>
     /// Required location (LocationId is globally unique)
-    /// Investigation becomes discoverable when player enters this location
+    /// Obligation becomes discoverable when player enters this location
     /// </summary>
     public string LocationId { get; set; }
 }
 
 /// <summary>
 /// Player stat XP reward - strongly typed replacement for Dictionary<string, int>
-/// Used in investigation completion rewards
+/// Used in obligation completion rewards
 /// </summary>
 public class StatXPReward
 {
@@ -202,7 +202,7 @@ public class StatXPReward
 
 /// <summary>
 /// NPC reputation reward - strongly typed replacement for Dictionary<string, int>
-/// Used in investigation completion rewards
+/// Used in obligation completion rewards
 /// </summary>
 public class NPCReputationReward
 {

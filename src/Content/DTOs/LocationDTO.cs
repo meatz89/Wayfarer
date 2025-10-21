@@ -20,7 +20,7 @@ public class LocationDTO
 
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }
-    public Dictionary<string, int> InvestigationScaling { get; set; } = new Dictionary<string, int>();
+    public Dictionary<string, int> ObligationScaling { get; set; } = new Dictionary<string, int>();
     public bool CanWork { get; set; }
     public string WorkType { get; set; }
     public int WorkPay { get; set; }
@@ -31,7 +31,7 @@ public class LocationDTO
     // Gameplay properties moved from LocationDTO
     public string LocationType { get; set; }
     public bool IsStartingLocation { get; set; }
-    public string InvestigationProfile { get; set; }
+    public string ObligationProfile { get; set; }
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
     public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
 }

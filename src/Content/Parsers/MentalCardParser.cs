@@ -52,7 +52,7 @@ public class MentalCardParser
             Category = category,
 
             // Universal properties - catalog provides defaults (not JSON)
-            Discipline = InvestigationDiscipline.Research,  // Fixed value until JSON needs variation
+            Discipline = ObligationDiscipline.Research,  // Fixed value until JSON needs variation
             ExertionLevel = ExertionLevel.Light,  // Fixed value until JSON needs variation
             MethodType = MethodType.Direct,  // Fixed value until JSON needs variation
 

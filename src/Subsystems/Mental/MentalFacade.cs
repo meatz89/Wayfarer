@@ -59,7 +59,7 @@ public class MentalFacade
     }
 
     public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string goalId, string investigationId, int effectiveExposure)
+        string goalId, string obligationId, int effectiveExposure)
     {
         if (IsSessionActive())
         {
@@ -73,9 +73,9 @@ public class MentalFacade
             return null;
         }
 
-        // Track investigation context
+        // Track obligation context
         _gameWorld.CurrentMentalGoalId = goalId;
-        _gameWorld.CurrentMentalInvestigationId = investigationId;
+        _gameWorld.CurrentMentalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
         Location location = player.CurrentLocation;
@@ -87,11 +87,11 @@ public class MentalFacade
             return null;
         }
         player.Focus -= focusCost;
-        // effectiveExposure passed from GameFacade (already reduced by InvestigationCubes)
+        // effectiveExposure passed from GameFacade (already reduced by XXXOBLIGATIONCUBESXXX)
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {
-            InvestigationId = engagement.Id,
+            ObligationId = engagement.Id,
             VenueId = location.VenueId,
             CurrentAttention = 10,
             MaxAttention = 10,
@@ -260,7 +260,7 @@ public class MentalFacade
             }
             // Else: ambient goal with no obstacle parent
 
-            // Complete goal through GoalCompletionHandler (handles investigation progress)
+            // Complete goal through GoalCompletionHandler (handles obligation progress)
             Goal completedGoal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalGoalId);
             if (completedGoal != null)
             {
@@ -273,7 +273,7 @@ public class MentalFacade
             return new MentalTurnResult
             {
                 Success = true,
-                Narrative = $"You completed the investigation: {card.GoalCardTemplate.Name}",
+                Narrative = $"You completed the obligation: {card.GoalCardTemplate.Name}",
                 CurrentProgress = 0,
                 CurrentExposure = 0,
                 SessionEnded = true
@@ -306,7 +306,7 @@ public class MentalFacade
         foreach (CardInstance goalCard in unlockedGoals)
         { }
 
-        // Track categories for investigation depth
+        // Track categories for obligation depth
         MentalCategory category = card.MentalCardTemplate.Category;
         _gameWorld.CurrentMentalSession.CategoryCounts[category] =
             _gameWorld.CurrentMentalSession.CategoryCounts.GetValueOrDefault(category, 0) + 1;
@@ -406,10 +406,10 @@ public class MentalFacade
     }
 
     /// <summary>
-    /// Leave investigation - saves state for later return
+    /// Leave obligation - saves state for later return
     /// Mental challenges allow leaving and resuming
     /// </summary>
-    public MentalOutcome LeaveInvestigation()
+    public MentalOutcome LeaveObligation()
     {
         if (!IsSessionActive())
         {
@@ -447,7 +447,7 @@ public class MentalFacade
             SessionSaved = false
         };
 
-        // Investigation progress now handled by GoalCompletionHandler (system-agnostic)
+        // Obligation progress now handled by GoalCompletionHandler (system-agnostic)
 
         Player player = _gameWorld.GetPlayer();
 
@@ -464,9 +464,9 @@ public class MentalFacade
         Location currentSpot = player.CurrentLocation;
         currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;
 
-        // Clear investigation context
+        // Clear obligation context
         _gameWorld.CurrentMentalGoalId = null;
-        _gameWorld.CurrentMentalInvestigationId = null;
+        _gameWorld.CurrentMentalObligationId = null;
 
         _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
@@ -476,7 +476,7 @@ public class MentalFacade
 
     /// <summary>
     /// Apply consequences when Exposure threshold reached
-    /// Structure becomes dangerous, investigation discovered
+    /// Structure becomes dangerous, obligation discovered
     /// </summary>
     private void ApplyExposureConsequences(Player player)
     {

@@ -11,7 +11,7 @@ public class PhysicalFacade
     private readonly PhysicalNarrativeService _narrativeService;
     private readonly PhysicalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
-    private readonly InvestigationActivity _investigationActivity;
+    private readonly ObligationActivity _obligationActivity;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -19,14 +19,14 @@ public class PhysicalFacade
         PhysicalNarrativeService narrativeService,
         PhysicalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        InvestigationActivity investigationActivity)
+        ObligationActivity obligationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
+        _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
     }
 
     public PhysicalSession GetCurrentSession()
@@ -65,16 +65,16 @@ public class PhysicalFacade
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string goalId, string investigationId)
+        string goalId, string obligationId)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
 
-        // Track investigation context
+        // Track obligation context
         _gameWorld.CurrentPhysicalGoalId = goalId;
-        _gameWorld.CurrentPhysicalInvestigationId = investigationId;
+        _gameWorld.CurrentPhysicalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
 
@@ -391,10 +391,10 @@ public class PhysicalFacade
             EscapeCost = ""
         };
 
-        // Check for investigation progress if this was an investigation goal
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalInvestigationId))
+        // Check for obligation progress if this was an obligation goal
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
         {
-            CheckInvestigationProgress(_gameWorld.CurrentPhysicalGoalId, _gameWorld.CurrentPhysicalInvestigationId);
+            CheckObligationProgress(_gameWorld.CurrentPhysicalGoalId, _gameWorld.CurrentPhysicalObligationId);
         }
 
         // Award Reputation on success (Reputation system)
@@ -411,9 +411,9 @@ public class PhysicalFacade
             }
         }
 
-        // Clear investigation context
+        // Clear obligation context
         _gameWorld.CurrentPhysicalGoalId = null;
-        _gameWorld.CurrentPhysicalInvestigationId = null;
+        _gameWorld.CurrentPhysicalObligationId = null;
 
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
@@ -502,31 +502,31 @@ public class PhysicalFacade
     }
 
     /// <summary>
-    /// Check for investigation progress when Physical goal completes
+    /// Check for obligation progress when Physical goal completes
     /// </summary>
-    private void CheckInvestigationProgress(string goalId, string investigationId)
+    private void CheckObligationProgress(string goalId, string obligationId)
     {
-        // KEEP - investigationId is external input from session
+        // KEEP - obligationId is external input from session
         // Check if this is an intro action (Discovered → Active transition)
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation != null && goalId == "notice_waterwheel")
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation != null && goalId == "notice_waterwheel")
         {
-            // This is intro completion - activate investigation
+            // This is intro completion - activate obligation
             // CompleteIntroAction spawns goals directly to ActiveGoals
-            _investigationActivity.CompleteIntroAction(investigationId);
+            _obligationActivity.CompleteIntroAction(obligationId);
             return;
         }
 
         // Regular goal completion
-        InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(goalId, investigationId);
+        ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(goalId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 
-        // Check if investigation is now complete
-        InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigationId);
+        // Check if obligation is now complete
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
         if (completeResult != null)
         {
-            // Investigation complete - UI will display completion modal
+            // Obligation complete - UI will display completion modal
         }
     }
 }

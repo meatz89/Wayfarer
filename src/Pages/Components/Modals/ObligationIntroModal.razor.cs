@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
-    public class InvestigationIntroModalBase : ComponentBase
+    public class ObligationIntroModalBase : ComponentBase
     {
-        [Parameter] public InvestigationIntroResult Data { get; set; }
+        [Parameter] public ObligationIntroResult Data { get; set; }
         [Parameter] public EventCallback OnBegin { get; set; }
         [Parameter] public EventCallback OnDismiss { get; set; }
 
-        protected async Task BeginInvestigation()
+        protected async Task BeginObligation()
         {
             await OnBegin.InvokeAsync();
         }

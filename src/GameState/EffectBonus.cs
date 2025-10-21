@@ -31,7 +31,7 @@ public enum BonusType
     /// <summary>
     /// Card discipline matches challenge type (specialist bonus)
     /// Physical: Combat card in Combat challenge
-    /// Mental: Research card in Research investigation
+    /// Mental: Research card in Research obligation
     /// </summary>
     Discipline,
 
@@ -48,7 +48,7 @@ public enum BonusType
     Mastery,
 
     /// <summary>
-    /// Familiarity bonus (Mental - repeated Venue investigation)
+    /// Familiarity bonus (Mental - repeated Venue obligation)
     /// Reduces Exposure at familiar locations
     /// </summary>
     Familiarity,
@@ -60,8 +60,8 @@ public enum BonusType
     Equipment,
 
     /// <summary>
-    /// Investigation profile bonus (Mental - location-specific)
-    /// Cards matching location's investigation style get bonuses
+    /// Obligation profile bonus (Mental - location-specific)
+    /// Cards matching location's obligation style get bonuses
     /// </summary>
     Profile,
 

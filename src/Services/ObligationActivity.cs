@@ -5,22 +5,22 @@ using System.Threading.Tasks;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Investigation service - provides operations for investigation lifecycle
-/// STATE-LESS: All state lives in GameWorld.InvestigationJournal
+/// Obligation service - provides operations for obligation lifecycle
+/// STATE-LESS: All state lives in GameWorld.ObligationJournal
 /// Does NOT spawn tactical sessions - creates LocationGoals that existing goal system evaluates
 /// </summary>
-public class InvestigationActivity
+public class ObligationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
 
-    private InvestigationDiscoveryResult _pendingDiscoveryResult;
-    private InvestigationActivationResult _pendingActivationResult;
-    private InvestigationProgressResult _pendingProgressResult;
-    private InvestigationCompleteResult _pendingCompleteResult;
-    private InvestigationIntroResult _pendingIntroResult;
+    private ObligationDiscoveryResult _pendingDiscoveryResult;
+    private ObligationActivationResult _pendingActivationResult;
+    private ObligationProgressResult _pendingProgressResult;
+    private ObligationCompleteResult _pendingCompleteResult;
+    private ObligationIntroResult _pendingIntroResult;
 
-    public InvestigationActivity(
+    public ObligationActivity(
         GameWorld gameWorld,
         MessageSystem messageSystem)
     {
@@ -32,9 +32,9 @@ public class InvestigationActivity
     /// Get and clear pending discovery result for UI modal display
     /// Returns null if no result pending
     /// </summary>
-    public InvestigationDiscoveryResult GetAndClearPendingDiscoveryResult()
+    public ObligationDiscoveryResult GetAndClearPendingDiscoveryResult()
     {
-        InvestigationDiscoveryResult result = _pendingDiscoveryResult;
+        ObligationDiscoveryResult result = _pendingDiscoveryResult;
         _pendingDiscoveryResult = null;
         return result;
     }
@@ -43,9 +43,9 @@ public class InvestigationActivity
     /// Get and clear pending progress result for UI modal display
     /// Returns null if no result pending
     /// </summary>
-    public InvestigationProgressResult GetAndClearPendingProgressResult()
+    public ObligationProgressResult GetAndClearPendingProgressResult()
     {
-        InvestigationProgressResult result = _pendingProgressResult;
+        ObligationProgressResult result = _pendingProgressResult;
         _pendingProgressResult = null;
         return result;
     }
@@ -54,9 +54,9 @@ public class InvestigationActivity
     /// Get and clear pending completion result for UI modal display
     /// Returns null if no result pending
     /// </summary>
-    public InvestigationCompleteResult GetAndClearPendingCompleteResult()
+    public ObligationCompleteResult GetAndClearPendingCompleteResult()
     {
-        InvestigationCompleteResult result = _pendingCompleteResult;
+        ObligationCompleteResult result = _pendingCompleteResult;
         _pendingCompleteResult = null;
         return result;
     }
@@ -65,9 +65,9 @@ public class InvestigationActivity
     /// Get and clear pending activation result for UI modal display
     /// Returns null if no result pending
     /// </summary>
-    public InvestigationActivationResult GetAndClearPendingActivationResult()
+    public ObligationActivationResult GetAndClearPendingActivationResult()
     {
-        InvestigationActivationResult result = _pendingActivationResult;
+        ObligationActivationResult result = _pendingActivationResult;
         _pendingActivationResult = null;
         return result;
     }
@@ -76,110 +76,110 @@ public class InvestigationActivity
     /// Get and clear pending intro result for UI modal display
     /// Returns null if no result pending
     /// </summary>
-    public InvestigationIntroResult GetAndClearPendingIntroResult()
+    public ObligationIntroResult GetAndClearPendingIntroResult()
     {
-        InvestigationIntroResult result = _pendingIntroResult;
+        ObligationIntroResult result = _pendingIntroResult;
         _pendingIntroResult = null;
         return result;
     }
 
     /// <summary>
     /// Set pending intro action - prepares quest acceptance modal but doesn't activate
-    /// RPG Pattern: Button click → Modal → "Begin Investigation" → Activate
+    /// RPG Pattern: Button click → Modal → "Begin Obligation" → Activate
     /// </summary>
-    public void SetPendingIntroAction(string investigationId)
+    public void SetPendingIntroAction(string obligationId)
     {
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
-            throw new ArgumentException($"Investigation '{investigationId}' not found");
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
+            throw new ArgumentException($"Obligation '{obligationId}' not found");
 
-        if (investigation.IntroAction == null)
-            throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action");
+        if (obligation.IntroAction == null)
+            throw new InvalidOperationException($"Obligation '{obligationId}' has no intro action");
 
         // Derive venue from location
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == obligation.IntroAction.LocationId);
         if (location == null)
-            throw new InvalidOperationException($"Location '{investigation.IntroAction.LocationId}' not found for investigation intro action");
+            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationId}' not found for obligation intro action");
 
         Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
         if (venue == null)
             throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
 
         // Create intro result for quest acceptance modal
-        _pendingIntroResult = new InvestigationIntroResult
+        _pendingIntroResult = new ObligationIntroResult
         {
-            InvestigationId = investigationId,
-            InvestigationName = investigation.Name,
-            IntroNarrative = investigation.IntroAction.IntroNarrative,
-            IntroActionText = investigation.IntroAction.ActionText,
-            ColorCode = investigation.ColorCode,
+            ObligationId = obligationId,
+            ObligationName = obligation.Name,
+            IntroNarrative = obligation.IntroAction.IntroNarrative,
+            IntroActionText = obligation.IntroAction.ActionText,
+            ColorCode = obligation.ColorCode,
             LocationName = venue.Name,
             SpotName = location.Name
         };
     }
 
     /// <summary>
-    /// Activate investigation - looks up goals and spawns them at locations/NPCs
-    /// Moves investigation from Pending → Active in GameWorld.InvestigationJournal
+    /// Activate obligation - looks up goals and spawns them at locations/NPCs
+    /// Moves obligation from Pending → Active in GameWorld.ObligationJournal
     /// </summary>
-    public void ActivateInvestigation(string investigationId)
+    public void ActivateObligation(string obligationId)
     {
-        // Load investigation template from GameWorld
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
+        // Load obligation template from GameWorld
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
         {
-            throw new ArgumentException($"Investigation '{investigationId}' not found in GameWorld");
+            throw new ArgumentException($"Obligation '{obligationId}' not found in GameWorld");
         }
 
         // Remove from potential and discovered
-        _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
-        _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Remove(investigationId);
+        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
+        _gameWorld.ObligationJournal.DiscoveredObligationIds.Remove(obligationId);
 
-        // Create active investigation
-        ActiveInvestigation activeInvestigation = new ActiveInvestigation
+        // Create active obligation
+        ActiveObligation activeObligation = new ActiveObligation
         {
-            InvestigationId = investigationId
+            ObligationId = obligationId
         };
-        _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
+        _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
-        // NOTE: Investigations no longer spawn goals directly
+        // NOTE: Obligations no longer spawn goals directly
         // Goals are contained within obstacles as children (containment pattern)
-        // Obstacles are spawned by investigation phase completion rewards
+        // Obstacles are spawned by obligation phase completion rewards
 
         _messageSystem.AddSystemMessage(
-            $"Investigation activated: {investigation.Name}",
+            $"Obligation activated: {obligation.Name}",
             SystemMessageTypes.Info);
     }
 
     /// <summary>
-    /// Mark goal complete - checks for investigation progress
-    /// Returns InvestigationProgressResult for UI modal display
+    /// Mark goal complete - checks for obligation progress
+    /// Returns ObligationProgressResult for UI modal display
     /// </summary>
-    public InvestigationProgressResult CompleteGoal(string goalId, string investigationId)
+    public ObligationProgressResult CompleteGoal(string goalId, string obligationId)
     {
-        // Find active investigation
-        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
-            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+        // Find active obligation
+        ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
+            .FirstOrDefault(inv => inv.ObligationId == obligationId);
 
         if (activeInv == null)
         {
-            throw new ArgumentException($"Investigation '{investigationId}' is not active");
+            throw new ArgumentException($"Obligation '{obligationId}' is not active");
         }
 
-        // Load investigation template
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
+        // Load obligation template
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
         {
-            throw new ArgumentException($"Investigation '{investigationId}' not found");
+            throw new ArgumentException($"Obligation '{obligationId}' not found");
         }
 
         // Find completed phase definition
-        InvestigationPhaseDefinition completedPhase = investigation.PhaseDefinitions
+        ObligationPhaseDefinition completedPhase = obligation.PhaseDefinitions
             .FirstOrDefault(p => p.Id == goalId);
 
         if (completedPhase == null)
         {
-            throw new ArgumentException($"Phase '{goalId}' not found in investigation '{investigationId}'");
+            throw new ArgumentException($"Phase '{goalId}' not found in obligation '{obligationId}'");
         }
 
         // Grant Understanding from phase completion rewards (0-10 max)
@@ -203,21 +203,21 @@ public class InvestigationActivity
             }
         }
 
-        // NOTE: Goals are no longer spawned by investigations
+        // NOTE: Goals are no longer spawned by obligations
         // Goals are contained within obstacles as children (containment pattern)
         // New leads come from obstacle-spawned goals, not phase-spawned goals
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
 
-        // NOTE: Obstacles no longer have InvestigationId property - investigations tracked via Understanding resource
+        // NOTE: Obstacles no longer have ObligationId property - obligations tracked via Understanding resource
         // Progress now measured by Understanding accumulated, not obstacle counts
         int resolvedObstacleCount = 0; // Legacy - UI needs redesign
         int totalObstacleCount = 1; // Legacy - UI needs redesign
 
         // Build result for UI modal
-        InvestigationProgressResult result = new InvestigationProgressResult
+        ObligationProgressResult result = new ObligationProgressResult
         {
-            InvestigationId = investigationId,
-            InvestigationName = investigation.Name,
+            ObligationId = obligationId,
+            ObligationName = obligation.Name,
             CompletedGoalName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
             NewLeads = newLeads,
@@ -231,30 +231,30 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Check if investigation is complete - all goals done
-    /// Returns InvestigationCompleteResult if complete, null otherwise
+    /// Check if obligation is complete - all goals done
+    /// Returns ObligationCompleteResult if complete, null otherwise
     /// </summary>
-    public InvestigationCompleteResult CheckInvestigationCompletion(string investigationId)
+    public ObligationCompleteResult CheckObligationCompletion(string obligationId)
     {
-        // Find active investigation
-        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
-            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+        // Find active obligation
+        ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
+            .FirstOrDefault(inv => inv.ObligationId == obligationId);
 
         if (activeInv == null)
         {
             return null; // Not active
         }
 
-        // Load investigation template
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
+        // Load obligation template
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
         {
             return null;
         }
 
-        // NOTE: Obstacles no longer have InvestigationId property - investigations tracked via Understanding resource
+        // NOTE: Obstacles no longer have ObligationId property - obligations tracked via Understanding resource
         // Completion now based on Understanding reaching requirement, not obstacle counts
-        // TODO: Add UnderstandingRequired property to Investigation model
+        // TODO: Add UnderstandingRequired property to Obligation model
         int requiredUnderstanding = 10; // Default completion threshold
         if (activeInv.UnderstandingAccumulated < requiredUnderstanding)
         {
@@ -262,22 +262,22 @@ public class InvestigationActivity
         }
 
         // Move from Active → Completed
-        _gameWorld.InvestigationJournal.ActiveInvestigations.Remove(activeInv);
-        _gameWorld.InvestigationJournal.CompletedInvestigationIds.Add(investigationId);
+        _gameWorld.ObligationJournal.ActiveObligations.Remove(activeInv);
+        _gameWorld.ObligationJournal.CompletedObligationIds.Add(obligationId);
 
         // Grant rewards
-        GrantInvestigationRewards(investigation);
+        GrantObligationRewards(obligation);
 
         // Build result for UI modal
-        InvestigationCompleteResult result = new InvestigationCompleteResult
+        ObligationCompleteResult result = new ObligationCompleteResult
         {
-            InvestigationId = investigationId,
-            InvestigationName = investigation.Name,
-            CompletionNarrative = investigation.CompletionNarrative,
-            Rewards = new InvestigationRewards
+            ObligationId = obligationId,
+            ObligationName = obligation.Name,
+            CompletionNarrative = obligation.CompletionNarrative,
+            Rewards = new ObligationRewards
             {
-                Coins = investigation.CompletionRewardCoins,
-                XPRewards = investigation.CompletionRewardXP,
+                Coins = obligation.CompletionRewardCoins,
+                XPRewards = obligation.CompletionRewardXP,
                 NPCReputation = new List<NPCReputationReward>() // Future: NPC reputation system
             }
             // ObservationCardRewards eliminated - observation system removed
@@ -286,27 +286,27 @@ public class InvestigationActivity
         _pendingCompleteResult = result;
 
         _messageSystem.AddSystemMessage(
-            $"Investigation complete: {investigation.Name}",
+            $"Obligation complete: {obligation.Name}",
             SystemMessageTypes.Success);
 
         return result;
     }
 
     /// <summary>
-    /// Grant investigation completion rewards
+    /// Grant obligation completion rewards
     /// </summary>
-    private void GrantInvestigationRewards(Investigation investigation)
+    private void GrantObligationRewards(Obligation obligation)
     {
         Player player = _gameWorld.GetPlayer();
 
         // Grant coins
-        if (investigation.CompletionRewardCoins > 0)
+        if (obligation.CompletionRewardCoins > 0)
         {
-            player.Coins += investigation.CompletionRewardCoins;
+            player.Coins += obligation.CompletionRewardCoins;
         }
 
         // Grant items (equipment) - add equipment IDs to player inventory
-        foreach (string itemId in investigation.CompletionRewardItems)
+        foreach (string itemId in obligation.CompletionRewardItems)
         {
             player.Inventory.AddItem(itemId);
             _messageSystem.AddSystemMessage(
@@ -315,7 +315,7 @@ public class InvestigationActivity
         }
 
         // Grant player stat XP rewards
-        foreach (StatXPReward xpReward in investigation.CompletionRewardXP)
+        foreach (StatXPReward xpReward in obligation.CompletionRewardXP)
         {
             player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
             _messageSystem.AddSystemMessage(
@@ -323,16 +323,16 @@ public class InvestigationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Spawn new investigations
-        foreach (string investigationId in investigation.SpawnedInvestigationIds)
+        // Spawn new obligations
+        foreach (string obligationId in obligation.SpawnedObligationIds)
         {
-            Investigation spawnedInvestigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-            if (spawnedInvestigation != null)
+            Obligation spawnedObligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (spawnedObligation != null)
             {
                 // Move to Discovered state (player must accept it via intro action)
-                _gameWorld.InvestigationJournal.DiscoveredInvestigationIds.Add(investigationId);
+                _gameWorld.ObligationJournal.DiscoveredObligationIds.Add(obligationId);
                 _messageSystem.AddSystemMessage(
-                    $"New investigation available: {spawnedInvestigation.Name}",
+                    $"New obligation available: {spawnedObligation.Name}",
                     SystemMessageTypes.Info);
             }
         }
@@ -341,87 +341,87 @@ public class InvestigationActivity
     }
 
     /// <summary>
-    /// Discover investigation - moves Potential → Active and immediately spawns intro obstacles
-    /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates investigation
+    /// Discover obligation - moves Potential → Active and immediately spawns intro obstacles
+    /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates obligation
     /// Sets pending discovery result for UI modal display
     /// </summary>
-    public void DiscoverInvestigation(string investigationId)
+    public void DiscoverObligation(string obligationId)
     {
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
-            throw new ArgumentException($"Investigation '{investigationId}' not found");
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
+            throw new ArgumentException($"Obligation '{obligationId}' not found");
 
-        if (investigation.IntroAction == null)
-            throw new InvalidOperationException($"Investigation '{investigationId}' has no intro action defined");
+        if (obligation.IntroAction == null)
+            throw new InvalidOperationException($"Obligation '{obligationId}' has no intro action defined");
 
         // Move Potential → Active (skip Discovered state entirely)
-        _gameWorld.InvestigationJournal.PotentialInvestigationIds.Remove(investigationId);
+        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
 
-        // Create active investigation
-        ActiveInvestigation activeInvestigation = new ActiveInvestigation
+        // Create active obligation
+        ActiveObligation activeObligation = new ActiveObligation
         {
-            InvestigationId = investigationId
+            ObligationId = obligationId
         };
-        _gameWorld.InvestigationJournal.ActiveInvestigations.Add(activeInvestigation);
+        _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
         // Spawn obstacles from intro completion reward IMMEDIATELY
-        if (investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        if (obligation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
         {
-            foreach (ObstacleSpawnInfo spawnInfo in investigation.IntroAction.CompletionReward.ObstaclesSpawned)
+            foreach (ObstacleSpawnInfo spawnInfo in obligation.IntroAction.CompletionReward.ObstaclesSpawned)
             {
                 SpawnObstacle(spawnInfo);
             }
         }
 
         // Grant Understanding from intro completion reward (0-10 max)
-        if (investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        if (obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            int newUnderstanding = Math.Min(10, player.Understanding + investigation.IntroAction.CompletionReward.UnderstandingReward);
+            int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
             player.Understanding = newUnderstanding;
 
             _messageSystem.AddSystemMessage(
-                $"Understanding increased by {investigation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                $"Understanding increased by {obligation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
                 SystemMessageTypes.Success);
         }
 
         // Derive venue from location (LocationId is globally unique)
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == investigation.IntroAction.LocationId);
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == obligation.IntroAction.LocationId);
         if (location == null)
-            throw new InvalidOperationException($"Location '{investigation.IntroAction.LocationId}' not found for investigation discovery");
+            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationId}' not found for obligation discovery");
 
         Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
         if (venue == null)
             throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
 
         // Create discovery result for UI modal (narrative only)
-        InvestigationDiscoveryResult discoveryResult = new InvestigationDiscoveryResult
+        ObligationDiscoveryResult discoveryResult = new ObligationDiscoveryResult
         {
-            InvestigationId = investigationId,
-            InvestigationName = investigation.Name,
-            IntroNarrative = investigation.IntroAction.IntroNarrative,
-            IntroActionText = investigation.IntroAction.ActionText,
-            ColorCode = investigation.ColorCode,
+            ObligationId = obligationId,
+            ObligationName = obligation.Name,
+            IntroNarrative = obligation.IntroAction.IntroNarrative,
+            IntroActionText = obligation.IntroAction.ActionText,
+            ColorCode = obligation.ColorCode,
             LocationName = venue.Name,
             SpotName = location.Name
         };
         _pendingDiscoveryResult = discoveryResult;
 
         _messageSystem.AddSystemMessage(
-            $"Investigation discovered: {investigation.Name}",
+            $"Obligation discovered: {obligation.Name}",
             SystemMessageTypes.Info);
     }
 
     /// <summary>
     /// Complete intro action - LEGACY METHOD, now redundant
-    /// DiscoverInvestigation() now immediately activates and spawns obstacles
-    /// This method is safe to call but does nothing if investigation already active
+    /// DiscoverObligation() now immediately activates and spawns obstacles
+    /// This method is safe to call but does nothing if obligation already active
     /// </summary>
-    public void CompleteIntroAction(string investigationId)
+    public void CompleteIntroAction(string obligationId)
     {
         // Check if already active - discovery now activates immediately
-        ActiveInvestigation activeInv = _gameWorld.InvestigationJournal.ActiveInvestigations
-            .FirstOrDefault(inv => inv.InvestigationId == investigationId);
+        ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
+            .FirstOrDefault(inv => inv.ObligationId == obligationId);
 
         if (activeInv != null)
         {
@@ -430,51 +430,51 @@ public class InvestigationActivity
         }
 
         // Legacy path - should not be reached with new flow
-        Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == investigationId);
-        if (investigation == null)
+        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+        if (obligation == null)
         {
-            throw new ArgumentException($"Investigation '{investigationId}' not found");
+            throw new ArgumentException($"Obligation '{obligationId}' not found");
         }
 
-        // Activate investigation (moves Discovered → Active)
-        ActivateInvestigation(investigationId);
+        // Activate obligation (moves Discovered → Active)
+        ActivateObligation(obligationId);
 
         // Spawn obstacles from intro completion reward
-        if (investigation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        if (obligation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
         {
-            foreach (ObstacleSpawnInfo spawnInfo in investigation.IntroAction.CompletionReward.ObstaclesSpawned)
+            foreach (ObstacleSpawnInfo spawnInfo in obligation.IntroAction.CompletionReward.ObstaclesSpawned)
             {
                 SpawnObstacle(spawnInfo);
             }
         }
 
         // Grant Understanding from intro completion reward (0-10 max)
-        if (investigation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        if (obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            int newUnderstanding = Math.Min(10, player.Understanding + investigation.IntroAction.CompletionReward.UnderstandingReward);
+            int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
             player.Understanding = newUnderstanding;
 
             _messageSystem.AddSystemMessage(
-                $"Understanding increased by {investigation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
+                $"Understanding increased by {obligation.IntroAction.CompletionReward.UnderstandingReward} (now {newUnderstanding}/10)",
                 SystemMessageTypes.Success);
         }
 
         // Create activation result for UI modal
-        _pendingActivationResult = new InvestigationActivationResult
+        _pendingActivationResult = new ObligationActivationResult
         {
-            InvestigationId = investigationId,
-            InvestigationName = investigation.Name,
-            IntroNarrative = investigation.IntroAction.IntroNarrative
+            ObligationId = obligationId,
+            ObligationName = obligation.Name,
+            IntroNarrative = obligation.IntroAction.IntroNarrative
         };
 
         _messageSystem.AddSystemMessage(
-            $"Investigation activated: {investigation.Name}",
+            $"Obligation activated: {obligation.Name}",
             SystemMessageTypes.Success);
     }
 
     /// <summary>
-    /// Spawn an obstacle at the specified target entity as investigation phase reward
+    /// Spawn an obstacle at the specified target entity as obligation phase reward
     /// </summary>
     private void SpawnObstacle(ObstacleSpawnInfo spawnInfo)
     {

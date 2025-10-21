@@ -21,7 +21,7 @@ public class SocialFacade
     private readonly TimeManager _timeManager;
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
-    private readonly InvestigationActivity _investigationActivity;
+    private readonly ObligationActivity _obligationActivity;
 
     private PersonalityRuleEnforcer _personalityEnforcer;
 
@@ -34,7 +34,7 @@ public class SocialFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        InvestigationActivity investigationActivity)
+        ObligationActivity obligationActivity)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
@@ -45,7 +45,7 @@ public class SocialFacade
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _investigationActivity = investigationActivity ?? throw new ArgumentNullException(nameof(investigationActivity));
+        _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
     }
 
     /// <summary>
@@ -1176,36 +1176,36 @@ public class SocialFacade
         return _gameWorld.CurrentSocialSession.Deck.HandCards;
     }
 
-    #region Investigation Integration
+    #region Obligation Integration
 
     /// <summary>
-    /// Check if completed NPC request is part of an active investigation and trigger progress
+    /// Check if completed NPC request is part of an active obligation and trigger progress
     /// RPG PATTERN: Intro actions are NOT goals - they're quest acceptance buttons
-    /// This method ONLY checks for phase goals in ACTIVE investigations
+    /// This method ONLY checks for phase goals in ACTIVE obligations
     /// </summary>
-    private void CheckInvestigationProgress(string npcId, string requestId)
+    private void CheckObligationProgress(string npcId, string requestId)
     {
         // SCORCHED EARTH: Removed intro action check - intro is NOT a goal, it's a button
-        // Intro action completion happens via GameFacade.CompleteInvestigationIntro(), not through conversations
+        // Intro action completion happens via GameFacade.CompleteObligationIntro(), not through conversations
 
-        // Search active investigations for a phase matching this npcId + requestId
-        foreach (ActiveInvestigation activeInv in _gameWorld.InvestigationJournal.ActiveInvestigations)
+        // Search active obligations for a phase matching this npcId + requestId
+        foreach (ActiveObligation activeInv in _gameWorld.ObligationJournal.ActiveObligations)
         {
-            // USE OBJECT REFERENCE - ActiveInvestigation.Investigation (O(1) instead of O(n))
-            Investigation investigation = activeInv.Investigation;
-            if (investigation == null) continue;
+            // USE OBJECT REFERENCE - ActiveObligation.Obligation (O(1) instead of O(n))
+            Obligation obligation = activeInv.Obligation;
+            if (obligation == null) continue;
 
             // Find phase that matches this phase ID (phases no longer reference goals)
             // Match directly by phase ID (phase.Id == requestId)
-            InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p => p.Id == requestId);
+            ObligationPhaseDefinition matchingPhase = obligation.PhaseDefinitions.FirstOrDefault(p => p.Id == requestId);
 
             if (matchingPhase != null)
             {
-                // This request is part of an investigation - mark goal as complete
-                InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(matchingPhase.Id, investigation.Id);
+                // This request is part of an obligation - mark goal as complete
+                ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(matchingPhase.Id, obligation.Id);
 
                 // Log progress for UI modal display (UI will handle modal)
-                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
+                Console.WriteLine($"[ConversationFacade] Obligation '{obligation.Name}' progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
 
                 if (progressResult.NewLeads != null && progressResult.NewLeads.Count > 0)
                 {
@@ -1217,15 +1217,15 @@ public class SocialFacade
                     }
                 }
 
-                // Check if investigation is now complete
-                InvestigationCompleteResult completeResult = _investigationActivity.CheckInvestigationCompletion(investigation.Id);
+                // Check if obligation is now complete
+                ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation.Id);
                 if (completeResult != null)
                 {
-                    // Investigation complete - UI will display completion modal
-                    Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' COMPLETE!");
+                    // Obligation complete - UI will display completion modal
+                    Console.WriteLine($"[ConversationFacade] Obligation '{obligation.Name}' COMPLETE!");
                 }
 
-                break; // Found matching investigation, stop searching
+                break; // Found matching obligation, stop searching
             }
         }
     }

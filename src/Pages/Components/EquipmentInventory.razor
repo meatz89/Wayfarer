@@ -1,9 +1,10 @@
 @namespace Wayfarer.Pages.Components
 @inject GameWorld GameWorld
 @inject ItemRepository ItemRepository
+@inject EquipmentUsageService EquipmentUsageService
 @*
 Equipment Inventory - Displays player's owned equipment
-Shows state (Active/Exhausted), contexts, and repair options
+Shows state (Functional/Exhausted), contexts, and repair options
 *@
 
 <div class="equipment-inventory">
@@ -21,7 +22,8 @@ Shows state (Active/Exhausted), contexts, and repair options
                 <EquipmentCard
                     Equipment="@equipment"
                     ShowActions="true"
-                    OnSell="@(() => HandleSell(equipment))" />
+                    OnSell="@(() => HandleSell(equipment))"
+                    OnRepair="@(() => HandleRepair(equipment))" />
             }
         </div>
     }
@@ -63,6 +65,17 @@ Shows state (Active/Exhausted), contexts, and repair options
     {
         bool success = GameWorld.SellEquipment(equipment.Id, equipment.SellPrice);
         if (success)
+        {
+            LoadPlayerEquipment();
+            await OnInventoryChanged.InvokeAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleRepair(Equipment equipment)
+    {
+        EquipmentRepairResult result = EquipmentUsageService.RepairEquipment(equipment.Id);
+        if (result.Success)
         {
             LoadPlayerEquipment();
             await OnInventoryChanged.InvokeAsync();
