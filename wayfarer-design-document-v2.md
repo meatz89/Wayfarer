@@ -48,14 +48,11 @@ This principle separates strategic games with meaningful choices from incrementa
 
 ## Principle 2: Strong Typing as Design Enforcement
 
-**If you can't express it with strongly typed objects and lists, the design is wrong.**
+**If you can't express relationships with strongly typed objects and lists, the design is wrong.**
 
-- `List<Obstacle>` NOT `Dictionary<string, object>`
-- `List<string> ObstacleIds` NOT `Dictionary<string, List<string>>`
-- No `var`, no `object`, no `Dictionary<K,V>` unless K and V are domain entities
-- No `SharedData`, `Context`, `Metadata` dictionaries
+Strong typing forces explicit relationships. Collections of specific entity types, not generic containers of "anything". Entity references by typed ID lists, not string dictionaries. Domain-specific objects, not metadata bags.
 
-**Why:** Dictionaries hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
+**Why:** Generic containers hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
 
 **Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
 
@@ -73,13 +70,13 @@ This principle separates strategic games with meaningful choices from incrementa
 - Entity appears at a location for UI/narrative purposes
 - Entity's lifecycle independent of placement
 - Placement is metadata on the entity
-- Example: Goal has `locationId` field, appears at that location
+- Example: Goal appears at a location, but location doesn't own the goal
 
 **REFERENCE (lookup relationship):**
 - Entity A needs to find Entity B
 - Entity A stores Entity B's ID
 - No lifecycle dependency
-- Example: Location has `obstacleIds`, queries GameWorld.Obstacles
+- Example: Location references obstacles for queries, doesn't control their lifecycle
 
 **Common Error:** Making Location own Obstacles because goals appear there. Location is PLACEMENT context, not OWNER.
 
@@ -272,18 +269,12 @@ Wayfarer uses a **single unified progression system** across all three challenge
 
 **Every card in every system** is bound to one of these five stats. This binding determines:
 
-1. **Depth Access**: Player's stat level determines which card depths they can play
-   - Level 1: Access depths 1-2 (Foundation cards only)
-   - Level 2: Access depths 1-3
-   - Level 3: Access depths 1-4 (Standard cards)
-   - Level 5: Access depths 1-6 (Advanced cards)
-   - Level 7: Access depths 1-8 (Powerful cards)
-   - Level 9+: Access depths 1-10 (Master cards)
+1. **Depth Access**: Player's stat level determines which card depths they can access. As stats increase through play, progressively more powerful and complex cards become available across all three challenge types.
 
 2. **XP Gain**: Playing any card grants XP to its bound stat
-   - Mental "Insight-bound Observation" → grants Insight XP
-   - Physical "Authority-bound Power Move" → grants Authority XP
-   - Social "Rapport-bound Friendly Approach" → grants Rapport XP
+   - Mental Insight-bound cards grant Insight XP
+   - Physical Authority-bound cards grant Authority XP
+   - Social Rapport-bound cards grant Rapport XP
    - **Single unified progression**: All three challenge types level the same five stats
 
 ### Stat Manifestation Across Challenge Types
@@ -298,32 +289,32 @@ The same stat manifests differently depending on challenge type, creating themat
 | **Diplomacy** | Balanced investigation, patient observation, measured approach | Measured technique, controlled force, pacing endurance | Finding middle ground, compromise, balanced conversation |
 | **Cunning** | Subtle investigation, covering tracks, tactical information gathering | Risk management, tactical precision, adaptive technique | Strategic conversation, subtle manipulation, reading and responding |
 
-### Card Examples Across Systems
+### How Stats Manifest in Card Abilities
 
 **Insight-Bound Cards**:
-- **Mental**: "Detailed Examination" (depth 4, ACT) - Systematic observation (+3 Progress, +2 Leads, +1 Understanding, costs 3 Attention)
-- **Physical**: "Structural Analysis" (depth 4, EXECUTE) - Identify load-bearing points (+2 Breakthrough, if first in combo -2 Danger, costs 2 Exertion)
-- **Social**: "Read Motivation" (depth 4, SPEAK) - Understand NPC's true desires (+2 Momentum, reduce Doubt, costs 3 Initiative)
+- **Mental**: Systematic observation, detailed examination, pattern analysis
+- **Physical**: Structural analysis, identifying weaknesses, reading terrain
+- **Social**: Understanding motivations, reading between lines, seeing agendas
 
 **Rapport-Bound Cards**:
-- **Mental**: "Empathetic Reading" (depth 4, ACT) - Sense emotional context (+2 Progress, +2 Leads, +1 to next Social, costs 3 Attention)
-- **Physical**: "Flow State" (depth 6, EXECUTE) - Natural fluid movement (+3 Breakthrough, costs 1 less Exertion if 2+ in combo, costs 3 Exertion base)
-- **Social**: "Emotional Resonance" (depth 5, SPEAK) - Connect on feeling level (+3 Momentum, +1 Rapport token, costs 4 Initiative)
+- **Mental**: Empathetic reading, sensing emotional context, human understanding
+- **Physical**: Flow state, body awareness, natural fluid movement
+- **Social**: Emotional resonance, building connection, creating trust
 
 **Authority-Bound Cards**:
-- **Mental**: "Command Scene" (depth 5, ACT) - Take investigative control (+3 Progress, +3 Leads, +1 Exposure, costs 3 Attention)
-- **Physical**: "Power Move" (depth 6, EXECUTE) - Decisive forceful action (+4 Breakthrough, +1 Danger, costs 4 Exertion)
-- **Social**: "Assert Position" (depth 5, SPEAK) - Direct conversation firmly (+3 Momentum, +1 Cadence, costs 4 Initiative)
+- **Mental**: Commanding the scene, taking investigative control, decisive analysis
+- **Physical**: Power moves, decisive forceful action, commanding environment
+- **Social**: Asserting position, directing conversation, establishing dominance
 
 **Diplomacy-Bound Cards**:
-- **Mental**: "Patient Observation" (depth 4, ACT) - Methodical investigation (+2 Progress, +2 Leads, -1 Exposure, costs 2 Attention)
-- **Physical**: "Measured Technique" (depth 4, EXECUTE) - Controlled application of force (+2 Breakthrough, costs 2 Exertion)
-- **Social**: "Find Common Ground" (depth 4, SPEAK) - Seek compromise (+2 Momentum, -1 Cadence, costs 3 Initiative)
+- **Mental**: Patient observation, methodical investigation, balanced approach
+- **Physical**: Measured technique, controlled force application, paced endurance
+- **Social**: Finding common ground, seeking compromise, balanced conversation
 
 **Cunning-Bound Cards**:
-- **Mental**: "Cover Tracks" (depth 4, ACT) - Investigate without traces (+2 Progress, +2 Leads, -1 Exposure, costs 3 Attention)
-- **Physical**: "Calculated Risk" (depth 5, EXECUTE) - Tactical risk assessment (+3 Breakthrough, -1 Danger per card in combo, costs 3 Exertion)
-- **Social**: "Strategic Deflection" (depth 5, SPEAK) - Subtle redirection (+2 Momentum, manipulate Cadence, costs 4 Initiative)
+- **Mental**: Covering tracks, subtle investigation, tactical information gathering
+- **Physical**: Calculated risk, tactical precision, adaptive technique
+- **Social**: Strategic deflection, subtle redirection, reading and responding
 
 ### Why Unified Stats Matter
 
@@ -370,9 +361,9 @@ The systems differentiate through distinct card mechanics that respect verisimil
 
 ### Why Card Flow Matters
 
-**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). **ACT does NOT draw cards** - it only generates Leads. OBSERVE Details draws exactly Leads count - zero Leads means zero draw. **OBSERVE is the ONLY action that draws cards.** Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
+**Mental (Investigation)**: You cannot observe what you haven't investigated. ACT on Methods generates Leads (investigative threads) based on card depth. **ACT does NOT draw cards** - it only generates Leads. OBSERVE Details draws cards equal to your Leads count - zero Leads means zero draw. **OBSERVE is the ONLY action that draws cards.** Methods in hand persist because investigation knowledge doesn't vanish. Leads persist between visits because uncovered threads remain open. Completed methods move to Applied pile, representing applied investigative understanding.
 
-**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression (+1 base + card approach modifier) - setting up your stance, building momentum. **EXECUTE uses projection to determine affordability** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression (-2 base + approach modifiers), **applying full projection per card** (Breakthrough, Danger, Aggression), then exhausts all Options back to Situation and draws fresh Options for the changed context. **Locked cards displayed in UI above hand with "LOCKED" badge.** You want to stay balanced - both overcautious and reckless approaches create penalties.
+**Physical (Challenges)**: You prepare actions then execute them. EXECUTE locks Options as preparation while increasing Aggression - setting up your stance, building momentum. **EXECUTE uses projection to determine affordability** (Exertion cost includes modifiers). ASSESS evaluates the Situation, triggers all locked Options as a combo while decreasing Aggression, **applying full projection per card** (Breakthrough, Danger, Aggression), then exhausts all Options back to Situation and draws fresh Options for the changed context. You want to stay balanced - both overcautious and reckless approaches create penalties.
 
 **Social (Conversations)**: Thoughts persist because that's how thinking works. SPEAK moves Statement thoughts from Mind to Spoken pile (said aloud) while Echo thoughts return to Topics (fleeting thoughts that recirculate). LISTEN to Topics draws new cards while thoughts in Mind persist - your mind doesn't empty when you pause to listen, it accumulates understanding.
 
@@ -452,7 +443,7 @@ Investigations are multi-phase mysteries resolved through Mental, Physical, and 
 - **Mental Challenges**: Observation-based investigation at locations (examine scenes, deduce patterns, search thoroughly)
   - Resources: Progress (builder), Attention (session budget from Focus), Exposure (threshold), Leads (observation flow)
   - Actions: ACT (generate Leads through action) / OBSERVE (follow Leads through observation)
-  - Card Flow: ACT generates Leads by depth (1-2 = +1, 3-4 = +2, 5-6 = +3), OBSERVE draws exactly Leads count
+  - Card Flow: ACT generates Leads by depth, OBSERVE draws equal to Leads count
 
 - **Physical Challenges**: Strength-based obstacles at locations (climb carefully, leverage tools, precise movement)
   - Resources: Breakthrough (builder), Exertion (session budget from Stamina), Danger (threshold), Aggression (balance)
@@ -1010,9 +1001,9 @@ ObstaclePropertyReduction
 5. If all properties reach 0 and IsPermanent = false, remove obstacle from entity
 
 **Multiple Approaches Example:**
-"Bandit Camp" obstacle (PhysicalDanger=12, SocialDifficulty=8) has three goals:
-- "Confront Bandits" (Physical) → GoalCard reduces PhysicalDanger by 12
-- "Negotiate Passage" (Social) → GoalCard reduces SocialDifficulty by 8
+"Bandit Camp" obstacle has three goals:
+- "Confront Bandits" (Physical) → GoalCard reduces PhysicalDanger
+- "Negotiate Passage" (Social) → GoalCard reduces SocialDifficulty
 - "Scout Alternative Path" (Mental) → Discovers alternate route (doesn't modify this obstacle, creates new path)
 
 Player chooses approach based on capabilities, preferred playstyle, and available resources.
@@ -1366,20 +1357,20 @@ Mental investigations can be paused and resumed, respecting the reality that inv
 
 ### Core Session Resources
 
-- **Progress** (builder, persists): Accumulates toward completion (10-20 total typical)
+- **Progress** (builder, persists): Accumulates toward completion across sessions
 - **Attention** (session budget, resets): Mental capacity for ACT cards, derived from permanent Focus at challenge start (max determined by current Focus level). **Cannot replenish during investigation** - must rest outside challenge to restore.
-- **Exposure** (threshold, persists): **Starts at 0**, accumulates as investigative footprint at location. **MaxExposure from MentalChallengeDeck.DangerThreshold** (typically 8-12). Reaching MaxExposure causes consequences (spotted, evidence compromised). Difficulty expressed through varying maximum: easy deck = 12 tolerance, medium = 10, hard = 8.
+- **Exposure** (threshold, persists): **Starts at 0**, accumulates as investigative footprint at location. **MaxExposure from MentalChallengeDeck.DangerThreshold**. Reaching MaxExposure causes consequences (spotted, evidence compromised). Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
 - **Leads** (observation flow, persists): Investigative threads generated by ACT cards, determines OBSERVE draw count. Persists when leaving, resets only on investigation completion.
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
 
-- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), build Progress, increase Exposure risk, move completed methods to Applied pile. **Does NOT draw cards** - only generates Leads for future OBSERVE actions.
+- **ACT**: Take investigative action, spend Attention, generate Leads based on card depth, build Progress, increase Exposure risk, move completed methods to Applied pile. **Does NOT draw cards** - only generates Leads for future OBSERVE actions.
 - **OBSERVE**: Follow investigative threads, draw Details equal to Leads count (zero Leads = zero draw), methods in Methods pile persist, does not spend Attention. **This is the ONLY action that draws cards in Mental challenges**.
 
 ### Card Flow Mechanics
 
-**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads), representing how much investigative material that action uncovers. **ACT does NOT draw cards immediately** - it only generates Leads as investigative threads.
+**You cannot observe what you haven't investigated.** ACT on methods in Methods generates investigative Leads - threads to follow, evidence to examine, patterns to explore. Each ACT creates Leads based on its depth, representing how much investigative material that action uncovers. **ACT does NOT draw cards immediately** - it only generates Leads as investigative threads.
 
 OBSERVE then follows those Leads by drawing Details equal to your total Leads count. Without Leads, you have no Details to observe. **OBSERVE is the ONLY way to draw cards in Mental challenges** - you accumulate Leads through ACT, then follow them through OBSERVE.
 
@@ -1387,68 +1378,49 @@ Methods already in Methods persist when you OBSERVE because investigation knowle
 
 ### Stat Binding Examples
 
-Mental cards bind to stats based on investigative approach. ACT cards generate Leads based on depth when played:
+Mental cards bind to stats based on investigative approach:
 
-**Insight-Bound** (pattern recognition, deduction):
-- "Detailed Examination" (depth 4, ACT): Systematic evidence observation (+3 Progress, +2 Leads, +1 Understanding, costs 3 Attention)
-- "Pattern Analysis" (depth 6, ACT): Connect disparate clues (+4 Progress, +3 Leads, reveal hidden connections, costs 4 Attention)
-- "Scientific Method" (depth 8, ACT): Rigorous hypothesis testing (+5 Progress, +4 Leads, +2 Understanding, costs 5 Attention)
-
-**Cunning-Bound** (subtle investigation, covering tracks):
-- "Cover Tracks" (depth 4, ACT): Investigate without leaving traces (+2 Progress, +2 Leads, -1 Exposure, costs 3 Attention)
-- "Subtle Investigation" (depth 6, ACT): Gather evidence discreetly (+3 Progress, +3 Leads, -2 Exposure, costs 4 Attention)
-- "Misdirection" (depth 8, ACT): Redirect attention while investigating (+4 Progress, +4 Leads, manipulate Exposure, costs 5 Attention)
-
-**Authority-Bound** (commanding scene, decisive analysis):
-- "Command Scene" (depth 5, ACT): Take investigative control (+3 Progress, +3 Leads, +1 Exposure from obviousness, costs 3 Attention)
-- "Authoritative Analysis" (depth 7, ACT): Make definitive conclusions (+5 Progress, +4 Leads, +2 Exposure, costs 4 Attention)
-- "Investigative Authority" (depth 9, ACT): Assert investigative dominance (+6 Progress, +5 Leads, force breakthroughs, costs 6 Attention)
-
-**Diplomacy-Bound** (balanced approach, patience):
-- "Patient Observation" (depth 4, ACT): Methodical investigation (+2 Progress, +2 Leads, -1 Exposure, costs 2 Attention)
-- "Balanced Approach" (depth 6, ACT): Steady measured investigation (+3 Progress, +3 Leads, maintain Exposure, costs 3 Attention)
-- "Thorough Method" (depth 8, ACT): Complete systematic coverage (+4 Progress, +4 Leads, +1 Understanding, costs 5 Attention)
-
-**Rapport-Bound** (empathetic observation, human element):
-- "Empathetic Reading" (depth 4, ACT): Sense emotional context (+2 Progress, +2 Leads, +1 to next Social at location, costs 3 Attention)
-- "Human Element Focus" (depth 6, ACT): Understand people involved (+3 Progress, +3 Leads, unlock NPC leads, costs 4 Attention)
-- "Emotional Reconstruction" (depth 8, ACT): Recreate emotional state (+5 Progress, +4 Leads, deep NPC insights, costs 5 Attention)
+**Insight-Bound**: Pattern recognition, systematic examination, deductive reasoning, scientific method
+**Cunning-Bound**: Subtle investigation, covering tracks, misdirection, tactical information gathering
+**Authority-Bound**: Commanding the scene, decisive analysis, authoritative conclusions, assertive investigation
+**Diplomacy-Bound**: Balanced approach, patient observation, methodical investigation, measured techniques
+**Rapport-Bound**: Empathetic observation, understanding human element, emotional context, interpersonal insights
 
 ### Permanent INPUT Resources (Costs to Attempt)
 
-**Focus** (max 100, Mental-specific):
-- Cost: 5-20 Focus per investigation session (depending on complexity)
-- Depletion effect: <30 Focus → Exposure accumulates faster (+1 per action)
-- Recovery: Rest blocks (+30 per block), light activity, food
+**Focus** (Mental-specific):
+- Cost: Focus cost varies by investigation complexity
+- Depletion effect: Low Focus increases Exposure accumulation rate
+- Recovery: Rest blocks, light activity, food
 - Verisimilitude: Mental work depletes concentration
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
 1. **Knowledge Discoveries**: Unlock investigation phases, conversation options, world state changes
-2. **Familiarity Tokens** (per location): +1 per successful investigation, reduce Exposure baseline (-1 per token, max -3 at location)
-3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise (Surface 0-20 → Detailed 20-50 → Deep 50-100 → Expert 100+)
+2. **Familiarity Tokens** (per location): Earned per successful investigation, reduce Exposure baseline at that location
+3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise tiers (Surface → Detailed → Deep → Expert)
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
-6. **Coins**: Investigation completion rewards (5-20 coins typical)
+6. **Coins**: Investigation completion rewards
 7. **Equipment**: Find items during investigations
 
 ### Location Properties (5 Tactical Modifiers)
 
 Each location has properties that fundamentally alter investigation tactics:
 
-1. **Delicate** (fragile evidence, high Exposure risk): Exposure +2 per ACT, requires Cunning-focused approach to minimize footprint
-2. **Obscured** (degraded/hidden evidence): Progress -1 per ACT, requires high-depth Insight cards generating more Leads
-3. **Layered** (complex mystery): Requires diverse stat approach, each ACT generates -1 Lead if using same stat consecutively
-4. **Time-Sensitive** (degrading evidence): Leads decay -1 per time segment spent, requires efficient investigation
-5. **Resistant** (subtle patterns): Progress capped at ±2 per ACT, but Leads generation normal, requires patient grinding
+1. **Delicate** (fragile evidence, high Exposure risk): Increased Exposure per ACT, requires Cunning-focused approach to minimize footprint
+2. **Obscured** (degraded/hidden evidence): Reduced Progress per ACT, requires high-depth Insight cards generating more Leads
+3. **Layered** (complex mystery): Requires diverse stat approach, reduced Leads if using same stat consecutively
+4. **Time-Sensitive** (degrading evidence): Leads decay over time, requires efficient investigation
+5. **Resistant** (subtle patterns): Progress capped per ACT, but Leads generation normal, requires patient grinding
 
 ### Victory Condition
 
-Accumulate Progress threshold (10-20 typical) across one or more visits to location. High Exposure doesn't end investigation but makes future visits harder.
+Accumulate Progress threshold across one or more visits to location. High Exposure doesn't end investigation but makes future visits harder.
 
 ### Example Phase
 
-"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, 15 Progress threshold, at Mill Waterwheel location, requires 10 Focus, costs 1 time segment per session
+"Examine the waterwheel mechanism" - Mental challenge, Delicate profile, at Mill Waterwheel location, requires Focus, costs time segments
 
 ---
 
@@ -1469,13 +1441,13 @@ Physical challenges are immediate tests of current capability:
 
 ### Core Session Resources
 
-- **Breakthrough** (builder): Toward victory in single session (10-20 typical)
+- **Breakthrough** (builder): Toward victory in single session
 - **Exertion** (session budget): Physical capacity for EXECUTE cards, derived from permanent Stamina at challenge start (max determined by current Stamina level). **Cannot replenish during challenge except through specific Foundation cards** like "Deep Breath" which restore small amounts.
-- **Danger** (threshold): **Starts at 0**, accumulates from risky actions. **MaxDanger from PhysicalChallengeDeck.DangerThreshold** (typically 8-15). Reaching MaxDanger causes injury and failure. Difficulty expressed through varying maximum: easy deck = 15 tolerance, medium = 12, hard = 8.
-- **Aggression** (balance): Overcautious (-10) to Reckless (+10) spectrum. **Both extremes are bad** - you want to stay near 0 (balanced, controlled).
-  - High Aggression (reckless): +1 Danger per action at +3 or higher, injury risk increases
-  - Low Aggression (overcautious): -1 Breakthrough per action at -3 or lower, wasting opportunities through hesitation
-  - Sweet spot: -2 to +2 range (balanced approach)
+- **Danger** (threshold): **Starts at 0**, accumulates from risky actions. **MaxDanger from PhysicalChallengeDeck.DangerThreshold**. Reaching MaxDanger causes injury and failure. Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
+- **Aggression** (balance): Overcautious to Reckless spectrum. **Both extremes are bad** - you want to stay balanced.
+  - High Aggression (reckless): Increased Danger per action, injury risk increases
+  - Low Aggression (overcautious): Reduced Breakthrough per action, wasting opportunities through hesitation
+  - Sweet spot: Balanced approach
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
 ### Action Pair
@@ -1489,56 +1461,37 @@ Physical challenges are immediate tests of current capability:
 
 ### Stat Binding Examples
 
-Physical cards bind to stats based on physical approach. EXECUTE locks cards for combo execution:
+Physical cards bind to stats based on physical approach:
 
-**Authority-Bound** (power, decisive action, command):
-- "Power Move" (depth 6, EXECUTE): Decisive forceful action (+4 Breakthrough when combo triggers, +1 Danger, costs 4 Exertion)
-- "Commanding Presence" (depth 4, EXECUTE): Assert control over environment (+3 Breakthrough, +1 Danger if only locked card, costs 3 Exertion)
-- "Dominant Force" (depth 8, EXECUTE): Overwhelming physical assertion (+6 Breakthrough, +2 Danger, costs 5 Exertion)
-
-**Cunning-Bound** (risk management, tactical precision):
-- "Calculated Risk" (depth 5, EXECUTE): Tactical risk assessment (+3 Breakthrough, -1 Danger per locked card in combo, costs 3 Exertion)
-- "Tactical Precision" (depth 7, EXECUTE): Precise calculated movement (+4 Breakthrough, if 3+ cards in combo restore 1 Exertion, costs 4 Exertion)
-- "Adaptive Technique" (depth 9, EXECUTE): Respond to changing conditions (+5 Breakthrough, combo bonus: +1 per other locked card, costs 5 Exertion)
-
-**Insight-Bound** (structural analysis, finding weaknesses):
-- "Structural Analysis" (depth 4, EXECUTE): Identify load-bearing points (+2 Breakthrough, reveal optimal path, reduces Danger of next card in combo, costs 2 Exertion)
-- "Find Weakness" (depth 6, EXECUTE): Spot structural vulnerabilities (+3 Breakthrough, if first in combo sequence -2 Danger, costs 3 Exertion)
-- "Engineering Assessment" (depth 8, EXECUTE): Complete structural understanding (+4 Breakthrough, combo multiplier: +1 per locked card, costs 4 Exertion)
-
-**Rapport-Bound** (flow state, body awareness, grace):
-- "Flow State" (depth 6, EXECUTE): Natural fluid movement (+3 Breakthrough, costs 1 less Exertion if 2+ cards in combo, costs 3 Exertion base)
-- "Body Awareness" (depth 4, EXECUTE): Kinesthetic understanding (+2 Breakthrough, maintain balance, costs 2 Exertion)
-- "Athletic Grace" (depth 8, EXECUTE): Perfect physical harmony (+4 Breakthrough, if last in combo sequence -1 Danger, costs 4 Exertion)
-
-**Diplomacy-Bound** (measured technique, controlled force):
-- "Measured Technique" (depth 4, EXECUTE): Controlled application of force (+2 Breakthrough, efficient technique, costs 2 Exertion)
-- "Controlled Force" (depth 6, EXECUTE): Balanced power application (+3 Breakthrough, if only card in combo -1 Danger, costs 3 Exertion)
-- "Paced Endurance" (depth 8, EXECUTE): Sustainable effort (+4 Breakthrough, distribute Danger reduction across combo, costs 4 Exertion)
+**Authority-Bound**: Power moves, decisive action, commanding presence, overwhelming force, asserting dominance
+**Cunning-Bound**: Risk management, tactical precision, calculated risks, adaptive techniques, strategic timing
+**Insight-Bound**: Structural analysis, finding weaknesses, engineering assessment, reading terrain, identifying optimal paths
+**Rapport-Bound**: Flow state, body awareness, natural movement, athletic grace, kinesthetic understanding
+**Diplomacy-Bound**: Measured technique, controlled force, paced endurance, balanced power, sustainable effort
 
 ### Permanent INPUT Resources (Costs to Attempt)
 
-**Health** (max 100, Physical-specific):
-- Risk: Danger threshold consequences damage Health (5-15 damage typical)
-- Depletion effect: <30 Health → Danger accumulates faster (+1 per action)
+**Health** (Physical-specific):
+- Risk: Danger threshold consequences damage Health
+- Depletion effect: Low Health increases Danger accumulation rate
 - Recovery: Rest blocks, medical treatment, restorative food
 - Verisimilitude: Physical challenges risk injury
 
-**Stamina** (max 100, Physical-specific):
-- Cost: 10-30 Stamina per challenge attempt (depending on difficulty)
-- Depletion effect: <30 Stamina → Max Exertion reduced (start challenges with lower Exertion capacity)
+**Stamina** (Physical-specific):
+- Cost: Stamina cost varies by challenge difficulty
+- Depletion effect: Low Stamina reduces maximum Exertion (start challenges with lower capacity)
 - Recovery: Rest blocks, food, reduced activity
 - Verisimilitude: Physical exertion drains energy
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
-1. **Mastery Tokens** (per challenge type): +1 per success at Challenge Type (Combat/Athletics/Finesse/Endurance/Strength), reduce Danger baseline (-1 per token, max -3 per type)
-2. **Challenge Proficiency Level** (per challenge type): Cumulative Breakthrough unlocks expertise (Novice 0-20 → Competent 20-50 → Skilled 50-100 → Master 100+)
+1. **Mastery Tokens** (per challenge type): Earned per success at Challenge Type (Combat/Athletics/Finesse/Endurance/Strength), reduce Danger baseline for that type
+2. **Challenge Proficiency Level** (per challenge type): Cumulative Breakthrough unlocks expertise tiers (Novice → Competent → Skilled → Master)
 3. **Equipment Discoveries**: Find items during physical challenges
 4. **Reputation**: Affect Social interactions (physical feats build reputation)
 5. **Understanding**: Tier unlocking across all systems
 6. **Stat XP**: Level unified stats via bound cards
-7. **Coins**: Challenge completion rewards (5-15 coins typical)
+7. **Coins**: Challenge completion rewards
 
 ### Challenge Types (5 Types of Physical Engagement)
 
@@ -1552,11 +1505,11 @@ Physical challenges are categorized by type, affecting combo dynamics:
 
 ### Victory Condition
 
-Reach Breakthrough threshold (10-20 typical) in single attempt. Reaching MaxDanger from deck causes injury and failure.
+Reach Breakthrough threshold in single attempt. Reaching MaxDanger from deck causes injury and failure.
 
 ### Example Phase
 
-"Climb the damaged mill wheel" - Physical challenge, Athletics type, 15 Breakthrough threshold, 12 Danger maximum, at Mill exterior, costs 20 Stamina, risks 10 Health on failure
+"Climb the damaged mill wheel" - Physical challenge, Athletics type, at Mill exterior, costs Stamina, risks Health on failure
 
 ---
 
@@ -1578,10 +1531,10 @@ Conversations are real-time interactions with entities that have agency:
 
 ### Core Session Resources
 
-- **Momentum** (builder): Progress toward goal (8-16 typical in single session)
-- **Initiative** (session): Action economy currency, accumulated via Foundation cards, persists through LISTEN (max 10)
-- **Doubt** (threshold): **Starts at 0**, accumulates as NPC skepticism/frustration. **MaxDoubt from SocialChallengeDeck.DangerThreshold** (typically 8-12). Reaching MaxDoubt ends conversation immediately. Difficulty expressed through varying maximum: easy deck = 12 tolerance, medium = 10, hard = 8.
-- **Cadence** (balance): Dominating (+10) vs deferential (-10) conversation style
+- **Momentum** (builder): Progress toward goal in single conversation session
+- **Initiative** (session): Action economy currency, accumulated via Foundation cards, persists through LISTEN
+- **Doubt** (threshold): **Starts at 0**, accumulates as NPC skepticism/frustration. **MaxDoubt from SocialChallengeDeck.DangerThreshold**. Reaching MaxDoubt ends conversation immediately. Difficulty expressed through varying maximum (easy deck = higher tolerance, hard deck = lower tolerance).
+- **Cadence** (balance): Dominating vs deferential conversation style
 - **Statements** (history): Count of Statement cards played, determines time cost (1 segment + Statements)
 - **Understanding** (global, persistent): Tier unlocking across all three systems
 
@@ -1616,7 +1569,7 @@ Social cards bind to stats based on conversational approach (existing system):
 3. **NPC Observation Cards**: Knowledge discoveries add cards to THAT NPC's conversation deck
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
-6. **Coins**: From completing NPC requests/rewards (10-50 coins typical)
+6. **Coins**: From completing NPC requests/rewards
 7. **Equipment**: From NPC gifts/trades
 8. **Knowledge**: From NPC information sharing
 9. **Route Knowledge**: NPCs reveal hidden paths
@@ -1626,10 +1579,10 @@ Social cards bind to stats based on conversational approach (existing system):
 Each NPC has personality that fundamentally alters conversation tactics:
 
 1. **Proud**: Must play cards in ascending Initiative order (rewards planning)
-2. **Devoted**: Doubt accumulates +2 per action (requires efficiency)
+2. **Devoted**: Doubt accumulates faster (requires efficiency)
 3. **Mercantile**: Highest Initiative card gets bonus effect (rewards hoarding Initiative)
 4. **Cunning**: Repeated Initiative costs penalty (requires variety)
-5. **Steadfast**: All effects capped at ±2 (requires patient grinding)
+5. **Steadfast**: All effects capped (requires patient grinding)
 
 ### Social-Specific Mechanics (No Mental/Physical Equivalent)
 
@@ -1646,11 +1599,11 @@ These exist ONLY in Social because NPCs have agency to offer tasks, make demands
 
 ### Victory Condition
 
-Reach Momentum threshold (8-16 typical) before Doubt reaches MaxDoubt from deck (which ends conversation immediately).
+Reach Momentum threshold before Doubt reaches MaxDoubt from deck (which ends conversation immediately).
 
 ### Example Phase
 
-"Question the mill owner about sabotage" - Social challenge, Proud personality, 12 Momentum threshold, targets Mill_Owner NPC at Mill venue, costs 0 resources, takes 1+ time segments
+"Question the mill owner about sabotage" - Social challenge, Proud personality, targets Mill Owner NPC at Mill venue, costs time segments
 
 ---
 
@@ -1661,7 +1614,7 @@ All three systems follow the same core structure (creating equivalent tactical d
 **Universal Elements** (identical across all three):
 - **Unified 5-stat system**: All cards bind to Insight/Rapport/Authority/Diplomacy/Cunning
 - **Builder Resource** → Victory (Progress, Breakthrough, Momentum)
-- **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt): **ALL start at 0**, maximum from ChallengeDeck.DangerThreshold (typically 8-15), reaching maximum causes immediate failure. **Difficulty expressed through varying maximum** (easy = higher tolerance, hard = lower tolerance).
+- **Threshold Resource** → Failure consequence (Exposure, Danger, Doubt): **ALL start at 0**, maximum from ChallengeDeck.DangerThreshold, reaching maximum causes immediate failure. **Difficulty expressed through varying maximum** (easy = higher tolerance, hard = lower tolerance).
 - **Session Resource** → Tactical spending (Attention, Exertion, Initiative)
 - **Binary Action Choice** → Tactical rhythm (OBSERVE/ACT, ASSESS/EXECUTE, SPEAK/LISTEN)
 - **Understanding** → Persistent tier unlocking (shared globally)
@@ -1703,18 +1656,16 @@ All three challenge types feature parallel systems for tracking and rewarding re
 Tokens provide direct mechanical advantages from repeated success:
 
 **Mental: Familiarity Tokens** (per location)
-- **Earned**: +1 token per successful investigation at specific location
-- **Effect**: Start investigations at that location with negative Exposure (-1 per token, maximum -3), effectively increasing tolerance before reaching MaxExposure from deck
-- **Stacks**: Accumulate up to 3 tokens per location
+- **Earned**: One token per successful investigation at specific location
+- **Effect**: Start investigations at that location with negative Exposure, effectively increasing tolerance before reaching MaxExposure from deck
+- **Stacks**: Accumulate multiple tokens per location (capped)
 - **Verisimilitude**: You learn how to investigate this place safely and discreetly
-- **Example**: 3 Familiarity tokens at Mill with MaxExposure 10 → start at -3 Exposure, giving 13 points of tolerance
 
 **Physical: Mastery Tokens** (per challenge type)
-- **Earned**: +1 token per successful challenge of specific type (Combat, Athletics, Finesse, Endurance, Strength)
-- **Effect**: Start challenges of that type with negative Danger (-1 per token, maximum -3), effectively increasing tolerance before reaching MaxDanger from deck
-- **Stacks**: Accumulate up to 3 tokens per challenge type (15 tokens total across 5 types)
+- **Earned**: One token per successful challenge of specific type (Combat, Athletics, Finesse, Endurance, Strength)
+- **Effect**: Start challenges of that type with negative Danger, effectively increasing tolerance before reaching MaxDanger from deck
+- **Stacks**: Accumulate multiple tokens per challenge type (capped)
 - **Verisimilitude**: Experience with challenge type reduces inherent risk
-- **Example**: 3 Mastery tokens in Athletics with MaxDanger 12 → start at -3 Danger, giving 15 points of tolerance
 
 **Social: Connection Tokens** (per NPC)
 - **Earned**: Through successful conversations and specific card effects with that NPC
@@ -1732,10 +1683,10 @@ Progression levels track cumulative mastery and unlock escalating benefits:
 
 Cumulative Progress at location determines expertise level:
 
-- **Surface** (0-20 cumulative Progress): Basic observations, standard card access
-- **Detailed** (20-50 cumulative): Patterns emerge, unlock depth-specific observation cards
-- **Deep** (50-100 cumulative): Hidden connections visible, advanced cards available
-- **Expert** (100+ cumulative): Complete reconstruction capability, master cards unlocked
+- **Surface**: Basic observations, standard card access
+- **Detailed**: Patterns emerge, unlock depth-specific observation cards
+- **Deep**: Hidden connections visible, advanced cards available
+- **Expert**: Complete reconstruction capability, master cards unlocked
 
 **Benefits by Level**:
 - Higher levels unlock better Mental cards specific to that location type
@@ -1748,10 +1699,10 @@ Cumulative Progress at location determines expertise level:
 
 Cumulative Breakthrough per challenge type determines mastery:
 
-- **Novice** (0-20 cumulative Breakthrough): Basic techniques, standard card access
-- **Competent** (20-50 cumulative): Efficient movement, unlock advanced techniques
-- **Skilled** (50-100 cumulative): Advanced techniques available, tactical variety
-- **Master** (100+ cumulative): Risk mitigation expertise, master techniques unlocked
+- **Novice**: Basic techniques, standard card access
+- **Competent**: Efficient movement, unlock advanced techniques
+- **Skilled**: Advanced techniques available, tactical variety
+- **Master**: Risk mitigation expertise, master techniques unlocked
 
 **Benefits by Level**:
 - Higher levels unlock better Physical cards for that challenge type
@@ -1764,10 +1715,10 @@ Cumulative Breakthrough per challenge type determines mastery:
 
 Relationship depth through accumulated interactions:
 
-- **Stranger** (0 interactions): Base conversation difficulty, limited options
-- **Acquaintance** (1-3 successful conversations): Reduced Doubt accumulation, basic trust
-- **Friend** (4-7 successful conversations): Significant Doubt reduction, personal conversations unlocked
-- **Close Friend** (8+ successful conversations): Minimal Doubt, deep personal topics available
+- **Stranger**: Base conversation difficulty, limited options
+- **Acquaintance**: Reduced Doubt accumulation, basic trust
+- **Friend**: Significant Doubt reduction, personal conversations unlocked
+- **Close Friend**: Minimal Doubt, deep personal topics available
 
 **Benefits by Level**:
 - Higher levels reduce Doubt accumulation in conversations
@@ -2121,7 +2072,7 @@ The three challenge systems achieve equivalent tactical depth (~1,000-1,100 line
 
 **Mental: You Cannot Observe What You Haven't Investigated**
 
-ACT on Methods generates Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover (depth 1-2 = +1 Lead, depth 3-4 = +2 Leads, depth 5-6 = +3 Leads). OBSERVE then follows those Leads by drawing Details equal to your total Leads. Zero Leads means zero draw because you have no investigative Details to observe.
+ACT on Methods generates Leads - investigative threads, evidence to examine, patterns to explore. The depth of your action determines how much material you uncover. OBSERVE then follows those Leads by drawing Details equal to your total Leads. Zero Leads means zero draw because you have no investigative Details to observe.
 
 **Pile Verisimilitude - Mental**:
 - **Details** (input pile): Scene evidence, physical clues, observable facts waiting to be examined
