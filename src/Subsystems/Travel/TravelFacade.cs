@@ -451,7 +451,8 @@ public class TravelFacade
 
         // Delegate to TravelManager to actually start the journey
         // TravelManager will create the session and set up initial state
-        return true;
+        TravelSession session = _travelManager.StartJourney(routeId);
+        return session != null;
     }
 
     /// <summary>
