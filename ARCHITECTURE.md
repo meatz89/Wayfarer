@@ -16,6 +16,187 @@
 
 ---
 
+## FUNDAMENTAL GAME SYSTEM ARCHITECTURE
+
+**⚠️ READ THIS FIRST - THIS IS THE MOST IMPORTANT SECTION ⚠️**
+
+### THE CORE PROGRESSION FLOW
+
+**This is the single most important diagram in the entire codebase. Every feature must fit into this flow:**
+
+```
+Obligation (multi-phase mystery structure - domain entity)
+  ↓ spawns
+Obstacles (challenges in the world - domain entity)
+  ↓ contain
+Goals (approaches to overcome obstacles - domain entity)
+  ↓ appear at
+Locations/NPCs/Routes (placement context - NOT ownership)
+  ↓ when player engages, Goals become
+Challenges (Social/Mental/Physical - gameplay subsystems)
+  ↓ player plays
+GoalCards (tactical victory conditions - domain entity)
+  ↓ achieve
+Goal Completion (mechanical outcomes)
+  ↓ contributes to
+Obstacle Progress (tracked progress)
+  ↓ leads to
+Obstacle Defeated
+  ↓ advances
+Obligation Phase Completion
+  ↓ unlocks
+Next Obligation Phase / Completion
+```
+
+### CRITICAL TERMINOLOGY DISTINCTIONS
+
+**These terms are NOT interchangeable - using them incorrectly breaks the architecture:**
+
+#### Obligation ≠ Card
+- **Obligation** = Multi-phase mystery/quest structure (e.g., "Investigate the Missing Grain")
+- **GoalCard** = Tactical card played during challenges (e.g., "Sharp Remark" card)
+- **NEVER** create "ObligationCard" entities - this makes no architectural sense
+- There is NO such thing as an "obligation card" in the game
+
+#### Goal ≠ GoalCard
+- **Goal** = Strategic approach to overcome an obstacle (e.g., "Persuade the guard")
+  - Appears at specific location/NPC
+  - Defines challenge type (Social/Mental/Physical)
+  - Contains GoalCards as victory conditions
+- **GoalCard** = Tactical card played to achieve goal (e.g., "Reach 15 Understanding")
+  - Has mechanical costs and effects
+  - Played during active challenge
+- **Goals CONTAIN GoalCards**, not the other way around
+
+#### Obstacle ≠ Challenge
+- **Obstacle** = Persistent barrier in the world (e.g., "Suspicious Guard", "Locked Gate")
+  - Exists in GameWorld permanently
+  - Contains multiple Goals (different approaches)
+  - Tracks progress across all goal attempts
+- **Challenge** = Active tactical gameplay session (Social/Mental/Physical subsystem)
+  - Temporary - starts when player engages a Goal
+  - Ends when Goal succeeds/fails
+  - NOT a persistent entity
+
+#### Location/NPC ≠ Owner
+- **Locations** and **NPCs** are PLACEMENT CONTEXT where Goals appear
+- They do NOT own Goals
+- **Obstacles** own Goals (lifecycle control)
+- **Obligations** own Obstacles (lifecycle control)
+- Locations/NPCs just provide spatial/narrative context for where Goals are accessible
+
+### ENTITY OWNERSHIP HIERARCHY
+
+```
+GameWorld (single source of truth)
+ │
+ ├─ Obligations (List<Obligation>)
+ │   ├─ Spawns Obstacles (by ID reference)
+ │   └─ Tracks multi-phase progress
+ │
+ ├─ Obstacles (List<Obstacle>)
+ │   ├─ Owned by Obligations
+ │   ├─ Contains Goals (by ID reference)
+ │   └─ Tracks progress across goal attempts
+ │
+ ├─ Goals (List<Goal>)
+ │   ├─ Owned by Obstacles
+ │   ├─ Has locationId (PLACEMENT - appears at location)
+ │   ├─ Has npcId (PLACEMENT - optional social context)
+ │   ├─ Defines challenge type (Social/Mental/Physical)
+ │   └─ Contains GoalCards (List<GoalCard> inline - OWNERSHIP)
+ │
+ ├─ Locations (List<Location>)
+ │   └─ Does NOT own Goals - just placement context
+ │
+ └─ NPCs (List<NPC>)
+     └─ Does NOT own Goals - just social context
+```
+
+### DATA FLOW EXAMPLE
+
+**Player discovers obligation "Investigate the Missing Grain":**
+
+1. **Discovery**: `ObligationDiscoveryModal` shows narrative
+2. **Spawn**: Obligation spawns Obstacle "Merchant's Suspicion"
+3. **Goals Created**: Obstacle contains 3 Goals:
+   - Goal A: "Persuade merchant" (Social) → appears at Market, NPC=Merchant
+   - Goal B: "Search ledger" (Mental) → appears at Storage Room
+   - Goal C: "Follow suspicious patron" (Physical) → appears at Market
+4. **Player Engagement**: Player clicks Goal A "Persuade merchant"
+5. **Challenge Starts**: Social challenge begins with Goal A's GoalCards
+6. **Tactical Play**: Player plays GoalCards to build Understanding/Trust/etc.
+7. **Goal Completion**: Player reaches victory condition (e.g., 15 Understanding)
+8. **Progress**: Obstacle "Merchant's Suspicion" progress increases
+9. **Obstacle Defeated**: When enough goals completed, obstacle defeated
+10. **Obligation Phase**: Current phase completes, next phase unlocks
+
+### FORBIDDEN PATTERNS (DELETE ON SIGHT)
+
+```csharp
+// ❌ WRONG - "ObligationCard" as entity (NO SUCH THING)
+public class ObligationCard { }
+public class ObligationCardDTO { }
+
+// ❌ WRONG - Locations owning Goals
+public class Location
+{
+    public List<Goal> Goals { get; set; } // NO! Placement, not ownership!
+}
+
+// ❌ WRONG - NPCs owning Obstacles
+public class NPC
+{
+    public List<Obstacle> Obstacles { get; set; } // NO! Context, not ownership!
+}
+
+// ❌ WRONG - Goals owning Obstacles (backwards!)
+public class Goal
+{
+    public List<Obstacle> Obstacles { get; set; } // NO! Obstacles own Goals!
+}
+```
+
+### CORRECT PATTERNS
+
+```csharp
+// ✅ CORRECT - Obligation spawns Obstacles
+public class Obligation
+{
+    public List<string> ActiveObstacleIds { get; set; }  // Owns obstacles by ID
+    public List<ObligationPhase> Phases { get; set; }    // Phase structure
+}
+
+// ✅ CORRECT - Obstacle owns Goals
+public class Obstacle
+{
+    public string ObligationId { get; set; }      // Parent reference
+    public List<string> GoalIds { get; set; }     // Owns goals by ID
+    public int RequiredGoalsToDefeat { get; set; }
+}
+
+// ✅ CORRECT - Goal references placement context
+public class Goal
+{
+    public string ObstacleId { get; set; }        // Parent reference
+    public string LocationId { get; set; }        // PLACEMENT context
+    public string NpcId { get; set; }             // PLACEMENT context (optional)
+    public ChallengeType ChallengeType { get; set; }  // Social/Mental/Physical
+    public List<GoalCard> GoalCards { get; set; } // OWNS victory conditions
+}
+
+// ✅ CORRECT - GoalCard is tactical mechanic
+public class GoalCard
+{
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public GoalCardCosts Costs { get; set; }      // Resources to play
+    public GoalCardEffect Effect { get; set; }    // Mechanical outcome
+}
+```
+
+---
+
 ## SYSTEM OVERVIEW
 
 Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge systems** (Social, Mental, Physical) built with **C# ASP.NET Core** and **Blazor Server**. The architecture follows **clean architecture principles** with strict **dependency inversion** and **single responsibility** patterns.

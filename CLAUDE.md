@@ -225,6 +225,159 @@ User needs "SleepOutside" player action for tutorial.
 
 ---
 
+# FUNDAMENTAL GAME SYSTEM ARCHITECTURE
+
+## THE CORE PROGRESSION FLOW (NEVER DEVIATE FROM THIS)
+
+**THIS IS THE SINGLE MOST IMPORTANT DIAGRAM IN THE ENTIRE CODEBASE:**
+
+```
+Obligation (multi-phase mystery structure - domain entity)
+  ↓ spawns
+Obstacles (challenges in the world - domain entity)
+  ↓ contain
+Goals (approaches to overcome obstacles - domain entity)
+  ↓ appear at
+Locations/NPCs/Routes (placement context - NOT ownership)
+  ↓ when player engages, Goals become
+Challenges (Social/Mental/Physical - gameplay subsystems)
+  ↓ player plays
+GoalCards (tactical victory conditions - domain entity)
+  ↓ achieve
+Goal Completion (mechanical outcomes)
+  ↓ contributes to
+Obstacle Progress (tracked progress)
+  ↓ leads to
+Obstacle Defeated
+  ↓ advances
+Obligation Phase Completion
+  ↓ unlocks
+Next Obligation Phase / Completion
+```
+
+## CRITICAL DISTINCTIONS
+
+### Obligation ≠ Card
+- **Obligation** = Multi-phase mystery/quest structure (e.g., "Investigate the Missing Grain")
+- **GoalCard** = Tactical card played during challenges (e.g., "Sharp Remark" card)
+- **NEVER** create "ObligationCard" entities - this makes no architectural sense
+
+### Goal ≠ GoalCard
+- **Goal** = Approach to overcome an obstacle (e.g., "Persuade the guard")
+- **GoalCard** = Victory condition within that Goal's challenge (e.g., "Reach 15 Understanding")
+- Goals CONTAIN GoalCards as win conditions
+
+### Obstacle ≠ Challenge
+- **Obstacle** = Persistent barrier in the world (e.g., "Suspicious Guard", "Locked Gate")
+- **Challenge** = Active gameplay session when player engages a Goal (Social/Mental/Physical subsystem)
+- Obstacles exist permanently; Challenges are temporary tactical gameplay
+
+### Location ≠ Owner
+- **Locations** are PLACEMENT context where Goals appear
+- **Obstacles** OWN Goals (lifecycle control)
+- **Investigations** OWN Obstacles (lifecycle control)
+- Locations just provide spatial/narrative context
+
+## ENTITY OWNERSHIP HIERARCHY
+
+```
+GameWorld (single source of truth)
+ │
+ ├─ Obligations (List<Obligation>)
+ │   └─ Each Obligation spawns Obstacles (by ID reference)
+ │
+ ├─ Obstacles (List<Obstacle>)
+ │   └─ Each Obstacle contains Goals (by ID reference)
+ │
+ ├─ Goals (List<Goal>)
+ │   ├─ Has locationId (appears at location)
+ │   ├─ Has npcId (optional - social context)
+ │   └─ Contains GoalCards (List<GoalCard> inline)
+ │
+ ├─ Locations (List<Location>)
+ │   └─ Does NOT own Goals - just placement context
+ │
+ └─ NPCs (List<NPC>)
+     └─ Does NOT own Goals - just social context
+```
+
+## UI ARCHITECTURE FOR OBLIGATIONS
+
+**CORRECT UI Components:**
+- `ObligationDiscoveryModal.razor` = Notifies player when obligation discovered
+- `ObligationIntroModal.razor` = Shows intro narrative when player begins obligation
+- `ObligationProgressModal.razor` = Shows progress update after goal completion
+- `ObligationActivationModal.razor` = Shows when obligation phase activates
+- `ObligationCompleteModal.razor` = Shows completion narrative + rewards
+- `DiscoveryJournal.razor` = Journal view showing obligation progress tracking
+
+**FORBIDDEN UI Components (NEVER CREATE THESE):**
+- ❌ `ObligationCard.razor` - Makes no sense, obligations aren't cards
+- ❌ `ObligationList.razor` - Journal already handles this
+- ❌ `ObligationDeadlineTracker.razor` - Journal embeds this inline
+
+**CSS Files:**
+- ✅ `obligation.css` = Styles for obligation modals (Discovery/Intro/Progress/etc.)
+- ✅ `discovery-journal.css` = Styles for journal display including obligation tracking
+- ❌ `obligations.css` = DELETED - was dead code for unused components
+
+## THE FORBIDDEN PATTERN
+
+**IF YOU SEE THIS, DELETE IT IMMEDIATELY:**
+
+```csharp
+// ❌ WRONG - "ObligationCard" as domain entity
+public class ObligationCard
+{
+    public string Title { get; set; }
+    public int Cost { get; set; }
+}
+
+// ❌ WRONG - "ObligationCard" as DTO
+public class ObligationCardDTO { }
+
+// ❌ WRONG - Locations owning Goals
+public class Location
+{
+    public List<Goal> Goals { get; set; } // NO! Goals appear at locations but aren't owned by them
+}
+
+// ❌ WRONG - NPCs owning Obstacles
+public class NPC
+{
+    public List<Obstacle> Obstacles { get; set; } // NO! NPCs provide context, not ownership
+}
+```
+
+**CORRECT PATTERN:**
+
+```csharp
+// ✅ CORRECT - Obstacle owns Goals by ID
+public class Obstacle
+{
+    public List<string> GoalIds { get; set; }
+}
+
+// ✅ CORRECT - Goal references location by ID (placement, not ownership)
+public class Goal
+{
+    public string LocationId { get; set; }  // Appears at this location
+    public string NpcId { get; set; }       // Optional social context
+    public List<GoalCard> GoalCards { get; set; }  // Victory conditions
+}
+
+// ✅ CORRECT - GoalCard is tactical card played during challenges
+public class GoalCard
+{
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public GoalCardCosts Costs { get; set; }
+    public GoalCardEffect Effect { get; set; }
+}
+```
+
+---
+
 # General Game Design Principles for Wayfarer
 
 ## Principle 1: Single Source of Truth with Explicit Ownership

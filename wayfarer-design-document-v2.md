@@ -2663,3 +2663,113 @@ Wayfarer achieves integration of visual novel and simulation through:
 The result: Slice-of-life adventure where character emerges through decisions under constraint, relationships deepen through time and shared challenges, and world reveals itself to curious preparation and persistent effort.
 
 Player versus nature, small personal scale, grounded in verisimilitude, expressed through text and choice.
+
+---
+
+## FUNDAMENTAL GAME SYSTEM ARCHITECTURE
+
+### THE CORE PROGRESSION FLOW
+
+**Every piece of content must fit into this exact progression:**
+
+```
+Obligation (multi-phase mystery structure)
+  ↓ spawns
+Obstacles (challenges blocking progress)
+  ↓ contain
+Goals (approaches to overcome obstacles)
+  ↓ appear at
+Locations/NPCs/Routes (placement context - NOT ownership)
+  ↓ when player engages, Goals become
+Challenges (Social/Mental/Physical gameplay)
+  ↓ player plays
+GoalCards (tactical victory conditions)
+  ↓ achieve
+Goal Completion
+  ↓ contributes to
+Obstacle Progress
+  ↓ leads to
+Obstacle Defeated
+  ↓ advances
+Obligation Phase Completion
+  ↓ unlocks
+Next Obligation Phase / Completion
+```
+
+### TERMINOLOGY GUIDE (CRITICAL - DO NOT CONFUSE THESE)
+
+#### Obligation
+- **Definition**: Multi-phase mystery or quest structure
+- **Example**: "Investigate the Missing Grain" with 3 phases
+- **Lifecycle**: Discovered → Activated → In Progress → Completed
+- **Owns**: Obstacles (spawned per phase)
+- **NOT**: A card, a challenge, a location-specific thing
+
+#### Obstacle
+- **Definition**: Persistent barrier or challenge in the world
+- **Example**: "Merchant's Suspicion", "Locked Gate", "Missing Evidence"
+- **Lifecycle**: Spawned by Obligation → Defeated when enough goals completed
+- **Owns**: Goals (different approaches to overcome)
+- **Appears**: Can be tied to locations/NPCs but owned by Obligation
+
+#### Goal
+- **Definition**: Specific approach to overcome an obstacle
+- **Example**: "Persuade the merchant", "Pick the lock", "Find alternative route"
+- **Lifecycle**: Created with Obstacle → Attempted → Succeeded/Failed
+- **Owns**: GoalCards (victory conditions for this approach)
+- **Appears At**: Specific location/NPC (placement context)
+- **Defines**: Challenge type (Social/Mental/Physical)
+
+#### GoalCard
+- **Definition**: Tactical victory condition within a Goal's challenge
+- **Example**: "Reach 15 Understanding", "Complete 3-chain combo"
+- **Lifecycle**: Available when Goal engaged → Played during challenge
+- **Has**: Mechanical costs, effects, rewards
+- **NOT**: The Goal itself - Goals CONTAIN GoalCards
+
+#### Challenge
+- **Definition**: Active tactical gameplay session (NOT a persistent entity)
+- **Example**: Social conversation, Mental investigation, Physical obstacle
+- **Lifecycle**: Starts when Goal engaged → Ends when Goal succeeds/fails
+- **Uses**: GoalCards from the Goal being attempted
+- **NOT**: A persistent entity in GameWorld
+
+### WHAT IS NOT A THING
+
+**These DO NOT EXIST in the game - delete on sight:**
+- ❌ "ObligationCard" - Obligations are not cards
+- ❌ "ChallengeCard" - Challenges use GoalCards
+- ❌ "LocationGoal" - Locations don't own Goals
+- ❌ "NPCObstacle" - NPCs don't own Obstacles
+
+### CONTENT CREATION FLOW
+
+**When designing obligation content:**
+
+1. **Define Obligation**: Name, description, narrative arc
+2. **Design Phases**: What phases does this mystery have?
+3. **Create Obstacles**: What barriers exist in each phase?
+4. **Design Goals**: What approaches can overcome each obstacle?
+5. **Place Goals**: Where/with whom does each goal appear?
+6. **Define GoalCards**: What are the victory conditions for each goal?
+7. **Create Challenge Cards**: What cards does player use to achieve GoalCards?
+
+**Example - "Investigate the Missing Grain":**
+
+```
+Obligation: "Investigate the Missing Grain"
+  Phase 1: "Initial Investigation"
+    Obstacle: "Merchant's Suspicion"
+      Goal: "Persuade Merchant" (Social)
+        - Appears at: Market / NPC: Grain Merchant
+        - GoalCards: ["Reach 15 Understanding", "Build Trust Level 3"]
+        - Challenge Cards: ["Sympathetic Remark", "Offer Help", "Share Story"]
+      Goal: "Search Storage Room" (Mental)
+        - Appears at: Storage Room
+        - GoalCards: ["Find 3 Clues", "Complete Investigation"]
+        - Challenge Cards: ["Examine Ledger", "Check Inventory", "Interview Staff"]
+
+  Phase 2: "Following Leads"
+    (Unlocked when Phase 1 obstacle defeated)
+    ...
+```
