@@ -330,52 +330,6 @@ Phase 4: Confront suspect (1 Social goal with suspect NPC)
 
 **V2 Investigation phases preserved:** Same phase structure, same sequential unlocking, same multi-location progression. Just now split into two semantic types with different reward/deadline structures.
 
-## Route Segment System
-
-### Extend Route Entity (V2 Preserved)
-
-**V2 Route:**
-```
-Route:
-  Id
-  FromLocationId
-  ToLocationId
-  TimeSegments (single value)
-  BaseStaminaCost (single value)
-```
-
-**Core Loop Route:**
-```
-Route:
-  Id
-  FromLocationId
-  ToLocationId
-  // TimeSegments removed (calculated from segments)
-  Segments: List<RouteSegment>
-  ExplorationCubes (0-10, per route)
-```
-
-### RouteSegment Entity (New)
-
-```
-RouteSegment:
-  Position (1, 2, 3, 4...)
-  AvailablePaths: List<RoutePath>
-  NarrativeDescription
-```
-
-### RoutePath Entity (New)
-
-```
-RoutePath:
-  Id
-  TimeSegments (1-2)
-  StaminaCost (1-2)
-  OptionalObstacleId (nullable)
-  Description
-  HiddenUntilExploration (0-10, exploration cube threshold to reveal)
-```
-
 ### Route Navigation Flow
 
 **Player selects route (Town → Mill):**
@@ -1127,15 +1081,18 @@ NPC:
 ```
 RouteSegment:
   Position
-  AvailablePaths
+  PathCollectionId (references PathCardCollection)
   Description
+  SegmentType (FixedPath, Event, Encounter)
 
-RoutePath:
-  TimeSegments
+PathCard (enhanced with travel properties):
+  TravelTimeSegments
   StaminaCost
-  OptionalObstacleId
-  Description
-  HiddenUntilExploration
+  ObstacleId
+  Name, NarrativeText
+  ExplorationThreshold (replaces HiddenUntilExploration)
+  HungerEffect, HealthEffect, StaminaRestore
+  CoinReward, TokenGains
 
 Equipment:
   Id, Name, CoinCost

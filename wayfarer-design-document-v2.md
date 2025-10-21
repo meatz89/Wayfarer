@@ -477,6 +477,146 @@ Each system is a distinct tactical game following the same architectural pattern
 
 **Purpose:** Bridge strategic decision-making to tactical challenge execution. Investigations provide context and progression, challenges provide gameplay.
 
+### Travel System
+
+Routes connect venues through multi-segment journeys where each segment presents **PathCard choices** that create impossible decisions between time costs, stamina costs, obstacle encounters, and narrative outcomes.
+
+**Route Structure:**
+- **Route**: Collection of ordered segments connecting origin venue to destination venue
+- **RouteSegment**: Individual stage with segment type, PathCard collection, and narrative context
+- **SegmentTypes**:
+  - `FixedPath`: Standard path choices (player chooses from predetermined options)
+  - `Event`: Random event from collection (caravan encounters, environmental events)
+  - `Encounter`: Mandatory obstacle that MUST be resolved to proceed
+
+**PathCard System (Rich Narrative Choice):**
+
+PathCards are the core decision-making entities in travel, offering rich mechanical and narrative depth:
+
+**Core Properties:**
+- **Costs**: `StaminaCost`, `TravelTimeSegments` (strategic resources)
+- **Requirements**: `CoinRequirement`, `PermitRequirement`, `StatRequirements` (gates by progression)
+- **Discovery**: `StartsRevealed`, `IsHidden`, `ExplorationThreshold` (progressive revelation)
+- **Effects**: `HungerEffect`, `HealthEffect`, `StaminaRestore`, `CoinReward` (immediate outcomes)
+- **Progression**: `TokenGains`, `OneTimeReward`, `IsOneTime`, `RevealsPaths` (unlocks and rewards)
+- **Obstacles**: `ObstacleId` (references dynamically spawned challenge)
+- **Narrative**: `NarrativeText` (story context and atmospheric description)
+- **Dead Ends**: `ForceReturn` (paths that require backtracking)
+
+**FixedPath Segments:**
+
+Player chooses one PathCard from the collection. Each card represents a distinct approach with different trade-offs:
+
+**Example - Creek Crossing:**
+```
+PathCard 1: "Wade Across" (0 time, 0 stamina, ObstacleId: "shallow_water")
+PathCard 2: "Rope Bridge" (0 time, 1 stamina, requires CoinRequirement: 5, safer)
+PathCard 3: "Search for Ford" (1 time, 0 stamina, reveals hidden path, IsOneTime)
+```
+
+**Player sees perfect information:**
+- Time cost vs stamina cost vs coin cost
+- Obstacle difficulty and contexts (can preview equipment applicability)
+- Requirements (can I afford this? do I have the stats?)
+- Narrative outcomes (what happens if I choose this?)
+
+**Impossible choice:** Fast but risky? Slow but safe? Expensive but guaranteed? Each valid, each has consequences.
+
+**Event Segments:**
+
+Random event selected from EventCollection when segment is entered:
+
+**Example - Caravan Route:**
+```
+EventCollection: "caravan_encounters"
+  Event 1: "Broken Wheel" → EventCards: [Help (Social), Ignore, Barter]
+  Event 2: "Merchant Dispute" → EventCards: [Mediate (Social), Walk Away, Side with One]
+  Event 3: "Blocked Road" → EventCards: [Clear Path (Physical), Wait, Find Detour]
+```
+
+**Event draws randomly** but **player choice from EventCards remains perfect information** - creates replayability while maintaining strategic decision-making.
+
+**Encounter Segments:**
+
+Mandatory obstacle with `MandatoryObstacleId`. Player cannot proceed until obstacle resolved (intensity reduced to 0):
+
+**Example - Bandit Ambush:**
+```
+RouteSegment:
+  Type: Encounter
+  MandatoryObstacleId: "bandit_blockade"
+  PathCollectionId: "resolution_approaches"
+
+Obstacle: "Bandit Blockade"
+  Contexts: [Social, Physical, Authority]
+  Intensity: 3
+  Goals:
+    - "Intimidate Leader" (Social challenge, costs Focus)
+    - "Fight Through" (Physical challenge, costs Stamina, risks Health)
+    - "Bribe Passage" (costs 20 coins, no challenge)
+    - "Sneak Around" (Physical challenge, different approach)
+```
+
+**Player still has choices** - which approach to use, which resources to spend, which challenge system to engage.
+
+**Obstacle Integration:**
+
+PathCards reference **Obstacles** (not directly embed challenges). Obstacles contain **Goals** which trigger the three challenge systems:
+
+**Flow:**
+```
+Player selects PathCard
+  → PathCard.ObstacleId references Obstacle
+  → Obstacle contains multiple Goals (different approaches)
+  → Player chooses Goal (approach strategy)
+  → Goal triggers challenge (Mental/Physical/Social)
+  → Victory reduces Obstacle.Intensity
+  → When Intensity = 0, obstacle cleared, segment complete
+```
+
+**Example - Fallen Tree Obstacle:**
+```
+PathCard: "Forest Path" (ObstacleId: "fallen_tree")
+
+Obstacle: "Fallen Tree"
+  Contexts: [Nature, Physical, Strength]
+  Intensity: 2
+  Goals:
+    1. "Climb Over" (Physical challenge - Authority + Strength cards)
+    2. "Chop Through" (Physical challenge - requires Axe equipment, higher time cost)
+    3. "Find Way Around" (Mental challenge - Insight + Cunning cards, explores)
+```
+
+**Player evaluation:**
+- Do I have equipment that helps? (Axe reduces intensity)
+- Which stats are strong? (Authority 3 → use cards depth 1-3)
+- What resources can I afford? (Stamina 2/6 → avoid Physical if possible)
+- What's the time pressure? (Deadline soon → fastest path)
+
+**Strategic-Tactical Bridge:**
+
+Travel connects strategic planning to tactical execution:
+
+1. **Strategic**: Choose route, evaluate segment costs, decide which PathCards to pursue
+2. **Tactical**: Engage obstacles via Goals, play challenge systems (Physical/Mental/Social)
+3. **Integration**: Equipment purchased at locations helps with route obstacles, creating economic loop
+
+**Design Principles Satisfied:**
+
+- **Resource Competition**: Time/Stamina/Focus/Coins compete (impossible choices)
+- **Perfect Information**: All PathCard costs visible, obstacle contexts revealed, equipment applicability calculated
+- **No Soft-Locks**: Dead-end paths have `ForceReturn`, mandatory obstacles always have multiple approach goals
+- **Verisimilitude**: PathCards make narrative sense (wade creek, climb tree, bribe bandits)
+- **Elegant Interconnection**: Routes → PathCards → Obstacles → Goals → Challenges (clear hierarchy)
+
+**AI Content Generation:**
+
+Route templates define structure (segments, types, obstacle slots). AI generates:
+- Venue connections and narrative context
+- PathCard variations with contextual descriptions
+- Event collections themed to location type (caravan routes vs wilderness vs urban)
+- Obstacles scaled to route difficulty and player progression level
+
 ## Goal and GoalCard System Architecture
 
 ### Two-Layer Design Philosophy
