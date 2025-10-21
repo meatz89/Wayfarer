@@ -965,10 +965,18 @@ else
 
     protected PathCardDTO GetRevealedCard()
     {
-        if (TravelContext?.Session == null || string.IsNullOrEmpty(TravelContext.Session.RevealedCardId))
-            return null;
+        if (TravelContext?.Session == null)
+            throw new InvalidOperationException("Cannot get revealed card: TravelContext.Session is null");
+
+        if (string.IsNullOrEmpty(TravelContext.Session.RevealedCardId))
+            throw new InvalidOperationException("Cannot get revealed card: RevealedCardId is null or empty");
 
         var allCards = GetAvailablePathCards();
-        return allCards.FirstOrDefault(c => c.Card.Id == TravelContext.Session.RevealedCardId)?.Card;
+        PathCardDTO? cardNullable = allCards.FirstOrDefault(c => c.Card.Id == TravelContext.Session.RevealedCardId)?.Card;
+
+        if (cardNullable == null)
+            throw new InvalidOperationException($"Revealed card '{TravelContext.Session.RevealedCardId}' not found in available path cards");
+
+        return cardNullable;
     }
 }

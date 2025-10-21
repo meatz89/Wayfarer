@@ -121,7 +121,7 @@ public static class GoalParser
             Item = dto.Item,
 
             // Cube rewards (strong typing)
-            XXXOBLIGATIONCUBESXXX = dto.XXXOBLIGATIONCUBESXXX,
+            InvestigationCubes = dto.InvestigationCubes,
             StoryCubes = dto.StoryCubes,
             ExplorationCubes = dto.ExplorationCubes,
 

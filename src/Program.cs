@@ -56,7 +56,7 @@ try
         }
     }
 }
-catch (Exception ex)
+catch (Exception)
 {
 }
 

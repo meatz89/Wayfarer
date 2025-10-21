@@ -87,7 +87,7 @@ public class MentalFacade
             return null;
         }
         player.Focus -= focusCost;
-        // effectiveExposure passed from GameFacade (already reduced by XXXOBLIGATIONCUBESXXX)
+        // effectiveExposure passed from GameFacade (already reduced by InvestigationCubes)
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {

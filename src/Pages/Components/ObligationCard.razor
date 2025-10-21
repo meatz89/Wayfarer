@@ -16,7 +16,7 @@ Shows type, deadline, rewards, and patron info
     {
         <div class="obligation-deadline-section">
             <ObligationDeadlineTracker
-                DeadlineSegment="@Obligation.DeadlineSegment.Value"
+                DeadlineSegment="@(Obligation.DeadlineSegment ?? 0)"
                 CurrentSegment="@CurrentSegment" />
 
             @if (!string.IsNullOrEmpty(Obligation.PatronNpcId))

@@ -85,10 +85,10 @@ public class GoalCardRewardsDTO
     public string Item { get; set; }
 
     // Cube rewards auto-applied to goal's context entity (Location/NPC/Route)
-    // Mental goals grant XXXOBLIGATIONCUBESXXX to their Location
+    // Mental goals grant InvestigationCubes to their Location
     // Social goals grant StoryCubes to their NPC
     // Route completion grants ExplorationCubes to that Route
-    public int? XXXOBLIGATIONCUBESXXX { get; set; }  // +1-2, granted to goal's location
+    public int? InvestigationCubes { get; set; }  // +1-2, granted to goal's location
     public int? StoryCubes { get; set; }          // +1-2, granted to goal's NPC
     public int? ExplorationCubes { get; set; }    // +1, granted to goal's route
 

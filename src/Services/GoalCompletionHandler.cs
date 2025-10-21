@@ -9,11 +9,13 @@ public class GoalCompletionHandler
 {
     private readonly GameWorld _gameWorld;
     private readonly ObligationActivity _obligationActivity;
+    private readonly TimeManager _timeManager;
 
-    public GoalCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity)
+    public GoalCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity, TimeManager timeManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     }
 
     /// <summary>
@@ -37,7 +39,10 @@ public class GoalCompletionHandler
             RemoveGoalFromActiveGoals(goal);
         }
 
-        // Check for obligation progress (system-agnostic - works for Mental, Physical, Social)
+        // Check for simple obligation completion (Player.ActiveObligationIds system)
+        CheckSimpleObligationCompletion(goal);
+
+        // Check for obligation progress (phase-based ObligationJournal system)
         if (!string.IsNullOrEmpty(goal.ObligationId))
         {
             CheckObligationProgress(goal.Id, goal.ObligationId);
@@ -115,11 +120,11 @@ public class GoalCompletionHandler
             }
 
             // OBLIGATION CUBES - grant to goal's placement Location (localized mastery)
-            if (rewards.XXXOBLIGATIONCUBESXXX.HasValue && rewards.XXXOBLIGATIONCUBESXXX.Value > 0)
+            if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
             {
                 if (!string.IsNullOrEmpty(goal.PlacementLocationId))
                 {
-                    _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.XXXOBLIGATIONCUBESXXX.Value);
+                    _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.InvestigationCubes.Value);
                     Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
                     string locationName = location.Name;
                 }
@@ -176,24 +181,15 @@ public class GoalCompletionHandler
                 }
             }
 
-            // OBLIGATION ID - spawn existing obligation (SelfDiscovered or NPCCommissioned)
+            // OBLIGATION ID - activate existing obligation (SelfDiscovered or NPCCommissioned)
+            // Adds to Player.ActiveObligationIds and sets deadline if NPCCommissioned
             if (!string.IsNullOrEmpty(rewards.ObligationId))
             {
                 Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == rewards.ObligationId);
                 if (obligation != null)
                 {
-                    // Move obligation to Discovered state (player must accept via intro action)
-                    if (!_gameWorld.ObligationJournal.DiscoveredObligationIds.Contains(rewards.ObligationId))
-                    {
-                        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(rewards.ObligationId);
-                        _gameWorld.ObligationJournal.DiscoveredObligationIds.Add(rewards.ObligationId);
-                    }
-                    else
-                    {
-                    }
-                }
-                else
-                {
+                    // Activate obligation (adds to Player.ActiveObligationIds, sets deadline if NPCCommissioned)
+                    _gameWorld.ActivateObligation(rewards.ObligationId, _timeManager);
                 }
             }
 
@@ -278,6 +274,36 @@ public class GoalCompletionHandler
                     location.ActiveGoalIds.Remove(goal.Id);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Check if completing this goal completes an active obligation (simple Player.ActiveObligationIds system)
+    /// Query all goals with matching ObligationId to determine completion
+    /// </summary>
+    private void CheckSimpleObligationCompletion(Goal completedGoal)
+    {
+        // Only check if goal is part of an obligation
+        if (string.IsNullOrEmpty(completedGoal.ObligationId))
+            return;
+
+        // Only check if obligation is in Player.ActiveObligationIds
+        Player player = _gameWorld.GetPlayer();
+        if (!player.ActiveObligationIds.Contains(completedGoal.ObligationId))
+            return;
+
+        // Find all goals for this obligation
+        List<Goal> obligationGoals = _gameWorld.Goals
+            .Where(g => g.ObligationId == completedGoal.ObligationId)
+            .ToList();
+
+        // Check if ALL goals are complete
+        bool allGoalsComplete = obligationGoals.All(g => g.IsCompleted);
+
+        if (allGoalsComplete)
+        {
+            // Complete the obligation (grants rewards, removes from ActiveObligationIds)
+            _gameWorld.CompleteObligation(completedGoal.ObligationId, _timeManager);
         }
     }
 }

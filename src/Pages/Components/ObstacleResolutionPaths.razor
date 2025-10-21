@@ -87,8 +87,11 @@ Challenge, Equipment, Cost bypass, Accept damage
     {
         get
         {
-            ObstacleIntensity intensity = ObstacleFacade?.CalculateEffectiveIntensity(Obstacle?.Id);
-            return intensity?.EffectiveIntensity ?? Obstacle?.Intensity ?? 0;
+            if (ObstacleFacade == null || Obstacle == null || string.IsNullOrEmpty(Obstacle.Id))
+                return Obstacle?.Intensity ?? 0;
+
+            ObstacleIntensity intensity = ObstacleFacade.CalculateEffectiveIntensity(Obstacle.Id);
+            return intensity?.EffectiveIntensity ?? Obstacle.Intensity;
         }
     }
 

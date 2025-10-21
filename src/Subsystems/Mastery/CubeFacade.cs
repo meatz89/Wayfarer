@@ -2,7 +2,7 @@ using System;
 
 /// <summary>
 /// Facade for localized mastery cube management
-/// Handles XXXOBLIGATIONCUBESXXX (Locations), StoryCubes (NPCs), ExplorationCubes (Routes)
+/// Handles InvestigationCubes (Locations), StoryCubes (NPCs), ExplorationCubes (Routes)
 /// </summary>
 public class CubeFacade
 {
@@ -18,7 +18,7 @@ public class CubeFacade
     // ============================================
 
     /// <summary>
-    /// Get XXXOBLIGATIONCUBESXXX for a location (0-10 scale)
+    /// Get InvestigationCubes for a location (0-10 scale)
     /// </summary>
     public int GetLocationCubes(string locationId)
     {
@@ -26,7 +26,7 @@ public class CubeFacade
     }
 
     /// <summary>
-    /// Grant XXXOBLIGATIONCUBESXXX to a location (max 10)
+    /// Grant InvestigationCubes to a location (max 10)
     /// Reduces Mental Exposure at this location only
     /// </summary>
     public void GrantLocationCubes(string locationId, int amount)
@@ -41,7 +41,7 @@ public class CubeFacade
     }
 
     /// <summary>
-    /// Calculate Mental Exposure reduction based on XXXOBLIGATIONCUBESXXX
+    /// Calculate Mental Exposure reduction based on InvestigationCubes
     /// Each cube reduces exposure by 1 point
     /// </summary>
     public int GetLocationExposureReduction(string locationId)
@@ -51,7 +51,7 @@ public class CubeFacade
 
     /// <summary>
     /// Calculate effective exposure reduction at location
-    /// Formula: EffectiveExposure = BaseExposure * (10 - XXXOBLIGATIONCUBESXXX) / 10
+    /// Formula: EffectiveExposure = BaseExposure * (10 - InvestigationCubes) / 10
     /// Example: 6 base exposure, 3 cubes = 6 * 7 / 10 = 4.2 -> 4
     /// Example: 6 base exposure, 10 cubes = 6 * 0 / 10 = 0 (mastery)
     /// </summary>

@@ -623,7 +623,7 @@ public class GameWorld
     // ============================================
 
     /// <summary>
-    /// Get XXXOBLIGATIONCUBESXXX for a location (0-10 scale)
+    /// Get InvestigationCubes for a location (0-10 scale)
     /// </summary>
     public int GetLocationCubes(string locationId)
     {
@@ -631,7 +631,7 @@ public class GameWorld
         if (location == null)
             throw new InvalidOperationException($"Location not found: {locationId}");
 
-        return location.XXXOBLIGATIONCUBESXXX;
+        return location.InvestigationCubes;
     }
 
     /// <summary>
@@ -657,14 +657,14 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Grant XXXOBLIGATIONCUBESXXX to a location (max 10)
+    /// Grant InvestigationCubes to a location (max 10)
     /// </summary>
     public void GrantLocationCubes(string locationId, int amount)
     {
         Location location = GetLocation(locationId);
         if (location != null)
         {
-            location.XXXOBLIGATIONCUBESXXX = Math.Min(10, location.XXXOBLIGATIONCUBESXXX + amount);
+            location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
         }
     }
 
