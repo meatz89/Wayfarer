@@ -321,6 +321,24 @@
             </div>
         </div>
     }
+    @* ========== FINISH ROUTE SCREEN (when journey complete) ========== *@
+    else if (IsReadyToComplete())
+    {
+        <!-- Journey Complete Banner -->
+        <div class="discovery-banner">
+            <div class="discovery-icon">✓</div>
+            <div class="discovery-title">JOURNEY COMPLETE</div>
+            <div class="discovery-subtitle">You have reached your destination</div>
+        </div>
+
+        <!-- Finish Button -->
+        <div class="continue-section">
+            <div class="continue-button discovery" @onclick="FinishRoute">
+                <div>FINISH ROUTE</div>
+                <div class="continue-details">Complete your journey to @GetDestinationName()</div>
+            </div>
+        </div>
+    }
     @* ========== CARAVAN/EVENT SEGMENT (travel-caravan.html) ========== *@
     else if (IsEventSegment())
     {
