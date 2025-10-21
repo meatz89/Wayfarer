@@ -845,6 +845,15 @@ public class PackageLoader
 
         foreach (PathCardCollectionDTO dto in collectionDtos)
         {
+            // VALIDATION: Fail fast if required 'id' field is missing (common error: using "collectionId" instead of "id")
+            if (string.IsNullOrEmpty(dto.Id))
+            {
+                throw new InvalidOperationException(
+                    "PathCardCollection missing required 'id' field. " +
+                    "Check JSON - field name must be 'id' (lowercase), not 'collectionId'. " +
+                    $"Collection data: PathCards={dto.PathCards?.Count ?? 0}, Events={dto.Events?.Count ?? 0}");
+            }
+
             // Embed actual path cards if this collection has path card IDs (for JSON loaded collections)
             if (dto.PathCards != null && dto.PathCards.Count == 0 && dto.PathCardIds != null)
             {

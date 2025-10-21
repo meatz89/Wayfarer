@@ -244,7 +244,22 @@ public class TravelManager
             return false;
         }
 
-        // Final affordability check (in case something changed)
+        // Clear reveal state
+        session.IsRevealingCard = false;
+        session.RevealedCardId = "";
+
+        // Apply selection effects (shared logic with discovered cards)
+        return ApplyPathCardSelectionEffects(card, pathCardId);
+    }
+
+    /// <summary>
+    /// Apply path card selection effects - shared logic for both revealed and already-discovered cards
+    /// </summary>
+    private bool ApplyPathCardSelectionEffects(PathCardDTO card, string pathCardId)
+    {
+        TravelSession session = _gameWorld.CurrentTravelSession;
+
+        // Affordability checks
         if (session.StaminaRemaining < card.StaminaCost)
         {
             return false;
@@ -278,10 +293,6 @@ public class TravelManager
             session.SegmentsElapsed += card.TravelTimeSegments;
             _messageSystem.AddSystemMessage($"Journey time increased by {card.TravelTimeSegments} segments", SystemMessageTypes.Info);
         }
-
-        // Clear reveal state
-        session.IsRevealingCard = false;
-        session.RevealedCardId = "";
 
         // Update travel state based on stamina
         UpdateTravelState(session);
@@ -338,13 +349,10 @@ public class TravelManager
         // Check if card is already discovered (face-up)
         bool isDiscovered = _gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId);
 
-        // For already discovered cards, set them as revealed immediately so player can confirm
+        // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
         {
-            // Set reveal state for already discovered card
-            session.IsRevealingCard = true;
-            session.RevealedCardId = pathCardId;
-            return true;
+            return ApplyPathCardSelectionEffects(card, pathCardId);
         }
 
         // For undiscovered cards, use the reveal mechanic

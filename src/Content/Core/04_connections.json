@@ -13,7 +13,7 @@
     "travelEvents": [],
     "pathCardCollections": [
       {
-        "collectionId": "tutorial_square_to_inn_paths",
+        "id": "tutorial_square_to_inn_paths",
         "pathCards": [
           {
             "id": "walk_to_inn",
