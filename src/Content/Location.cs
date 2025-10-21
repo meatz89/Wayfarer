@@ -62,8 +62,6 @@ public class Location
     // ObservationRewards system eliminated - replaced by transparent resource competition
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
-    public int Exposure { get; set; } = 0;
-
     // Localized mastery - InvestigationCubes reduce Mental Exposure at THIS location only
     // 0-10 scale: 0 cubes = full exposure, 10 cubes = mastery (no exposure)
     public int InvestigationCubes { get; set; } = 0;

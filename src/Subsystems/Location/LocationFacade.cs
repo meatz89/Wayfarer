@@ -874,7 +874,8 @@ public class LocationFacade
 
     private GoalCardViewModel BuildGoalCard(Goal goal, string systemType, string difficultyLabel)
     {
-        DifficultyResult difficultyResult = _difficultyService.CalculateDifficulty(goal, _itemRepository);
+        int baseDifficulty = GetBaseDifficultyForGoal(goal);
+        DifficultyResult difficultyResult = _difficultyService.CalculateDifficulty(goal, baseDifficulty, _itemRepository);
 
         return new GoalCardViewModel
         {
@@ -889,6 +890,27 @@ public class LocationFacade
             FocusCost = goal.Costs.Focus,
             StaminaCost = goal.Costs.Stamina
         };
+    }
+
+    private int GetBaseDifficultyForGoal(Goal goal)
+    {
+        switch (goal.SystemType)
+        {
+            case TacticalSystemType.Social:
+                SocialChallengeDeck socialDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                return socialDeck?.DangerThreshold ?? 10;
+
+            case TacticalSystemType.Mental:
+                MentalChallengeDeck mentalDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                return mentalDeck?.DangerThreshold ?? 10;
+
+            case TacticalSystemType.Physical:
+                PhysicalChallengeDeck physicalDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                return physicalDeck?.DangerThreshold ?? 10;
+
+            default:
+                return 10;
+        }
     }
 
     private List<SpotWithNpcsViewModel> BuildSpotsWithNPCs(Venue venue, Location currentSpot, TimeBlocks currentTime)

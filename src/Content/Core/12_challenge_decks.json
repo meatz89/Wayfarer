@@ -61,6 +61,7 @@
                 "id": "desperate_request",
                 "name": "Desperate Request Deck",
                 "description": "Someone in crisis needs help - heavy Rapport/Insight, zero Authority",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "rapport_show_understanding",
                     "rapport_show_understanding",
@@ -96,6 +97,7 @@
                 "id": "friendly_chat",
                 "name": "Friendly Chat Deck",
                 "description": "Casual conversation with balanced stat mix",
+                "dangerThreshold": 10,
                 "cardIds": [
                     "insight_quick_scan",
                     "insight_ask_question",

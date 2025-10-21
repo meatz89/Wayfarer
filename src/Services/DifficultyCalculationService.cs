@@ -21,13 +21,13 @@ public class DifficultyCalculationService
     /// Returns base difficulty plus/minus modifiers
     /// Goal ALWAYS visible regardless of difficulty
     /// </summary>
-    public DifficultyResult CalculateDifficulty(Goal goal, ItemRepository itemRepository)
+    public DifficultyResult CalculateDifficulty(Goal goal, int baseDifficulty, ItemRepository itemRepository)
     {
         if (goal == null)
             throw new ArgumentNullException(nameof(goal));
 
         Player player = _gameWorld.GetPlayer();
-        int finalDifficulty = goal.BaseDifficulty;
+        int finalDifficulty = baseDifficulty;
         List<string> appliedModifiers = new List<string>();
         List<string> unappliedModifiers = new List<string>();
 
@@ -46,7 +46,7 @@ public class DifficultyCalculationService
 
         return new DifficultyResult
         {
-            BaseDifficulty = goal.BaseDifficulty,
+            BaseDifficulty = baseDifficulty,
             FinalDifficulty = Math.Max(0, finalDifficulty),
             AppliedModifiers = appliedModifiers,
             UnappliedModifiers = unappliedModifiers

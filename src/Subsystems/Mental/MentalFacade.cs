@@ -59,7 +59,7 @@ public class MentalFacade
     }
 
     public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string goalId, string obligationId, int effectiveExposure)
+        string goalId, string obligationId)
     {
         if (IsSessionActive())
         {
@@ -87,7 +87,6 @@ public class MentalFacade
             return null;
         }
         player.Focus -= focusCost;
-        // effectiveExposure passed from GameFacade (already reduced by InvestigationCubes)
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {
@@ -97,8 +96,8 @@ public class MentalFacade
             MaxAttention = 10,
             CurrentUnderstanding = 0,
             CurrentProgress = 0,
-            CurrentExposure = effectiveExposure, // GameFacade orchestrated cube reduction
-            MaxExposure = engagement.DangerThreshold
+            CurrentExposure = 0, // Starts at 0, accumulates during play
+            MaxExposure = engagement.DangerThreshold // Max from deck (varies by difficulty)
             // VictoryThreshold removed - GoalCard play determines success, not Progress threshold
         };
 
@@ -458,11 +457,6 @@ public class MentalFacade
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
             player.LocationFamiliarity.SetFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
         }
-
-        // Persist exposure to Location (Mental debt system)
-        // Exposure accumulates - next Mental engagement at this location starts with elevated baseline
-        Location currentSpot = player.CurrentLocation;
-        currentSpot.Exposure = _gameWorld.CurrentMentalSession.CurrentExposure;
 
         // Clear obligation context
         _gameWorld.CurrentMentalGoalId = null;

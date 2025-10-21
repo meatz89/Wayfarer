@@ -123,14 +123,6 @@ public class Goal
     public GoalCosts Costs { get; set; } = new GoalCosts();
 
     /// <summary>
-    /// Base difficulty before any modifiers
-    /// Exposure for Mental challenges, Danger for Physical challenges, Doubt rate for Social challenges
-    /// Goal ALWAYS visible regardless of difficulty
-    /// Difficulty varies transparently based on player resources
-    /// </summary>
-    public int BaseDifficulty { get; set; } = 0;
-
-    /// <summary>
     /// Difficulty modifiers that reduce/increase difficulty based on player state
     /// Goal ALWAYS visible, difficulty varies transparently
     /// Multiple paths to reduce difficulty create strategic choices

@@ -688,9 +688,20 @@ namespace Wayfarer.Pages.Components
             Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
             if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
 
+            // Get base difficulty from deck
+            int baseDifficulty = GetBaseDifficultyForGoal(parentGoal);
+
             // Calculate actual difficulty using DifficultyCalculationService with all modifiers
-            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, ItemRepository);
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, baseDifficulty, ItemRepository);
             return result.FinalDifficulty;
+        }
+
+        private int GetBaseDifficultyForGoal(Goal goal)
+        {
+            if (GameWorld == null) return 10;
+
+            SocialChallengeDeck deck = GameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+            return deck?.DangerThreshold ?? 10;
         }
 
         private Goal FindParentGoal(string goalCardId)

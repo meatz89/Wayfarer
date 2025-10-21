@@ -49,19 +49,6 @@ public class CubeFacade
         return _gameWorld.GetLocationCubes(locationId);
     }
 
-    /// <summary>
-    /// Calculate effective exposure reduction at location
-    /// Formula: EffectiveExposure = BaseExposure * (10 - InvestigationCubes) / 10
-    /// Example: 6 base exposure, 3 cubes = 6 * 7 / 10 = 4.2 -> 4
-    /// Example: 6 base exposure, 10 cubes = 6 * 0 / 10 = 0 (mastery)
-    /// </summary>
-    public int GetEffectiveExposure(string locationId, int baseExposure)
-    {
-        int cubes = _gameWorld.GetLocationCubes(locationId);
-        int effectiveExposure = baseExposure * (10 - cubes) / 10;
-        return effectiveExposure;
-    }
-
     // ============================================
     // STORY CUBES (NPC Mastery)
     // ============================================
@@ -96,19 +83,6 @@ public class CubeFacade
     public int GetNPCDoubtReduction(string npcId)
     {
         return _gameWorld.GetNPCCubes(npcId);
-    }
-
-    /// <summary>
-    /// Calculate effective doubt reduction with NPC
-    /// Formula: EffectiveDoubt = BaseDoubt * (10 - StoryCubes) / 10
-    /// Example: 8 base doubt, 4 cubes = 8 * 6 / 10 = 4.8 -> 4
-    /// Example: 8 base doubt, 10 cubes = 8 * 0 / 10 = 0 (complete understanding)
-    /// </summary>
-    public int GetEffectiveDoubt(string npcId, int baseDoubt)
-    {
-        int cubes = _gameWorld.GetNPCCubes(npcId);
-        int effectiveDoubt = baseDoubt * (10 - cubes) / 10;
-        return effectiveDoubt;
     }
 
     // ============================================

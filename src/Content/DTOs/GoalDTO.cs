@@ -64,13 +64,6 @@ public class GoalDTO
     public List<GoalCardDTO> GoalCards { get; set; } = new List<GoalCardDTO>();
 
     /// <summary>
-    /// Base difficulty before any modifiers
-    /// Exposure for Mental challenges, Danger for Physical challenges, Doubt rate for Social challenges
-    /// Goal ALWAYS visible regardless of difficulty
-    /// </summary>
-    public int BaseDifficulty { get; set; }
-
-    /// <summary>
     /// Resources player must pay to attempt this goal
     /// Transparent costs create resource competition and strategic choices
     /// </summary>

@@ -58,7 +58,6 @@ public static class GoalParser
             IsAvailable = dto.IsAvailable,
             IsCompleted = dto.IsCompleted,
             DeleteOnSuccess = dto.DeleteOnSuccess,
-            BaseDifficulty = dto.BaseDifficulty,
             Costs = costs,
             DifficultyModifiers = difficultyModifiers,
             GoalCards = new List<GoalCard>(),

@@ -51,7 +51,7 @@ public class SocialFacade
     /// <summary>
     /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public SocialSession StartConversation(string npcId, string requestId, int effectiveDoubt)
+    public SocialSession StartConversation(string npcId, string requestId)
     {
         if (IsConversationActive())
         {
@@ -70,6 +70,13 @@ public class SocialFacade
         if (goal == null)
         {
             throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
+        }
+
+        // Get the challenge deck to determine max doubt threshold
+        SocialChallengeDeck challengeDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+        if (challengeDeck == null)
+        {
+            throw new ArgumentException($"SocialChallengeDeck {goal.DeckId} not found in GameWorld.SocialChallengeDecks");
         }
 
         // Get connection state from NPC for session initialization
@@ -95,7 +102,6 @@ public class SocialFacade
         int startingUnderstanding = 2 + statBonus;
         int startingMomentum = 2 + statBonus;
         int startingInitiative = 3 + statBonus;
-        // effectiveDoubt passed from GameFacade (already reduced by StoryCubes)
         // Get request text from the goal description
         string requestText = goal.Description;
 
@@ -110,7 +116,8 @@ public class SocialFacade
             CurrentInitiative = startingInitiative,
             CurrentUnderstanding = startingUnderstanding,
             CurrentMomentum = startingMomentum,
-            CurrentDoubt = effectiveDoubt, // GameFacade orchestrated StoryCubes reduction
+            CurrentDoubt = 0, // Starts at 0, accumulates during play
+            MaxDoubt = challengeDeck.DangerThreshold, // Max from deck (varies by difficulty)
             Cadence = 0, // Starts at 0
             TurnNumber = 0,
             Deck = deck, // HIGHLANDER: Deck manages ALL card piles
@@ -474,7 +481,7 @@ public class SocialFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId, int effectiveDoubt)
+    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
     {
         // KEEP - npcId is external input from UI
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
@@ -490,8 +497,8 @@ public class SocialFacade
             return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
         }
 
-        // Start conversation with the request (effectiveDoubt already calculated by GameFacade)
-        SocialSession session = StartConversation(npcId, requestId, effectiveDoubt);
+        // Start conversation with the request (doubt starts at 0, max from deck)
+        SocialSession session = StartConversation(npcId, requestId);
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
