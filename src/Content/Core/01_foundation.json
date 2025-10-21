@@ -15,8 +15,7 @@
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
         "tier": 1,
-        "locationType": "Urban",
-        "travelHubSpotId": "common_room"
+        "locationType": "Urban"
       },
       {
         "id": "town_square",
@@ -24,8 +23,7 @@
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
         "tier": 1,
-        "locationType": "Urban",
-        "travelHubSpotId": "square_center"
+        "locationType": "Urban"
       }
     ],
     "locations": [
@@ -54,6 +52,9 @@
         "name": "Common Room",
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
+          "base": [
+            "crossroads"
+          ],
           "all": [
             "public",
             "busy",

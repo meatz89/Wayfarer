@@ -1,11 +1,11 @@
 {
   "packageId": "core_travel",
   "metadata": {
-    "name": "Core Travel System - POC Routes",
-    "timestamp": "2025-09-11T00:00:00Z",
-    "description": "Inter-venue travel routes between Town Square and Old Mill",
+    "name": "Tutorial Travel - Town Square to Inn",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Simple tutorial route: cross square to Brass Bell Inn",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "content": {
     "pathCards": [],
@@ -14,106 +14,26 @@
     "pathCardCollections": [],
     "routes": [
       {
-        "id": "town_to_mill_main_path",
-        "name": "Main Road to Old Mill",
+        "id": "square_to_inn",
+        "name": "Cross to Brass Bell Inn",
         "originVenueId": "town_square",
         "originSpotId": "square_center",
-        "destinationVenueId": "old_mill",
-        "destinationSpotId": "courtyard",
-        "createBidirectional": false,
-        "description": "The main hillside path to the abandoned mill - well-worn but overgrown",
+        "destinationVenueId": "brass_bell_inn",
+        "destinationSpotId": "common_room",
+        "createBidirectional": true,
+        "description": "Walk across the town square to the warm glow of the Brass Bell Inn",
         "segments": [
           {
             "segmentNumber": 1,
-            "narrativeDescription": "The path begins at the town's edge, climbing through increasingly wild terrain",
+            "narrativeDescription": "You cross the square toward the inn. Lamplight spills from its windows. Inside: warmth, food, safety.",
             "availablePaths": [
               {
-                "id": "main_road_direct",
-                "description": "Follow the old cart road - exposed but fastest",
-                "timeSegments": 1,
-                "staminaCost": 5,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "forest_detour",
-                "description": "Cut through the forest edge - slower but shaded",
-                "timeSegments": 2,
-                "staminaCost": 3,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "creek_shortcut",
-                "description": "Follow the creek bed upstream - locals' secret route",
-                "timeSegments": 1,
-                "staminaCost": 2,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 2
-              }
-            ]
-          },
-          {
-            "segmentNumber": 2,
-            "narrativeDescription": "The mill comes into view through the trees - the waterwheel visible against the sky",
-            "availablePaths": [
-              {
-                "id": "approach_direct",
-                "description": "Approach openly through the overgrown courtyard",
-                "timeSegments": 1,
-                "staminaCost": 3,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "circle_around",
-                "description": "Circle around to observe before approaching",
-                "timeSegments": 2,
-                "staminaCost": 2,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "workers_path",
-                "description": "Use the old workers' path that leads directly to the wheel mechanism",
-                "timeSegments": 1,
-                "staminaCost": 1,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 3
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "id": "mill_to_town_return",
-        "name": "Return to Town",
-        "originVenueId": "old_mill",
-        "originSpotId": "courtyard",
-        "destinationVenueId": "town_square",
-        "destinationSpotId": "square_center",
-        "createBidirectional": false,
-        "description": "The descent back to town - easier going downhill",
-        "segments": [
-          {
-            "segmentNumber": 1,
-            "narrativeDescription": "Leaving the mill behind, the path descends toward the town lights",
-            "availablePaths": [
-              {
-                "id": "main_road_down",
-                "description": "Take the main road back - straightforward descent",
-                "timeSegments": 1,
-                "staminaCost": 2,
-                "optionalObstacleId": null,
-                "hiddenUntilExploration": 0
-              },
-              {
-                "id": "quick_slide",
-                "description": "Slide down the loose scree slope - risky but fast",
+                "id": "walk_to_inn",
+                "description": "Walk to the inn",
                 "timeSegments": 0,
                 "staminaCost": 0,
                 "optionalObstacleId": null,
-                "hiddenUntilExploration": 1
+                "hiddenUntilExploration": 0
               }
             ]
           }

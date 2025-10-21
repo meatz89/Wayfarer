@@ -150,6 +150,7 @@ public static class NPCParser
             "Miller's Daughter" => Professions.Craftsman,
             "Village Elder" => Professions.Noble,
             "Farmer" => Professions.Craftsman,
+            "Warehouse Foreman" => Professions.Dock_Boss, // Manages warehouse workers and cargo
             _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
         };
     }

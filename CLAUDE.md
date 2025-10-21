@@ -39,7 +39,89 @@
 - What CSS classes are used by which components?
 - What other systems connect to this?
 
-### 5. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
+### 5. HOLISTIC DELETION/REFACTORING - THE PARSER-JSON-ENTITY TRIANGLE
+
+**⚠️ CRITICAL: When removing OR changing ANY property/field/feature, you MUST delete/update it EVERYWHERE in the data flow triangle ⚠️**
+
+**THE TRIANGLE:**
+```
+JSON (source data)
+  ↓
+DTO (deserialization class)
+  ↓
+Parser (conversion logic)
+  ↓
+Entity (domain model)
+  ↓
+GameWorld (game state - single source of truth)
+  ↓
+Usage (services, UI, etc.)
+```
+
+**THE RULE: ALL FIVE LAYERS MUST MATCH**
+
+When you DELETE a property:
+1. ✅ Remove from JSON source files
+2. ✅ Remove from DTO class
+3. ✅ Remove from Parser code (assignment, validation, logic)
+4. ✅ Remove from Entity class
+5. ✅ Remove from all usage (services, UI, wherever it's referenced)
+
+When you CHANGE a property (rename, type change, restructure):
+1. ✅ Change in JSON source files
+2. ✅ Change in DTO class
+3. ✅ Change in Parser code
+4. ✅ Change in Entity class
+5. ✅ Change in all usage
+
+**CORRECT APPROACH (HOLISTIC):**
+```
+✅ "Let me remove travelHubSpotId from the ENTIRE data flow"
+   1. Search: grep -r "travelHubSpotId\|TravelHubSpotId" (find EVERYTHING)
+   2. Delete from JSON source
+   3. Delete from VenueDTO
+   4. Delete from VenueParser assignment
+   5. Delete from Venue entity
+   6. Search for usage references
+   7. Delete/refactor all usage
+   8. Build and verify
+```
+
+**WHY THIS MATTERS:**
+
+- Incomplete deletion leaves dead code that confuses future developers
+- Parser might assign to non-existent properties (silent failure)
+- DTO fields that aren't parsed waste memory and cause confusion
+- Entity properties that aren't used violate single responsibility
+- Half-deleted features create phantom dependencies
+
+**EXAMPLES:**
+
+**Example 1 - Deleting a property:**
+User: "Remove travelHubSpotId - it's duplicate state (crossroads property is the source of truth)"
+
+✅ CORRECT:
+- grep -r "travelHubSpotId\|TravelHubSpotId" (find all references)
+- Remove from 01_foundation.json
+- Remove from VenueDTO.cs (public string TravelHubSpotId)
+- Remove from VenueParser.cs (venue.TravelHubSpotId = dto.TravelHubSpotId)
+- Remove from Venue.cs (public string TravelHubSpotId property)
+- Search for usage (venue.TravelHubSpotId references)
+- Delete usage or refactor to use crossroads property instead
+- Build and verify
+
+**Example 2 - Renaming a property:**
+User: "Rename 'profession' to 'occupation' in NPC data"
+
+✅ CORRECT:
+- Update JSON: "profession" → "occupation"
+- Update NPCDTO: public string Profession → public string Occupation
+- Update NPCParser: dto.Profession → dto.Occupation
+- Update NPC entity: if needed (or keep internal name as Profession if it's domain language)
+- Search and update all usage
+- Build and verify
+
+### 6. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
 
 **CRITICAL: Before proposing ANY UI changes, you MUST think like the PLAYER:**
 

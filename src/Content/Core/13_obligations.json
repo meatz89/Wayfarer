@@ -1,344 +1,49 @@
 {
   "packageId": "obligations",
   "metadata": {
-    "name": "Obligation Definitions",
-    "timestamp": "2025-09-16T00:00:00Z",
-    "description": "Multi-phase obligation quest system",
+    "name": "Tutorial Investigations",
+    "timestamp": "2025-10-21T00:00:00Z",
+    "description": "Minimal investigation template for tutorial - preserves JSON structure reference",
     "author": "Wayfarer Team",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "obligations": [
       {
-        "id": "elena_workshop_delivery",
-        "name": "Elena's Workshop Errand",
-        "description": "Elena needs a message delivered to someone working in the mill workshop. Time-sensitive.",
-        "obligationType": "NPCCommissioned",
-        "patronNpcId": "elena",
-        "deadlineSegment": 8,
+        "id": "investigate_inn_opportunities",
+        "name": "Survey the Common Room",
+        "description": "Look around the inn's common room to understand who might offer work or information",
+        "obligationType": "SelfDiscovered",
+        "deadlineSegment": 0,
         "colorCode": "#7a9eb8",
         "intro": {
           "triggerType": "Manual",
-          "actionText": "Accept Elena's delivery request",
-          "locationId": "courtyard",
-          "introNarrative": "Elena hands you a sealed letter. 'The craftsman in the workshop needs this before midday. It's urgent - he's waiting on these specifications to complete a repair. Can you get it to him by segment 8?'",
+          "actionText": "Survey the common room",
+          "locationId": "common_room",
+          "introNarrative": "The common room hums with evening activity. A few patrons sit at tables, some nursing drinks, others in quiet conversation. Elena moves efficiently between tables. A warehouse foreman sits in the corner, looking like he needs capable hands.",
           "completionReward": {
             "obstaclesSpawned": []
-          }
-        },
-        "personality": "Timed",
-        "exposureThreshold": 0,
-        "timeLimit": 8,
-        "phases": [
-          {
-            "id": "deliver_to_workshop",
-            "name": "Deliver message to workshop",
-            "description": "Take Elena's message to the craftsman in the mill workshop.",
-            "outcomeNarrative": "The craftsman accepts the letter with a grateful nod. 'Right on time. Elena's got good judgment about who to trust with urgent matters.'",
-            "completionReward": {}
-          }
-        ],
-        "completionNarrative": "You've delivered Elena's message successfully. The craftsman has what he needs, and Elena's trust in you has deepened.",
-        "completionRewards": {
-          "coins": 15,
-          "experience": 20,
-          "reputation": {"elena": 2}
-        },
-        "observationCardRewards": [],
-        "requiredGoals": ["elena_deliver_message"]
-      },
-      {
-        "id": "aldric_tool_request",
-        "name": "Aldric's Tool Request",
-        "description": "Farmer Aldric needs specialized tools from the mill's main hall. He'll pay well for quick delivery.",
-        "obligationType": "NPCCommissioned",
-        "patronNpcId": "aldric",
-        "deadlineSegment": 12,
-        "colorCode": "#8b7a5a",
-        "intro": {
-          "triggerType": "Manual",
-          "actionText": "Accept Aldric's tool request",
-          "locationId": "courtyard",
-          "introNarrative": "Aldric shifts his weight, looking uncomfortable asking for help. 'There's a precision tool set in the main hall - left there when the mill shut down. I need it for fence repairs before the afternoon's out. Segment 12 at the latest. I'll make it worth your while - 25 coins.'",
-          "completionReward": {
-            "obstaclesSpawned": []
-          }
-        },
-        "personality": "Timed",
-        "exposureThreshold": 0,
-        "timeLimit": 12,
-        "phases": [
-          {
-            "id": "fetch_tools",
-            "name": "Retrieve tools from main hall",
-            "description": "Enter the main hall and locate Aldric's tool set.",
-            "outcomeNarrative": "You find the tools exactly where Aldric described - a well-maintained set of precision instruments. You return to the courtyard and hand them over. Aldric inspects them carefully, then nods with satisfaction. 'Good work. These'll do nicely.'",
-            "completionReward": {}
-          }
-        ],
-        "completionNarrative": "Aldric has his tools and can complete his fence repairs on schedule. He respects efficiency and you've demonstrated it.",
-        "completionRewards": {
-          "coins": 25,
-          "experience": 30,
-          "reputation": {"aldric": 2}
-        },
-        "observationCardRewards": [],
-        "requiredGoals": ["aldric_fetch_tools"]
-      },
-      {
-        "id": "waterwheel_mystery",
-        "name": "The Waterwheel Mystery",
-        "description": "Uncover the dark secrets hidden within the abandoned mill - a decade-old disappearance, a smuggling operation, and the dangerous truth Martha's granddaughter is pursuing",
-        "obligationType": "SelfDiscovered",
-        "colorCode": "#5a7a8b",
-        "intro": {
-          "triggerType": "GoalCompletionTrigger",
-          "triggerPrerequisites": {
-            "completedGoalId": "martha_gather_information"
-          },
-          "actionText": "Search for safe entry to the mill",
-          "locationId": "courtyard",
-          "introNarrative": "Martha's story about her daughter haunts you. The abandoned mill looms before you, its front door partially collapsed and dangerous. Fresh footprints in the dust suggest someone has been here recently. There must be another way inside.",
-          "completionReward": {
-            "obstaclesSpawned": [
-              {
-                "targetType": "Location",
-                "targetEntityId": "main_hall",
-                "obstacle": {
-                  "id": "mill_interior_phase1",
-                  "name": "Examine the mill interior",
-                  "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
-                  "intensity": 2,
-                  "contexts": ["Search", "Deduction", "Pattern"],
-                  "isPermanent": false,
-                  "goals": [
-                    {
-                      "id": "phase_1_examine_interior",
-                      "name": "Examine the interior carefully",
-                      "description": "Search the mill interior for clues about recent activity",
-                      "placementLocationId": "main_hall",
-                      "systemType": "Mental",
-                      "deckId": "mental_challenge",
-                      "consequenceType": "Resolution",
-                      "setsResolutionMethod": "Preparation",
-                      "setsRelationshipOutcome": "Neutral",
-                      "obligationId": "waterwheel_mystery",
-                      "propertyRequirements": {
-                        "maxMentalComplexity": 2
-                      },
-                      "goalCards": [
-                        {
-                          "id": "examine_interior_standard",
-                          "name": "Careful Examination",
-                          "description": "Methodically search the interior",
-                          "threshold": 8,
-                          "rewards": {
-                            "progress": 1
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              }
-            ]
           }
         },
         "personality": "SequentialSite",
-        "exposureThreshold": 8,
+        "exposureThreshold": 0,
         "timeLimit": 0,
         "phases": [
           {
-            "id": "phase_1_examine_interior",
-            "name": "Examine the mill interior",
-            "description": "Inside the mill, decades of abandonment are evident. The grinding mechanism dominates the space. Fresh disturbance in the dust - someone has been here recently.",
-            "outcomeNarrative": "Your careful examination reveals a hidden access panel in the gear housing. Fresh footprints lead to both the mechanism and the loft ladder. Whoever was here had specific targets - they knew exactly what they were looking for.",
-            "completionReward": {
-              "obstaclesSpawned": [
-                {
-                  "targetType": "Location",
-                  "targetEntityId": "main_hall",
-                  "obstacle": {
-                    "id": "mill_mechanism_phase2",
-                    "name": "Corroded Mechanism Access",
-                    "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
-                    "intensity": 2,
-                    "contexts": ["Precision", "Mechanical", "Strength"],
-                    "isPermanent": false,
-                    "goals": [
-                      {
-                        "id": "phase_2_access_compartment",
-                        "name": "Access the hidden compartment",
-                        "description": "Work the corroded panel loose and reach inside the mechanism",
-                        "placementLocationId": "main_hall",
-                        "systemType": "Physical",
-                        "deckId": "physical_challenge",
-                        "consequenceType": "Resolution",
-                        "setsResolutionMethod": "Preparation",
-                        "setsRelationshipOutcome": "Neutral",
-                        "obligationId": "waterwheel_mystery",
-                        "propertyRequirements": {
-                          "maxPhysicalDanger": 2,
-                          "maxMentalComplexity": 1
-                        },
-                        "goalCards": [
-                          {
-                            "id": "access_compartment_standard",
-                            "name": "Access Compartment",
-                            "description": "Successfully open the mechanism compartment",
-                            "threshold": 8,
-                            "rewards": {
-                              "progress": 1
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "id": "phase_2_access_compartment",
-            "name": "Access the mechanism's hidden compartment",
-            "description": "The gear housing has a corroded access panel. The mechanism hasn't moved in years, but the structure is unstable.",
-            "outcomeNarrative": "You carefully stabilize the structure and work the panel loose. Inside: old ledgers documenting a smuggling operation from 10 years ago, including names of those involved. One name stands out - a current town elder. Anna must have found this evidence.",
-            "completionReward": {
-              "obstaclesSpawned": [
-                {
-                  "targetType": "Location",
-                  "targetEntityId": "main_hall",
-                  "obstacle": {
-                    "id": "mill_loft_phase3",
-                    "name": "Unstable Loft Access",
-                    "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently.",
-                    "intensity": 3,
-                    "contexts": ["Climbing", "Height", "Precision"],
-                    "isPermanent": false,
-                    "goals": [
-                      {
-                        "id": "secure_floor_ropes",
-                        "name": "Get rope from workshop",
-                        "description": "Secure rope to reinforce the unstable loft floor",
-                        "placementLocationId": "workshop",
-                        "systemType": "Mental",
-                        "deckId": "mental_challenge",
-                        "consequenceType": "Modify",
-                        "setsResolutionMethod": "Preparation",
-                        "setsRelationshipOutcome": "Neutral",
-                        "propertyReduction": {
-                          "reducePhysicalDanger": 1
-                        },
-                        "goalCards": [
-                          {
-                            "id": "find_rope_standard",
-                            "name": "Find Rope",
-                            "description": "Locate suitable rope in the workshop",
-                            "threshold": 6,
-                            "rewards": {
-                              "progress": 1
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "id": "phase_3_investigate_loft",
-                        "name": "Climb to loft",
-                        "description": "Access the loft and search for evidence",
-                        "placementLocationId": "main_hall",
-                        "systemType": "Physical",
-                        "deckId": "physical_challenge",
-                        "consequenceType": "Resolution",
-                        "setsResolutionMethod": "Boldness",
-                        "setsRelationshipOutcome": "Neutral",
-                        "obligationId": "waterwheel_mystery",
-                        "propertyRequirements": {
-                          "maxPhysicalDanger": 3
-                        },
-                        "goalCards": [
-                          {
-                            "id": "investigate_loft_standard",
-                            "name": "Search Loft",
-                            "description": "Successfully search the upper loft",
-                            "threshold": 10,
-                            "rewards": {
-                              "progress": 1
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "id": "phase_3_investigate_loft",
-            "name": "Investigate the upper loft",
-            "description": "The loft is accessible but the floor is dangerously unstable. Someone has been up there recently - disturbed dust on the ladder.",
-            "outcomeNarrative": "You secure the floor with rope and conduct a thorough search. A bedroll, journal, and sketching materials reveal the truth: Martha's granddaughter is here, investigating her aunt Anna's disappearance. The journal shows she's piecing together the same evidence you've found.",
-            "completionReward": {
-              "obstaclesSpawned": [
-                {
-                  "targetType": "NPC",
-                  "targetEntityId": "elena",
-                  "obstacle": {
-                    "id": "elena_confrontation_phase4",
-                    "name": "Elena's Guarded Secret",
-                    "description": "Elena knows more about the smuggling operation than she's admitted. Approaching her requires careful diplomacy.",
-                    "intensity": 2,
-                    "contexts": ["Empathy", "Persuasion", "Negotiation"],
-                    "isPermanent": false,
-                    "goals": [
-                      {
-                        "id": "phase_4_confront_with_evidence",
-                        "name": "Confront Elena about the evidence",
-                        "description": "Show Elena the smuggling ledgers and discuss what happened to Anna",
-                        "placementNpcId": "elena",
-                        "systemType": "Social",
-                        "deckId": "social_challenge",
-                        "consequenceType": "Resolution",
-                        "setsResolutionMethod": "Diplomacy",
-                        "setsRelationshipOutcome": "Positive",
-                        "obligationId": "waterwheel_mystery",
-                        "propertyRequirements": {
-                          "maxSocialDifficulty": 2
-                        },
-                        "goalCards": [
-                          {
-                            "id": "confront_elena_standard",
-                            "name": "Diplomatic Approach",
-                            "description": "Carefully present the evidence to Elena",
-                            "threshold": 8,
-                            "rewards": {
-                              "progress": 1
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "id": "phase_4_confront_evidence",
-            "name": "Confront Elena about the smuggling evidence",
-            "description": "The ledgers reveal a smuggling operation from a decade ago. Elena might know more about this history than she let on.",
-            "outcomeNarrative": "You approach Elena diplomatically, showing concern rather than accusation. She reveals the full truth - the elder was involved in smuggling, Anna discovered it, and Elena has suspected foul play for years but had no proof. You've given her what she needs for justice.",
+            "id": "observe_common_room",
+            "name": "Observe the common room",
+            "description": "Take in the scene and identify potential opportunities",
+            "outcomeNarrative": "You observe the room carefully. Elena seems approachable - she manages the evening crowd with practiced ease. The warehouse foreman looks like he values hard work over conversation. Both might have work to offer.",
             "completionReward": {}
           }
         ],
-        "completionNarrative": "You've uncovered the dark truth behind Anna's disappearance and the smuggling operation that led to her fate. The evidence is damning, and Elena finally has what she needs to seek justice. Martha's granddaughter can now find closure, and the town elder's crimes will not remain hidden.",
+        "completionNarrative": "You've surveyed the room and identified two potential work opportunities: Elena's evening service (social work) and Thomas's warehouse loading (physical labor).",
         "completionRewards": {
-          "coins": 50,
-          "experience": 100,
-          "reputation": {"elena": 3}
+          "coins": 0,
+          "experience": 5
         },
-        "observationCardRewards": []
+        "observationCardRewards": [],
+        "requiredGoals": []
       }
     ]
   }
