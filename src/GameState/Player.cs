@@ -85,9 +85,9 @@ public class Player
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
 
-    // Physical progression - Mastery tokens earned through repeated challenge success
-    // Reduces Danger baseline at familiar challenge types (Combat, Athletics, etc.)
-    public List<MasteryTokenEntry> MasteryTokens { get; set; } = new List<MasteryTokenEntry>();
+    // Physical progression - Mastery cubes earned through repeated challenge success (0-10 per deck)
+    // Reduces Physical Danger threshold for specific challenge types (Combat, Athletics, etc.)
+    public List<MasteryCubeEntry> MasteryCubes { get; set; } = new List<MasteryCubeEntry>();
 
     // Mental resource - Focus depletes with obligation, recovers with rest
     // 6-point scale: Each point = ~16.7% of capacity

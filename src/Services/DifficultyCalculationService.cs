@@ -67,7 +67,7 @@ public class DifficultyCalculationService
 
             case ModifierType.Mastery:
                 // Physical expertise per challenge type (uses DeckId, not Type)
-                int mastery = player.MasteryTokens.GetMastery(mod.Context);
+                int mastery = player.MasteryCubes.GetMastery(mod.Context);
                 return mastery >= mod.Threshold;
 
             case ModifierType.Familiarity:

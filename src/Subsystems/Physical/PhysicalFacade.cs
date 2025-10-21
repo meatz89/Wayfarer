@@ -403,11 +403,11 @@ public class PhysicalFacade
         {
             Player player = _gameWorld.GetPlayer();
             int reputationGain = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough >= 20 ? 1 : 0;
-            player.Reputation += reputationGain;// PROGRESSION SYSTEM: Award mastery token for this challenge type
+            player.Reputation += reputationGain;// PROGRESSION SYSTEM: Award mastery cube for this challenge type
             if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSession.ChallengeId))
             {
-                player.MasteryTokens.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
-                int masteryLevel = player.MasteryTokens.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);
+                player.MasteryCubes.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
+                int masteryLevel = player.MasteryCubes.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);
             }
         }
 

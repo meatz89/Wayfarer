@@ -1397,7 +1397,7 @@ Mental cards bind to stats based on investigative approach:
 ### Permanent OUTPUT Resources (Rewards from Success)
 
 1. **Knowledge Discoveries**: Unlock investigation phases, conversation options, world state changes
-2. **Familiarity Tokens** (per location): Earned per successful investigation, reduce Exposure baseline at that location
+2. **InvestigationCubes** (per location): Earned per successful investigation, reduce Exposure baseline at that location (0-10 scale, each cube reduces Exposure by 1)
 3. **Investigation Depth Level** (per location): Cumulative Progress unlocks expertise tiers (Surface → Detailed → Deep → Expert)
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
@@ -1526,7 +1526,7 @@ Conversations are real-time interactions with entities that have agency:
 - **No pause/resume**: Cannot pause mid-conversation and return (unrealistic with dynamic entity)
 - **Can Leave early**: Voluntarily end conversation (consequences to relationship)
 - **Session clears**: Resources reset on conversation end
-- **Relationship persists**: Connection tokens/level remember you between conversations
+- **Relationship persists**: StoryCubes/relationship state remember you between conversations
 - **Verisimilitude**: Conversations happen continuously with entities who have patience limits
 
 ### Core Session Resources
@@ -1564,8 +1564,8 @@ Social cards bind to stats based on conversational approach (existing system):
 
 ### Permanent OUTPUT Resources (Rewards from Success)
 
-1. **Connection Tokens** (per NPC): Rapport, Trust, Commitment (affect mechanics with that specific NPC)
-2. **Connection Level** (per NPC): Stranger → Acquaintance → Friend → Close Friend (unlocks options, reduces Doubt accumulation)
+1. **StoryCubes** (per NPC): 0-10 scale mastery that reduces Social Doubt with that specific NPC (each cube reduces Doubt by 1)
+2. **ConnectionState** (per NPC): DISCONNECTED → GUARDED → NEUTRAL → RECEPTIVE → TRUSTING (determined by RelationshipFlow, unlocks options, affects conversation dynamics)
 3. **NPC Observation Cards**: Knowledge discoveries add cards to THAT NPC's conversation deck
 4. **Understanding**: Tier unlocking across all systems
 5. **Stat XP**: Level unified stats via bound cards
@@ -1655,10 +1655,10 @@ All three challenge types feature parallel systems for tracking and rewarding re
 
 Tokens provide direct mechanical advantages from repeated success:
 
-**Mental: Familiarity Tokens** (per location)
-- **Earned**: One token per successful investigation at specific location
-- **Effect**: Start investigations at that location with negative Exposure, effectively increasing tolerance before reaching MaxExposure from deck
-- **Stacks**: Accumulate multiple tokens per location (capped)
+**Mental: InvestigationCubes** (per location)
+- **Earned**: One cube per successful investigation at specific location
+- **Effect**: Start investigations at that location with negative Exposure (each cube reduces Exposure by 1), effectively increasing tolerance before reaching MaxExposure from deck
+- **Stacks**: Accumulate cubes per location (0-10 scale, maximum 10)
 - **Verisimilitude**: You learn how to investigate this place safely and discreetly
 
 **Physical: Mastery Tokens** (per challenge type)
@@ -1667,13 +1667,12 @@ Tokens provide direct mechanical advantages from repeated success:
 - **Stacks**: Accumulate multiple tokens per challenge type (capped)
 - **Verisimilitude**: Experience with challenge type reduces inherent risk
 
-**Social: Connection Tokens** (per NPC)
+**Social: StoryCubes** (per NPC)
 - **Earned**: Through successful conversations and specific card effects with that NPC
-- **Types**: Rapport (emotional bond), Trust (reliability), Commitment (mutual obligation)
-- **Effect**: Affect conversation mechanics with that specific NPC (reduce Doubt accumulation, enable special cards, affect thresholds)
-- **Stacks**: Multiple tokens of each type per NPC
-- **Verisimilitude**: NPCs remember your relationship history and respond accordingly
-- **Example**: 2 Rapport tokens with Mill Owner → reduced Doubt accumulation in conversations
+- **Effect**: Reduce Social Doubt with that specific NPC (each cube reduces Doubt by 1)
+- **Stacks**: Accumulate cubes per NPC (0-10 scale, maximum 10)
+- **Verisimilitude**: NPCs remember your relationship history and respond accordingly - familiarity reduces tension
+- **Example**: 2 StoryCubes with Mill Owner → start conversations at -2 Doubt, giving more tolerance before reaching MaxDoubt
 
 ### Progression Level Systems (Long-Term Expertise)
 
@@ -1729,7 +1728,7 @@ Relationship depth through accumulated interactions:
 
 ### Why Parallel Progression Matters
 
-**Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (Familiarity/Mastery/Connection and Depth/Proficiency/Levels).
+**Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (InvestigationCubes/MasteryTokens/StoryCubes and Understanding tiers).
 
 **Specialization vs Generalization**: Players can:
 - Specialize in one challenge type (master Mental investigations)
@@ -2115,7 +2114,7 @@ Cadence tracks conversation dominance: Unlike Physical's symmetric penalties, So
 **Social Interacts with ENTITIES (NPCs)**:
 - NPCs have **agency**: They offer tasks, make demands, judge your actions
 - NPCs have **personalities**: Proud, Devoted, Mercantile, Cunning, Steadfast fundamentally alter tactics
-- NPCs have **memory**: Connection tokens, levels, observation cards remember relationship history
+- NPCs have **memory**: StoryCubes, ConnectionState, observation cards remember relationship history
 - Conversations are **real-time**: Dynamic entities have patience limits (MaxDoubt ends interaction)
 - **Session-bounded model**: Must complete conversation in one sitting (can't pause mid-conversation)
 - **Special mechanics justified**: Request/Promise/Burden exist because NPCs can offer obligations, make commitments, and inflict relational damage
@@ -2308,8 +2307,8 @@ Conversations are **Social Challenges** - the third and most complex parallel ta
 
 **Additional Social Complexity:**
 - **Personality Rules**: Each NPC has unique modifier (Proud, Devoted, Mercantile, Cunning, Steadfast) that fundamentally alters card play rules
-- **Token Mechanics**: Relationship tokens (Rapport, Trust, Commitment) unlock special conversation branches and affect momentum thresholds
-- **Connection Progression**: Conversations deepen NPC relationships through multi-stage connection system (Stranger → Acquaintance → Friend → Close Friend)
+- **StoryCubes**: Mastery cubes (0-10) reduce Social Doubt with specific NPCs, making future conversations easier
+- **ConnectionState Progression**: Conversations shift RelationshipFlow to change ConnectionState (DISCONNECTED → GUARDED → NEUTRAL → RECEPTIVE → TRUSTING), unlocking deeper conversation options
 - **Observation Cards**: Knowledge from investigations injects special cards into conversation decks
 - **Request Cards**: NPC-specific cards that drive conversation toward specific outcomes
 

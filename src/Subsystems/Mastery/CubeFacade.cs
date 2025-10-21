@@ -2,7 +2,11 @@ using System;
 
 /// <summary>
 /// Facade for localized mastery cube management
-/// Handles InvestigationCubes (Locations), StoryCubes (NPCs), ExplorationCubes (Routes)
+/// Handles all four cube systems (0-10 scale each):
+/// - InvestigationCubes (Locations): Reduce Mental Exposure
+/// - StoryCubes (NPCs): Reduce Social Doubt
+/// - ExplorationCubes (Routes): Reveal hidden paths
+/// - MasteryCubes (Physical Decks): Reduce Physical Danger
 /// </summary>
 public class CubeFacade
 {
@@ -127,5 +131,49 @@ public class CubeFacade
     public bool IsRouteMastered(string routeId)
     {
         return _gameWorld.GetRouteCubes(routeId) >= 10;
+    }
+
+    // ============================================
+    // MASTERY CUBES (Physical Challenge Mastery)
+    // ============================================
+
+    /// <summary>
+    /// Get MasteryCubes for a physical challenge deck (0-10 scale)
+    /// </summary>
+    public int GetDeckCubes(string deckId)
+    {
+        return _gameWorld.GetMasteryCubes(deckId);
+    }
+
+    /// <summary>
+    /// Grant MasteryCubes to a physical challenge deck (max 10)
+    /// Reduces Physical Danger for that specific deck type only
+    /// </summary>
+    public void GrantDeckCubes(string deckId, int amount)
+    {
+        int before = _gameWorld.GetMasteryCubes(deckId);
+        _gameWorld.GrantMasteryCubes(deckId, amount);
+        int after = _gameWorld.GetMasteryCubes(deckId);
+
+        int actualGranted = after - before;
+        if (actualGranted > 0)
+        { }
+    }
+
+    /// <summary>
+    /// Calculate Physical Danger reduction based on MasteryCubes
+    /// Each cube reduces danger by 1 point
+    /// </summary>
+    public int GetDeckDangerReduction(string deckId)
+    {
+        return _gameWorld.GetMasteryCubes(deckId);
+    }
+
+    /// <summary>
+    /// Check if deck is mastered (10 cubes - maximum reduction)
+    /// </summary>
+    public bool IsDeckMastered(string deckId)
+    {
+        return _gameWorld.GetMasteryCubes(deckId) >= 10;
     }
 }

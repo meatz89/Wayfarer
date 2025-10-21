@@ -694,4 +694,21 @@ public class GameWorld
         // This method will be implemented when route storage is clarified
     }
 
+    /// <summary>
+    /// Get MasteryCubes for a physical challenge deck (0-10 scale)
+    /// </summary>
+    public int GetMasteryCubes(string deckId)
+    {
+        return GetPlayer().MasteryCubes.GetMastery(deckId);
+    }
+
+    /// <summary>
+    /// Grant MasteryCubes for a physical challenge deck (max 10)
+    /// </summary>
+    public void GrantMasteryCubes(string deckId, int amount)
+    {
+        Player player = GetPlayer();
+        player.MasteryCubes.AddMastery(deckId, amount);
+    }
+
 }
