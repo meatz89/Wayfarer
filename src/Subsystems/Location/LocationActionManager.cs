@@ -74,6 +74,7 @@ public class LocationActionManager
         {
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
+                Id = action.Id,
                 ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
                 Title = action.Name,
                 Detail = action.Description,

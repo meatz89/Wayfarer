@@ -36,6 +36,13 @@
                     <div class="resource-value">@Hunger</div>
                 </div>
             </div>
+            <div class="resource @(Focus < 3 ? "low" : "") @(Focus < 2 ? "critical" : "")">
+                <div class="resource-icon"><span class="icon-focus"></span></div>
+                <div class="resource-info">
+                    <div class="resource-label">Focus</div>
+                    <div class="resource-value">@Focus/@MaxFocus</div>
+                </div>
+            </div>
             <div class="resource">
                 <div class="resource-icon"><span class="icon-attention"></span></div>
                 <div class="resource-info">

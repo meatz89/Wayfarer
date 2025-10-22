@@ -41,8 +41,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Resources Display - Made public for child components to access for Perfect Information principle
     public int Coins { get; set; }
+    public int MaxCoins { get; set; }
     public int Health { get; set; }
+    public int MaxHealth { get; set; }
     public int Hunger { get; set; }
+    public int MaxHunger { get; set; }
+    public int Focus { get; set; }
+    public int MaxFocus { get; set; }
 
     // Time Display - Made public for child components to access for Perfect Information principle
     public string CurrentTime { get; set; }
@@ -84,7 +89,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         Coins = player.Coins;
         Health = player.Health;
-        Hunger = player.Hunger;
+        Focus = player.Focus;
+        MaxFocus = player.MaxFocus;
     }
 
     protected async Task RefreshTimeDisplay()

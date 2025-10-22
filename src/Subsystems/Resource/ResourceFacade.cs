@@ -319,6 +319,45 @@ public class ResourceFacade
     }
 
     /// <summary>
+    /// Execute Full Recovery: Advance 1 time segment and restore ALL resources to maximum.
+    /// Used for paid secure room rest (10 coins).
+    /// Hunger increases by +5 automatically via time progression.
+    /// </summary>
+    public void ExecuteFullRecovery()
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Advance 1 time segment
+        _timeFacade.AdvanceSegments(1);
+
+        // Full resource recovery
+        int healthBefore = player.Health;
+        int staminaBefore = player.Stamina;
+        int hungerBefore = player.Hunger;
+        int focusBefore = player.Focus;
+
+        player.Health = player.MaxHealth;
+        player.Stamina = player.MaxStamina;
+        player.Hunger = player.MaxHunger;
+        player.Focus = player.MaxFocus;
+
+        int healthRecovered = player.Health - healthBefore;
+        int staminaRecovered = player.Stamina - staminaBefore;
+        int hungerRecovered = player.Hunger - hungerBefore;
+        int focusRecovered = player.Focus - focusBefore;
+
+        // Generate message about full recovery
+        string recoveryMessage = "Full rest in secure room.";
+        if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
+        if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
+        if (hungerRecovered > 0) recoveryMessage += $" Hunger +{hungerRecovered}";
+        if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
+        recoveryMessage += " (Fully recovered)";
+
+        _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+    }
+
+    /// <summary>
     /// Execute Wait action: Advance 1 time segment with no resource recovery.
     /// Hunger increases by +5 automatically via time progression.
     /// Global action available everywhere.
