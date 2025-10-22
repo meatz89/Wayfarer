@@ -22,6 +22,7 @@ public class SocialFacade
     private readonly TokenMechanicsManager _tokenManager;
     private readonly MessageSystem _messageSystem;
     private readonly ObligationActivity _obligationActivity;
+    private readonly GoalCompletionHandler _goalCompletionHandler;
 
     private PersonalityRuleEnforcer _personalityEnforcer;
 
@@ -34,7 +35,8 @@ public class SocialFacade
         TimeManager timeManager,
         TokenMechanicsManager tokenManager,
         MessageSystem messageSystem,
-        ObligationActivity obligationActivity)
+        ObligationActivity obligationActivity,
+        GoalCompletionHandler goalCompletionHandler)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _momentumManager = momentumManager ?? throw new ArgumentNullException(nameof(momentumManager));
@@ -46,6 +48,7 @@ public class SocialFacade
         _tokenManager = tokenManager ?? throw new ArgumentNullException(nameof(tokenManager));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
+        _goalCompletionHandler = goalCompletionHandler ?? throw new ArgumentNullException(nameof(goalCompletionHandler));
     }
 
     /// <summary>
@@ -339,6 +342,13 @@ public class SocialFacade
                     // Knowledge cards handled in Phase 3
                     // Items already handled by existing reward system
                     break;
+            }
+
+            // Complete goal through GoalCompletionHandler (applies rewards: coins, StoryCubes, equipment)
+            Goal completedGoal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentSocialSession.RequestId);
+            if (completedGoal != null)
+            {
+                _goalCompletionHandler.CompleteGoal(completedGoal);
             }
 
             _gameWorld.CurrentSocialSession.Deck.PlayCard(selectedCard);

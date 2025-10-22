@@ -37,7 +37,9 @@
             "description": "Move through the common room with practiced ease. Drinks delivered, conversations managed, chaos ordered. Elena notices your skill.",
             "threshold": 6,
             "rewards": {
-              "coins": 5
+              "coins": 5,
+              "storyCubes": 1,
+              "equipmentId": "rations"
             }
           }
         ]
@@ -70,7 +72,8 @@
             "description": "Crates moved, shipment ready. Thomas nods approval and hands over payment. Hard work, fair pay.",
             "threshold": 6,
             "rewards": {
-              "coins": 5
+              "coins": 5,
+              "storyCubes": 1
             }
           }
         ]

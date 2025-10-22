@@ -12,6 +12,7 @@ public class PhysicalFacade
     private readonly PhysicalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
     private readonly ObligationActivity _obligationActivity;
+    private readonly GoalCompletionHandler _goalCompletionHandler;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -19,7 +20,8 @@ public class PhysicalFacade
         PhysicalNarrativeService narrativeService,
         PhysicalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        ObligationActivity obligationActivity)
+        ObligationActivity obligationActivity,
+        GoalCompletionHandler goalCompletionHandler)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -27,6 +29,7 @@ public class PhysicalFacade
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
+        _goalCompletionHandler = goalCompletionHandler ?? throw new ArgumentNullException(nameof(goalCompletionHandler));
     }
 
     public PhysicalSession GetCurrentSession()
@@ -272,6 +275,13 @@ public class PhysicalFacade
                 }
             }
             // Else: ambient goal with no obstacle parent
+
+            // Complete goal through GoalCompletionHandler (applies rewards: coins, StoryCubes, equipment)
+            Goal completedGoal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalGoalId);
+            if (completedGoal != null)
+            {
+                _goalCompletionHandler.CompleteGoal(completedGoal);
+            }
 
             // GoalCards execute immediately (not locked for combo)
             _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList().Remove(card); // Remove from hand
