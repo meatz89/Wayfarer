@@ -53,18 +53,6 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get base travel time for route
-        /// </summary>
-        protected int GetBaseTravelTime()
-        {
-            if (TravelContext == null)
-                throw new InvalidOperationException("No active travel context");
-            if (TravelContext.CurrentRoute == null)
-                throw new InvalidOperationException("No current route in travel context");
-            return TravelContext.CurrentRoute.TravelTimeSegments;
-        }
-
-        /// <summary>
         /// Get segment count
         /// </summary>
         protected int GetSegmentCount()

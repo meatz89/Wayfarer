@@ -303,6 +303,7 @@ Used by Social (Conversations), Mental (Obligations), Physical (Obstacles) syste
     display: flex;
     gap: 15px;
     align-items: center;
+    justify-content: space-around;
 }
 
 .action-button {

@@ -550,6 +550,7 @@
     display: flex;
     justify-content: center;
     gap: 30px;
+    justify-content: space-around;
 }
 
 /* .action-button moved to common.css */

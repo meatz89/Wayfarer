@@ -458,10 +458,6 @@
                         <span class="property-label">Distance</span>
                         <span class="property-value">@GetSegmentCount() segments</span>
                     </div>
-                    <div class="route-property">
-                        <span class="property-label">Base Time</span>
-                        <span class="property-value">@GetBaseTravelTime() min</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -778,7 +774,7 @@
                 <div class="action-button @(!CanRest() ? "disabled" : "")"
                      @onclick="RestAction">
                     <div>REST</div>
-                    <div class="action-details">Restore stamina (+1 segment to travel time)</div>
+                    <div class="action-details">+1 stamina, +1 segment)</div>
                 </div>
                 <div class="action-button @(!MustTurnBack() ? "disabled" : "")"
                      @onclick="TurnBack">
