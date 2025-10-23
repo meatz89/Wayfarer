@@ -158,10 +158,7 @@ namespace Wayfarer.Pages.Components
                 // No need to check again here - CheckGoalCardActivation uses correctly reduced momentum
 
                 // Refresh resource display
-                if (GameScreen != null)
-                {
-                    await GameScreen.RefreshResourceDisplay();
-                }
+                await GameScreen.RefreshResourceDisplay();
 
                 // Check conversation end state
                 if (Session.ShouldEnd())
@@ -219,10 +216,7 @@ namespace Wayfarer.Pages.Components
                 SelectedCard = null;
 
                 // Refresh resource display
-                if (GameScreen != null)
-                {
-                    await GameScreen.RefreshResourceDisplay();
-                }
+                await GameScreen.RefreshResourceDisplay();
 
                 // Check conversation end state
                 if (Session.ShouldEnd())
@@ -865,10 +859,7 @@ namespace Wayfarer.Pages.Components
                     EndReason = "Request complete";
 
                     // Refresh resource display
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
                 }
             }
             finally

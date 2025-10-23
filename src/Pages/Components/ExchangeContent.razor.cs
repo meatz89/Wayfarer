@@ -387,10 +387,7 @@ namespace Wayfarer.Pages.Components
             await OnExchangeEnd.InvokeAsync();
 
             // Return to Venue through GameScreen
-            if (GameScreen != null)
-            {
-                await GameScreen.ReturnToLocation();
-            }
+            await GameScreen.ReturnToLocation();
         }
 
         /// <summary>

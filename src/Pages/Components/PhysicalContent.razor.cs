@@ -189,10 +189,7 @@ namespace Wayfarer.Pages.Components
                     SelectedCard = null;
 
                     // Refresh resource display after action
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
 
                     // Check if challenge should end
                     if (Session != null && Session.ShouldEnd())
@@ -234,10 +231,7 @@ namespace Wayfarer.Pages.Components
                     SelectedCard = null;
 
                     // Refresh resource display after action
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
 
                     // Check if challenge should end
                     if (Session != null && Session.ShouldEnd())
@@ -888,10 +882,7 @@ namespace Wayfarer.Pages.Components
                     EndReason = "Challenge complete";
 
                     // Refresh resource display
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
                 }
             }
             finally
