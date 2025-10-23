@@ -389,12 +389,30 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Execute a LocationAction by its strongly-typed enum.
+    /// Execute a LocationAction by its ID.
+    /// Fetches the full LocationAction entity to access cost/reward information.
     /// Single dispatch point for all location-specific actions (Travel, Rest, Work, Investigate).
     /// </summary>
-    public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
+    public async Task ExecuteLocationAction(string actionId, string locationId)
     {
-        switch (actionType)
+        // Fetch full LocationAction entity to access cost information
+        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.Id == actionId);
+        if (action == null)
+            throw new InvalidOperationException($"LocationAction {actionId} not found");
+
+        // Check and deduct coin cost BEFORE executing action
+        if (action.Cost != null && action.Cost.ContainsKey("coins"))
+        {
+            int coinCost = action.Cost["coins"];
+            bool canAfford = _resourceFacade.SpendCoins(coinCost, action.Name);
+            if (!canAfford)
+            {
+                return; // SpendCoins already added warning message
+            }
+        }
+
+        // Execute action based on its type
+        switch (action.ActionType)
         {
             case LocationActionType.Travel:
                 // Navigate to travel screen
@@ -403,18 +421,59 @@ public class GameFacade
                 break;
 
             case LocationActionType.Rest:
-                // Delegate to ResourceFacade for recovery
-                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-                _resourceFacade.ExecuteRest();
-                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                // Determine if this is a paid "Secure Room" action (full recovery) or free "Rest" (partial recovery)
+                bool isSecureRoom = action.Id == "secure_room";
 
-                ProcessTimeAdvancement(new TimeAdvancementResult
+                if (isSecureRoom)
                 {
-                    OldTimeBlock = oldTimeBlock,
-                    NewTimeBlock = newTimeBlock,
-                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                    SegmentsAdvanced = 1
-                });
+                    // Paid secure room: Full recovery and advance to next day morning
+                    Player player = _gameWorld.GetPlayer();
+
+                    // Record recovery amounts for message
+                    int healthBefore = player.Health;
+                    int staminaBefore = player.Stamina;
+                    int hungerBefore = player.Hunger;
+                    int focusBefore = player.Focus;
+
+                    // Full resource recovery
+                    player.Health = player.MaxHealth;
+                    player.Stamina = player.MaxStamina;
+                    player.Hunger = 0; // Full recovery means no hunger
+                    player.Focus = player.MaxFocus;
+
+                    int healthRecovered = player.Health - healthBefore;
+                    int staminaRecovered = player.Stamina - staminaBefore;
+                    int hungerRecovered = hungerBefore - player.Hunger;
+                    int focusRecovered = player.Focus - focusBefore;
+
+                    // Generate recovery message
+                    string recoveryMessage = "You rest in a secure room through the night.";
+                    if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
+                    if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
+                    if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
+                    if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
+                    recoveryMessage += " (Fully recovered)";
+                    _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+
+                    // Advance to next day morning
+                    TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
+                    ProcessTimeAdvancement(timeResult);
+                }
+                else
+                {
+                    // Free rest: Partial recovery
+                    TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                    _resourceFacade.ExecuteRest();
+                    TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                    ProcessTimeAdvancement(new TimeAdvancementResult
+                    {
+                        OldTimeBlock = oldTimeBlock,
+                        NewTimeBlock = newTimeBlock,
+                        CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                        SegmentsAdvanced = 1
+                    });
+                }
                 break;
 
             case LocationActionType.Work:
@@ -429,7 +488,7 @@ public class GameFacade
                 break;
 
             default:
-                throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
+                throw new InvalidOperationException($"Unknown LocationActionType: {action.ActionType}");
         }
 
         await Task.CompletedTask;

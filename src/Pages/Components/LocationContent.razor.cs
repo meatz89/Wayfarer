@@ -85,7 +85,7 @@ namespace Wayfarer.Pages.Components
                     Location currentSpot = GameFacade.GetCurrentLocationSpot();
                     if (currentSpot != null)
                     {
-                        await GameFacade.ExecuteLocationAction(locationActionType, currentSpot.Id);
+                        await GameFacade.ExecuteLocationAction(action.Id, currentSpot.Id);
                         await RefreshLocationData();
                         await OnActionExecuted.InvokeAsync();
                     }

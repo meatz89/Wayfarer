@@ -106,6 +106,16 @@ public class TimeFacade
         return _timeProgressionManager.JumpToNextPeriod();
     }
 
+    /// <summary>
+    /// Advance to the next day starting at Morning.
+    /// Used for overnight rest (secure room).
+    /// Returns the time advancement result for the caller to handle.
+    /// </summary>
+    public TimeAdvancementResult AdvanceToNextDay()
+    {
+        return _timeManager.TimeModel.AdvanceToNextDay();
+    }
+
     public int WaitUntilNextTimeBlock()
     {
         TimeBlocks current = GetCurrentTimeBlock();
