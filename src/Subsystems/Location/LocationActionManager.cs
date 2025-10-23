@@ -95,7 +95,7 @@ public class LocationActionManager
     {
         if (action.Availability.Count == 0) return true; // Available at all times
 
-        return action.Availability.Contains(currentTime.ToString());
+        return action.Availability.Contains(currentTime);
     }
 
     /// <summary>

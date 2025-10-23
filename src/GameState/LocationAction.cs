@@ -56,9 +56,9 @@ public class LocationAction
     public int TimeRequired { get; set; }
 
     /// <summary>
-    /// Time blocks when this action is available (e.g., Morning, Afternoon)
+    /// Time blocks when this action is available (strongly-typed enum)
     /// </summary>
-    public List<string> Availability { get; set; } = new List<string>();
+    public List<TimeBlocks> Availability { get; set; } = new List<TimeBlocks>();
 
     /// <summary>
     /// Priority for sorting when multiple actions match (lower = higher priority)

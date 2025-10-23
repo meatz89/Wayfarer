@@ -32,7 +32,7 @@ public static class LocationActionParser
             Costs = ParseCosts(dto.Cost),
             Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
-            Availability = dto.Availability ?? new List<string>(),
+            Availability = ParseTimeBlocks(dto.Availability),
             Priority = dto.Priority,
             ObligationId = dto.ObligationId,
             RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
@@ -41,6 +41,30 @@ public static class LocationActionParser
         };
 
         return action;
+    }
+
+    private static List<TimeBlocks> ParseTimeBlocks(List<string> timeBlockStrings)
+    {
+        List<TimeBlocks> result = new List<TimeBlocks>();
+
+        if (timeBlockStrings == null || timeBlockStrings.Count == 0)
+            return result;
+
+        foreach (string blockStr in timeBlockStrings)
+        {
+            if (Enum.TryParse<TimeBlocks>(blockStr, true, out TimeBlocks timeBlock))
+            {
+                result.Add(timeBlock);
+            }
+            else
+            {
+                throw new InvalidDataException(
+                    $"LocationAction has unknown availability time block '{blockStr}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
+            }
+        }
+
+        return result;
     }
 
     private static ActionCosts ParseCosts(Dictionary<string, int> costDict)

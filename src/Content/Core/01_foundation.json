@@ -85,7 +85,7 @@
         "id": "secure_room",
         "name": "Secure a Room (10 coins)",
         "description": "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
-        "actionType": "Rest",
+        "actionType": "SecureRoom",
         "priority": 100,
         "cost": {
           "coins": 10
