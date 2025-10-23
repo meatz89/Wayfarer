@@ -225,6 +225,160 @@ User needs "SleepOutside" player action for tutorial.
 
 ---
 
+# ⚠️ CATALOGUE PATTERN: NO STRING MATCHING, NO DICTIONARIES, EVER ⚠️
+
+## THE FUNDAMENTAL PRINCIPLE
+
+**JSON describes game entities categorically. Parsers translate categorical descriptions to concrete values via Catalogues. Runtime code uses only concrete, strongly-typed properties. No strings, no dictionaries, no lookups.**
+
+---
+
+## THREE PHASES OF DATA FLOW
+
+### PHASE 1: AUTHORING (JSON - Categorical/Descriptive)
+- Content creators describe entities in **human-readable categorical terms**
+- Properties are **descriptive** ("Full", "Partial", "Fragile", "Simple")
+- Some properties are **absolute concrete values** (coinCost: 10, time: 1)
+- **NO runtime semantics embedded in JSON** - JSON describes WHAT, not HOW
+
+### PHASE 2: PARSING (Translation - One Time Only)
+- Parser reads JSON via DTO
+- Parser calls **Catalogue** to translate categorical → concrete
+- Catalogue returns **strongly-typed concrete values** (int, bool, object)
+- Parser stores **concrete values** directly on entity properties
+- Entity persisted to GameWorld
+- **Translation happens ONCE at game initialization, NEVER during gameplay**
+
+### PHASE 3: RUNTIME (Concrete Values Only)
+- GameFacade/Facades fetch entities from GameWorld
+- Use **concrete properties directly** (action.HealthRecovery, action.CoinCost)
+- **NO catalogue lookups** - values already calculated
+- **NO string matching** - no "if (id == 'something')" ever
+- **NO dictionary lookups** - no Cost["coins"] ever
+- **PURE strongly-typed property access** - compiler-enforced correctness
+
+---
+
+## WHAT THIS ELIMINATES
+
+**FORBIDDEN FOREVER:**
+1. ❌ String matching: `if (action.Id == "secure_room")`
+2. ❌ Dictionary lookups: `Cost["coins"]`, `Cost.ContainsKey("coins")`
+3. ❌ Dictionary properties: `Dictionary<string, int> Cost`
+4. ❌ Enum routing at runtime: `switch (recoveryType)` in GameFacade
+5. ❌ Catalogue calls at runtime: Catalogues live in Parsers folder, never imported by Facades
+6. ❌ ID-based behavior branching: Entity IDs are for reference only, never control logic
+
+**Why these are forbidden:**
+- String matching = runtime typo bugs, no IntelliSense, couples code to JSON IDs
+- Dictionaries = no type safety, hidden properties, runtime string keys
+- Runtime catalogues = wasted CPU, violates parse-time translation principle
+- ID-based logic = magic behavior tied to JSON string values, brittle
+
+---
+
+## WHY THIS MATTERS
+
+**Benefits of Parse-Time Translation:**
+
+1. **Fail Fast**: Bad JSON crashes at game init with clear error, not during gameplay
+2. **Zero Runtime Overhead**: All calculations done once, not on every action execution
+3. **Type Safety**: Compiler catches property access errors, no runtime string bugs
+4. **IntelliSense Works**: Developers see real properties (action.HealthRecovery: int)
+5. **AI Content Generation**: AI describes effects categorically, parser scales to current game state
+6. **No Magic Strings**: Eliminates entire class of typo bugs ("coins" vs "coin")
+7. **Testable**: Can unit test catalogues independently from runtime logic
+8. **Maintainable**: Change catalogue = affects all entities, change entity property = compiler finds usages
+
+---
+
+## CATALOGUE PATTERN IN PRACTICE
+
+**Catalogue Purpose:**
+- Translate categorical/descriptive JSON properties → concrete mechanical values
+- Apply game state scaling (player level, difficulty, max stats)
+- Enforce domain rules (e.g., "Full" recovery always means max resources)
+- **Called only at parse time, never at runtime**
+
+**Catalogue Characteristics:**
+- Static class with static methods
+- Lives in `src/Content/Catalogs/`
+- Throws InvalidDataException on unknown categorical values (fail fast)
+- Returns concrete types (int, bool, strongly-typed objects)
+- Deterministic (same inputs → same outputs)
+- Well-documented with categorical meanings
+
+**When to Create Catalogue:**
+- JSON has categorical/descriptive properties ("Simple", "Full", "Fragile")
+- Properties need translation to concrete game values
+- Translation might scale based on game state
+- Same categorical value reused across multiple entities
+
+**When NOT to Create Catalogue:**
+- JSON already has concrete absolute values (coinCost: 10) - just copy to entity
+- Property is pure data with no translation needed
+- Value is unique to one entity (no reuse)
+
+---
+
+## EXISTING CATALOGUE EXAMPLES
+
+**EquipmentDurabilityCatalog:**
+- JSON: `"durability": "Fragile"`
+- Catalogue translates: "Fragile" → (uses: 2, repairCost: 10)
+- Entity stores: `equipment.ExhaustsAfterUses = 2`, `equipment.RepairCost = 10`
+- Runtime uses: `if (equipment.UsesRemaining == 0) { ... }`
+
+**SocialCardEffectCatalog:**
+- JSON: `"stat": "Rapport", "depth": 2, "index": 0`
+- Catalogue translates: (Rapport, depth 2) → CardEffectFormula with concrete effect values
+- Entity stores: `card.EffectFormula = formula`
+- Runtime uses: `understanding += card.EffectFormula.BaseValue`
+
+**PhysicalCardEffectCatalog, MentalCardEffectCatalog:**
+- Same pattern: Categorical properties → Concrete effect formulas at parse time
+
+---
+
+## ENFORCEMENT RULES
+
+**Code Review - Parser:**
+- ✅ All categorical JSON properties translated via catalogue?
+- ✅ All concrete values stored on entity properties (int, bool, object)?
+- ✅ NO Dictionary<string, X> on entities?
+- ✅ Catalogue throws on unknown categorical values?
+- ✅ Parser stores results on entity, not in temporary variables?
+
+**Code Review - Runtime (GameFacade, Facades, Services):**
+- ✅ NO catalogue imports (catalogues are parse-time only)?
+- ✅ NO string comparisons (`action.Id == "something"`)?
+- ✅ NO dictionary lookups (`dict["key"]`, `dict.ContainsKey()`)?
+- ✅ NO enum switching for behavior (`switch (recoveryType)` in runtime)?
+- ✅ ONLY concrete property access (`action.HealthRecovery`, `action.CoinCost`)?
+
+**Code Review - Entities:**
+- ✅ Properties are concrete types (int, bool, strongly-typed classes)?
+- ✅ NO Dictionary<string, X> properties?
+- ✅ NO enum properties that control behavior (enums for display/grouping only)?
+- ✅ Property names describe mechanics, not categories ("HealthRecovery" not "RecoveryType")?
+
+**If you see Dictionary or string matching in runtime code, STOP. The architecture is violated.**
+
+---
+
+## THE COMPLETE PRINCIPLE
+
+**JSON is descriptive. Parsers translate descriptions to mechanics. Runtime executes mechanics.**
+
+Content creators describe WHAT entities do in human terms.
+Parsers translate WHAT to HOW using catalogues.
+Runtime executes HOW using strongly-typed properties.
+
+No strings in runtime. No dictionaries in entities. No catalogue lookups after initialization.
+Parse once. Execute forever with pure data access.
+
+---
+
 # FUNDAMENTAL GAME SYSTEM ARCHITECTURE
 
 ## THE CORE PROGRESSION FLOW (NEVER DEVIATE FROM THIS)
