@@ -34,6 +34,11 @@ public class MentalCard
     public int CoinCost { get; init; } = 0;  // Rare - bribes, equipment purchases
     public int XPReward { get; init; } = 0;  // Pre-calculated XP from depth (parse time, not runtime)
 
+    // Base tactical effects (calculated at parse time from categorical properties via MentalCardEffectCatalog)
+    // These are BASE values BEFORE bonuses - resolver adds bonuses at runtime but NEVER recalculates base
+    public int BaseProgress { get; init; } = 0;  // Base victory resource gain (before stat bonuses)
+    public int BaseExposure { get; init; } = 0;  // Base consequence resource gain (before exertion penalties)
+
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
     public Dictionary<PlayerStatType, int> StatThresholds { get; init; } = new Dictionary<PlayerStatType, int>();

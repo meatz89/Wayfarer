@@ -40,6 +40,22 @@
           "Trust": 0
         },
         "conversationDifficulty": 1
+      },
+      {
+        "id": "merchant_general",
+        "name": "General Merchant",
+        "level": 1,
+        "profession": "Merchant",
+        "venueId": "town_square",
+        "locationId": "square_center",
+        "description": "A traveling merchant with various goods for sale. Practical equipment for travelers and adventurers.",
+        "personality": "Business-minded and efficient. Knows the value of good equipment.",
+        "personalityType": "SHREWD",
+        "currentState": "NEUTRAL",
+        "initialTokens": {
+          "Trust": 0
+        },
+        "conversationDifficulty": 1
       }
     ]
   }

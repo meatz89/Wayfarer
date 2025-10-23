@@ -29,8 +29,8 @@ public static class LocationActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
-            Reward = dto.Reward ?? new Dictionary<string, int>(),
+            Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
             Availability = dto.Availability ?? new List<string>(),
             Priority = dto.Priority,
@@ -41,6 +41,50 @@ public static class LocationActionParser
         };
 
         return action;
+    }
+
+    private static ActionCosts ParseCosts(Dictionary<string, int> costDict)
+    {
+        if (costDict == null || costDict.Count == 0)
+            return ActionCosts.None();
+
+        ActionCosts costs = new ActionCosts();
+
+        if (costDict.ContainsKey("coins"))
+            costs.CoinCost = costDict["coins"];
+
+        if (costDict.ContainsKey("focus"))
+            costs.FocusCost = costDict["focus"];
+
+        if (costDict.ContainsKey("stamina"))
+            costs.StaminaCost = costDict["stamina"];
+
+        if (costDict.ContainsKey("health"))
+            costs.HealthCost = costDict["health"];
+
+        return costs;
+    }
+
+    private static ActionRewards ParseRewards(Dictionary<string, int> rewardDict)
+    {
+        if (rewardDict == null || rewardDict.Count == 0)
+            return ActionRewards.None();
+
+        ActionRewards rewards = new ActionRewards();
+
+        if (rewardDict.ContainsKey("coins"))
+            rewards.CoinReward = rewardDict["coins"];
+
+        if (rewardDict.ContainsKey("health"))
+            rewards.HealthRecovery = rewardDict["health"];
+
+        if (rewardDict.ContainsKey("focus"))
+            rewards.FocusRecovery = rewardDict["focus"];
+
+        if (rewardDict.ContainsKey("stamina"))
+            rewards.StaminaRecovery = rewardDict["stamina"];
+
+        return rewards;
     }
 
     private static void ValidateRequiredFields(LocationActionDTO dto)

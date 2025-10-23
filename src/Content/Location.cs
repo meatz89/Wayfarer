@@ -19,19 +19,12 @@ public class Location
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
     // Active goal IDs for this location (Mental/Physical challenges)
-    // References goals in GameWorld.Goals dictionary (single source of truth)
+    // References goals in GameWorld.Goals (single source of truth)
     public List<string> ActiveGoalIds { get; set; } = new List<string>();
+
+    // Obstacle IDs for this location
+    // References obstacles in GameWorld.Obstacles (single source of truth)
     public List<string> ObstacleIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Object references to active goals (for runtime navigation)
-    /// </summary>
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
-
-    /// <summary>
-    /// Object references to obstacles (for runtime navigation)
-    /// </summary>
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 

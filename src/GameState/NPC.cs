@@ -84,16 +84,6 @@ public class NPC
     /// </summary>
     public Location Location { get; set; }
 
-    /// <summary>
-    /// Object references to active goals (for runtime navigation)
-    /// </summary>
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
-
-    /// <summary>
-    /// Object references to obstacles (for runtime navigation)
-    /// </summary>
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
-
     // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
     // References equipment in GameWorld.Equipment list (single source of truth)
     // Only applicable for NPCs with Mercantile or vendor service types

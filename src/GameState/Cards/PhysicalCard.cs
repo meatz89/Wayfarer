@@ -34,6 +34,11 @@ public class PhysicalCard
     public int CoinCost { get; init; } = 0;
     public int XPReward { get; init; } = 0;  // Pre-calculated XP from depth (parse time, not runtime)
 
+    // Base tactical effects (calculated at parse time from categorical properties via PhysicalCardEffectCatalog)
+    // These are BASE values BEFORE bonuses - resolver adds bonuses at runtime but NEVER recalculates base
+    public int BaseBreakthrough { get; init; } = 0;  // Base victory resource gain (before stat bonuses)
+    public int BaseDanger { get; init; } = 0;  // Base consequence resource gain (before exertion penalties)
+
     // Simple requirement properties (NOT objects - parser calculates costs/effects from categorical properties)
     public EquipmentCategory EquipmentCategory { get; init; } = EquipmentCategory.None;
     public Dictionary<PlayerStatType, int> StatThresholds { get; init; } = new Dictionary<PlayerStatType, int>();

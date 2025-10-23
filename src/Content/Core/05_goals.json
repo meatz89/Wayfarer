@@ -16,7 +16,6 @@
         "systemType": "Social",
         "placementNpcId": "elena",
         "deckId": "friendly_chat",
-        "baseDifficulty": 6,
         "costs": {
           "time": 1,
           "focus": 1,
@@ -51,7 +50,6 @@
         "systemType": "Physical",
         "placementNpcId": "thomas",
         "deckId": "physical_challenge",
-        "baseDifficulty": 6,
         "costs": {
           "time": 1,
           "focus": 0,

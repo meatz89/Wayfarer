@@ -41,14 +41,14 @@ public class LocationAction
     public List<LocationPropertyType> ExcludedProperties { get; set; } = new List<LocationPropertyType>();
 
     /// <summary>
-    /// Resource costs required to perform this action (e.g., attention, coins)
+    /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCosts Costs { get; set; } = new ActionCosts();
 
     /// <summary>
-    /// Resources rewarded for performing this action (e.g., coins, stamina)
+    /// Resources rewarded for performing this action
     /// </summary>
-    public Dictionary<string, int> Reward { get; set; } = new Dictionary<string, int>();
+    public ActionRewards Rewards { get; set; } = new ActionRewards();
 
     /// <summary>
     /// Time required to complete this action in minutes

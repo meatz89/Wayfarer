@@ -24,6 +24,14 @@ public enum LocationActionType
     Rest,
 
     /// <summary>
+    /// Pay for secure room with full recovery
+    /// Effect: Advance to next morning, full health/stamina/focus recovery, hunger reset to 0
+    /// Available at: Locations with Lodging property
+    /// Costs: 20 coins (or configured cost)
+    /// </summary>
+    SecureRoom,
+
+    /// <summary>
     /// Earn coins through work
     /// Effect: +1 segment, earn 8 coins (modified by hunger)
     /// Available at: Locations with Commercial property

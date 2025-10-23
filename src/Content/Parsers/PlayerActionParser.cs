@@ -28,12 +28,34 @@ public static class PlayerActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
+            Costs = ParseCosts(dto.Cost),
             TimeRequired = dto.TimeRequired,
             Priority = dto.Priority
         };
 
         return action;
+    }
+
+    private static ActionCosts ParseCosts(Dictionary<string, int> costDict)
+    {
+        if (costDict == null || costDict.Count == 0)
+            return ActionCosts.None();
+
+        ActionCosts costs = new ActionCosts();
+
+        if (costDict.ContainsKey("coins"))
+            costs.CoinCost = costDict["coins"];
+
+        if (costDict.ContainsKey("focus"))
+            costs.FocusCost = costDict["focus"];
+
+        if (costDict.ContainsKey("stamina"))
+            costs.StaminaCost = costDict["stamina"];
+
+        if (costDict.ContainsKey("health"))
+            costs.HealthCost = costDict["health"];
+
+        return costs;
     }
 
     private static void ValidateRequiredFields(PlayerActionDTO dto)

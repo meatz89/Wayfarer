@@ -50,13 +50,11 @@ public static class GameWorldInitializer
             if (!string.IsNullOrEmpty(npc.LocationId))
                 npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == npc.LocationId);
 
-            npc.ActiveGoals = gameWorld.Goals.Where(g => npc.ActiveGoalIds != null && npc.ActiveGoalIds.Contains(g.Id)).ToList();
-            npc.Obstacles = gameWorld.Obstacles.Where(o => npc.ObstacleIds != null && npc.ObstacleIds.Contains(o.Id)).ToList();
-        }// Wire Locations
-        foreach (Location location in gameWorld.Locations)
-        {
-            location.ActiveGoals = gameWorld.Goals.Where(g => location.ActiveGoalIds != null && location.ActiveGoalIds.Contains(g.Id)).ToList();
-            location.Obstacles = gameWorld.Obstacles.Where(o => location.ObstacleIds != null && location.ObstacleIds.Contains(o.Id)).ToList();
+            // ActiveGoals and Obstacles are accessed via ActiveGoalIds/ObstacleIds querying GameWorld.Goals/Obstacles
+            // No need to populate duplicate object lists
         }
+
+        // Locations reference goals/obstacles via IDs only (ActiveGoalIds/ObstacleIds)
+        // No object list population needed - GameWorld.Goals/Obstacles is single source of truth
     }
 }

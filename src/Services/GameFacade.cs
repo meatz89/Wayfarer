@@ -401,9 +401,9 @@ public class GameFacade
             throw new InvalidOperationException($"LocationAction {actionId} not found");
 
         // Check and deduct coin cost BEFORE executing action
-        if (action.Cost != null && action.Cost.ContainsKey("coins"))
+        if (action.Costs.CoinCost > 0)
         {
-            int coinCost = action.Cost["coins"];
+            int coinCost = action.Costs.CoinCost;
             bool canAfford = _resourceFacade.SpendCoins(coinCost, action.Name);
             if (!canAfford)
             {
@@ -421,12 +421,25 @@ public class GameFacade
                 break;
 
             case LocationActionType.Rest:
-                // Determine if this is a paid "Secure Room" action (full recovery) or free "Rest" (partial recovery)
-                bool isSecureRoom = action.Id == "secure_room";
-
-                if (isSecureRoom)
+                // Free rest: Partial recovery (+1 health, +1 stamina, +1 time)
                 {
-                    // Paid secure room: Full recovery and advance to next day morning
+                    TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+                    _resourceFacade.ExecuteRest();
+                    TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
+
+                    ProcessTimeAdvancement(new TimeAdvancementResult
+                    {
+                        OldTimeBlock = oldTimeBlock,
+                        NewTimeBlock = newTimeBlock,
+                        CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+                        SegmentsAdvanced = 1
+                    });
+                }
+                break;
+
+            case LocationActionType.SecureRoom:
+                // Paid secure room: Full recovery and advance to next day morning
+                {
                     Player player = _gameWorld.GetPlayer();
 
                     // Record recovery amounts for message
@@ -458,21 +471,6 @@ public class GameFacade
                     // Advance to next day morning
                     TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
                     ProcessTimeAdvancement(timeResult);
-                }
-                else
-                {
-                    // Free rest: Partial recovery
-                    TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-                    _resourceFacade.ExecuteRest();
-                    TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
-
-                    ProcessTimeAdvancement(new TimeAdvancementResult
-                    {
-                        OldTimeBlock = oldTimeBlock,
-                        NewTimeBlock = newTimeBlock,
-                        CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                        SegmentsAdvanced = 1
-                    });
                 }
                 break;
 

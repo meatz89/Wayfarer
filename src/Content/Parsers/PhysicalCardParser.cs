@@ -67,6 +67,10 @@ public class PhysicalCardParser
             CoinCost = PhysicalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = PhysicalCardEffectCatalog.GetXPReward(dto.Depth),
 
+            // BASE EFFECTS CALCULATED AT PARSE TIME (no runtime catalogue calls!)
+            BaseBreakthrough = PhysicalCardEffectCatalog.GetProgressFromProperties(dto.Depth, category),
+            BaseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(dto.Depth, approach),
+
             // Requirements
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation
             StatThresholds = statThresholds,

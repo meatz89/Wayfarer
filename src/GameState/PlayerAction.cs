@@ -25,7 +25,7 @@ public class PlayerAction
     /// <summary>
     /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCosts Costs { get; set; } = new ActionCosts();
 
     /// <summary>
     /// Time required to complete this action in segments

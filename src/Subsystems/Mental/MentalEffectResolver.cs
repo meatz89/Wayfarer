@@ -83,8 +83,8 @@ public class MentalEffectResolver
         result.AttentionChange = result.BaseAttention + result.AttentionBonuses.Sum(b => b.Amount);
 
         // ===== PROGRESS (Victory Resource) =====
-        // BASE: Progress from card categorical properties
-        result.BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
+        // BASE: Progress from card (PRE-CALCULATED at parse time, stored on card)
+        result.BaseProgress = template.BaseProgress;
 
         // BONUS 2: Stat Level (Player progression)
         if (template.BoundStat != PlayerStatType.None)
@@ -106,8 +106,8 @@ public class MentalEffectResolver
         result.ProgressChange = result.BaseProgress + result.ProgressBonuses.Sum(b => b.Amount);
 
         // ===== EXPOSURE (Consequence Resource) =====
-        // BASE: Exposure from card method and depth
-        result.BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(template.Depth, template.Method);
+        // BASE: Exposure from card (PRE-CALCULATED at parse time, stored on card)
+        result.BaseExposure = template.BaseExposure;
 
         // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();

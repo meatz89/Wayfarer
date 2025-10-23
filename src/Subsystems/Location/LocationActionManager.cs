@@ -78,7 +78,7 @@ public class LocationActionManager
                 ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
                 Title = action.Name,
                 Detail = action.Description,
-                Cost = GetCostDisplay(action.Cost),
+                Cost = GetCostDisplay(action.Costs),
                 IsAvailable = CanPerformAction(action),
                 EngagementType = action.EngagementType
             };
@@ -101,12 +101,26 @@ public class LocationActionManager
     /// <summary>
     /// Get display string for action costs.
     /// </summary>
-    private string GetCostDisplay(Dictionary<string, int> costs)
+    private string GetCostDisplay(ActionCosts costs)
     {
-        if (costs.Count == 0) return "Free!";
+        List<string> costParts = new List<string>();
 
-        List<string> costStrings = costs.Select(kvp => $"{kvp.Value} {kvp.Key}").ToList();
-        return string.Join(", ", costStrings);
+        if (costs.CoinCost > 0)
+            costParts.Add($"{costs.CoinCost} coins");
+
+        if (costs.FocusCost > 0)
+            costParts.Add($"{costs.FocusCost} focus");
+
+        if (costs.StaminaCost > 0)
+            costParts.Add($"{costs.StaminaCost} stamina");
+
+        if (costs.HealthCost > 0)
+            costParts.Add($"{costs.HealthCost} health");
+
+        if (costParts.Count == 0)
+            return "Free!";
+
+        return string.Join(", ", costParts);
     }
 
     /// <summary>
@@ -117,9 +131,9 @@ public class LocationActionManager
         Player player = _gameWorld.GetPlayer();
 
         // Check coin cost
-        if (action.Cost.ContainsKey("coins"))
+        if (action.Costs.CoinCost > 0)
         {
-            return player.Coins >= action.Cost["coins"];
+            return player.Coins >= action.Costs.CoinCost;
         }
 
         return true;

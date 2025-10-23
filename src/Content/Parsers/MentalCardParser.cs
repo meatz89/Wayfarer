@@ -60,6 +60,10 @@ public class MentalCardParser
             CoinCost = MentalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = MentalCardEffectCatalog.GetXPReward(dto.Depth),
 
+            // BASE EFFECTS CALCULATED AT PARSE TIME (no runtime catalogue calls!)
+            BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(dto.Depth, category),
+            BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(dto.Depth, method),
+
             // Requirements
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation
             StatThresholds = statThresholds,
