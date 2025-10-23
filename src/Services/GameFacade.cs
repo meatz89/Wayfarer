@@ -341,175 +341,9 @@ public class GameFacade
         return result;
     }
 
-    // ========== ACTION EXECUTION ==========
-
-    /// <summary>
-    /// Execute a PlayerAction by its strongly-typed enum.
-    /// Single dispatch point for all global player actions (Check Belongings, Wait).
-    /// Fetches entity for data (costs/rewards), dispatches on enum for routing.
-    /// </summary>
-    public async Task ExecutePlayerAction(PlayerActionType actionType)
-    {
-        // Fetch PlayerAction entity by enum (NOT string matching) to access cost/reward data
-        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == actionType);
-        if (action == null)
-            throw new InvalidOperationException($"PlayerAction with type {actionType} not found");
-
-        // Execute action based on enum (strongly typed dispatch)
-        switch (actionType)
-        {
-            case PlayerActionType.CheckBelongings:
-                // Navigate to equipment screen
-                // TODO: Add navigation when equipment screen is implemented
-                _messageSystem.AddSystemMessage("📦 Check Belongings - Equipment screen coming soon", SystemMessageTypes.Info);
-                break;
-
-            case PlayerActionType.Wait:
-                // Delegate to ResourceFacade for time progression
-                TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-                _resourceFacade.ExecuteWait();
-                TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
-
-                ProcessTimeAdvancement(new TimeAdvancementResult
-                {
-                    OldTimeBlock = oldTimeBlock,
-                    NewTimeBlock = newTimeBlock,
-                    CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                    SegmentsAdvanced = 1
-                });
-                break;
-
-            case PlayerActionType.SleepOutside:
-                // Sleep rough without shelter - use data-driven cost from action
-                Player player = _gameWorld.GetPlayer();
-                int healthCost = action.Costs.HealthCost;
-                player.ModifyHealth(-healthCost);
-                _messageSystem.AddSystemMessage(
-                    $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
-                    SystemMessageTypes.Warning);
-                break;
-
-            default:
-                throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
-        }
-
-        await Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Execute a LocationAction by its strongly-typed enum.
-    /// Single dispatch point for all location-specific actions (Travel, Rest, Work, Investigate).
-    /// Fetches entity for data (costs/rewards), dispatches on enum for routing.
-    /// </summary>
-    public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
-    {
-        // Fetch LocationAction entity by enum (NOT string matching) to access cost/reward data
-        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == actionType);
-        if (action == null)
-            throw new InvalidOperationException($"LocationAction with type {actionType} not found");
-
-        // Check and deduct coin cost BEFORE executing action
-        if (action.Costs.CoinCost > 0)
-        {
-            int coinCost = action.Costs.CoinCost;
-            bool canAfford = _resourceFacade.SpendCoins(coinCost, action.Name);
-            if (!canAfford)
-            {
-                return; // SpendCoins already added warning message
-            }
-        }
-
-        // Execute action based on enum (strongly typed dispatch)
-        switch (actionType)
-        {
-            case LocationActionType.Travel:
-                // Navigate to travel screen
-                // TODO: Add navigation when travel screen routing is updated
-                _messageSystem.AddSystemMessage("🚶 Travel - Use travel screen", SystemMessageTypes.Info);
-                break;
-
-            case LocationActionType.Rest:
-                // Rest with data-driven recovery from action rewards
-                {
-                    TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-                    _resourceFacade.ExecuteRest(action.Rewards);
-                    TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
-
-                    ProcessTimeAdvancement(new TimeAdvancementResult
-                    {
-                        OldTimeBlock = oldTimeBlock,
-                        NewTimeBlock = newTimeBlock,
-                        CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-                        SegmentsAdvanced = 1
-                    });
-                }
-                break;
-
-            case LocationActionType.SecureRoom:
-                // Secure room with data-driven recovery - check for fullRecovery flag
-                {
-                    Player player = _gameWorld.GetPlayer();
-
-                    // Record recovery amounts for message
-                    int healthBefore = player.Health;
-                    int staminaBefore = player.Stamina;
-                    int hungerBefore = player.Hunger;
-                    int focusBefore = player.Focus;
-
-                    // Check if action grants full recovery (data-driven from JSON)
-                    if (action.Rewards.FullRecovery)
-                    {
-                        // Full resource recovery
-                        player.Health = player.MaxHealth;
-                        player.Stamina = player.MaxStamina;
-                        player.Hunger = 0; // Full recovery means no hunger
-                        player.Focus = player.MaxFocus;
-                    }
-                    else
-                    {
-                        // Partial recovery based on rewards
-                        player.Health = Math.Min(player.Health + action.Rewards.HealthRecovery, player.MaxHealth);
-                        player.Stamina = Math.Min(player.Stamina + action.Rewards.StaminaRecovery, player.MaxStamina);
-                        player.Focus = Math.Min(player.Focus + action.Rewards.FocusRecovery, player.MaxFocus);
-                    }
-
-                    int healthRecovered = player.Health - healthBefore;
-                    int staminaRecovered = player.Stamina - staminaBefore;
-                    int hungerRecovered = hungerBefore - player.Hunger;
-                    int focusRecovered = player.Focus - focusBefore;
-
-                    // Generate recovery message
-                    string recoveryMessage = "You rest in a secure room through the night.";
-                    if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
-                    if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
-                    if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
-                    if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
-                    if (action.Rewards.FullRecovery) recoveryMessage += " (Fully recovered)";
-                    _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
-
-                    // Advance to next day morning
-                    TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
-                    ProcessTimeAdvancement(timeResult);
-                }
-                break;
-
-            case LocationActionType.Work:
-                // Delegate to ResourceFacade with data-driven rewards
-                await PerformWork(action.Rewards);
-                break;
-
-            case LocationActionType.Investigate:
-                // Delegate to LocationFacade for familiarity gain
-                _locationFacade.InvestigateLocation(locationId);
-                _messageSystem.AddSystemMessage("🔍 Investigated location, gaining familiarity", SystemMessageTypes.Info);
-                break;
-
-            default:
-                throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
-        }
-
-        await Task.CompletedTask;
-    }
+    // ========== DEPRECATED - ACTION EXECUTION REPLACED BY INTENT SYSTEM ==========
+    // Old ExecutePlayerAction and ExecuteLocationAction methods deleted.
+    // All actions now execute through ProcessIntent() for unified handling.
 
     // ========== CONVERSATION OPERATIONS ==========
 
@@ -853,56 +687,234 @@ public class GameFacade
 
     // ========== INTENT PROCESSING ==========
 
-    public async Task<bool> ProcessIntent(PlayerIntent intent)
+    /// <summary>
+    /// HIGHLANDER: Single execution point for ALL player intents.
+    /// Backend authority: Determines all effects, navigation, and refresh requirements.
+    /// Returns strongly-typed result for UI to interpret without making decisions.
+    /// </summary>
+    public async Task<IntentResult> ProcessIntent(PlayerIntent intent)
     {
         return intent switch
         {
-            TravelIntent travel => await TravelToDestinationAsync(travel.RouteId),
-            MoveIntent move => MoveToSpot(move.TargetSpotId),
+            // Navigation intents
+            CheckBelongingsIntent => ProcessCheckBelongingsIntent(),
+            TravelIntent travel => await ProcessTravelIntentAsync(travel.RouteId),
+
+            // Movement intents
+            MoveIntent move => ProcessMoveIntent(move.TargetSpotId),
+
+            // Player action intents
             WaitIntent => ProcessWaitIntent(),
-            RestIntent rest => ProcessRestIntent(rest.Segments),
-            _ => ProcessGenericIntent(intent)
+            SleepOutsideIntent => ProcessSleepOutsideIntent(),
+
+            // Location action intents
+            RestAtLocationIntent => await ProcessRestAtLocationIntent(),
+            SecureRoomIntent => await ProcessSecureRoomIntent(),
+            WorkIntent => await ProcessWorkIntent(),
+            InvestigateLocationIntent => ProcessInvestigateIntent(),
+
+            // Conversation/NPC intents
+            TalkIntent talk => await ProcessTalkIntent(talk.NpcId),
+
+            _ => IntentResult.Failed()
         };
     }
 
-    private bool ProcessWaitIntent()
+    // ========== NAVIGATION INTENT HANDLERS ==========
+
+    private IntentResult ProcessCheckBelongingsIntent()
     {
+        // Backend authority: This action navigates to equipment screen
+        return IntentResult.NavigateTo(ScreenNavigation.Equipment);
+    }
+
+    private async Task<IntentResult> ProcessTravelIntentAsync(string routeId)
+    {
+        bool success = await TravelToDestinationAsync(routeId);
+        return success ? IntentResult.NavigateTo(ScreenNavigation.TravelScreen) : IntentResult.Failed();
+    }
+
+    // ========== MOVEMENT INTENT HANDLERS ==========
+
+    private IntentResult ProcessMoveIntent(string targetSpotId)
+    {
+        bool success = MoveToSpot(targetSpotId);
+        return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
+    }
+
+    // ========== PLAYER ACTION INTENT HANDLERS ==========
+
+    private IntentResult ProcessWaitIntent()
+    {
+        // Fetch entity for data-driven execution
+        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.Wait);
+        if (action == null)
+        {
+            _messageSystem.AddSystemMessage("Wait action not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Execute with data from entity
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(1); // Wait costs 1 segment
+        _resourceFacade.ExecuteWait();
+        TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
             CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            SegmentsAdvanced = 1
+            SegmentsAdvanced = action.TimeRequired
         });
 
-        _narrativeFacade.AddSystemMessage("You wait and time passes", SystemMessageTypes.Info);
-        return true;
+        return IntentResult.Executed(requiresRefresh: true);
     }
 
-    private bool ProcessRestIntent(int segments)
+    private IntentResult ProcessSleepOutsideIntent()
     {
+        // Fetch entity for data-driven costs
+        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.SleepOutside);
+        if (action == null)
+        {
+            _messageSystem.AddSystemMessage("SleepOutside action not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Apply costs from entity (data-driven)
+        Player player = _gameWorld.GetPlayer();
+        int healthCost = action.Costs.HealthCost;
+        player.ModifyHealth(-healthCost);
+
+        _messageSystem.AddSystemMessage(
+            $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
+            SystemMessageTypes.Warning);
+
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    // ========== LOCATION ACTION INTENT HANDLERS ==========
+
+    private async Task<IntentResult> ProcessRestAtLocationIntent()
+    {
+        // Fetch entity for data-driven rewards
+        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.Rest);
+        if (action == null)
+        {
+            _messageSystem.AddSystemMessage("Rest action not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Execute with data from entity
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(segments);
+        _resourceFacade.ExecuteRest(action.Rewards);
+        TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
         ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
             CrossedTimeBlock = oldTimeBlock != newTimeBlock,
-            SegmentsAdvanced = segments
+            SegmentsAdvanced = action.TimeRequired
         });
 
-        _narrativeFacade.AddSystemMessage($"You rest for {segments} segment(s)", SystemMessageTypes.Info);
-        return true;
+        await Task.CompletedTask;
+        return IntentResult.Executed(requiresRefresh: true);
     }
 
-    private bool ProcessGenericIntent(PlayerIntent intent)
+    private async Task<IntentResult> ProcessSecureRoomIntent()
     {
-        _narrativeFacade.AddSystemMessage($"Intent type '{intent.GetType().Name}' not implemented", SystemMessageTypes.Warning);
-        return false;
+        // Fetch entity for data-driven recovery
+        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.SecureRoom);
+        if (action == null)
+        {
+            _messageSystem.AddSystemMessage("SecureRoom action not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Record recovery amounts for message
+        int healthBefore = player.Health;
+        int staminaBefore = player.Stamina;
+        int hungerBefore = player.Hunger;
+        int focusBefore = player.Focus;
+
+        // Check if action grants full recovery (data-driven from JSON)
+        if (action.Rewards.FullRecovery)
+        {
+            // Full resource recovery
+            player.Health = player.MaxHealth;
+            player.Stamina = player.MaxStamina;
+            player.Hunger = 0; // Full recovery means no hunger
+            player.Focus = player.MaxFocus;
+        }
+        else
+        {
+            // Partial recovery based on rewards
+            player.Health = Math.Min(player.Health + action.Rewards.HealthRecovery, player.MaxHealth);
+            player.Stamina = Math.Min(player.Stamina + action.Rewards.StaminaRecovery, player.MaxStamina);
+            player.Focus = Math.Min(player.Focus + action.Rewards.FocusRecovery, player.MaxFocus);
+        }
+
+        int healthRecovered = player.Health - healthBefore;
+        int staminaRecovered = player.Stamina - staminaBefore;
+        int hungerRecovered = hungerBefore - player.Hunger;
+        int focusRecovered = player.Focus - focusBefore;
+
+        // Generate recovery message
+        string recoveryMessage = "You rest in a secure room through the night.";
+        if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
+        if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
+        if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
+        if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
+        if (action.Rewards.FullRecovery) recoveryMessage += " (Fully recovered)";
+        _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+
+        // Advance to next day morning
+        TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
+        ProcessTimeAdvancement(timeResult);
+
+        await Task.CompletedTask;
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    private async Task<IntentResult> ProcessWorkIntent()
+    {
+        // Fetch entity for data-driven rewards
+        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == LocationActionType.Work);
+        if (action == null)
+        {
+            _messageSystem.AddSystemMessage("Work action not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Execute with data from entity
+        await PerformWork(action.Rewards);
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    private IntentResult ProcessInvestigateIntent()
+    {
+        Location currentSpot = GetCurrentLocationSpot();
+        if (currentSpot == null)
+        {
+            _messageSystem.AddSystemMessage("No current location to investigate", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        _locationFacade.InvestigateLocation(currentSpot.Id);
+        _messageSystem.AddSystemMessage("🔍 Investigated location, gaining familiarity", SystemMessageTypes.Info);
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    // ========== NPC INTERACTION INTENT HANDLERS ==========
+
+    private async Task<IntentResult> ProcessTalkIntent(string npcId)
+    {
+        // TODO: Implement conversation initiation
+        _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
+        await Task.CompletedTask;
+        return IntentResult.Executed(requiresRefresh: false);
     }
 
     public ConnectionState GetNPCConnectionState(string npcId)

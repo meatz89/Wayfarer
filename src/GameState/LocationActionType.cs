@@ -5,8 +5,9 @@
 ///
 /// ADD NEW ACTIONS:
 /// 1. Add enum value here
-/// 2. Add handler in GameFacade.ExecuteLocationAction()
-/// 3. Add JSON entry in locationActions array with property requirements
+/// 2. Create intent class in PlayerIntent.cs
+/// 3. Add handler in GameFacade.ProcessIntent()
+/// 4. Add JSON entry in locationActions array with property requirements
 /// </summary>
 public enum LocationActionType
 {

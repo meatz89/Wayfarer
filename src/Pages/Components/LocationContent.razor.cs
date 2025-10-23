@@ -52,48 +52,84 @@ namespace Wayfarer.Pages.Components
         }
 
         // ============================================
-        // ACTION DELEGATION - pass to backend
+        // ACTION DELEGATION - Intent-based execution
+        // Backend authority: UI creates intent, backend determines effects
+        // UI interprets result without making decisions
         // ============================================
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
-            // Parse action type and delegate to GameFacade with strongly-typed enum
+            PlayerIntent intent = null;
+
+            // Parse enum and create strongly-typed intent
             if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
             {
-                if (playerActionType == PlayerActionType.CheckBelongings)
+                intent = playerActionType switch
                 {
-                    NavigateToView(LocationViewState.Equipment);
-                }
-                else
-                {
-                    await GameFacade.ExecutePlayerAction(playerActionType);
-                    await RefreshLocationData();
-                    await OnActionExecuted.InvokeAsync();
-                }
+                    PlayerActionType.CheckBelongings => new CheckBelongingsIntent(),
+                    PlayerActionType.Wait => new WaitIntent(),
+                    PlayerActionType.SleepOutside => new SleepOutsideIntent(),
+                    _ => null
+                };
             }
             else if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType locationActionType))
             {
-                if (locationActionType == LocationActionType.Travel)
+                intent = locationActionType switch
                 {
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.HandleNavigation("travel");
-                    }
-                }
-                else
-                {
-                    Location currentSpot = GameFacade.GetCurrentLocationSpot();
-                    if (currentSpot != null)
-                    {
-                        await GameFacade.ExecuteLocationAction(locationActionType, currentSpot.Id);
-                        await RefreshLocationData();
-                        await OnActionExecuted.InvokeAsync();
-                    }
-                }
+                    LocationActionType.Rest => new RestAtLocationIntent(),
+                    LocationActionType.SecureRoom => new SecureRoomIntent(),
+                    LocationActionType.Work => new WorkIntent(),
+                    LocationActionType.Investigate => new InvestigateLocationIntent(),
+                    LocationActionType.Travel => null,  // Handled separately via GameScreen
+                    _ => null
+                };
             }
-            else
+
+            // Special case: Travel goes through GameScreen routing
+            if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType travelType)
+                && travelType == LocationActionType.Travel)
             {
-                throw new InvalidOperationException($"Unknown action type: {action.ActionType}");
+                if (GameScreen != null)
+                {
+                    await GameScreen.HandleNavigation("travel");
+                }
+                return;
+            }
+
+            if (intent == null)
+            {
+                throw new InvalidOperationException($"No intent mapping for action type: {action.ActionType}");
+            }
+
+            // Execute via intent system - backend decides everything
+            IntentResult result = await GameFacade.ProcessIntent(intent);
+
+            // Interpret result without making decisions - just follow instructions
+            if (result.Success)
+            {
+                // Handle navigation if backend says to navigate
+                if (result.Navigation.HasValue)
+                {
+                    switch (result.Navigation.Value)
+                    {
+                        case ScreenNavigation.Equipment:
+                            NavigateToView(LocationViewState.Equipment);
+                            break;
+                        case ScreenNavigation.TravelScreen:
+                            if (GameScreen != null)
+                            {
+                                await GameScreen.HandleNavigation("travel");
+                            }
+                            break;
+                    }
+                }
+
+                // Refresh if backend says to refresh
+                if (result.RequiresLocationRefresh)
+                {
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+                }
             }
         }
 

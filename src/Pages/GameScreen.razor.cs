@@ -443,17 +443,20 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         RouteOption route = GameFacade.GetRouteById(routeId);
 
         TravelIntent travelIntent = new TravelIntent(routeId);
-        await GameFacade.ProcessIntent(travelIntent);
+        IntentResult result = await GameFacade.ProcessIntent(travelIntent);
 
-        // Refresh UI after action
-        await RefreshResourceDisplay();
-        await RefreshTimeDisplay();
-        await RefreshLocationDisplay();
+        if (result.Success)
+        {
+            // Refresh UI after action
+            await RefreshResourceDisplay();
+            await RefreshTimeDisplay();
+            await RefreshLocationDisplay();
 
-        // Force UI update to show the new time
-        await InvokeAsync(StateHasChanged);
+            // Force UI update to show the new time
+            await InvokeAsync(StateHasChanged);
 
-        await NavigateToScreen(ScreenMode.Location);
+            await NavigateToScreen(ScreenMode.Location);
+        }
     }
 
     protected async Task HandleObstacleEnd(bool success)
@@ -465,13 +468,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
             // Execute travel via intent system
             TravelIntent travelIntent = new TravelIntent(routeId);
-            await GameFacade.ProcessIntent(travelIntent);
+            IntentResult result = await GameFacade.ProcessIntent(travelIntent);
 
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
+            if (result.Success)
+            {
+                await RefreshResourceDisplay();
+                await RefreshTimeDisplay();
+                await RefreshLocationDisplay();
 
-            await NavigateToScreen(ScreenMode.Location);
+                await NavigateToScreen(ScreenMode.Location);
+            }
         }
         else
         {

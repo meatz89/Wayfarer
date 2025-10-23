@@ -43,19 +43,6 @@ public class TalkIntent : PlayerIntent
     }
 }
 
-/// <summary>
-/// Intent to rest for a certain number of segments
-/// </summary>
-public class RestIntent : PlayerIntent
-{
-    public int Segments { get; }
-
-    public RestIntent(int segments)
-    {
-        // No validation - let it fail naturally if segments <= 0
-        Segments = segments;
-    }
-}
 
 /// <summary>
 /// Intent to wait until the next time period (refreshes attention)
@@ -121,5 +108,54 @@ public class DiscoverRouteIntent : PlayerIntent
         NpcId = npcId;
         RouteId = routeId;
     }
+}
+
+/// <summary>
+/// Intent to view player's equipment and inventory
+/// Triggers navigation to equipment screen - backend decides
+/// </summary>
+public class CheckBelongingsIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to sleep rough without shelter
+/// Uses PlayerAction entity for data-driven health cost
+/// </summary>
+public class SleepOutsideIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to rest at current location
+/// Uses LocationAction entity for data-driven recovery rewards
+/// Replaces old RestIntent(int segments) with data-driven approach
+/// </summary>
+public class RestAtLocationIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to secure a paid room for full recovery
+/// Uses LocationAction entity for cost and fullRecovery flag
+/// </summary>
+public class SecureRoomIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to work at current location for coins
+/// Uses LocationAction entity for data-driven coin rewards
+/// </summary>
+public class WorkIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to investigate current location for familiarity
+/// Delegates to LocationFacade
+/// </summary>
+public class InvestigateLocationIntent : PlayerIntent
+{
 }
 
