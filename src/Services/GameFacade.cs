@@ -346,16 +346,17 @@ public class GameFacade
     /// <summary>
     /// Execute a PlayerAction by its strongly-typed enum.
     /// Single dispatch point for all global player actions (Check Belongings, Wait).
+    /// Fetches entity for data (costs/rewards), dispatches on enum for routing.
     /// </summary>
-    public async Task ExecutePlayerAction(string actionId)
+    public async Task ExecutePlayerAction(PlayerActionType actionType)
     {
-        // Fetch full PlayerAction entity to access cost/reward information
-        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.Id == actionId);
+        // Fetch PlayerAction entity by enum (NOT string matching) to access cost/reward data
+        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == actionType);
         if (action == null)
-            throw new InvalidOperationException($"PlayerAction {actionId} not found");
+            throw new InvalidOperationException($"PlayerAction with type {actionType} not found");
 
-        // Execute action based on its type
-        switch (action.ActionType)
+        // Execute action based on enum (strongly typed dispatch)
+        switch (actionType)
         {
             case PlayerActionType.CheckBelongings:
                 // Navigate to equipment screen
@@ -389,23 +390,23 @@ public class GameFacade
                 break;
 
             default:
-                throw new InvalidOperationException($"Unknown PlayerActionType: {action.ActionType}");
+                throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
         }
 
         await Task.CompletedTask;
     }
 
     /// <summary>
-    /// Execute a LocationAction by its ID.
-    /// Fetches the full LocationAction entity to access cost/reward information.
+    /// Execute a LocationAction by its strongly-typed enum.
     /// Single dispatch point for all location-specific actions (Travel, Rest, Work, Investigate).
+    /// Fetches entity for data (costs/rewards), dispatches on enum for routing.
     /// </summary>
-    public async Task ExecuteLocationAction(string actionId, string locationId)
+    public async Task ExecuteLocationAction(LocationActionType actionType, string locationId)
     {
-        // Fetch full LocationAction entity to access cost information
-        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.Id == actionId);
+        // Fetch LocationAction entity by enum (NOT string matching) to access cost/reward data
+        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.ActionType == actionType);
         if (action == null)
-            throw new InvalidOperationException($"LocationAction {actionId} not found");
+            throw new InvalidOperationException($"LocationAction with type {actionType} not found");
 
         // Check and deduct coin cost BEFORE executing action
         if (action.Costs.CoinCost > 0)
@@ -418,8 +419,8 @@ public class GameFacade
             }
         }
 
-        // Execute action based on its type
-        switch (action.ActionType)
+        // Execute action based on enum (strongly typed dispatch)
+        switch (actionType)
         {
             case LocationActionType.Travel:
                 // Navigate to travel screen
@@ -504,7 +505,7 @@ public class GameFacade
                 break;
 
             default:
-                throw new InvalidOperationException($"Unknown LocationActionType: {action.ActionType}");
+                throw new InvalidOperationException($"Unknown LocationActionType: {actionType}");
         }
 
         await Task.CompletedTask;

@@ -57,7 +57,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
-            // Parse action type and delegate to GameFacade
+            // Parse action type and delegate to GameFacade with strongly-typed enum
             if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
             {
                 if (playerActionType == PlayerActionType.CheckBelongings)
@@ -66,7 +66,7 @@ namespace Wayfarer.Pages.Components
                 }
                 else
                 {
-                    await GameFacade.ExecutePlayerAction(action.Id);
+                    await GameFacade.ExecutePlayerAction(playerActionType);
                     await RefreshLocationData();
                     await OnActionExecuted.InvokeAsync();
                 }
@@ -85,7 +85,7 @@ namespace Wayfarer.Pages.Components
                     Location currentSpot = GameFacade.GetCurrentLocationSpot();
                     if (currentSpot != null)
                     {
-                        await GameFacade.ExecuteLocationAction(action.Id, currentSpot.Id);
+                        await GameFacade.ExecuteLocationAction(locationActionType, currentSpot.Id);
                         await RefreshLocationData();
                         await OnActionExecuted.InvokeAsync();
                     }
