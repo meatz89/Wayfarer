@@ -69,6 +69,10 @@
         "actionType": "Rest",
         "priority": 50,
         "cost": {},
+        "reward": {
+          "health": 1,
+          "stamina": 1
+        },
         "timeRequired": 1,
         "availability": ["Morning", "Midday", "Afternoon", "Evening"],
         "requiredProperties": ["restful"],
@@ -84,9 +88,28 @@
         "cost": {
           "coins": 10
         },
+        "reward": {
+          "fullRecovery": true
+        },
         "timeRequired": 1,
         "availability": ["Evening"],
         "requiredProperties": [],
+        "optionalProperties": [],
+        "excludedProperties": []
+      },
+      {
+        "id": "work",
+        "name": "Work",
+        "description": "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
+        "actionType": "Work",
+        "priority": 150,
+        "cost": {},
+        "reward": {
+          "coins": 8
+        },
+        "timeRequired": 1,
+        "availability": ["Morning", "Midday", "Afternoon"],
+        "requiredProperties": ["commercial"],
         "optionalProperties": [],
         "excludedProperties": []
       }
@@ -116,7 +139,9 @@
         "description": "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
         "actionType": "SleepOutside",
         "priority": 300,
-        "cost": {},
+        "cost": {
+          "health": 2
+        },
         "timeRequired": 0
       }
     ],

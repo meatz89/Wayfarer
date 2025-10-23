@@ -23,4 +23,9 @@ public class ActionRewardsDTO
     /// Stamina recovery from this action
     /// </summary>
     public int Stamina { get; set; }
+
+    /// <summary>
+    /// Whether this action provides full recovery of all resources
+    /// </summary>
+    public bool FullRecovery { get; set; }
 }

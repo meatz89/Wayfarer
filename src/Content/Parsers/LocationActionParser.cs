@@ -91,7 +91,8 @@ public static class LocationActionParser
             CoinReward = dto.Coins,
             HealthRecovery = dto.Health,
             FocusRecovery = dto.Focus,
-            StaminaRecovery = dto.Stamina
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
         };
     }
 

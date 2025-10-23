@@ -29,6 +29,7 @@ public static class PlayerActionParser
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
             Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
             Priority = dto.Priority
         };
@@ -47,6 +48,21 @@ public static class PlayerActionParser
             FocusCost = dto.Focus,
             StaminaCost = dto.Stamina,
             HealthCost = dto.Health
+        };
+    }
+
+    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
+    {
+        if (dto == null)
+            return ActionRewards.None();
+
+        return new ActionRewards
+        {
+            CoinReward = dto.Coins,
+            HealthRecovery = dto.Health,
+            FocusRecovery = dto.Focus,
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
         };
     }
 

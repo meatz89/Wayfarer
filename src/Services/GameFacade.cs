@@ -322,9 +322,9 @@ public class GameFacade
         return _resourceFacade.GetInventoryViewModel();
     }
 
-    public async Task<WorkResult> PerformWork()
+    public async Task<WorkResult> PerformWork(ActionRewards rewards)
     {
-        WorkResult result = _resourceFacade.PerformWork();
+        WorkResult result = _resourceFacade.PerformWork(rewards);
         if (result.Success)
         {
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -347,9 +347,15 @@ public class GameFacade
     /// Execute a PlayerAction by its strongly-typed enum.
     /// Single dispatch point for all global player actions (Check Belongings, Wait).
     /// </summary>
-    public async Task ExecutePlayerAction(PlayerActionType actionType)
+    public async Task ExecutePlayerAction(string actionId)
     {
-        switch (actionType)
+        // Fetch full PlayerAction entity to access cost/reward information
+        PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.Id == actionId);
+        if (action == null)
+            throw new InvalidOperationException($"PlayerAction {actionId} not found");
+
+        // Execute action based on its type
+        switch (action.ActionType)
         {
             case PlayerActionType.CheckBelongings:
                 // Navigate to equipment screen
@@ -373,16 +379,17 @@ public class GameFacade
                 break;
 
             case PlayerActionType.SleepOutside:
-                // Sleep rough without shelter: -2 Health, no recovery, no time advancement
+                // Sleep rough without shelter - use data-driven cost from action
                 Player player = _gameWorld.GetPlayer();
-                player.ModifyHealth(-2);
+                int healthCost = action.Costs.HealthCost;
+                player.ModifyHealth(-healthCost);
                 _messageSystem.AddSystemMessage(
-                    "You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-2 Health)",
+                    $"You sleep rough on a bench. Cold. Uncomfortable. You wake stiff and sore. (-{healthCost} Health)",
                     SystemMessageTypes.Warning);
                 break;
 
             default:
-                throw new InvalidOperationException($"Unknown PlayerActionType: {actionType}");
+                throw new InvalidOperationException($"Unknown PlayerActionType: {action.ActionType}");
         }
 
         await Task.CompletedTask;
@@ -421,10 +428,10 @@ public class GameFacade
                 break;
 
             case LocationActionType.Rest:
-                // Free rest: Partial recovery (+1 health, +1 stamina, +1 time)
+                // Rest with data-driven recovery from action rewards
                 {
                     TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
-                    _resourceFacade.ExecuteRest();
+                    _resourceFacade.ExecuteRest(action.Rewards);
                     TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
                     ProcessTimeAdvancement(new TimeAdvancementResult
@@ -438,7 +445,7 @@ public class GameFacade
                 break;
 
             case LocationActionType.SecureRoom:
-                // Paid secure room: Full recovery and advance to next day morning
+                // Secure room with data-driven recovery - check for fullRecovery flag
                 {
                     Player player = _gameWorld.GetPlayer();
 
@@ -448,11 +455,22 @@ public class GameFacade
                     int hungerBefore = player.Hunger;
                     int focusBefore = player.Focus;
 
-                    // Full resource recovery
-                    player.Health = player.MaxHealth;
-                    player.Stamina = player.MaxStamina;
-                    player.Hunger = 0; // Full recovery means no hunger
-                    player.Focus = player.MaxFocus;
+                    // Check if action grants full recovery (data-driven from JSON)
+                    if (action.Rewards.FullRecovery)
+                    {
+                        // Full resource recovery
+                        player.Health = player.MaxHealth;
+                        player.Stamina = player.MaxStamina;
+                        player.Hunger = 0; // Full recovery means no hunger
+                        player.Focus = player.MaxFocus;
+                    }
+                    else
+                    {
+                        // Partial recovery based on rewards
+                        player.Health = Math.Min(player.Health + action.Rewards.HealthRecovery, player.MaxHealth);
+                        player.Stamina = Math.Min(player.Stamina + action.Rewards.StaminaRecovery, player.MaxStamina);
+                        player.Focus = Math.Min(player.Focus + action.Rewards.FocusRecovery, player.MaxFocus);
+                    }
 
                     int healthRecovered = player.Health - healthBefore;
                     int staminaRecovered = player.Stamina - staminaBefore;
@@ -465,7 +483,7 @@ public class GameFacade
                     if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
                     if (hungerRecovered > 0) recoveryMessage += $" Hunger -{hungerRecovered}";
                     if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
-                    recoveryMessage += " (Fully recovered)";
+                    if (action.Rewards.FullRecovery) recoveryMessage += " (Fully recovered)";
                     _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
 
                     // Advance to next day morning
@@ -475,8 +493,8 @@ public class GameFacade
                 break;
 
             case LocationActionType.Work:
-                // Delegate to ResourceFacade for work rewards
-                await PerformWork();
+                // Delegate to ResourceFacade with data-driven rewards
+                await PerformWork(action.Rewards);
                 break;
 
             case LocationActionType.Investigate:

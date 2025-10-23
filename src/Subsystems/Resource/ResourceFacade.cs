@@ -280,11 +280,11 @@ public class ResourceFacade
     // ========== WORK AND REST OPERATIONS ==========
 
     /// <summary>
-    /// Execute Rest action: Advance 1 time segment and recover +1 Health and +1 Stamina.
+    /// Execute Rest action: Advance 1 time segment and restore resources based on action rewards.
     /// Hunger increases by +5 automatically via time progression.
-    /// Only available at locations with "rest" or "restful" property.
+    /// Data-driven: rewards from JSON action definition.
     /// </summary>
-    public void ExecuteRest()
+    public void ExecuteRest(ActionRewards rewards)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -294,12 +294,12 @@ public class ResourceFacade
         // Hunger increases by +5 per segment (automatic via time progression)
         // No need to manually modify hunger here
 
-        // Resource recovery
+        // Resource recovery - data-driven from action rewards
         int healthBefore = player.Health;
         int staminaBefore = player.Stamina;
 
-        player.Health = Math.Min(player.Health + 1, player.MaxHealth);      // +1 health (16.7% of 6-point max)
-        player.Stamina = Math.Min(player.Stamina + 1, player.MaxStamina);   // +1 stamina (16.7% of 6-point max)
+        player.Health = Math.Min(player.Health + rewards.HealthRecovery, player.MaxHealth);
+        player.Stamina = Math.Min(player.Stamina + rewards.StaminaRecovery, player.MaxStamina);
 
         int healthRecovered = player.Health - healthBefore;
         int staminaRecovered = player.Stamina - staminaBefore;
@@ -374,12 +374,13 @@ public class ResourceFacade
     }
 
     /// <summary>
-    /// Perform work to earn coins with hunger-based scaling
+    /// Perform work to earn coins with hunger-based scaling.
+    /// Data-driven: base pay from action rewards JSON.
     /// </summary>
-    public WorkResult PerformWork()
+    public WorkResult PerformWork(ActionRewards rewards)
     {
-        // Base work payment
-        int baseAmount = 8;
+        // Base work payment - data-driven from action rewards
+        int baseAmount = rewards.CoinReward;
 
         // Apply hunger penalty: coins = base_amount - floor(hunger/25)
         int currentHunger = GetHunger();

@@ -28,6 +28,11 @@ public class PlayerAction
     public ActionCosts Costs { get; set; } = new ActionCosts();
 
     /// <summary>
+    /// Resources rewarded for performing this action
+    /// </summary>
+    public ActionRewards Rewards { get; set; } = new ActionRewards();
+
+    /// <summary>
     /// Time required to complete this action in segments
     /// </summary>
     public int TimeRequired { get; set; }

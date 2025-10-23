@@ -66,7 +66,7 @@ namespace Wayfarer.Pages.Components
                 }
                 else
                 {
-                    await GameFacade.ExecutePlayerAction(playerActionType);
+                    await GameFacade.ExecutePlayerAction(action.Id);
                     await RefreshLocationData();
                     await OnActionExecuted.InvokeAsync();
                 }
