@@ -31,7 +31,7 @@ namespace Wayfarer.Pages.Components
     {
         [Parameter] public string CurrentLocation { get; set; }
         [Parameter] public EventCallback<string> OnTravelRoute { get; set; }
-        [Parameter] public EventCallback<string> OnNavigate { get; set; }
+        [Parameter] public EventCallback OnNavigate { get; set; }
 
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
@@ -348,7 +348,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ReturnToLocation()
         {
-            await OnNavigate.InvokeAsync("location");
+            await OnNavigate.InvokeAsync();
         }
 
         protected string GetRouteTypeClass(RouteViewModel route)

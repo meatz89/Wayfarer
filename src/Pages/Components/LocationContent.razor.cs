@@ -80,20 +80,9 @@ namespace Wayfarer.Pages.Components
                     LocationActionType.SecureRoom => new SecureRoomIntent(),
                     LocationActionType.Work => new WorkIntent(),
                     LocationActionType.Investigate => new InvestigateLocationIntent(),
-                    LocationActionType.Travel => null,  // Handled separately via GameScreen
+                    LocationActionType.Travel => new OpenTravelScreenIntent(),
                     _ => null
                 };
-            }
-
-            // Special case: Travel goes through GameScreen routing
-            if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType travelType)
-                && travelType == LocationActionType.Travel)
-            {
-                if (GameScreen != null)
-                {
-                    await GameScreen.HandleNavigation("travel");
-                }
-                return;
             }
 
             if (intent == null)
@@ -104,24 +93,19 @@ namespace Wayfarer.Pages.Components
             // Execute via intent system - backend decides everything
             IntentResult result = await GameFacade.ProcessIntent(intent);
 
-            // Interpret result without making decisions - just follow instructions
+            // Interpret result without making decisions - just follow backend instructions
             if (result.Success)
             {
-                // Handle navigation if backend says to navigate
-                if (result.Navigation.HasValue)
+                // Screen-level navigation (GameScreen handles)
+                if (result.NavigateToScreen.HasValue && GameScreen != null)
                 {
-                    switch (result.Navigation.Value)
-                    {
-                        case ScreenNavigation.Equipment:
-                            NavigateToView(LocationViewState.Equipment);
-                            break;
-                        case ScreenNavigation.TravelScreen:
-                            if (GameScreen != null)
-                            {
-                                await GameScreen.HandleNavigation("travel");
-                            }
-                            break;
-                    }
+                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
+                }
+
+                // View-level navigation (LocationContent handles)
+                if (result.NavigateToView.HasValue)
+                {
+                    NavigateToView(result.NavigateToView.Value);
                 }
 
                 // Refresh if backend says to refresh
@@ -329,18 +313,5 @@ namespace Wayfarer.Pages.Components
                 StaminaCost = SelectedGoal.Costs.Stamina
             };
         }
-    }
-
-    // ============================================
-    // VIEW STATE ENUM
-    // ============================================
-
-    public enum LocationViewState
-    {
-        Landing,
-        LookingAround,
-        GoalDetail,
-        Spots,
-        Equipment
     }
 }

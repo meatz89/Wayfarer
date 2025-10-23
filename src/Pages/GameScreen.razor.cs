@@ -261,19 +261,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
     }
 
-    public async Task HandleNavigation(string target)
-    {
-        switch (target.ToLower())
-        {
-            case "location":
-                await NavigateToScreen(ScreenMode.Location);
-                break;
-            case "travel":
-                await NavigateToScreen(ScreenMode.Travel);
-                break;
-        }
-    }
-
     public async Task StartExchange(string npcId)
     {
         CurrentExchangeContext = await GameFacade.CreateExchangeContext(npcId);
@@ -758,16 +745,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         await InvokeAsync(StateHasChanged);
     }
-}
-
-public enum ScreenMode
-{
-    Location,
-    Exchange,
-    Travel,
-    SocialChallenge,
-    MentalChallenge,
-    PhysicalChallenge
 }
 
 public class ScreenContext

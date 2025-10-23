@@ -146,10 +146,10 @@
                     break;
                     
                 case ScreenMode.Travel:
-                    <TravelContent 
+                    <TravelContent
                         CurrentLocation="@GetCurrentLocation()"
                         OnTravelRoute="HandleTravelRoute"
-                        OnNavigate="HandleNavigation" />
+                        OnNavigate="() => NavigateToScreen(ScreenMode.Location)" />
                     break;
                     
                 case ScreenMode.SocialChallenge:

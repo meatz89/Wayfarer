@@ -159,3 +159,11 @@ public class InvestigateLocationIntent : PlayerIntent
 {
 }
 
+/// <summary>
+/// Intent to open the Travel screen to view available routes
+/// Different from TravelIntent which executes travel to a specific destination
+/// </summary>
+public class OpenTravelScreenIntent : PlayerIntent
+{
+}
+

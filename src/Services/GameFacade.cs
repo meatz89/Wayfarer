@@ -698,6 +698,7 @@ public class GameFacade
         {
             // Navigation intents
             CheckBelongingsIntent => ProcessCheckBelongingsIntent(),
+            OpenTravelScreenIntent => ProcessOpenTravelScreenIntent(),
             TravelIntent travel => await ProcessTravelIntentAsync(travel.RouteId),
 
             // Movement intents
@@ -724,14 +725,21 @@ public class GameFacade
 
     private IntentResult ProcessCheckBelongingsIntent()
     {
-        // Backend authority: This action navigates to equipment screen
-        return IntentResult.NavigateTo(ScreenNavigation.Equipment);
+        // Backend authority: Navigate to Equipment view within Location screen
+        return IntentResult.NavigateView(LocationViewState.Equipment);
+    }
+
+    private IntentResult ProcessOpenTravelScreenIntent()
+    {
+        // Backend authority: Navigate to Travel screen to view available routes
+        return IntentResult.NavigateScreen(ScreenMode.Travel);
     }
 
     private async Task<IntentResult> ProcessTravelIntentAsync(string routeId)
     {
+        // Backend authority: Navigate to Travel screen (screen-level navigation)
         bool success = await TravelToDestinationAsync(routeId);
-        return success ? IntentResult.NavigateTo(ScreenNavigation.TravelScreen) : IntentResult.Failed();
+        return success ? IntentResult.NavigateScreen(ScreenMode.Travel) : IntentResult.Failed();
     }
 
     // ========== MOVEMENT INTENT HANDLERS ==========

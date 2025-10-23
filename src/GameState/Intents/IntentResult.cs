@@ -12,10 +12,16 @@ public class IntentResult
     public bool Success { get; set; }
 
     /// <summary>
-    /// Screen navigation target if intent triggers navigation (null if no navigation)
-    /// Backend decides: CheckBelongings → Equipment, Travel action → TravelScreen
+    /// Screen-level navigation if intent triggers screen change (null if no screen navigation)
+    /// Backend decides: TravelIntent → ScreenMode.Travel
     /// </summary>
-    public ScreenNavigation? Navigation { get; set; }
+    public ScreenMode? NavigateToScreen { get; set; }
+
+    /// <summary>
+    /// View-level navigation if intent triggers view change within Location screen (null if no view navigation)
+    /// Backend decides: CheckBelongingsIntent → LocationViewState.Equipment
+    /// </summary>
+    public LocationViewState? NavigateToView { get; set; }
 
     /// <summary>
     /// Whether UI should refresh location data after execution
@@ -36,15 +42,29 @@ public class IntentResult
     }
 
     /// <summary>
-    /// Create result that triggers screen navigation
-    /// Navigation-only actions don't require location refresh
+    /// Create result that navigates to different screen
+    /// Screen navigation doesn't require location refresh
     /// </summary>
-    public static IntentResult NavigateTo(ScreenNavigation target)
+    public static IntentResult NavigateScreen(ScreenMode screen)
     {
         return new IntentResult
         {
             Success = true,
-            Navigation = target,
+            NavigateToScreen = screen,
+            RequiresLocationRefresh = false
+        };
+    }
+
+    /// <summary>
+    /// Create result that navigates to different view within Location screen
+    /// View navigation doesn't require location refresh (just view change)
+    /// </summary>
+    public static IntentResult NavigateView(LocationViewState view)
+    {
+        return new IntentResult
+        {
+            Success = true,
+            NavigateToView = view,
             RequiresLocationRefresh = false
         };
     }
@@ -62,21 +82,3 @@ public class IntentResult
     }
 }
 
-/// <summary>
-/// Screen navigation targets that intents can trigger.
-/// Backend authority: Backend decides navigation targets, UI just navigates.
-/// </summary>
-public enum ScreenNavigation
-{
-    /// <summary>
-    /// Navigate to equipment/inventory view
-    /// Triggered by: CheckBelongingsIntent
-    /// </summary>
-    Equipment,
-
-    /// <summary>
-    /// Navigate to travel/routes screen
-    /// Triggered by: TravelIntent (opens travel UI)
-    /// </summary>
-    TravelScreen
-}
