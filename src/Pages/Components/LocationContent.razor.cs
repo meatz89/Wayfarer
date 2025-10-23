@@ -97,7 +97,7 @@ namespace Wayfarer.Pages.Components
             if (result.Success)
             {
                 // Screen-level navigation (GameScreen handles)
-                if (result.NavigateToScreen.HasValue && GameScreen != null)
+                if (result.NavigateToScreen.HasValue)
                 {
                     await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
                 }
@@ -121,31 +121,16 @@ namespace Wayfarer.Pages.Components
         {
             if (goal.SystemType == TacticalSystemType.Social)
             {
-                if (GameScreen != null)
-                {
-                    await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
-                }
+                await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
             }
             else if (goal.SystemType == TacticalSystemType.Mental)
             {
-                if (GameScreen == null)
-                    throw new InvalidOperationException("GameScreen not available");
-
                 Player player = GameWorld.GetPlayer();
-                if (player.CurrentLocation == null)
-                    throw new InvalidOperationException("Player has no current location");
-
                 await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
             }
             else if (goal.SystemType == TacticalSystemType.Physical)
             {
-                if (GameScreen == null)
-                    throw new InvalidOperationException("GameScreen not available");
-
                 Player player = GameWorld.GetPlayer();
-                if (player.CurrentLocation == null)
-                    throw new InvalidOperationException("Player has no current location");
-
                 await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
             }
         }
@@ -244,10 +229,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task HandleStartExchange(string npcId)
         {
-            if (GameScreen != null)
-            {
-                await GameScreen.StartExchange(npcId);
-            }
+            await GameScreen.StartExchange(npcId);
         }
 
         // ============================================

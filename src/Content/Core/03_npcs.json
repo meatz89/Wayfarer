@@ -50,7 +50,7 @@
         "locationId": "square_center",
         "description": "A traveling merchant with various goods for sale. Practical equipment for travelers and adventurers.",
         "personality": "Business-minded and efficient. Knows the value of good equipment.",
-        "personalityType": "SHREWD",
+        "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0

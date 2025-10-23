@@ -425,27 +425,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task HandleTravelRoute(string routeId)
-    {
-        RouteOption route = GameFacade.GetRouteById(routeId);
-
-        TravelIntent travelIntent = new TravelIntent(routeId);
-        IntentResult result = await GameFacade.ProcessIntent(travelIntent);
-
-        if (result.Success)
-        {
-            // Refresh UI after action
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
-
-            // Force UI update to show the new time
-            await InvokeAsync(StateHasChanged);
-
-            await NavigateToScreen(ScreenMode.Location);
-        }
-    }
-
     protected async Task HandleObstacleEnd(bool success)
     {// If obstacle was successfully overcome, complete the pending travel
         if (success && CurrentObstacleContext?.Route != null)

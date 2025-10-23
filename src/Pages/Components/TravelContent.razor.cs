@@ -30,7 +30,6 @@ namespace Wayfarer.Pages.Components
     public class TravelContentBase : ComponentBase
     {
         [Parameter] public string CurrentLocation { get; set; }
-        [Parameter] public EventCallback<string> OnTravelRoute { get; set; }
         [Parameter] public EventCallback OnNavigate { get; set; }
 
         [Inject] protected GameFacade GameFacade { get; set; }
