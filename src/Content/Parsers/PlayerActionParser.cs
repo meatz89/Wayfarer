@@ -36,26 +36,18 @@ public static class PlayerActionParser
         return action;
     }
 
-    private static ActionCosts ParseCosts(Dictionary<string, int> costDict)
+    private static ActionCosts ParseCosts(ActionCostsDTO dto)
     {
-        if (costDict == null || costDict.Count == 0)
+        if (dto == null)
             return ActionCosts.None();
 
-        ActionCosts costs = new ActionCosts();
-
-        if (costDict.ContainsKey("coins"))
-            costs.CoinCost = costDict["coins"];
-
-        if (costDict.ContainsKey("focus"))
-            costs.FocusCost = costDict["focus"];
-
-        if (costDict.ContainsKey("stamina"))
-            costs.StaminaCost = costDict["stamina"];
-
-        if (costDict.ContainsKey("health"))
-            costs.HealthCost = costDict["health"];
-
-        return costs;
+        return new ActionCosts
+        {
+            CoinCost = dto.Coins,
+            FocusCost = dto.Focus,
+            StaminaCost = dto.Stamina,
+            HealthCost = dto.Health
+        };
     }
 
     private static void ValidateRequiredFields(PlayerActionDTO dto)

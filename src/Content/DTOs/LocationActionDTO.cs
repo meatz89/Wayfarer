@@ -38,14 +38,14 @@ public class LocationActionDTO
     public List<string> ExcludedProperties { get; set; } = new List<string>();
 
     /// <summary>
-    /// Resource costs required to perform this action (e.g., attention, coins)
+    /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
 
     /// <summary>
-    /// Resources rewarded for performing this action (e.g., coins, stamina)
+    /// Resources rewarded for performing this action
     /// </summary>
-    public Dictionary<string, int> Reward { get; set; } = new Dictionary<string, int>();
+    public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
 
     /// <summary>
     /// Time required to complete this action in segments

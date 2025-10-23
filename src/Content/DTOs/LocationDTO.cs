@@ -20,7 +20,6 @@ public class LocationDTO
 
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }
-    public Dictionary<string, int> ObligationScaling { get; set; } = new Dictionary<string, int>();
     public bool CanWork { get; set; }
     public string WorkType { get; set; }
     public int WorkPay { get; set; }

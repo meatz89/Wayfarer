@@ -23,9 +23,9 @@ public class PlayerActionDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Resource costs required to perform this action (e.g., attention, coins)
+    /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
 
     /// <summary>
     /// Time required to complete this action in segments

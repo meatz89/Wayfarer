@@ -41,10 +41,7 @@
             "busy"
           ]
         },
-        "canInvestigate": false,
-        "obligationScaling": {
-          "default": 1
-        }
+        "canInvestigate": false
       },
       {
         "id": "common_room",
@@ -61,10 +58,7 @@
             "restful"
           ]
         },
-        "canInvestigate": false,
-        "obligationScaling": {
-          "default": 1
-        }
+        "canInvestigate": false
       }
     ],
     "locationActions": [
