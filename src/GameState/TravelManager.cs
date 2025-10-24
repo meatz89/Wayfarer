@@ -678,7 +678,7 @@ public class TravelManager
             GetSegmentCards();
         }
         // Note: IsReadyToComplete is set in SelectPathCard when on the last segment
-        // This ensures players must select a card even on the final segment
+        // This ensures The Single Player must select a card even on the final segment
     }
 
     /// <summary>

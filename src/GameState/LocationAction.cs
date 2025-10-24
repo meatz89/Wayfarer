@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Represents a location-specific action that players can take.
+/// Represents a location-specific action that The Single Player can take.
 /// Uses property-based matching to dynamically determine availability at different locations.
 /// </summary>
 public class LocationAction

@@ -1,6 +1,6 @@
 /// <summary>
 /// Single bonus source for transparent effect calculation.
-/// Perfect information principle: Players must see ALL bonuses that affect their actions.
+/// Perfect information principle: The Single Player must see ALL bonuses that affect their actions.
 /// </summary>
 public class EffectBonus
 {
