@@ -9,5 +9,8 @@ public enum ScreenMode
     Travel,
     SocialChallenge,
     MentalChallenge,
-    PhysicalChallenge
+    PhysicalChallenge,
+    ConversationTree,
+    Observation,
+    Emergency
 }

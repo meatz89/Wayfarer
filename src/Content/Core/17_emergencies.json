@@ -1,0 +1,317 @@
+{
+  "packageId": "core_emergencies",
+  "metadata": {
+    "version": "1.0",
+    "author": "Wayfarer Core",
+    "description": "Core emergency situations for Brass Bell Inn and Town Square tutorial area"
+  },
+  "emergencySituations": [
+    {
+      "id": "common_room_brawl",
+      "name": "Brawl in the Common Room",
+      "description": "A heated argument between two patrons erupts into violence. Tables crash, drinks spill, and Elena shouts for someone to stop them before the watch arrives.",
+      "triggerDay": 1,
+      "triggerSegment": 6,
+      "triggerLocationIds": ["common_room"],
+      "responseWindowSegments": 1,
+      "responses": [
+        {
+          "id": "intervene_physically",
+          "responseText": "Intervene physically - separate the fighters",
+          "description": "Use force to break up the fight. Fast and effective, but risky.",
+          "staminaCost": 3,
+          "healthCost": 2,
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": 2,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": 3
+            },
+            "grantedKnowledge": ["stopped_common_room_brawl", "reputation_brave"],
+            "narrativeResult": "You wade into the fight and forcibly separate the combatants. One swings at you, connecting with your shoulder, but you shove them apart. Elena thanks you profusely - the last thing she needs is the watch shutting down her business."
+          }
+        },
+        {
+          "id": "intervene_diplomatically",
+          "responseText": "Intervene diplomatically - talk them down",
+          "description": "Use words to de-escalate. Safer but requires skill.",
+          "staminaCost": 0,
+          "healthCost": 0,
+          "coinCost": 5,
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": 1,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": 2,
+              "thomas_foreman": 1
+            },
+            "grantedKnowledge": ["stopped_common_room_brawl", "reputation_diplomatic"],
+            "narrativeResult": "You step between them with raised hands and sharp words. 'Gentlemen, the first round's on me if you both sit down NOW.' Your tone brooks no argument, and you punctuate it by placing coins on the bar. The fighters hesitate, then grudgingly separate. Elena nods approvingly."
+          }
+        },
+        {
+          "id": "fetch_guards",
+          "responseText": "Fetch the town watch",
+          "description": "Get official help. Takes longer but avoids personal risk.",
+          "staminaCost": 2,
+          "healthCost": 0,
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": -1,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": -2
+            },
+            "grantedKnowledge": ["called_guards_on_brawl", "elena_disappointed"],
+            "narrativeResult": "You rush to fetch the watch. By the time you return with guards, the fight has ended, but the common room is wrecked. Elena's face is tight with anger - at the fighters, and at you for making this official. 'Now there'll be questions,' she mutters."
+          }
+        }
+      ],
+      "ignoreOutcome": {
+        "relationshipDelta": -2,
+        "npcRelationshipDeltas": {
+          "elena_innkeeper": -3
+        },
+        "grantedKnowledge": ["ignored_brawl", "reputation_coward"],
+        "narrativeResult": "You stay out of it. The fight continues until one man is unconscious and the other is arrested by the watch. Elena looks at you with barely disguised contempt. 'I see,' she says coldly. 'Good to know where you stand.'"
+      }
+    },
+    {
+      "id": "injured_traveler",
+      "name": "Injured Traveler Arrives",
+      "description": "A bloodied traveler stumbles into the inn late at night, gasping about an attack on the eastern road. They need help immediately, but helping might draw unwanted attention.",
+      "triggerDay": 2,
+      "triggerSegment": 8,
+      "triggerLocationIds": ["common_room"],
+      "responseWindowSegments": 1,
+      "responses": [
+        {
+          "id": "provide_aid",
+          "responseText": "Provide medical aid and shelter",
+          "description": "Use your limited supplies to help. Costs resources but earns gratitude.",
+          "staminaCost": 2,
+          "coinCost": 10,
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": 3,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": 2
+            },
+            "grantedKnowledge": ["helped_injured_traveler", "eastern_road_dangerous", "traveler_owes_debt"],
+            "narrativeResult": "You tend their wounds with bandages and clean water. The traveler grips your hand. 'Bandits,' they whisper. 'Not random thieves - organized. They knew the caravan schedule.' This is bigger than you thought."
+          }
+        },
+        {
+          "id": "question_first",
+          "responseText": "Question them about the attack before helping",
+          "description": "Get information while they're vulnerable. Pragmatic but cold.",
+          "staminaCost": 0,
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": 0,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": -1
+            },
+            "grantedKnowledge": ["questioned_injured_traveler", "eastern_road_dangerous", "reputation_ruthless"],
+            "narrativeResult": "You demand answers before offering aid. The traveler's eyes harden even through the pain. 'Fine,' they gasp, and tell you what they saw - but they'll remember your priorities. Elena watches with an unreadable expression."
+          }
+        },
+        {
+          "id": "send_to_guards",
+          "responseText": "Direct them to the town watch",
+          "description": "Make it official. Safer for you, but less personal connection.",
+          "staminaCost": 0,
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": -1,
+            "grantedKnowledge": ["sent_traveler_to_guards", "investigation_now_official"],
+            "narrativeResult": "You direct them to the guard post. The traveler staggers off. Later, you hear the watch has launched an investigation into the eastern road. Whatever's happening, it's now in official hands - for better or worse."
+          }
+        }
+      ],
+      "ignoreOutcome": {
+        "relationshipDelta": -3,
+        "npcRelationshipDeltas": {
+          "elena_innkeeper": -2
+        },
+        "grantedKnowledge": ["ignored_injured_traveler", "reputation_heartless"],
+        "narrativeResult": "You pretend not to notice. The traveler collapses near the door. Elena rushes to help them, shooting you a look of pure disgust. You've made an impression, but not the kind you'd want."
+      }
+    },
+    {
+      "id": "market_day_theft",
+      "name": "Theft at the Market",
+      "description": "A child is caught stealing bread from a merchant's stall. The merchant is furious and has the child by the collar, shouting for the watch. A crowd gathers, waiting to see what happens.",
+      "triggerDay": 3,
+      "triggerSegment": 4,
+      "triggerLocationIds": ["square_center"],
+      "responseWindowSegments": 1,
+      "responses": [
+        {
+          "id": "pay_for_bread",
+          "responseText": "Pay for the bread and apologize to the merchant",
+          "description": "Solve it with coin. Simple but costly.",
+          "coinCost": 8,
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": 2,
+            "npcRelationshipDeltas": {
+              "merchant_general": 1
+            },
+            "grantedKnowledge": ["helped_thief_child", "reputation_generous", "child_remembers_kindness"],
+            "narrativeResult": "You step forward and place coins on the merchant's stall. 'An honest mistake,' you say firmly. The merchant grumbles but releases the child, who looks at you with wide, grateful eyes before disappearing into the crowd. You've made a friend today."
+          }
+        },
+        {
+          "id": "defend_child",
+          "responseText": "Defend the child - they're clearly desperate",
+          "description": "Argue for mercy. Costs social standing with merchants.",
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": 1,
+            "npcRelationshipDeltas": {
+              "merchant_general": -2
+            },
+            "grantedKnowledge": ["defended_thief_child", "reputation_sympathetic", "merchant_disapproves"],
+            "narrativeResult": "You speak loudly enough for the crowd to hear. 'Look at them - starving. What crime is it to steal food when you're hungry?' The crowd murmurs agreement. The merchant, sensing public opinion turning, releases the child with a scowl. You've earned the child's gratitude but a merchant's ire."
+          }
+        },
+        {
+          "id": "support_merchant",
+          "responseText": "Support the merchant - theft is theft",
+          "description": "Take the lawful side. Earns merchant respect, loses public sympathy.",
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": -2,
+            "npcRelationshipDeltas": {
+              "merchant_general": 3
+            },
+            "grantedKnowledge": ["condemned_thief_child", "reputation_lawful", "child_remembers_betrayal"],
+            "narrativeResult": "You nod to the merchant. 'Rules exist for a reason. The watch should handle this.' The merchant beams, but the crowd disperses in disappointed silence. The child is led away by guards, shooting you a look that promises they won't forget."
+          }
+        }
+      ],
+      "ignoreOutcome": {
+        "relationshipDelta": 0,
+        "grantedKnowledge": ["ignored_market_theft"],
+        "narrativeResult": "You keep walking. The crowd handles it - some other traveler pays for the bread. The moment passes without touching you, for better or worse."
+      }
+    },
+    {
+      "id": "night_fire",
+      "name": "Fire in the Storage House",
+      "description": "Flames erupt from a storage building near the square. Black smoke pours into the night sky. People are shouting for water, for help, for someone to organize a response. This could spread to other buildings if not stopped.",
+      "triggerDay": 4,
+      "triggerSegment": 8,
+      "triggerLocationIds": ["square_center", "common_room"],
+      "responseWindowSegments": 1,
+      "responses": [
+        {
+          "id": "lead_firefighting",
+          "responseText": "Lead the firefighting effort",
+          "description": "Take charge and organize the response. Exhausting but heroic.",
+          "staminaCost": 5,
+          "healthCost": 3,
+          "timeCost": 3,
+          "outcome": {
+            "relationshipDelta": 5,
+            "npcRelationshipDeltas": {
+              "elena_innkeeper": 3,
+              "thomas_foreman": 4,
+              "merchant_general": 2
+            },
+            "grantedKnowledge": ["led_fire_response", "reputation_hero", "community_respects_you"],
+            "coinReward": 25,
+            "narrativeResult": "You shout orders, organizing bucket chains and directing people to safety. The fire fights back - smoke sears your lungs, heat blisters your hands - but under your leadership, the flames are contained. Thomas claps your shoulder with genuine respect. 'You saved half the square tonight,' he says. The town won't forget."
+          }
+        },
+        {
+          "id": "help_evacuate",
+          "responseText": "Help evacuate people and valuables",
+          "description": "Focus on saving lives and goods. Safer than firefighting.",
+          "staminaCost": 3,
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": 3,
+            "npcRelationshipDeltas": {
+              "merchant_general": 3
+            },
+            "grantedKnowledge": ["helped_evacuate_fire", "reputation_helpful", "merchants_grateful"],
+            "narrativeResult": "While others fight the flames, you rush into nearby buildings, helping people grab what matters most. A merchant presses a bundle into your hands. 'You saved my stock,' he gasps. 'Take this - you earned it.' The fire eventually burns out, but you mitigated the losses."
+          }
+        },
+        {
+          "id": "investigate_cause",
+          "responseText": "Investigate how the fire started",
+          "description": "Stay back and look for clues while others fight the fire.",
+          "staminaCost": 0,
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": -1,
+            "grantedKnowledge": ["investigated_fire_cause", "fire_was_deliberate", "oil_residue_found"],
+            "narrativeResult": "While everyone else battles flames, you circle the building's perimeter. There - oil residue that shouldn't be there. Scorched rags that look deliberately placed. This was arson. The knowledge weighs heavy, but others mutter about your priorities. 'Could've helped,' someone says bitterly."
+          }
+        }
+      ],
+      "ignoreOutcome": {
+        "relationshipDelta": -5,
+        "npcRelationshipDeltas": {
+          "elena_innkeeper": -3,
+          "thomas_foreman": -4,
+          "merchant_general": -3
+        },
+        "grantedKnowledge": ["ignored_fire", "reputation_selfish", "community_distrusts_you"],
+        "narrativeResult": "You watch from a safe distance. The fire spreads to two more buildings before being contained. Many lose their livelihoods. When people ask where you were, you have no good answer. The town's opinion of you curdles overnight."
+      }
+    },
+    {
+      "id": "corvus_confrontation",
+      "name": "Corvus Demands Answers",
+      "description": "The mysterious guest Corvus corners you in the inn. 'You've been asking questions about me,' they say quietly, hand resting on a concealed weapon. 'I'd like to know why - and I'd like to know now.'",
+      "triggerDay": null,
+      "triggerSegment": null,
+      "triggerLocationIds": ["common_room"],
+      "responseWindowSegments": 1,
+      "responses": [
+        {
+          "id": "honest_explanation",
+          "responseText": "Explain honestly - you're investigating the grain shortage",
+          "description": "Tell the truth and hope for cooperation.",
+          "timeCost": 2,
+          "outcome": {
+            "relationshipDelta": 0,
+            "grantedKnowledge": ["corvus_knows_your_investigation", "corvus_offers_information"],
+            "narrativeResult": "You explain your investigation into the missing grain delivery. Corvus's expression doesn't change, but their hand moves away from their weapon. 'Interesting,' they murmur. 'Perhaps we can help each other. I'm investigating the same thing - from a different angle.' An uneasy partnership begins."
+          }
+        },
+        {
+          "id": "deflect_with_charm",
+          "responseText": "Deflect with charm and misdirection",
+          "description": "Talk your way out without revealing anything.",
+          "staminaCost": 1,
+          "timeCost": 1,
+          "outcome": {
+            "relationshipDelta": -1,
+            "grantedKnowledge": ["corvus_suspicious_of_you", "corvus_watching_you"],
+            "narrativeResult": "You smile and spin a story about being naturally curious about interesting people. Corvus doesn't buy it - you can see it in their eyes - but they let it go. 'Curiosity,' they say softly, 'killed more than just cats.' They walk away, but you feel their eyes on you for days after."
+          }
+        },
+        {
+          "id": "aggressive_response",
+          "responseText": "Match their aggression - you don't answer to them",
+          "description": "Stand your ground forcefully. Risky but earns respect.",
+          "staminaCost": 2,
+          "outcome": {
+            "relationshipDelta": 1,
+            "grantedKnowledge": ["corvus_respects_strength", "corvus_potential_ally"],
+            "narrativeResult": "You meet their gaze without flinching. 'I ask questions when I want answers. If that bothers you, that's your problem.' Corvus's lips twitch - almost a smile. 'Backbone,' they say approvingly. 'Rare in this town. We'll talk again - on more equal terms.' They leave, and you exhale slowly."
+          }
+        }
+      ],
+      "ignoreOutcome": {
+        "relationshipDelta": -3,
+        "grantedKnowledge": ["corvus_enemy", "reputation_coward"],
+        "narrativeResult": "You try to leave without answering. Corvus blocks your path. 'Running?' they say coldly. 'I'll remember that.' From that moment on, you feel doors closing before you reach them, information drying up, helpful people suddenly unavailable. Corvus is working against you now."
+      }
+    }
+  ]
+}

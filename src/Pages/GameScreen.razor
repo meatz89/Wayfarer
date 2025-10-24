@@ -163,6 +163,18 @@
                     <PhysicalContent Context="@CurrentPhysicalContext" OnChallengeEnd="HandlePhysicalEnd" />
                     break;
 
+                case ScreenMode.ConversationTree:
+                    <ConversationTreeContent Context="@CurrentConversationTreeContext" OnConversationEnd="HandleConversationTreeEnd" />
+                    break;
+
+                case ScreenMode.Observation:
+                    <ObservationContent Context="@CurrentObservationContext" OnObservationEnd="HandleObservationEnd" />
+                    break;
+
+                case ScreenMode.Emergency:
+                    <EmergencyContent Context="@CurrentEmergencyContext" OnEmergencyEnd="HandleEmergencyEnd" />
+                    break;
+
                 default:
                     <LocationContent OnActionExecuted="RefreshUI" />
                     break;

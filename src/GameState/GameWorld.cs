@@ -57,6 +57,15 @@ public class GameWorld
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
 
+    // ConversationTrees - Simple dialogue without tactical challenge
+    public List<ConversationTree> ConversationTrees { get; set; } = new List<ConversationTree>();
+    // ObservationScenes - Scene investigation with multiple examination points
+    public List<ObservationScene> ObservationScenes { get; set; } = new List<ObservationScene>();
+    // EmergencySituations - Urgent situations demanding immediate response
+    public List<EmergencySituation> EmergencySituations { get; set; } = new List<EmergencySituation>();
+    // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
+    public EmergencySituation ActiveEmergency { get; set; }
+
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
     public List<Obligation> Obligations { get; private set; } = new List<Obligation>();

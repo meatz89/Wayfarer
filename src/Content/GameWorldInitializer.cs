@@ -54,6 +54,20 @@ public static class GameWorldInitializer
             // No need to populate duplicate object lists
         }
 
+        // Wire ConversationTrees
+        foreach (ConversationTree tree in gameWorld.ConversationTrees)
+        {
+            if (!string.IsNullOrEmpty(tree.NpcId))
+                tree.Npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == tree.NpcId);
+        }
+
+        // Wire ObservationScenes
+        foreach (ObservationScene scene in gameWorld.ObservationScenes)
+        {
+            if (!string.IsNullOrEmpty(scene.LocationId))
+                scene.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == scene.LocationId);
+        }
+
         // Locations reference goals/obstacles via IDs only (ActiveGoalIds/ObstacleIds)
         // No object list population needed - GameWorld.Goals/Obstacles is single source of truth
     }

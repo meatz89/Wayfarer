@@ -25,6 +25,10 @@ namespace Wayfarer.Pages.Components
         // VIEW MODEL STORAGE - all pre-built by facade
         protected LocationContentViewModel ViewModel { get; set; } = new();
 
+        // SCREEN EXPANSION - Conversation trees and observation scenes
+        protected List<ConversationTree> AvailableConversationTrees { get; set; } = new();
+        protected List<ObservationScene> AvailableObservationScenes { get; set; } = new();
+
         protected override async Task OnInitializedAsync()
         {
             ResetNavigation();
@@ -47,6 +51,14 @@ namespace Wayfarer.Pages.Components
 
             // ONE call to backend - receives ALL data pre-built
             ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
+
+            // Load available conversation trees and observation scenes for current location
+            string locationId = GameWorld.GetPlayer().CurrentLocation?.Id;
+            if (locationId != null)
+            {
+                AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
+                AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
+            }
 
             await Task.CompletedTask;
         }
@@ -294,6 +306,20 @@ namespace Wayfarer.Pages.Components
                 FocusCost = SelectedGoal.Costs.Focus,
                 StaminaCost = SelectedGoal.Costs.Stamina
             };
+        }
+
+        // ============================================
+        // SCREEN EXPANSION HANDLERS
+        // ============================================
+
+        protected async Task HandleStartConversationTree(string treeId)
+        {
+            await GameScreen.StartConversationTree(treeId);
+        }
+
+        protected async Task HandleStartObservationScene(string sceneId)
+        {
+            await GameScreen.StartObservationScene(sceneId);
         }
     }
 }

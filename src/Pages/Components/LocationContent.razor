@@ -297,10 +297,57 @@
                         }
                     }
 
+                    @* ========== CONVERSATION TREES ========== *@
+                    @if (AvailableConversationTrees.Any())
+                    {
+                        <div class="section-subheader">Available Conversations</div>
+
+                        <div class="actions-grid">
+                            @foreach (var tree in AvailableConversationTrees)
+                            {
+                                <div class="goal-action-btn"
+                                     @onclick="async () => await HandleStartConversationTree(tree.Id)">
+                                    <div class="goal-system-badge conversation">Conversation</div>
+                                    <div class="goal-name">@tree.Name</div>
+                                    @if (!string.IsNullOrEmpty(tree.Description))
+                                    {
+                                        <div class="goal-description">@tree.Description</div>
+                                    }
+                                    @if (tree.Npc != null)
+                                    {
+                                        <div class="goal-meta">with @tree.Npc.Name</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @* ========== OBSERVATION SCENES ========== *@
+                    @if (AvailableObservationScenes.Any())
+                    {
+                        <div class="section-subheader">Investigate</div>
+
+                        <div class="actions-grid">
+                            @foreach (var scene in AvailableObservationScenes)
+                            {
+                                <div class="goal-action-btn"
+                                     @onclick="async () => await HandleStartObservationScene(scene.Id)">
+                                    <div class="goal-system-badge observation">Observation</div>
+                                    <div class="goal-name">@scene.Name</div>
+                                    @if (!string.IsNullOrEmpty(scene.Description))
+                                    {
+                                        <div class="goal-description">@scene.Description</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
                     @* ========== EMPTY STATE ========== *@
                     @if (!ViewModel.NPCsWithGoals.Any()
                         && !ViewModel.AmbientMentalGoals.Any() && !ViewModel.MentalObstacles.Any()
-                        && !ViewModel.AmbientPhysicalGoals.Any() && !ViewModel.PhysicalObstacles.Any())
+                        && !ViewModel.AmbientPhysicalGoals.Any() && !ViewModel.PhysicalObstacles.Any()
+                        && !AvailableConversationTrees.Any() && !AvailableObservationScenes.Any())
                     {
                         <p>The area is quiet. No one else is here, and nothing catches your attention.</p>
                     }

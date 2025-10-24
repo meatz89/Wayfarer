@@ -98,10 +98,16 @@ public class Player
     // Mental resource - Understanding cumulative expertise (0-10 scale)
     // Granted by ALL Mental challenges (+1 to +3 based on difficulty)
     // Used by DifficultyModifiers to reduce Exposure baseline
-    // Never depletes - permanent player growth (Knowledge system replacement)
+    // Never depletes - permanent player growth (Mental challenge expertise)
     // Competition: Multiple obligations need it, limited Focus/Time to accumulate
     // Strategic choice: Build Understanding through easy challenges, or attempt hard challenges early
     public int Understanding { get; set; } = 0;
+
+    // Narrative knowledge tokens - Acquired through conversations, observations, and emergencies
+    // Used for: Unlocking conversation trees, gating dialogue responses, quest progression
+    // Distinct from Understanding (which is Mental challenge expertise level 0-10)
+    // Examples: "guard_routine", "secret_passage", "npc_motivation"
+    public List<string> Knowledge { get; set; } = new List<string>();
 
     public void AddKnownRoute(RouteOption route)
     {

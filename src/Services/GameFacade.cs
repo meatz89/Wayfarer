@@ -26,6 +26,9 @@ public class GameFacade
     private readonly CubeFacade _cubeFacade;
     private readonly ObligationActivity _obligationActivity;
     private readonly ObligationDiscoveryEvaluator _obligationDiscoveryEvaluator;
+    private readonly ConversationTreeFacade _conversationTreeFacade;
+    private readonly ObservationFacade _observationFacade;
+    private readonly EmergencyFacade _emergencyFacade;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -42,7 +45,10 @@ public class GameFacade
         PhysicalFacade physicalFacade,
         CubeFacade cubeFacade,
         ObligationActivity obligationActivity,
-        ObligationDiscoveryEvaluator obligationDiscoveryEvaluator)
+        ObligationDiscoveryEvaluator obligationDiscoveryEvaluator,
+        ConversationTreeFacade conversationTreeFacade,
+        ObservationFacade observationFacade,
+        EmergencyFacade emergencyFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -59,6 +65,9 @@ public class GameFacade
         _cubeFacade = cubeFacade ?? throw new ArgumentNullException(nameof(cubeFacade));
         _obligationActivity = obligationActivity;
         _obligationDiscoveryEvaluator = obligationDiscoveryEvaluator;
+        _conversationTreeFacade = conversationTreeFacade ?? throw new ArgumentNullException(nameof(conversationTreeFacade));
+        _observationFacade = observationFacade ?? throw new ArgumentNullException(nameof(observationFacade));
+        _emergencyFacade = emergencyFacade ?? throw new ArgumentNullException(nameof(emergencyFacade));
     }
 
     // ========== CORE GAME STATE ==========
@@ -952,7 +961,7 @@ public class GameFacade
 
     /// <summary>
     /// HIGHLANDER: THE ONLY place for processing time advancement side effects.
-    /// All time-based resource changes happen here (hunger, day transitions).
+    /// All time-based resource changes happen here (hunger, day transitions, emergency checking).
     /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
     /// </summary>
     private void ProcessTimeAdvancement(TimeAdvancementResult result)
@@ -967,6 +976,17 @@ public class GameFacade
         if (result.CrossedDayBoundary && result.NewTimeBlock == TimeBlocks.Morning)
         {
             _resourceFacade.ProcessDayTransition();
+        }
+
+        // EMERGENCY CHECKING: Check for active emergencies at sync points
+        // Emergencies interrupt normal gameplay and demand immediate response
+        EmergencySituation activeEmergency = CheckForActiveEmergency();
+        if (activeEmergency != null)
+        {
+            _gameWorld.ActiveEmergency = activeEmergency;
+            _messageSystem.AddSystemMessage(
+                $"⚠️ EMERGENCY: {activeEmergency.Name}",
+                SystemMessageTypes.Warning);
         }
     }
 
@@ -1246,6 +1266,112 @@ public class GameFacade
     {
         return _travelFacade.GetAvailableRoutesFromCurrentLocation()
             .FirstOrDefault(r => r.Id == routeId);
+    }
+
+    // ========== CONVERSATION TREE OPERATIONS ==========
+
+    /// <summary>
+    /// Create context for conversation tree screen
+    /// </summary>
+    public ConversationTreeContext CreateConversationTreeContext(string treeId)
+    {
+        return _conversationTreeFacade.CreateContext(treeId);
+    }
+
+    /// <summary>
+    /// Select a dialogue response in conversation tree
+    /// </summary>
+    public ConversationTreeResult SelectConversationResponse(string treeId, string nodeId, string responseId)
+    {
+        return _conversationTreeFacade.SelectResponse(treeId, nodeId, responseId);
+    }
+
+    // ========== OBSERVATION SCENE OPERATIONS ==========
+
+    /// <summary>
+    /// Create context for observation scene screen
+    /// </summary>
+    public ObservationContext CreateObservationContext(string sceneId)
+    {
+        return _observationFacade.CreateContext(sceneId);
+    }
+
+    /// <summary>
+    /// Examine a point in an observation scene
+    /// </summary>
+    public ObservationResult ExaminePoint(string sceneId, string pointId)
+    {
+        return _observationFacade.ExaminePoint(sceneId, pointId);
+    }
+
+    // ========== EMERGENCY SITUATION OPERATIONS ==========
+
+    /// <summary>
+    /// Check for active emergencies (called at sync points)
+    /// </summary>
+    public EmergencySituation CheckForActiveEmergency()
+    {
+        return _emergencyFacade.CheckForActiveEmergency();
+    }
+
+    /// <summary>
+    /// Create context for emergency screen
+    /// </summary>
+    public EmergencyContext CreateEmergencyContext(string emergencyId)
+    {
+        return _emergencyFacade.CreateContext(emergencyId);
+    }
+
+    /// <summary>
+    /// Select a response to an emergency situation
+    /// </summary>
+    public EmergencyResult SelectEmergencyResponse(string emergencyId, string responseId)
+    {
+        return _emergencyFacade.SelectResponse(emergencyId, responseId);
+    }
+
+    /// <summary>
+    /// Ignore an emergency situation
+    /// </summary>
+    public EmergencyResult IgnoreEmergency(string emergencyId)
+    {
+        return _emergencyFacade.IgnoreEmergency(emergencyId);
+    }
+
+    // ========== LOCATION QUERY METHODS ==========
+
+    /// <summary>
+    /// Get all conversation trees available at a specific location
+    /// </summary>
+    public List<ConversationTree> GetAvailableConversationTreesAtLocation(string locationId)
+    {
+        return _conversationTreeFacade.GetAvailableTreesAtLocation(locationId);
+    }
+
+    /// <summary>
+    /// Get all observation scenes available at a specific location
+    /// </summary>
+    public List<ObservationScene> GetAvailableObservationScenesAtLocation(string locationId)
+    {
+        return _observationFacade.GetAvailableScenesAtLocation(locationId);
+    }
+
+    // ========== ACTIVE EMERGENCY OPERATIONS ==========
+
+    /// <summary>
+    /// Get the currently active emergency (if any)
+    /// </summary>
+    public EmergencySituation GetActiveEmergency()
+    {
+        return _gameWorld.ActiveEmergency;
+    }
+
+    /// <summary>
+    /// Clear the active emergency (called after emergency screen resolves)
+    /// </summary>
+    public void ClearActiveEmergency()
+    {
+        _gameWorld.ActiveEmergency = null;
     }
 
 }

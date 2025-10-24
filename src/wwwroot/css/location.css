@@ -1472,6 +1472,16 @@ body * {
     color: white;
 }
 
+.goal-system-badge.conversation {
+    background: linear-gradient(to right, #d4a76a, #e8c494);
+    color: white;
+}
+
+.goal-system-badge.observation {
+    background: linear-gradient(to right, #5a8b8b, #7ab8b8);
+    color: white;
+}
+
 .goal-name {
     font-size: 16px;
     font-weight: bold;

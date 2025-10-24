@@ -169,4 +169,19 @@ public class PackageContent
     /// Can be placed on Locations, NPCs, or Routes
     /// </summary>
     public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+
+    /// <summary>
+    /// Conversation tree definitions - simple dialogue trees that can escalate to Social challenges
+    /// </summary>
+    public List<ConversationTreeDTO> ConversationTrees { get; set; } = new List<ConversationTreeDTO>();
+
+    /// <summary>
+    /// Observation scene definitions - scene investigation with multiple examination points
+    /// </summary>
+    public List<ObservationSceneDTO> ObservationScenes { get; set; } = new List<ObservationSceneDTO>();
+
+    /// <summary>
+    /// Emergency situation definitions - urgent situations demanding immediate response
+    /// </summary>
+    public List<EmergencySituationDTO> EmergencySituations { get; set; } = new List<EmergencySituationDTO>();
 }

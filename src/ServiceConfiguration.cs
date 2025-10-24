@@ -195,6 +195,11 @@ public static class ServiceConfiguration
         // Mastery (Cubes) Subsystem
         services.AddSingleton<CubeFacade>();
 
+        // Screen Expansion Subsystems - ConversationTree, Observation, Emergency
+        services.AddSingleton<ConversationTreeFacade>();
+        services.AddSingleton<ObservationFacade>();
+        services.AddSingleton<EmergencyFacade>();
+
         // Game Facade - THE single entry point for all UI-Backend communication
         services.AddSingleton<GameFacade>();
         services.AddSingleton<NPCService>();

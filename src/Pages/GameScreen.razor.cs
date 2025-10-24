@@ -63,6 +63,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
+    protected ConversationTreeContext CurrentConversationTreeContext { get; set; }
+    protected ObservationContext CurrentObservationContext { get; set; }
+    protected EmergencyContext CurrentEmergencyContext { get; set; }
     protected int PendingLetterCount { get; set; }
     public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
@@ -71,6 +74,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
+
+        // Check for active emergency - interrupts normal gameplay
+        EmergencySituation activeEmergency = GameFacade.GetActiveEmergency();
+        if (activeEmergency != null)
+        {
+            await StartEmergency(activeEmergency.Id);
+            return; // Emergency takes priority, skip normal initialization
+        }
+
         await base.OnInitializedAsync();
     }
 
@@ -408,6 +420,54 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         { }
     }
 
+    public async Task StartConversationTree(string treeId)
+    {
+        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(treeId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentConversationTreeContext != null && CurrentConversationTreeContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.ConversationTree;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task StartObservationScene(string sceneId)
+    {
+        CurrentObservationContext = GameFacade.CreateObservationContext(sceneId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentObservationContext != null && CurrentObservationContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.Observation;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task StartEmergency(string emergencyId)
+    {
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentEmergencyContext != null && CurrentEmergencyContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.Emergency;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     public async Task HandlePhysicalEnd()
     {
         CurrentPhysicalContext = null;
@@ -419,6 +479,51 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         // Check for obligation results before returning to location
         await CheckForObligationResults();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleConversationTreeEnd()
+    {
+        CurrentConversationTreeContext = null;
+
+        // Always refresh UI after conversation tree ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleObservationEnd()
+    {
+        CurrentObservationContext = null;
+
+        // Always refresh UI after observation ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleEmergencyEnd()
+    {
+        CurrentEmergencyContext = null;
+
+        // Clear the active emergency in GameWorld
+        GameFacade.ClearActiveEmergency();
+
+        // Always refresh UI after emergency ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
 
         CurrentScreen = ScreenMode.Location;
         ContentVersion++;

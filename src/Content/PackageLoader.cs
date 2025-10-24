@@ -135,6 +135,11 @@ public class PackageLoader
         LoadGoals(package.Content.Goals, allowSkeletons);
         LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
+        // 3.6 Screen Expansion Systems (conversation trees, observation scenes, emergencies)
+        LoadConversationTrees(package.Content.ConversationTrees, allowSkeletons);
+        LoadObservationScenes(package.Content.ObservationScenes, allowSkeletons);
+        LoadEmergencySituations(package.Content.EmergencySituations, allowSkeletons);
+
         // 4. NPCs (reference locations, Locations, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
         LoadStrangers(package.Content.Strangers, allowSkeletons);
@@ -1438,6 +1443,39 @@ public class PackageLoader
         {
             TravelObstacle obstacle = parser.ParseTravelObstacle(dto);
             _gameWorld.TravelObstacles.Add(obstacle);
+        }
+    }
+
+    private void LoadConversationTrees(List<ConversationTreeDTO> conversationTrees, bool allowSkeletons)
+    {
+        if (conversationTrees == null) return;
+
+        foreach (ConversationTreeDTO dto in conversationTrees)
+        {
+            ConversationTree tree = ConversationTreeParser.Parse(dto, _gameWorld);
+            _gameWorld.ConversationTrees.Add(tree);
+        }
+    }
+
+    private void LoadObservationScenes(List<ObservationSceneDTO> observationScenes, bool allowSkeletons)
+    {
+        if (observationScenes == null) return;
+
+        foreach (ObservationSceneDTO dto in observationScenes)
+        {
+            ObservationScene scene = ObservationSceneParser.Parse(dto, _gameWorld);
+            _gameWorld.ObservationScenes.Add(scene);
+        }
+    }
+
+    private void LoadEmergencySituations(List<EmergencySituationDTO> emergencySituations, bool allowSkeletons)
+    {
+        if (emergencySituations == null) return;
+
+        foreach (EmergencySituationDTO dto in emergencySituations)
+        {
+            EmergencySituation emergency = EmergencyParser.Parse(dto, _gameWorld);
+            _gameWorld.EmergencySituations.Add(emergency);
         }
     }
 

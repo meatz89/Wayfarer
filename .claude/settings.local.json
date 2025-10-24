@@ -84,7 +84,11 @@
       "Bash(taskkill:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6700\" timeout 30 dotnet run --no-build)",
       "mcp__playwright__playwright_close",
-      "Read(//c/mnt/c/Git/Wayfarer/**)"
+      "Read(//c/mnt/c/Git/Wayfarer/**)",
+      "WebSearch",
+      "WebFetch(domain:the-life-and-suffering-of-sir-brante.fandom.com)",
+      "WebFetch(domain:steamcommunity.com)",
+      "WebFetch(domain:gameplay.tips)"
     ],
     "deny": [],
     "ask": []
