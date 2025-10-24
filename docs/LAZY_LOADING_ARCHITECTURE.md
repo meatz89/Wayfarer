@@ -283,7 +283,7 @@ public class SkeletonLocation : Location
 }
 ```
 
-This allows players to:
+This allows the single player of this single-player rpg to:
 - Investigate skeleton locations (building familiarity)
 - Make observations (though generic until resolved)
 - Have consistent spot properties for investigation scaling
@@ -304,7 +304,7 @@ This allows players to:
 - **Iterative Generation**: Fill gaps over multiple passes
 - **Context Preservation**: Skeletons maintain relationships and progress
 
-### For Players
+### For the single player of this single-player rpg
 
 - **Always Playable**: Game works even with skeletons
 - **Progress Preserved**: Familiarity and observation cards carry over
@@ -386,7 +386,7 @@ Result: Observation system fully functional with resolved content
 2. **Skeleton Persistence**: Save which skeletons player has seen
 3. **Smart Generation**: Use context to generate better skeletons
 4. **Skeleton Themes**: Generate skeletons matching game area
-5. **Player Feedback**: Let players request skeleton resolution
+5. **Player Feedback**: Let the single player of this single-player rpg request skeleton resolution
 6. **Skeleton Statistics**: Track how long skeletons exist
 7. **Investigation Patterns**: Skeleton locations adapt spot properties based on nearby real locations
 
