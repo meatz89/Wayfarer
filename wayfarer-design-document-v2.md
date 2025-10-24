@@ -4,11 +4,11 @@
 
 ### Fundamental Principles
 
-Wayfarer creates strategic depth through impossible choices, not mechanical complexity. Every decision forces players to choose between multiple suboptimal paths, revealing character through constraint.
+Wayfarer creates strategic depth through impossible choices, not mechanical complexity. Every decision forces the single player of this single-player rpg to choose between multiple suboptimal paths, revealing character through constraint.
 
 - **Elegance Over Complexity**: Every mechanic serves exactly one purpose
 - **Verisimilitude Throughout**: All mechanics make narrative sense in a grounded historical-fantasy world
-- **Perfect Information**: All calculations visible to players
+- **Perfect Information**: All calculations visible to the single player of this single-player rpg
 - **No Soft-Lock Architecture**: Always a path forward, even if suboptimal
 - **Atmosphere Through Mechanics**: Danger, preparation, and discovery create immersion
 
@@ -230,7 +230,7 @@ System A sets boolean flag
 - Precise challenge flow
 - Tactical decision complexity
 
-**Why:** Players make strategic decisions based on perfect information, then execute tactically with skill-based play.
+**Why:** the single player of this single-player rpg make strategic decisions based on perfect information, then execute tactically with skill-based play.
 
 **Test:** Can the player make an informed decision about WHETHER to attempt a goal before entering the challenge? If not, strategic layer is leaking tactical complexity.
 
@@ -322,7 +322,7 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Thematic Coherence**: Stats represent fundamental character traits that manifest differently in different contexts. A highly Insightful character excels at observation (Mental), structural analysis (Physical), and reading people (Social).
 
-**Build Variety**: Players can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
+**Build Variety**: the single player of this single-player rpg can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
 
 **No Wasted Effort**: Every card played in every system contributes to unified character progression.
 
@@ -337,7 +337,7 @@ The strategic layer handles **what** and **where** decisions:
 - **Resource Planning**: Evaluate equipment, knowledge, and stat requirements
 - **Risk Assessment**: Consider danger levels, time limits, exposure thresholds
 
-Strategic decisions happen in safe spaces (taverns, towns, travel map) with perfect information. Players can see all requirements, evaluate all options, and make informed choices about which tactical challenges to attempt.
+Strategic decisions happen in safe spaces (taverns, towns, travel map) with perfect information. the single player of this single-player rpg can see all requirements, evaluate all options, and make informed choices about which tactical challenges to attempt.
 
 ### Tactical Layer
 The tactical layer handles **how** execution through three parallel challenge systems:
@@ -857,7 +857,7 @@ This follows the Core Design Principle: Prerequisites check game state propertie
 
 **Obstacles are strategic information entities, not mechanical modifiers.**
 
-The Obstacle system solves the strategic-tactical disconnect: players encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
+The Obstacle system solves the strategic-tactical disconnect: the single player of this single-player rpg encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
 
 **Core Purpose:**
 - Provide multiple tactical approaches to same strategic situation
@@ -1188,7 +1188,7 @@ Investigation exists as template but not yet discovered by player. Not visible i
 **2. Investigation Discovery: Motivation / Problem / Solution**
 
 **Motivation:**
-Players need to discover investigations through gameplay, creating natural narrative flow and meaningful player agency.
+the single player of this single-player rpg need to discover investigations through gameplay, creating natural narrative flow and meaningful player agency.
 
 **Problem (Boolean Gate Anti-Pattern):**
 Traditional trigger systems create Cookie Clicker progression:
@@ -1730,7 +1730,7 @@ Relationship depth through accumulated interactions:
 
 **Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (InvestigationCubes/MasteryTokens/StoryCubes and Understanding tiers).
 
-**Specialization vs Generalization**: Players can:
+**Specialization vs Generalization**: the single player of this single-player rpg can:
 - Specialize in one challenge type (master Mental investigations)
 - Generalize across all three (competent at everything)
 - Mix strategies (expert Mental + competent Physical/Social)
@@ -2351,7 +2351,7 @@ All deterministic systems:
 
 ### Authored Layer (Structural, Sparse)
 
-Memorable moments identical for all players:
+Memorable moments identical for all the single player of this single-player rpg:
 - NPC introduction scenes (first meeting)
 - Venue first-visit vignettes (atmospheric establishment)
 - Relationship milestone scenes (at relationship thresholds)
@@ -2385,7 +2385,7 @@ System states have narrative meaning:
 - Equipment owned = preparedness
 - NPC knowledge = trusted advisor
 
-Players read story through mechanical state.
+the single player of this single-player rpg read story through mechanical state.
 
 ### Systems Create Impossible Choices
 

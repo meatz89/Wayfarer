@@ -303,14 +303,22 @@ Scene Chains (investigations, narratives)
 
 ---
 
+## Implementation Approach: IMMEDIATE SCORCHED EARTH
+
+**STRATEGY**: Delete ALL legacy code IMMEDIATELY. No "additive only", no dual systems, no gradual migration.
+
+**REASON**: Dual systems create confusion, duplicate concepts, and violate HIGHLANDER (one concept, one implementation).
+
+---
+
 ## Implementation Phases
 
-### Phase 1: Entity Layer (Week 1)
+### Phase 1: Entity Layer + IMMEDIATE DELETION
 
-**Goal**: Create all new entities, no old entity modification.
+**Goal**: Create new entities AND delete old entities in same commit.
 
 **Deliverables**:
-1. **Domain Entities**:
+1. **NEW Domain Entities**:
    - `SceneTemplate.cs` (21 properties)
    - `Scene.cs` (12 properties)
    - `ActionDefinition.cs` (9 properties)
@@ -319,29 +327,30 @@ Scene Chains (investigations, narratives)
    - `ObligationDefinition.cs` (refactor Obligation)
    - `ActiveObligation.cs` (runtime tracking)
 
-2. **Supporting Types**:
-   - `SceneState` enum
-   - `EntryCosts` class
-   - `SceneOutcome` class
-   - `CardCategory` enum
-   - `CardEffect` class
+2. **DELETED Entities**:
+   - `Goal.cs` - DELETED (replaced by SceneTemplate + Scene)
+   - `Obstacle.cs` - DELETED (concept eliminated)
+   - `MemoryFlag.cs` - DELETED (replaced by Card)
 
-3. **GameWorld Extensions**:
-   - Add `List<SceneTemplate> SceneTemplates`
-   - Add `List<Scene> ActiveScenes`
-   - Add `List<ActionDefinition> ActionDefinitions`
-   - Add `List<CardTemplate> CardTemplates`
-   - Keep existing `List<Goal> Goals` (untouched)
+3. **GameWorld Changes**:
+   - ADD: `List<SceneTemplate> SceneTemplates`
+   - ADD: `List<Scene> Scenes`
+   - ADD: `List<ActionDefinition> ActionDefinitions`
+   - ADD: `List<CardTemplate> CardTemplates`
+   - ADD: `List<Card> Cards`
+   - DELETE: `List<Goal> Goals`
+   - DELETE: `List<Obstacle> Obstacles`
+   - MODIFY: `Player.Memories` → `Player.Cards`
 
-**Testing**: Serialize/deserialize, verify strong typing.
+**Testing**: Compile successfully (will have many errors to fix in subsequent phases).
 
-**Risk**: ZERO - No existing code touched.
+**Risk**: HIGH - Breaks everything immediately, but clean architecture.
 
 ---
 
-### Phase 2: Data Layer (Week 2)
+### Phase 2: Data Layer + Parser Deletion
 
-**Goal**: Parse SceneTemplates/Actions/Cards from JSON.
+**Goal**: Parse SceneTemplates/Actions/Cards from JSON, delete old parsers.
 
 **Deliverables**:
 1. **DTOs**:
@@ -460,16 +469,22 @@ Scene Chains (investigations, narratives)
 
 ---
 
-### Phase 7: Goal Deletion (Week 7)
+### Phase 7: Service Layer Refactoring
 
-**Goal**: Delete ALL Goal/Obstacle/MemoryFlag code. SCORCHED EARTH.
+**Goal**: Refactor services to use Scene/Card architecture.
 
-**Deletions**:
-1. **Entity Files**: `Goal.cs`, `Obstacle.cs`, `MemoryFlag.cs`
-2. **Service Files**: `ObstacleGoalFilter.cs`, `GoalCompletionHandler.cs`, `ObstacleIntensityCalculator.cs`
-3. **Parser/DTO Files**: `GoalDTO.cs`, `ObstacleDTO.cs`, `GoalParser.cs`
-4. **Properties**: `GameWorld.Goals`, `Location.ActiveGoalIds`, `NPC.ActiveGoalIds`, `Player.Memories`
-5. **Methods**: All goal-related view model building
+**Changes**:
+1. **DELETE Services**:
+   - `ObstacleGoalFilter.cs` - DELETED (no filtering, content spawns)
+   - `ObstacleIntensityCalculator.cs` - DELETED (no obstacles)
+
+2. **REFACTOR Services**:
+   - `GoalCompletionHandler.cs` → `SceneCompletionHandler.cs` (handle scene outcomes)
+   - `DifficultyCalculationService.cs` - Update to use Scene not Goal
+
+3. **NEW Services**:
+   - `SceneSpawningService.cs` - Handles action → scene spawning
+   - `CardGrantService.cs` - Handles scene → card granting
 
 **Verification**:
 ```bash
@@ -479,11 +494,11 @@ grep -r "GoalDTO" src/          # Should return ZERO
 grep -r "ObstacleGoalFilter" src/  # Should return ZERO
 ```
 
-**Risk**: CRITICAL - Complete deletion. Git tag before: `pre-goal-deletion`
+**Risk**: HIGH - Core game loop affected.
 
 ---
 
-### Phase 8: Obligation Refactoring (Week 8)
+### Phase 8: Obligation Refactoring
 
 **Goal**: Adapt Obligation system to Scene chains.
 

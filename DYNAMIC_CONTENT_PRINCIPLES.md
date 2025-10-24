@@ -319,11 +319,17 @@ No priority systems. No complex sorting. Just: first in, first out when capacity
 Obstacle "Locked Gate" at Town Border
 
 Creates three persistent features at location:
-1. "Force Gate" (Physical challenge, 3 Stamina)
-2. "Pick Lock" (requires Lockpicks, 1 Focus)
-3. "Bribe Guard" (10 coins)
+1. "Force Gate" (Physical challenge, costs 3 Stamina)
+2. "Pick Lock" (consumes Lockpicks item, costs 1 Focus)
+3. "Bribe Guard" (costs 10 coins)
 
-All three always available. Player chooses which to afford.
+All three always available. Player chooses which resources to spend.
+
+**CRITICAL DISTINCTION:**
+- ❌ "Requires Lockpicks" = Boolean gate (have it or don't)
+- ✅ "Consumes Lockpicks" = Resource cost (visible, predictable)
+
+Player sees ALL options. Resources determine what they can AFFORD, not what they can SEE.
 ```
 
 **Completing any approach:**

@@ -205,7 +205,7 @@ System A sets boolean flag
 - Precise challenge flow
 - Tactical decision complexity
 
-**Why:** Players make strategic decisions based on perfect information, then execute tactically with skill-based play.
+**Why:** the single player of this single-player rpg make strategic decisions based on perfect information, then execute tactically with skill-based play.
 
 **Test:** Can the player make an informed decision about WHETHER to attempt a goal before entering the challenge? If not, strategic layer is leaking tactical complexity.
 

@@ -750,7 +750,7 @@ System A sets boolean flag
 - Precise challenge flow
 - Tactical decision complexity
 
-**Why:** Players make strategic decisions based on perfect information, then execute tactically with skill-based play.
+**Why:** The single player of this single-player rpg makes strategic decisions based on perfect information, then execute tactically with skill-based play.
 
 **Test:** Can the player make an informed decision about WHETHER to attempt a goal before entering the challenge? If not, strategic layer is leaking tactical complexity.
 
@@ -911,7 +911,7 @@ Delete first, fix after | No compatibility layers | No gradual migration | Compl
 Read Architecture.md first | Never invent mechanics | 9/10 certainty threshold before fixes | Holistic impact analysis | Dependency analysis before changes | Complete file reads | Never assume - verify
 
 **DESIGN**
-One mechanic, one purpose | Verisimilitude (fiction supports mechanics) | Perfect information (players can calculate) | Deterministic systems | No soft-locks (always forward progress)
+One mechanic, one purpose | Verisimilitude (fiction supports mechanics) | Perfect information (the single player of this single-player rpg can calculate) | Deterministic systems | No soft-locks (always forward progress)
 
 **UI**
 Dumb display only (no game logic in UI) | All choices are cards, not buttons | Backend determines availability | Unified screen architecture | Separate CSS files | Clean specificity (no !important hacks) | Resources always visible

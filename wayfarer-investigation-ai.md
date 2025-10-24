@@ -142,7 +142,7 @@ Structure demonstrates all mechanics:
 - Satisfying resolution with rewards
 
 This authored content serves as:
-1. **Tutorial** for players learning investigation flow
+1. **Tutorial** for the single player of this single-player rpg learning investigation flow
 2. **Template** for AI to analyze and replicate
 3. **Test Case** for mechanical validation
 
