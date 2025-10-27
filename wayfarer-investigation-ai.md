@@ -13,9 +13,9 @@ Game state allows investigation. AI can generate it when triggered.
 Investigation exists with intro action spawned. Not yet in journal. Player sees action but doesn't know it's an investigation until completing it.
 
 **3. Active (Intro Completed)**
-Investigation revealed in journal. Goals spawn based on prerequisites. Player pursues resolution.
+Investigation revealed in journal. Situations spawn based on prerequisites. Player pursues resolution.
 
-**4. Complete (All Goals Done)**
+**4. Complete (All Situations Done)**
 Investigation resolved. Rewards granted. World state updated. Moves to journal archive.
 
 ### Investigation Structure
@@ -34,15 +34,15 @@ Investigation
 │  ├─ Engagement Type
 │  ├─ Location Spot
 │  ├─ Intro Narrative (reveals investigation premise)
-│  └─ Spawns First Goal(s)
+│  └─ Spawns First Situation(s)
 │
-├─ Goals (Ordered or Parallel)
+├─ Situations (Ordered or Parallel)
 │  ├─ Prerequisites
 │  ├─ Action Text
 │  ├─ Engagement Type
 │  ├─ Location Spot
 │  ├─ Outcome Narratives
-│  └─ Spawned Goals (next steps)
+│  └─ Spawned Situations (next steps)
 │
 ├─ Completion
 │  ├─ Resolution Narrative
@@ -52,7 +52,7 @@ Investigation
 └─ Generation Rules (for AI)
    ├─ Trigger Conditions (when to generate)
    ├─ Narrative Constraints (setting, tone, scale)
-   └─ Mechanical Constraints (goal count, complexity, rewards)
+   └─ Mechanical Constraints (situation count, complexity, rewards)
 ```
 
 ### Five Intro Trigger Types
@@ -114,11 +114,11 @@ Available Action:
 5. Journal auto-opens showing:
    The Waterwheel Mystery [1/5 completed]
    ✓ Discovered the sabotage
-   Goals remaining at:
+   Situations remaining at:
    → Courtyard (2 actions)
    → Storage Room (1 action)
    
-6. First goal actions spawn:
+6. First situation actions spawn:
    → Examine the gear damage closely [Mental]
    → Ask Aldric about recent visitors [Conversation]
 ```
@@ -126,7 +126,7 @@ Available Action:
 This teaches:
 - Actions can reveal investigations
 - Investigations track progress in journal
-- New goals spawn as you progress
+- New situations spawn as you progress
 - Cross-location investigation structure
 
 ### Authored POC Content
@@ -135,7 +135,7 @@ This teaches:
 
 Structure demonstrates all mechanics:
 - Intro: Immediate visibility trigger
-- 5 Goals: Mix of Mental/Conversation/Physical
+- 5 Situations: Mix of Mental/Conversation/Physical
 - 3 Location Spots: Courtyard, Storage, Workshop
 - 2 NPCs: Aldric (miller), Petra (apprentice)
 - Multiple discovery paths within investigation
@@ -159,14 +159,14 @@ This authored content serves as:
 1. Analyze game state (location, NPCs, player history, world events)
 2. Select appropriate trigger type based on context
 3. Generate intro action with valid prerequisites
-4. Generate 3-7 goals following investigation structure
-5. Ensure goals use available locations/NPCs/engagement types
+4. Generate 3-7 situations following investigation structure
+5. Ensure situations use available locations/NPCs/engagement types
 6. Create rewards matching investigation complexity
 7. Validate no soft-locks (all prerequisites achievable)
 
 **Mechanical Constraints AI Must Follow:**
 - All prerequisites must be achievable with current game state
-- Goals must use valid engagement types (Conversation/Mental/Physical)
+- Situations must use valid engagement types (Conversation/Mental/Physical)
 - NPCs referenced must exist or be generatable
 - Locations referenced must exist or be generatable
 - Rewards must follow economic balance rules
@@ -180,14 +180,14 @@ Knowledge is the connective tissue between investigations:
 
 **Knowledge Sources:**
 - Conversation outcomes
-- Investigation goal outcomes
+- Investigation situation outcomes
 - Environmental observations
 - Item inspections
 - NPC testimonies
 
 **Knowledge Uses:**
 - Unlock investigation intros
-- Unlock investigation goals
+- Unlock investigation situations
 - Enable conversation options
 - Inform AI generation (what player knows shapes what generates)
 
@@ -205,7 +205,7 @@ Complete Investigation A
 **Authored Content:**
 - 1 Starting Location (Old Mill with 3 spots)
 - 2 NPCs (Aldric, Petra)
-- 1 Complete Investigation (5 goals)
+- 1 Complete Investigation (5 situations)
 - 3 Standalone Actions (rest, work, observe)
 - 2 Travel Routes (to adjacent locations)
 
@@ -218,7 +218,7 @@ Complete Investigation A
 **Success Criteria:**
 - Player completes waterwheel investigation
 - Journal tracks progress correctly
-- Goals spawn appropriately
+- Situations spawn appropriately
 - Intro → Active → Complete flow works
 - Notifications appear at right moments
 - World state updates after completion
