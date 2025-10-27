@@ -324,8 +324,9 @@ public PhysicalSession CurrentPhysicalSession { get; set; }
 ```
 
 **Entity Reference Pattern:**
-- Entities reference each other by ID (string properties)
-- Object references wired in Phase 2 (GameWorldInitializer.WireObjectGraph)
+- Parsers resolve object references during parsing (single-phase initialization)
+- Entities store ONLY object references (NO redundant ID properties)
+- Runtime uses null-safe navigation (`entity.Reference?.Id`)
 - NO Dictionary<string, Entity> - always List<Entity>
 - NO HashSet<T> - always List<T>
 

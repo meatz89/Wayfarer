@@ -52,6 +52,125 @@
 - No incremental "let's test this first" stops
 - Implement entire vertical slices in one pass
 
+**6. STRATEGIC/TACTICAL LAYER SEPARATION (Resolve Consumption Architecture)**
+
+**CRITICAL PRINCIPLE:** Tactical layer (Mental/Physical/Social challenge facades) MUST NEVER know about strategic resources like Resolve, Scales, CompoundRequirements, or any strategic concepts.
+
+**The Separation:**
+
+```
+STRATEGIC LAYER (Situation Selection)
+  ↓ Evaluates CompoundRequirements (unlock paths)
+  ↓ Consumes STRATEGIC costs (Resolve, Time, Coins)
+  ↓ Routes to appropriate subsystem based on InteractionType
+  ↓
+TACTICAL LAYER (Challenge Execution)
+  ↓ Receives challenge payload ONLY (deck, target, GoalCards)
+  ↓ Consumes TACTICAL costs (Focus for Mental, Stamina for Physical)
+  ↓ Executes card-based gameplay
+  ↓ Returns success/failure result
+  ↓
+STRATEGIC LAYER (Consequence Application)
+  ↓ Applies consequences (bonds, scales, states)
+  ↓ Executes spawn rules (cascading chains)
+  ↓ Updates world state
+```
+
+**Where Resolve is Consumed:**
+- ✅ CORRECT: SituationFacade.SelectAndExecuteSituation() - when player PICKS the situation (strategic choice)
+- ❌ WRONG: MentalFacade.StartSession() - tactical layer must not know about Resolve
+
+**Why This Matters:**
+- Resolve consumption is baked into the CHOICE ITSELF, not its consequence
+- Tactical challenges are reusable subsystems that work regardless of strategic context
+- Strategic costs are about COMMITTING to an action (choosing to engage)
+- Tactical costs are about EXECUTING an action (playing cards during challenge)
+- This separation enables:
+  - Instant-resolution situations (no challenge, just strategic cost + consequences)
+  - Navigation situations (no challenge, just strategic cost + movement)
+  - Challenge situations (strategic cost, then tactical challenge, then consequences)
+
+**Implementation Location:**
+- Strategic cost consumption: `SituationFacade` (to be created)
+- Tactical cost consumption: `MentalFacade`, `PhysicalFacade`, `SocialFacade` (existing, unchanged)
+
+**7. SCENE AS FUNDAMENTAL UNIT (Content Population Architecture)**
+
+**CRITICAL PRINCIPLE:** Scene is the ACTIVE DATA SOURCE that populates LocationContent UI. Locations/NPCs/Routes are PERSISTENT world entities, but their displayed content comes from the current Scene.
+
+**The Architecture:**
+
+```
+Location (PERSISTENT - world entity, can be visited)
+  ↓ has current
+Scene (ACTIVE - content wrapper, generates situations)
+  ↓ populates
+LocationContent (PERSISTENT - UI screen, displays content)
+```
+
+**What This Means:**
+
+**Scene is NOT:**
+- A replacement for LocationContent UI
+- A wrapper that makes Locations/NPCs go away
+- Something that replaces persistent world entities
+
+**Scene IS:**
+- The data source for what situations appear
+- The filter that separates available vs locked content
+- The generator of contextual narrative intro
+- The container that provides perfect information (locked situations visible)
+
+**Locations/NPCs/Routes EXIST persistently:**
+- Locations can be visited (spatial navigation works)
+- NPCs exist at locations (interaction targets exist)
+- Routes connect locations (travel system works)
+- LocationContent screen exists and displays content
+
+**BUT: Content displayed is POPULATED BY Scene:**
+- When player enters Location → SceneFacade.GenerateLocationScene(locationId)
+- Scene queries GameWorld for situations at that location
+- Scene evaluates CompoundRequirements (available vs locked)
+- Scene generates contextual intro narrative
+- LocationContent renders the Scene data
+
+**Default/Generic Scene:**
+- If no authored scene is active → generic scene generated
+- Generic scene has minimal atmospheric background options
+- Generic scene has no special narrative or consequences
+- Generic scene provides baseline "you can look around, travel, talk to people" functionality
+
+**Scene Types:**
+- **Location Scene:** Content at a physical location (Mental/Physical situations + NPCs present)
+- **NPC Scene:** Conversation/interaction with specific NPC (Social situations)
+- **Route Scene:** Travel segment with path choices/encounters
+- **Event Scene:** Special authored critical moments (rare, hand-crafted)
+
+**Why This Matters:**
+- Perfect information display: Scene separates available vs locked situations, shows requirements
+- Narrative coherence: Scene generates intro reflecting player state, relationships, achievements
+- Dynamic content: Same location visited twice = different scenes with different content
+- Sir Brante integration: Scene matches Sir Brante's scene-based progression model
+
+**Implementation Pattern:**
+```csharp
+// LocationContent.razor.cs
+protected override async Task OnInitializedAsync()
+{
+    var locationId = GameWorld.GetPlayer().CurrentLocation?.Id;
+    CurrentScene = GameFacade.GetSceneFacade().GenerateLocationScene(locationId);
+    // UI renders CurrentScene.AvailableSituations and CurrentScene.LockedSituations
+}
+```
+
+**What Changes:**
+- ✅ SceneFacade created (new service)
+- ✅ SceneFacade.GenerateLocationScene() generates Scene instances
+- ✅ LocationContent populated by Scene data instead of LocationFacade view models
+- ❌ LocationContent screen NOT deleted (still displays content)
+- ❌ LocationFacade NOT deleted (still handles navigation)
+- ❌ Locations/NPCs NOT deleted (still exist as world entities)
+
 ---
 
 ## Phase 0: Current State Verification (CRITICAL FIRST STEP)
