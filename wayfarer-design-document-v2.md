@@ -2382,7 +2382,6 @@ System states have narrative meaning:
 - High Cadence = dominating conversation
 - Burden cards = damaged relationship
 - Investigation progress = location expertise
-- Equipment owned = preparedness
 - NPC knowledge = trusted advisor
 
 the single player of this single-player rpg read story through mechanical state.
