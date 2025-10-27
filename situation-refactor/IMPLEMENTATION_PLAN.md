@@ -540,6 +540,98 @@ After analyzing the existing `SocialCardEffectCatalog.cs` (708 lines), we determ
 - SituationParser.cs: TimeBlock parsing already inline
 - No RequirementCatalogue, CostCatalogue, or ConsequenceCatalogue needed at this time
 
+**Catalogue + Resolver Pattern (Universal Architecture - CRITICAL PRINCIPLE):**
+
+**THE THREE-LAYER PATTERN:**
+
+When implementing systems that translate categorical properties to runtime behavior:
+
+**1. Catalogue Layer (Parse-Time Translation):**
+- Static class with pure functions
+- Input: Categorical strings/enums from JSON
+- Output: Strongly-typed behavior object
+- Called ONCE by parser during initialization
+- Example: `StateClearConditionsCatalogue.GetClearingBehavior(List<string>)` → StateClearingBehavior
+
+**2. Behavior Object (Stored on Entity):**
+- Data class with semantic properties
+- Stored directly on domain entity
+- Contains NO logic, only data
+- Properties named for execution contexts
+- Example: State.ClearingBehavior with ClearsOnRest, ClearingItemTypes properties
+
+**3. Resolver Layer (Runtime Projection):**
+- Service class injected via DI
+- Methods return projections (what SHOULD happen)
+- Uses GameWorld to query current state
+- Checks behavior objects to make decisions
+- Does NOT modify state directly (projection only)
+- Example: `StateClearingResolver.GetStatesToClearOnRest(bool isSafe)` → List<StateType>
+
+**4. Facade Layer (Application):**
+- Calls resolver to get projection
+- Applies projected changes to GameWorld
+- Triggers cascades/side effects
+- Example: ResourceFacade calls resolver, removes states, triggers EvaluateDormantSituations
+
+**WHY THIS PATTERN EXISTS:**
+
+❌ **WRONG - Direct Property Checking in Facades:**
+```
+// Scattered logic across facades
+if (state.ClearConditions.Contains("Rest")) { ... }
+```
+- Runtime string matching (forbidden)
+- Logic duplicated across facades
+- No projection capability
+- Hard to test
+
+✅ **CORRECT - Catalogue + Resolver:**
+```
+// Centralized in resolver
+List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnRest(isSafe);
+```
+- Parse-time translation (zero runtime overhead)
+- Single source of truth (all logic in resolver)
+- Projection-based (can preview effects)
+- Independently testable
+
+**EXISTING WAYFARER EXAMPLES:**
+
+**SocialCardEffectCatalog + SocialEffectResolver:**
+- Catalogue: Translates (ConversationalMove, Stat, Depth) → CardEffectFormula
+- Behavior: card.EffectFormula (strongly-typed formula object)
+- Resolver: ProcessSuccessEffect() projects card effects
+- Facade: Applies projected changes to session
+
+**StateClearConditionsCatalogue + StateClearingResolver (This Implementation):**
+- Catalogue: Translates ["Rest", "UseFood"] → StateClearingBehavior(ClearsOnRest=true, ClearingItemTypes=[Food])
+- Behavior: state.ClearingBehavior (strongly-typed behavior object)
+- Resolver: GetStatesToClearOnRest() projects which states should clear
+- Facade: Removes states, triggers cascade
+
+**BENEFITS:**
+1. **Performance**: Catalogue called once (parse-time), not per-action (runtime)
+2. **Projection**: Can preview effects before applying ("this WOULD clear X")
+3. **Testing**: Resolver testable without full game initialization
+4. **Single Source of Truth**: All decision logic in one place (resolver)
+5. **Separation of Concerns**: Catalogue=translation, Resolver=logic, Facade=application
+6. **Type Safety**: Behavior object properties compiler-enforced
+
+**WHEN TO USE THIS PATTERN:**
+- Categorical properties need translation to runtime behavior
+- Multiple execution contexts check the same concept
+- Need to project effects before applying them
+- Logic should be centralized for maintainability
+- System needs independent testability
+
+**WHEN NOT TO USE THIS PATTERN:**
+- Simple 1:1 property mapping (no translation needed)
+- Single execution context (no logic centralization needed)
+- No projection needed (effects always applied immediately)
+
+---
+
 **Execution Context Entity Design (Holistic Architecture - CRITICAL PRINCIPLE):**
 
 **THE UNIVERSAL RULE:**

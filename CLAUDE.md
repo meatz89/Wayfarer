@@ -225,6 +225,170 @@ User needs "SleepOutside" player action for tutorial.
 
 ---
 
+# ⚠️ HIGHLANDER PRINCIPLE: ONE CONCEPT, ONE REPRESENTATION ⚠️
+
+## THE FUNDAMENTAL PRINCIPLE
+
+**"There can be only one."** For any given concept at runtime, use EXACTLY ONE representation consistently throughout the codebase. Never store the same information in multiple forms that can desynchronize.
+
+---
+
+## CORE RULE: CONSISTENT ACCESS PATTERNS
+
+**Single Representation (Correct):**
+- Runtime navigation uses the SAME access pattern in ALL files
+- Every code location accesses the property identically
+- No mixing of object references and ID lookups for the same concept
+- Consistent patterns across the entire codebase
+
+**Mixed Representations (Wrong):**
+- Some files use object reference, others use ID lookup
+- Requires TWO properties that must stay synchronized
+- Setting one without updating the other creates desync bugs
+- Inconsistent patterns confuse developers
+
+---
+
+## THREE ENTITY PROPERTY PATTERNS
+
+### Pattern A: Persistence IDs with Runtime Navigation (BOTH ID and Object)
+
+**When to Use:** Property originates from JSON, needs frequent runtime navigation
+
+**Characteristics:**
+- ID property populated from JSON during parsing
+- Object reference populated by parser during parsing (lookup in GameWorld)
+- Runtime code uses ONLY object reference, never ID lookup
+- ID immutable after parsing (never changes)
+- No desync risk (ID is source, object is derived once)
+
+**Examples:** Situation placement (location/NPC from JSON, frequent runtime access)
+
+### Pattern B: Runtime-Only Navigation (Object ONLY, NO ID)
+
+**When to Use:** Property is runtime state, not from JSON, changes during gameplay
+
+**Characteristics:**
+- NO ID property exists
+- Object reference property only
+- Runtime code uses object reference everywhere consistently
+- Changes frequently during gameplay
+- Desync risk if you add ID property alongside object
+
+**Examples:** Player current location (runtime state, moves between locations)
+
+### Pattern C: Lookup on Demand (ID ONLY, NO Object)
+
+**When to Use:** Property from JSON, but lookups are infrequent
+
+**Characteristics:**
+- ID property from JSON
+- NO cached object reference
+- Lookup in GameWorld when needed (rare operations)
+- No memory wasted on cached reference
+
+**Examples:** Obligation patron NPC (referenced infrequently, lookup acceptable)
+
+---
+
+## WHY PERSISTENCE IDS ARE DIFFERENT FROM RUNTIME STATE
+
+**Persistence Properties (Pattern A - BOTH allowed):**
+- JSON contains ID reference that must be deserialized
+- Parser resolves ID to object during parsing (one-time lookup)
+- ID property immutable after parsing
+- Object reference derived from ID (never changes independently)
+- No desync risk (ID is source of truth, object is cached lookup result)
+- Runtime uses object for performance, ID remains for reference integrity
+
+**Runtime State (Pattern B - Object ONLY):**
+- No JSON source (state created/modified during gameplay)
+- Changes frequently during gameplay
+- DESYNC RISK if both ID and object stored (easy to update one without the other)
+- Object reference sufficient for all runtime needs
+- No serialization needed during active gameplay
+
+---
+
+## DECISION TREE
+
+**Question 1: Is this property deserialized from JSON?**
+
+- **YES → Needs ID property** (for JSON parsing)
+  - **Question 2: Is it frequently accessed at runtime for navigation?**
+    - **YES → Pattern A (BOTH)** - ID for parsing, Object for runtime (parser resolves)
+    - **NO → Pattern C (ID only)** - Lookup on demand when needed
+
+- **NO → Runtime state only**
+  - **Pattern B (Object ONLY)** - NO ID property, object reference everywhere
+
+---
+
+## ENFORCEMENT RULES
+
+### Pattern A Rules (Persistence + Navigation)
+- Entity has BOTH ID property and object reference property
+- ID populated from JSON during parsing
+- Object populated by parser during parsing (GameWorld lookup)
+- Runtime code uses ONLY object reference (never ID lookup)
+- ID immutable (never reassigned after parsing)
+
+### Pattern B Rules (Runtime Navigation)
+- Entity has ONLY object reference property (NO ID)
+- Runtime code uses object EVERYWHERE consistently
+- Never add ID property alongside object (desync risk)
+- Object can change during gameplay
+
+### Pattern C Rules (Lookup on Demand)
+- Entity has ONLY ID property (NO cached object)
+- GameWorld lookup when needed (infrequent operation)
+- Never add cached object reference (wastes memory)
+
+### FORBIDDEN Anti-Patterns
+- **Redundant Storage:** Both object and ID for runtime state (desync risk)
+- **Inconsistent Access:** Some files use object, others use ID lookup (pick one!)
+- **Derived Properties:** ID computed from object as property (just use object.Id when needed)
+
+---
+
+## REFACTORING CHECKLIST
+
+When you discover mixed representations:
+
+1. **Identify primary representation:**
+   - From JSON + frequent access → Pattern A (both)
+   - Runtime-only state → Pattern B (object only)
+   - From JSON + infrequent access → Pattern C (ID only)
+
+2. **Search entire codebase:**
+   - Find ALL usages of both forms
+   - Determine dominant pattern
+
+3. **Convert to single representation:**
+   - Select pattern based on decision tree
+   - Update ALL code consistently
+   - Delete redundant properties
+
+4. **Verify no desync:**
+   - Build and test
+   - Ensure no code path can create inconsistency
+
+---
+
+## SUMMARY
+
+**HIGHLANDER Principle:** ONE concept, ONE representation, used CONSISTENTLY everywhere.
+
+- **Pattern A (Persistence + Navigation):** ID from JSON, object resolved by parser, runtime uses object
+- **Pattern B (Runtime Only):** Object reference only, NO ID property, consistent access everywhere
+- **Pattern C (Lookup on Demand):** ID only, GameWorld lookup when needed, no cached object
+- **Never store** the same information in multiple forms that can desynchronize
+- **Be consistent** across ALL files in the codebase
+
+**"There can be only one."**
+
+---
+
 # ⚠️ CATALOGUE PATTERN: NO STRING MATCHING, NO DICTIONARIES, EVER ⚠️
 
 ## THE FUNDAMENTAL PRINCIPLE
