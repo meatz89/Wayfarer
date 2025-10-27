@@ -131,19 +131,54 @@ namespace Wayfarer.Pages.Components
 
         protected async Task HandleCommitToSituation(Situation situation)
         {
-            if (situation.SystemType == TacticalSystemType.Social)
+            // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
+            SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
+
+            if (!result.Success)
             {
-                await GameScreen.StartConversationSession(situation.PlacementNpcId, situation.Id);
+                // Failed validation or resource check - show error
+                return;
             }
-            else if (situation.SystemType == TacticalSystemType.Mental)
+
+            // Handle result based on type
+            if (result.ResultType == SituationResultType.InstantResolution)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartMentalSession(situation.DeckId, player.CurrentLocation.Id, situation.Id, situation.ObligationId);
+                // Instant resolution - consequences already applied, refresh location
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+                StateHasChanged();
             }
-            else if (situation.SystemType == TacticalSystemType.Physical)
+            else if (result.ResultType == SituationResultType.LaunchChallenge)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartPhysicalSession(situation.DeckId, player.CurrentLocation.Id, situation.Id, situation.ObligationId);
+                // TACTICAL LAYER: Route to appropriate challenge facade
+                // Strategic costs already consumed (Resolve, Time, Coins)
+                // Challenge facade will consume tactical costs (Focus/Stamina)
+                if (result.ChallengeType == TacticalSystemType.Social)
+                {
+                    await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
+                }
+                else if (result.ChallengeType == TacticalSystemType.Mental)
+                {
+                    Player player = GameWorld.GetPlayer();
+                    await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                }
+                else if (result.ChallengeType == TacticalSystemType.Physical)
+                {
+                    Player player = GameWorld.GetPlayer();
+                    await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                }
+            }
+            else if (result.ResultType == SituationResultType.Navigation)
+            {
+                // Navigation - move player and optionally trigger scene at destination
+                bool success = GameFacade.MoveToSpot(result.NavigationDestinationId);
+                if (success)
+                {
+                    ResetNavigation();
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+                    StateHasChanged();
+                }
             }
         }
 

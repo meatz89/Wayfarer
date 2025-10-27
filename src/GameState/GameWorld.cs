@@ -133,6 +133,12 @@ public class GameWorld
     // Obstacles are location-agnostic, referenced by Location.ObstacleIds and NPC.ObstacleIds
     public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
 
+    // SCENE-SITUATION ARCHITECTURE - Sir Brante integration
+    // State definitions (metadata about temporary player conditions)
+    public List<State> States { get; set; } = new List<State>();
+    // Achievement definitions (milestone templates)
+    public List<Achievement> Achievements { get; set; } = new List<Achievement>();
+
     // Hierarchical world organization
     public List<Region> Regions { get; set; } = new();
     public List<District> Districts { get; set; } = new();
@@ -376,7 +382,7 @@ public class GameWorld
     public void AddStrangerToLocation(string locationId, NPC stranger)
     {
         if (stranger == null) return;
-        stranger.LocationId = locationId;
+        stranger.Location = Locations.FirstOrDefault(l => l.Id == locationId);
         stranger.IsStranger = true;
         NPCs.Add(stranger);
     }
@@ -389,7 +395,7 @@ public class GameWorld
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.LocationId == locationId && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Location?.Id == locationId && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }
@@ -718,6 +724,113 @@ public class GameWorld
     {
         Player player = GetPlayer();
         player.MasteryCubes.AddMastery(deckId, amount);
+    }
+
+    // ============================================
+    // SCENE-SITUATION ARCHITECTURE (Sir Brante Integration)
+    // ============================================
+
+    /// <summary>
+    /// Get a State definition by type
+    /// Returns metadata about a state (blocked actions, clear conditions, etc.)
+    /// </summary>
+    public State GetStateDefinition(StateType stateType)
+    {
+        return States.FirstOrDefault(s => s.Type == stateType);
+    }
+
+    /// <summary>
+    /// Get an Achievement definition by ID
+    /// </summary>
+    public Achievement GetAchievementById(string achievementId)
+    {
+        return Achievements.FirstOrDefault(a => a.Id == achievementId);
+    }
+
+    /// <summary>
+    /// Check if player has earned a specific achievement
+    /// </summary>
+    public bool HasAchievement(string achievementId)
+    {
+        return Player.EarnedAchievements.Any(pa => pa.AchievementId == achievementId);
+    }
+
+    /// <summary>
+    /// Grant achievement to player with current time tracking
+    /// </summary>
+    public void GrantAchievement(string achievementId, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        if (HasAchievement(achievementId))
+            return; // Already earned, don't grant again
+
+        PlayerAchievement playerAchievement = new PlayerAchievement
+        {
+            AchievementId = achievementId,
+            EarnedDay = currentDay,
+            EarnedTimeBlock = currentTimeBlock,
+            EarnedSegment = currentSegment
+        };
+
+        Player.EarnedAchievements.Add(playerAchievement);
+    }
+
+    /// <summary>
+    /// Apply a state to the player
+    /// </summary>
+    public void ApplyState(StateType stateType, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        // Check if player already has this state active
+        if (Player.ActiveStates.Any(s => s.Type == stateType))
+            return; // Already active, don't apply again
+
+        State stateDefinition = GetStateDefinition(stateType);
+        if (stateDefinition == null)
+            throw new InvalidOperationException($"State definition not found for type: {stateType}");
+
+        ActiveState activeState = new ActiveState
+        {
+            Type = stateType,
+            Category = stateDefinition.Category,
+            AppliedDay = currentDay,
+            AppliedTimeBlock = currentTimeBlock,
+            AppliedSegment = currentSegment,
+            DurationSegments = stateDefinition.Duration
+        };
+
+        Player.ActiveStates.Add(activeState);
+    }
+
+    /// <summary>
+    /// Clear a state from the player
+    /// </summary>
+    public void ClearState(StateType stateType)
+    {
+        ActiveState activeState = Player.ActiveStates.FirstOrDefault(s => s.Type == stateType);
+        if (activeState != null)
+        {
+            Player.ActiveStates.Remove(activeState);
+        }
+    }
+
+    /// <summary>
+    /// Check and auto-clear expired states based on duration
+    /// </summary>
+    public void ProcessExpiredStates(int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        List<ActiveState> expiredStates = new List<ActiveState>();
+
+        foreach (ActiveState state in Player.ActiveStates)
+        {
+            if (state.ShouldAutoClear(currentDay, currentTimeBlock, currentSegment))
+            {
+                expiredStates.Add(state);
+            }
+        }
+
+        foreach (ActiveState expiredState in expiredStates)
+        {
+            Player.ActiveStates.Remove(expiredState);
+        }
     }
 
 }

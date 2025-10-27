@@ -45,13 +45,13 @@ public class ObservationFacade
             };
         }
 
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.LocationId);
+        Location location = scene.Location;
         if (location == null)
         {
             return new ObservationContext
             {
                 IsValid = false,
-                ErrorMessage = $"Location '{scene.LocationId}' not found for observation scene"
+                ErrorMessage = "Location not found for observation scene"
             };
         }
 
@@ -252,7 +252,7 @@ public class ObservationFacade
         Player player = _gameWorld.GetPlayer();
 
         return _gameWorld.ObservationScenes
-            .Where(s => s.LocationId == locationId)
+            .Where(s => s.Location?.Id == locationId)
             .Where(s => !s.IsCompleted || s.IsRepeatable)
             .Where(s => s.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
             .ToList();

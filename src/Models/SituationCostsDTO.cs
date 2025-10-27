@@ -5,6 +5,12 @@
 public class SituationCostsDTO
 {
     /// <summary>
+    /// Resolve consumed (universal strategic cost)
+    /// Scene-Situation Architecture - shared by ALL situation types
+    /// </summary>
+    public int Resolve { get; set; } = 0;
+
+    /// <summary>
     /// Time segments consumed
     /// </summary>
     public int Time { get; set; }

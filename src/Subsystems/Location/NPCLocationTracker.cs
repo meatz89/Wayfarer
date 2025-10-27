@@ -80,9 +80,9 @@ public class NPCLocationTracker
         if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return false;
+        if (npc == null || npc.Location == null) return false;
 
-        return npc.LocationId.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
+        return npc.Location.Id.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class NPCLocationTracker
         {
             NPCId = npcId,
             NPCName = npc.Name,
-            LocationId = npc.LocationId,
+            LocationId = npc.Location?.Id,
             TimeSlots = new List<NPCTimeSlot>()
         };
 
@@ -125,7 +125,7 @@ public class NPCLocationTracker
             {
                 TimeBlock = timeBlock,
                 IsAvailable = npc.IsAvailable(timeBlock),
-                LocationId = npc.LocationId
+                LocationId = npc.Location?.Id
             });
         }
 
@@ -151,7 +151,7 @@ public class NPCLocationTracker
                         NPCId = npc.ID,
                         NPCName = npc.Name,
                         TimeBlock = timeBlock,
-                        LocationId = npc.LocationId
+                        LocationId = npc.Location?.Id
                     });
                 }
             }
@@ -174,7 +174,7 @@ public class NPCLocationTracker
         {
             NPCId = npc.ID,
             NPCName = npc.Name,
-            LocationId = npc.LocationId,
+            LocationId = npc.Location?.Id,
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }

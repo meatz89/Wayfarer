@@ -98,6 +98,91 @@ STRATEGIC LAYER (Consequence Application)
 
 **CRITICAL PRINCIPLE:** Scene is the ACTIVE DATA SOURCE that populates LocationContent UI. Locations/NPCs/Routes are PERSISTENT world entities, but their displayed content comes from the current Scene.
 
+**8. NO EVENTS (Synchronous Orchestration Only)**
+
+**CRITICAL PRINCIPLE:** Game logic operates SYNCHRONOUSLY. GameFacade is the SINGLE orchestrator of control flow. NO event-driven patterns allowed except Blazor frontend events.
+
+**Why This Matters:**
+
+Events create complexity nightmares:
+- Hidden control flow (who subscribed?)
+- Async callback chains (event A → event B → event C)
+- Race conditions (which handler fires first?)
+- Impossible debugging (stack traces span multiple handlers)
+- Maintainability nightmare (must search for all `+=` subscribers)
+- Violates single orchestrator pattern (GameFacade controls ALL flow)
+
+**The CORRECT Pattern - Synchronous Orchestration:**
+```csharp
+// ✅ CORRECT - GameFacade controls everything synchronously:
+public SituationSelectionResult SelectAndExecuteSituation(string situationId)
+{
+    // 1. Validate (synchronous)
+    if (!IsValid) return Failed();
+
+    // 2. Consume costs (synchronous)
+    player.Resolve -= costs;
+
+    // 3. Execute logic (synchronous)
+    ApplyConsequences();
+    ExecuteSpawns();
+
+    // 4. Return result (synchronous)
+    return Success();
+}
+```
+
+**The WRONG Pattern - Event-Driven:**
+```csharp
+// ❌ WRONG - Events scatter control flow:
+public event Action<Situation> OnSituationCompleted;  // BAD
+public event Action<List<SpawnRule>> OnSuccessSpawns;  // BAD
+
+// Hidden callback hell:
+OnSituationCompleted?.Invoke(situation);  // Who handles this?
+OnSuccessSpawns?.Invoke(rules);  // What order do handlers fire?
+```
+
+**Naming Convention Violation:**
+
+Property names with "On" prefix suggest event handlers:
+- ❌ `OnSuccessSpawns` - sounds like event handler (WRONG)
+- ❌ `OnFailureSpawns` - sounds like event handler (WRONG)
+- ✅ `SuccessSpawns` - declarative data (CORRECT)
+- ✅ `FailureSpawns` - declarative data (CORRECT)
+
+**The Exception - Blazor Frontend:**
+
+Blazor UI components DO use events (framework requirement):
+```csharp
+// ✅ CORRECT - Blazor event (framework pattern):
+<button @onclick="HandleClick">Select</button>
+
+private async Task HandleClick()
+{
+    // Immediately call GameFacade synchronously
+    var result = GameFacade.SelectSituation(id);
+    // NO event chains in game logic
+}
+```
+
+**Enforcement Table:**
+
+| Layer | Events? | Why |
+|-------|---------|-----|
+| GameFacade | ❌ NO | Single orchestrator |
+| Domain Facades | ❌ NO | Synchronous results |
+| Entities | ❌ NO | Pure data |
+| Services | ❌ NO | Synchronous logic |
+| Blazor UI | ✅ YES | Framework requirement |
+
+**Implementation Requirement:**
+- ALL game logic must be synchronous method calls
+- GameFacade orchestrates ALL control flow
+- NO `event` declarations in domain layer
+- NO `OnX` naming convention for data properties
+- Blazor events call GameFacade synchronously, no cascades
+
 **The Architecture:**
 
 ```

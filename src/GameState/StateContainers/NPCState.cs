@@ -79,7 +79,7 @@ public sealed class NPCState
             npc.Name,
             npc.Role,
             npc.Description,
-            npc.LocationId,
+            npc.Location?.Id,
             npc.Profession,
             npc.ProvidedServices,
             npc.PlayerRelationship);

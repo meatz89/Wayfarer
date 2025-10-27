@@ -706,6 +706,122 @@ STRATEGIC LAYER (ConsequenceFacade + SpawnFacade)
 
 **ABSOLUTE RULE:** Scene is the ACTIVE DATA SOURCE that populates UI. Locations/NPCs are PERSISTENT world entities, but displayed content comes from Scene.
 
+---
+
+### Principle 3: NO EVENTS (Synchronous Orchestration Only)
+
+**ABSOLUTE RULE:** Game logic operates SYNCHRONOUSLY. GameFacade is the SINGLE orchestrator of control flow. NO event-driven patterns except Blazor frontend events.
+
+**The Anti-Pattern We Avoid:**
+```csharp
+// ❌ WRONG - Event-driven game logic:
+public event Action<Situation> OnSituationCompleted;  // BAD
+public event Action<List<SpawnRule>> OnSuccessSpawns;  // BAD
+
+// When situation completes:
+OnSituationCompleted?.Invoke(situation);  // Async callback hell
+OnSuccessSpawns?.Invoke(situation.SuccessSpawns);  // Hidden control flow
+```
+
+**The Correct Architecture:**
+```csharp
+// ✅ CORRECT - Synchronous orchestration:
+public class SituationFacade
+{
+    public SituationSelectionResult SelectAndExecuteSituation(string situationId)
+    {
+        // SYNCHRONOUS control flow - no events
+        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+
+        // Step 1: Validate requirements (synchronous)
+        if (!situation.CompoundRequirement.IsAnySatisfied(player, _gameWorld))
+            return SituationSelectionResult.Failed("Requirements not met");
+
+        // Step 2: Consume costs (synchronous)
+        player.Resolve -= situation.Costs.Resolve;
+
+        // Step 3: Execute interaction (synchronous routing)
+        if (situation.InteractionType == SituationInteractionType.Instant)
+        {
+            // Step 4: Apply consequences (synchronous)
+            _consequenceFacade.ApplyConsequences(situation.ProjectedBondChanges, situation.ProjectedScaleShifts);
+
+            // Step 5: Execute spawns (synchronous)
+            _spawnFacade.ExecuteSpawnRules(situation.SuccessSpawns);
+
+            return SituationSelectionResult.Success();
+        }
+
+        // ... other interaction types
+    }
+}
+```
+
+**Why "OnSuccessSpawns" Violated This Principle:**
+
+The "On" prefix suggests event handler naming convention:
+- `OnClick` - event handler
+- `OnCompleted` - event handler
+- `OnSuccessSpawns` - sounds like event handler (WRONG)
+
+**Correct Naming (Declarative Data):**
+- `SuccessSpawns` - declarative list of rules to execute on success
+- `FailureSpawns` - declarative list of rules to execute on failure
+- NO "On" prefix - these are DATA, not EVENT HANDLERS
+
+**Why Events Are Forbidden:**
+
+1. **Complexity Explosion:**
+   - Hidden control flow (who subscribed to this event?)
+   - Async callback chains (event A triggers event B triggers event C)
+   - Race conditions (which handler fires first?)
+   - Difficult to debug (stack traces span multiple event handlers)
+
+2. **Maintainability Nightmare:**
+   - Can't trace execution linearly through code
+   - Must search entire codebase for `+=` to find subscribers
+   - Changing event signature breaks all subscribers
+   - No clear owner of execution flow
+
+3. **Violates Single Orchestrator:**
+   - GameFacade should control ALL game logic flow
+   - Events scatter control flow across multiple components
+   - Multiple handlers can modify state simultaneously
+   - No single source of truth for "what happens when"
+
+**The Exception - Blazor Frontend Events:**
+
+Blazor UI components DO use events because that's how the framework works:
+```csharp
+// ✅ CORRECT - Blazor frontend event (framework requirement):
+<button @onclick="HandleSituationSelected">Select</button>
+
+private async Task HandleSituationSelected()
+{
+    // Immediately calls GameFacade synchronously
+    var result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situationId);
+
+    // GameFacade orchestrates everything synchronously
+    // NO event chains in game logic
+}
+```
+
+**Enforcement:**
+
+| Layer | Events Allowed? | Rationale |
+|-------|----------------|-----------|
+| GameFacade | ❌ NO | Single orchestrator - synchronous control flow |
+| Domain Facades | ❌ NO | Called by GameFacade, return results synchronously |
+| Domain Entities | ❌ NO | Pure data, no behavior, no events |
+| Services | ❌ NO | Called by facades, return results synchronously |
+| UI Components (Blazor) | ✅ YES | Framework requirement for user interactions |
+
+**Current Violation Status:**
+- ✅ Properties renamed: `OnSuccessSpawns` → `SuccessSpawns`
+- ✅ Properties renamed: `OnFailureSpawns` → `FailureSpawns`
+- ✅ Comments added clarifying "DECLARATIVE DATA (not event handler)"
+- ✅ NO event declarations exist in game logic layer
+
 **The Misunderstanding That Was About To Happen:**
 ```
 "SceneFacade is OPTIONAL - system works without it via LocationFacade view models"

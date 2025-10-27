@@ -65,6 +65,13 @@ public static class PlayerInitialConfigParser
         config.Archetype = dto.Archetype;
         config.InitialItems = dto.InitialItems;
 
+        // Scene-Situation Architecture properties (direct passthrough from DTO)
+        config.Resolve = dto.Resolve;
+        config.Scales = dto.Scales;
+        config.ActiveStates = dto.ActiveStates;
+        config.EarnedAchievements = dto.EarnedAchievements;
+        config.CompletedSituationIds = dto.CompletedSituationIds;
+
         // Use direct values if provided, otherwise translate categorical
         if (dto.Health.HasValue && dto.MaxHealth.HasValue)
         {

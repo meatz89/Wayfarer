@@ -6,6 +6,15 @@
 public class SituationCosts
 {
     /// <summary>
+    /// Resolve consumed by this situation (Sir Brante Willpower equivalent)
+    /// Competition: Universal consumable (0-30) shared by ALL situation types
+    /// Recovery: Slow, limited sources (rest, special events)
+    /// Strategic choice: Which situations are worth spending precious Resolve on?
+    /// Tier correlation: Tier 0 = 0 Resolve, Tier 1 = 0-3, Tier 2 = 5-8, Tier 3 = 10-15, Tier 4 = 18-25
+    /// </summary>
+    public int Resolve { get; set; } = 0;
+
+    /// <summary>
     /// Time segments consumed by this situation
     /// Competition: Limited time until deadline (obligation system)
     /// Strategic choice: Fast risky situation vs slow safe situation

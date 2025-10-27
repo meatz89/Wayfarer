@@ -7,8 +7,7 @@ public class ConversationTree
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string NpcId { get; set; }
-    public NPC Npc { get; set; }  // Wired in Phase 2
+    public NPC Npc { get; set; }  // Resolved during parsing
 
     // Availability conditions
     public int MinimumRelationship { get; set; }

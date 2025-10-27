@@ -22,7 +22,6 @@ public static class NPCParser
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
-            LocationId = dto.LocationId,
             Tier = dto.Tier,
             Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
@@ -104,6 +103,12 @@ public static class NPCParser
                     Value = kvp.Value
                 });
             }
+        }
+
+        // Resolve Location object reference during parsing (HIGHLANDER: ID is parsing artifact)
+        if (!string.IsNullOrEmpty(dto.LocationId))
+        {
+            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
         }
 
         // Parse obstacles for this NPC (Social barriers only)

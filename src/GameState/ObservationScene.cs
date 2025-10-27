@@ -7,8 +7,7 @@ public class ObservationScene
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string LocationId { get; set; }
-    public Location Location { get; set; }  // Wired in Phase 2
+    public Location Location { get; set; }  // Resolved during parsing
 
     // Availability
     public List<string> RequiredKnowledge { get; set; } = new List<string>();

@@ -1,0 +1,75 @@
+/// <summary>
+/// Spawn Rule - defines how a situation spawns child situations on completion
+/// Creates cascading chains of situations for narrative progression
+/// </summary>
+public class SpawnRule
+{
+    /// <summary>
+    /// Template ID of the situation to spawn
+    /// References a situation definition that will be instantiated
+    /// </summary>
+    public string TemplateId { get; set; }
+
+    /// <summary>
+    /// Placement type for spawned situation
+    /// Determines where spawned situation appears: SameAsParent, Specific Location/NPC
+    /// </summary>
+    public string TargetPlacement { get; set; }
+
+    /// <summary>
+    /// Requirement offsets to apply to spawned situation
+    /// Adjusts difficulty/requirements based on parent situation state
+    /// </summary>
+    public RequirementOffsets RequirementOffsets { get; set; }
+
+    /// <summary>
+    /// Additional conditions that must be met for spawn to occur
+    /// Empty/null means always spawn on parent completion
+    /// </summary>
+    public SpawnConditions Conditions { get; set; }
+}
+
+/// <summary>
+/// Requirement offsets for spawned situations
+/// Allows parent situation to make child easier/harder
+/// </summary>
+public class RequirementOffsets
+{
+    /// <summary>
+    /// Bond strength offset to apply
+    /// Example: -5 means spawned situation requires 5 less bond strength
+    /// </summary>
+    public int? BondStrengthOffset { get; set; }
+
+    /// <summary>
+    /// Scale value offset to apply
+    /// </summary>
+    public int? ScaleOffset { get; set; }
+
+    /// <summary>
+    /// Other numeric requirement offsets
+    /// </summary>
+    public int? NumericOffset { get; set; }
+}
+
+/// <summary>
+/// Conditions for spawn rule execution
+/// Additional checks beyond parent situation completion
+/// </summary>
+public class SpawnConditions
+{
+    /// <summary>
+    /// Minimum player Resolve required for spawn
+    /// </summary>
+    public int? MinResolve { get; set; }
+
+    /// <summary>
+    /// Required active state type
+    /// </summary>
+    public string RequiredState { get; set; }
+
+    /// <summary>
+    /// Required achievement ID
+    /// </summary>
+    public string RequiredAchievement { get; set; }
+}

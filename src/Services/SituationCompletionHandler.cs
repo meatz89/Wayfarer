@@ -10,12 +10,18 @@ public class SituationCompletionHandler
     private readonly GameWorld _gameWorld;
     private readonly ObligationActivity _obligationActivity;
     private readonly TimeManager _timeManager;
+    private readonly ConsequenceFacade _consequenceFacade;
 
-    public SituationCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity, TimeManager timeManager)
+    public SituationCompletionHandler(
+        GameWorld gameWorld,
+        ObligationActivity obligationActivity,
+        TimeManager timeManager,
+        ConsequenceFacade consequenceFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
     }
 
     /// <summary>
@@ -30,6 +36,13 @@ public class SituationCompletionHandler
         // Mark situation as complete
         situation.Complete();
 
+        // Scene-Situation Architecture: Apply ProjectedConsequences (bonds, scales, states)
+        _consequenceFacade.ApplyConsequences(
+            situation.ProjectedBondChanges,
+            situation.ProjectedScaleShifts,
+            situation.ProjectedStates
+        );
+
         // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
         ApplySituationCardRewards(situation);
 
@@ -43,10 +56,12 @@ public class SituationCompletionHandler
         CheckSimpleObligationCompletion(situation);
 
         // Check for obligation progress (phase-based ObligationJournal system)
-        if (!string.IsNullOrEmpty(situation.ObligationId))
+        if (!string.IsNullOrEmpty(situation.Obligation?.Id))
         {
-            CheckObligationProgress(situation.Id, situation.ObligationId);
+            CheckObligationProgress(situation.Id, situation.Obligation?.Id);
         }
+
+        // TODO Phase D: Execute spawn rules via SpawnFacade
     }
 
     /// <summary>
@@ -122,10 +137,10 @@ public class SituationCompletionHandler
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
             if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(situation.PlacementLocationId))
+                if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
                 {
-                    _gameWorld.GrantLocationCubes(situation.PlacementLocationId, rewards.InvestigationCubes.Value);
-                    Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
+                    _gameWorld.GrantLocationCubes(situation.PlacementLocation?.Id, rewards.InvestigationCubes.Value);
+                    Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
                     string locationName = location.Name;
                 }
                 else
@@ -136,10 +151,10 @@ public class SituationCompletionHandler
             // STORY CUBES - grant to situation's placement NPC (localized mastery)
             if (rewards.StoryCubes.HasValue && rewards.StoryCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(situation.PlacementNpcId))
+                if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
                 {
-                    _gameWorld.GrantNPCCubes(situation.PlacementNpcId, rewards.StoryCubes.Value);
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
+                    _gameWorld.GrantNPCCubes(situation.PlacementNpc?.ID, rewards.StoryCubes.Value);
+                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
                     string npcName = npc.Name;
                 }
                 else
@@ -257,10 +272,10 @@ public class SituationCompletionHandler
     /// </summary>
     private void RemoveSituationFromActiveSituations(Situation situation)
     {
-        if (!string.IsNullOrEmpty(situation.PlacementNpcId))
+        if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
         {
             // Remove from NPC.ActiveSituationIds
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
             if (npc != null)
             {
                 if (npc.ActiveSituationIds.Contains(situation.Id))
@@ -269,10 +284,10 @@ public class SituationCompletionHandler
                 }
             }
         }
-        else if (!string.IsNullOrEmpty(situation.PlacementLocationId))
+        else if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
         {
             // Remove from Location.ActiveSituationIds
-            Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
+            Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
             if (location != null)
             {
                 if (location.ActiveSituationIds.Contains(situation.Id))
@@ -290,17 +305,17 @@ public class SituationCompletionHandler
     private void CheckSimpleObligationCompletion(Situation completedSituation)
     {
         // Only check if situation is part of an obligation
-        if (string.IsNullOrEmpty(completedSituation.ObligationId))
+        if (string.IsNullOrEmpty(completedSituation.Obligation?.Id))
             return;
 
         // Only check if obligation is in Player.ActiveObligationIds
         Player player = _gameWorld.GetPlayer();
-        if (!player.ActiveObligationIds.Contains(completedSituation.ObligationId))
+        if (!player.ActiveObligationIds.Contains(completedSituation.Obligation?.Id))
             return;
 
         // Find all situations for this obligation
         List<Situation> obligationSituations = _gameWorld.Situations
-            .Where(g => g.ObligationId == completedSituation.ObligationId)
+            .Where(g => g.Obligation?.Id == completedSituation.Obligation?.Id)
             .ToList();
 
         // Check if ALL situations are complete
@@ -309,7 +324,7 @@ public class SituationCompletionHandler
         if (allSituationsComplete)
         {
             // Complete the obligation (grants rewards, removes from ActiveObligationIds)
-            _gameWorld.CompleteObligation(completedSituation.ObligationId, _timeManager);
+            _gameWorld.CompleteObligation(completedSituation.Obligation?.Id, _timeManager);
         }
     }
 }

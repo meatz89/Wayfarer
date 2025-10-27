@@ -201,6 +201,10 @@ public class LocationContentViewModel
 
     // Spots view data
     public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
+
+    // Scene-Situation Architecture: Locked situations with requirement gaps
+    // Perfect information: player sees what they need to unlock
+    public List<LockedSituationViewModel> LockedSituations { get; set; } = new();
 }
 
 /// <summary>
@@ -295,4 +299,40 @@ public class NpcAtSpotViewModel
 {
     public string Name { get; set; }
     public string ConnectionState { get; set; }
+}
+
+/// <summary>
+/// Locked situation with strongly-typed requirement gaps for UI rendering
+/// Perfect information pattern: player sees exactly what they need to unlock
+/// Each requirement type enables different UI execution context
+/// </summary>
+public class LockedSituationViewModel
+{
+    public string SituationId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string SystemType { get; set; }  // "social", "mental", "physical", "instant", "navigation"
+    public string LockReason { get; set; }  // Human-readable summary "Requires X OR Y"
+
+    // CONTEXTUAL PROPERTIES - each enables type-specific UI rendering
+    // Bond requirements: Render NPC portrait + progress bar + "Talk to X" guidance
+    public List<UnmetBondRequirement> UnmetBonds { get; set; } = new List<UnmetBondRequirement>();
+
+    // Scale requirements: Render behavioral spectrum visualization with current position
+    public List<UnmetScaleRequirement> UnmetScales { get; set; } = new List<UnmetScaleRequirement>();
+
+    // Resolve requirements: Render progress bar with current/required resolve
+    public List<UnmetResolveRequirement> UnmetResolve { get; set; } = new List<UnmetResolveRequirement>();
+
+    // Coins requirements: Render coin amount with "Earn X more coins" guidance
+    public List<UnmetCoinsRequirement> UnmetCoins { get; set; } = new List<UnmetCoinsRequirement>();
+
+    // Situation count requirements: Render completion counter "Complete X more situations"
+    public List<UnmetSituationCountRequirement> UnmetSituationCount { get; set; } = new List<UnmetSituationCountRequirement>();
+
+    // Achievement requirements: Render achievement badge with link to earning situation
+    public List<UnmetAchievementRequirement> UnmetAchievements { get; set; } = new List<UnmetAchievementRequirement>();
+
+    // State requirements: Render state icon with "Gain/Remove X state" guidance
+    public List<UnmetStateRequirement> UnmetStates { get; set; } = new List<UnmetStateRequirement>();
 }

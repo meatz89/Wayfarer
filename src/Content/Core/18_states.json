@@ -1,0 +1,184 @@
+{
+  "states": [
+    {
+      "type": "Wounded",
+      "category": "Physical",
+      "description": "Suffering from a serious injury that impairs movement and action",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RestAtSafeLocation", "UseMedicalSupplies"],
+      "duration": null
+    },
+    {
+      "type": "Exhausted",
+      "category": "Physical",
+      "description": "Completely drained of energy, struggling to perform basic tasks",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["Rest"],
+      "duration": 6
+    },
+    {
+      "type": "Sick",
+      "category": "Physical",
+      "description": "Afflicted by illness that weakens the body",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RestAtSafeLocation", "UseRemedy"],
+      "duration": 12
+    },
+    {
+      "type": "Injured",
+      "category": "Physical",
+      "description": "Minor injury that causes discomfort but doesn't prevent action",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["Rest"],
+      "duration": 8
+    },
+    {
+      "type": "Starving",
+      "category": "Physical",
+      "description": "Desperately hungry, body weakening from lack of food",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["ConsumeFood"],
+      "duration": null
+    },
+    {
+      "type": "Armed",
+      "category": "Physical",
+      "description": "Equipped with weapons, ready for confrontation",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["Manual"],
+      "duration": null
+    },
+    {
+      "type": "Provisioned",
+      "category": "Physical",
+      "description": "Well-supplied with food and resources for travel",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["ConsumeProvisions"],
+      "duration": 24
+    },
+    {
+      "type": "Rested",
+      "category": "Physical",
+      "description": "Fully recovered and energized",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["TimePassage"],
+      "duration": 12
+    },
+    {
+      "type": "Confused",
+      "category": "Mental",
+      "description": "Mind clouded, struggling to think clearly or make decisions",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["Rest", "CompleteMentalChallenge"],
+      "duration": 6
+    },
+    {
+      "type": "Traumatized",
+      "category": "Mental",
+      "description": "Psychological scarring from a disturbing experience",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["ReceiveComfort", "TimePassage"],
+      "duration": 24
+    },
+    {
+      "type": "Inspired",
+      "category": "Mental",
+      "description": "Mind sharp and creative, seeing connections others miss",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["TimePassage"],
+      "duration": 8
+    },
+    {
+      "type": "Focused",
+      "category": "Mental",
+      "description": "Intensely concentrated, able to tackle complex problems",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["TimePassage", "FailChallenge"],
+      "duration": 6
+    },
+    {
+      "type": "Obsessed",
+      "category": "Mental",
+      "description": "Fixated on a particular goal or mystery to the exclusion of all else",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["AchieveObsessionGoal", "Manual"],
+      "duration": null
+    },
+    {
+      "type": "Wanted",
+      "category": "Social",
+      "description": "Sought by authorities, must avoid official attention",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["PayFine", "ServeTime", "ClearName"],
+      "duration": null
+    },
+    {
+      "type": "Celebrated",
+      "category": "Social",
+      "description": "Renowned for recent deeds, recognized positively by others",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["TimePassage"],
+      "duration": 16
+    },
+    {
+      "type": "Shunned",
+      "category": "Social",
+      "description": "Rejected by the community, socially isolated",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RestoreReputation", "TimePassage"],
+      "duration": 24
+    },
+    {
+      "type": "Humiliated",
+      "category": "Social",
+      "description": "Public embarrassment that affects confidence and social standing",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RestoreHonor", "TimePassage"],
+      "duration": 12
+    },
+    {
+      "type": "Disguised",
+      "category": "Social",
+      "description": "Concealing true identity behind a false persona",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RemoveDisguise", "IdentityRevealed"],
+      "duration": null
+    },
+    {
+      "type": "Indebted",
+      "category": "Social",
+      "description": "Owing a significant favor or debt to someone",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["RepayDebt"],
+      "duration": null
+    },
+    {
+      "type": "Trusted",
+      "category": "Social",
+      "description": "Earned the confidence of important individuals or groups",
+      "blockedActions": [],
+      "enabledActions": [],
+      "clearConditions": ["BetrayTrust", "TimePassage"],
+      "duration": 24
+    }
+  ]
+}

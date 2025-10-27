@@ -112,6 +112,8 @@ public class PackageLoader
         // 1. Foundation entities (no dependencies)
         LoadPlayerStatsConfiguration(package.Content.PlayerStatsConfig, allowSkeletons);
         LoadListenDrawCounts(package.Content.ListenDrawCounts);
+        LoadStates(package.Content.States, allowSkeletons); // Scene-Situation: State definitions
+        LoadAchievements(package.Content.Achievements, allowSkeletons); // Scene-Situation: Achievement definitions
         LoadRegions(package.Content.Regions, allowSkeletons);
         LoadDistricts(package.Content.Districts, allowSkeletons);
         LoadItems(package.Content.Items, allowSkeletons);
@@ -364,7 +366,7 @@ public class PackageLoader
         foreach (StrangerNPCDTO dto in strangerDtos)
         {
             // Convert DTO to domain model using StrangerParser
-            NPC stranger = StrangerParser.ConvertDTOToNPC(dto);
+            NPC stranger = StrangerParser.ConvertDTOToNPC(dto, _gameWorld);
 
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
@@ -568,10 +570,10 @@ public class PackageLoader
 
             // Add to centralized GameWorld.Situations storage
             _gameWorld.Situations.Add(situation);// Assign situation to NPC or Location based on PlacementNpcId/PlacementLocationId
-            if (!string.IsNullOrEmpty(situation.PlacementNpcId))
+            if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
             {
                 // Social situation - assign to NPC.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
                 if (npc != null)
                 {
                     npc.ActiveSituationIds.Add(situation.Id);
@@ -579,10 +581,10 @@ public class PackageLoader
                 else
                 { }
             }
-            else if (!string.IsNullOrEmpty(situation.PlacementLocationId))
+            else if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
             {
                 // Mental/Physical situation - assign to Location.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
+                Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
                 if (location != null)
                 {
                     location.ActiveSituationIds.Add(situation.Id);
@@ -1476,6 +1478,36 @@ public class PackageLoader
         {
             EmergencySituation emergency = EmergencyParser.Parse(dto, _gameWorld);
             _gameWorld.EmergencySituations.Add(emergency);
+        }
+    }
+
+    /// <summary>
+    /// Load State definitions - metadata about temporary player conditions
+    /// Scene-Situation Architecture (Sir Brante integration)
+    /// </summary>
+    private void LoadStates(List<StateDTO> stateDtos, bool allowSkeletons)
+    {
+        if (stateDtos == null) return;
+
+        List<State> states = StateParser.ParseStates(stateDtos);
+        foreach (State state in states)
+        {
+            _gameWorld.States.Add(state);
+        }
+    }
+
+    /// <summary>
+    /// Load Achievement definitions - milestone templates with grant conditions
+    /// Scene-Situation Architecture (Sir Brante integration)
+    /// </summary>
+    private void LoadAchievements(List<AchievementDTO> achievementDtos, bool allowSkeletons)
+    {
+        if (achievementDtos == null) return;
+
+        List<Achievement> achievements = AchievementParser.ParseAchievements(achievementDtos);
+        foreach (Achievement achievement in achievements)
+        {
+            _gameWorld.Achievements.Add(achievement);
         }
     }
 

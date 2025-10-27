@@ -184,4 +184,18 @@ public class PackageContent
     /// Emergency situation definitions - urgent situations demanding immediate response
     /// </summary>
     public List<EmergencySituationDTO> EmergencySituations { get; set; } = new List<EmergencySituationDTO>();
+
+    // SCENE-SITUATION ARCHITECTURE (Sir Brante Integration)
+
+    /// <summary>
+    /// State definitions - metadata about temporary player conditions (Physical/Mental/Social)
+    /// Defines blocked actions, enabled actions, clear conditions, and duration
+    /// </summary>
+    public List<StateDTO> States { get; set; } = new List<StateDTO>();
+
+    /// <summary>
+    /// Achievement definitions - milestone templates with grant conditions
+    /// Tracks player accomplishments across categories (Combat/Social/Investigation/Economic/Political)
+    /// </summary>
+    public List<AchievementDTO> Achievements { get; set; } = new List<AchievementDTO>();
 }

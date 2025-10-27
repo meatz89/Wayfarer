@@ -73,15 +73,15 @@ public class DifficultyCalculationService
             case ModifierType.Familiarity:
                 // Location understanding (0-3 per Location)
                 // Uses Location ID from the situation's placement
-                if (string.IsNullOrEmpty(situation.PlacementLocationId)) return false;
-                int familiarity = player.GetLocationFamiliarity(situation.PlacementLocationId);
+                if (string.IsNullOrEmpty(situation.PlacementLocation?.Id)) return false;
+                int familiarity = player.GetLocationFamiliarity(situation.PlacementLocation?.Id);
                 return familiarity >= mod.Threshold;
 
             case ModifierType.ConnectionTokens:
                 // NPC relationship strength (0-15 per NPC)
                 // NO ID MATCHING: Uses situation's PlacementNpcId (mechanical property)
-                if (string.IsNullOrEmpty(situation.PlacementNpcId)) return false;
-                int tokens = player.NPCTokens.GetTokenCount(situation.PlacementNpcId, ConnectionType.Trust);
+                if (string.IsNullOrEmpty(situation.PlacementNpc?.ID)) return false;
+                int tokens = player.NPCTokens.GetTokenCount(situation.PlacementNpc?.ID, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
 
             case ModifierType.ObstacleProperty:

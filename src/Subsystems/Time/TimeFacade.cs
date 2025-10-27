@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Public facade for all time-related operations.
@@ -14,19 +15,22 @@ public class TimeFacade
     private readonly TimeProgressionManager _timeProgressionManager;
     private readonly TimeDisplayFormatter _timeDisplayFormatter;
     private readonly GameWorld _gameWorld;
+    private readonly StateClearingResolver _stateClearingResolver;
 
     public TimeFacade(
         TimeManager timeManager,
         TimeBlockCalculator timeBlockCalculator,
         TimeProgressionManager timeProgressionManager,
         TimeDisplayFormatter timeDisplayFormatter,
-        GameWorld gameWorld)
+        GameWorld gameWorld,
+        StateClearingResolver stateClearingResolver)
     {
         _timeManager = timeManager;
         _timeBlockCalculator = timeBlockCalculator;
         _timeProgressionManager = timeProgressionManager;
         _timeDisplayFormatter = timeDisplayFormatter;
         _gameWorld = gameWorld;
+        _stateClearingResolver = stateClearingResolver;
     }
 
     // ========== TIME STATE ==========
@@ -87,6 +91,26 @@ public class TimeFacade
         {
             CheckAndProcessDeadlineFailures(newSegment);
         }
+
+        // STATE CLEARING: Check for duration-based expired states
+        int currentDay = _gameWorld.CurrentDay;
+        TimeBlocks currentTimeBlock = _gameWorld.CurrentTimeBlock;
+        int currentSegment = _timeManager.CurrentSegment;
+
+        List<StateType> expiredStates = _stateClearingResolver.GetStatesToClearOnTimePassage(
+            currentDay, currentTimeBlock, currentSegment);
+
+        // Apply state clearing
+        foreach (StateType stateType in expiredStates)
+        {
+            _gameWorld.ClearState(stateType);
+        }
+
+        // TODO Phase 6: Trigger cascade after clearing states
+        // if (expiredStates.Any())
+        // {
+        //     await _spawnFacade.EvaluateDormantSituations();
+        // }
 
         return result;
     }

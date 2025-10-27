@@ -42,7 +42,7 @@ public static class ObservationSceneParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? "",
-            LocationId = dto.LocationId,
+            Location = location,  // Resolve object reference during parsing (HIGHLANDER: ID is parsing artifact)
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             IsRepeatable = dto.IsRepeatable,
             IsCompleted = dto.IsCompleted,

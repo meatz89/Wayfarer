@@ -29,6 +29,9 @@ public class LocationFacade
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
 
+    // Scene-Situation Architecture
+    private readonly SceneFacade _sceneFacade;
+
     public LocationFacade(
         GameWorld gameWorld,
         LocationManager locationManager,
@@ -46,7 +49,8 @@ public class LocationFacade
         NarrativeRenderer narrativeRenderer,
         ObstacleSituationFilter obstacleSituationFilter,
         DifficultyCalculationService difficultyService,
-        ItemRepository itemRepository)
+        ItemRepository itemRepository,
+        SceneFacade sceneFacade)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -66,6 +70,7 @@ public class LocationFacade
         _obstacleSituationFilter = obstacleSituationFilter ?? throw new ArgumentNullException(nameof(obstacleSituationFilter));
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
+        _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
     }
 
     /// <summary>
@@ -501,6 +506,10 @@ public class LocationFacade
         (List<SituationCardViewModel> ambientMental, List<ObstacleWithSituationsViewModel> mentalObstacles) = BuildMentalChallenges(spot);
         (List<SituationCardViewModel> ambientPhysical, List<ObstacleWithSituationsViewModel> physicalObstacles) = BuildPhysicalChallenges(spot);
 
+        // Scene-Situation Architecture: Generate scene and get locked situations
+        Scene scene = _sceneFacade.GenerateLocationScene(spot.Id);
+        List<LockedSituationViewModel> lockedSituations = MapLockedSituations(scene);
+
         LocationContentViewModel viewModel = new LocationContentViewModel
         {
             Header = BuildLocationHeader(venue, spot, currentTime),
@@ -512,10 +521,49 @@ public class LocationFacade
             MentalObstacles = mentalObstacles,
             AmbientPhysicalSituations = ambientPhysical,
             PhysicalObstacles = physicalObstacles,
-            AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime)
+            AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime),
+            LockedSituations = lockedSituations
         };
 
         return viewModel;
+    }
+
+    /// <summary>
+    /// Map Scene locked situations to view models with strongly-typed requirement gaps
+    /// </summary>
+    private List<LockedSituationViewModel> MapLockedSituations(Scene scene)
+    {
+        if (scene == null || scene.LockedSituations.Count == 0)
+            return new List<LockedSituationViewModel>();
+
+        List<LockedSituationViewModel> viewModels = new List<LockedSituationViewModel>();
+
+        foreach (SituationWithLockReason lockedSituation in scene.LockedSituations)
+        {
+            Situation situation = lockedSituation.Situation;
+
+            LockedSituationViewModel vm = new LockedSituationViewModel
+            {
+                SituationId = situation.Id,
+                Name = situation.Name,
+                Description = situation.Description,
+                SystemType = situation.SystemType.ToString().ToLower(),
+                LockReason = lockedSituation.LockReason,
+
+                // Map strongly-typed requirement gaps
+                UnmetBonds = lockedSituation.UnmetBonds,
+                UnmetScales = lockedSituation.UnmetScales,
+                UnmetResolve = lockedSituation.UnmetResolve,
+                UnmetCoins = lockedSituation.UnmetCoins,
+                UnmetSituationCount = lockedSituation.UnmetSituationCount,
+                UnmetAchievements = lockedSituation.UnmetAchievements,
+                UnmetStates = lockedSituation.UnmetStates
+            };
+
+            viewModels.Add(vm);
+        }
+
+        return viewModels;
     }
 
     // ============================================
@@ -885,8 +933,8 @@ public class LocationFacade
             SystemType = systemType,
             Difficulty = difficultyResult.FinalDifficulty,
             DifficultyLabel = difficultyLabel,
-            ObligationId = situation.ObligationId,
-            IsIntroAction = !string.IsNullOrEmpty(situation.ObligationId),
+            ObligationId = situation.Obligation?.Id,
+            IsIntroAction = !string.IsNullOrEmpty(situation.Obligation?.Id),
             FocusCost = situation.Costs.Focus,
             StaminaCost = situation.Costs.Stamina
         };

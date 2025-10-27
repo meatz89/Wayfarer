@@ -9,7 +9,6 @@ public class NPC
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
-    public string LocationId { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -63,6 +62,15 @@ public class NPC
     // Localized mastery - StoryCubes reduce Social Doubt with THIS NPC only
     // 0-10 scale: 0 cubes = full doubt, 10 cubes = complete understanding (no doubt)
     public int StoryCubes { get; set; } = 0;
+
+    // Scene-Situation Architecture addition: Bond Strength
+    /// <summary>
+    /// Bond Strength - relationship depth with this NPC (0-30 scale)
+    /// Used for CompoundRequirement unlock paths and achievement tracking
+    /// Different from RelationshipFlow (which tracks connection state/battery)
+    /// BondStrength = depth of relationship, Flow = current emotional state
+    /// </summary>
+    public int BondStrength { get; set; } = 0;
 
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
@@ -153,7 +161,7 @@ public class NPC
     {
         // NPCs are always available by default
         // Check if NPC is at the specified Venue location
-        return LocationId == locationSpotId && IsAvailable(currentTime);
+        return Location?.Id == locationSpotId && IsAvailable(currentTime);
     }
 
     public bool CanProvideService(ServiceTypes requestedService)

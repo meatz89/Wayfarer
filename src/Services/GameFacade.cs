@@ -29,6 +29,8 @@ public class GameFacade
     private readonly ConversationTreeFacade _conversationTreeFacade;
     private readonly ObservationFacade _observationFacade;
     private readonly EmergencyFacade _emergencyFacade;
+    private readonly SituationFacade _situationFacade;
+    private readonly SceneFacade _sceneFacade;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -48,7 +50,9 @@ public class GameFacade
         ObligationDiscoveryEvaluator obligationDiscoveryEvaluator,
         ConversationTreeFacade conversationTreeFacade,
         ObservationFacade observationFacade,
-        EmergencyFacade emergencyFacade)
+        EmergencyFacade emergencyFacade,
+        SituationFacade situationFacade,
+        SceneFacade sceneFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -68,6 +72,8 @@ public class GameFacade
         _conversationTreeFacade = conversationTreeFacade ?? throw new ArgumentNullException(nameof(conversationTreeFacade));
         _observationFacade = observationFacade ?? throw new ArgumentNullException(nameof(observationFacade));
         _emergencyFacade = emergencyFacade ?? throw new ArgumentNullException(nameof(emergencyFacade));
+        _situationFacade = situationFacade ?? throw new ArgumentNullException(nameof(situationFacade));
+        _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
     }
 
     // ========== CORE GAME STATE ==========
@@ -149,6 +155,16 @@ public class GameFacade
     public LocationFacade GetLocationFacade()
     {
         return _locationFacade;
+    }
+
+    public SituationFacade GetSituationFacade()
+    {
+        return _situationFacade;
+    }
+
+    public SceneFacade GetSceneFacade()
+    {
+        return _sceneFacade;
     }
 
     public NPC GetNPCById(string npcId)

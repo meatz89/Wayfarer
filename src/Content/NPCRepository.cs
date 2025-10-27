@@ -86,7 +86,7 @@ public class NPCRepository
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        List<NPC> locationNpcs = npcs.Where(n => n.LocationId == locationId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.Location?.Id == locationId).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
@@ -147,7 +147,7 @@ public class NPCRepository
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
             $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 
-        List<NPC> npcsAtLocation = npcs.Where(n => n.LocationId == LocationId).ToList();
+        List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
 
         // Apply visibility filtering
         npcsAtLocation = FilterByVisibility(npcsAtLocation);
@@ -168,7 +168,7 @@ public class NPCRepository
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        NPC? npc = npcs.FirstOrDefault(n => n.LocationId == locationSpotId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationSpotId && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;

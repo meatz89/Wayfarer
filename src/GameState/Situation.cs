@@ -4,7 +4,7 @@ using Wayfarer.GameState.Enums;
 /// <summary>
 /// Situation - approach to overcome obstacle (lives inside obstacle as child)
 /// Universal across all three challenge types (Social/Mental/Physical)
-/// PlacementLocationId/PlacementNpcId determines WHERE button appears (not ownership)
+/// PlacementLocation/PlacementNpc object references determine WHERE button appears (not ownership)
 /// </summary>
 public class Situation
 {
@@ -33,17 +33,6 @@ public class Situation
     /// </summary>
     public string DeckId { get; set; }
 
-    /// <summary>
-    /// Location ID where this situation's button appears in UI (semantic: placement, not ownership)
-    /// Used for Mental/Physical situations and distributed obstacle situations
-    /// </summary>
-    public string PlacementLocationId { get; set; }
-
-    /// <summary>
-    /// NPC ID where this situation's button appears in UI (semantic: placement, not ownership)
-    /// Used for Social situations and distributed obstacle situations
-    /// </summary>
-    public string PlacementNpcId { get; set; }
 
     /// <summary>
     /// Route ID where this situation's button appears in UI (semantic: placement, not ownership)
@@ -51,10 +40,148 @@ public class Situation
     /// </summary>
     public string PlacementRouteId { get; set; }
 
+    // Scene-Situation Architecture additions (spawn tracking, completion tracking, template system)
+
     /// <summary>
-    /// Obligation ID for UI grouping and label display
+    /// Template ID this situation was spawned from (for runtime instances)
+    /// References the original situation definition used as template
+    /// null for non-spawned situations (authored directly in JSON)
     /// </summary>
-    public string ObligationId { get; set; }
+    public string TemplateId { get; set; }
+
+    /// <summary>
+    /// Parent situation ID that spawned this situation (for cascade chains)
+    /// null if this is a root situation (not spawned by another)
+    /// Enables tracking of situation hierarchies and dependencies
+    /// </summary>
+    public string ParentSituationId { get; set; }
+
+    /// <summary>
+    /// Day when this situation was spawned
+    /// null if not yet spawned (template definition)
+    /// </summary>
+    public int? SpawnedDay { get; set; }
+
+    /// <summary>
+    /// Time block when this situation was spawned
+    /// null if not yet spawned (template definition)
+    /// </summary>
+    public TimeBlocks? SpawnedTimeBlock { get; set; }
+
+    /// <summary>
+    /// Segment within time block when this situation was spawned (1-4)
+    /// null if not yet spawned (template definition)
+    /// </summary>
+    public int? SpawnedSegment { get; set; }
+
+    /// <summary>
+    /// Day when this situation was completed
+    /// null if not yet completed
+    /// </summary>
+    public int? CompletedDay { get; set; }
+
+    /// <summary>
+    /// Time block when this situation was completed
+    /// null if not yet completed
+    /// </summary>
+    public TimeBlocks? CompletedTimeBlock { get; set; }
+
+    /// <summary>
+    /// Segment within time block when this situation was completed (1-4)
+    /// null if not yet completed
+    /// </summary>
+    public int? CompletedSegment { get; set; }
+
+    /// <summary>
+    /// Type of interaction when player selects this situation
+    /// Determines resolution flow: instant, challenge (Mental/Physical/Social), or navigation
+    /// Replaces implicit SystemType checks - explicit interaction type
+    /// </summary>
+    public SituationInteractionType InteractionType { get; set; } = SituationInteractionType.Instant;
+
+    /// <summary>
+    /// Navigation-specific payload for Navigation interaction type
+    /// null for non-navigation situations
+    /// Contains destination and auto-trigger scene flag
+    /// </summary>
+    public NavigationPayload NavigationPayload { get; set; }
+
+    /// <summary>
+    /// Compound requirement - multiple OR paths to unlock this situation
+    /// null or empty = always available (no requirements)
+    /// Player needs to satisfy at least ONE complete path
+    /// </summary>
+    public CompoundRequirement CompoundRequirement { get; set; }
+
+    /// <summary>
+    /// Projected bond changes shown to player before selection
+    /// Transparent consequence display for relationship impacts
+    /// Applied when situation resolves successfully
+    /// </summary>
+    public List<BondChange> ProjectedBondChanges { get; set; } = new List<BondChange>();
+
+    /// <summary>
+    /// Projected scale shifts shown to player before selection
+    /// Transparent consequence display for behavioral reputation impacts
+    /// Applied when situation resolves successfully
+    /// </summary>
+    public List<ScaleShift> ProjectedScaleShifts { get; set; } = new List<ScaleShift>();
+
+    /// <summary>
+    /// Projected state applications/removals shown to player before selection
+    /// Transparent consequence display for temporary condition impacts
+    /// Applied when situation resolves successfully
+    /// </summary>
+    public List<StateApplication> ProjectedStates { get; set; } = new List<StateApplication>();
+
+    /// <summary>
+    /// Spawn rules executed when situation succeeds
+    /// Creates cascading chains: parent situation → child situations
+    /// Each rule spawns new situation at specific placement with adjusted requirements
+    /// DECLARATIVE DATA (not event handler - NO EVENTS principle)
+    /// </summary>
+    public List<SpawnRule> SuccessSpawns { get; set; } = new List<SpawnRule>();
+
+    /// <summary>
+    /// Spawn rules executed when situation fails
+    /// Failure consequences: different situations spawn based on failure outcome
+    /// Enables branching narrative based on success/failure
+    /// DECLARATIVE DATA (not event handler - NO EVENTS principle)
+    /// </summary>
+    public List<SpawnRule> FailureSpawns { get; set; } = new List<SpawnRule>();
+
+    /// <summary>
+    /// Situation complexity tier (0-4)
+    /// Tier 0: Safety net (zero requirements, infinite repeat, no Resolve cost)
+    /// Tier 1: Low complexity (0-3 Resolve, simple requirements)
+    /// Tier 2: Standard complexity (5-8 Resolve, moderate compound requirements)
+    /// Tier 3: High complexity (10-15 Resolve, complex requirements, deep cascades)
+    /// Tier 4: Climactic moments (18-25 Resolve, very complex, resolution content)
+    /// </summary>
+    public int Tier { get; set; } = 1;
+
+    /// <summary>
+    /// Whether this situation can be repeated after completion
+    /// true = Remains available after completion (work, services)
+    /// false = Deleted after completion (one-time progression events)
+    /// Tier 0 safety net situations MUST be repeatable
+    /// </summary>
+    public bool Repeatable { get; set; } = false;
+
+    /// <summary>
+    /// AI-generated narrative cached for this situation instance
+    /// Generated once when situation first appears in scene
+    /// null = not yet generated (generate on first display)
+    /// Cached to avoid regenerating same text multiple times
+    /// </summary>
+    public string GeneratedNarrative { get; set; }
+
+    /// <summary>
+    /// Hints for AI narrative generation
+    /// Provides tone, theme, context, style guidance
+    /// Used by AI service to generate appropriate narrative
+    /// </summary>
+    public NarrativeHints NarrativeHints { get; set; }
 
     /// <summary>
     /// Object reference to placement location (for runtime navigation)

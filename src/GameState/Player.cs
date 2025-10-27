@@ -109,6 +109,43 @@ public class Player
     // Examples: "guard_routine", "secret_passage", "npc_motivation"
     public List<string> Knowledge { get; set; } = new List<string>();
 
+    // Scene-Situation Architecture additions (Sir Brante inspired progression)
+
+    /// <summary>
+    /// Resolve - universal consumable resource (0-30, similar to Willpower in Sir Brante)
+    /// Used to unlock situations and make difficult choices
+    /// More restrictive than Focus - creates genuine strategic choices
+    /// </summary>
+    public int Resolve { get; set; } = 30; // Start at max
+
+    /// <summary>
+    /// Player Scales - 6 moral/behavioral axes (-10 to +10 each)
+    /// Strongly-typed nested object (NOT list or dictionary)
+    /// Both extremes unlock content (different archetypes, not better/worse)
+    /// </summary>
+    public PlayerScales Scales { get; set; } = new PlayerScales();
+
+    /// <summary>
+    /// Active States - temporary conditions currently affecting player
+    /// List of active state instances with segment-based duration tracking
+    /// Examples: Wounded, Exhausted, Trusted, Celebrated, Obsessed
+    /// </summary>
+    public List<ActiveState> ActiveStates { get; set; } = new List<ActiveState>();
+
+    /// <summary>
+    /// Earned Achievements - milestone markers player has achieved
+    /// List of achievement instances with segment-based earned time
+    /// Categories: Physical, Social, Investigation, Economic, Political
+    /// </summary>
+    public List<PlayerAchievement> EarnedAchievements { get; set; } = new List<PlayerAchievement>();
+
+    /// <summary>
+    /// Completed Situation IDs - tracking which situations player has finished
+    /// Used for spawn rules and requirement checking
+    /// Situations can spawn child situations creating cascading chains
+    /// </summary>
+    public List<string> CompletedSituationIds { get; set; } = new List<string>();
+
     public void AddKnownRoute(RouteOption route)
     {
         string originName = route.OriginLocationSpot;

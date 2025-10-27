@@ -29,4 +29,11 @@ public class PlayerInitialConfig
 
     // Starting items
     public List<ResourceEntry> InitialItems { get; set; }
+
+    // Scene-Situation Architecture (Sir Brante integration)
+    public int? Resolve { get; set; }
+    public PlayerScalesDTO Scales { get; set; }
+    public List<ActiveStateDTO> ActiveStates { get; set; }
+    public List<PlayerAchievementDTO> EarnedAchievements { get; set; }
+    public List<string> CompletedSituationIds { get; set; }
 }

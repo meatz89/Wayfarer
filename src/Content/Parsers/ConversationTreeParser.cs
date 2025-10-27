@@ -64,7 +64,7 @@ public static class ConversationTreeParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? "",
-            NpcId = dto.NpcId,
+            Npc = npc,  // Resolve object reference during parsing (HIGHLANDER: ID is parsing artifact)
             MinimumRelationship = dto.MinimumRelationship,
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,

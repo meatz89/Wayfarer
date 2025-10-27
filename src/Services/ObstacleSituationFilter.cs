@@ -47,7 +47,7 @@ public class ObstacleSituationFilter
                 foreach (string situationId in obstacle.SituationIds)
                 {
                     Situation situation = gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
-                    if (situation != null && situation.PlacementLocationId == location.Id)
+                    if (situation != null && situation.PlacementLocation?.Id == location.Id)
                     {
                         // PRINCIPLE 4: All situations always visible, difficulty varies via DifficultyModifiers
                         visibleSituations.Add(situation);
@@ -91,7 +91,7 @@ public class ObstacleSituationFilter
                 foreach (string situationId in obstacle.SituationIds)
                 {
                     Situation situation = gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
-                    if (situation != null && situation.PlacementNpcId == npc.ID)
+                    if (situation != null && situation.PlacementNpc?.ID == npc.ID)
                     {
                         // PRINCIPLE 4: All situations always visible, difficulty varies via DifficultyModifiers
                         visibleSituations.Add(situation);

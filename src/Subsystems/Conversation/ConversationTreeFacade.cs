@@ -46,13 +46,13 @@ public class ConversationTreeFacade
             };
         }
 
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == tree.NpcId);
+        NPC npc = tree.Npc;
         if (npc == null)
         {
             return new ConversationTreeContext
             {
                 IsValid = false,
-                ErrorMessage = $"NPC '{tree.NpcId}' not found for conversation"
+                ErrorMessage = "NPC not found for conversation tree"
             };
         }
 
@@ -167,7 +167,7 @@ public class ConversationTreeFacade
         // Apply relationship changes
         if (response.RelationshipDelta != 0)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == tree.NpcId);
+            NPC npc = tree.Npc;
             if (npc != null)
             {
                 if (response.RelationshipDelta > 0)
@@ -265,11 +265,11 @@ public class ConversationTreeFacade
                 if (t.IsCompleted && !t.IsRepeatable) return false;
 
                 // Find NPC for this tree
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == t.NpcId);
+                NPC npc = t.Npc;
                 if (npc == null) return false;
 
                 // Check if NPC is at this location
-                if (npc.LocationId != locationId) return false;
+                if (npc.Location?.Id != locationId) return false;
 
                 // Check relationship requirement
                 int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
