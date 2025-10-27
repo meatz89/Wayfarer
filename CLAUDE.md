@@ -319,6 +319,52 @@ User needs "SleepOutside" player action for tutorial.
 - Property is pure data with no translation needed
 - Value is unique to one entity (no reuse)
 
+### JSON Authoring Principles (Categorical-First Design)
+
+**CRITICAL RULES FOR JSON CONTENT:**
+
+1. **NO ICONS IN JSON**
+   - Icons are UI concerns, not data
+   - JSON stores categorical data, UI layer determines visual representation
+   - ❌ WRONG: `"icon": "sword-icon.png"`
+   - ✅ CORRECT: No icon property at all (UI derives icon from categorical properties like type/category)
+
+2. **PREFER CATEGORICAL OVER NUMERICAL**
+   - Always prefer categorical properties ("Capable", "Commanding", "Fragile") over numerical values in JSON
+   - Content authors describe INTENT and RELATIVE MAGNITUDE, not exact mechanics
+   - Catalogues translate intent → mechanics with game state scaling
+   - ❌ WRONG: `"bondRequirement": 15` (hardcoded number)
+   - ✅ CORRECT: `"bondRequirement": "Trusted"` (categorical level translated by catalogue)
+   - ❌ WRONG: `"resolveCost": 8` (hardcoded number)
+   - ✅ CORRECT: `"resolveCost": "Medium"` (tier-based, scales with progression)
+
+3. **VALIDATE ID REFERENCES AT PARSE TIME**
+   - ALL ID references in JSON must be validated against GameWorld entities during parsing
+   - Parser must throw InvalidOperationException if referenced entity doesn't exist
+   - Fail fast at game initialization, not during gameplay
+   - ❌ WRONG: Silently ignore missing references or create placeholder
+   - ✅ CORRECT: `if (!gameWorld.NPCs.ContainsKey(dto.NpcId)) throw new InvalidOperationException($"Situation '{dto.Id}' references unknown NPC '{dto.NpcId}'")`
+
+**When Numerical Values ARE Appropriate:**
+- Player state progression (XP: 150, Coins: 47) - runtime accumulation
+- Time tracking (CurrentDay: 5, Segment: 3) - runtime clock
+- Resource pools (Health: 12, MaxHealth: 18) - runtime state
+- Scale positions (Morality: +7) - runtime spectrum tracking
+
+**When Categorical Values ARE Required:**
+- Content authoring (equipment durability, card effectiveness, cost tiers)
+- Difficulty descriptors (stat requirements, challenge levels)
+- Relative comparisons (bond depth, relationship stages)
+- AI-generated content (needs relative properties, not absolute values)
+
+**Validation Enforcement:**
+
+All parsers MUST:
+1. Validate required fields present (throw if missing)
+2. Validate enum/categorical values (throw if unknown)
+3. Validate ID references exist in GameWorld (throw if not found)
+4. Validate nested objects properly structured (throw if malformed)
+
 ---
 
 ## EXISTING CATALOGUE EXAMPLES
@@ -756,6 +802,56 @@ System A sets boolean flag
 
 ---
 
+## Principle 12: Execution Context Entity Design (Holistic Architecture)
+
+**FUNDAMENTAL RULE: Design entities around execution contexts, not implementation convenience.**
+
+**The Anti-Pattern (Tactical Thinking):**
+- "I need to check if this list contains a string" → Creates List<string> property
+- Single mega-property conflates multiple unrelated execution contexts
+- Runtime code interprets categorical strings (which facade checks which value?)
+- No type safety, hidden semantics, implementation-first
+
+**The Correct Pattern (Holistic Thinking):**
+- "What execution contexts will check this entity?" → Design properties for contexts
+- Categorical property DECOMPOSES into multiple semantic properties
+- Each property documents WHERE it's used (ClearsOnRest → ResourceFacade, ClearsOnItemUse → ItemFacade)
+- Full type safety, explicit semantics, architecture-first
+
+**Three-Layer Data Flow (Universal Pattern):**
+1. **JSON Layer**: Categorical strings (human-readable, content-author-friendly)
+2. **Parse Layer**: Catalogue translates categorical → multiple strongly-typed properties
+3. **Runtime Layer**: Facades check ONLY concrete types (bool, enum, int, List<ConcreteType>)
+
+**FORBIDDEN AT RUNTIME:**
+- ❌ String matching: `if (entity.SomeList.Contains("Value"))`
+- ❌ Dictionary lookups: `entity.Properties["key"]`
+- ❌ Catalogue calls: Catalogues are parse-time ONLY
+- ❌ String interpretation: Runtime decides meaning of strings
+
+**REQUIRED PATTERN:**
+- ✅ Parse-time translation: Categorical → strongly-typed (happens ONCE at initialization)
+- ✅ Context-aware properties: Named for WHERE they're checked (not WHAT they check)
+- ✅ Semantic decomposition: One categorical input → Many contextual outputs
+- ✅ Zero runtime interpretation: All meaning decided at parse time
+
+**Application Process:**
+When encountering categorical property (List<string>, string enum) during entity design:
+1. Identify ALL execution contexts where this concept matters
+2. Create one strongly-typed property PER context
+3. Write catalogue that translates categorical → all contextual properties (parse-time only)
+4. Runtime code checks ONLY contextual properties, NEVER original strings
+
+**Why This Matters:**
+- **Fails fast**: Invalid categorical values throw at parse time, not mid-gameplay
+- **Zero interpretation**: Runtime has zero logic deciding what strings mean
+- **Context-aware**: Properties named for purpose (ClearsOnRest, not generic "conditions")
+- **Type-enforced**: Compiler catches misuse, IntelliSense guides correct usage
+- **No hidden semantics**: Property name documents execution context
+- **Performance**: No string comparisons in hot paths
+
+**Test:** Can you name the exact facade method that checks each property? If no, property is poorly designed.
+
 ## Meta-Principle: Design Constraint as Quality Filter
 
 **When you find yourself reaching for:**
@@ -764,6 +860,7 @@ System A sets boolean flag
 - Multi-purpose entities
 - Ambiguous ownership
 - Hidden costs
+- **Runtime string matching or List<string>.Contains() checks**
 
 **STOP. The design is wrong.**
 
@@ -781,12 +878,14 @@ These aren't implementation problems to solve with clever code. They're signals 
 - ❌ Change method signature to accept different type
 - ❌ Cast or convert to make types match
 - ❌ Add compatibility layer for both old and new
+- ❌ Check List<string> at runtime instead of translating at parse time
 
 **Correct Pattern**:
 - ✅ Which entity should own this property architecturally?
 - ✅ Trace parser → JSON → entity alignment
 - ✅ Move property to correct entity in all three: JSON, parser, domain
 - ✅ Delete legacy code that violates architecture
+- ✅ Categorical properties translate to multiple strongly-typed properties at parse time
 
 **Why This Matters**:
 - Dictionary disease causes runtime type errors, impossible debugging, lost IntelliSense
@@ -796,6 +895,7 @@ These aren't implementation problems to solve with clever code. They're signals 
 - Two sources of truth guarantee bugs
 - Half-refactored code is worse than no refactoring
 - TODOs in production are admissions of incomplete work
+- Runtime string matching violates parse-time translation principle
 
 **9/10 Certainty Test**:
 - Traced EXACT data flow?

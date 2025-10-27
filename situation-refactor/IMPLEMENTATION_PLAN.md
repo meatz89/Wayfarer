@@ -494,37 +494,97 @@ Verify that the Goal→Situation rename from the prior refactor is complete. Con
 
 ### 4.2: Create Catalogues
 
-**Before Starting:**
-- [ ] Search for existing Catalogue files (SocialCardEffectCatalog, etc.)
-- [ ] Understand current catalogue pattern and structure
-- [ ] Verify folder location for catalogues
+**DECISION: NO CATALOGUES NEEDED FOR SCENE-SITUATION PARSERS**
 
-**Implementation:**
+After analyzing the existing `SocialCardEffectCatalog.cs` (708 lines), we determined that Scene-Situation parsers do NOT need catalogues because:
 
-- [ ] Create `src/Content/Catalogues/RequirementCatalogue.cs`
-  - [ ] Static class with translation methods
-  - [ ] `CalculateStatThreshold(categoricalLevel, playerLevel) → int`
-  - [ ] `CalculateBondThreshold(relationshipDepth, npcContext) → int`
-  - [ ] `BuildCompoundRequirement(requirementRules) → CompoundRequirement`
-  - [ ] Use categorical enums (Capable, Commanding, Masterful)
-  - [ ] Scale thresholds based on player progression
-  - [ ] Return strongly-typed CompoundRequirement objects
+**Catalogue Purpose (from existing pattern):**
+- Translate categorical/descriptive JSON properties (e.g., "Moderate" exertion) → concrete numerical values at parse time
+- Apply game state scaling (player level, difficulty, max stats)
+- Example: `SocialCardEffectCatalog` translates (ConversationalMove, Stat, Depth) → scaled effect values
 
-- [ ] Create `src/Content/Catalogues/CostCatalogue.cs`
-  - [ ] Static class with scaling methods
-  - [ ] `ScaleResolveCost(tier, situationTier, playerLevel) → int`
-  - [ ] `ScaleSystemCost(tier, challengeType, playerLevel) → int`
-  - [ ] `ScaleEconomicCost(tier, playerWealth) → int`
-  - [ ] Input: Categorical tier (Low, Medium, High, Extreme)
-  - [ ] Output: Absolute integer costs
-  - [ ] Scale with progression (higher level = higher costs)
+**Why Scene-Situation Doesn't Need This:**
+1. **Properties Already Concrete in JSON**:
+   - JSON already contains absolute values: `morality: 0`, `resolve: 30`, `bondStrength: 10`
+   - No categorical strings requiring translation ("Moderate" → 5)
+2. **No Scaling Required**:
+   - Values don't scale with player level or game state
+   - A bond threshold of 10 is always 10, regardless of progression
+3. **AchievementParser Inline Translation Appropriate**:
+   - Dictionary→strongly-typed conversion is 1:1 mapping, not scaling
+   - Entity-specific logic (not reused across multiple parsers)
+   - Belongs in parser, not separate catalogue
 
-- [ ] Create `src/Content/Catalogues/ConsequenceCatalogue.cs`
-  - [ ] Static class with formatting methods
-  - [ ] `GetBondChangeSignificance(delta) → enum`
-  - [ ] `GetScaleShiftCategory(scaleType, delta) → description`
-  - [ ] `FormatConsequenceDisplay(consequence) → string`
-  - [ ] Used for UI display and AI hints
+**Catalogues ARE Used When:**
+- JSON has categorical properties ("Capable", "Fragile", "Moderate")
+- Values need scaling based on game state (player level, difficulty)
+- Same translation logic reused across multiple entity types
+- AI-generated content needs relative properties
+
+**Catalogues NOT Used When:**
+- JSON already has concrete absolute values
+- No scaling or game state dependency
+- Translation is simple 1:1 mapping
+- Logic is entity-specific and not reused
+
+**Examples:**
+- ✅ `SocialCardEffectCatalog`: Translates (Remark, Rapport, Depth 2) → scaled effect values based on player level
+- ✅ `EquipmentDurabilityCatalog`: Translates "Fragile" → (uses: 2, repairCost: 10)
+- ✅ `StateClearConditionsCatalog`: Translates ["Rest", "ConsumeFood"] → ClearsOnRest: true, ClearingItemTypes: [Food]
+- ❌ StateParser enum parsing: StateType enum already concrete, no translation needed
+- ❌ AchievementParser: Dictionary keys map 1:1 to properties, inline is clearer
+
+**Implementation Decision:**
+- StateParser.cs: Enum parsing direct, BUT clear conditions require StateClearConditionsCatalog
+- AchievementParser.cs: Inline Dictionary→strongly-typed conversion in ParseGrantConditions()
+- SituationParser.cs: TimeBlock parsing already inline
+- No RequirementCatalogue, CostCatalogue, or ConsequenceCatalogue needed at this time
+
+**Execution Context Entity Design (Holistic Architecture - CRITICAL PRINCIPLE):**
+
+**THE UNIVERSAL RULE:**
+
+Design entities around execution contexts, not implementation convenience. Categorical properties from JSON MUST decompose into multiple strongly-typed properties at parse time, each named for its execution context.
+
+**❌ WRONG - Tactical Implementation-First Thinking:**
+- "I need to check this list of strings" → Creates List<string> property
+- Single mega-property conflates multiple execution contexts
+- Runtime code interprets strings
+- No type safety
+
+**✅ CORRECT - Holistic Architecture-First Thinking:**
+- "What execution contexts will check this?" → Creates property per context
+- Categorical property decomposes into semantic properties
+- Each property named for WHERE used (ClearsOnRest → ResourceFacade)
+- Full type safety
+
+**APPLICATION PATTERN:**
+
+When encountering categorical property during entity design:
+1. Identify ALL execution contexts where concept is checked
+2. Create one strongly-typed property PER context
+3. Write catalogue that translates categorical → contextual properties (parse-time only)
+4. Runtime checks ONLY contextual properties, NEVER original strings
+
+**Why This Matters:**
+- Fails fast: Invalid categorical values throw at parse time
+- Zero interpretation: Runtime has zero logic deciding string meanings
+- Context-aware: Properties named for purpose (not generic)
+- Type-enforced: Compiler catches misuse, IntelliSense works
+- No hidden semantics: Property name documents execution context
+
+**JSON Authoring & Parse-Time Validation Principles:**
+
+Following Wayfarer's catalogue pattern and fail-fast philosophy, all parsers MUST enforce:
+
+1. **NO ICONS IN JSON** - Icons are UI concerns; JSON stores categorical data, UI derives icons from type/category
+2. **PREFER CATEGORICAL OVER NUMERICAL** - Content describes intent ("Trusted" bond level), catalogues translate to mechanics (15 bond strength)
+   - Exception: Player state uses numerical (XP, Coins, Scales - runtime progression values)
+3. **VALIDATE ID REFERENCES** - All entity ID references must be validated against GameWorld at parse time, throw if not found
+4. **VALIDATE ENUM STRINGS** - When JSON contains string values referencing enums/actions (e.g., "clearConditions": ["Rest"]), validate against enum definitions/catalogues
+5. **FAIL FAST** - Throw InvalidOperationException at parse time for all validation failures, never silently ignore or create placeholders
+
+Scene-Situation currently uses numerical values for player state (design decision) but could adopt categorical tiers in future enhancements.
 
 ### 4.3: Modify Existing Parsers
 

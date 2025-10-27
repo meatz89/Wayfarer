@@ -971,6 +971,128 @@ Input: Consequence object
 Output: Player-facing text
 Logic: Formats changes for Consequence Modal display
 
+### Catalogue Applicability Analysis (Scene-Situation Architecture)
+
+**ARCHITECTURAL DECISION: Scene-Situation parsers do NOT require catalogues**
+
+After analyzing the existing catalogue pattern (specifically `SocialCardEffectCatalog.cs`, 708 lines), we determined that the Scene-Situation architecture parsers (`StateParser`, `AchievementParser`, extended `SituationParser`) do not need catalogues because their properties are already concrete in JSON, require no scaling, and have no categorical-to-mechanical translation requirements.
+
+**Catalogue Pattern Purpose (from existing implementation):**
+- Translate categorical/descriptive JSON properties → concrete numerical values at parse time
+- Apply game state scaling (player level, difficulty, max stats)
+- Enable AI-generated content with relative properties
+- Example: `SocialCardEffectCatalog` translates (ConversationalMove: Remark, Stat: Rapport, Depth: 2) → `CardEffectFormula` with scaled effect values based on player level
+
+**Why Scene-Situation Properties Don't Need Catalogues:**
+
+1. **Properties Already Concrete in JSON:**
+   - Morality scale: `morality: 0` (not "neutral" requiring translation)
+   - Resolve: `resolve: 30` (absolute value, not "high" tier)
+   - Bond strength: `bondStrength: 10` (concrete threshold, not "trusted" relationship level)
+   - State duration: `duration: 5` (absolute segments, not "brief" or "extended")
+
+2. **No Scaling Based on Game State:**
+   - A bond threshold of 10 is always 10, regardless of player level
+   - Scale values are absolute positions on -10 to +10 spectrum
+   - State durations are fixed segment counts
+   - Achievement thresholds are concrete milestones (not "many obligations completed")
+
+3. **AchievementParser Inline Translation is Appropriate:**
+   - Dictionary → strongly-typed conversion is 1:1 mapping
+   - Each Dictionary key maps directly to one AchievementGrantConditions property
+   - Logic is entity-specific (not reused across multiple parsers)
+   - Inline ParseGrantConditions() method is clearer than separate catalogue
+
+**When Catalogues ARE Required:**
+- JSON has categorical properties ("Capable" stat level, "Fragile" durability, "Moderate" exertion)
+- Values scale with player level, difficulty, or world progression
+- Same translation logic reused across multiple entity types
+- AI-generated content needs relative categorical properties
+- Example: Social Card effects scale from early game to late game for same categorical depth
+
+**When Catalogues NOT Required:**
+- JSON already has concrete absolute values
+- No scaling or game state dependency
+- Translation is simple 1:1 mapping (Dictionary key → property)
+- Logic is entity-specific and not reused
+- Example: State definitions use fixed enums and absolute durations
+
+**Concrete Examples from Codebase:**
+
+✅ **SocialCardEffectCatalog (Catalogue Required):**
+```csharp
+// Categorical JSON: "move": "Remark", "stat": "Rapport", "depth": 2
+// Catalogue translates based on player level:
+// Player Level 1: Remark/Rapport/Depth2 → +4 Understanding (early game)
+// Player Level 5: Remark/Rapport/Depth2 → +6 Understanding (late game scaling)
+```
+
+✅ **EquipmentDurabilityCatalog (Catalogue Required):**
+```csharp
+// Categorical JSON: "durability": "Fragile"
+// Catalogue translates: "Fragile" → ExhaustsAfterUses: 2, RepairCost: 10
+```
+
+❌ **StateParser (No Catalogue Needed):**
+```csharp
+// Concrete JSON: "type": "Wounded", "duration": 5
+// Direct parsing: StateType.Wounded, DurationSegments: 5
+// No translation, no scaling, enum already concrete
+```
+
+❌ **AchievementParser (No Catalogue Needed):**
+```csharp
+// JSON: "grantConditions": {"bondStrengthWithAnyNpc": 10, "moralityScale": 5}
+// Inline translation in ParseGrantConditions():
+// grantConditions.BondStrengthWithAnyNpc = 10 (1:1 mapping)
+// grantConditions.MoralityScale = 5 (1:1 mapping)
+// Dictionary keys are lowercase, properties are PascalCase, but no categorical translation
+```
+
+### HOLISTIC ARCHITECTURE PRINCIPLE: Parse-Time Translation, Zero Runtime Strings
+
+**THE FUNDAMENTAL RULE:**
+
+When designing ANY entity with categorical properties from JSON:
+1. **JSON layer**: Categorical strings (human-readable, content-author-friendly)
+2. **Parse layer**: Catalogue translates categorical → multiple strongly-typed properties
+3. **Runtime layer**: Code checks ONLY concrete types (bool, enum, List<ConcreteType>)
+4. **NEVER**: Runtime string matching, List<string>.Contains(), or catalogue lookups
+
+**WHY THIS IS HOLISTIC, NOT TACTICAL:**
+
+This is an ENTITY DESIGN PRINCIPLE, not an implementation detail:
+- Entities must be designed with their EXECUTION CONTEXT in mind
+- Properties reflect WHERE and HOW they will be checked (which facade, which method)
+- Categorical properties fragment into MULTIPLE semantic properties at parse time
+- One categorical input → Many contextual outputs
+
+**ANTI-PATTERN (Tactical Thinking):**
+
+- "I need to check this string list" → Implementation-first thinking
+- Creates single mega-property conflating multiple execution contexts
+- Runtime code interprets strings (which facade checks which string?)
+- No type safety, hidden semantics, string typos possible
+
+**CORRECT PATTERN (Holistic Thinking):**
+- "What execution contexts exist?" → Architecture-first thinking
+- Categorical property DECOMPOSES into multiple semantic properties matching contexts
+- Each property documents WHERE it's checked (ClearsOnRest → ResourceFacade)
+- Full type safety, explicit semantics, compiler-enforced
+
+**APPLICATION CONSEQUENCES:**
+When you encounter a categorical property (List<string>, string enum) during entity design:
+1. Identify ALL execution contexts where this concept is checked
+2. Create one strongly-typed property PER context
+3. Write catalogue that translates categorical → all contextual properties
+4. Runtime checks ONLY contextual properties, NEVER original strings
+
+**WHY THIS MATTERS UNIVERSALLY:**
+- Fails fast: Invalid categorical values throw at parse time, not mid-gameplay
+- Zero interpretation: Runtime has zero logic deciding what strings mean
+- Context-aware: Properties named for their purpose (ClearsOnRest, not "Rest")
+- Type-enforced: Compiler catches misuse, IntelliSense guides correct usage
+
 ### Modified Parsers
 
 **InvestigationParser (Minimal Change):**
