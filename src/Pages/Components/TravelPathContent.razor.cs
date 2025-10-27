@@ -595,26 +595,26 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get goal previews for a path (challenges player will face)
-        /// Goals are fetched from parent Obstacle, equipment matching via Obstacle contexts
+        /// Get situation previews for a path (challenges player will face)
+        /// Situations are fetched from parent Obstacle, equipment matching via Obstacle contexts
         /// </summary>
-        protected System.Collections.Generic.List<GoalPreviewData> GetGoalPreviewsForPath(string obstacleId)
+        protected System.Collections.Generic.List<SituationPreviewData> GetSituationPreviewsForPath(string obstacleId)
         {
             if (string.IsNullOrEmpty(obstacleId))
-                return new System.Collections.Generic.List<GoalPreviewData>();
+                return new System.Collections.Generic.List<SituationPreviewData>();
 
             Obstacle obstacle = ObstacleFacade.GetObstacleById(obstacleId);
-            if (obstacle == null || obstacle.GoalIds == null || !obstacle.GoalIds.Any())
-                return new System.Collections.Generic.List<GoalPreviewData>();
+            if (obstacle == null || obstacle.SituationIds == null || !obstacle.SituationIds.Any())
+                return new System.Collections.Generic.List<SituationPreviewData>();
 
             System.Collections.Generic.List<Equipment> playerEquipment = EquipmentFacade.GetPlayerEquipment();
 
-            System.Collections.Generic.List<GoalPreviewData> goalPreviews = new System.Collections.Generic.List<GoalPreviewData>();
+            System.Collections.Generic.List<SituationPreviewData> situationPreviews = new System.Collections.Generic.List<SituationPreviewData>();
 
-            foreach (string goalId in obstacle.GoalIds)
+            foreach (string situationId in obstacle.SituationIds)
             {
-                Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-                if (goal == null)
+                Situation situation = GameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+                if (situation == null)
                     continue;
 
                 System.Collections.Generic.List<EquipmentMatchData> matchingEquipment = new System.Collections.Generic.List<EquipmentMatchData>();
@@ -638,18 +638,18 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
-                goalPreviews.Add(new GoalPreviewData
+                situationPreviews.Add(new SituationPreviewData
                 {
-                    Name = goal.Name,
-                    Description = goal.Description,
-                    SystemType = goal.SystemType.ToString(),
+                    Name = situation.Name,
+                    Description = situation.Description,
+                    SystemType = situation.SystemType.ToString(),
                     Contexts = obstacle.Contexts,
                     MatchingEquipment = matchingEquipment,
                     TotalReduction = totalReduction
                 });
             }
 
-            return goalPreviews;
+            return situationPreviews;
         }
 
         // ========== TRAVEL CONTEXT DETECTION (FOR UI CONDITIONAL RENDERING) ==========
@@ -740,15 +740,15 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get all unique encounter goal names for current segment
-        /// Aggregates goal names from all obstacles on all paths in current segment
+        /// Get all unique encounter situation names for current segment
+        /// Aggregates situation names from all obstacles on all paths in current segment
         /// </summary>
-        protected List<string> GetEncounterGoalsForCurrentSegment()
+        protected List<string> GetEncounterSituationsForCurrentSegment()
         {
-            List<string> goalNames = new List<string>();
+            List<string> situationNames = new List<string>();
             RouteSegment segment = GetCurrentRouteSegment();
             if (segment == null)
-                return goalNames;
+                return situationNames;
 
             // PathCard system - get obstacles from PathCards
             List<PathCardInfo> availableCards = GetAvailablePathCards();
@@ -756,24 +756,24 @@ namespace Wayfarer.Pages.Components
             {
                 if (!string.IsNullOrEmpty(cardInfo.Card.ObstacleId))
                 {
-                    List<GoalPreviewData> goalPreviews = GetGoalPreviewsForPath(cardInfo.Card.ObstacleId);
-                    foreach (GoalPreviewData preview in goalPreviews)
+                    List<SituationPreviewData> situationPreviews = GetSituationPreviewsForPath(cardInfo.Card.ObstacleId);
+                    foreach (SituationPreviewData preview in situationPreviews)
                     {
-                        if (!string.IsNullOrEmpty(preview.Name) && !goalNames.Contains(preview.Name))
+                        if (!string.IsNullOrEmpty(preview.Name) && !situationNames.Contains(preview.Name))
                         {
-                            goalNames.Add(preview.Name);
+                            situationNames.Add(preview.Name);
                         }
                     }
                 }
             }
 
-            return goalNames;
+            return situationNames;
         }
 
         /// <summary>
-        /// Helper class for goal preview data
+        /// Helper class for situation preview data
         /// </summary>
-        protected class GoalPreviewData
+        protected class SituationPreviewData
         {
             public string Name { get; set; }
             public string Description { get; set; }

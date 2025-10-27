@@ -244,8 +244,8 @@
     border-radius: 4px;
 }
 
-/* Goals Info */
-.obstacle-goals-info {
+/* Situations Info */
+.obstacle-situations-info {
     font-size: 12px;
     color: var(--text-secondary, #ccc);
     margin-top: 8px;

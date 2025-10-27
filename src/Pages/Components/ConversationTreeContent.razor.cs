@@ -46,7 +46,7 @@ namespace Wayfarer.Pages.Components
                 // Navigate to Social Challenge screen
                 await GameScreen.StartConversationSession(
                     Context.Npc.ID,
-                    result.ChallengeGoalId);
+                    result.ChallengeSituationId);
             }
             else if (result.IsComplete)
             {

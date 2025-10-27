@@ -25,7 +25,7 @@ public class LocationFacade
     private readonly MessageSystem _messageSystem;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
-    private readonly ObstacleGoalFilter _obstacleGoalFilter;
+    private readonly ObstacleSituationFilter _obstacleSituationFilter;
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
 
@@ -44,7 +44,7 @@ public class LocationFacade
         MessageSystem messageSystem,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer,
-        ObstacleGoalFilter obstacleGoalFilter,
+        ObstacleSituationFilter obstacleSituationFilter,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository)
     {
@@ -63,7 +63,7 @@ public class LocationFacade
         _messageSystem = messageSystem;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
-        _obstacleGoalFilter = obstacleGoalFilter ?? throw new ArgumentNullException(nameof(obstacleGoalFilter));
+        _obstacleSituationFilter = obstacleSituationFilter ?? throw new ArgumentNullException(nameof(obstacleSituationFilter));
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
     }
@@ -307,7 +307,7 @@ public class LocationFacade
         string displayText = conversationType switch
         {
             "friendly_chat" => "Friendly Chat",
-            "request" => "Request", // Actual text comes from Goal.Name
+            "request" => "Request", // Actual text comes from Situation.Name
             "delivery" => "Deliver Letter",
             "resolution" => "Make Amends",
             _ => "Talk"
@@ -498,8 +498,8 @@ public class LocationFacade
         if (spot == null)
             throw new InvalidOperationException("Current location spot is null");
 
-        (List<GoalCardViewModel> ambientMental, List<ObstacleWithGoalsViewModel> mentalObstacles) = BuildMentalChallenges(spot);
-        (List<GoalCardViewModel> ambientPhysical, List<ObstacleWithGoalsViewModel> physicalObstacles) = BuildPhysicalChallenges(spot);
+        (List<SituationCardViewModel> ambientMental, List<ObstacleWithSituationsViewModel> mentalObstacles) = BuildMentalChallenges(spot);
+        (List<SituationCardViewModel> ambientPhysical, List<ObstacleWithSituationsViewModel> physicalObstacles) = BuildPhysicalChallenges(spot);
 
         LocationContentViewModel viewModel = new LocationContentViewModel
         {
@@ -507,10 +507,10 @@ public class LocationFacade
             TravelActions = GetTravelActions(venue, spot),
             PlayerActions = GetPlayerActions(),
             HasSpots = GetSpotsForVenue(venue).Count > 1,
-            NPCsWithGoals = BuildNPCsWithGoals(spot, currentTime),
-            AmbientMentalGoals = ambientMental,
+            NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
+            AmbientMentalSituations = ambientMental,
             MentalObstacles = mentalObstacles,
-            AmbientPhysicalGoals = ambientPhysical,
+            AmbientPhysicalSituations = ambientPhysical,
             PhysicalObstacles = physicalObstacles,
             AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime)
         };
@@ -651,34 +651,34 @@ public class LocationFacade
         return playerActions;
     }
 
-    private List<NpcWithGoalsViewModel> BuildNPCsWithGoals(Location spot, TimeBlocks currentTime)
+    private List<NpcWithSituationsViewModel> BuildNPCsWithSituations(Location spot, TimeBlocks currentTime)
     {
-        List<NpcWithGoalsViewModel> result = new List<NpcWithGoalsViewModel>();
+        List<NpcWithSituationsViewModel> result = new List<NpcWithSituationsViewModel>();
 
         // Get NPCs at spot
         List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
 
-        // Build NPCs with their goals PRE-GROUPED
-        // CORRECT: Get goals FROM each NPC (using PlacementNpcId), not from location
+        // Build NPCs with their situations PRE-GROUPED
+        // CORRECT: Get situations FROM each NPC (using PlacementNpcId), not from location
         foreach (NPC npc in npcsAtSpot)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
 
-            // Get ALL goals for THIS NPC (uses PlacementNpcId)
-            List<Goal> allNpcGoals = _obstacleGoalFilter.GetVisibleNPCGoals(npc, _gameWorld);
+            // Get ALL situations for THIS NPC (uses PlacementNpcId)
+            List<Situation> allNpcSituations = _obstacleSituationFilter.GetVisibleNPCSituations(npc, _gameWorld);
 
-            // Filter to Social goals only, available
-            // NOTE: Obligation goals ARE included - they may have parent obstacles for hierarchical display
-            List<Goal> npcSocialGoals = allNpcGoals
+            // Filter to Social situations only, available
+            // NOTE: Obligation situations ARE included - they may have parent obstacles for hierarchical display
+            List<Situation> npcSocialSituations = allNpcSituations
                 .Where(g => g.SystemType == TacticalSystemType.Social)
                 .Where(g => g.IsAvailable && !g.IsCompleted)
                 .ToList();
 
-            // Group social goals by obstacle
-            (List<GoalCardViewModel> ambientSocial, List<ObstacleWithGoalsViewModel> socialObstacles) =
-                GroupGoalsByObstacle(npc, npcSocialGoals, "social", "Doubt");
+            // Group social situations by obstacle
+            (List<SituationCardViewModel> ambientSocial, List<ObstacleWithSituationsViewModel> socialObstacles) =
+                GroupSituationsByObstacle(npc, npcSocialSituations, "social", "Doubt");
 
-            result.Add(new NpcWithGoalsViewModel
+            result.Add(new NpcWithSituationsViewModel
             {
                 Id = npc.ID,
                 Name = npc.Name,
@@ -686,7 +686,7 @@ public class LocationFacade
                 ConnectionState = connectionState.ToString(),
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
-                AmbientSocialGoals = ambientSocial,
+                AmbientSocialSituations = ambientSocial,
                 SocialObstacles = socialObstacles,
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
@@ -716,82 +716,82 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    // DELETED: GetFilteredSocialGoals() - was incorrectly using GetVisibleLocationGoals()
-    // Social goals are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
-    // Now calling GetVisibleNPCGoals() directly in BuildNPCsWithGoals()
+    // DELETED: GetFilteredSocialSituations() - was incorrectly using GetVisibleLocationSituations()
+    // Social situations are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
+    // Now calling GetVisibleNPCSituations() directly in BuildNPCsWithSituations()
 
-    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildMentalChallenges(Location spot)
+    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildMentalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Mental, "mental", "Exposure");
     }
 
-    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildPhysicalChallenges(Location spot)
+    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildPhysicalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Physical, "physical", "Danger");
     }
 
-    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) BuildChallengesBySystemType(
+    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildChallengesBySystemType(
         Location spot, TacticalSystemType systemType, string systemTypeStr, string difficultyLabel)
     {
-        List<GoalCardViewModel> ambientGoals = new List<GoalCardViewModel>();
-        List<ObstacleWithGoalsViewModel> obstacleGroups = new List<ObstacleWithGoalsViewModel>();
+        List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
+        List<ObstacleWithSituationsViewModel> obstacleGroups = new List<ObstacleWithSituationsViewModel>();
 
-        // Get all visible goals at this location
-        List<Goal> allVisibleGoals = _obstacleGoalFilter.GetVisibleLocationGoals(spot, _gameWorld);
+        // Get all visible situations at this location
+        List<Situation> allVisibleSituations = _obstacleSituationFilter.GetVisibleLocationSituations(spot, _gameWorld);
 
         // Filter to this system type only
-        // NOTE: Obligation goals ARE included - they may have parent obstacles for hierarchical display
-        List<Goal> systemGoals = allVisibleGoals
+        // NOTE: Obligation situations ARE included - they may have parent obstacles for hierarchical display
+        List<Situation> systemSituations = allVisibleSituations
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
             .ToList();
 
-        // Group goals by obstacle (ambient goals have no obstacle parent)
-        Dictionary<string, List<Goal>> goalsByObstacle = new Dictionary<string, List<Goal>>();
-        List<Goal> ambientGoalsList = new List<Goal>();
+        // Group situations by obstacle (ambient situations have no obstacle parent)
+        Dictionary<string, List<Situation>> situationsByObstacle = new Dictionary<string, List<Situation>>();
+        List<Situation> ambientSituationsList = new List<Situation>();
 
-        foreach (Goal goal in systemGoals)
+        foreach (Situation situation in systemSituations)
         {
-            // Check if this goal belongs to an obstacle
-            Obstacle parentObstacle = FindParentObstacle(spot, goal);
+            // Check if this situation belongs to an obstacle
+            Obstacle parentObstacle = FindParentObstacle(spot, situation);
 
             if (parentObstacle != null)
             {
-                if (!goalsByObstacle.ContainsKey(parentObstacle.Id))
+                if (!situationsByObstacle.ContainsKey(parentObstacle.Id))
                 {
-                    goalsByObstacle[parentObstacle.Id] = new List<Goal>();
+                    situationsByObstacle[parentObstacle.Id] = new List<Situation>();
                 }
-                goalsByObstacle[parentObstacle.Id].Add(goal);
+                situationsByObstacle[parentObstacle.Id].Add(situation);
             }
             else
             {
-                ambientGoalsList.Add(goal);
+                ambientSituationsList.Add(situation);
             }
         }
 
-        // Build ambient goals view models
-        ambientGoals = ambientGoalsList.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList();
+        // Build ambient situations view models
+        ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build obstacle groups
-        foreach (KeyValuePair<string, List<Goal>> kvp in goalsByObstacle)
+        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByObstacle)
         {
             Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
             if (obstacle != null)
             {
-                obstacleGroups.Add(BuildObstacleWithGoals(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+                obstacleGroups.Add(BuildObstacleWithSituations(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
             }
         }
 
-        return (ambientGoals, obstacleGroups);
+        return (ambientSituations, obstacleGroups);
     }
 
-    private Obstacle FindParentObstacle(Location spot, Goal goal)
+    private Obstacle FindParentObstacle(Location spot, Situation situation)
     {
-        // Check all obstacles at this location to see if any contains this goal
+        // Check all obstacles at this location to see if any contains this situation
         foreach (string obstacleId in spot.ObstacleIds)
         {
             Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-            if (obstacle != null && obstacle.GoalIds.Contains(goal.Id))
+            if (obstacle != null && obstacle.SituationIds.Contains(situation.Id))
             {
                 return obstacle;
             }
@@ -799,58 +799,58 @@ public class LocationFacade
         return null;
     }
 
-    private (List<GoalCardViewModel>, List<ObstacleWithGoalsViewModel>) GroupGoalsByObstacle(
-        NPC npc, List<Goal> goals, string systemTypeStr, string difficultyLabel)
+    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) GroupSituationsByObstacle(
+        NPC npc, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
-        List<GoalCardViewModel> ambientGoals = new List<GoalCardViewModel>();
-        List<ObstacleWithGoalsViewModel> obstacleGroups = new List<ObstacleWithGoalsViewModel>();
+        List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
+        List<ObstacleWithSituationsViewModel> obstacleGroups = new List<ObstacleWithSituationsViewModel>();
 
-        // Group goals by obstacle (ambient goals have no obstacle parent)
-        Dictionary<string, List<Goal>> goalsByObstacle = new Dictionary<string, List<Goal>>();
-        List<Goal> ambientGoalsList = new List<Goal>();
+        // Group situations by obstacle (ambient situations have no obstacle parent)
+        Dictionary<string, List<Situation>> situationsByObstacle = new Dictionary<string, List<Situation>>();
+        List<Situation> ambientSituationsList = new List<Situation>();
 
-        foreach (Goal goal in goals)
+        foreach (Situation situation in situations)
         {
-            // Check if this goal belongs to an obstacle from this NPC
-            Obstacle parentObstacle = FindParentObstacleForNPC(npc, goal);
+            // Check if this situation belongs to an obstacle from this NPC
+            Obstacle parentObstacle = FindParentObstacleForNPC(npc, situation);
 
             if (parentObstacle != null)
             {
-                if (!goalsByObstacle.ContainsKey(parentObstacle.Id))
+                if (!situationsByObstacle.ContainsKey(parentObstacle.Id))
                 {
-                    goalsByObstacle[parentObstacle.Id] = new List<Goal>();
+                    situationsByObstacle[parentObstacle.Id] = new List<Situation>();
                 }
-                goalsByObstacle[parentObstacle.Id].Add(goal);
+                situationsByObstacle[parentObstacle.Id].Add(situation);
             }
             else
             {
-                ambientGoalsList.Add(goal);
+                ambientSituationsList.Add(situation);
             }
         }
 
-        // Build ambient goals view models
-        ambientGoals = ambientGoalsList.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList();
+        // Build ambient situations view models
+        ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build obstacle groups
-        foreach (KeyValuePair<string, List<Goal>> kvp in goalsByObstacle)
+        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByObstacle)
         {
             Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
             if (obstacle != null)
             {
-                obstacleGroups.Add(BuildObstacleWithGoals(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+                obstacleGroups.Add(BuildObstacleWithSituations(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
             }
         }
 
-        return (ambientGoals, obstacleGroups);
+        return (ambientSituations, obstacleGroups);
     }
 
-    private Obstacle FindParentObstacleForNPC(NPC npc, Goal goal)
+    private Obstacle FindParentObstacleForNPC(NPC npc, Situation situation)
     {
-        // Check all obstacles for this NPC to see if any contains this goal
+        // Check all obstacles for this NPC to see if any contains this situation
         foreach (string obstacleId in npc.ObstacleIds)
         {
             Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-            if (obstacle != null && obstacle.GoalIds.Contains(goal.Id))
+            if (obstacle != null && obstacle.SituationIds.Contains(situation.Id))
             {
                 return obstacle;
             }
@@ -858,9 +858,9 @@ public class LocationFacade
         return null;
     }
 
-    private ObstacleWithGoalsViewModel BuildObstacleWithGoals(Obstacle obstacle, List<Goal> goals, string systemTypeStr, string difficultyLabel)
+    private ObstacleWithSituationsViewModel BuildObstacleWithSituations(Obstacle obstacle, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
-        return new ObstacleWithGoalsViewModel
+        return new ObstacleWithSituationsViewModel
         {
             Id = obstacle.Id,
             Name = obstacle.Name,
@@ -868,44 +868,44 @@ public class LocationFacade
             Intensity = obstacle.Intensity,
             Contexts = obstacle.Contexts.Select(c => c.ToString()).ToList(),
             ContextsDisplay = string.Join(", ", obstacle.Contexts.Select(c => c.ToString())),
-            Goals = goals.Select(g => BuildGoalCard(g, systemTypeStr, difficultyLabel)).ToList()
+            Situations = situations.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList()
         };
     }
 
-    private GoalCardViewModel BuildGoalCard(Goal goal, string systemType, string difficultyLabel)
+    private SituationCardViewModel BuildSituationCard(Situation situation, string systemType, string difficultyLabel)
     {
-        int baseDifficulty = GetBaseDifficultyForGoal(goal);
-        DifficultyResult difficultyResult = _difficultyService.CalculateDifficulty(goal, baseDifficulty, _itemRepository);
+        int baseDifficulty = GetBaseDifficultyForSituation(situation);
+        DifficultyResult difficultyResult = _difficultyService.CalculateDifficulty(situation, baseDifficulty, _itemRepository);
 
-        return new GoalCardViewModel
+        return new SituationCardViewModel
         {
-            Id = goal.Id,
-            Name = goal.Name,
-            Description = goal.Description,
+            Id = situation.Id,
+            Name = situation.Name,
+            Description = situation.Description,
             SystemType = systemType,
             Difficulty = difficultyResult.FinalDifficulty,
             DifficultyLabel = difficultyLabel,
-            ObligationId = goal.ObligationId,
-            IsIntroAction = !string.IsNullOrEmpty(goal.ObligationId),
-            FocusCost = goal.Costs.Focus,
-            StaminaCost = goal.Costs.Stamina
+            ObligationId = situation.ObligationId,
+            IsIntroAction = !string.IsNullOrEmpty(situation.ObligationId),
+            FocusCost = situation.Costs.Focus,
+            StaminaCost = situation.Costs.Stamina
         };
     }
 
-    private int GetBaseDifficultyForGoal(Goal goal)
+    private int GetBaseDifficultyForSituation(Situation situation)
     {
-        switch (goal.SystemType)
+        switch (situation.SystemType)
         {
             case TacticalSystemType.Social:
-                SocialChallengeDeck socialDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                SocialChallengeDeck socialDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
                 return socialDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Mental:
-                MentalChallengeDeck mentalDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                MentalChallengeDeck mentalDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
                 return mentalDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Physical:
-                PhysicalChallengeDeck physicalDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+                PhysicalChallengeDeck physicalDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
                 return physicalDeck?.DangerThreshold ?? 10;
 
             default:

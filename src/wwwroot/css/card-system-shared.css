@@ -7,7 +7,7 @@ SECTIONS:
 2. Core Resources (~54 lines) - Resource display with bars and values
 3. Rhythm Tracker (~49 lines) - Balance/Cadence scale visualization
 4. Action Economy (~48 lines) - Initiative/Attention counter with dots
-5. Goals/Progress (~51 lines) - Achievement thresholds and rewards
+5. Situations/Progress (~51 lines) - Achievement thresholds and rewards
 6. Narrative (~16 lines) - Story text display
 7. Actions (~43 lines) - Primary action buttons (Listen/Speak, Observe/Act)
 8. Pile Counters (~19 lines) - Deck/Discard pile counts
@@ -216,21 +216,21 @@ Used by Social (Conversations), Mental (Obligations), Physical (Obstacles) syste
     box-shadow: 0 0 4px rgba(212, 167, 106, 0.5);
 }
 
-/* ===== GOALS / PROGRESS SECTION ===== */
+/* ===== SITUATIONS / PROGRESS SECTION ===== */
 
-.goals-section {
+.situations-section {
     background: #e8dcc4;
     padding: 10px 15px;
     border-bottom: 2px solid #a68b6f;
 }
 
-.goals-container {
+.situations-container {
     display: flex;
     justify-content: center;
     gap: 15px;
 }
 
-.goal-card {
+.situation-card {
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
@@ -240,30 +240,30 @@ Used by Social (Conversations), Mental (Obligations), Physical (Obstacles) syste
     transition: all 0.2s;
 }
 
-.goal-card.achievable {
+.situation-card.achievable {
     border-color: #7a8b5a;
     background: #f4f9e9;
 }
 
-.goal-card.active {
+.situation-card.active {
     border-color: #d4a76a;
     transform: scale(1.05);
 }
 
-.goal-threshold {
+.situation-threshold {
     font-size: 18px;
     font-weight: bold;
     color: #5c4a3a;
     margin-bottom: 4px;
 }
 
-.goal-name {
+.situation-name {
     font-size: 11px;
     color: #7a6250;
     margin-bottom: 4px;
 }
 
-.goal-reward {
+.situation-reward {
     font-size: 10px;
     color: #5a7a3a;
     font-weight: bold;

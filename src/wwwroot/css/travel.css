@@ -604,7 +604,7 @@
     background: #d4a76a;
 }
 
-/* Encounter Deck Preview (from travel-screens.html) - Shows possible goals/encounters */
+/* Encounter Deck Preview (from travel-screens.html) - Shows possible situations/encounters */
 .encounter-preview {
     padding: 15px 20px;
     background: #f9f3e9;
@@ -1453,13 +1453,13 @@
     text-transform: uppercase;
 }
 
-/* Goals List */
-.goals-list {
+/* Situations List */
+.situations-list {
     padding: 20px;
     background: #f4e8d0;
 }
 
-.goals-title {
+.situations-title {
     font-size: 13px;
     color: #7a6250;
     text-transform: uppercase;
@@ -1468,7 +1468,7 @@
     letter-spacing: 1px;
 }
 
-.goal-card {
+.situation-card {
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
@@ -1478,27 +1478,27 @@
     transition: all 0.3s ease;
 }
 
-.goal-card:hover {
+.situation-card:hover {
     background: #fefaf0;
     border-color: #8b5a8b;
     transform: translateX(5px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.goal-header {
+.situation-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 8px;
 }
 
-.goal-name {
+.situation-name {
     font-size: 15px;
     font-weight: bold;
     color: #5c4a3a;
 }
 
-.goal-system {
+.situation-system {
     font-size: 11px;
     color: #7a6250;
     text-transform: uppercase;
@@ -1507,7 +1507,7 @@
     border-radius: 2px;
 }
 
-.goal-description {
+.situation-description {
     font-size: 13px;
     line-height: 1.5;
     color: #2c241a;

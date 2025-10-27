@@ -1,21 +1,21 @@
 /// <summary>
-/// Resources player must pay to attempt goal
+/// Resources player must pay to attempt situation
 /// Transparent costs create resource competition and strategic choices
 /// Board game pattern: X costs 5 wood, Y costs 3 wood - choose wisely
 /// </summary>
-public class GoalCosts
+public class SituationCosts
 {
     /// <summary>
-    /// Time segments consumed by this goal
+    /// Time segments consumed by this situation
     /// Competition: Limited time until deadline (obligation system)
-    /// Strategic choice: Fast risky goal vs slow safe goal
+    /// Strategic choice: Fast risky situation vs slow safe situation
     /// Example: Obligation A takes 3 segments, B takes 5 segments
     /// </summary>
     public int Time { get; set; } = 0;
 
     /// <summary>
     /// Focus consumed by Mental challenges
-    /// Competition: Limited Focus pool (0-100), shared by ALL Mental goals
+    /// Competition: Limited Focus pool (0-100), shared by ALL Mental situations
     /// Recovery: Rest actions, time passing
     /// Strategic choice: Multiple small obligations vs one large obligation
     /// Example: Obligation A costs 20 Focus, B costs 30 Focus
@@ -25,7 +25,7 @@ public class GoalCosts
 
     /// <summary>
     /// Stamina consumed by Physical challenges
-    /// Competition: Limited Stamina pool (0-100), shared by ALL Physical goals
+    /// Competition: Limited Stamina pool (0-100), shared by ALL Physical situations
     /// Recovery: Rest actions, food, time passing
     /// Strategic choice: Force through obstacle vs find alternate route
     /// Example: Force Through costs 30 Stamina, Find Route costs 15 Focus
@@ -34,7 +34,7 @@ public class GoalCosts
     public int Stamina { get; set; } = 0;
 
     /// <summary>
-    /// Coins spent on this goal (rare)
+    /// Coins spent on this situation (rare)
     /// Competition: Limited coins, needed for items, travel, obligations
     /// No recovery: Permanent spend
     /// Strategic choice: Pay for information vs investigate yourself

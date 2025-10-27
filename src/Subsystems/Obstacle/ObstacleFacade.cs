@@ -125,7 +125,7 @@ public class ObstacleFacade
     }
 
     /// <summary>
-    /// Apply obstacle property reduction from goal card reward
+    /// Apply obstacle property reduction from situation card reward
     /// Uses existing ObstacleRewardService for backward compatibility
     /// </summary>
     public bool ApplyPropertyReduction(string obstacleId, ObstaclePropertyReduction reduction)

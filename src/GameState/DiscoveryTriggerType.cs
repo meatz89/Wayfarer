@@ -40,10 +40,10 @@ public enum DiscoveryTriggerType
     ObligationTriggered,
 
     /// <summary>
-    /// Obligation revealed after completing specific goal
-    /// Prerequisites: goal_completed(X)
+    /// Obligation revealed after completing specific situation
+    /// Prerequisites: situation_completed(X)
     /// Example: Completing "Gather Information" with Martha reveals her daughter's disappearance
-    /// PROPER ARCHITECTURE: Checks actual game state (goal completion), not invisible knowledge tokens
+    /// PROPER ARCHITECTURE: Checks actual game state (situation completion), not invisible knowledge tokens
     /// </summary>
-    GoalCompletionTrigger
+    SituationCompletionTrigger
 }

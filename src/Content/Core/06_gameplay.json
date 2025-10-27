@@ -67,7 +67,7 @@
       {
         "id": "cunning",
         "name": "Cunning",
-        "description": "Subtlety and indirect influence. Represents your ability to work in shadows, find alternative angles, and achieve goals through misdirection.",
+        "description": "Subtlety and indirect influence. Represents your ability to work in shadows, find alternative angles, and achieve situations through misdirection.",
         "conversationBenefit": "Better success with subtle and indirect cards. Unlocks cards that hint, deflect, and work around obstacles.",
         "obligationUnlock": "Covert Search at level 2: Investigate without alerting NPCs or drawing attention",
         "travelUnlock": "Shadow paths at level 3: Access to hidden routes, thief passages, and underground networks"

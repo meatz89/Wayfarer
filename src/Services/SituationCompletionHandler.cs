@@ -3,15 +3,15 @@ using System.Linq;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Handles goal completion lifecycle - marking complete, removing from ActiveGoals if DeleteOnSuccess, and obligation progress
+/// Handles situation completion lifecycle - marking complete, removing from ActiveSituations if DeleteOnSuccess, and obligation progress
 /// </summary>
-public class GoalCompletionHandler
+public class SituationCompletionHandler
 {
     private readonly GameWorld _gameWorld;
     private readonly ObligationActivity _obligationActivity;
     private readonly TimeManager _timeManager;
 
-    public GoalCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity, TimeManager timeManager)
+    public SituationCompletionHandler(GameWorld gameWorld, ObligationActivity obligationActivity, TimeManager timeManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
@@ -19,53 +19,53 @@ public class GoalCompletionHandler
     }
 
     /// <summary>
-    /// Complete a goal - mark as complete, remove from ActiveGoals if DeleteOnSuccess=true, and check obligation progress
+    /// Complete a situation - mark as complete, remove from ActiveSituations if DeleteOnSuccess=true, and check obligation progress
     /// </summary>
-    /// <param name="goal">Goal that was successfully completed</param>
-    public void CompleteGoal(Goal goal)
+    /// <param name="situation">Situation that was successfully completed</param>
+    public void CompleteSituation(Situation situation)
     {
-        if (goal == null)
-            throw new ArgumentNullException(nameof(goal));
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
 
-        // Mark goal as complete
-        goal.Complete();
+        // Mark situation as complete
+        situation.Complete();
 
-        // Apply rewards from all achieved goal cards (idempotent - only if not already achieved)
-        ApplyGoalCardRewards(goal);
+        // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
+        ApplySituationCardRewards(situation);
 
-        // If DeleteOnSuccess, remove from ActiveGoals
-        if (goal.DeleteOnSuccess)
+        // If DeleteOnSuccess, remove from ActiveSituations
+        if (situation.DeleteOnSuccess)
         {
-            RemoveGoalFromActiveGoals(goal);
+            RemoveSituationFromActiveSituations(situation);
         }
 
         // Check for simple obligation completion (Player.ActiveObligationIds system)
-        CheckSimpleObligationCompletion(goal);
+        CheckSimpleObligationCompletion(situation);
 
         // Check for obligation progress (phase-based ObligationJournal system)
-        if (!string.IsNullOrEmpty(goal.ObligationId))
+        if (!string.IsNullOrEmpty(situation.ObligationId))
         {
-            CheckObligationProgress(goal.Id, goal.ObligationId);
+            CheckObligationProgress(situation.Id, situation.ObligationId);
         }
     }
 
     /// <summary>
-    /// Check for obligation progress when goal completes
-    /// Handles both intro actions (Discovered → Active) and regular goals (phase progression)
+    /// Check for obligation progress when situation completes
+    /// Handles both intro actions (Discovered → Active) and regular situations (phase progression)
     /// </summary>
-    private void CheckObligationProgress(string goalId, string obligationId)
+    private void CheckObligationProgress(string situationId, string obligationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-        if (goal != null && goal.IsIntroAction)
+        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+        if (situation != null && situation.IsIntroAction)
         {
             // This is intro completion - activate obligation and spawn Phase 1
             _obligationActivity.CompleteIntroAction(obligationId);
             return;
         }
 
-        // Regular goal completion
-        ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(goalId, obligationId);
+        // Regular situation completion
+        ObligationProgressResult progressResult = _obligationActivity.CompleteSituation(situationId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 
@@ -78,34 +78,34 @@ public class GoalCompletionHandler
     }
 
     /// <summary>
-    /// Handle goal failure - goal always remains in ActiveGoals for retry
+    /// Handle situation failure - situation always remains in ActiveSituations for retry
     /// </summary>
-    /// <param name="goal">Goal that failed</param>
-    public void FailGoal(Goal goal)
+    /// <param name="situation">Situation that failed</param>
+    public void FailSituation(Situation situation)
     {
-        if (goal == null)
-            throw new ArgumentNullException(nameof(goal));
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
 
-        // Goals remain in ActiveGoals on failure regardless of DeleteOnSuccess
-        // Player can retry the goal
+        // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess
+        // Player can retry the situation
     }
 
     /// <summary>
-    /// Apply rewards from all achieved goal cards (idempotent - only applies rewards once per card)
+    /// Apply rewards from all achieved situation cards (idempotent - only applies rewards once per card)
     /// </summary>
-    private void ApplyGoalCardRewards(Goal goal)
+    private void ApplySituationCardRewards(Situation situation)
     {
         Player player = _gameWorld.GetPlayer();
 
-        foreach (GoalCard goalCard in goal.GoalCards)
+        foreach (SituationCard situationCard in situation.SituationCards)
         {
             // Only apply rewards if card is achieved and not already rewarded (idempotent)
-            if (!goalCard.IsAchieved)
+            if (!situationCard.IsAchieved)
             {
                 continue;
             }
 
-            GoalCardRewards rewards = goalCard.Rewards;
+            SituationCardRewards rewards = situationCard.Rewards;
 
             // COINS - direct player currency
             if (rewards.Coins.HasValue && rewards.Coins.Value > 0)
@@ -119,13 +119,13 @@ public class GoalCompletionHandler
                 player.Inventory.AddItem(rewards.EquipmentId);
             }
 
-            // OBLIGATION CUBES - grant to goal's placement Location (localized mastery)
+            // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
             if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(goal.PlacementLocationId))
+                if (!string.IsNullOrEmpty(situation.PlacementLocationId))
                 {
-                    _gameWorld.GrantLocationCubes(goal.PlacementLocationId, rewards.InvestigationCubes.Value);
-                    Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
+                    _gameWorld.GrantLocationCubes(situation.PlacementLocationId, rewards.InvestigationCubes.Value);
+                    Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
                     string locationName = location.Name;
                 }
                 else
@@ -133,13 +133,13 @@ public class GoalCompletionHandler
                 }
             }
 
-            // STORY CUBES - grant to goal's placement NPC (localized mastery)
+            // STORY CUBES - grant to situation's placement NPC (localized mastery)
             if (rewards.StoryCubes.HasValue && rewards.StoryCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(goal.PlacementNpcId))
+                if (!string.IsNullOrEmpty(situation.PlacementNpcId))
                 {
-                    _gameWorld.GrantNPCCubes(goal.PlacementNpcId, rewards.StoryCubes.Value);
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
+                    _gameWorld.GrantNPCCubes(situation.PlacementNpcId, rewards.StoryCubes.Value);
+                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
                     string npcName = npc.Name;
                 }
                 else
@@ -147,19 +147,19 @@ public class GoalCompletionHandler
                 }
             }
 
-            // EXPLORATION CUBES - grant to route (requires route context from goal)
+            // EXPLORATION CUBES - grant to route (requires route context from situation)
             if (rewards.ExplorationCubes.HasValue && rewards.ExplorationCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(goal.PlacementRouteId))
+                if (!string.IsNullOrEmpty(situation.PlacementRouteId))
                 {
-                    _gameWorld.GrantRouteCubes(goal.PlacementRouteId, rewards.ExplorationCubes.Value);
-                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == goal.PlacementRouteId);
+                    _gameWorld.GrantRouteCubes(situation.PlacementRouteId, rewards.ExplorationCubes.Value);
+                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == situation.PlacementRouteId);
                     string routeName = route?.Name ?? "Unknown Route";
                 }
                 else
                 {
-                    // Goal without route context - exploration cubes can't be granted
-                    // This is expected for non-route goals
+                    // Situation without route context - exploration cubes can't be granted
+                    // This is expected for non-route situations
                 }
             }
 
@@ -229,11 +229,11 @@ public class GoalCompletionHandler
                 }
             }
 
-            // OBSTACLE PROPERTY REDUCTION - reduce intensity of parent obstacle (if goal has PropertyReduction)
+            // OBSTACLE PROPERTY REDUCTION - reduce intensity of parent obstacle (if situation has PropertyReduction)
             if (rewards.ObstacleReduction != null && rewards.ObstacleReduction.HasAnyReduction())
             {
-                // Find parent obstacle by checking all obstacles for this goalId in their GoalIds list
-                Obstacle parentObstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.GoalIds.Contains(goal.Id));
+                // Find parent obstacle by checking all obstacles for this situationId in their SituationIds list
+                Obstacle parentObstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.SituationIds.Contains(situation.Id));
                 if (parentObstacle != null)
                 {
                     int previousIntensity = parentObstacle.Intensity;
@@ -253,63 +253,63 @@ public class GoalCompletionHandler
     }
 
     /// <summary>
-    /// Remove goal from NPC.ActiveGoalIds or Location.ActiveGoalIds
+    /// Remove situation from NPC.ActiveSituationIds or Location.ActiveSituationIds
     /// </summary>
-    private void RemoveGoalFromActiveGoals(Goal goal)
+    private void RemoveSituationFromActiveSituations(Situation situation)
     {
-        if (!string.IsNullOrEmpty(goal.PlacementNpcId))
+        if (!string.IsNullOrEmpty(situation.PlacementNpcId))
         {
-            // Remove from NPC.ActiveGoalIds
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
+            // Remove from NPC.ActiveSituationIds
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
             if (npc != null)
             {
-                if (npc.ActiveGoalIds.Contains(goal.Id))
+                if (npc.ActiveSituationIds.Contains(situation.Id))
                 {
-                    npc.ActiveGoalIds.Remove(goal.Id);
+                    npc.ActiveSituationIds.Remove(situation.Id);
                 }
             }
         }
-        else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
+        else if (!string.IsNullOrEmpty(situation.PlacementLocationId))
         {
-            // Remove from Location.ActiveGoalIds
-            Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
+            // Remove from Location.ActiveSituationIds
+            Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
             if (location != null)
             {
-                if (location.ActiveGoalIds.Contains(goal.Id))
+                if (location.ActiveSituationIds.Contains(situation.Id))
                 {
-                    location.ActiveGoalIds.Remove(goal.Id);
+                    location.ActiveSituationIds.Remove(situation.Id);
                 }
             }
         }
     }
 
     /// <summary>
-    /// Check if completing this goal completes an active obligation (simple Player.ActiveObligationIds system)
-    /// Query all goals with matching ObligationId to determine completion
+    /// Check if completing this situation completes an active obligation (simple Player.ActiveObligationIds system)
+    /// Query all situations with matching ObligationId to determine completion
     /// </summary>
-    private void CheckSimpleObligationCompletion(Goal completedGoal)
+    private void CheckSimpleObligationCompletion(Situation completedSituation)
     {
-        // Only check if goal is part of an obligation
-        if (string.IsNullOrEmpty(completedGoal.ObligationId))
+        // Only check if situation is part of an obligation
+        if (string.IsNullOrEmpty(completedSituation.ObligationId))
             return;
 
         // Only check if obligation is in Player.ActiveObligationIds
         Player player = _gameWorld.GetPlayer();
-        if (!player.ActiveObligationIds.Contains(completedGoal.ObligationId))
+        if (!player.ActiveObligationIds.Contains(completedSituation.ObligationId))
             return;
 
-        // Find all goals for this obligation
-        List<Goal> obligationGoals = _gameWorld.Goals
-            .Where(g => g.ObligationId == completedGoal.ObligationId)
+        // Find all situations for this obligation
+        List<Situation> obligationSituations = _gameWorld.Situations
+            .Where(g => g.ObligationId == completedSituation.ObligationId)
             .ToList();
 
-        // Check if ALL goals are complete
-        bool allGoalsComplete = obligationGoals.All(g => g.IsCompleted);
+        // Check if ALL situations are complete
+        bool allSituationsComplete = obligationSituations.All(g => g.IsCompleted);
 
-        if (allGoalsComplete)
+        if (allSituationsComplete)
         {
             // Complete the obligation (grants rewards, removes from ActiveObligationIds)
-            _gameWorld.CompleteObligation(completedGoal.ObligationId, _timeManager);
+            _gameWorld.CompleteObligation(completedSituation.ObligationId, _timeManager);
         }
     }
 }

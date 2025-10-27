@@ -58,7 +58,7 @@ public class PhaseRequirementsDTO
 {
     public Dictionary<string, int> DiscoveryQuantities { get; set; } = new Dictionary<string, int>();
     public List<string> SpecificDiscoveries { get; set; } = new List<string>();
-    // CompletedGoals, Equipment, Knowledge system eliminated - all boolean gates removed
+    // CompletedSituations, Equipment, Knowledge system eliminated - all boolean gates removed
 }
 
 /// <summary>

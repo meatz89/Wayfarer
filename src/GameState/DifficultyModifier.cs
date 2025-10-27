@@ -1,6 +1,6 @@
 /// <summary>
 /// Difficulty modifier - reduces challenge difficulty based on player resources
-/// No boolean gates: All goals always visible, difficulty varies transparently
+/// No boolean gates: All situations always visible, difficulty varies transparently
 /// Graduated benefits: Higher resources = greater difficulty reduction
 /// </summary>
 public class DifficultyModifier
@@ -12,11 +12,11 @@ public class DifficultyModifier
 
     /// <summary>
     /// Context for the modifier (if needed)
-    /// NO ID MATCHING: Familiarity and ConnectionTokens use goal's properties, not Context
+    /// NO ID MATCHING: Familiarity and ConnectionTokens use situation's properties, not Context
     /// - Understanding: null (global resource)
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
-    /// - Familiarity: NOT USED (uses goal.PlacementLocationId instead)
-    /// - ConnectionTokens: NOT USED (uses goal.NpcId instead)
+    /// - Familiarity: NOT USED (uses situation.PlacementLocationId instead)
+    /// - ConnectionTokens: NOT USED (uses situation.NpcId instead)
     /// - ObstacleProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
@@ -44,7 +44,7 @@ public class DifficultyModifier
 /// <summary>
 /// Types of difficulty modifiers
 /// NO ID MATCHING: Only mechanical properties and numerical resources
-/// All goals always visible, difficulty varies based on player state
+/// All situations always visible, difficulty varies based on player state
 /// </summary>
 public enum ModifierType
 {
@@ -75,7 +75,7 @@ public enum ModifierType
     /// Accumulated through Mental challenges at that specific location
     /// Never depletes (cumulative per-location growth)
     /// Competition: Multiple locations need obligation, limited Focus
-    /// Context: NOT USED (service uses goal.PlacementLocationId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.PlacementLocationId instead - NO ID MATCHING)
     /// Threshold: Minimum Familiarity needed (e.g., 2)
     /// Effect: Exposure or Doubt reduction (e.g., -2)
     /// </summary>
@@ -86,7 +86,7 @@ public enum ModifierType
     /// Accumulated through Social challenges with that specific NPC
     /// Can decrease through obligation failures
     /// Competition: Multiple NPCs need relationship building, limited Time
-    /// Context: NOT USED (service uses goal.NpcId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.NpcId instead - NO ID MATCHING)
     /// Threshold: Minimum Connection Tokens needed (e.g., 5)
     /// Effect: Doubt rate reduction (e.g., -4)
     /// </summary>

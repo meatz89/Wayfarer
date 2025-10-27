@@ -12,5 +12,5 @@ public class ObstacleDTO
     public int Intensity { get; set; }
     public List<string> Contexts { get; set; } = new List<string>();
     public bool IsPermanent { get; set; }
-    public List<GoalDTO> Goals { get; set; } = new List<GoalDTO>();
+    public List<SituationDTO> Situations { get; set; } = new List<SituationDTO>();
 }

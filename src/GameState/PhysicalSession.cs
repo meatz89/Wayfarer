@@ -61,7 +61,7 @@ public class PhysicalSession
     public bool ShouldEnd()
     {
         // ONLY check failure condition - danger threshold reached
-        // Victory condition (GoalCard play) is handled by facade
+        // Victory condition (SituationCard play) is handled by facade
         return CurrentDanger >= MaxDanger;
     }
 

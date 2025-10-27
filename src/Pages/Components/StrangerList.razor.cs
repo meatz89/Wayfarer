@@ -103,16 +103,16 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(Goal goal)
+        protected string GetRewardsPreview(Situation situation)
         {
-            if (goal?.GoalCards == null || !goal.GoalCards.Any())
+            if (situation?.SituationCards == null || !situation.SituationCards.Any())
             {
                 return "Experience and insights";
             }
 
-            // Show first goal card's rewards as preview
-            GoalCard firstGoalCard = goal.GoalCards.First();
-            GoalCardRewards rewards = firstGoalCard.Rewards;
+            // Show first situation card's rewards as preview
+            SituationCard firstSituationCard = situation.SituationCards.First();
+            SituationCardRewards rewards = firstSituationCard.Rewards;
 
             if (rewards == null)
             {

@@ -127,7 +127,7 @@ public class DialogueResponseDTO
     public bool EscalatesToSocialChallenge { get; set; }
 
     /// <summary>
-    /// Goal ID for the Social challenge if this response escalates
+    /// Situation ID for the Social challenge if this response escalates
     /// </summary>
-    public string SocialChallengeGoalId { get; set; }
+    public string SocialChallengeSituationId { get; set; }
 }

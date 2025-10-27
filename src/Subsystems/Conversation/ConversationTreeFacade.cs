@@ -208,7 +208,7 @@ public class ConversationTreeFacade
         // Check for escalation to Social challenge
         if (response.EscalatesToSocialChallenge)
         {
-            return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeGoalId);
+            return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeSituationId);
         }
 
         // Navigate to next node
@@ -298,7 +298,7 @@ public class ConversationTreeResult
     public string Message { get; set; }
     public bool IsComplete { get; set; }
     public bool EscalatesToChallenge { get; set; }
-    public string ChallengeGoalId { get; set; }
+    public string ChallengeSituationId { get; set; }
     public DialogueNode NextNode { get; set; }
 
     public static ConversationTreeResult Failed(string message) =>
@@ -310,11 +310,11 @@ public class ConversationTreeResult
     public static ConversationTreeResult Continue(DialogueNode nextNode) =>
         new ConversationTreeResult { Success = true, NextNode = nextNode };
 
-    public static ConversationTreeResult EscalateToChallenge(string goalId) =>
+    public static ConversationTreeResult EscalateToChallenge(string situationId) =>
         new ConversationTreeResult
         {
             Success = true,
             EscalatesToChallenge = true,
-            ChallengeGoalId = goalId
+            ChallengeSituationId = situationId
         };
 }

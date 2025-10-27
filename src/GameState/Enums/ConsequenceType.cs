@@ -1,8 +1,8 @@
 namespace Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Type of consequence when goal succeeds
-/// Determines how obstacle is affected by goal completion
+/// Type of consequence when situation succeeds
+/// Determines how obstacle is affected by situation completion
 /// </summary>
 public enum ConsequenceType
 {
@@ -28,7 +28,7 @@ public enum ConsequenceType
     Transform,
 
     /// <summary>
-    /// Obstacle properties reduced by specified amounts, other goals may unlock
+    /// Obstacle properties reduced by specified amounts, other situations may unlock
     /// Incremental progress, unlocks approaches, flexible
     /// Sets ResolutionMethod (Preparation), RelationshipOutcome (usually Neutral)
     /// </summary>

@@ -64,7 +64,7 @@ namespace Wayfarer.Pages.Components
 
         // Static system - no animations
         // Track which request cards have already been moved from RequestPile to ActiveCards
-        protected List<string> MovedGoalCardIds { get; set; } = new List<string>();
+        protected List<string> MovedSituationCardIds { get; set; } = new List<string>();
 
         protected string NpcName { get; set; }
         protected string LastNarrative { get; set; }
@@ -155,7 +155,7 @@ namespace Wayfarer.Pages.Components
                 }
 
                 // Request card activation already handled in backend ConversationFacade.ExecuteListen()
-                // No need to check again here - CheckGoalCardActivation uses correctly reduced momentum
+                // No need to check again here - CheckSituationCardActivation uses correctly reduced momentum
 
                 // Refresh resource display
                 await GameScreen.RefreshResourceDisplay();
@@ -488,30 +488,30 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD DETECTION & FILTERING
+        // SITUATION CARD DETECTION & FILTERING
         // =============================================
 
         /// <summary>
-        /// Detect if a card is a goal card (self-contained victory condition)
-        /// Goal cards have Context.threshold but NO SocialCardTemplate
+        /// Detect if a card is a situation card (self-contained victory condition)
+        /// Situation cards have Context.threshold but NO SocialCardTemplate
         /// </summary>
-        protected bool IsGoalCard(CardInstance card)
+        protected bool IsSituationCard(CardInstance card)
         {
             if (card == null) return false;
 
-            // Goal cards have threshold in Context and no system-specific template
+            // Situation cards have threshold in Context and no system-specific template
             return card.Context?.threshold > 0 && card.SocialCardTemplate == null;
         }
 
         /// <summary>
-        /// Get all goal cards currently in hand (unlocked at Momentum thresholds)
+        /// Get all situation cards currently in hand (unlocked at Momentum thresholds)
         /// </summary>
-        protected List<CardInstance> GetAvailableGoalCards()
+        protected List<CardInstance> GetAvailableSituationCards()
         {
             IReadOnlyList<CardInstance> handCards = ConversationFacade.GetHandCards();
             if (handCards == null)
                 throw new InvalidOperationException("Facade returned null hand cards");
-            return handCards.Where(c => IsGoalCard(c)).ToList();
+            return handCards.Where(c => IsSituationCard(c)).ToList();
         }
 
         protected List<CardDisplayInfo> GetAllDisplayCards()
@@ -521,8 +521,8 @@ namespace Wayfarer.Pages.Components
             if (handCards == null)
                 throw new InvalidOperationException("Facade returned null hand cards");
 
-            // FILTER OUT GOAL CARDS - they render separately
-            List<CardInstance> regularCards = handCards.Where(c => !IsGoalCard(c)).ToList();
+            // FILTER OUT SITUATION CARDS - they render separately
+            List<CardInstance> regularCards = handCards.Where(c => !IsSituationCard(c)).ToList();
 
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
             foreach (CardInstance? card in regularCards)
@@ -601,7 +601,7 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Get current Momentum for goal tracking
+        /// Get current Momentum for situation tracking
         /// </summary>
         protected int GetCurrentMomentum()
         {
@@ -670,43 +670,43 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
-        /// Calculate difficulty for a goal card using DifficultyCalculationService
+        /// Calculate difficulty for a situation card using DifficultyCalculationService
         /// Returns calculated difficulty based on player's current modifiers (Understanding, tokens, familiarity)
         /// </summary>
-        protected int GetGoalDifficulty(CardInstance goalCard)
+        protected int GetSituationDifficulty(CardInstance situationCard)
         {
-            if (goalCard?.GoalCardTemplate == null) return 0;
-            if (DifficultyService == null || ItemRepository == null) return goalCard.GoalCardTemplate.threshold;
+            if (situationCard?.SituationCardTemplate == null) return 0;
+            if (DifficultyService == null || ItemRepository == null) return situationCard.SituationCardTemplate.threshold;
 
-            // Find parent Goal from GameWorld by searching for GoalCard ID
-            Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
-            if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
+            // Find parent Situation from GameWorld by searching for SituationCard ID
+            Situation parentSituation = FindParentSituation(situationCard.SituationCardTemplate.Id);
+            if (parentSituation == null) return situationCard.SituationCardTemplate.threshold;
 
             // Get base difficulty from deck
-            int baseDifficulty = GetBaseDifficultyForGoal(parentGoal);
+            int baseDifficulty = GetBaseDifficultyForSituation(parentSituation);
 
             // Calculate actual difficulty using DifficultyCalculationService with all modifiers
-            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, baseDifficulty, ItemRepository);
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentSituation, baseDifficulty, ItemRepository);
             return result.FinalDifficulty;
         }
 
-        private int GetBaseDifficultyForGoal(Goal goal)
+        private int GetBaseDifficultyForSituation(Situation situation)
         {
             if (GameWorld == null) return 10;
 
-            SocialChallengeDeck deck = GameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+            SocialChallengeDeck deck = GameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
             return deck?.DangerThreshold ?? 10;
         }
 
-        private Goal FindParentGoal(string goalCardId)
+        private Situation FindParentSituation(string situationCardId)
         {
-            if (GameWorld?.Goals == null) return null;
+            if (GameWorld?.Situations == null) return null;
 
-            foreach (Goal goal in GameWorld.Goals)
+            foreach (Situation situation in GameWorld.Situations)
             {
-                if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
+                if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc.Id == situationCardId))
                 {
-                    return goal;
+                    return situation;
                 }
             }
             return null;
@@ -832,16 +832,16 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD PLAY
+        // SITUATION CARD PLAY
         // =============================================
 
         /// <summary>
-        /// Play a goal card to complete the conversation
-        /// Goal cards end the conversation immediately with success
+        /// Play a situation card to complete the conversation
+        /// Situation cards end the conversation immediately with success
         /// </summary>
-        protected async Task PlayGoalCard(CardInstance goalCard)
+        protected async Task PlaySituationCard(CardInstance situationCard)
         {
-            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (situationCard == null || !IsSituationCard(situationCard)) return;
             if (IsProcessing || IsGeneratingNarrative) return;
 
             IsProcessing = true;
@@ -849,8 +849,8 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                // Goal cards use PlayConversationCard - SocialFacade handles goal card logic
-                SocialTurnResult result = await GameFacade.PlayConversationCard(goalCard);
+                // Situation cards use PlayConversationCard - SocialFacade handles situation card logic
+                SocialTurnResult result = await GameFacade.PlayConversationCard(situationCard);
 
                 if (result != null && result.Success)
                 {

@@ -12,7 +12,7 @@ public class PhysicalFacade
     private readonly PhysicalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
     private readonly ObligationActivity _obligationActivity;
-    private readonly GoalCompletionHandler _goalCompletionHandler;
+    private readonly SituationCompletionHandler _situationCompletionHandler;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -21,7 +21,7 @@ public class PhysicalFacade
         PhysicalDeckBuilder deckBuilder,
         TimeManager timeManager,
         ObligationActivity obligationActivity,
-        GoalCompletionHandler goalCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -29,7 +29,7 @@ public class PhysicalFacade
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
-        _goalCompletionHandler = goalCompletionHandler ?? throw new ArgumentNullException(nameof(goalCompletionHandler));
+        _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
     }
 
     public PhysicalSession GetCurrentSession()
@@ -68,7 +68,7 @@ public class PhysicalFacade
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string goalId, string obligationId)
+        string situationId, string obligationId)
     {
         if (IsSessionActive())
         {
@@ -76,7 +76,7 @@ public class PhysicalFacade
         }
 
         // Track obligation context
-        _gameWorld.CurrentPhysicalGoalId = goalId;
+        _gameWorld.CurrentPhysicalSituationId = situationId;
         _gameWorld.CurrentPhysicalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
@@ -97,22 +97,22 @@ public class PhysicalFacade
         _gameWorld.CurrentPhysicalSession.Deck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
         _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
 
-        // Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-        if (!string.IsNullOrEmpty(goalId) && goal != null)
+        // Extract SituationCards from Situation and add to session deck (MATCH SOCIAL PATTERN)
+        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+        if (!string.IsNullOrEmpty(situationId) && situation != null)
         {
-            if (goal.GoalCards.Any())
+            if (situation.SituationCards.Any())
             {
-                foreach (GoalCard goalCard in goal.GoalCards)
+                foreach (SituationCard situationCard in situation.SituationCards)
                 {
-                    // Create CardInstance from GoalCard (constructor sets CardType automatically)
-                    CardInstance goalCardInstance = new CardInstance(goalCard)
+                    // Create CardInstance from SituationCard (constructor sets CardType automatically)
+                    CardInstance situationCardInstance = new CardInstance(situationCard)
                     {
-                        Context = new CardContext { threshold = goalCard.threshold }
+                        Context = new CardContext { threshold = situationCard.threshold }
                     };
 
                     // Add to session deck's requestPile
-                    _gameWorld.CurrentPhysicalSession.Deck.AddGoalCard(goalCardInstance);
+                    _gameWorld.CurrentPhysicalSession.Deck.AddSituationCard(situationCardInstance);
                 }
             }
         }
@@ -170,8 +170,8 @@ public class PhysicalFacade
         int cardsToDraw = _gameWorld.CurrentPhysicalSession.GetDrawCount();
         _gameWorld.CurrentPhysicalSession.Deck.DrawToHand(cardsToDraw);
 
-        // Check and unlock goal cards if Breakthrough threshold met
-        _gameWorld.CurrentPhysicalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentPhysicalSession.CurrentBreakthrough);
+        // Check and unlock situation cards if Breakthrough threshold met
+        _gameWorld.CurrentPhysicalSession.Deck.CheckSituationThresholds(_gameWorld.CurrentPhysicalSession.CurrentBreakthrough);
 
         // Check if danger threshold reached
         bool sessionEnded = false;
@@ -209,31 +209,31 @@ public class PhysicalFacade
             throw new InvalidOperationException("Card not in hand");
         }
 
-        // Check goal card type BEFORE template check
-        // Goal cards have no PhysicalCardTemplate, so must be checked first
-        if (card.CardType == CardTypes.Goal)
+        // Check situation card type BEFORE template check
+        // Situation cards have no PhysicalCardTemplate, so must be checked first
+        if (card.CardType == CardTypes.Situation)
         {
             // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Goal.ParentObstacle
+            // DISTRIBUTED INTERACTION: Find parent obstacle from Situation.ParentObstacle
             Player currentPlayer = _gameWorld.GetPlayer();
             Location location = currentPlayer.CurrentLocation;
 
-            // Get goal and its parent obstacle via object references
-            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalGoalId);
-            if (goal == null)
-                return null; // Goal not found
+            // Get situation and its parent obstacle via object references
+            Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalSituationId);
+            if (situation == null)
+                return null; // Situation not found
 
-            Obstacle parentObstacle = goal.ParentObstacle;
+            Obstacle parentObstacle = situation.ParentObstacle;
 
             if (parentObstacle != null)
             {
-                switch (goal.ConsequenceType)
+                switch (situation.ConsequenceType)
                 {
                     case ConsequenceType.Resolution:
                         // Permanently overcome
                         parentObstacle.State = ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
                         // Remove from active play (but keep in GameWorld for history)
                         if (!parentObstacle.IsPermanent)
                         {
@@ -243,22 +243,22 @@ public class PhysicalFacade
 
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
 
                     case ConsequenceType.Transform:
                         // Fundamentally changed
                         parentObstacle.State = ObstacleState.Transformed;
                         parentObstacle.Intensity = 0;
-                        if (!string.IsNullOrEmpty(goal.TransformDescription))
-                            parentObstacle.TransformedDescription = goal.TransformDescription;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
+                        if (!string.IsNullOrEmpty(situation.TransformDescription))
+                            parentObstacle.TransformedDescription = situation.TransformDescription;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
 
                     case ConsequenceType.Modify:
                         // Intensity reduced
                         parentObstacle.Intensity = Math.Max(0,
-                            parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
+                            parentObstacle.Intensity - situation.PropertyReduction.ReduceIntensity);
                         parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
                         // Check if intensity is now 0 (fully modified)
                         if (parentObstacle.Intensity == 0)
@@ -274,16 +274,16 @@ public class PhysicalFacade
                         break;
                 }
             }
-            // Else: ambient goal with no obstacle parent
+            // Else: ambient situation with no obstacle parent
 
-            // Complete goal through GoalCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Goal completedGoal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalGoalId);
-            if (completedGoal != null)
+            // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
+            Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalSituationId);
+            if (completedSituation != null)
             {
-                _goalCompletionHandler.CompleteGoal(completedGoal);
+                _situationCompletionHandler.CompleteSituation(completedSituation);
             }
 
-            // GoalCards execute immediately (not locked for combo)
+            // SituationCards execute immediately (not locked for combo)
             _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList().Remove(card); // Remove from hand
             string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
             EndSession();
@@ -390,8 +390,8 @@ public class PhysicalFacade
             return null;
         }
 
-        // Success determined by GoalCard play (GoalCards end session immediately in ExecuteExecute)
-        bool success = !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId);
+        // Success determined by SituationCard play (SituationCards end session immediately in ExecuteExecute)
+        bool success = !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
@@ -401,10 +401,10 @@ public class PhysicalFacade
             EscapeCost = ""
         };
 
-        // Check for obligation progress if this was an obligation goal
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalGoalId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
+        // Check for obligation progress if this was an obligation situation
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
         {
-            CheckObligationProgress(_gameWorld.CurrentPhysicalGoalId, _gameWorld.CurrentPhysicalObligationId);
+            CheckObligationProgress(_gameWorld.CurrentPhysicalSituationId, _gameWorld.CurrentPhysicalObligationId);
         }
 
         // Award Reputation on success (Reputation system)
@@ -422,7 +422,7 @@ public class PhysicalFacade
         }
 
         // Clear obligation context
-        _gameWorld.CurrentPhysicalGoalId = null;
+        _gameWorld.CurrentPhysicalSituationId = null;
         _gameWorld.CurrentPhysicalObligationId = null;
 
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
@@ -512,23 +512,23 @@ public class PhysicalFacade
     }
 
     /// <summary>
-    /// Check for obligation progress when Physical goal completes
+    /// Check for obligation progress when Physical situation completes
     /// </summary>
-    private void CheckObligationProgress(string goalId, string obligationId)
+    private void CheckObligationProgress(string situationId, string obligationId)
     {
         // KEEP - obligationId is external input from session
         // Check if this is an intro action (Discovered → Active transition)
         Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation != null && goalId == "notice_waterwheel")
+        if (obligation != null && situationId == "notice_waterwheel")
         {
             // This is intro completion - activate obligation
-            // CompleteIntroAction spawns goals directly to ActiveGoals
+            // CompleteIntroAction spawns situations directly to ActiveSituations
             _obligationActivity.CompleteIntroAction(obligationId);
             return;
         }
 
-        // Regular goal completion
-        ObligationProgressResult progressResult = _obligationActivity.CompleteGoal(goalId, obligationId);
+        // Regular situation completion
+        ObligationProgressResult progressResult = _obligationActivity.CompleteSituation(situationId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 

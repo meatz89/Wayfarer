@@ -307,9 +307,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.Location);
     }
 
-    public async Task StartConversationSession(string npcId, string goalId)
+    public async Task StartConversationSession(string npcId, string situationId)
     {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, goalId);
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, situationId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -345,9 +345,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public async Task StartMentalSession(string deckId, string locationSpotId, string situationId, string obligationId)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, obligationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -391,9 +391,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public async Task StartPhysicalSession(string deckId, string locationSpotId, string situationId, string obligationId)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, obligationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext

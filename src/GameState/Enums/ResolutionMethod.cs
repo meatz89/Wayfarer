@@ -43,7 +43,7 @@ public enum ResolutionMethod
 
     /// <summary>
     /// Methodical reduction over multiple attempts
-    /// Incremental progress through Modify goals
+    /// Incremental progress through Modify situations
     /// </summary>
     Preparation
 }

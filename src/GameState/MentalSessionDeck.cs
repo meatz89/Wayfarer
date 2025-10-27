@@ -12,13 +12,13 @@ public class MentalSessionDeck
     private readonly Pile deckPile = new();
     private readonly Pile handPile = new();
     private readonly Pile playedPile = new();
-    private readonly Pile requestPile = new();  // GOAL CARDS for this engagement
+    private readonly Pile requestPile = new();  // SITUATION CARDS for this engagement
 
     public MentalSessionDeck() { }
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
-    public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
+    public IReadOnlyList<CardInstance> SituationCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;
@@ -49,9 +49,9 @@ public class MentalSessionDeck
     }
 
     /// <summary>
-    /// Add goal card to request pile (unlocks at Progress threshold)
+    /// Add situation card to request pile (unlocks at Progress threshold)
     /// </summary>
-    public void AddGoalCard(CardInstance card)
+    public void AddSituationCard(CardInstance card)
     {
         if (card != null)
             requestPile.Add(card);
@@ -89,9 +89,9 @@ public class MentalSessionDeck
     }
 
     /// <summary>
-    /// Check request pile and move goal cards to hand if Progress threshold met
+    /// Check request pile and move situation cards to hand if Progress threshold met
     /// </summary>
-    public List<CardInstance> CheckGoalThresholds(int currentProgress)
+    public List<CardInstance> CheckSituationThresholds(int currentProgress)
     {
         List<CardInstance> toMove = requestPile.Cards
             .Where(c => c.Context != null && c.Context.threshold <= currentProgress)

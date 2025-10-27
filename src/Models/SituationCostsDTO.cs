@@ -1,8 +1,8 @@
 /// <summary>
-/// DTO for goal costs - resources player must pay to attempt goal
-/// Maps to GoalCosts entity
+/// DTO for situation costs - resources player must pay to attempt situation
+/// Maps to SituationCosts entity
 /// </summary>
-public class GoalCostsDTO
+public class SituationCostsDTO
 {
     /// <summary>
     /// Time segments consumed

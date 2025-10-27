@@ -38,37 +38,37 @@
                         <div class="obligation-card">
                             <div class="obligation-header-row">
                                 <div class="obligation-title">@inv.Name</div>
-                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalGoals(activeInv.ObligationId) completed</div>
+                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalSituations(activeInv.ObligationId) completed</div>
                             </div>
 
                             <div class="obligation-progress-bar">
                                 <div class="obligation-progress-fill" style="width: @GetObligationProgressPercent(activeInv)%"></div>
                             </div>
 
-                            <div class="goal-list">
+                            <div class="situation-list">
                                 @foreach (var completedPhase in GetCompletedPhases(activeInv))
                                 {
-                                    <div class="goal-item">
-                                        <div class="goal-status completed">✓</div>
-                                        <div class="goal-text completed">@completedPhase.Name</div>
+                                    <div class="situation-item">
+                                        <div class="situation-status completed">✓</div>
+                                        <div class="situation-text completed">@completedPhase.Name</div>
                                     </div>
                                 }
                                 @foreach (var activePhase in GetActivePhases(activeInv))
                                 {
-                                    <div class="goal-item">
-                                        <div class="goal-status active">→</div>
-                                        <div class="goal-text">@activePhase.Name</div>
+                                    <div class="situation-item">
+                                        <div class="situation-status active">→</div>
+                                        <div class="situation-text">@activePhase.Name</div>
                                     </div>
                                 }
                             </div>
 
                             @{
-                                var locationCounts = GetRemainingGoalsByLocation(activeInv);
+                                var locationCounts = GetRemainingSituationsByLocation(activeInv);
                             }
                             @if (locationCounts.Any())
                             {
                                 <div class="location-hints">
-                                    <div class="hints-title">Goals remaining at:</div>
+                                    <div class="hints-title">Situations remaining at:</div>
                                     <div class="location-list">
                                         @foreach (var kvp in locationCounts)
                                         {

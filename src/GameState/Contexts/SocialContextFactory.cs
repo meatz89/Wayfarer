@@ -1,6 +1,6 @@
 /// <summary>
 /// Factory for creating Social challenge contexts.
-/// Goal cards now handle domain logic - contexts are simple data containers.
+/// Situation cards now handle domain logic - contexts are simple data containers.
 /// Parallel to Mental/Physical challenge context creation.
 /// </summary>
 public static class SocialContextFactory
@@ -17,7 +17,7 @@ public static class SocialContextFactory
         string locationName,
         string timeDisplay)
     {
-        // Simple context creation - goal cards handle domain logic
+        // Simple context creation - situation cards handle domain logic
         SocialChallengeContext context = new SocialChallengeContext
         {
             IsValid = true,

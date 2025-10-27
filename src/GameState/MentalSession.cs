@@ -46,7 +46,7 @@ public class MentalSession
     public bool ShouldEnd()
     {
         // ONLY check failure condition - Exposure threshold reached
-        // Victory condition (GoalCard play) is handled by facade
+        // Victory condition (SituationCard play) is handled by facade
         return CurrentExposure >= MaxExposure;
     }
 

@@ -1,14 +1,14 @@
 {
-  "packageId": "core_goals",
+  "packageId": "core_situations",
   "metadata": {
-    "name": "Tutorial Goals - Work for Shelter",
+    "name": "Tutorial Situations - Work for Shelter",
     "timestamp": "2025-10-21T00:00:00Z",
-    "description": "Tutorial work goals: Elena (Social) and Thomas (Physical)",
+    "description": "Tutorial work situations: Elena (Social) and Thomas (Physical)",
     "author": "Wayfarer Team",
     "version": "3.0.0"
   },
   "content": {
-    "goals": [
+    "situations": [
       {
         "id": "elena_evening_service",
         "name": "Help with Evening Service",
@@ -29,7 +29,7 @@
         "isAvailable": true,
         "deleteOnSuccess": false,
         "propertyRequirements": {},
-        "goalCards": [
+        "situationCards": [
           {
             "id": "evening_service_complete",
             "name": "Competent Service",
@@ -63,7 +63,7 @@
         "isAvailable": true,
         "deleteOnSuccess": false,
         "propertyRequirements": {},
-        "goalCards": [
+        "situationCards": [
           {
             "id": "warehouse_loading_complete",
             "name": "Loading Complete",

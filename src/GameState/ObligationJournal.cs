@@ -21,13 +21,13 @@ public class ObligationJournal
     public List<string> DiscoveredObligationIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Active obligations - intro completed, goals are being created and evaluated
+    /// Active obligations - intro completed, situations are being created and evaluated
     /// Displayed in journal's "Active" tab
     /// </summary>
     public List<ActiveObligation> ActiveObligations { get; set; } = new List<ActiveObligation>();
 
     /// <summary>
-    /// Completed obligations - all required goals finished
+    /// Completed obligations - all required situations finished
     /// Displayed in journal's "Completed" tab
     /// </summary>
     public List<string> CompletedObligationIds { get; set; } = new List<string>();
@@ -36,7 +36,7 @@ public class ObligationJournal
 /// <summary>
 /// Active obligation state - tracks understanding accumulation and activation timing
 /// PRINCIPLE 4: No sequential phase unlocking - all obstacles spawn at activation
-/// Progress tracked by counting resolved obstacles, not completed goal IDs
+/// Progress tracked by counting resolved obstacles, not completed situation IDs
 /// </summary>
 public class ActiveObligation
 {

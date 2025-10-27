@@ -181,7 +181,7 @@ public static class ConversationTreeParser
             GrantedKnowledge = dto.GrantedKnowledge ?? new List<string>(),
             SpawnedSituationIds = dto.SpawnedSituationIds ?? new List<string>(),
             EscalatesToSocialChallenge = dto.EscalatesToSocialChallenge,
-            SocialChallengeGoalId = dto.SocialChallengeGoalId
+            SocialChallengeSituationId = dto.SocialChallengeSituationId
         };
 
         return response;

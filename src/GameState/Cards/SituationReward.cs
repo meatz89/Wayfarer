@@ -2,7 +2,7 @@
 /// <summary>
 /// Reward for reaching a rapport threshold in stranger conversations
 /// </summary>
-public class GoalReward
+public class SituationReward
 {
     public int Coins { get; set; }
     public int Health { get; set; }

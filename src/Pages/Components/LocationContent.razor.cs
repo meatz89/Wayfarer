@@ -20,7 +20,7 @@ namespace Wayfarer.Pages.Components
         // VISUAL NOVEL NAVIGATION STATE
         protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
         protected Stack<LocationViewState> NavigationStack { get; set; } = new();
-        protected Goal SelectedGoal { get; set; }
+        protected Situation SelectedSituation { get; set; }
 
         // VIEW MODEL STORAGE - all pre-built by facade
         protected LocationContentViewModel ViewModel { get; set; } = new();
@@ -129,21 +129,21 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task HandleCommitToGoal(Goal goal)
+        protected async Task HandleCommitToSituation(Situation situation)
         {
-            if (goal.SystemType == TacticalSystemType.Social)
+            if (situation.SystemType == TacticalSystemType.Social)
             {
-                await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
+                await GameScreen.StartConversationSession(situation.PlacementNpcId, situation.Id);
             }
-            else if (goal.SystemType == TacticalSystemType.Mental)
+            else if (situation.SystemType == TacticalSystemType.Mental)
             {
                 Player player = GameWorld.GetPlayer();
-                await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
+                await GameScreen.StartMentalSession(situation.DeckId, player.CurrentLocation.Id, situation.Id, situation.ObligationId);
             }
-            else if (goal.SystemType == TacticalSystemType.Physical)
+            else if (situation.SystemType == TacticalSystemType.Physical)
             {
                 Player player = GameWorld.GetPlayer();
-                await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
+                await GameScreen.StartPhysicalSession(situation.DeckId, player.CurrentLocation.Id, situation.Id, situation.ObligationId);
             }
         }
 
@@ -175,9 +175,9 @@ namespace Wayfarer.Pages.Components
             NavigationStack.Push(ViewState);
             ViewState = newView;
 
-            if (newView == LocationViewState.GoalDetail && context is Goal goal)
+            if (newView == LocationViewState.SituationDetail && context is Situation situation)
             {
-                SelectedGoal = goal;
+                SelectedSituation = situation;
             }
 
             StateHasChanged();
@@ -190,9 +190,9 @@ namespace Wayfarer.Pages.Components
                 LocationViewState previousView = NavigationStack.Pop();
                 ViewState = previousView;
 
-                if (ViewState != LocationViewState.GoalDetail)
+                if (ViewState != LocationViewState.SituationDetail)
                 {
-                    SelectedGoal = null;
+                    SelectedSituation = null;
                 }
 
                 StateHasChanged();
@@ -207,7 +207,7 @@ namespace Wayfarer.Pages.Components
         {
             ViewState = LocationViewState.Landing;
             NavigationStack.Clear();
-            SelectedGoal = null;
+            SelectedSituation = null;
             StateHasChanged();
         }
 
@@ -225,12 +225,12 @@ namespace Wayfarer.Pages.Components
             await ExecuteLocationAction(action);
         }
 
-        protected void HandleNavigateToGoal(string goalId)
+        protected void HandleNavigateToSituation(string situationId)
         {
-            Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-            if (goal != null)
+            Situation situation = GameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+            if (situation != null)
             {
-                NavigateToView(LocationViewState.GoalDetail, goal);
+                NavigateToView(LocationViewState.SituationDetail, situation);
             }
         }
 
@@ -248,63 +248,63 @@ namespace Wayfarer.Pages.Components
         // VIEWMODEL PREPARATION - trivial wrappers
         // ============================================
 
-        protected GoalDetailViewModel GetGoalDetailViewModel()
+        protected SituationDetailViewModel GetSituationDetailViewModel()
         {
-            if (SelectedGoal == null) return null;
+            if (SelectedSituation == null) return null;
 
-            // Find the goal in view model to get pre-calculated difficulty
-            // Search in Social goals (ambient + obstacles)
-            GoalCardViewModel goalCard = ViewModel.NPCsWithGoals
-                .SelectMany(npc => npc.AmbientSocialGoals)
-                .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+            // Find the situation in view model to get pre-calculated difficulty
+            // Search in Social situations (ambient + obstacles)
+            SituationCardViewModel situationCard = ViewModel.NPCsWithSituations
+                .SelectMany(npc => npc.AmbientSocialSituations)
+                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
 
-            if (goalCard == null)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.NPCsWithGoals
+                situationCard = ViewModel.NPCsWithSituations
                     .SelectMany(npc => npc.SocialObstacles)
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                    .SelectMany(obstacle => obstacle.Situations)
+                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Mental goals (ambient + obstacles)
-            if (goalCard == null)
+            // Search in Mental situations (ambient + obstacles)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.AmbientMentalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            if (goalCard == null)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.MentalObstacles
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.MentalObstacles
+                    .SelectMany(obstacle => obstacle.Situations)
+                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Physical goals (ambient + obstacles)
-            if (goalCard == null)
+            // Search in Physical situations (ambient + obstacles)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.AmbientPhysicalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            if (goalCard == null)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.PhysicalObstacles
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.PhysicalObstacles
+                    .SelectMany(obstacle => obstacle.Situations)
+                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            int difficulty = goalCard?.Difficulty ?? 0;
+            int difficulty = situationCard?.Difficulty ?? 0;
 
-            return new GoalDetailViewModel
+            return new SituationDetailViewModel
             {
-                Goal = SelectedGoal,
-                Name = SelectedGoal.Name,
-                Description = SelectedGoal.Description,
-                SystemType = SelectedGoal.SystemType,
-                SystemTypeLowercase = SelectedGoal.SystemType.ToString().ToLower(),
+                Situation = SelectedSituation,
+                Name = SelectedSituation.Name,
+                Description = SelectedSituation.Description,
+                SystemType = SelectedSituation.SystemType,
+                SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
                 Difficulty = difficulty.ToString(),
-                HasCosts = SelectedGoal.Costs.Focus > 0 || SelectedGoal.Costs.Stamina > 0,
-                FocusCost = SelectedGoal.Costs.Focus,
-                StaminaCost = SelectedGoal.Costs.Stamina
+                HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
+                FocusCost = SelectedSituation.Costs.Focus,
+                StaminaCost = SelectedSituation.Costs.Stamina
             };
         }
 

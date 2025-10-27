@@ -601,29 +601,29 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD DETECTION & FILTERING
+        // SITUATION CARD DETECTION & FILTERING
         // =============================================
 
         /// <summary>
-        /// Detect if a card is a goal card (self-contained victory condition)
-        /// Goal cards have Context.threshold but NO MentalCardTemplate
+        /// Detect if a card is a situation card (self-contained victory condition)
+        /// Situation cards have Context.threshold but NO MentalCardTemplate
         /// </summary>
-        protected bool IsGoalCard(CardInstance card)
+        protected bool IsSituationCard(CardInstance card)
         {
             if (card == null) return false;
 
-            // Goal cards have threshold in Context and no system-specific template
+            // Situation cards have threshold in Context and no system-specific template
             return card.Context?.threshold > 0 && card.MentalCardTemplate == null;
         }
 
         /// <summary>
-        /// Get all goal cards currently in hand (unlocked at Progress thresholds)
+        /// Get all situation cards currently in hand (unlocked at Progress thresholds)
         /// </summary>
-        protected List<CardInstance> GetAvailableGoalCards()
+        protected List<CardInstance> GetAvailableSituationCards()
         {
             if (Hand == null)
                 throw new InvalidOperationException("Hand is null");
-            return Hand.Where(c => IsGoalCard(c)).ToList();
+            return Hand.Where(c => IsSituationCard(c)).ToList();
         }
 
         // =============================================
@@ -635,8 +635,8 @@ namespace Wayfarer.Pages.Components
             List<CardInstance> handCards = Hand ?? new List<CardInstance>();
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            // FILTER OUT GOAL CARDS - they render separately
-            foreach (CardInstance card in handCards.Where(c => !IsGoalCard(c)))
+            // FILTER OUT SITUATION CARDS - they render separately
+            foreach (CardInstance card in handCards.Where(c => !IsSituationCard(c)))
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
@@ -718,59 +718,59 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD PLAY
+        // SITUATION CARD PLAY
         // =============================================
 
         /// <summary>
-        /// Calculate difficulty for a goal card using DifficultyCalculationService
+        /// Calculate difficulty for a situation card using DifficultyCalculationService
         /// Returns calculated difficulty based on player's current modifiers (Understanding, tokens, familiarity)
         /// </summary>
-        protected int GetGoalDifficulty(CardInstance goalCard)
+        protected int GetSituationDifficulty(CardInstance situationCard)
         {
-            if (goalCard?.GoalCardTemplate == null) return 0;
-            if (DifficultyService == null || ItemRepository == null) return goalCard.GoalCardTemplate.threshold;
+            if (situationCard?.SituationCardTemplate == null) return 0;
+            if (DifficultyService == null || ItemRepository == null) return situationCard.SituationCardTemplate.threshold;
 
-            // Find parent Goal from GameWorld by searching for GoalCard ID
-            Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
-            if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
+            // Find parent Situation from GameWorld by searching for SituationCard ID
+            Situation parentSituation = FindParentSituation(situationCard.SituationCardTemplate.Id);
+            if (parentSituation == null) return situationCard.SituationCardTemplate.threshold;
 
             // Get base difficulty from deck
-            int baseDifficulty = GetBaseDifficultyForGoal(parentGoal);
+            int baseDifficulty = GetBaseDifficultyForSituation(parentSituation);
 
             // Calculate actual difficulty using DifficultyCalculationService with all modifiers
-            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, baseDifficulty, ItemRepository);
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentSituation, baseDifficulty, ItemRepository);
             return result.FinalDifficulty;
         }
 
-        private int GetBaseDifficultyForGoal(Goal goal)
+        private int GetBaseDifficultyForSituation(Situation situation)
         {
             if (GameWorld == null) return 10;
 
-            MentalChallengeDeck deck = GameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+            MentalChallengeDeck deck = GameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
             return deck?.DangerThreshold ?? 10;
         }
 
-        private Goal FindParentGoal(string goalCardId)
+        private Situation FindParentSituation(string situationCardId)
         {
-            if (GameWorld?.Goals == null) return null;
+            if (GameWorld?.Situations == null) return null;
 
-            foreach (Goal goal in GameWorld.Goals)
+            foreach (Situation situation in GameWorld.Situations)
             {
-                if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
+                if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc.Id == situationCardId))
                 {
-                    return goal;
+                    return situation;
                 }
             }
             return null;
         }
 
         /// <summary>
-        /// Play a goal card to complete the obligation
-        /// Goal cards end the session immediately with success
+        /// Play a situation card to complete the obligation
+        /// Situation cards end the session immediately with success
         /// </summary>
-        protected async Task PlayGoalCard(CardInstance goalCard)
+        protected async Task PlaySituationCard(CardInstance situationCard)
         {
-            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (situationCard == null || !IsSituationCard(situationCard)) return;
             if (IsProcessing) return;
 
             IsProcessing = true;
@@ -778,8 +778,8 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                // Goal cards use ExecuteAct - MentalFacade handles goal card logic
-                MentalTurnResult result = await GameFacade.ExecuteAct(goalCard);
+                // Situation cards use ExecuteAct - MentalFacade handles situation card logic
+                MentalTurnResult result = await GameFacade.ExecuteAct(situationCard);
 
                 if (result != null && result.Success)
                 {

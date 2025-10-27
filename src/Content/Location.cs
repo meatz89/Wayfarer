@@ -18,9 +18,9 @@ public class Location
     public string InitialState { get; set; }
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
-    // Active goal IDs for this location (Mental/Physical challenges)
-    // References goals in GameWorld.Goals (single source of truth)
-    public List<string> ActiveGoalIds { get; set; } = new List<string>();
+    // Active situation IDs for this location (Mental/Physical challenges)
+    // References situations in GameWorld.Situations (single source of truth)
+    public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
     // Obstacle IDs for this location
     // References obstacles in GameWorld.Obstacles (single source of truth)

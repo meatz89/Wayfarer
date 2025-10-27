@@ -13,7 +13,7 @@ public class PackageLoadException : Exception
     public string PackageId { get; set; }
 
     /// <summary>
-    /// The type of entity that has missing dependencies (e.g., "Goal", "Route", "Exchange")
+    /// The type of entity that has missing dependencies (e.g., "Situation", "Route", "Exchange")
     /// </summary>
     public string EntityType { get; set; }
 

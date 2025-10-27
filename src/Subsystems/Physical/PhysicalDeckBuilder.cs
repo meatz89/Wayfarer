@@ -68,33 +68,33 @@ public class PhysicalDeckBuilder
     }
 
     /// <summary>
-    /// Create goal card instances for Physical challenges
-    /// Goal cards are self-contained templates - no lookup required
-    /// Goal cards start unplayable until Breakthrough threshold met
+    /// Create situation card instances for Physical challenges
+    /// Situation cards are self-contained templates - no lookup required
+    /// Situation cards start unplayable until Breakthrough threshold met
     /// </summary>
-    private List<CardInstance> CreateGoalCardInstances(Goal goal)
+    private List<CardInstance> CreateSituationCardInstances(Situation situation)
     {
-        List<CardInstance> goalCardInstances = new List<CardInstance>();
+        List<CardInstance> situationCardInstances = new List<CardInstance>();
 
-        foreach (GoalCard goalCard in goal.GoalCards)
+        foreach (SituationCard situationCard in situation.SituationCards)
         {
-            // Create CardInstance directly from GoalCard (self-contained template)
-            CardInstance instance = new CardInstance(goalCard);
+            // Create CardInstance directly from SituationCard (self-contained template)
+            CardInstance instance = new CardInstance(situationCard);
 
             // Set context for threshold checking (Physical system uses Breakthrough threshold)
             instance.Context = new CardContext
             {
-                threshold = goalCard.threshold,
-                RequestId = goal.Id
+                threshold = situationCard.threshold,
+                RequestId = situation.Id
             };
 
-            // Goal cards start unplayable until threshold met
+            // Situation cards start unplayable until threshold met
             instance.IsPlayable = false;
 
-            goalCardInstances.Add(instance);
+            situationCardInstances.Add(instance);
         }
 
-        return goalCardInstances;
+        return situationCardInstances;
     }
 
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)

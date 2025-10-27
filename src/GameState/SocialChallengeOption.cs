@@ -1,8 +1,8 @@
 using System;
 
 /// <summary>
-/// Represents a specific conversation option that maps to a goal card from the NPC's requests.
-/// Each conversation option corresponds to exactly one goal card.
+/// Represents a specific conversation option that maps to a situation card from the NPC's requests.
+/// Each conversation option corresponds to exactly one situation card.
 /// </summary>
 public class SocialChallengeOption
 {
@@ -17,9 +17,9 @@ public class SocialChallengeOption
     public string DeckId { get; set; }
 
     /// <summary>
-    /// The specific card ID from the NPC's requests that will be used as the goal card
+    /// The specific card ID from the NPC's requests that will be used as the situation card
     /// </summary>
-    public string GoalCardId { get; set; }
+    public string SituationCardId { get; set; }
 
     /// <summary>
     /// Display name for the UI (e.g., "Letter: Marriage Refusal", "Request: Trade Agreement")
@@ -32,12 +32,12 @@ public class SocialChallengeOption
     public string Description { get; set; }
 
     /// <summary>
-    /// The token type associated with this goal card
+    /// The token type associated with this situation card
     /// </summary>
     public ConnectionType TokenType { get; set; }
 
     /// <summary>
-    /// The momentum threshold required to play this goal card
+    /// The momentum threshold required to play this situation card
     /// </summary>
     public int MomentumThreshold { get; set; }
 

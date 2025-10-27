@@ -188,16 +188,16 @@ public class LocationContentViewModel
     public List<LocationActionViewModel> PlayerActions { get; set; } = new();
     public bool HasSpots { get; set; }
 
-    // LookingAround view data (NPCs with their social goals PRE-GROUPED)
-    public List<NpcWithGoalsViewModel> NPCsWithGoals { get; set; } = new();
+    // LookingAround view data (NPCs with their social situations PRE-GROUPED)
+    public List<NpcWithSituationsViewModel> NPCsWithSituations { get; set; } = new();
 
     // Mental challenges - grouped by obstacles
-    public List<GoalCardViewModel> AmbientMentalGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> MentalObstacles { get; set; } = new();  // Goals from obstacles
+    public List<SituationCardViewModel> AmbientMentalSituations { get; set; } = new();  // Situations without obstacles
+    public List<ObstacleWithSituationsViewModel> MentalObstacles { get; set; } = new();  // Situations from obstacles
 
     // Physical challenges - grouped by obstacles
-    public List<GoalCardViewModel> AmbientPhysicalGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> PhysicalObstacles { get; set; } = new();  // Goals from obstacles
+    public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without obstacles
+    public List<ObstacleWithSituationsViewModel> PhysicalObstacles { get; set; } = new();  // Situations from obstacles
 
     // Spots view data
     public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
@@ -218,10 +218,10 @@ public class LocationHeaderViewModel
 }
 
 /// <summary>
-/// NPC with their social goals already filtered and attached
-/// NO FILTERING NEEDED IN UI - backend pre-groups goals by NPC and obstacles
+/// NPC with their social situations already filtered and attached
+/// NO FILTERING NEEDED IN UI - backend pre-groups situations by NPC and obstacles
 /// </summary>
-public class NpcWithGoalsViewModel
+public class NpcWithSituationsViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -230,9 +230,9 @@ public class NpcWithGoalsViewModel
     public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
 
-    // Social goals FOR THIS NPC - grouped by obstacles
-    public List<GoalCardViewModel> AmbientSocialGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> SocialObstacles { get; set; } = new();  // Goals from obstacles
+    // Social situations FOR THIS NPC - grouped by obstacles
+    public List<SituationCardViewModel> AmbientSocialSituations { get; set; } = new();  // Situations without obstacles
+    public List<ObstacleWithSituationsViewModel> SocialObstacles { get; set; } = new();  // Situations from obstacles
 
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }
@@ -240,10 +240,10 @@ public class NpcWithGoalsViewModel
 }
 
 /// <summary>
-/// Goal card for display - simplified from domain Goal entity
+/// Situation card for display - simplified from domain Situation entity
 /// Contains all display information pre-calculated
 /// </summary>
-public class GoalCardViewModel
+public class SituationCardViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -260,10 +260,10 @@ public class GoalCardViewModel
 }
 
 /// <summary>
-/// Obstacle with its goals for hierarchical display
-/// Shows obstacle context (name, description, intensity, contexts) with nested goals
+/// Obstacle with its situations for hierarchical display
+/// Shows obstacle context (name, description, intensity, contexts) with nested situations
 /// </summary>
-public class ObstacleWithGoalsViewModel
+public class ObstacleWithSituationsViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -272,8 +272,8 @@ public class ObstacleWithGoalsViewModel
     public List<string> Contexts { get; set; } = new();  // e.g., ["Search", "Deduction", "Pattern"]
     public string ContextsDisplay { get; set; }  // e.g., "Search, Deduction, Pattern"
 
-    // Goals that belong to this obstacle
-    public List<GoalCardViewModel> Goals { get; set; } = new();
+    // Situations that belong to this obstacle
+    public List<SituationCardViewModel> Situations { get; set; } = new();
 }
 
 /// <summary>

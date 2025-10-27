@@ -5,7 +5,7 @@ public class CardInstance
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();
 
     public CardTypes CardType { get; init; }
-    public GoalCard GoalCardTemplate { get; init; }
+    public SituationCard SituationCardTemplate { get; init; }
     public SocialCard SocialCardTemplate { get; init; }
     public MentalCard MentalCardTemplate { get; init; }
     public PhysicalCard PhysicalCardTemplate { get; init; }
@@ -22,10 +22,10 @@ public class CardInstance
     // Track if card is currently playable (for request cards)
     public bool IsPlayable { get; set; } = true;
 
-    public CardInstance(GoalCard template)
+    public CardInstance(SituationCard template)
     {
-        GoalCardTemplate = template ?? throw new ArgumentNullException("no template card");
-        CardType = CardTypes.Goal;
+        SituationCardTemplate = template ?? throw new ArgumentNullException("no template card");
+        CardType = CardTypes.Situation;
     }
 
     public CardInstance(SocialCard template)

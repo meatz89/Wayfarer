@@ -42,7 +42,7 @@ public class GameWorld
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
     // Mental cards for obligation system
-    public List<Goal> Goals { get; set; } = new List<Goal>();
+    public List<Situation> Situations { get; set; } = new List<Situation>();
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
@@ -108,9 +108,9 @@ public class GameWorld
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
     // Session context (obligation tracking for Mental/Physical)
-    public string CurrentMentalGoalId { get; set; }
+    public string CurrentMentalSituationId { get; set; }
     public string CurrentMentalObligationId { get; set; }
-    public string CurrentPhysicalGoalId { get; set; }
+    public string CurrentPhysicalSituationId { get; set; }
     public string CurrentPhysicalObligationId { get; set; }
 
     // Last outcomes (UI display after session ends)
@@ -328,11 +328,11 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get a Goal by ID from centralized Goals list
+    /// Get a Situation by ID from centralized Situations list
     /// </summary>
-    public Goal GetGoalById(string id)
+    public Situation GetSituationById(string id)
     {
-        return Goals.FirstOrDefault(g => g.Id == id);
+        return Situations.FirstOrDefault(g => g.Id == id);
     }
 
     /// <summary>

@@ -33,24 +33,24 @@ public static class GameWorldInitializer
     /// This is PHASE 2 of initialization, executed AFTER all JSON parsing is complete
     /// </summary>
     private static void WireObjectGraph(GameWorld gameWorld)
-    {// Wire Goals
-        foreach (Goal goal in gameWorld.Goals)
+    {// Wire Situations
+        foreach (Situation situation in gameWorld.Situations)
         {
-            if (!string.IsNullOrEmpty(goal.PlacementLocationId))
-                goal.PlacementLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == goal.PlacementLocationId);
+            if (!string.IsNullOrEmpty(situation.PlacementLocationId))
+                situation.PlacementLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == situation.PlacementLocationId);
 
-            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
-                goal.PlacementNpc = gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
+            if (!string.IsNullOrEmpty(situation.PlacementNpcId))
+                situation.PlacementNpc = gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
 
-            if (!string.IsNullOrEmpty(goal.ObligationId))
-                goal.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == goal.ObligationId);
+            if (!string.IsNullOrEmpty(situation.ObligationId))
+                situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == situation.ObligationId);
         }// Wire NPCs
         foreach (NPC npc in gameWorld.NPCs)
         {
             if (!string.IsNullOrEmpty(npc.LocationId))
                 npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == npc.LocationId);
 
-            // ActiveGoals and Obstacles are accessed via ActiveGoalIds/ObstacleIds querying GameWorld.Goals/Obstacles
+            // ActiveSituations and Obstacles are accessed via ActiveSituationIds/ObstacleIds querying GameWorld.Situations/Obstacles
             // No need to populate duplicate object lists
         }
 
@@ -68,7 +68,7 @@ public static class GameWorldInitializer
                 scene.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == scene.LocationId);
         }
 
-        // Locations reference goals/obstacles via IDs only (ActiveGoalIds/ObstacleIds)
-        // No object list population needed - GameWorld.Goals/Obstacles is single source of truth
+        // Locations reference situations/obstacles via IDs only (ActiveSituationIds/ObstacleIds)
+        // No object list population needed - GameWorld.Situations/Obstacles is single source of truth
     }
 }

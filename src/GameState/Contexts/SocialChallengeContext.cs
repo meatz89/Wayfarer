@@ -1,7 +1,7 @@
 /// <summary>
 /// Context for Social challenges containing session and metadata.
 /// Parallel to MentalChallengeContext and PhysicalChallengeContext for architectural consistency.
-/// Domain logic now lives in goal cards, not context subclasses.
+/// Domain logic now lives in situation cards, not context subclasses.
 /// </summary>
 public class SocialChallengeContext
 {

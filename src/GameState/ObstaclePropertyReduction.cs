@@ -1,7 +1,7 @@
 /// <summary>
-/// ObstaclePropertyReduction - Reward type for GoalCard completion
+/// ObstaclePropertyReduction - Reward type for SituationCard completion
 /// Specifies how much to reduce intensity of a targeted obstacle
-/// Part of GoalCard.Rewards structure
+/// Part of SituationCard.Rewards structure
 /// Design principle: Simple addition reduction, no formulas or conditional logic
 /// </summary>
 public class ObstaclePropertyReduction

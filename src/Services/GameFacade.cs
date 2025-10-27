@@ -168,7 +168,7 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        // NPCs no longer have inline conversation options - goals are location-based in GameWorld.Goals
+        // NPCs no longer have inline conversation options - situations are location-based in GameWorld.Situations
         return _locationFacade.GetLocationScreen(new List<NPCConversationOptions>());
     }
 
@@ -430,7 +430,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public MentalSession StartMentalSession(string deckId, string locationSpotId, string situationId, string obligationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
@@ -445,7 +445,7 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId);
+        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, situationId, obligationId);
     }
 
     /// <summary>
@@ -504,7 +504,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string situationId, string obligationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
@@ -519,7 +519,7 @@ public class GameFacade
         (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, goalId, obligationId);
+        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, situationId, obligationId);
     }
 
     /// <summary>
@@ -1213,7 +1213,7 @@ public class GameFacade
     /// <summary>
     /// Evaluate and trigger obligation discovery based on current player state
     /// Called when player moves to new location/location, gains knowledge, items, or accepts obligations
-    /// Discovered obligations will have their intro goals added to the appropriate location
+    /// Discovered obligations will have their intro situations added to the appropriate location
     /// and discovery modals will be triggered via pending results
     /// </summary>
     public void EvaluateObligationDiscovery()
@@ -1221,8 +1221,8 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();// Evaluate which obligations can be discovered
         List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations(player);// For each discovered obligation, trigger discovery flow
         foreach (Obligation obligation in discoverable)
-        {// DiscoverObligation moves Potential→Discovered and spawns intro goal at location
-            // No return value - goal is added directly to Location.ActiveGoals
+        {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
+            // No return value - situation is added directly to Location.ActiveSituations
             _obligationActivity.DiscoverObligation(obligation.Id);
 
             // Pending discovery result is now set in ObligationActivity

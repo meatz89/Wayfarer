@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// Obligation template - contains metadata and phase definitions for goal creation
-/// Obligation does NOT spawn tactical sessions directly - it creates LocationGoals/NPCGoals
-/// which are evaluated by the existing goal system
+/// Obligation template - contains metadata and phase definitions for situation creation
+/// Obligation does NOT spawn tactical sessions directly - it creates LocationSituations/NPCSituations
+/// which are evaluated by the existing situation system
 /// </summary>
 public class Obligation
 {
@@ -24,7 +24,7 @@ public class Obligation
     public string ColorCode { get; set; }
 
     /// <summary>
-    /// Phase definitions - used to create goals dynamically when prerequisites met
+    /// Phase definitions - used to create situations dynamically when prerequisites met
     /// </summary>
     public List<ObligationPhaseDefinition> PhaseDefinitions { get; set; } = new List<ObligationPhaseDefinition>();
 
@@ -86,8 +86,8 @@ public class Obligation
 }
 
 /// <summary>
-/// Phase definition - references an existing goal from GameWorld.Goals
-/// When prerequisites met, obligation system looks up goal and adds to ActiveGoals
+/// Phase definition - references an existing situation from GameWorld.Situations
+/// When prerequisites met, obligation system looks up situation and adds to ActiveSituations
 /// </summary>
 public class ObligationPhaseDefinition
 {
@@ -95,10 +95,10 @@ public class ObligationPhaseDefinition
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
-    public string OutcomeNarrative { get; set; } // Narrative shown when goal completes
+    public string OutcomeNarrative { get; set; } // Narrative shown when situation completes
 
     // Rewards granted on completion
-    // GoalRequirements system eliminated - phases progress through actual goal completion tracking
+    // SituationRequirements system eliminated - phases progress through actual situation completion tracking
     public PhaseCompletionReward CompletionReward { get; set; }
 }
 

@@ -11,14 +11,14 @@ public class PhysicalSessionDeck
     // THREE-PILE SYSTEM: Deck (draw) → Hand (active) → Locked (exhaust)
     private readonly Pile deckPile = new();
     private readonly Pile handPile = new();
-    private readonly Pile requestPile = new();  // GOAL CARDS for this engagement
+    private readonly Pile requestPile = new();  // SITUATION CARDS for this engagement
     private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // EXHAUST PILE - locked for combo execution on ASSESS
 
     public PhysicalSessionDeck() { }
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
-    public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
+    public IReadOnlyList<CardInstance> SituationCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> LockedCards => lockedCards.AsReadOnly();
     public int RemainingDeckCards => deckPile.Count;
     public int HandSize => handPile.Count;
@@ -49,9 +49,9 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
-    /// Add goal card to request pile (unlocks at Breakthrough threshold)
+    /// Add situation card to request pile (unlocks at Breakthrough threshold)
     /// </summary>
-    public void AddGoalCard(CardInstance card)
+    public void AddSituationCard(CardInstance card)
     {
         if (card != null)
             requestPile.Add(card);
@@ -75,9 +75,9 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
-    /// Check request pile and move goal cards to hand if Breakthrough threshold met
+    /// Check request pile and move situation cards to hand if Breakthrough threshold met
     /// </summary>
-    public List<CardInstance> CheckGoalThresholds(int currentBreakthrough)
+    public List<CardInstance> CheckSituationThresholds(int currentBreakthrough)
     {
         List<CardInstance> toMove = requestPile.Cards
             .Where(c => c.Context != null && c.Context.threshold <= currentBreakthrough)

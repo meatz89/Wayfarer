@@ -52,58 +52,58 @@
                 break;
 
             case LocationViewState.LookingAround:
-                @* UNIFIED VIEW - NPCs with goals PRE-GROUPED by backend *@
+                @* UNIFIED VIEW - NPCs with situations PRE-GROUPED by backend *@
                 <div class="location-npc-list-view">
                     <div class="section-header">You scan the area...</div>
 
-                    @* ========== NPCs WITH THEIR SOCIAL GOALS ========== *@
-                    @if (ViewModel.NPCsWithGoals.Any())
+                    @* ========== NPCs WITH THEIR SOCIAL SITUATIONS ========== *@
+                    @if (ViewModel.NPCsWithSituations.Any())
                     {
                         <div class="section-subheader">People Here</div>
 
-                        @foreach (var npcWithGoals in ViewModel.NPCsWithGoals)
+                        @foreach (var npcWithSituations in ViewModel.NPCsWithSituations)
                         {
                             @* NPC Card *@
                             <div class="npc-card">
                                 <div class="npc-header">
                                     <div>
-                                        <div class="npc-name">@npcWithGoals.Name</div>
-                                        <div class="npc-type">@npcWithGoals.PersonalityType</div>
+                                        <div class="npc-name">@npcWithSituations.Name</div>
+                                        <div class="npc-type">@npcWithSituations.PersonalityType</div>
                                     </div>
-                                    <div class="npc-state @npcWithGoals.StateClass">@npcWithGoals.ConnectionState</div>
+                                    <div class="npc-state @npcWithSituations.StateClass">@npcWithSituations.ConnectionState</div>
                                 </div>
-                                <div class="npc-description">@npcWithGoals.Description</div>
+                                <div class="npc-description">@npcWithSituations.Description</div>
                             </div>
 
-                            @* Ambient Social Goals (without obstacles) *@
-                            @if (npcWithGoals.AmbientSocialGoals.Any())
+                            @* Ambient Social Situations (without obstacles) *@
+                            @if (npcWithSituations.AmbientSocialSituations.Any())
                             {
                                 <div class="actions-grid">
-                                    @foreach (var goal in npcWithGoals.AmbientSocialGoals)
+                                    @foreach (var situation in npcWithSituations.AmbientSocialSituations)
                                     {
-                                        <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                             @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                            <div class="goal-system-badge social">Social</div>
-                                            <div class="goal-name">@goal.Name</div>
-                                            @if (!string.IsNullOrEmpty(goal.Description))
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                            <div class="situation-system-badge social">Social</div>
+                                            <div class="situation-name">@situation.Name</div>
+                                            @if (!string.IsNullOrEmpty(situation.Description))
                                             {
-                                                <div class="goal-description">@goal.Description</div>
+                                                <div class="situation-description">@situation.Description</div>
                                             }
-                                            <div class="goal-difficulty">
-                                                <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@goal.Difficulty</span>
+                                            <div class="situation-difficulty">
+                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                                <span class="difficulty-value">@situation.Difficulty</span>
                                             </div>
-                                            @if (goal.IsIntroAction)
+                                            @if (situation.IsIntroAction)
                                             {
-                                                <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                             }
                                         </div>
                                     }
                                 </div>
                             }
 
-                            @* Social Obstacles with nested goals *@
-                            @foreach (var obstacle in npcWithGoals.SocialObstacles)
+                            @* Social Obstacles with nested situations *@
+                            @foreach (var obstacle in npcWithSituations.SocialObstacles)
                             {
                                 <div class="obstacle-card">
                                     <div class="obstacle-header">
@@ -116,23 +116,23 @@
                                     <div class="obstacle-description">@obstacle.Description</div>
 
                                     <div class="actions-grid">
-                                        @foreach (var goal in obstacle.Goals)
+                                        @foreach (var situation in obstacle.Situations)
                                         {
-                                            <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                                 @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                                <div class="goal-system-badge social">Social</div>
-                                                <div class="goal-name">@goal.Name</div>
-                                                @if (!string.IsNullOrEmpty(goal.Description))
+                                            <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                                 @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                                <div class="situation-system-badge social">Social</div>
+                                                <div class="situation-name">@situation.Name</div>
+                                                @if (!string.IsNullOrEmpty(situation.Description))
                                                 {
-                                                    <div class="goal-description">@goal.Description</div>
+                                                    <div class="situation-description">@situation.Description</div>
                                                 }
-                                                <div class="goal-difficulty">
-                                                    <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                                    <span class="difficulty-value">@goal.Difficulty</span>
+                                                <div class="situation-difficulty">
+                                                    <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                                    <span class="difficulty-value">@situation.Difficulty</span>
                                                 </div>
-                                                @if (goal.IsIntroAction)
+                                                @if (situation.IsIntroAction)
                                                 {
-                                                    <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                                    <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                                 }
                                             </div>
                                         }
@@ -141,14 +141,14 @@
                             }
 
                             @* Exchange Option for MERCANTILE NPCs *@
-                            @if (npcWithGoals.HasExchange)
+                            @if (npcWithSituations.HasExchange)
                             {
                                 <div class="actions-grid">
-                                    <div class="goal-action-btn"
-                                         @onclick="async () => await HandleStartExchange(npcWithGoals.Id)">
-                                        <div class="goal-system-badge exchange">Exchange</div>
-                                        <div class="goal-name">Trading</div>
-                                        <div class="goal-description">@npcWithGoals.ExchangeDescription</div>
+                                    <div class="situation-action-btn"
+                                         @onclick="async () => await HandleStartExchange(npcWithSituations.Id)">
+                                        <div class="situation-system-badge exchange">Exchange</div>
+                                        <div class="situation-name">Trading</div>
+                                        <div class="situation-description">@npcWithSituations.ExchangeDescription</div>
                                     </div>
                                 </div>
                             }
@@ -156,38 +156,38 @@
                     }
 
                     @* ========== MENTAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientMentalGoals.Any() || ViewModel.MentalObstacles.Any())
+                    @if (ViewModel.AmbientMentalSituations.Any() || ViewModel.MentalObstacles.Any())
                     {
                         <div class="section-subheader">Mental Challenges</div>
 
-                        @* Ambient Mental Goals (without obstacles) *@
-                        @if (ViewModel.AmbientMentalGoals.Any())
+                        @* Ambient Mental Situations (without obstacles) *@
+                        @if (ViewModel.AmbientMentalSituations.Any())
                         {
                             <div class="actions-grid">
-                                @foreach (var goal in ViewModel.AmbientMentalGoals)
+                                @foreach (var situation in ViewModel.AmbientMentalSituations)
                                 {
-                                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                         @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                        <div class="goal-system-badge mental">Mental</div>
-                                        <div class="goal-name">@goal.Name</div>
-                                        @if (!string.IsNullOrEmpty(goal.Description))
+                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                         @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                        <div class="situation-system-badge mental">Mental</div>
+                                        <div class="situation-name">@situation.Name</div>
+                                        @if (!string.IsNullOrEmpty(situation.Description))
                                         {
-                                            <div class="goal-description">@goal.Description</div>
+                                            <div class="situation-description">@situation.Description</div>
                                         }
-                                        <div class="goal-difficulty">
-                                            <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                            <span class="difficulty-value">@goal.Difficulty</span>
+                                        <div class="situation-difficulty">
+                                            <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                            <span class="difficulty-value">@situation.Difficulty</span>
                                         </div>
-                                        @if (goal.IsIntroAction)
+                                        @if (situation.IsIntroAction)
                                         {
-                                            <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                            <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                         }
                                     </div>
                                 }
                             </div>
                         }
 
-                        @* Mental Obstacles with nested goals *@
+                        @* Mental Obstacles with nested situations *@
                         @foreach (var obstacle in ViewModel.MentalObstacles)
                         {
                             <div class="obstacle-card">
@@ -201,23 +201,23 @@
                                 <div class="obstacle-description">@obstacle.Description</div>
 
                                 <div class="actions-grid">
-                                    @foreach (var goal in obstacle.Goals)
+                                    @foreach (var situation in obstacle.Situations)
                                     {
-                                        <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                             @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                            <div class="goal-system-badge mental">Mental</div>
-                                            <div class="goal-name">@goal.Name</div>
-                                            @if (!string.IsNullOrEmpty(goal.Description))
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                            <div class="situation-system-badge mental">Mental</div>
+                                            <div class="situation-name">@situation.Name</div>
+                                            @if (!string.IsNullOrEmpty(situation.Description))
                                             {
-                                                <div class="goal-description">@goal.Description</div>
+                                                <div class="situation-description">@situation.Description</div>
                                             }
-                                            <div class="goal-difficulty">
-                                                <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@goal.Difficulty</span>
+                                            <div class="situation-difficulty">
+                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                                <span class="difficulty-value">@situation.Difficulty</span>
                                             </div>
-                                            @if (goal.IsIntroAction)
+                                            @if (situation.IsIntroAction)
                                             {
-                                                <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                             }
                                         </div>
                                     }
@@ -227,38 +227,38 @@
                     }
 
                     @* ========== PHYSICAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientPhysicalGoals.Any() || ViewModel.PhysicalObstacles.Any())
+                    @if (ViewModel.AmbientPhysicalSituations.Any() || ViewModel.PhysicalObstacles.Any())
                     {
                         <div class="section-subheader">Physical Challenges</div>
 
-                        @* Ambient Physical Goals (without obstacles) *@
-                        @if (ViewModel.AmbientPhysicalGoals.Any())
+                        @* Ambient Physical Situations (without obstacles) *@
+                        @if (ViewModel.AmbientPhysicalSituations.Any())
                         {
                             <div class="actions-grid">
-                                @foreach (var goal in ViewModel.AmbientPhysicalGoals)
+                                @foreach (var situation in ViewModel.AmbientPhysicalSituations)
                                 {
-                                    <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                         @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                        <div class="goal-system-badge physical">Physical</div>
-                                        <div class="goal-name">@goal.Name</div>
-                                        @if (!string.IsNullOrEmpty(goal.Description))
+                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                         @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                        <div class="situation-system-badge physical">Physical</div>
+                                        <div class="situation-name">@situation.Name</div>
+                                        @if (!string.IsNullOrEmpty(situation.Description))
                                         {
-                                            <div class="goal-description">@goal.Description</div>
+                                            <div class="situation-description">@situation.Description</div>
                                         }
-                                        <div class="goal-difficulty">
-                                            <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                            <span class="difficulty-value">@goal.Difficulty</span>
+                                        <div class="situation-difficulty">
+                                            <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                            <span class="difficulty-value">@situation.Difficulty</span>
                                         </div>
-                                        @if (goal.IsIntroAction)
+                                        @if (situation.IsIntroAction)
                                         {
-                                            <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                            <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                         }
                                     </div>
                                 }
                             </div>
                         }
 
-                        @* Physical Obstacles with nested goals *@
+                        @* Physical Obstacles with nested situations *@
                         @foreach (var obstacle in ViewModel.PhysicalObstacles)
                         {
                             <div class="obstacle-card">
@@ -272,23 +272,23 @@
                                 <div class="obstacle-description">@obstacle.Description</div>
 
                                 <div class="actions-grid">
-                                    @foreach (var goal in obstacle.Goals)
+                                    @foreach (var situation in obstacle.Situations)
                                     {
-                                        <div class="goal-action-btn @(goal.IsIntroAction ? "intro-action" : "")"
-                                             @onclick="() => HandleNavigateToGoal(goal.Id)">
-                                            <div class="goal-system-badge physical">Physical</div>
-                                            <div class="goal-name">@goal.Name</div>
-                                            @if (!string.IsNullOrEmpty(goal.Description))
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
+                                            <div class="situation-system-badge physical">Physical</div>
+                                            <div class="situation-name">@situation.Name</div>
+                                            @if (!string.IsNullOrEmpty(situation.Description))
                                             {
-                                                <div class="goal-description">@goal.Description</div>
+                                                <div class="situation-description">@situation.Description</div>
                                             }
-                                            <div class="goal-difficulty">
-                                                <span class="difficulty-label">@goal.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@goal.Difficulty</span>
+                                            <div class="situation-difficulty">
+                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
+                                                <span class="difficulty-value">@situation.Difficulty</span>
                                             </div>
-                                            @if (goal.IsIntroAction)
+                                            @if (situation.IsIntroAction)
                                             {
-                                                <div class="goal-obligation-tag intro-tag">🔍 Obligation</div>
+                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
                                             }
                                         </div>
                                     }
@@ -305,17 +305,17 @@
                         <div class="actions-grid">
                             @foreach (var tree in AvailableConversationTrees)
                             {
-                                <div class="goal-action-btn"
+                                <div class="situation-action-btn"
                                      @onclick="async () => await HandleStartConversationTree(tree.Id)">
-                                    <div class="goal-system-badge conversation">Conversation</div>
-                                    <div class="goal-name">@tree.Name</div>
+                                    <div class="situation-system-badge conversation">Conversation</div>
+                                    <div class="situation-name">@tree.Name</div>
                                     @if (!string.IsNullOrEmpty(tree.Description))
                                     {
-                                        <div class="goal-description">@tree.Description</div>
+                                        <div class="situation-description">@tree.Description</div>
                                     }
                                     @if (tree.Npc != null)
                                     {
-                                        <div class="goal-meta">with @tree.Npc.Name</div>
+                                        <div class="situation-meta">with @tree.Npc.Name</div>
                                     }
                                 </div>
                             }
@@ -330,13 +330,13 @@
                         <div class="actions-grid">
                             @foreach (var scene in AvailableObservationScenes)
                             {
-                                <div class="goal-action-btn"
+                                <div class="situation-action-btn"
                                      @onclick="async () => await HandleStartObservationScene(scene.Id)">
-                                    <div class="goal-system-badge observation">Observation</div>
-                                    <div class="goal-name">@scene.Name</div>
+                                    <div class="situation-system-badge observation">Observation</div>
+                                    <div class="situation-name">@scene.Name</div>
                                     @if (!string.IsNullOrEmpty(scene.Description))
                                     {
-                                        <div class="goal-description">@scene.Description</div>
+                                        <div class="situation-description">@scene.Description</div>
                                     }
                                 </div>
                             }
@@ -344,9 +344,9 @@
                     }
 
                     @* ========== EMPTY STATE ========== *@
-                    @if (!ViewModel.NPCsWithGoals.Any()
-                        && !ViewModel.AmbientMentalGoals.Any() && !ViewModel.MentalObstacles.Any()
-                        && !ViewModel.AmbientPhysicalGoals.Any() && !ViewModel.PhysicalObstacles.Any()
+                    @if (!ViewModel.NPCsWithSituations.Any()
+                        && !ViewModel.AmbientMentalSituations.Any() && !ViewModel.MentalObstacles.Any()
+                        && !ViewModel.AmbientPhysicalSituations.Any() && !ViewModel.PhysicalObstacles.Any()
                         && !AvailableConversationTrees.Any() && !AvailableObservationScenes.Any())
                     {
                         <p>The area is quiet. No one else is here, and nothing catches your attention.</p>
@@ -359,9 +359,9 @@
             @* REMOVED: ApproachNPC - consolidated into LookingAround *@
             @* REMOVED: LocationChallenges - consolidated into LookingAround *@
 
-            case LocationViewState.GoalDetail:
-                <GoalDetailView SelectedGoal="@GetGoalDetailViewModel()"
-                                OnCommitToGoal="HandleCommitToGoal"
+            case LocationViewState.SituationDetail:
+                <SituationDetailView SelectedSituation="@GetSituationDetailViewModel()"
+                                OnCommitToSituation="HandleCommitToSituation"
                                 OnNavigateBack="NavigateBack" />
                 break;
 

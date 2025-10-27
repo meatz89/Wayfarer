@@ -4,28 +4,28 @@ using System.Linq;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Parser for converting GoalDTO to Goal domain model
+/// Parser for converting SituationDTO to Situation domain model
 /// </summary>
-public static class GoalParser
+public static class SituationParser
 {
     /// <summary>
-    /// Convert a GoalDTO to a Goal domain model
+    /// Convert a SituationDTO to a Situation domain model
     /// </summary>
-    public static Goal ConvertDTOToGoal(GoalDTO dto, GameWorld gameWorld)
+    public static Situation ConvertDTOToSituation(SituationDTO dto, GameWorld gameWorld)
     {
         if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidOperationException("Goal DTO missing required 'Id' field");
+            throw new InvalidOperationException("Situation DTO missing required 'Id' field");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidOperationException($"Goal {dto.Id} missing required 'Name' field");
+            throw new InvalidOperationException($"Situation {dto.Id} missing required 'Name' field");
         if (string.IsNullOrEmpty(dto.SystemType))
-            throw new InvalidOperationException($"Goal {dto.Id} missing required 'SystemType' field");
+            throw new InvalidOperationException($"Situation {dto.Id} missing required 'SystemType' field");
         if (string.IsNullOrEmpty(dto.DeckId))
-            throw new InvalidOperationException($"Goal {dto.Id} missing required 'DeckId' field");
+            throw new InvalidOperationException($"Situation {dto.Id} missing required 'DeckId' field");
 
         // Parse system type
         if (!Enum.TryParse<TacticalSystemType>(dto.SystemType, true, out TacticalSystemType systemType))
         {
-            throw new InvalidOperationException($"Goal {dto.Id} has invalid SystemType value: '{dto.SystemType}'");
+            throw new InvalidOperationException($"Situation {dto.Id} has invalid SystemType value: '{dto.SystemType}'");
         }
 
         // Parse consequence type
@@ -41,10 +41,10 @@ public static class GoalParser
             : null;
 
         // Parse costs and difficulty modifiers
-        GoalCosts costs = ParseGoalCosts(dto.Costs);
+        SituationCosts costs = ParseSituationCosts(dto.Costs);
         List<DifficultyModifier> difficultyModifiers = ParseDifficultyModifiers(dto.DifficultyModifiers);
 
-        Goal goal = new Goal
+        Situation situation = new Situation
         {
             Id = dto.Id,
             Name = dto.Name,
@@ -60,8 +60,8 @@ public static class GoalParser
             DeleteOnSuccess = dto.DeleteOnSuccess,
             Costs = costs,
             DifficultyModifiers = difficultyModifiers,
-            GoalCards = new List<GoalCard>(),
-            // GoalRequirements system eliminated - goals always visible, difficulty varies
+            SituationCards = new List<SituationCard>(),
+            // SituationRequirements system eliminated - situations always visible, difficulty varies
             ConsequenceType = consequenceType,
             SetsResolutionMethod = resolutionMethod,
             SetsRelationshipOutcome = relationshipOutcome,
@@ -69,49 +69,49 @@ public static class GoalParser
             PropertyReduction = propertyReduction
         };
 
-        // Parse goal cards (victory conditions)
-        if (dto.GoalCards != null && dto.GoalCards.Any())
+        // Parse situation cards (victory conditions)
+        if (dto.SituationCards != null && dto.SituationCards.Any())
         {
-            foreach (GoalCardDTO goalCardDTO in dto.GoalCards)
+            foreach (SituationCardDTO situationCardDTO in dto.SituationCards)
             {
-                GoalCard goalCard = ParseGoalCard(goalCardDTO, dto.Id);
-                goal.GoalCards.Add(goalCard);
+                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Id);
+                situation.SituationCards.Add(situationCard);
             }
         }
-        return goal;
+        return situation;
     }
 
     /// <summary>
-    /// Parse a single goal card (victory condition)
+    /// Parse a single situation card (victory condition)
     /// </summary>
-    private static GoalCard ParseGoalCard(GoalCardDTO dto, string goalId)
+    private static SituationCard ParseSituationCard(SituationCardDTO dto, string situationId)
     {
         if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidOperationException($"GoalCard in goal {goalId} missing required 'Id' field");
+            throw new InvalidOperationException($"SituationCard in situation {situationId} missing required 'Id' field");
 
-        GoalCard goalCard = new GoalCard
+        SituationCard situationCard = new SituationCard
         {
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             threshold = dto.threshold,
-            Rewards = ParseGoalCardRewards(dto.Rewards),
+            Rewards = ParseSituationCardRewards(dto.Rewards),
             IsAchieved = false
         };
 
-        return goalCard;
+        return situationCard;
     }
 
     /// <summary>
-    /// Parse goal card rewards
+    /// Parse situation card rewards
     /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     /// </summary>
-    private static GoalCardRewards ParseGoalCardRewards(GoalCardRewardsDTO dto)
+    private static SituationCardRewards ParseSituationCardRewards(SituationCardRewardsDTO dto)
     {
         if (dto == null)
-            return new GoalCardRewards();
+            return new SituationCardRewards();
 
-        GoalCardRewards rewards = new GoalCardRewards
+        SituationCardRewards rewards = new SituationCardRewards
         {
             Coins = dto.Coins,
             Progress = dto.Progress,
@@ -195,14 +195,14 @@ public static class GoalParser
     }
 
     /// <summary>
-    /// Parse goal costs from DTO
+    /// Parse situation costs from DTO
     /// </summary>
-    private static GoalCosts ParseGoalCosts(GoalCostsDTO dto)
+    private static SituationCosts ParseSituationCosts(SituationCostsDTO dto)
     {
         if (dto == null)
-            return new GoalCosts();
+            return new SituationCosts();
 
-        return new GoalCosts
+        return new SituationCosts
         {
             Time = dto.Time,
             Focus = dto.Focus,

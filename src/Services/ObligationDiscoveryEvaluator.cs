@@ -63,7 +63,7 @@ public class ObligationDiscoveryEvaluator
             DiscoveryTriggerType.ConversationalDiscovery => CheckConversationalDiscovery(prereqs, player),
             DiscoveryTriggerType.ItemDiscovery => CheckItemDiscovery(prereqs, player),
             DiscoveryTriggerType.ObligationTriggered => CheckObligationTriggered(prereqs, player),
-            DiscoveryTriggerType.GoalCompletionTrigger => CheckGoalCompletionTrigger(prereqs),
+            DiscoveryTriggerType.SituationCompletionTrigger => CheckSituationCompletionTrigger(prereqs),
             _ => false
         };
     }
@@ -132,14 +132,14 @@ public class ObligationDiscoveryEvaluator
     }
 
     /// <summary>
-    /// GoalCompletionTrigger: Obligation discovered through goal-based narrative triggers
+    /// SituationCompletionTrigger: Obligation discovered through situation-based narrative triggers
     /// PRINCIPLE 4: No boolean gates - obligations visible based on narrative context
-    /// Prerequisites: None (CompletedGoalId system eliminated)
+    /// Prerequisites: None (CompletedSituationId system eliminated)
     /// </summary>
-    private bool CheckGoalCompletionTrigger(ObligationPrerequisites prereqs)
+    private bool CheckSituationCompletionTrigger(ObligationPrerequisites prereqs)
     {
-        // CompletedGoalId system eliminated - no prerequisites to check
-        // GoalCompletionTrigger now represents narrative triggers without gating
+        // CompletedSituationId system eliminated - no prerequisites to check
+        // SituationCompletionTrigger now represents narrative triggers without gating
         return true;
     }
 }

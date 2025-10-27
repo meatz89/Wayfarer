@@ -60,5 +60,5 @@ public class DialogueResponse
 
     // Escalation to tactical Social challenge
     public bool EscalatesToSocialChallenge { get; set; }
-    public string SocialChallengeGoalId { get; set; }  // If escalates
+    public string SocialChallengeSituationId { get; set; }  // If escalates
 }

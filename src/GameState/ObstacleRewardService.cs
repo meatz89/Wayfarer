@@ -1,7 +1,7 @@
 using System;
 
 /// <summary>
-/// Domain service for applying obstacle property reductions from goal card rewards
+/// Domain service for applying obstacle property reductions from situation card rewards
 /// Pure domain logic - no external dependencies
 /// </summary>
 public static class ObstacleRewardService

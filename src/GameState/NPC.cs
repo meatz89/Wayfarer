@@ -71,9 +71,9 @@ public class NPC
     // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
-    // Active goal IDs for this NPC (Social challenges)
-    // References goals in GameWorld.Goals dictionary (single source of truth)
-    public List<string> ActiveGoalIds { get; set; } = new List<string>();
+    // Active situation IDs for this NPC (Social challenges)
+    // References situations in GameWorld.Situations dictionary (single source of truth)
+    public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
     // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
     // References obstacles in GameWorld.Obstacles list

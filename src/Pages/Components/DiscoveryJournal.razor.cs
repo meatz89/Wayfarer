@@ -117,13 +117,13 @@ namespace Wayfarer.Pages.Components
 
         protected int GetObligationProgress(ActiveObligation activeInv)
         {
-            // CompletedGoalIds eliminated - track progress via resolved obstacles instead
+            // CompletedSituationIds eliminated - track progress via resolved obstacles instead
             // NOTE: Obstacles no longer have ObligationId - UI needs redesign to show obstacle locations
             // For now, return understanding accumulated as progress metric
             return activeInv.UnderstandingAccumulated;
         }
 
-        protected int GetObligationTotalGoals(string obligationId)
+        protected int GetObligationTotalSituations(string obligationId)
         {
             // PhaseDefinitions eliminated - return static understanding requirement for now
             // NOTE: Obstacles no longer have ObligationId - UI needs redesign
@@ -133,31 +133,31 @@ namespace Wayfarer.Pages.Components
 
         protected double GetObligationProgressPercent(ActiveObligation activeInv)
         {
-            int total = GetObligationTotalGoals(activeInv.ObligationId);
+            int total = GetObligationTotalSituations(activeInv.ObligationId);
             if (total == 0) return 0;
-            // CompletedGoalIds eliminated - use resolved obstacle count instead
+            // CompletedSituationIds eliminated - use resolved obstacle count instead
             int resolved = GetObligationProgress(activeInv);
             return ((double)resolved / total) * 100.0;
         }
 
         protected List<ObligationPhaseDefinition> GetCompletedPhases(ActiveObligation activeInv)
         {
-            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
+            // PhaseDefinitions and CompletedSituationIds eliminated - obligations no longer have sequential phases
             // Return resolved obstacles instead
             return new List<ObligationPhaseDefinition>();
         }
 
         protected List<ObligationPhaseDefinition> GetActivePhases(ActiveObligation activeInv)
         {
-            // PhaseDefinitions and CompletedGoalIds eliminated - obligations no longer have sequential phases
+            // PhaseDefinitions and CompletedSituationIds eliminated - obligations no longer have sequential phases
             // Return active obstacles instead
             return new List<ObligationPhaseDefinition>();
         }
 
-        protected Dictionary<string, int> GetRemainingGoalsByLocation(ActiveObligation activeInv)
+        protected Dictionary<string, int> GetRemainingSituationsByLocation(ActiveObligation activeInv)
         {
-            // NOTE: Obligation phases no longer reference goals directly
-            // Goals are now contained within obstacles spawned by obligations
+            // NOTE: Obligation phases no longer reference situations directly
+            // Situations are now contained within obstacles spawned by obligations
             // This UI method needs redesign to show obstacle locations instead
             // For now, return empty dictionary until obstacle-based UI is implemented
             return new Dictionary<string, int>();

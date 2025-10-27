@@ -4,19 +4,19 @@ using System;
 namespace Wayfarer.Pages.Components
 {
     /// <summary>
-    /// Goal Detail View - Shows full goal information before commitment decision.
+    /// Situation Detail View - Shows full situation information before commitment decision.
     /// </summary>
-    public class GoalDetailViewBase : ComponentBase
+    public class SituationDetailViewBase : ComponentBase
     {
-        [Parameter] public GoalDetailViewModel SelectedGoal { get; set; }
+        [Parameter] public SituationDetailViewModel SelectedSituation { get; set; }
 
-        [Parameter] public EventCallback<Goal> OnCommitToGoal { get; set; }
+        [Parameter] public EventCallback<Situation> OnCommitToSituation { get; set; }
         [Parameter] public EventCallback OnNavigateBack { get; set; }
     }
 
-    public class GoalDetailViewModel
+    public class SituationDetailViewModel
     {
-        public Goal Goal { get; set; }
+        public Situation Situation { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public TacticalSystemType SystemType { get; set; }

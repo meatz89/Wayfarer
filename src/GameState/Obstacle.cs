@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Obstacle - Strategic barrier with inline goals, property-based gating
+/// Obstacle - Strategic barrier with inline situations, property-based gating
 /// Lives in GameWorld.Obstacles list (single source of truth)
 /// Referenced by Location.ObstacleIds, NPC.ObstacleIds (distributed interaction pattern)
-/// Design principle: Location-agnostic obstacles with goals scattered across world
+/// Design principle: Location-agnostic obstacles with situations scattered across world
 /// </summary>
 public class Obstacle
 {
@@ -68,13 +68,13 @@ public class Obstacle
     public bool IsPermanent { get; set; }
 
     /// <summary>
-    /// Goal IDs that target this obstacle (references to GameWorld.Goals)
-    /// Two types: preparation goals (reduce properties) and resolution goals (remove obstacle)
-    /// Goals from obligation content are registered in GameWorld.Goals when obstacle spawns
+    /// Situation IDs that target this obstacle (references to GameWorld.Situations)
+    /// Two types: preparation situations (reduce properties) and resolution situations (remove obstacle)
+    /// Situations from obligation content are registered in GameWorld.Situations when obstacle spawns
     /// Filtered by property requirements for visibility
-    /// Single source of truth: All goals live in GameWorld.Goals dictionary
+    /// Single source of truth: All situations live in GameWorld.Situations dictionary
     /// </summary>
-    public List<string> GoalIds { get; set; } = new List<string>();
+    public List<string> SituationIds { get; set; } = new List<string>();
 
     /// <summary>
     /// Check if obstacle is fully cleared (intensity at or below zero)

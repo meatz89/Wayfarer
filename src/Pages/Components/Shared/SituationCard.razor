@@ -1,0 +1,129 @@
+@namespace Wayfarer.Pages.Components.Shared
+
+@* Universal SituationCard component - works for all three tactical systems *@
+
+<div class="situation-card-instance @GetPlayabilityClass()" @onclick="HandleClick">
+    <div class="situation-header">
+        <span class="situation-threshold-label">Difficulty:</span>
+        <span class="situation-threshold-value">@GetDisplayDifficulty()</span>
+        <span class="situation-progress-status">@CurrentProgress / @Card.SituationCardTemplate.threshold</span>
+    </div>
+
+    @* Difficulty breakdown removed - simplified implementation returns BaseDifficulty only *@
+
+    <div class="situation-name">@Card.SituationCardTemplate.Name</div>
+
+    @if (!string.IsNullOrEmpty(Card.SituationCardTemplate.Description))
+    {
+        <div class="situation-description">@Card.SituationCardTemplate.Description</div>
+    }
+
+    @if (Card.SituationCardTemplate?.Rewards != null)
+    {
+        <div class="situation-rewards">
+            <strong>Rewards:</strong>
+            <div class="reward-list">
+                @if (Card.SituationCardTemplate.Rewards.Coins.HasValue && Card.SituationCardTemplate.Rewards.Coins.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.Coins Coins</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.Progress.HasValue && Card.SituationCardTemplate.Rewards.Progress.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.Progress Progress</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.Breakthrough.HasValue && Card.SituationCardTemplate.Rewards.Breakthrough.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.Breakthrough Breakthrough</div>
+                }
+                @* Knowledge system eliminated - Understanding resource replaces Knowledge tokens *@
+                @if (!string.IsNullOrEmpty(Card.SituationCardTemplate.Rewards.Item))
+                {
+                    <div class="reward-item">Item: @Card.SituationCardTemplate.Rewards.Item</div>
+                }
+                @* Cube rewards (strongly typed) *@
+                @if (Card.SituationCardTemplate.Rewards.InvestigationCubes.HasValue && Card.SituationCardTemplate.Rewards.InvestigationCubes.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.InvestigationCubes Obligation Cubes</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.StoryCubes.HasValue && Card.SituationCardTemplate.Rewards.StoryCubes.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.StoryCubes Story Cubes</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.ExplorationCubes.HasValue && Card.SituationCardTemplate.Rewards.ExplorationCubes.Value > 0)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.ExplorationCubes Exploration Cubes</div>
+                }
+                @* Core Loop rewards *@
+                @if (!string.IsNullOrEmpty(Card.SituationCardTemplate.Rewards.EquipmentId))
+                {
+                    <div class="reward-item">Equipment: @Card.SituationCardTemplate.Rewards.EquipmentId</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.CreateObligationData != null)
+                {
+                    <div class="reward-item">+@Card.SituationCardTemplate.Rewards.CreateObligationData.StoryCubesGranted Story Cubes (Patron NPC)</div>
+                }
+                @if (Card.SituationCardTemplate.Rewards.RouteSegmentUnlock != null)
+                {
+                    <div class="reward-item">Unlock Hidden Path</div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!IsPlayable)
+    {
+        <div class="situation-locked-overlay">
+            <span class="lock-icon">🔒</span>
+            <span class="lock-text">Need @GetProgressNeeded() more to unlock</span>
+        </div>
+    }
+    else
+    {
+        <div class="situation-playable-indicator">
+            ✓ Ready to Complete
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public CardInstance Card { get; set; }
+    [Parameter] public int CurrentProgress { get; set; }
+    [Parameter] public int CalculatedDifficulty { get; set; } // NEW: Calculated difficulty from DifficultyCalculationService
+    [Parameter] public bool ShowModifiers { get; set; } = true; // NEW: Show difficulty breakdown
+    [Parameter] public EventCallback<CardInstance> OnCardClick { get; set; }
+
+    private bool IsPlayable => CurrentProgress >= (Card?.SituationCardTemplate?.threshold ?? int.MaxValue);
+
+    private string GetPlayabilityClass()
+    {
+        return IsPlayable ? "playable" : "locked";
+    }
+
+    private int GetProgressNeeded()
+    {
+        int threshold = Card?.SituationCardTemplate?.threshold ?? 0;
+        return Math.Max(0, threshold - CurrentProgress);
+    }
+
+    /// <summary>
+    /// Get display difficulty (calculated if provided, fallback to threshold)
+    /// </summary>
+    private string GetDisplayDifficulty()
+    {
+        if (CalculatedDifficulty > 0)
+        {
+            // Show calculated difficulty from DifficultyCalculationService
+            return CalculatedDifficulty.ToString();
+        }
+        // Fallback to threshold (old system)
+        return Card?.SituationCardTemplate?.threshold.ToString() ?? "?";
+    }
+
+    private async Task HandleClick()
+    {
+        if (IsPlayable && OnCardClick.HasDelegate)
+        {
+            await OnCardClick.InvokeAsync(Card);
+        }
+    }
+}

@@ -6,7 +6,7 @@ public enum LocationViewState
 {
     Landing,
     LookingAround,
-    GoalDetail,
+    SituationDetail,
     Spots,
     Equipment
 }

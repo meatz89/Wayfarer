@@ -5,7 +5,7 @@ using System.Linq;
 
 /// <summary>
 /// Parser for Obligation definitions - converts DTOs to domain models
-/// Creates Obligation entities with phase definitions for goal spawning
+/// Creates Obligation entities with phase definitions for situation spawning
 /// Validates challenge type IDs against GameWorld at parse time
 /// </summary>
 public class ObligationParser
@@ -53,7 +53,7 @@ public class ObligationParser
             Name = dto.Name,
             Description = dto.Description,
             OutcomeNarrative = dto.OutcomeNarrative,
-            // GoalRequirements system eliminated - phases progress through actual goal completion tracking
+            // SituationRequirements system eliminated - phases progress through actual situation completion tracking
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
     }

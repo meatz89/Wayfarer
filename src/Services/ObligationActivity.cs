@@ -7,7 +7,7 @@ using Wayfarer.GameState.Enums;
 /// <summary>
 /// Obligation service - provides operations for obligation lifecycle
 /// STATE-LESS: All state lives in GameWorld.ObligationJournal
-/// Does NOT spawn tactical sessions - creates LocationGoals that existing goal system evaluates
+/// Does NOT spawn tactical sessions - creates LocationSituations that existing situation system evaluates
 /// </summary>
 public class ObligationActivity
 {
@@ -119,7 +119,7 @@ public class ObligationActivity
     }
 
     /// <summary>
-    /// Activate obligation - looks up goals and spawns them at locations/NPCs
+    /// Activate obligation - looks up situations and spawns them at locations/NPCs
     /// Moves obligation from Pending → Active in GameWorld.ObligationJournal
     /// </summary>
     public void ActivateObligation(string obligationId)
@@ -142,8 +142,8 @@ public class ObligationActivity
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
-        // NOTE: Obligations no longer spawn goals directly
-        // Goals are contained within obstacles as children (containment pattern)
+        // NOTE: Obligations no longer spawn situations directly
+        // Situations are contained within obstacles as children (containment pattern)
         // Obstacles are spawned by obligation phase completion rewards
 
         _messageSystem.AddSystemMessage(
@@ -152,10 +152,10 @@ public class ObligationActivity
     }
 
     /// <summary>
-    /// Mark goal complete - checks for obligation progress
+    /// Mark situation complete - checks for obligation progress
     /// Returns ObligationProgressResult for UI modal display
     /// </summary>
-    public ObligationProgressResult CompleteGoal(string goalId, string obligationId)
+    public ObligationProgressResult CompleteSituation(string situationId, string obligationId)
     {
         // Find active obligation
         ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
@@ -175,11 +175,11 @@ public class ObligationActivity
 
         // Find completed phase definition
         ObligationPhaseDefinition completedPhase = obligation.PhaseDefinitions
-            .FirstOrDefault(p => p.Id == goalId);
+            .FirstOrDefault(p => p.Id == situationId);
 
         if (completedPhase == null)
         {
-            throw new ArgumentException($"Phase '{goalId}' not found in obligation '{obligationId}'");
+            throw new ArgumentException($"Phase '{situationId}' not found in obligation '{obligationId}'");
         }
 
         // Grant Understanding from phase completion rewards (0-10 max)
@@ -203,9 +203,9 @@ public class ObligationActivity
             }
         }
 
-        // NOTE: Goals are no longer spawned by obligations
-        // Goals are contained within obstacles as children (containment pattern)
-        // New leads come from obstacle-spawned goals, not phase-spawned goals
+        // NOTE: Situations are no longer spawned by obligations
+        // Situations are contained within obstacles as children (containment pattern)
+        // New leads come from obstacle-spawned situations, not phase-spawned situations
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
 
         // NOTE: Obstacles no longer have ObligationId property - obligations tracked via Understanding resource
@@ -218,11 +218,11 @@ public class ObligationActivity
         {
             ObligationId = obligationId,
             ObligationName = obligation.Name,
-            CompletedGoalName = completedPhase.Name,
+            CompletedSituationName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
             NewLeads = newLeads,
-            CompletedGoalCount = resolvedObstacleCount,
-            TotalGoalCount = totalObstacleCount
+            CompletedSituationCount = resolvedObstacleCount,
+            TotalSituationCount = totalObstacleCount
         };
 
         _pendingProgressResult = result;
@@ -231,7 +231,7 @@ public class ObligationActivity
     }
 
     /// <summary>
-    /// Check if obligation is complete - all goals done
+    /// Check if obligation is complete - all situations done
     /// Returns ObligationCompleteResult if complete, null otherwise
     /// </summary>
     public ObligationCompleteResult CheckObligationCompletion(string obligationId)

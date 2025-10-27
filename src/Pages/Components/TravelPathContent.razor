@@ -133,20 +133,20 @@
                             <div class="obstacle-description">@obstacle.Description</div>
                             <div class="obstacle-intensity">Intensity: @obstacle.Intensity</div>
 
-                            <!-- Available Goals -->
-                            <div class="goals-list">
-                                <div class="goals-title">Available Approaches</div>
-                                @foreach (var goalId in obstacle.GoalIds)
+                            <!-- Available Situations -->
+                            <div class="situations-list">
+                                <div class="situations-title">Available Approaches</div>
+                                @foreach (var situationId in obstacle.SituationIds)
                                 {
-                                    var goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-                                    if (goal != null)
+                                    var situation = GameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+                                    if (situation != null)
                                     {
-                                        <div class="goal-card">
-                                            <div class="goal-header">
-                                                <div class="goal-name">@goal.Name</div>
-                                                <div class="goal-system">@goal.SystemType</div>
+                                        <div class="situation-card">
+                                            <div class="situation-header">
+                                                <div class="situation-name">@situation.Name</div>
+                                                <div class="situation-system">@situation.SystemType</div>
                                             </div>
-                                            <div class="goal-description">@goal.Description</div>
+                                            <div class="situation-description">@situation.Description</div>
                                         </div>
                                     }
                                 }
@@ -579,41 +579,41 @@
 
                                         @if (!string.IsNullOrEmpty(card.ObstacleId))
                                         {
-                                            var goalPreviews = GetGoalPreviewsForPath(card.ObstacleId);
-                                            if (goalPreviews != null && goalPreviews.Any())
+                                            var situationPreviews = GetSituationPreviewsForPath(card.ObstacleId);
+                                            if (situationPreviews != null && situationPreviews.Any())
                                             {
                                                 <div class="path-challenges-preview">
                                                     <div class="challenges-header">Challenges ahead:</div>
 
-                                                    @foreach (var goalPreview in goalPreviews)
+                                                    @foreach (var situationPreview in situationPreviews)
                                                     {
-                                                        <div class="goal-preview-card">
-                                                            <div class="goal-preview-header">
-                                                                <span class="goal-preview-name">@goalPreview.Name</span>
-                                                                <span class="goal-preview-system">@goalPreview.SystemType</span>
+                                                        <div class="situation-preview-card">
+                                                            <div class="situation-preview-header">
+                                                                <span class="situation-preview-name">@situationPreview.Name</span>
+                                                                <span class="situation-preview-system">@situationPreview.SystemType</span>
                                                             </div>
 
-                                                            @if (!string.IsNullOrEmpty(goalPreview.Description))
+                                                            @if (!string.IsNullOrEmpty(situationPreview.Description))
                                                             {
-                                                                <div class="goal-preview-description">@goalPreview.Description</div>
+                                                                <div class="situation-preview-description">@situationPreview.Description</div>
                                                             }
 
-                                                            @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
+                                                            @if (situationPreview.Contexts != null && situationPreview.Contexts.Any())
                                                             {
-                                                                <div class="goal-preview-contexts">
-                                                                    @foreach (var context in goalPreview.Contexts)
+                                                                <div class="situation-preview-contexts">
+                                                                    @foreach (var context in situationPreview.Contexts)
                                                                     {
                                                                         <ContextTag ContextName="@context.ToString()" IsMatch="false" />
                                                                     }
                                                                 </div>
                                                             }
 
-                                                            @if (goalPreview.MatchingEquipment.Any())
+                                                            @if (situationPreview.MatchingEquipment.Any())
                                                             {
-                                                                <div class="goal-equipment-help">
+                                                                <div class="situation-equipment-help">
                                                                     <span class="help-icon">⚙</span>
-                                                                    <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
-                                                                    <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
+                                                                    <span class="help-text">Equipment can help: @string.Join(", ", situationPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
+                                                                    <span class="help-reduction">(-@situationPreview.TotalReduction intensity)</span>
                                                                 </div>
                                                             }
                                                         </div>
@@ -743,18 +743,18 @@
                 }
             </div>
 
-            @* Encounter Deck Preview - Show possible encounters from obstacle goals *@
+            @* Encounter Deck Preview - Show possible encounters from obstacle situations *@
             @{
-                var encounterGoals = GetEncounterGoalsForCurrentSegment();
+                var encounterSituations = GetEncounterSituationsForCurrentSegment();
             }
-            @if (encounterGoals.Any())
+            @if (encounterSituations.Any())
             {
                 <div class="encounter-preview">
                     <div class="encounter-title">Possible Encounters:</div>
                     <div class="encounter-list">
-                        @foreach (var goalName in encounterGoals)
+                        @foreach (var situationName in encounterSituations)
                         {
-                            <span class="encounter-item">@goalName</span>
+                            <span class="encounter-item">@situationName</span>
                         }
                     </div>
                 </div>

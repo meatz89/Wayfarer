@@ -2,52 +2,52 @@ using System.Collections.Generic;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Goal - approach to overcome obstacle (lives inside obstacle as child)
+/// Situation - approach to overcome obstacle (lives inside obstacle as child)
 /// Universal across all three challenge types (Social/Mental/Physical)
 /// PlacementLocationId/PlacementNpcId determines WHERE button appears (not ownership)
 /// </summary>
-public class Goal
+public class Situation
 {
     /// <summary>
-    /// Unique identifier for the goal
+    /// Unique identifier for the situation
     /// </summary>
     public string Id { get; set; }
 
     /// <summary>
-    /// Display name for the goal
+    /// Display name for the situation
     /// </summary>
     public string Name { get; set; }
 
     /// <summary>
-    /// Narrative description of the goal
+    /// Narrative description of the situation
     /// </summary>
     public string Description { get; set; }
 
     /// <summary>
-    /// THREE PARALLEL SYSTEMS - which tactical system this goal uses
+    /// THREE PARALLEL SYSTEMS - which tactical system this situation uses
     /// </summary>
     public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
 
     /// <summary>
-    /// The deck ID this goal uses for challenge generation
+    /// The deck ID this situation uses for challenge generation
     /// </summary>
     public string DeckId { get; set; }
 
     /// <summary>
-    /// Location ID where this goal's button appears in UI (semantic: placement, not ownership)
-    /// Used for Mental/Physical goals and distributed obstacle goals
+    /// Location ID where this situation's button appears in UI (semantic: placement, not ownership)
+    /// Used for Mental/Physical situations and distributed obstacle situations
     /// </summary>
     public string PlacementLocationId { get; set; }
 
     /// <summary>
-    /// NPC ID where this goal's button appears in UI (semantic: placement, not ownership)
-    /// Used for Social goals and distributed obstacle goals
+    /// NPC ID where this situation's button appears in UI (semantic: placement, not ownership)
+    /// Used for Social situations and distributed obstacle situations
     /// </summary>
     public string PlacementNpcId { get; set; }
 
     /// <summary>
-    /// Route ID where this goal's button appears in UI (semantic: placement, not ownership)
-    /// Used for route-based goals (scouting, pathfinding) that grant ExplorationCubes
+    /// Route ID where this situation's button appears in UI (semantic: placement, not ownership)
+    /// Used for route-based situations (scouting, pathfinding) that grant ExplorationCubes
     /// </summary>
     public string PlacementRouteId { get; set; }
 
@@ -73,12 +73,12 @@ public class Goal
 
     /// <summary>
     /// Object reference to parent obstacle (for runtime navigation)
-    /// Populated at initialization time from obstacle's GoalIds
+    /// Populated at initialization time from obstacle's SituationIds
     /// </summary>
     public Obstacle ParentObstacle { get; set; }
 
     /// <summary>
-    /// Whether this goal is an obligation intro action
+    /// Whether this situation is an obligation intro action
     /// </summary>
     public bool IsIntroAction { get; set; } = false;
 
@@ -88,72 +88,72 @@ public class Goal
     public string Category { get; set; }
 
     /// <summary>
-    /// Connection type (token type) for this goal (for Social system)
+    /// Connection type (token type) for this situation (for Social system)
     /// </summary>
     public ConnectionType ConnectionType { get; set; } = ConnectionType.Trust;
 
     /// <summary>
-    /// Current status of the goal
+    /// Current status of the situation
     /// </summary>
-    public GoalStatus Status { get; set; } = GoalStatus.Available;
+    public SituationStatus Status { get; set; } = SituationStatus.Available;
 
     /// <summary>
-    /// Whether this goal is currently available
+    /// Whether this situation is currently available
     /// </summary>
     public bool IsAvailable { get; set; } = true;
 
     /// <summary>
-    /// Whether this goal has been completed
+    /// Whether this situation has been completed
     /// </summary>
     public bool IsCompleted { get; set; } = false;
 
     /// <summary>
-    /// Whether this goal should be deleted from ActiveGoals on successful completion.
-    /// Obligation progression goals: true (one-time, remove after complete)
-    /// Repeatable goals: false (persist for retry)
+    /// Whether this situation should be deleted from ActiveSituations on successful completion.
+    /// Obligation progression situations: true (one-time, remove after complete)
+    /// Repeatable situations: false (persist for retry)
     /// Default: true (obligation progression pattern)
     /// </summary>
     public bool DeleteOnSuccess { get; set; } = true;
 
     /// <summary>
-    /// Resources player must pay to attempt this goal
+    /// Resources player must pay to attempt this situation
     /// Transparent costs create resource competition and strategic choices
-    /// Board game pattern: Goal A costs 20 Focus, Goal B costs 30 Focus - choose wisely
+    /// Board game pattern: Situation A costs 20 Focus, Situation B costs 30 Focus - choose wisely
     /// </summary>
-    public GoalCosts Costs { get; set; } = new GoalCosts();
+    public SituationCosts Costs { get; set; } = new SituationCosts();
 
     /// <summary>
     /// Difficulty modifiers that reduce/increase difficulty based on player state
-    /// Goal ALWAYS visible, difficulty varies transparently
+    /// Situation ALWAYS visible, difficulty varies transparently
     /// Multiple paths to reduce difficulty create strategic choices
     /// Example: Understanding 2 reduces Exposure by 3, Familiarity 2 reduces Exposure by 2
-    /// No boolean gates: All goals always visible, modifiers just change difficulty
+    /// No boolean gates: All situations always visible, modifiers just change difficulty
     /// </summary>
     public List<DifficultyModifier> DifficultyModifiers { get; set; } = new List<DifficultyModifier>();
 
     /// <summary>
-    /// Goal cards (tactical layer) - inline victory conditions
-    /// Each goal card defines a momentum threshold and rewards
+    /// Situation cards (tactical layer) - inline victory conditions
+    /// Each situation card defines a momentum threshold and rewards
     /// </summary>
-    public List<GoalCard> GoalCards { get; set; } = new List<GoalCard>();
+    public List<SituationCard> SituationCards { get; set; } = new List<SituationCard>();
 
     /// <summary>
-    /// What consequence occurs when goal succeeds
+    /// What consequence occurs when situation succeeds
     /// Resolution: Obstacle permanently overcome, removed from play
     /// Bypass: Player passes, obstacle persists
     /// Transform: Obstacle fundamentally changed, properties set to 0
-    /// Modify: Obstacle properties reduced, other goals may unlock
+    /// Modify: Obstacle properties reduced, other situations may unlock
     /// Grant: Player receives knowledge/items, obstacle unchanged
     /// </summary>
     public ConsequenceType ConsequenceType { get; set; } = ConsequenceType.Grant;
 
     /// <summary>
-    /// Resolution method this goal sets when completed (for AI narrative context)
+    /// Resolution method this situation sets when completed (for AI narrative context)
     /// </summary>
     public ResolutionMethod SetsResolutionMethod { get; set; } = ResolutionMethod.Unresolved;
 
     /// <summary>
-    /// Relationship outcome this goal sets when completed (affects future interactions)
+    /// Relationship outcome this situation sets when completed (affects future interactions)
     /// </summary>
     public RelationshipOutcome SetsRelationshipOutcome { get; set; } = RelationshipOutcome.Neutral;
 
@@ -164,25 +164,25 @@ public class Goal
 
     /// <summary>
     /// Property reduction to apply to parent obstacle (for Modify consequence)
-    /// Reduces obstacle intensity, making other goals easier (NOT unlocking them)
+    /// Reduces obstacle intensity, making other situations easier (NOT unlocking them)
     /// null for Resolution, Bypass, Transform, and Grant consequence types
     /// </summary>
     public ObstaclePropertyReduction PropertyReduction { get; set; }
 
     /// <summary>
-    /// Check if this goal is available to attempt
+    /// Check if this situation is available to attempt
     /// </summary>
     public bool IsAvailableToAttempt()
     {
-        return Status == GoalStatus.Available && IsAvailable;
+        return Status == SituationStatus.Available && IsAvailable;
     }
 
     /// <summary>
-    /// Mark this goal as completed
+    /// Mark this situation as completed
     /// </summary>
     public void Complete()
     {
-        Status = GoalStatus.Completed;
+        Status = SituationStatus.Completed;
         IsCompleted = true;
     }
 }

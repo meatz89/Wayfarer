@@ -132,7 +132,7 @@ public class PackageLoader
 
         // 3.5 Obligation Templates (strategic multi-phase activities)
         LoadObligations(package.Content.Obligations, allowSkeletons);
-        LoadGoals(package.Content.Goals, allowSkeletons);
+        LoadSituations(package.Content.Situations, allowSkeletons);
         LoadObstacles(package.Content.Obstacles, allowSkeletons);
 
         // 3.6 Screen Expansion Systems (conversation trees, observation scenes, emergencies)
@@ -557,35 +557,35 @@ public class PackageLoader
         }
     }
 
-    private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
+    private void LoadSituations(List<SituationDTO> situationDtos, bool allowSkeletons)
     {
-        if (goalDtos == null) return;
+        if (situationDtos == null) return;
 
-        foreach (GoalDTO dto in goalDtos)
+        foreach (SituationDTO dto in situationDtos)
         {
-            // Parse goal using GoalParser
-            Goal goal = GoalParser.ConvertDTOToGoal(dto, _gameWorld);
+            // Parse situation using SituationParser
+            Situation situation = SituationParser.ConvertDTOToSituation(dto, _gameWorld);
 
-            // Add to centralized GameWorld.Goals storage
-            _gameWorld.Goals.Add(goal);// Assign goal to NPC or Location based on PlacementNpcId/PlacementLocationId
-            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
+            // Add to centralized GameWorld.Situations storage
+            _gameWorld.Situations.Add(situation);// Assign situation to NPC or Location based on PlacementNpcId/PlacementLocationId
+            if (!string.IsNullOrEmpty(situation.PlacementNpcId))
             {
-                // Social goal - assign to NPC.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
+                // Social situation - assign to NPC.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpcId);
                 if (npc != null)
                 {
-                    npc.ActiveGoalIds.Add(goal.Id);
+                    npc.ActiveSituationIds.Add(situation.Id);
                 }
                 else
                 { }
             }
-            else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
+            else if (!string.IsNullOrEmpty(situation.PlacementLocationId))
             {
-                // Mental/Physical goal - assign to Location.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
-                Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
+                // Mental/Physical situation - assign to Location.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
+                Location location = _gameWorld.GetLocation(situation.PlacementLocationId);
                 if (location != null)
                 {
-                    location.ActiveGoalIds.Add(goal.Id);
+                    location.ActiveSituationIds.Add(situation.Id);
                 }
                 else
                 { }

@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 
 /// <summary>
-/// GoalCard - tactical layer victory condition
+/// SituationCard - tactical layer victory condition
 /// Universal across all three challenge types (Social/Mental/Physical)
 /// Defines WHEN victory occurs (momentum threshold and rewards)
-/// Defined inline within goals (not separate reusable entities)
+/// Defined inline within situations (not separate reusable entities)
 /// </summary>
-public class GoalCard
+public class SituationCard
 {
     /// <summary>
-    /// Unique identifier for this goal card
+    /// Unique identifier for this situation card
     /// </summary>
     public string Id { get; set; }
 
@@ -25,7 +25,7 @@ public class GoalCard
 
     /// <summary>
     /// Universal threshold required to achieve this victory condition
-    /// Interpretation depends on Goal.systemType:
+    /// Interpretation depends on Situation.systemType:
     /// - Social: Momentum threshold
     /// - Mental: Progress threshold
     /// - Physical: Breakthrough threshold
@@ -35,10 +35,10 @@ public class GoalCard
     /// <summary>
     /// Rewards granted when this victory condition is achieved
     /// </summary>
-    public GoalCardRewards Rewards { get; set; }
+    public SituationCardRewards Rewards { get; set; }
 
     /// <summary>
-    /// Whether this goal card has been achieved
+    /// Whether this situation card has been achieved
     /// </summary>
     public bool IsAchieved { get; set; } = false;
 }
@@ -46,7 +46,7 @@ public class GoalCard
 /// <summary>
 /// Runtime data for CreateObligation reward (Resource-Based Pattern)
 /// PRINCIPLE 4: No boolean gates - grants StoryCubes to PatronNPC
-/// Generic delivery goals become visible when NPC.StoryCubes >= threshold
+/// Generic delivery situations become visible when NPC.StoryCubes >= threshold
 /// </summary>
 public class CreateObligationReward
 {
@@ -57,13 +57,13 @@ public class CreateObligationReward
 
     /// <summary>
     /// Number of StoryCubes granted to patron (typically 2-5)
-    /// Enables visibility of generic delivery goals when threshold met
+    /// Enables visibility of generic delivery situations when threshold met
     /// </summary>
     public int StoryCubesGranted { get; set; }
 
     /// <summary>
-    /// Coins rewarded when delivery goal completes
-    /// Stored on NPC for generic goal reward calculation
+    /// Coins rewarded when delivery situation completes
+    /// Stored on NPC for generic situation reward calculation
     /// </summary>
     public int RewardCoins { get; set; }
 }
@@ -79,10 +79,10 @@ public class RouteSegmentUnlock
 }
 
 /// <summary>
-/// Rewards for achieving a goal card
+/// Rewards for achieving a situation card
 /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 /// </summary>
-public class GoalCardRewards
+public class SituationCardRewards
 {
     public int? Coins { get; set; }
     public int? Progress { get; set; }
@@ -90,7 +90,7 @@ public class GoalCardRewards
     public string ObligationId { get; set; }
     public string Item { get; set; }
 
-    // Cube rewards (strong typing, auto-applied to goal's context)
+    // Cube rewards (strong typing, auto-applied to situation's context)
     public int? InvestigationCubes { get; set; }
     public int? StoryCubes { get; set; }
     public int? ExplorationCubes { get; set; }

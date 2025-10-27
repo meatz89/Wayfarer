@@ -647,7 +647,7 @@ public class TravelFacade
     }
 
     /// <summary>
-    /// Resolve pending obstacle after player completes obstacle goals
+    /// Resolve pending obstacle after player completes obstacle situations
     /// Called after obstacle intensity reaches 0
     /// </summary>
     public bool ResolveObstacle(string obstacleId)

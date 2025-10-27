@@ -224,19 +224,19 @@
     transition: width 0.3s;
 }
 
-/* Goal List */
-.goal-list {
+/* Situation List */
+.situation-list {
     margin-bottom: 15px;
 }
 
-.goal-item {
+.situation-item {
     padding: 8px 0;
     display: flex;
     align-items: flex-start;
     gap: 10px;
 }
 
-.goal-status {
+.situation-status {
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -250,25 +250,25 @@
     background: #1a1410;
 }
 
-.goal-status.completed {
+.situation-status.completed {
     background: #7a8b5a;
     border-color: #7a8b5a;
     color: white;
 }
 
-.goal-status.active {
+.situation-status.active {
     background: #d4a76a;
     border-color: #d4a76a;
     color: white;
 }
 
-.goal-text {
+.situation-text {
     flex: 1;
     font-size: 14px;
     color: #d4c4a1;
 }
 
-.goal-text.completed {
+.situation-text.completed {
     color: #8b7355;
     text-decoration: line-through;
 }

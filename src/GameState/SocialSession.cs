@@ -12,7 +12,7 @@ public class SocialSession
     public int MaxInitiative { get; set; } = 10;
     public int TurnNumber { get; set; }
     public bool LetterGenerated { get; set; }
-    public bool GoalCardDrawn { get; set; }
+    public bool SituationCardDrawn { get; set; }
     // HIGHLANDER PRINCIPLE: ONE deck manages ALL card state
     // DO NOT create separate piles - they violate HIGHLANDER
     public SocialSessionCardDeck Deck { get; set; }

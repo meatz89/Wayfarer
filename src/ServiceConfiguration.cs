@@ -80,9 +80,9 @@ public static class ServiceConfiguration
         services.AddSingleton<ObligationActivity>();
         services.AddSingleton<ObligationDiscoveryEvaluator>();
 
-        // Obstacle and Goal Services - Goal visibility filtering with property + access requirements
-        services.AddSingleton<ObstacleGoalFilter>();
-        services.AddSingleton<GoalCompletionHandler>();
+        // Obstacle and Situation Services - Situation visibility filtering with property + access requirements
+        services.AddSingleton<ObstacleSituationFilter>();
+        services.AddSingleton<SituationCompletionHandler>();
         services.AddSingleton<DifficultyCalculationService>();
         services.AddSingleton<ObstacleFacade>();
 

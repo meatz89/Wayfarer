@@ -53,10 +53,10 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
 
     /// <summary>
-    /// Goals - strategic layer entities that define UI actions (replaces inline NPC requests)
+    /// Situations - strategic layer entities that define UI actions (replaces inline NPC requests)
     /// Universal across all three tactical systems (Social/Mental/Physical)
     /// </summary>
-    public List<GoalDTO> Goals { get; set; }
+    public List<SituationDTO> Situations { get; set; }
 
     /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments

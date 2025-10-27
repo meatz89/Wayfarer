@@ -8,7 +8,7 @@ using Wayfarer.GameState.Enums;
 public static class ObstacleParser
 {
     /// <summary>
-    /// Convert ObstacleDTO to Obstacle entity with inline goals
+    /// Convert ObstacleDTO to Obstacle entity with inline situations
     /// </summary>
     public static Obstacle ConvertDTOToObstacle(ObstacleDTO dto, string parentEntityId, GameWorld gameWorld)
     {
@@ -51,21 +51,21 @@ public static class ObstacleParser
             Intensity = dto.Intensity,
             Contexts = contexts,
             IsPermanent = dto.IsPermanent,
-            GoalIds = new List<string>()
+            SituationIds = new List<string>()
         };
 
-        // Parse inline goals (for obligation-spawned obstacles)
-        if (dto.Goals != null && dto.Goals.Count > 0)
+        // Parse inline situations (for obligation-spawned obstacles)
+        if (dto.Situations != null && dto.Situations.Count > 0)
         {
-            foreach (GoalDTO goalDto in dto.Goals)
+            foreach (SituationDTO situationDto in dto.Situations)
             {
-                Goal goal = GoalParser.ConvertDTOToGoal(goalDto, gameWorld);
+                Situation situation = SituationParser.ConvertDTOToSituation(situationDto, gameWorld);
 
-                // Register goal in GameWorld.Goals (single source of truth)
-                gameWorld.Goals.Add(goal);
+                // Register situation in GameWorld.Situations (single source of truth)
+                gameWorld.Situations.Add(situation);
 
-                // Store goal ID reference in obstacle
-                obstacle.GoalIds.Add(goal.Id);
+                // Store situation ID reference in obstacle
+                obstacle.SituationIds.Add(situation.Id);
             }
         }
 

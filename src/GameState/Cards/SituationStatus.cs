@@ -2,7 +2,7 @@
 /// <summary>
 /// Status of an NPC request
 /// </summary>
-public enum GoalStatus
+public enum SituationStatus
 {
     /// <summary>
     /// Request is available to attempt

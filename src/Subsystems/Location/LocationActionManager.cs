@@ -357,13 +357,13 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Evaluate goal prerequisites
-    /// GoalRequirements system eliminated - goals always visible, difficulty varies via DifficultyModifiers
-    /// Boolean gate elimination: No more hiding goals based on equipment/knowledge/stats
+    /// Evaluate situation prerequisites
+    /// SituationRequirements system eliminated - situations always visible, difficulty varies via DifficultyModifiers
+    /// Boolean gate elimination: No more hiding situations based on equipment/knowledge/stats
     /// </summary>
-    private bool EvaluateGoalPrerequisites(Goal goal, Player player, string currentVenueId)
+    private bool EvaluateSituationPrerequisites(Situation situation, Player player, string currentVenueId)
     {
-        // Goals always visible - difficulty adjusts based on DifficultyModifiers instead
+        // Situations always visible - difficulty adjusts based on DifficultyModifiers instead
         return true;
     }
 }
