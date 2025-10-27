@@ -884,7 +884,7 @@ Verify that the Goal→Situation rename from the prior refactor is complete. Con
   - [ ] NPCs section:
     - [ ] Add bondStrength, statuses, availableSituationIds
   - [ ] New Situations section:
-    - [ ] Save all Situation instances (status, requirements, narrative cache, timestamps, parent references)
+    - [ ] Save all Situation instances (status, requirements, narrative cache, segment-based time, parent references)
   - [ ] Remove Goals section
 
 - [ ] Modify save method:
@@ -1308,283 +1308,16 @@ Verify that the Goal→Situation rename from the prior refactor is complete. Con
 
 ---
 
-## Phase 11: Validation & Cleanup
-
-### 11.1: Remove All Goal References
-
-**Before Starting:**
-- [ ] Perform global search: "Goal" (case-sensitive)
-- [ ] Perform global search: "goal" (case-insensitive)
-- [ ] Review every result manually
-
-**Implementation:**
-
-- [ ] Search entire codebase for "Goal":
-  - [ ] Rename class references: `Goal` → `Situation`
-  - [ ] Rename variable names: `goal` → `situation`
-  - [ ] Rename collection names: `Goals` → `Situations`
-  - [ ] Rename property names: `GoalId` → `SituationId`
-  - [ ] Exception: Keep `GoalCard` (different entity, tactical layer)
-  - [ ] Verify each replacement manually (don't blindly replace)
-
-- [ ] Delete files:
-  - [ ] Delete `Goal.cs` (if separate Situation created)
-  - [ ] Delete `GoalDTO.cs`
-  - [ ] Delete `GoalParser.cs`
-  - [ ] Delete `goals.json`
-  - [ ] Delete any `GoalFacade.cs`
-  - [ ] Delete any UI components: `GoalCard.razor`, `GoalList.razor`
-
-- [ ] Clean up comments:
-  - [ ] Search for comments referencing "Goal"
-  - [ ] Update or delete obsolete comments
-  - [ ] Remove all TODO comments about Goals
-
-### 11.2: Verify Strong Typing
-
-**Before Starting:**
-- [ ] Search for `Dictionary<string, object>`
-- [ ] Search for `Dictionary<string, >`
-- [ ] Search for `HashSet<`
-- [ ] Search for `var `
-
-**Implementation:**
-
-- [ ] Search for forbidden patterns:
-  - [ ] `Dictionary<string, object>` → Replace with strongly-typed classes
-  - [ ] `Dictionary<string, X>` → Replace with `List<X>` or typed class
-  - [ ] `HashSet<T>` → Replace with `List<T>`
-  - [ ] `var` → Replace with explicit type names
-  - [ ] Any `SharedData`, `Context`, `Metadata` dictionaries → DELETE
-
-- [ ] Verify all relationships are typed:
-  - [ ] Situation.Requirements is CompoundRequirement (not Dictionary)
-  - [ ] Situation.SpawnRules is List<SpawnRule> (not Dictionary)
-  - [ ] Player.Scales is List<Scale> (not Dictionary<string, int>)
-  - [ ] All entity references are strongly typed
-
-### 11.3: Delete Legacy Code Blocks
-
-**Before Starting:**
-- [ ] Search for `// TODO`
-- [ ] Search for `// LEGACY`
-- [ ] Search for `// OLD`
-- [ ] Search for commented-out code blocks
-
-**Implementation:**
-
-- [ ] Delete all TODO comments:
-  - [ ] No TODOs allowed in production code
-  - [ ] Either implement or delete
-
-- [ ] Delete all commented-out code:
-  - [ ] No legacy code blocks
-  - [ ] If needed, exists in version control history
-
-- [ ] Delete all compatibility layers:
-  - [ ] No "old and new" coexistence
-  - [ ] No dual code paths for migration
-
-### 11.4: Verify Architecture Compliance
-
-**Before Starting:**
-- [ ] Re-read game-design-principles.md
-- [ ] Review architecture constraints
-
-**Implementation:**
-
-- [ ] Verify Principle 1 (Single Source of Truth):
-  - [ ] GameWorld owns all Situations (check)
-  - [ ] Locations/NPCs reference Situations (placement, not ownership) (check)
-  - [ ] No duplicate ownership (check)
-
-- [ ] Verify Principle 2 (Strong Typing):
-  - [ ] No dictionaries of generic types (check)
-  - [ ] All collections are List<T> with typed T (check)
-  - [ ] No var, no object, no HashSet (check)
-
-- [ ] Verify Principle 3 (Ownership vs Placement):
-  - [ ] Situations placed at Locations (metadata) (check)
-  - [ ] GameWorld owns Situations (lifecycle) (check)
-  - [ ] Distinction clear (check)
-
-- [ ] Verify Principle 4 (No Boolean Gates):
-  - [ ] All requirements are accumulative numerical (check)
-  - [ ] Achievements part of compound OR (not sole gates) (check)
-  - [ ] States temporary (not permanent flags) (check)
-  - [ ] Resource costs for content access (check)
-
-- [ ] Verify Principle 5 (Typed Rewards):
-  - [ ] Situation consequences are typed objects (check)
-  - [ ] Applied at completion (not continuous evaluation) (check)
-  - [ ] Explicit connections (check)
-
-- [ ] Verify Principle 6 (Resource Scarcity):
-  - [ ] Resolve creates universal scarcity (check)
-  - [ ] Focus/Stamina remain system-specific (check)
-  - [ ] Impossible choices created (check)
-
-- [ ] Verify Principle 7 (One Purpose Per Entity):
-  - [ ] Situations: strategic choices (check)
-  - [ ] GoalCards: tactical victory conditions (check)
-  - [ ] Scenes: UI wrappers (check)
-  - [ ] No multi-purpose entities (check)
-
-- [ ] Verify Principle 10 (Perfect Information):
-  - [ ] All requirements visible (check)
-  - [ ] Locked Situations show why locked (check)
-  - [ ] Costs displayed before selection (check)
-  - [ ] Strategic vs tactical layer separated (check)
-
----
-
-## Phase 12: Final Passes
-
-### 12.1: Comprehensive Reference Verification
-
-**Before Starting:**
-- [ ] Prepare for full codebase scan
-- [ ] Allocate time for thorough verification
-
-**Implementation:**
-
-- [ ] Verify all template ID references:
-  - [ ] Grep for all Situation template IDs in JSON
-  - [ ] Verify each is defined in situations.json
-  - [ ] No broken references
-
-- [ ] Verify all placement ID references:
-  - [ ] Grep for all Location IDs referenced by Situations
-  - [ ] Verify each Location exists in locations.json
-  - [ ] Grep for all NPC IDs referenced by Situations
-  - [ ] Verify each NPC exists in npcs.json
-
-- [ ] Verify all parent-child references:
-  - [ ] Trace spawn chains for circular references
-  - [ ] Verify maximum depth doesn't exceed limit
-  - [ ] No orphaned Situations (no valid parent)
-
-- [ ] Verify all enum values:
-  - [ ] All InteractionType values defined in enum
-  - [ ] All PlacementType values defined in enum
-  - [ ] All ScaleType values defined in enum
-  - [ ] All StateType values defined in enum
-  - [ ] All AchievementCategory values defined in enum
-  - [ ] All NpcStatus values defined in enum
-  - [ ] No undefined enum values in JSON
-
-### 12.2: Delete Empty Classes
-
-**Before Starting:**
-- [ ] Search for classes with no logic
-- [ ] Identify classes that became empty after refactoring
-
-**Implementation:**
-
-- [ ] Delete empty classes:
-  - [ ] If Goal class became empty wrapper after rename, delete it
-  - [ ] If any service/facade became empty after refactoring, delete it
-  - [ ] If any DTO became empty, delete it
-  - [ ] Remove all empty files from project
-
-- [ ] Update project references:
-  - [ ] Remove deleted files from .csproj
-  - [ ] Remove deleted files from any import lists
-
-### 12.3: Clean Imports
-
-**Before Starting:**
-- [ ] Understand current namespace structure
-- [ ] Identify unused imports
-
-**Implementation:**
-
-- [ ] Remove unused using statements:
-  - [ ] Every file that imported Goal namespace
-  - [ ] Every file that imported obsolete DTOs
-  - [ ] Every file that imported deleted services
-  - [ ] Run IDE cleanup (remove unused usings)
-
-- [ ] Update namespace references:
-  - [ ] Situation namespace imports where needed
-  - [ ] New facade namespace imports where needed
-
-### 12.4: Documentation Update
-
-**Before Starting:**
-- [ ] Search for README files
-- [ ] Search for inline documentation
-- [ ] Identify all documentation that references Goals
-
-**Implementation:**
-
-- [ ] Update documentation files:
-  - [ ] Search README.md for "Goal" references
-  - [ ] Update to "Situation"
-  - [ ] Update architecture diagrams
-  - [ ] Update data flow descriptions
-
-- [ ] Update inline documentation:
-  - [ ] Search for /// XML comments referencing Goals
-  - [ ] Update to reference Situations
-  - [ ] Add documentation for new facades
-  - [ ] Add documentation for new entities
-
----
-
-## Completion Checklist
-
-### Architecture Verification
-
-- [ ] GameWorld owns all Situations (single source of truth)
-- [ ] No dictionaries of generic types anywhere in codebase
-- [ ] All collections are List<T> with strongly-typed T
-- [ ] No boolean gates (all requirements are accumulative numerical)
-- [ ] Compound OR requirements implemented (multiple unlock paths)
-- [ ] Situations spawn from parents (cascade mechanics working)
-- [ ] Scenes generate per visit (ephemeral UI constructs)
-- [ ] Perfect information display (locked Situations show requirements)
-
-### Code Quality Verification
-
-- [ ] No Goal references remain (except GoalCard which is separate)
-- [ ] No legacy code blocks or TODO comments
-- [ ] No compatibility layers
-- [ ] No empty classes or orphaned files
-- [ ] All imports cleaned (no unused usings)
-- [ ] Strong typing enforced everywhere
-- [ ] Entity relationships clear (ownership vs placement vs reference)
-
-### Functionality Verification
-
-- [ ] Player has Resolve, Scales, States, Achievements properties
-- [ ] Locations have AvailableSituationIds lists
-- [ ] NPCs have BondStrength and AvailableSituationIds
-- [ ] Situations parse from JSON correctly
-- [ ] Situations spawn with calculated requirements
-- [ ] Dormant → Available evaluation works
-- [ ] Spawn cascade chains execute
-- [ ] Consequence application updates player state
-- [ ] AI narrative generation integrated (or stubbed for future)
-- [ ] Save/load includes new properties
-- [ ] UI displays Scenes with categorized Situations
-- [ ] Consequence Modal shows spawns and changes
-
-### Content Verification
-
-- [ ] 50+ Situation templates created
-- [ ] All interaction types represented
-- [ ] All tiers (1-4) represented
-- [ ] Spawn chain examples defined
-- [ ] Compound requirement examples defined
-- [ ] Initial Situations assigned to Locations/NPCs
-- [ ] Investigations updated to reference Situations
-
----
-
 ## Notes
 
 **This implementation plan achieves 100% Scene-Situation architecture as specified in SCENE_SITUATION_ARCHITECTURE.md**
+
+**Foundation from Prior Refactor:**
+- Goal→Situation rename was completed in a PRIOR refactor
+- Situation.cs exists (was Goal.cs)
+- SituationCard exists (was GoalCard)
+- 05_situations.json exists (was goals.json)
+- This plan EXTENDS Situation with Sir Brante features, not creates it from scratch
 
 **Breaking changes are acceptable and expected during implementation**
 
@@ -1592,6 +1325,19 @@ Verify that the Goal→Situation rename from the prior refactor is complete. Con
 
 **Speed of implementation is prioritized over safety**
 
-**All legacy Goal system code is completely removed with no compatibility layers**
+**Legacy Goal system code was completely removed in prior refactor with no compatibility layers**
 
-**The result is a complete architectural transformation from static Goals to dynamic Situations with Scene-based presentation, cascading spawns, compound OR requirements, and AI narrative generation**
+**Strong Typing Enforcement:**
+- PlayerScales is nested object with 6 int properties (Morality, Lawfulness, Method, Caution, Transparency, Fame)
+- ActiveState uses StateType enum and segment-based time tracking
+- NO Dictionary<string, X> patterns anywhere
+- NO HashSet<T> anywhere
+- ALL time tracking uses Day/TimeBlock/Segment (NO DateTime or timestamps)
+
+**The result is a complete architectural transformation:**
+- Extends existing Situation entity with spawn tracking, completion tracking, and template system
+- Adds Scene-based presentation layer (ephemeral UI constructs)
+- Implements cascading spawns (parent→child Situation chains)
+- Implements compound OR requirements (multiple unlock paths)
+- Integrates AI narrative generation foundation
+- Adds Sir Brante-inspired player progression (Scales, States, Achievements)
