@@ -1,5 +1,14 @@
 {
-  "achievements": [
+  "packageId": "core_achievements",
+  "metadata": {
+    "name": "Core Achievements",
+    "timestamp": "2025-01-27T00:00:00Z",
+    "description": "Player achievement definitions for tracking milestones",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "achievements": [
     {
       "id": "first_bond",
       "category": "Social",
@@ -199,4 +208,5 @@
       }
     }
   ]
+  }
 }

@@ -1,5 +1,14 @@
 {
-  "states": [
+  "packageId": "core_states",
+  "metadata": {
+    "name": "Core Player States",
+    "timestamp": "2025-01-27T00:00:00Z",
+    "description": "Player state definitions for Physical, Mental, and Social conditions",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "states": [
     {
       "type": "Wounded",
       "category": "Physical",
@@ -181,4 +190,5 @@
       "duration": 24
     }
   ]
+  }
 }
