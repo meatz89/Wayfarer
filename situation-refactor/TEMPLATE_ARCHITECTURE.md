@@ -9,7 +9,7 @@ This document defines the **THREE-LEVEL ARCHITECTURE** for Scene and Situation S
 - **TACTICAL LAYER**: SituationCard (victory conditions INSIDE challenges - separate system)
 
 **KEY ENTITIES:**
-- **Scene** = Ephemeral spawning orchestrator containing multiple Situations in configurations (sequential/parallel/branching)
+- **Scene** = Provisional → Active lifecycle container with multiple embedded Situations (perfect information display, then playable content)
 - **Situation** = Persistent narrative context at location/NPC/route containing 2-4 action references
 - **Actions** = Existing entities (LocationAction, ConversationOption, TravelCard) that are response options
 - **SituationCard** = TACTICAL LAYER ONLY (victory conditions inside challenges, NOT part of Scene/Situation architecture)
@@ -237,44 +237,158 @@ Each Situation is a narrative context containing:
 **What It Is:**
 - Concrete runtime entities created from templates
 - **TWO INSTANCE TYPES:**
-  - **Scene**: Ephemeral spawning container (discarded after spawning Situations)
+  - **Scene**: Provisional → Active lifecycle (perfect information display, then playable content)
   - **Situation**: Persistent narrative context (lives in `GameWorld.Situations`)
 
-#### Scene Instance (Ephemeral Spawner)
+#### Scene Instance (Provisional → Active Lifecycle)
 
-**Lives in:** NOT stored in GameWorld (ephemeral - created and discarded)
+**Lives in:**
+- **Provisional Phase:** `GameWorld.ProvisionalScenes` (Dictionary<string, Scene>)
+- **Active Phase:** `GameWorld.Scenes` (List<Scene>)
+
+**Purpose:** Scene instances provide perfect information BEFORE selection, then become playable content AFTER selection.
 
 **Lifecycle:**
-1. Instantiated from SceneTemplate
-2. Selects entities using categorical filters
-3. Spawns Situations from referenced SituationTemplates
-4. Places Situations at selected locations/NPCs/routes
-5. Discarded when spawn complete
 
-**Composition Architecture:**
+**1. PROVISIONAL PHASE (Created at Situation instantiation):**
+- Created when Situation instantiated (for each Choice with SceneSpawnReward)
+- `SceneInstantiator.CreateProvisionalScene(templateId, placementRelation, context)`
+- Selects concrete placement via PlacementFilter (e.g., "Adjacent NPC")
+- Creates embedded Situations from SituationTemplates
+- Placeholders NOT replaced (still `"{NPCName}"`, `"{LocationName}"`)
+- State = `SceneState.Provisional`
+- Stored in `GameWorld.ProvisionalScenes[Scene.Id]`
+- Choice.ProvisionalSceneId references this Scene
+
+**2. DISPLAY PHASE (Player sees WHERE Scene spawns):**
+- UI reads provisional Scene from GameWorld.ProvisionalScenes
+- Player sees: "Creates investigation at The Mill with Martha"
+- Perfect information: knows placement, distance, NPC relationships BEFORE selecting Choice
+- Choice card displays Scene archetype, location name, distance calculation
+
+**3. FINALIZATION OR DELETION:**
+- **If Choice selected:** `SceneFinalizer.FinalizeScene(sceneId)`
+  - Replace placeholders: `"{NPCName}"` → `"Martha"`
+  - Generate intro narrative: `"As you approach The Mill, Martha steps forward with worry in her eyes..."`
+  - Move from ProvisionalScenes to Scenes
+  - State = `SceneState.Active`
+  - Situations become playable
+- **If different Choice selected:** Delete from ProvisionalScenes (never finalized)
+
+**Composition Architecture (Provisional Phase):**
 ```csharp
 public class Scene
 {
-    // Composition: Reference shared immutable template
+    // Template reference
     public SceneTemplate Template { get; set; }
 
-    // Ephemeral runtime state ONLY
-    public string Id { get; set; }
-    public List<NPC> SelectedNpcs { get; set; }  // Concrete entities selected by filters
-    public List<Location> SelectedLocations { get; set; }
-    public List<Situation> SpawnedSituations { get; set; }  // Created and placed
-    public SceneStatus Status { get; set; }  // Active, Spawning, Completed
+    // Concrete placement (selected at creation)
+    public PlacementType PlacementType { get; set; }  // Location, NPC, Route
+    public string PlacementId { get; set; }  // Concrete entity ID
+
+    // Embedded content (placeholders NOT replaced yet)
+    public List<Situation> Situations { get; set; }  // Mechanical skeleton only
+
+    // Provisional state
+    public SceneState State { get; set; }  // = SceneState.Provisional
+
+    // NO narrative yet (placeholder only)
+    public string IntroNarrative { get; set; }  // = "{NPCName} approaches you..."
 }
+```
+
+**Composition Architecture (Active Phase):**
+```csharp
+public class Scene
+{
+    // Same structure, but:
+
+    // Narrative finalized
+    public string IntroNarrative { get; set; }  // = "Martha approaches you with urgency..."
+
+    // Situations have placeholders replaced
+    public List<Situation> Situations { get; set; }  // "{NPCName}" → "Martha"
+
+    // Active state
+    public SceneState State { get; set; }  // = SceneState.Active
+
+    // Activation metadata
+    public int SpawnedDay { get; set; }
+}
+```
+
+**Why Provisional Scenes Exist (Perfect Information Principle):**
+
+**1. Strategic Decision-Making:**
+- Player sees WHERE Scene spawns before selecting Choice
+- Can evaluate distance, placement viability, NPC relationships
+- Makes informed strategic decision (not blind gamble)
+
+**2. UI Richness:**
+- Choice cards show Scene archetype, location name, distance
+- "Creates investigation at The Mill (2 hours away)"
+- "Spawns rescue plea with Martha at Current Location"
+
+**3. Cost Calculation:**
+- Scene distance can affect Choice cost
+- Placement validation (is location locked? is NPC available?)
+- Dynamic costs based on provisional Scene properties
+
+**4. Memory Efficiency:**
+- Provisional Scenes are cheap: no narrative generation, just mechanical skeleton
+- Unselected Choices: provisional Scenes deleted immediately
+- Only selected Choice: Scene finalized and persists
+
+**5. Fail-Fast Validation:**
+- Placement issues detected at provisional creation (not mid-gameplay)
+- Invalid placements throw errors immediately
+- Player never sees impossible Choices
+
+**Example Flow:**
+```csharp
+// PROVISIONAL PHASE (at Situation instantiation)
+Scene provisionalScene = SceneInstantiator.CreateProvisionalScene(
+    templateId: "rescue_quest_scene_template",
+    placementRelation: new PlacementRelation { Type = PlacementType.AdjacentLocation },
+    context: currentSituation
+);
+
+// Placement selected: The Mill (adjacent to current location)
+provisionalScene.PlacementId = "the_mill";
+
+// Situations created with placeholders
+provisionalScene.Situations[0].IntroNarrative = "{NPCName} pleads for help...";
+
+// Stored for display
+gameWorld.ProvisionalScenes[provisionalScene.Id] = provisionalScene;
+choice.ProvisionalSceneId = provisionalScene.Id;
+
+// DISPLAY PHASE (player sees Choice card)
+// UI reads: "Creates investigation at The Mill (2 hours away)"
+
+// FINALIZATION PHASE (player selects Choice)
+SceneFinalizer.FinalizeScene(provisionalScene.Id);
+
+// Placeholders replaced
+provisionalScene.Situations[0].IntroNarrative = "Martha pleads for help...";
+
+// Intro narrative generated
+provisionalScene.IntroNarrative = "As you approach The Mill, Martha steps forward...";
+
+// Moved to active Scenes
+gameWorld.ProvisionalScenes.Remove(provisionalScene.Id);
+gameWorld.Scenes.Add(provisionalScene);
+provisionalScene.State = SceneState.Active;
 ```
 
 #### Situation Instance (Persistent Narrative Context)
 
-**Lives in:** `GameWorld.Situations` (List, NOT Dictionary)
+**Lives in:** `GameWorld.Situations` (List<Situation>)
 
 **Lifecycle:**
-1. Created by Scene from SituationTemplate
+1. Created by Scene from SituationTemplate (during provisional OR active phase)
 2. Placed at specific Location/NPC/Route
-3. Persists in GameWorld after Scene discarded
+3. Persists in GameWorld after Scene finalized
 4. Player sees 2-4 action options
 5. Player selects action (triggers challenge OR executes instantly)
 
@@ -300,7 +414,7 @@ public class Situation
     public SituationStatus Status { get; set; }
     public int SpawnedDay { get; set; }
     public string GeneratedNarrative { get; set; }  // AI-generated or JSON fallback
-    public Scene ParentScene { get; set; }  // Scene that spawned this
+    public string ParentSceneId { get; set; }  // Scene that spawned this
 }
 ```
 
@@ -331,72 +445,141 @@ else
 
 ---
 
-## The Complete Flow (Spawn to Play)
+## The Complete Flow (Provisional → Active → Play)
 
-### 1. Scene Instantiation (Ephemeral Spawner)
+### 1. Provisional Scene Creation (Perfect Information Display)
 ```csharp
+// Triggered when Situation instantiated with Choice containing SceneSpawnReward
+Choice choice = situation.Choices[0];
+SceneSpawnReward sceneReward = choice.Rewards.OfType<SceneSpawnReward>().FirstOrDefault();
+
 // Select SceneTemplate
 SceneTemplate sceneTemplate = gameWorld.SceneTemplates
-    .FirstOrDefault(t => t.Id == "rescue_quest_scene_template");
+    .FirstOrDefault(t => t.Id == sceneReward.SceneTemplateId);
 
-// Instantiate Scene
-Scene scene = new Scene
-{
-    Template = sceneTemplate,
-    Id = GenerateUniqueId(),
-    Status = SceneStatus.Active
-};
-```
+// Create provisional Scene
+Scene provisionalScene = SceneInstantiator.CreateProvisionalScene(
+    sceneTemplate,
+    sceneReward.PlacementRelation,
+    situation
+);
 
-### 2. Scene Spawns Situations (Persistent Contexts)
-```csharp
+// Provisional Scene state
+provisionalScene.State = SceneState.Provisional;
+provisionalScene.Id = GenerateUniqueId();
+
+// Select concrete placement using filters
+Location targetLocation = PlacementFilter.SelectLocation(
+    gameWorld,
+    sceneReward.PlacementRelation,
+    situation.PlacementLocation
+);
+
+provisionalScene.PlacementType = PlacementType.Location;
+provisionalScene.PlacementId = targetLocation.Id;
+
+// Create embedded Situations with placeholders
 foreach (var spawn in sceneTemplate.SituationSpawns)
 {
-    // Select SituationTemplate
     SituationTemplate sitTemplate = gameWorld.SituationTemplates
         .FirstOrDefault(t => t.Id == spawn.SituationTemplateId);
 
-    // Select entities using categorical filters
-    NPC targetNpc = gameWorld.NPCs
-        .Where(npc => npc.Archetype == spawn.NpcFilters.Archetype)
-        .Where(npc => npc.Location == currentLocation)
-        .FirstOrDefault();
-
-    // Instantiate Situation with action references
-    Situation situation = new Situation
+    Situation embeddedSituation = new Situation
     {
         Template = sitTemplate,
         Id = GenerateUniqueId(),
-        PlacementNpc = targetNpc,
-        PlacementLocation = targetNpc.Location,
-        ConversationOptionIds = sitTemplate.ActionReferences
-            .Where(a => a.ActionType == "ConversationOption")
-            .Select(a => a.ActionId)
-            .ToList(),
-        Status = SituationStatus.Available,
-        SpawnedDay = currentDay,
-        ParentScene = scene
+        PlacementLocation = targetLocation,
+        GeneratedNarrative = "{NPCName} pleads for your help...",  // Placeholder NOT replaced
+        Status = SituationStatus.Provisional
     };
 
-    // Add to GameWorld (persists after Scene discarded)
+    provisionalScene.Situations.Add(embeddedSituation);
+}
+
+// Store provisional Scene
+gameWorld.ProvisionalScenes[provisionalScene.Id] = provisionalScene;
+choice.ProvisionalSceneId = provisionalScene.Id;
+```
+
+### 2. Player Sees Provisional Scene (Choice Card Display)
+```csharp
+// UI reads provisional Scene for display
+Choice choice = situation.AvailableChoices[0];
+Scene provisionalScene = gameWorld.ProvisionalScenes[choice.ProvisionalSceneId];
+
+// Display on Choice card:
+// "Creates investigation at The Mill (2 hours away)"
+// "Spawns 3 Situations: Plea, Investigation, Rescue"
+string locationName = gameWorld.Locations
+    .FirstOrDefault(l => l.Id == provisionalScene.PlacementId).Name;
+
+int distance = CalculateDistance(playerLocation, provisionalScene.PlacementId);
+
+// Player makes informed decision with perfect information
+```
+
+### 3. Scene Finalization (Player Selects Choice)
+```csharp
+// Player selects Choice
+Choice selectedChoice = situation.Choices[0];
+Scene provisionalScene = gameWorld.ProvisionalScenes[selectedChoice.ProvisionalSceneId];
+
+// Finalize Scene
+SceneFinalizer.FinalizeScene(provisionalScene.Id, gameWorld);
+
+// Replace placeholders in Situations
+foreach (Situation situation in provisionalScene.Situations)
+{
+    NPC contextNpc = gameWorld.NPCs
+        .FirstOrDefault(n => n.Location == provisionalScene.PlacementId);
+
+    situation.GeneratedNarrative = situation.GeneratedNarrative
+        .Replace("{NPCName}", contextNpc.Name);
+
+    situation.PlacementNpc = contextNpc;
+    situation.Status = SituationStatus.Available;
+    situation.SpawnedDay = gameWorld.CurrentDay;
+}
+
+// Generate intro narrative
+provisionalScene.IntroNarrative = NarrativeGenerator.GenerateSceneIntro(
+    provisionalScene,
+    gameWorld
+);
+
+// Move from provisional to active
+gameWorld.ProvisionalScenes.Remove(provisionalScene.Id);
+gameWorld.Scenes.Add(provisionalScene);
+provisionalScene.State = SceneState.Active;
+provisionalScene.SpawnedDay = gameWorld.CurrentDay;
+
+// Add Situations to GameWorld
+foreach (Situation situation in provisionalScene.Situations)
+{
     gameWorld.Situations.Add(situation);
-    scene.SpawnedSituations.Add(situation);
+}
+
+// Delete unselected provisional Scenes
+foreach (Choice otherChoice in situation.Choices.Where(c => c != selectedChoice))
+{
+    if (otherChoice.ProvisionalSceneId != null)
+    {
+        gameWorld.ProvisionalScenes.Remove(otherChoice.ProvisionalSceneId);
+    }
 }
 ```
 
-### 3. Scene Discarded, Situations Persist
+### 4. Player Interacts with Active Situation Actions
 ```csharp
-// Scene completes spawning
-scene.Status = SceneStatus.Completed;
+// Player navigates to Scene location
+// Active Scene displays intro narrative
+Scene activeScene = gameWorld.Scenes
+    .FirstOrDefault(s => s.PlacementId == playerLocation.Id
+                      && s.State == SceneState.Active);
 
-// Scene discarded (not stored anywhere)
-// Situations remain in gameWorld.Situations
+Console.WriteLine(activeScene.IntroNarrative);
+// "As you approach The Mill, Martha steps forward with urgency in her eyes..."
 
-// Player can now interact with spawned Situations
-```
-
-### 4. Player Interacts with Situation Actions
-```csharp
 // Player sees Situation with 2-4 actions
 Situation activeSituation = gameWorld.Situations
     .FirstOrDefault(s => s.PlacementLocation == playerLocation
@@ -495,7 +678,8 @@ Situation situation = new Situation
 | **PATTERN** | Conceptual | Markdown docs | Spawn patterns, use cases | Guide content authoring |
 | **TEMPLATE** | SceneTemplate | `List<SceneTemplate>` | Multiple SituationTemplate references + spawn config | Define spawn orchestration |
 | **TEMPLATE** | SituationTemplate | `List<SituationTemplate>` | Narrative + 2-4 action references | Define context archetypes |
-| **INSTANCE** | Scene | NOT stored (ephemeral) | Spawns Situations, then discarded | Execute spawn event |
+| **INSTANCE** | Scene (Provisional) | `Dictionary<string, Scene>` (ProvisionalScenes) | Mechanical skeleton with placeholders | Perfect information display |
+| **INSTANCE** | Scene (Active) | `List<Scene>` (Scenes) | Finalized narrative + embedded Situations | Playable content container |
 | **INSTANCE** | Situation | `List<Situation>` | Narrative + 2-4 action ID references | Persistent playable context |
 
 ---
@@ -521,11 +705,18 @@ Before any template implementation:
 - [ ] Actions reference EXISTING entities by ID
 - [ ] Lives in `List<SituationTemplate>` (NOT Dictionary)
 
-**Scene Instance (Ephemeral Spawner):**
+**Scene Instance (Provisional → Active Lifecycle):**
 - [ ] References SceneTemplate via composition (NOT cloned)
-- [ ] Selects entities using LINQ queries (NOT dictionary lookups)
-- [ ] Spawns Situations and adds to GameWorld.Situations
-- [ ] Discarded after spawning (NOT stored anywhere)
+- [ ] Provisional phase: Stored in GameWorld.ProvisionalScenes (Dictionary for O(1) lookup)
+- [ ] Selects concrete placement using PlacementFilter
+- [ ] Creates embedded Situations with placeholders (NOT replaced yet)
+- [ ] State = SceneState.Provisional
+- [ ] Choice.ProvisionalSceneId references provisional Scene
+- [ ] Active phase: Finalized when Choice selected
+- [ ] Placeholders replaced, intro narrative generated
+- [ ] Moved from ProvisionalScenes to Scenes (List)
+- [ ] State = SceneState.Active
+- [ ] Unselected provisional Scenes deleted immediately
 
 **Situation Instance (Persistent Context):**
 - [ ] References SituationTemplate via composition (NOT cloned)
@@ -547,10 +738,12 @@ See existing codebase examples:
 This architecture ensures:
 ✅ Clear separation of concerns (pattern, template, instance)
 ✅ Clear separation of layers (STRATEGIC Scene/Situation vs TACTICAL SituationCard)
-✅ Ephemeral Scene spawners vs persistent Situation contexts
+✅ Provisional → Active Scene lifecycle (perfect information before selection)
+✅ Perfect information principle (player sees placement before deciding)
+✅ Memory efficiency (provisional Scenes cheap, unselected deleted)
 ✅ Situations reference existing action entities (LocationAction/ConversationOption/TravelCard)
 ✅ Sir Brante pattern (Situation = narrative + 2-4 action references)
-✅ Strong typing enforcement (Lists, NO Dictionaries/HashSets)
-✅ Memory efficiency (composition, NOT cloning)
+✅ Strong typing enforcement (Lists for collections, Dictionary only for O(1) provisional lookup)
+✅ Composition over cloning (template reference, NOT duplication)
 ✅ Type safety (compiler-enforced access patterns)
 ✅ Reusability (templates spawn many instances)
