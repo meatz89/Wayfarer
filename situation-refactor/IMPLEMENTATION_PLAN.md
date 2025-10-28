@@ -258,6 +258,250 @@ protected override async Task OnInitializedAsync()
 
 ---
 
+## FOUNDATIONAL ARCHITECTURE: Three-Level Template System
+
+**Reference:** [TEMPLATE_ARCHITECTURE.md](./TEMPLATE_ARCHITECTURE.md)
+
+### Critical Principle: PATTERN ≠ TEMPLATE ≠ INSTANCE
+
+The Situation Spawn Template system uses a **three-level architecture** that must NEVER be conflated:
+
+### LEVEL 1: PATTERN (Documentation Layer)
+**Purpose:** Guide content authoring with reusable conceptual frameworks
+
+**Format:** Pure markdown documentation (NO JSON, NO CODE)
+
+**Contains:**
+- Conceptual structures ("Linear Progression", "Hub-and-Spoke", "Branching Consequences")
+- Use cases and examples
+- Decision space analysis
+- Narrative structure guidance
+
+**File:** `situation-refactor/situation-spawn-patterns.md`
+
+**Example Patterns:**
+- Linear Progression: A → B → C (sequential story beats)
+- Hub-and-Spoke: Central situation spawns multiple parallel options
+- Discovery Chain: Finding clues reveals new locations
+- Branching Consequences: Success/failure lead to different futures
+
+---
+
+### LEVEL 2: TEMPLATE (JSON Archetype Layer)
+**Purpose:** Immutable archetype definitions shared by ALL instances
+
+**Format:** JSON with categorical properties and formulas
+
+**Lives In:** `GameWorld.SituationTemplates` (List, NOT Dictionary)
+
+**MUST Contain:**
+- ✅ Archetype enums (`"archetype": "Rescue"`)
+- ✅ Requirement **formulas** (`"baseValue": "CurrentPlayerBond", "offset": 3`)
+- ✅ Template-to-template references (`"childTemplateId": "investigation_followup_template"`)
+- ✅ **Categorical** entity filters (`"npcArchetype": "Innocent"`, NOT `"npcId": "elena"`)
+- ✅ Narrative hints for AI (`"tone": "Urgent"`, `"theme": "Heroic sacrifice"`)
+
+**MUST NOT Contain:**
+- ❌ Specific entity IDs (`"npcId": "elena"` - this is INSTANCE data)
+- ❌ Fixed thresholds (`"threshold": 5` - should be formula with offset)
+- ❌ Runtime state (`"spawnedDay"`, `"completedDay"` - instance properties)
+
+**Example Template JSON:**
+```json
+{
+  "id": "rescue_plea_template",
+  "archetype": "Rescue",
+  "tier": 1,
+  "interactionType": "NpcSocial",
+  "npcFilters": {
+    "archetype": "Innocent",
+    "locationProximity": "Same",
+    "bondStrengthMin": 5
+  },
+  "requirementFormula": {
+    "orPaths": [{
+      "numericRequirements": [{
+        "type": "BondStrength",
+        "baseValue": "CurrentPlayerBond",
+        "offset": 3,
+        "label": "Need trust to confide"
+      }]
+    }]
+  },
+  "successSpawns": [{
+    "childTemplateId": "investigation_followup_template",
+    "placementStrategy": "SameNpc",
+    "requirementOffsets": {
+      "bondStrengthOffset": 2
+    }
+  }]
+}
+```
+
+---
+
+### LEVEL 3: INSTANCE (Runtime Entity Layer)
+**Purpose:** Concrete runtime entities with specific placements and state
+
+**Format:** C# domain entity
+
+**Lives In:** `GameWorld.Situations` (List, NOT Dictionary)
+
+**Architecture:** **COMPOSITION** (NOT Cloning)
+
+```csharp
+public class Situation
+{
+    // COMPOSITION: Reference shared immutable template (NOT cloned)
+    public SituationTemplate Template { get; set; }
+
+    // RUNTIME INSTANCE PROPERTIES ONLY
+    public string Id { get; set; }
+    public NPC PlacementNpc { get; set; }  // Concrete entity (code selects)
+    public Location PlacementLocation { get; set; }  // Concrete entity (code selects)
+    public int SpawnedDay { get; set; }
+    public string GeneratedNarrative { get; set; }
+    // ... other runtime state
+}
+```
+
+**Access Pattern:**
+```csharp
+// ✅ CORRECT - Access template through composition
+SituationArchetype archetype = instance.Template.Archetype;
+int tier = instance.Template.Tier;
+
+// ❌ WRONG - Cloning template properties into instance
+Situation instance = new Situation {
+    Archetype = template.Archetype,  // Duplicated!
+    Tier = template.Tier  // Duplicated!
+};
+```
+
+---
+
+### Code Execution Flow: Template → Instance
+
+**1. Select Template (LINQ Query on List):**
+```csharp
+SituationTemplate template = gameWorld.SituationTemplates
+    .FirstOrDefault(t => t.Id == "rescue_plea_template");
+```
+
+**2. Apply Categorical Filters to Find Concrete Entities:**
+```csharp
+// Template says: npcArchetype: "Innocent", locationProximity: "Same"
+NPC targetNpc = gameWorld.NPCs
+    .Where(npc => npc.Archetype == NpcArchetype.Innocent)
+    .Where(npc => npc.Location == currentLocation)
+    .FirstOrDefault();
+```
+
+**3. Calculate Requirements from Formulas:**
+```csharp
+// Template formula: baseValue: "CurrentPlayerBond", offset: 3
+// If player bond = 8, calculated requirement = 11
+int currentBond = gameWorld.Player.GetBondWith(targetNpc);
+int threshold = currentBond + template.RequirementFormula.Offset;
+```
+
+**4. Create Instance with Composition:**
+```csharp
+Situation instance = new Situation
+{
+    Template = template,  // Reference shared template (NOT cloned)
+    Id = GenerateUniqueId(),
+    PlacementNpc = targetNpc,  // Concrete entity selected by code
+    PlacementLocation = targetNpc.Location,
+    Status = SituationStatus.Available,
+    SpawnedDay = currentDay
+};
+gameWorld.Situations.Add(instance);  // List.Add()
+```
+
+---
+
+### Strong Typing Enforcement
+
+**FORBIDDEN:**
+```csharp
+// ❌ Dictionary lookup
+public Dictionary<string, SituationTemplate> SituationTemplates { get; set; }
+
+// ❌ HashSet
+public HashSet<SituationTemplate> SituationTemplates { get; set; }
+```
+
+**REQUIRED:**
+```csharp
+// ✅ List with LINQ queries
+public List<SituationTemplate> SituationTemplates { get; set; } = new();
+
+// ✅ Lookup via LINQ
+SituationTemplate template = gameWorld.SituationTemplates
+    .FirstOrDefault(t => t.Id == "rescue_plea_template");
+```
+
+---
+
+### Composition Over Cloning (NEVER CLONE)
+
+**WHY COMPOSITION:**
+1. **Single source of truth** - Template changes propagate to all instances
+2. **Memory efficient** - Template data stored once, not duplicated
+3. **Type safety** - Compiler enforces correct access patterns
+4. **Clear separation** - Runtime state vs design-time archetypes
+
+**CORRECT:**
+- Instance has `Template` property (reference to shared object)
+- Access via `instance.Template.Archetype`
+- Multiple instances share same template object
+
+**WRONG:**
+- Instance copies template properties (duplicates data)
+- Template properties stored directly on instance
+- Each instance has independent copy of archetype data
+
+---
+
+### Summary Table
+
+| Level | Lives In | Contains | Lookup | Purpose |
+|-------|----------|----------|--------|---------|
+| PATTERN | Markdown | Conceptual structures | N/A | Guide authoring |
+| TEMPLATE | `List<SituationTemplate>` | Formulas, categorical filters | LINQ `.FirstOrDefault()` | Reusable archetypes |
+| INSTANCE | `List<Situation>` | Concrete entities, runtime state, template reference | LINQ `.FirstOrDefault()` | Playable content |
+
+---
+
+### Implementation Files
+
+**Pattern Layer:**
+- ✅ `situation-refactor/situation-spawn-patterns.md`
+
+**Template Layer:**
+- ✅ `src/Content/Core/21_situation_templates.json`
+- ✅ `src/Content/DTOs/SituationTemplateDTO.cs`
+- ✅ `src/Content/SituationTemplateParser.cs`
+- ✅ `src/GameState/SituationTemplate.cs`
+- ✅ `src/GameState/SituationTemplateNpcFilters.cs`
+- ✅ `src/GameState/SituationTemplateLocationFilters.cs`
+- ✅ `src/GameState/TemplateSpawnRule.cs`
+- ✅ `src/GameState/Enums/SituationArchetype.cs`
+- ✅ `src/GameState/Enums/NpcArchetype.cs`
+- ✅ `src/GameState/Enums/VenueType.cs`
+
+**Instance Layer:**
+- ✅ `src/GameState/Situation.cs` (modified to add Template reference)
+- ✅ `src/GameState/GameWorld.cs` (modified to add `List<SituationTemplate>`)
+
+**Integration (Pending):**
+- ⏳ PackageLoader - Load templates from JSON
+- ⏳ SituationInstantiator - Spawn instances from templates
+- ⏳ Template validation - Verify child template references exist
+
+---
+
 ## Phase 0: Current State Verification (CRITICAL FIRST STEP)
 
 ### Purpose
