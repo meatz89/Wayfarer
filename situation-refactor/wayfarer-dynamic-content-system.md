@@ -1,8 +1,25 @@
 # Wayfarer Dynamic Content System: Design Document
 
+## CRITICAL ARCHITECTURE CLARIFICATION
+
+**READ THIS FIRST:** The corrected architecture is documented in [TEMPLATE_ARCHITECTURE.md](./TEMPLATE_ARCHITECTURE.md). This document describes the overall design vision, but specific entity details should reference the template architecture document.
+
+**KEY CORRECTIONS:**
+- **Scene** = Ephemeral spawning orchestrator (creates multiple Situations in configurations)
+- **Situation** = Persistent narrative context containing 2-4 **action references** (LocationAction/ConversationOption/TravelCard IDs)
+- **Actions** = Existing entities that Situations reference, NOT inline definitions
+- **SituationCard** = TACTICAL layer only (victory conditions inside challenges), NOT part of Scene/Situation architecture
+
+**This document's references to "Goals" spawned by Situations should be understood as:**
+- Situations contain action references
+- Actions may trigger challenges OR execute instantly (Sir Brante pattern)
+- When action triggers challenge, that's what creates the Goal entity (tactical layer)
+
+---
+
 ## Executive Summary
 
-Wayfarer is pivoting from a static content model to a dynamic consequence-driven system inspired by "The Life and Suffering of Sir Brante." This document defines a complete architectural redesign where pre-authored Situation templates spawn contextual content in response to player choices, creating emergent narratives through mechanical consequence chains while preserving the strategic depth and verisimilitude of the original design.
+Wayfarer is pivoting from a static content model to a dynamic consequence-driven system inspired by "The Life and Suffering of Sir Brante." This document defines a complete architectural redesign where pre-authored Scene templates orchestrate Situation spawning, creating emergent narratives through mechanical consequence chains while preserving the strategic depth and verisimilitude of the original design.
 
 **Core Innovation:** Separate mechanical structure (templates with spawn rules) from narrative flesh (AI-generated contextual descriptions). Content spawns deterministically from player choices, with AI providing coherent narrative wrapping at encounter time.
 

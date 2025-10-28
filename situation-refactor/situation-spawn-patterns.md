@@ -1,5 +1,23 @@
 # Situation Spawn Patterns
 
+## ARCHITECTURAL CONTEXT
+
+**STRATEGIC LAYER HIERARCHY:**
+- **Scene** = Ephemeral spawning orchestrator that creates multiple Situations in various configurations
+- **Situation** = Persistent narrative context containing 2-4 actions (LocationAction/ConversationOption/TravelCard)
+- **Spawn Flow**: Scene spawns Situations → Situation completion can spawn new Scenes or Situations
+
+**PATTERN APPLICATION:**
+- Scenes use these patterns to orchestrate MULTIPLE Situations (sequential, parallel, branching)
+- Situations use these patterns to spawn follow-up Situations or Scenes
+- Templates define patterns, code instantiates with concrete entities from GameWorld
+
+**LAYER SEPARATION:**
+- STRATEGIC: Scene/Situation/Actions (these patterns apply here)
+- TACTICAL: SituationCard (victory conditions inside challenges - separate system)
+
+---
+
 Spawn patterns define how situations cascade and connect across the game world. Templates use these patterns to create dynamic narrative chains without hardcoded content.
 
 ## Pattern 1: Linear Progression

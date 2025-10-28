@@ -1,8 +1,29 @@
 # Scene-Situation Architecture: Complete Implementation Plan
 
+## CRITICAL ARCHITECTURE CLARIFICATION
+
+**READ THIS FIRST:** The corrected architecture is fully documented in [TEMPLATE_ARCHITECTURE.md](./TEMPLATE_ARCHITECTURE.md). Key points:
+
+**STRATEGIC LAYER (Scene/Situation/Actions):**
+- **Scene** = Ephemeral spawning orchestrator containing multiple Situations in configurations (sequential/parallel/branching)
+- **Situation** = Persistent narrative context at location/NPC/route containing 2-4 **action references**
+- **Actions** = Existing entities (LocationAction, ConversationOption, TravelCard) that are response options
+- **Situation references actions by ID**, does NOT embed them inline
+
+**TACTICAL LAYER (Inside challenges):**
+- **SituationCard** = Victory condition INSIDE Social/Mental/Physical challenges (separate system)
+- SituationCard is NOT part of Scene/Situation architecture - it's for tactical challenge gameplay only
+
+**LAYER SEPARATION:**
+- STRATEGIC: Player chooses Situation → Action → May trigger challenge OR execute instantly
+- TACTICAL: Inside challenge, player plays cards to reach SituationCard victory threshold
+
+---
+
 ## Reference Documents
 
-- **Architecture Specification:** [SCENE_SITUATION_ARCHITECTURE.md](./SCENE_SITUATION_ARCHITECTURE.md)
+- **Template Architecture (CORRECTED):** [TEMPLATE_ARCHITECTURE.md](./TEMPLATE_ARCHITECTURE.md)
+- **Architecture Specification:** [SCENE_SITUATION_ARCHITECTURE.md](./SCENE_SITUATION_ARCHITECTURE.md) *(needs correction)*
 - **Design Principles:** [game-design-principles.md](../game-design-principles.md)
 
 ## Implementation Philosophy
