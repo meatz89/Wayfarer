@@ -75,7 +75,43 @@
                                 <div class="npc-description">@npcWithSituations.Description</div>
                             </div>
 
-                            @* Ambient Social Situations (without obstacles) *@
+                            @* SCENE-SITUATION ARCHITECTURE: Executable Actions from ChoiceTemplates *@
+                            @if (npcWithSituations.Actions.Any())
+                            {
+                                <div class="actions-grid">
+                                    @foreach (var action in npcWithSituations.Actions)
+                                    {
+                                        <div class="situation-action-btn action-card"
+                                             @onclick="() => HandleExecuteNPCAction(action)">
+                                            <div class="situation-system-badge @action.SystemType">@action.ChallengeType</div>
+                                            <div class="situation-name">@action.Name</div>
+                                            @if (!string.IsNullOrEmpty(action.Description))
+                                            {
+                                                <div class="situation-description">@action.Description</div>
+                                            }
+                                            @if (action.ResolveCost > 0 || action.CoinsCost > 0 || action.TimeSegments > 0)
+                                            {
+                                                <div class="action-costs">
+                                                    @if (action.ResolveCost > 0)
+                                                    {
+                                                        <span>Resolve: @action.ResolveCost</span>
+                                                    }
+                                                    @if (action.CoinsCost > 0)
+                                                    {
+                                                        <span>Coins: @action.CoinsCost</span>
+                                                    }
+                                                    @if (action.TimeSegments > 0)
+                                                    {
+                                                        <span>Time: @action.TimeSegments</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @* Ambient Social Situations (without scenes) *@
                             @if (npcWithSituations.AmbientSocialSituations.Any())
                             {
                                 <div class="actions-grid">
@@ -102,21 +138,18 @@
                                 </div>
                             }
 
-                            @* Social Obstacles with nested situations *@
-                            @foreach (var obstacle in npcWithSituations.SocialObstacles)
+                            @* Social Scenes with nested situations *@
+                            @foreach (var scene in npcWithSituations.SocialScenes)
                             {
-                                <div class="obstacle-card">
-                                    <div class="obstacle-header">
-                                        <div class="obstacle-name">@obstacle.Name</div>
-                                        <div class="obstacle-meta">
-                                            <span class="obstacle-intensity">Intensity: @obstacle.Intensity</span>
-                                            <span class="obstacle-contexts">@obstacle.ContextsDisplay</span>
-                                        </div>
+                                <div class="scene-card">
+                                    <div class="scene-header">
+                                        <div class="scene-name">@scene.Name</div>
+                                        @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
                                     </div>
-                                    <div class="obstacle-description">@obstacle.Description</div>
+                                    <div class="scene-description">@scene.Description</div>
 
                                     <div class="actions-grid">
-                                        @foreach (var situation in obstacle.Situations)
+                                        @foreach (var situation in scene.Situations)
                                         {
                                             <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
                                                  @onclick="() => HandleNavigateToSituation(situation.Id)">
@@ -156,11 +189,11 @@
                     }
 
                     @* ========== MENTAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientMentalSituations.Any() || ViewModel.MentalObstacles.Any())
+                    @if (ViewModel.AmbientMentalSituations.Any() || ViewModel.MentalScenes.Any())
                     {
                         <div class="section-subheader">Mental Challenges</div>
 
-                        @* Ambient Mental Situations (without obstacles) *@
+                        @* Ambient Mental Situations (without scenes) *@
                         @if (ViewModel.AmbientMentalSituations.Any())
                         {
                             <div class="actions-grid">
@@ -187,21 +220,18 @@
                             </div>
                         }
 
-                        @* Mental Obstacles with nested situations *@
-                        @foreach (var obstacle in ViewModel.MentalObstacles)
+                        @* Mental Scenes with nested situations *@
+                        @foreach (var scene in ViewModel.MentalScenes)
                         {
-                            <div class="obstacle-card">
-                                <div class="obstacle-header">
-                                    <div class="obstacle-name">@obstacle.Name</div>
-                                    <div class="obstacle-meta">
-                                        <span class="obstacle-intensity">Intensity: @obstacle.Intensity</span>
-                                        <span class="obstacle-contexts">@obstacle.ContextsDisplay</span>
-                                    </div>
+                            <div class="scene-card">
+                                <div class="scene-header">
+                                    <div class="scene-name">@scene.Name</div>
+                                    @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
                                 </div>
-                                <div class="obstacle-description">@obstacle.Description</div>
+                                <div class="scene-description">@scene.Description</div>
 
                                 <div class="actions-grid">
-                                    @foreach (var situation in obstacle.Situations)
+                                    @foreach (var situation in scene.Situations)
                                     {
                                         <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
                                              @onclick="() => HandleNavigateToSituation(situation.Id)">
@@ -227,11 +257,11 @@
                     }
 
                     @* ========== PHYSICAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientPhysicalSituations.Any() || ViewModel.PhysicalObstacles.Any())
+                    @if (ViewModel.AmbientPhysicalSituations.Any() || ViewModel.PhysicalScenes.Any())
                     {
                         <div class="section-subheader">Physical Challenges</div>
 
-                        @* Ambient Physical Situations (without obstacles) *@
+                        @* Ambient Physical Situations (without scenes) *@
                         @if (ViewModel.AmbientPhysicalSituations.Any())
                         {
                             <div class="actions-grid">
@@ -258,21 +288,18 @@
                             </div>
                         }
 
-                        @* Physical Obstacles with nested situations *@
-                        @foreach (var obstacle in ViewModel.PhysicalObstacles)
+                        @* Physical Scenes with nested situations *@
+                        @foreach (var scene in ViewModel.PhysicalScenes)
                         {
-                            <div class="obstacle-card">
-                                <div class="obstacle-header">
-                                    <div class="obstacle-name">@obstacle.Name</div>
-                                    <div class="obstacle-meta">
-                                        <span class="obstacle-intensity">Intensity: @obstacle.Intensity</span>
-                                        <span class="obstacle-contexts">@obstacle.ContextsDisplay</span>
-                                    </div>
+                            <div class="scene-card">
+                                <div class="scene-header">
+                                    <div class="scene-name">@scene.Name</div>
+                                    @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
                                 </div>
-                                <div class="obstacle-description">@obstacle.Description</div>
+                                <div class="scene-description">@scene.Description</div>
 
                                 <div class="actions-grid">
-                                    @foreach (var situation in obstacle.Situations)
+                                    @foreach (var situation in scene.Situations)
                                     {
                                         <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
                                              @onclick="() => HandleNavigateToSituation(situation.Id)">
@@ -345,8 +372,8 @@
 
                     @* ========== EMPTY STATE ========== *@
                     @if (!ViewModel.NPCsWithSituations.Any()
-                        && !ViewModel.AmbientMentalSituations.Any() && !ViewModel.MentalObstacles.Any()
-                        && !ViewModel.AmbientPhysicalSituations.Any() && !ViewModel.PhysicalObstacles.Any()
+                        && !ViewModel.AmbientMentalSituations.Any() && !ViewModel.MentalScenes.Any()
+                        && !ViewModel.AmbientPhysicalSituations.Any() && !ViewModel.PhysicalScenes.Any()
                         && !AvailableConversationTrees.Any() && !AvailableObservationScenes.Any())
                     {
                         <p>The area is quiet. No one else is here, and nothing catches your attention.</p>
@@ -370,13 +397,6 @@
                            AvailableSpots="@ViewModel.AvailableSpots"
                            OnMoveToSpot="HandleMoveToSpot"
                            OnNavigateBack="NavigateBack" />
-                break;
-
-            case LocationViewState.Equipment:
-                <EquipmentInventory OnInventoryChanged="HandleInventoryChanged" />
-                <div class="back-button-container">
-                    <button class="back-button" @onclick="NavigateBack">← Back</button>
-                </div>
                 break;
         }
     </div>

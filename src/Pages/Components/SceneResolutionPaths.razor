@@ -1,0 +1,37 @@
+@namespace Wayfarer.Pages.Components
+@using Wayfarer.Pages.Components.Shared
+@using Wayfarer.GameState
+@using Wayfarer.GameState.Enums
+@*
+Scene Resolution Paths - Shows all resolution options for an scene
+*@
+
+<div class="scene-resolution">
+    <div class="scene-info">
+        <h3 class="scene-name">@Scene.DisplayName</h3>
+        <p class="scene-description">@Scene.IntroNarrative</p>
+    </div>
+
+    <div class="resolution-options">
+        <h4 class="options-header">Resolution Options:</h4>
+
+        <!-- Option 1: Challenge -->
+        <div class="resolution-option challenge-option">
+            <h5 class="option-title">1. Challenge</h5>
+            <p class="option-description">Launch tactical challenge</p>
+            <button class="btn-challenge" @onclick="() => HandleChallenge()">
+                Begin Challenge
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Scene Scene { get; set; }
+    [Parameter] public EventCallback OnChallenge { get; set; }
+
+    private async Task HandleChallenge()
+    {
+        await OnChallenge.InvokeAsync();
+    }
+}

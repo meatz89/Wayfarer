@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
 
 namespace Wayfarer.Pages.Components.Shared
 {

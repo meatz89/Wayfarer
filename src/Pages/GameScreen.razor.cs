@@ -59,7 +59,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
-    protected TravelObstacleContext CurrentObstacleContext { get; set; }
+    protected TravelSceneContext CurrentSceneContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
@@ -530,12 +530,12 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task HandleObstacleEnd(bool success)
-    {// If obstacle was successfully overcome, complete the pending travel
-        if (success && CurrentObstacleContext?.Route != null)
+    protected async Task HandleSceneEnd(bool success)
+    {// If scene was successfully overcome, complete the pending travel
+        if (success && !string.IsNullOrEmpty(CurrentSceneContext?.RouteId))
         {
-            string routeId = CurrentObstacleContext.Route.Id;// Clear obstacle context before travel
-            CurrentObstacleContext = null;
+            string routeId = CurrentSceneContext.RouteId;// Clear scene context before travel
+            CurrentSceneContext = null;
 
             // Execute travel via intent system
             TravelIntent travelIntent = new TravelIntent(routeId);
@@ -552,7 +552,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
         else
         {
-            // Failed obstacle or no route - just return to locationCurrentObstacleContext = null;
+            // Failed scene or no route - just return to locationCurrentSceneContext = null;
 
             await RefreshResourceDisplay();
             await RefreshTimeDisplay();
@@ -778,7 +778,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string obligationId = _obligationDiscoveryResult.ObligationId;
         _obligationDiscoveryResult = null;
 
-        // Activate obligation and spawn Phase 1 obstacle
+        // Activate obligation and spawn Phase 1 scene
         ObligationActivity.CompleteIntroAction(obligationId);
 
         // Refresh UI after activation
@@ -818,7 +818,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string obligationId = _obligationIntroResult.ObligationId;
         _obligationIntroResult = null;
 
-        // Activate obligation and spawn Phase 1 obstacle
+        // Activate obligation and spawn Phase 1 scene
         GameFacade.CompleteObligationIntro(obligationId);
 
         // Refresh UI after activation

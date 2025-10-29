@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Wayfarer.Pages.Components
 {
@@ -117,8 +115,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetObligationProgress(ActiveObligation activeInv)
         {
-            // CompletedSituationIds eliminated - track progress via resolved obstacles instead
-            // NOTE: Obstacles no longer have ObligationId - UI needs redesign to show obstacle locations
+            // CompletedSituationIds eliminated - track progress via resolved scenes instead
+            // NOTE: Scenes no longer have ObligationId - UI needs redesign to show scene locations
             // For now, return understanding accumulated as progress metric
             return activeInv.UnderstandingAccumulated;
         }
@@ -126,7 +124,7 @@ namespace Wayfarer.Pages.Components
         protected int GetObligationTotalSituations(string obligationId)
         {
             // PhaseDefinitions eliminated - return static understanding requirement for now
-            // NOTE: Obstacles no longer have ObligationId - UI needs redesign
+            // NOTE: Scenes no longer have ObligationId - UI needs redesign
             // TODO: Add UnderstandingRequired property to Obligation model
             return 10; // Default Understanding requirement for completion
         }
@@ -135,7 +133,7 @@ namespace Wayfarer.Pages.Components
         {
             int total = GetObligationTotalSituations(activeInv.ObligationId);
             if (total == 0) return 0;
-            // CompletedSituationIds eliminated - use resolved obstacle count instead
+            // CompletedSituationIds eliminated - use resolved scene count instead
             int resolved = GetObligationProgress(activeInv);
             return ((double)resolved / total) * 100.0;
         }
@@ -143,23 +141,23 @@ namespace Wayfarer.Pages.Components
         protected List<ObligationPhaseDefinition> GetCompletedPhases(ActiveObligation activeInv)
         {
             // PhaseDefinitions and CompletedSituationIds eliminated - obligations no longer have sequential phases
-            // Return resolved obstacles instead
+            // Return resolved scenes instead
             return new List<ObligationPhaseDefinition>();
         }
 
         protected List<ObligationPhaseDefinition> GetActivePhases(ActiveObligation activeInv)
         {
             // PhaseDefinitions and CompletedSituationIds eliminated - obligations no longer have sequential phases
-            // Return active obstacles instead
+            // Return active scenes instead
             return new List<ObligationPhaseDefinition>();
         }
 
         protected Dictionary<string, int> GetRemainingSituationsByLocation(ActiveObligation activeInv)
         {
             // NOTE: Obligation phases no longer reference situations directly
-            // Situations are now contained within obstacles spawned by obligations
-            // This UI method needs redesign to show obstacle locations instead
-            // For now, return empty dictionary until obstacle-based UI is implemented
+            // Situations are now contained within scenes spawned by obligations
+            // This UI method needs redesign to show scene locations instead
+            // For now, return empty dictionary until scene-based UI is implemented
             return new Dictionary<string, int>();
         }
     }

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -288,7 +287,7 @@ namespace Wayfarer.Pages.Components
             if (SelectedSituation == null) return null;
 
             // Find the situation in view model to get pre-calculated difficulty
-            // Search in Social situations (ambient + obstacles)
+            // Search in Social situations (ambient + scenes)
             SituationCardViewModel situationCard = ViewModel.NPCsWithSituations
                 .SelectMany(npc => npc.AmbientSocialSituations)
                 .FirstOrDefault(g => g.Id == SelectedSituation.Id);
@@ -296,12 +295,12 @@ namespace Wayfarer.Pages.Components
             if (situationCard == null)
             {
                 situationCard = ViewModel.NPCsWithSituations
-                    .SelectMany(npc => npc.SocialObstacles)
-                    .SelectMany(obstacle => obstacle.Situations)
+                    .SelectMany(npc => npc.SocialScenes)
+                    .SelectMany(scene => scene.Situations)
                     .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Mental situations (ambient + obstacles)
+            // Search in Mental situations (ambient + scenes)
             if (situationCard == null)
             {
                 situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
@@ -309,12 +308,12 @@ namespace Wayfarer.Pages.Components
 
             if (situationCard == null)
             {
-                situationCard = ViewModel.MentalObstacles
-                    .SelectMany(obstacle => obstacle.Situations)
+                situationCard = ViewModel.MentalScenes
+                    .SelectMany(scene => scene.Situations)
                     .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Physical situations (ambient + obstacles)
+            // Search in Physical situations (ambient + scenes)
             if (situationCard == null)
             {
                 situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
@@ -322,8 +321,8 @@ namespace Wayfarer.Pages.Components
 
             if (situationCard == null)
             {
-                situationCard = ViewModel.PhysicalObstacles
-                    .SelectMany(obstacle => obstacle.Situations)
+                situationCard = ViewModel.PhysicalScenes
+                    .SelectMany(scene => scene.Situations)
                     .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
@@ -355,6 +354,38 @@ namespace Wayfarer.Pages.Components
         protected async Task HandleStartObservationScene(string sceneId)
         {
             await GameScreen.StartObservationScene(sceneId);
+        }
+
+        // ============================================
+        // SCENE-SITUATION ARCHITECTURE: NPCAction Execution
+        // ============================================
+
+        protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
+        {
+            // Execute NPCAction through GameFacade (unified action architecture)
+            IntentResult result = await GameFacade.ExecuteNPCAction(action.SituationId, action.Id);
+
+            if (result.Success)
+            {
+                // Screen-level navigation (GameScreen handles)
+                if (result.NavigateToScreen.HasValue)
+                {
+                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
+                }
+
+                // View-level navigation (LocationContent handles)
+                if (result.NavigateToView.HasValue)
+                {
+                    NavigateToView(result.NavigateToView.Value);
+                }
+
+                // Refresh if backend says to refresh
+                if (result.RequiresLocationRefresh)
+                {
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+                }
+            }
         }
     }
 }

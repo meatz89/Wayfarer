@@ -1,9 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Pages.Components
 {
@@ -18,9 +13,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TravelManager TravelManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
-        [Inject] protected EquipmentFacade EquipmentFacade { get; set; }
-        [Inject] protected ObstacleFacade ObstacleFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected Wayfarer.Subsystems.Scene.SceneFacade SceneFacade { get; set; }
 
         protected List<PathCardInfo> AvailablePathCards { get; set; } = new();
 
@@ -365,7 +359,7 @@ namespace Wayfarer.Pages.Components
             if (TravelContext == null)
                 throw new InvalidOperationException("No active travel context");
             return TravelContext.CardDiscoveries.Any(d => d.CardId == pathCardId) &&
-                   TravelContext.CardDiscoveries.IsDiscovered(pathCardId);
+                   TravelContext.CardDiscoveries.FirstOrDefault(d => d.CardId == pathCardId)?.IsDiscovered == true;
         }
 
         /// <summary>
@@ -594,63 +588,6 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        /// <summary>
-        /// Get situation previews for a path (challenges player will face)
-        /// Situations are fetched from parent Obstacle, equipment matching via Obstacle contexts
-        /// </summary>
-        protected System.Collections.Generic.List<SituationPreviewData> GetSituationPreviewsForPath(string obstacleId)
-        {
-            if (string.IsNullOrEmpty(obstacleId))
-                return new System.Collections.Generic.List<SituationPreviewData>();
-
-            Obstacle obstacle = ObstacleFacade.GetObstacleById(obstacleId);
-            if (obstacle == null || obstacle.SituationIds == null || !obstacle.SituationIds.Any())
-                return new System.Collections.Generic.List<SituationPreviewData>();
-
-            System.Collections.Generic.List<Equipment> playerEquipment = EquipmentFacade.GetPlayerEquipment();
-
-            System.Collections.Generic.List<SituationPreviewData> situationPreviews = new System.Collections.Generic.List<SituationPreviewData>();
-
-            foreach (string situationId in obstacle.SituationIds)
-            {
-                Situation situation = GameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
-                if (situation == null)
-                    continue;
-
-                System.Collections.Generic.List<EquipmentMatchData> matchingEquipment = new System.Collections.Generic.List<EquipmentMatchData>();
-                int totalReduction = 0;
-
-                foreach (Equipment equipment in playerEquipment)
-                {
-                    System.Collections.Generic.List<ObstacleContext> matchedContexts = equipment.ApplicableContexts
-                        .Intersect(obstacle.Contexts)
-                        .ToList();
-
-                    if (matchedContexts.Any())
-                    {
-                        matchingEquipment.Add(new EquipmentMatchData
-                        {
-                            EquipmentName = equipment.Name,
-                            IntensityReduction = equipment.IntensityReduction,
-                            MatchedContexts = matchedContexts
-                        });
-                        totalReduction += equipment.IntensityReduction;
-                    }
-                }
-
-                situationPreviews.Add(new SituationPreviewData
-                {
-                    Name = situation.Name,
-                    Description = situation.Description,
-                    SystemType = situation.SystemType.ToString(),
-                    Contexts = obstacle.Contexts,
-                    MatchingEquipment = matchingEquipment,
-                    TotalReduction = totalReduction
-                });
-            }
-
-            return situationPreviews;
-        }
 
         // ========== TRAVEL CONTEXT DETECTION (FOR UI CONDITIONAL RENDERING) ==========
 
@@ -728,7 +665,7 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Check if current segment is Encounter type (mandatory challenge)
-        /// Renders as challenge screen where player must resolve obstacle to proceed
+        /// Renders as challenge screen where player must resolve scene to proceed
         /// </summary>
         protected bool IsEncounterSegment()
         {
@@ -741,7 +678,7 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Get all unique encounter situation names for current segment
-        /// Aggregates situation names from all obstacles on all paths in current segment
+        /// Aggregates situation names from all scenes on all paths in current segment
         /// </summary>
         protected List<string> GetEncounterSituationsForCurrentSegment()
         {
@@ -750,13 +687,13 @@ namespace Wayfarer.Pages.Components
             if (segment == null)
                 return situationNames;
 
-            // PathCard system - get obstacles from PathCards
+            // PathCard system - get scenes from PathCards
             List<PathCardInfo> availableCards = GetAvailablePathCards();
             foreach (PathCardInfo cardInfo in availableCards)
             {
-                if (!string.IsNullOrEmpty(cardInfo.Card.ObstacleId))
+                if (!string.IsNullOrEmpty(cardInfo.Card.SceneId))
                 {
-                    List<SituationPreviewData> situationPreviews = GetSituationPreviewsForPath(cardInfo.Card.ObstacleId);
+                    List<SituationPreviewData> situationPreviews = GetSituationPreviewsForPath(cardInfo.Card.SceneId);
                     foreach (SituationPreviewData preview in situationPreviews)
                     {
                         if (!string.IsNullOrEmpty(preview.Name) && !situationNames.Contains(preview.Name))
@@ -771,6 +708,41 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Get situation previews for a scene (used for displaying encounters on path cards)
+        /// ARCHITECTURE: Query GameWorld.Scenes to find Scene, get SituationIds, query GameWorld.Situations
+        /// </summary>
+        protected List<SituationPreviewData> GetSituationPreviewsForPath(string sceneId)
+        {
+            if (string.IsNullOrEmpty(sceneId))
+                return new List<SituationPreviewData>();
+
+            // Query GameWorld.Scenes for scene with matching ID
+            global::Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+            if (scene == null)
+                return new List<SituationPreviewData>();
+
+            // Query GameWorld.Situations using scene.SituationIds (HIGHLANDER: single source of truth)
+            List<Situation> situations = GameWorld.Situations
+                .Where(s => scene.SituationIds.Contains(s.Id))
+                .ToList();
+
+            // Convert to preview data
+            List<SituationPreviewData> previews = new List<SituationPreviewData>();
+            foreach (Situation situation in situations)
+            {
+                SituationPreviewData preview = new SituationPreviewData
+                {
+                    Name = situation.Name ?? "",
+                    Description = situation.Description ?? "",
+                    SystemType = situation.SystemType.ToString()
+                };
+                previews.Add(preview);
+            }
+
+            return previews;
+        }
+
+        /// <summary>
         /// Helper class for situation preview data
         /// </summary>
         protected class SituationPreviewData
@@ -778,19 +750,6 @@ namespace Wayfarer.Pages.Components
             public string Name { get; set; }
             public string Description { get; set; }
             public string SystemType { get; set; }
-            public System.Collections.Generic.List<ObstacleContext> Contexts { get; set; }
-            public System.Collections.Generic.List<EquipmentMatchData> MatchingEquipment { get; set; }
-            public int TotalReduction { get; set; }
-        }
-
-        /// <summary>
-        /// Helper class for equipment match data
-        /// </summary>
-        protected class EquipmentMatchData
-        {
-            public string EquipmentName { get; set; }
-            public int IntensityReduction { get; set; }
-            public System.Collections.Generic.List<ObstacleContext> MatchedContexts { get; set; }
         }
     }
 
