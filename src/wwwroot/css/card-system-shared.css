@@ -2,25 +2,10 @@
 CARD SYSTEM SHARED STYLES
 Shared tactical card system styles for Social/Mental/Physical systems
 
-SECTIONS:
-1. Context Header (~37 lines) - Context bar with name/status/rule
-2. Core Resources (~54 lines) - Resource display with bars and values
-3. Rhythm Tracker (~49 lines) - Balance/Cadence scale visualization
-4. Action Economy (~48 lines) - Initiative/Attention counter with dots
-5. Situations/Progress (~51 lines) - Achievement thresholds and rewards
-6. Narrative (~16 lines) - Story text display
-7. Actions (~43 lines) - Primary action buttons (Listen/Speak, Observe/Act)
-8. Pile Counters (~19 lines) - Deck/Discard pile counts
-9. Card Grid (~41 lines) - Universal card container and states
-10. Stat Colors (~50 lines) - Five-stat color system (Insight/Rapport/Authority/Diplomacy/Cunning)
-11. Card Layout (~114 lines) - Card internal structure (header/initiative/cost/requirement/text/effects)
-12. Tooltips (~26 lines) - Universal tooltip system
-13. AI Content (~43 lines) - AI-generated content styling (conversations only)
-
-Total: 652 lines of shared tactical UI
+Shared tactical UI
 
 HIGHLANDER PRINCIPLE: ONE implementation for universal card-based gameplay patterns
-Used by Social (Conversations), Mental (Obligations), Physical (Obstacles) systems
+Used by Social, Mental, Physical systems
 */
 
 /* ===== CONTEXT HEADER (NPC Bar / Venue Bar) ===== */

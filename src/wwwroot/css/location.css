@@ -1696,10 +1696,10 @@ body * {
 }
 
 /* ============================================
-   OBSTACLE CARDS - Hierarchical Challenge Display
+   SCENE CARDS - Hierarchical Challenge Display
    ============================================ */
 
-.obstacle-card {
+.scene-card {
     background: #f4e8d0;
     border: 2px solid #c4a684;
     border-radius: 6px;
@@ -1707,27 +1707,27 @@ body * {
     margin-bottom: 15px;
 }
 
-.obstacle-header {
+.scene-header {
     margin-bottom: 10px;
     padding-bottom: 8px;
     border-bottom: 1px dashed #d4c5a0;
 }
 
-.obstacle-name {
+.scene-name {
     font-size: 14px;
     color: #5c4a3a;
     font-weight: bold;
     margin-bottom: 6px;
 }
 
-.obstacle-meta {
+.scene-meta {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.obstacle-intensity {
+.scene-intensity {
     font-size: 11px;
     color: #8b4726;
     font-weight: bold;
@@ -1736,14 +1736,14 @@ body * {
     border-radius: 2px;
 }
 
-.obstacle-contexts {
+.scene-contexts {
     font-size: 11px;
     color: #5a7a8b;
     font-weight: bold;
     font-style: italic;
 }
 
-.obstacle-description {
+.scene-description {
     font-size: 12px;
     color: #7a6250;
     line-height: 1.4;
@@ -1751,11 +1751,11 @@ body * {
     margin-bottom: 12px;
 }
 
-/* Situations within obstacles have tighter spacing */
-.obstacle-card .actions-grid {
+/* Situations within scenes have tighter spacing */
+.scene-card .actions-grid {
     margin-top: 10px;
 }
 
-.obstacle-card .situation-action-btn {
+.scene-card .situation-action-btn {
     margin-bottom: 8px;
 }

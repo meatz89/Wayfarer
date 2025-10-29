@@ -1413,8 +1413,8 @@
     font-style: italic;
 }
 
-/* Obstacle Display */
-.obstacle-display {
+/* Scene Display */
+.scene-display {
     background: #faf4ea;
     border: 3px solid #8b5a8b;
     border-radius: 4px;
@@ -1424,7 +1424,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.obstacle-name {
+.scene-name {
     background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
     padding: 15px 20px;
     border-bottom: 2px solid #8b5a8b;
@@ -1433,7 +1433,7 @@
     color: #5c4a3a;
 }
 
-.obstacle-description {
+.scene-description {
     padding: 15px 20px;
     font-size: 15px;
     line-height: 1.6;
@@ -1443,7 +1443,7 @@
     border-bottom: 1px solid #e8dcc4;
 }
 
-.obstacle-intensity {
+.scene-intensity {
     padding: 10px 20px;
     background: #f9f3e9;
     border-bottom: 2px solid #c4a684;
