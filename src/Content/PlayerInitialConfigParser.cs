@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Parser for player initial configuration
 /// Translates categorical properties (verisimilitude) to concrete mechanical values

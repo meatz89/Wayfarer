@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for SituationCards - tactical layer victory conditions
 /// Defined inline within situations (not separate reusable entities)
@@ -96,6 +94,4 @@ public class SituationCardRewardsDTO
     public string EquipmentId { get; set; }  // GrantEquipment: Direct equipment grant
     public CreateObligationRewardDTO CreateObligationData { get; set; }  // CreateObligation: NPC-commissioned work
     public RouteSegmentUnlockDTO RouteSegmentUnlock { get; set; }  // UnlockRouteSegment: Reveal hidden path
-
-    public ObstaclePropertyReductionDTO ObstacleReduction { get; set; }
 }

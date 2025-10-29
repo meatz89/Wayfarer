@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 public class Location
 {
     public string Id { get; set; }
@@ -22,9 +19,8 @@ public class Location
     // References situations in GameWorld.Situations (single source of truth)
     public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
-    // Obstacle IDs for this location
-    // References obstacles in GameWorld.Obstacles (single source of truth)
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // NOTE: SceneIds removed - OLD equipment-based Scene system deleted
+    // NEW Scene-Situation architecture: Query GameWorld.Scenes by PlacementType/PlacementId
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 

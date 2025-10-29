@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Compound Requirements - OR-based unlocking system
 /// Multiple paths to unlock the same situation

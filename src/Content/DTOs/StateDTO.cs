@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for State definitions - metadata about temporary conditions players can have
 /// States are applied to players and tracked as ActiveState instances

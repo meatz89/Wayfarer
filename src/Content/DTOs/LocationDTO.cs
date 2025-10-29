@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing Venue location data from JSON.
 /// Maps to the structure in location_spots.json.
@@ -24,8 +22,8 @@ public class LocationDTO
     public string WorkType { get; set; }
     public int WorkPay { get; set; }
 
-    // Obstacles at this location (Mental/Physical challenges)
-    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+    // NOTE: Old SceneDTO system deleted - ObservationScene (Mental) and TravelScene (Physical) are SEPARATE systems
+    // NEW Scene-Situation architecture uses GameWorld.Scenes with PlacementType/PlacementId filtering
 
     // Gameplay properties moved from LocationDTO
     public string LocationType { get; set; }

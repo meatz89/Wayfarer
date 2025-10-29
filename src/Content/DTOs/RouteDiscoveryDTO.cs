@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing route discovery data from JSON.
 /// Maps to the structure in route_discovery.json.

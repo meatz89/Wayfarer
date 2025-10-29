@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Parser for converting StateDTO to State domain model
 /// </summary>
@@ -39,7 +34,7 @@ public static class StateParser
             EnabledActions = dto.EnabledActions ?? new List<string>(),
             Duration = dto.Duration,
             // Parse-time translation: clearConditions → strongly-typed behavior object
-            ClearingBehavior = StateClearConditionsCatalogue.GetClearingBehavior(dto.ClearConditions ?? new List<string>())
+            ClearingBehavior = StateClearConditionsCatalog.GetClearingBehavior(dto.ClearConditions ?? new List<string>())
         };
 
         return state;

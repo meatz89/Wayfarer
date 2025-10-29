@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Situations - strategic layer that defines UI actions
 /// Universal across all three challenge types (Social/Mental/Physical)
@@ -144,12 +142,6 @@ public class SituationDTO
     /// New description for obstacle after Transform consequence
     /// </summary>
     public string TransformDescription { get; set; }
-
-    /// <summary>
-    /// Property reduction to apply to parent obstacle (for Modify consequence)
-    /// Reduces obstacle intensity, making other situations easier (NOT unlocking them)
-    /// </summary>
-    public ObstaclePropertyReductionDTO PropertyReduction { get; set; }
 
     // ====================
     // SCENE-SITUATION ARCHITECTURE PROPERTIES

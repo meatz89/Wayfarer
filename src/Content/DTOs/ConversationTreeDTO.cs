@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for ConversationTree - simple dialogue tree system for non-tactical NPC conversations.
 /// Can escalate to tactical Social challenges when tension rises.

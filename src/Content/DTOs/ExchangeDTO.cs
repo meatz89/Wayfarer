@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data transfer object for exchange definitions
 /// </summary>

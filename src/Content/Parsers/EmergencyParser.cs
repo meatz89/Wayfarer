@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
-
 /// <summary>
 /// Parser for converting EmergencySituationDTO to EmergencySituation domain model
 /// </summary>

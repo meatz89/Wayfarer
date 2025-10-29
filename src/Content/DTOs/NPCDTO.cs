@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing NPC data from JSON.
 /// Maps to the structure in npcs.json.
@@ -24,6 +22,6 @@ public class NPCDTO
     public string CurrentState { get; set; }
     public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
 
-    // Obstacles for this NPC (Social barriers only - NPCs can ONLY have SocialDifficulty obstacles)
-    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+    // NOTE: Old SceneDTO system deleted - NEW Scene-Situation architecture
+    // Scenes now use Scene-Situation spawning pattern (spawn templates instead of inline scene definitions)
 }

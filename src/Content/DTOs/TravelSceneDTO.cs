@@ -1,5 +1,5 @@
 
-public class TravelObstacleDTO
+public class TravelSceneDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -8,10 +8,10 @@ public class TravelObstacleDTO
     public string VenueId { get; set; }
     public string RouteId { get; set; }
 
-    public List<ObstacleApproachDTO> Approaches { get; set; }
+    public List<SceneApproachDTO> Approaches { get; set; }
 }
 
-public class ObstacleApproachDTO
+public class SceneApproachDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -21,11 +21,11 @@ public class ObstacleApproachDTO
     public int StaminaRequired { get; set; }
     public Dictionary<string, int> StatRequirements { get; set; }
 
-    public ObstacleOutcomeDTO SuccessOutcome { get; set; }
-    public ObstacleOutcomeDTO FailureOutcome { get; set; }
+    public SceneOutcomeDTO SuccessOutcome { get; set; }
+    public SceneOutcomeDTO FailureOutcome { get; set; }
 }
 
-public class ObstacleOutcomeDTO
+public class SceneOutcomeDTO
 {
     public string Description { get; set; }
     public int TimeSegmentCost { get; set; } = 1;

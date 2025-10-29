@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// Catalogue for translating categorical clearConditions strings → strongly-typed StateClearingBehavior
 ///
@@ -12,9 +9,9 @@ using System.Collections.Generic;
 ///
 /// Parallel to SocialCardEffectCatalog:
 /// - SocialCardEffectCatalog: Categorical properties → CardEffectFormula
-/// - StateClearConditionsCatalogue: Categorical strings → StateClearingBehavior
+/// - StateClearConditionsCatalog: Categorical strings → StateClearingBehavior
 /// </summary>
-public static class StateClearConditionsCatalogue
+public static class StateClearConditionsCatalog
 {
     /// <summary>
     /// Translate categorical clearConditions strings to strongly-typed StateClearingBehavior

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-
 /// <summary>
 /// Parser for player stats system content from JSON packages
 /// </summary>

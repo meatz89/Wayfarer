@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for travel events that contain multiple event cards.
 /// Represents a single event that can occur during travel with its own narrative and card choices.

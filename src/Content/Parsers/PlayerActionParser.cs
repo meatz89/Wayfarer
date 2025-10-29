@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 /// <summary>
 /// Parser for PlayerAction entities with strong typing and enum validation.
 /// Validates actionType against PlayerActionType enum - throws on unknown types.
@@ -44,10 +40,10 @@ public static class PlayerActionParser
 
         return new ActionCosts
         {
-            CoinCost = dto.Coins,
-            FocusCost = dto.Focus,
-            StaminaCost = dto.Stamina,
-            HealthCost = dto.Health
+            Coins = dto.Coins,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Health = dto.Health
         };
     }
 

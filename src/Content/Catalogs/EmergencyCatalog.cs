@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Catalog translating categorical emergency properties to mechanical values
 /// Pattern: Categorical (fiction) → Mechanical (game design)

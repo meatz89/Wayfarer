@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
@@ -35,11 +32,6 @@ public static class SituationParser
         ResolutionMethod resolutionMethod = ParseResolutionMethod(dto.ResolutionMethod);
         RelationshipOutcome relationshipOutcome = ParseRelationshipOutcome(dto.RelationshipOutcome);
 
-        // Parse property reduction
-        ObstaclePropertyReduction propertyReduction = dto.PropertyReduction != null
-            ? ObstacleParser.ConvertDTOToReduction(dto.PropertyReduction)
-            : null;
-
         // Parse costs and difficulty modifiers
         SituationCosts costs = ParseSituationCosts(dto.Costs);
         List<DifficultyModifier> difficultyModifiers = ParseDifficultyModifiers(dto.DifficultyModifiers);
@@ -67,7 +59,6 @@ public static class SituationParser
             SetsResolutionMethod = resolutionMethod,
             SetsRelationshipOutcome = relationshipOutcome,
             TransformDescription = dto.TransformDescription,
-            PropertyReduction = propertyReduction,
             // Scene-Situation Architecture additions (spawn/completion tracking)
             TemplateId = dto.TemplateId,
             ParentSituationId = dto.ParentSituationId,
@@ -176,9 +167,9 @@ public static class SituationParser
                     SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition,
                     PathId = dto.RouteSegmentUnlock.PathId
                 }
-                : null,
+                : null
 
-            ObstacleReduction = dto.ObstacleReduction != null ? ObstacleParser.ConvertDTOToReduction(dto.ObstacleReduction) : null
+            // SceneReduction deleted - legacy Scene architecture removed
         };
 
         return rewards;

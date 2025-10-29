@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for the properties object structure in Venue Locations JSON.
 /// Maps time periods to property lists.

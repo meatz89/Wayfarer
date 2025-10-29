@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-public class ContentValidationResult
+﻿public class ContentValidationResult
 {
     public List<MissingLocationSpotReference> MissingLocationSpots { get; } = new List<MissingLocationSpotReference>();
     public List<MissingConnectedLocationReference> MissingConnectedLocations { get; } = new List<MissingConnectedLocationReference>();

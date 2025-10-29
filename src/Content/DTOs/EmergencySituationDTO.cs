@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for EmergencySituation - urgent situation demanding immediate player response.
 /// Interrupts normal gameplay at sync points (time advancement, location entry).

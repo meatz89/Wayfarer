@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for conversation type definitions loaded from JSON
 /// </summary>

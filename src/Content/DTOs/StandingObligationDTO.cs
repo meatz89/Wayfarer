@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing standing obligation data from JSON.
 /// Maps to the structure in standing_obligations.json.

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Parser for converting CompoundRequirement and NumericRequirement DTOs to domain models
 /// Handles OR-based unlocking system for situations

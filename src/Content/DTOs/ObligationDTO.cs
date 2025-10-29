@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Obligation Template - complete obligation definition
 /// Maps to ObligationTemplate domain model
@@ -70,17 +68,19 @@ public class PhaseCompletionRewardDTO
     public List<string> DiscoveriesGranted { get; set; } = new List<string>();
     public int UnderstandingReward { get; set; } = 0; // Replaces KnowledgeGranted - 0-10 scale
     public string UnlocksPhaseId { get; set; }
-    public List<ObstacleSpawnInfoDTO> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfoDTO>();
+    public List<SceneSpawnInfoDTO> ScenesSpawned { get; set; } = new List<SceneSpawnInfoDTO>();
 }
 
 /// <summary>
-/// DTO for obstacle spawn information in obligation phase rewards
+/// DTO for scene spawn information in obligation phase rewards
+/// MIGRATED: Uses SceneTemplateId instead of embedded SceneDTO
+/// Spawns Scene instances from SceneTemplate at runtime
 /// </summary>
-public class ObstacleSpawnInfoDTO
+public class SceneSpawnInfoDTO
 {
     public string TargetType { get; set; } // "Location", "Route", or "NPC"
     public string TargetEntityId { get; set; }
-    public ObstacleDTO Obstacle { get; set; }
+    public string SceneTemplateId { get; set; } // References SceneTemplate in GameWorld.SceneTemplates
 }
 
 /// <summary>
@@ -105,7 +105,7 @@ public class ObligationIntroActionDTO
     public string ActionText { get; set; } // Button text: "Search for safe entry to the mill"
     public string LocationId { get; set; } // LocationId where intro button appears
     public string IntroNarrative { get; set; } // Modal narrative when button clicked
-    public PhaseCompletionRewardDTO CompletionReward { get; set; } // Spawns Phase 1 obstacle when intro completes
+    public PhaseCompletionRewardDTO CompletionReward { get; set; } // Spawns Phase 1 scene when intro completes
 }
 
 /// <summary>

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for player initial configuration from JSON
 /// Uses categorical properties (verisimilitude) that parser translates to concrete values

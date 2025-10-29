@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Tracks packages that have been loaded into the game world.
 /// Used to prevent duplicate loading and track package history.

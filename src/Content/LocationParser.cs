@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 /// <summary>
 /// Parser for deserializing Venue location data from JSON.
@@ -159,27 +157,9 @@ public static class LocationParser
             }
         }
 
-        // Parse obstacles at this location (Mental/Physical challenges)
-        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
-        {
-            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
-            {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, location.Id, gameWorld);
-
-                // Duplicate ID protection - prevent data corruption
-                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
-                {
-                    gameWorld.Obstacles.Add(obstacle);
-                    location.ObstacleIds.Add(obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{obstacle.Id}' found in location '{location.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-            }
-        }
+        // NOTE: Old SceneDTO parsing removed - equipment-based Scene system deleted
+        // ObservationScene (Mental) and TravelScene (Physical) are separate valid systems
+        // NEW Scene-Situation architecture spawns Scenes via SceneTemplates (not embedded in location JSON)
 
         return location;
     }

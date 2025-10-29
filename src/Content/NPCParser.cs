@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-
 public static class NPCParser
 {
     /// <summary>
@@ -111,27 +107,9 @@ public static class NPCParser
             npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
         }
 
-        // Parse obstacles for this NPC (Social barriers only)
-        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
-        {
-            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
-            {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
-
-                // Duplicate ID protection - prevent data corruption
-                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
-                {
-                    gameWorld.Obstacles.Add(obstacle);
-                    npc.ObstacleIds.Add(obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{obstacle.Id}' found in NPC '{npc.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-            }
-        }
+        // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
+        // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
+        // NPCs will receive Scene references through the spawning system, not direct parsing
 
         return npc;
     }

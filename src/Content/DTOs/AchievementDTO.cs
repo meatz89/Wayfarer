@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Achievement definitions - milestone markers players can earn
 /// Achievements are earned and tracked as PlayerAchievement instances

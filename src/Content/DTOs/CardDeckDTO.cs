@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Conversation system card deck definitions loaded from JSON
 /// Each deck contains card IDs with their counts

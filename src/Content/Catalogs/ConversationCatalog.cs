@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Catalog translating categorical conversation properties to mechanical values
 /// Pattern: Categorical (fiction) → Mechanical (game design)

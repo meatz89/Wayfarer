@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing Location action data from JSON.
 /// Maps to the structure in the locationActions array in game packages.

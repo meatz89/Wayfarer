@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing global Player action data from JSON.
 /// PlayerActions are available everywhere, not location-specific like LocationActions.

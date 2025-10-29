@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Parser for converting SpawnRuleDTO to SpawnRule domain model
 /// Handles situation spawn cascades and requirement offsets

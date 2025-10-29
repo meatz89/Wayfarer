@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for stranger NPC definitions from JSON packages
 /// </summary>
