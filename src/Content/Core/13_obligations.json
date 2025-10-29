@@ -22,7 +22,7 @@
           "locationId": "common_room",
           "introNarrative": "The common room hums with evening activity. A few patrons sit at tables, some nursing drinks, others in quiet conversation. Elena moves efficiently between tables. A warehouse foreman sits in the corner, looking like he needs capable hands.",
           "completionReward": {
-            "obstaclesSpawned": []
+            "scenesSpawned": []
           }
         },
         "personality": "SequentialSite",

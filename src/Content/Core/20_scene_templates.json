@@ -1,0 +1,129 @@
+{
+  "packageId": "core_scene_templates",
+  "metadata": {
+    "name": "Scene Templates - Dynamic Content Infrastructure",
+    "timestamp": "2025-10-28T00:00:00Z",
+    "description": "SceneTemplate definitions for procedural Scene spawning. Scenes spawn from Choice rewards, Obligation phases, and events.",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "sceneTemplates": [
+      {
+        "id": "example_favor_request",
+        "archetype": "Linear",
+        "displayNameTemplate": "A Favor from {NPCName}",
+        "introNarrativeTemplate": "{NPCName} approaches you with a request that could be mutually beneficial.",
+        "tier": 1,
+        "isStarter": true,
+        "expirationDays": 7,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["DEVOTED", "MERCANTILE"],
+          "minBond": 5,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": [],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "request_situation",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "request_situation",
+            "narrativeTemplate": "{NPCName} explains they need help with a small matter. It won't take long, and they'll remember the favor.",
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "casual",
+              "theme": "favor",
+              "context": "relationship building",
+              "style": "conversational"
+            },
+            "choiceTemplates": [
+              {
+                "id": "accept_favor",
+                "actionTextTemplate": "Help {NPCName}",
+                "actionType": "Instant",
+                "challengeId": null,
+                "challengeType": null,
+                "requirementFormula": {
+                  "logicType": "Simple",
+                  "numericRequirement": null,
+                  "compoundRequirements": []
+                },
+                "costTemplate": {
+                  "resolve": 2,
+                  "coins": 0,
+                  "timeSegments": 1
+                },
+                "rewardTemplate": {
+                  "coins": 0,
+                  "resolve": 0,
+                  "timeSegments": 0,
+                  "bondChanges": [
+                    {
+                      "npcId": "{CurrentNPC}",
+                      "bondChange": 2
+                    }
+                  ],
+                  "scaleShifts": [],
+                  "stateApplications": [],
+                  "achievementIds": [],
+                  "itemIds": [],
+                  "scenesToSpawn": []
+                },
+                "navigationPayload": null
+              },
+              {
+                "id": "decline_favor",
+                "actionTextTemplate": "Decline politely",
+                "actionType": "Instant",
+                "challengeId": null,
+                "challengeType": null,
+                "requirementFormula": {
+                  "logicType": "Simple",
+                  "numericRequirement": null,
+                  "compoundRequirements": []
+                },
+                "costTemplate": {
+                  "resolve": 0,
+                  "coins": 0,
+                  "timeSegments": 0
+                },
+                "rewardTemplate": {
+                  "coins": 0,
+                  "resolve": 0,
+                  "timeSegments": 0,
+                  "bondChanges": [
+                    {
+                      "npcId": "{CurrentNPC}",
+                      "bondChange": -1
+                    }
+                  ],
+                  "scaleShifts": [],
+                  "stateApplications": [],
+                  "achievementIds": [],
+                  "itemIds": [],
+                  "scenesToSpawn": []
+                },
+                "navigationPayload": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
